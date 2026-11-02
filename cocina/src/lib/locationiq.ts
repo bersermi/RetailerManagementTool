@@ -21,25 +21,22 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 
-import type { AddressForm } from '@/api/place';
 import {
   LIMITE_MS,
   PAUSA_MS,
   SUGERENCIAS,
   preguntaConColonia,
-  preguntaDeDireccion,
   resultadoDe,
   sinNumero,
   tokenOf,
   urlDeBusqueda,
-  type Respuesta,
   type Resultado,
 } from '@/lib/buscar';
 
 export const LOCATIONIQ_TOKEN: string | null = tokenOf(process.env.EXPO_PUBLIC_LOCATIONIQ_TOKEN);
 
-/** The prefix every search is cached under, in memory. */
-const BUSCAR_KEY = ['cocina', 'buscar'] as const;
+/** The prefix every search is cached under, in memory — LocationIQ's and the phone's (`@/lib/telefono`). */
+export const BUSCAR_KEY = ['cocina', 'buscar'] as const;
 
 /** How long the second question waits after the first: the free plan answers two a second. */
 export const ENTRE_PREGUNTAS_MS = 500;
@@ -137,22 +134,4 @@ export function useSugerencias(texto: string, colonia: string): Sugerencias {
   });
   if (ahora === null || LOCATIONIQ_TOKEN === null) return { kind: 'nada' };
   return data ?? { kind: 'buscando' };
-}
-
-/**
- * The one answer the map opens on: the address she typed, asked once, while
- * she has no pin. `null` until it answers, and when it finds nothing — the map
- * then stays on the city, as before this row.
- */
-export function useApertura(direccion: AddressForm | null): Respuesta | null {
-  const pregunta = direccion === null ? null : preguntaDeDireccion(direccion);
-  const { data } = useQuery({
-    queryKey: [...BUSCAR_KEY, 'apertura', pregunta],
-    queryFn: ({ signal }) => preguntar(pregunta as string, signal, 1),
-    enabled: pregunta !== null && LOCATIONIQ_TOKEN !== null,
-    staleTime: Infinity,
-    gcTime: 10 * 60_000,
-    retry: false,
-  });
-  return data?.kind === 'respuestas' ? (data.respuestas[0] ?? null) : null;
 }

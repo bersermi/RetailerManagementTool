@@ -8,24 +8,31 @@ import { EMPTY_ADDRESS } from '@/api/place';
 import {
   ANCHO_CALLE_METROS,
   ANCHO_ZONA_MAX_METROS,
+  CAJA_DEL_VALLE,
   CREDITO_LOCATIONIQ_URL,
   CREDITO_OSM_URL,
   LIMITE_MS,
   LOCATIONIQ_AUTOCOMPLETE,
   MIN_LETRAS,
   PAUSA_MS,
+  RESPUESTAS_DEL_TELEFONO,
   SUGERENCIAS,
   VALLE_DE_MEXICO,
   anchoPara,
   preguntaConColonia,
   preguntaDe,
   preguntaDeDireccion,
+  preguntaParaElTelefono,
+  primeroElTelefono,
   respuestasDe,
+  respuestasDelTelefono,
   resultadoDe,
+  resultadoDelTelefono,
   sinNumero,
   tokenOf,
   urlDeBusqueda,
   type Respuesta,
+  type Resultado,
 } from '@/lib/buscar';
 import { CLOSE_METRES } from '@/lib/mapa';
 import { ES } from '@/strings';
@@ -451,16 +458,19 @@ describe('an answer only moves the map; her tap is the pin', () => {
     expect(map).toMatch(/map\.current\?\.animateToRegion\(regionAround\(respuesta\.punto, anchoPara\(respuesta\)\), VOLAR_MS\)/);
   });
 
-  it('a pick and the opening answer both go through that flight, and the opening one never after her finger', () => {
+  it('a pick, the opening answer and Buscar’s all go through that flight, and the opening one never after her finger', () => {
     expect(map).toMatch(/function elegir\(respuesta: Respuesta\) \{[\s\S]*?volarA\(respuesta\);\s*\}/);
     expect(map).toMatch(/if \(apertura !== null && listo && !tocado\.current\) volarA\(apertura\);/);
     expect(map).toMatch(/onTouchStart=\{\(\) => \{\s*tocado\.current = true;\s*\}\}/);
+    expect(map).toMatch(/const buscada = useBuscar\(enviada\);/);
+    expect(map).toMatch(/if \(buscada\.kind !== 'respuestas'\) return;\s*const primera = buscada\.respuestas\[0\];[\s\S]*?if \(primera !== undefined\) volarA\(primera\);/);
+    expect(map.match(/volarA\(/g)).toHaveLength(4); // its definition and the three above
   });
 
   it('nothing in the data layer reads the search', () => {
     const api = sources(join(SRC, 'api')).map((path) => ({ path, text: readFileSync(path, 'utf8') }));
     expect(api.length).toBeGreaterThan(0);
-    for (const file of api) expect(file.text, file.path).not.toMatch(/@\/lib\/(buscar|locationiq)|@\/ui\/Buscador/);
+    for (const file of api) expect(file.text, file.path).not.toMatch(/@\/lib\/(buscar|locationiq|telefono)|@\/ui\/Buscador/);
   });
 
   it('¿Es aquí? is the phone’s own maps, shown in the map and handed to nobody', () => {
@@ -489,10 +499,208 @@ describe('the box, and the credit it carries', () => {
   it('is drawn only on a build that carries the token, and the credit with it', () => {
     expect(code('ui/MapaPunto.tsx')).toMatch(/\{LOCATIONIQ_TOKEN !== null && \(\s*<CampoDeBusqueda/);
     expect(code('lib/locationiq.ts')).toMatch(/tokenOf\(process\.env\.EXPO_PUBLIC_LOCATIONIQ_TOKEN\)/);
-    expect((code('lib/locationiq.ts').match(/enabled: pregunta !== null && LOCATIONIQ_TOKEN !== null/g) ?? []).length).toBe(2);
+    // The suggestions ask only with a token; the phone's two questions ask LocationIQ only with one.
+    expect((code('lib/locationiq.ts').match(/enabled: pregunta !== null && LOCATIONIQ_TOKEN !== null/g) ?? []).length).toBe(1);
+    expect((code('lib/telefono.ts').match(/LOCATIONIQ_TOKEN === null \? Promise\.resolve\(FALLA\)/g) ?? []).length).toBe(2);
+  });
+
+  it('the keyboard’s Buscar key asks for what she typed, with her colonia', () => {
+    expect(code('ui/Buscador.tsx')).toMatch(/onSubmitEditing=\{onBuscar\}/);
+    expect(code('ui/Buscador.tsx')).toMatch(/returnKeyType="search"/);
+    expect(code('ui/MapaPunto.tsx')).toMatch(/function buscar\(\) \{\s*const pregunta = preguntaConColonia\(texto, direccion\?\.colonia \?\? ''\);\s*if \(pregunta !== null\) setEnviada\(pregunta\);/);
+    expect(code('ui/MapaPunto.tsx')).toMatch(/onBuscar=\{buscar\}/);
   });
 
   it('keeps the keyboard while she picks — a tap on a suggestion chooses it', () => {
     expect(code('ui/Buscador.tsx')).toMatch(/keyboardShouldPersistTaps="handled"/);
+  });
+});
+
+// ============================================================================
+// THE PHONE'S OWN SEARCH — plan task `10.4d`, the owner's ruling of 2026-11-01.
+// Google's geocoder on Android and Apple's on an iPhone answer the search that
+// opens the map and the keyboard's *Buscar*, through this app's own module
+// (`cocina/modules/geocodificador`); LocationIQ when the phone finds nothing.
+// The rows below are shaped like the module's own (2026-11-02, read off the
+// emulator and this Mac), with a made-up kitchen on a real street.
+// ============================================================================
+
+const PUERTA = {
+  latitude: 19.41531,
+  longitude: -99.16541,
+  calle: 'Calle Durango',
+  numero: '220',
+  colonia: 'Roma Norte',
+  ciudad: 'Ciudad de México',
+  estado: 'Ciudad de México',
+  cp: '06700',
+};
+
+describe('the phone is asked what she typed, inside the Valle de México', () => {
+  it('the box is LocationIQ’s own, south, west, north, east', () => {
+    const [oeste, sur, este, norte] = VALLE_DE_MEXICO.split(',').map(Number);
+    expect(CAJA_DEL_VALLE).toEqual([sur, oeste, norte, este]);
+    expect(CAJA_DEL_VALLE).toEqual([19.05, -99.4, 19.75, -98.85]);
+    expect(RESPUESTAS_DEL_TELEFONO).toBe(5);
+  });
+
+  it('the opening question is all five boxes as she wrote them — the postcode too', () => {
+    const form = { street: ' Durango ', number: '220', colonia: 'Roma Norte', city: 'Cuauhtémoc', postalCode: '06700' };
+    expect(preguntaParaElTelefono(form)).toBe('Durango 220, Roma Norte, Cuauhtémoc, 06700');
+    expect(preguntaParaElTelefono({ ...form, colonia: '' })).toBe('Durango 220, Cuauhtémoc, 06700');
+    // LocationIQ is asked without the postcode, as 10.4c measured it.
+    expect(preguntaDeDireccion(form)).toBe('Durango 220, Roma Norte, Cuauhtémoc');
+  });
+
+  it('nothing is asked while the address is not whole', () => {
+    expect(preguntaParaElTelefono(EMPTY_ADDRESS)).toBeNull();
+    const form = { street: 'Durango', number: '220', colonia: '', city: 'Cuauhtémoc', postalCode: '0670' };
+    expect(preguntaParaElTelefono(form)).toBeNull();
+  });
+});
+
+describe('what the phone answers, read', () => {
+  it('a door: street and number, its colonia, city and postcode, at block level', () => {
+    const [door] = respuestasDelTelefono([PUERTA]);
+    expect(door).toEqual({
+      id: 'telefono-0',
+      titulo: 'Calle Durango 220',
+      detalle: 'Roma Norte, Ciudad de México, 06700',
+      punto: { latitude: 19.41531, longitude: -99.16541 },
+      conNumero: true,
+      anchoMetros: 0,
+      caja: null,
+    });
+    expect(anchoPara(door)).toBe(CLOSE_METRES);
+  });
+
+  it('a street with no number opens about five blocks wide; a colonia alone is its own title', () => {
+    const [street] = respuestasDelTelefono([{ ...PUERTA, numero: null }]);
+    expect(street.titulo).toBe('Calle Durango');
+    expect(street.conNumero).toBe(false);
+    expect(anchoPara(street)).toBe(ANCHO_CALLE_METROS);
+    const [zone] = respuestasDelTelefono([{ ...PUERTA, calle: null, numero: '220' }]);
+    expect(zone.titulo).toBe('Roma Norte');
+    expect(zone.detalle).toBe('Ciudad de México, 06700');
+    expect(zone.conNumero).toBe(false);
+  });
+
+  it('an empty field is nothing — a null, the text "(null)", Google’s Unnamed Road', () => {
+    const [a] = respuestasDelTelefono([{ ...PUERTA, numero: '(null)', cp: null }]);
+    expect(a.titulo).toBe('Calle Durango');
+    expect(a.detalle).toBe('Roma Norte, Ciudad de México');
+    const [b] = respuestasDelTelefono([{ ...PUERTA, calle: 'Unnamed Road' }]);
+    expect(b.titulo).toBe('Roma Norte');
+    expect(b.conNumero).toBe(false);
+  });
+
+  it('an answer outside the Valle de México, without a point or a name, or malformed, is never offered', () => {
+    expect(respuestasDelTelefono([{ ...PUERTA, latitude: 20.6597, longitude: -103.3496 }])).toEqual([]); // Guadalajara
+    expect(respuestasDelTelefono([{ ...PUERTA, latitude: null }])).toEqual([]);
+    expect(respuestasDelTelefono([{ ...PUERTA, calle: null, colonia: null }])).toEqual([]);
+    expect(respuestasDelTelefono([null, 'x', 7])).toEqual([]);
+    expect(respuestasDelTelefono('no es una lista')).toEqual([]);
+    const [kept] = respuestasDelTelefono([{ ...PUERTA, latitude: 99 }, PUERTA]);
+    expect(kept.id).toBe('telefono-1');
+  });
+
+  it('two answers that read the same are one, the first', () => {
+    const both = respuestasDelTelefono([PUERTA, { ...PUERTA, latitude: 19.4154 }]);
+    expect(both).toHaveLength(1);
+    expect(both[0].punto.latitude).toBe(19.41531);
+  });
+
+  it('nothing found is nothing found; anything but a list is a failure', () => {
+    expect(resultadoDelTelefono([])).toEqual({ kind: 'ninguna' });
+    expect(resultadoDelTelefono([{ ...PUERTA, latitude: 25.6866, longitude: -100.3161 }])).toEqual({ kind: 'ninguna' }); // Monterrey
+    expect(resultadoDelTelefono(null)).toEqual({ kind: 'falla' });
+    expect(resultadoDelTelefono([PUERTA])).toMatchObject({ kind: 'respuestas', respuestas: [{ titulo: 'Calle Durango 220' }] });
+  });
+});
+
+describe('the phone first, LocationIQ when it has nothing', () => {
+  const answer = (titulo: string): Resultado => ({ kind: 'respuestas', respuestas: [{ ...respuestasDelTelefono([PUERTA])[0], titulo }] });
+  const of = (r: Resultado) => vi.fn(() => Promise.resolve(r));
+
+  it('the phone’s answers, and LocationIQ is never asked', async () => {
+    const locationiq = of(answer('LocationIQ'));
+    await expect(primeroElTelefono(of(answer('teléfono')), locationiq)).resolves.toMatchObject({ respuestas: [{ titulo: 'teléfono' }] });
+    expect(locationiq).not.toHaveBeenCalled();
+  });
+
+  it('nothing found or a failure on the phone: LocationIQ’s answer, whatever it is', async () => {
+    for (const phone of [{ kind: 'ninguna' }, { kind: 'falla' }] as const) {
+      await expect(primeroElTelefono(of(phone), of(answer('LocationIQ')))).resolves.toMatchObject({ respuestas: [{ titulo: 'LocationIQ' }] });
+      await expect(primeroElTelefono(of(phone), of({ kind: 'sin-senal' }))).resolves.toEqual({ kind: 'sin-senal' });
+      await expect(primeroElTelefono(of(phone), of({ kind: 'ninguna' }))).resolves.toEqual({ kind: 'ninguna' });
+    }
+  });
+
+  it('the phone found nothing and LocationIQ could not be asked: she hears nothing found, not a failure', async () => {
+    await expect(primeroElTelefono(of({ kind: 'ninguna' }), of({ kind: 'falla' }))).resolves.toEqual({ kind: 'ninguna' });
+    await expect(primeroElTelefono(of({ kind: 'falla' }), of({ kind: 'falla' }))).resolves.toEqual({ kind: 'falla' });
+  });
+});
+
+// ⚠️⚠️ THE PHONE'S GEOCODER ASKS NOTHING OF HERS. The ruling: Cocina still asks no
+// location permission and never reads her position. `expo-location`'s Android
+// geocoder refuses without the permission (57.0.20), which is why the module is
+// this app's own — and these lines hold it to the ruling, read out of the files,
+// because no suite can compile the native code.
+describe('the phone’s own geocoder asks for no permission and reads no position', () => {
+  const APP = fileURLToPath(new URL('..', import.meta.url));
+  const MOD = join(APP, 'modules', 'geocodificador');
+  const kotlin = readFileSync(join(MOD, 'android/src/main/java/mx/wera/cocina/geocodificador/GeocodificadorModule.kt'), 'utf8');
+  const swift = readFileSync(join(MOD, 'ios/GeocodificadorModule.swift'), 'utf8');
+  const manifest = readFileSync(join(MOD, 'android/src/main/AndroidManifest.xml'), 'utf8');
+  const appJson = JSON.parse(readFileSync(join(APP, 'app.json'), 'utf8')) as {
+    expo: { android: { blockedPermissions: string[] }; ios: { infoPlist: Record<string, unknown> }; plugins: unknown[] };
+  };
+  const pkg = JSON.parse(readFileSync(join(APP, 'package.json'), 'utf8')) as { dependencies: Record<string, string> };
+  const strip = (text: string) => text.replace(/^\s*\/\/.*$/gm, '').replace(/<!--[\s\S]*?-->/g, '');
+
+  it('one name in the three files — a misspelt one is a build that silently never asks the phone', () => {
+    expect(code('lib/telefono.ts')).toMatch(/requireOptionalNativeModule<Geocodificador>\('Geocodificador'\)/);
+    expect(kotlin).toMatch(/Name\("Geocodificador"\)/);
+    expect(swift).toMatch(/Name\("Geocodificador"\)/);
+    const config = JSON.parse(readFileSync(join(MOD, 'expo-module.config.json'), 'utf8'));
+    expect(config).toEqual({
+      platforms: ['apple', 'android'],
+      apple: { modules: ['GeocodificadorModule'] },
+      android: { modules: ['mx.wera.cocina.geocodificador.GeocodificadorModule'] },
+    });
+  });
+
+  it('only `@/lib/telefono` asks it, with the Valle’s box and five answers', () => {
+    const askers = sources()
+      .filter((path) => /Geocodificador|requireOptionalNativeModule/.test(readFileSync(path, 'utf8').replace(/^\s*\/\/.*$/gm, '')))
+      .map((path) => path.slice(SRC.length + 1));
+    expect(askers).toEqual(['lib/telefono.ts']);
+    expect(code('lib/telefono.ts')).toMatch(/GEOCODIFICADOR\.buscar\(pregunta, CAJA_DEL_VALLE, RESPUESTAS_DEL_TELEFONO\)/);
+    // Both of its questions — the map's opening and Buscar — ask the phone first.
+    expect((code('lib/telefono.ts').match(/primeroElTelefono\(\s*\(\) => preguntarAlTelefono\(/g) ?? []).length).toBe(2);
+    expect(code('ui/MapaPunto.tsx')).toMatch(/import \{ useApertura, useBuscar \} from '@\/lib\/telefono';/);
+  });
+
+  it('Android: Google’s geocoder, in Mexico’s Spanish, inside the box — no permission, no position', () => {
+    expect(strip(manifest)).not.toMatch(/uses-permission/);
+    expect(kotlin).toMatch(/Geocoder\(context, ESPANOL_DE_MEXICO\)/);
+    expect(kotlin).toMatch(/Locale\.Builder\(\)\.setLanguage\("es"\)\.setRegion\("MX"\)\.build\(\)/);
+    expect((kotlin.match(/getFromLocationName\(pregunta, limite, sur, oeste, norte, este/g) ?? []).length).toBe(2);
+    expect(strip(kotlin)).not.toMatch(/LocationManager|FusedLocation|getLastLocation|requestLocationUpdates|ACCESS_(FINE|COARSE)_LOCATION|requestPermissions/);
+  });
+
+  it('iPhone: Apple’s geocoder, in Mexico’s Spanish — no permission, no position', () => {
+    expect(swift).toMatch(/geocodeAddressString\(\s*pregunta, in: region, preferredLocale: Locale\(identifier: "es_MX"\)\)/);
+    expect(strip(swift)).not.toMatch(/CLLocationManager|requestWhenInUseAuthorization|requestAlwaysAuthorization|startUpdatingLocation/);
+  });
+
+  it('the app still blocks every location permission, carries no location sentence and no expo-location', () => {
+    for (const permission of ['ACCESS_COARSE_LOCATION', 'ACCESS_FINE_LOCATION', 'ACCESS_BACKGROUND_LOCATION']) {
+      expect(appJson.expo.android.blockedPermissions).toContain(`android.permission.${permission}`);
+    }
+    expect(Object.keys(appJson.expo.ios.infoPlist).filter((key) => /Location/i.test(key))).toEqual([]);
+    expect(JSON.stringify(appJson.expo.plugins)).not.toMatch(/expo-location/);
+    expect(Object.keys(pkg.dependencies)).not.toContain('expo-location');
   });
 });

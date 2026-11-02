@@ -14,6 +14,10 @@
 // ⚠️ THE LIST SCROLLS AND KEEPS THE KEYBOARD (`keyboardShouldPersistTaps`): with
 // the keys up, a small phone has room for two or three rows, and a tap on a
 // suggestion must choose it, not just close the keyboard.
+//
+// ⚠️ THE KEYBOARD'S *BUSCAR* KEY ASKS THE PHONE'S OWN SEARCH (`10.4d`,
+// `@/lib/telefono`): the suggestions are LocationIQ's, and the key is how she
+// asks for her door when none of them is it.
 // ============================================================================
 
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
@@ -25,17 +29,19 @@ import type { Sugerencias } from '@/lib/locationiq';
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
 
-/** The box, and under it the credit. ✕ empties it and keeps her in it. */
+/** The box, and under it the credit. ✕ empties it and keeps her in it; *Buscar* asks the phone. */
 export function CampoDeBusqueda({
   texto,
   onTexto,
   onFoco,
   onBorrar,
+  onBuscar,
 }: {
   texto: string;
   onTexto: (texto: string) => void;
   onFoco: () => void;
   onBorrar: () => void;
+  onBuscar: () => void;
 }) {
   const caja = useRef<TextInput>(null);
   return (
@@ -59,6 +65,7 @@ export function CampoDeBusqueda({
           value={texto}
           onChangeText={onTexto}
           onFocus={onFoco}
+          onSubmitEditing={onBuscar}
           autoCorrect={false}
           autoCapitalize="words"
           returnKeyType="search"

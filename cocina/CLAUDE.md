@@ -102,6 +102,19 @@ TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic i
   `addressForCoordinate` (the phone's own geocoder), on the card at the TOP of the map — the foot is
   where Google's logo is, which the terms forbid covering. Its free plan requires the *Search by
   LocationIQ.com* link under the box, with OpenStreetMap's credit. A build with no token draws no box.
+- **The map's opening search and the keyboard's search key ask the phone first** (`10.4d`, the owner's
+  ruling of 2026-11-01): Google's geocoder on Android, Apple's on an iPhone, then LocationIQ when the
+  phone finds nothing (`@/lib/telefono`, `primeroElTelefono`); the suggestions while she types stay
+  LocationIQ's. Measured first (the plan's status log, 2026-11-02): on her block Google 13 of the 20
+  addresses, Apple 10, LocationIQ's first suggestion 6. The same rule: an answer only moves the map.
+- ⚠️⚠️ **The phone's geocoder is this app's own native module, `modules/geocodificador`** — one
+  function, `buscar(pregunta, caja, limite)`, in Kotlin (Android's `Geocoder`) and Swift (Apple's
+  `CLGeocoder`), autolinked from `modules/` for this app alone. **Not `expo-location`**: its Android
+  geocoder refuses without the location permission this app blocks. The two files are twins — a fix to
+  one is a fix to both — and **no workflow compiles either**: a device build is the check, and the
+  suite reads them for what must hold (no permission, no position, one name in three files; a misspelt
+  name is a build that silently never asks the phone). Any change under `modules/` is native: it moves
+  this app's runtime, so it reaches nobody until new builds. Its rules stay in `@/lib/buscar`, pure.
 - **Sign-in leans on settings outside this repository** (the plan's status log, 2026-10-30): the
   hosted project's redirect list holds `mx.wera.cocina://**` — without it Google's sign-in hangs, with
   no error — and its Apple client ids hold `mx.wera.cocina`. Android delivers Google's redirect to
@@ -111,7 +124,8 @@ TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic i
   (`expo-image-picker`, `expo-image-manipulator`: a fonda's photos) — so features ship over the
   air. **No location**: a fonda's pin is set on a map, and `app.json` blocks the location
   permissions even if a library declares them. A module missing at the public release waits for
-  the major update (`10.8`); before it, one more build.
+  the major update (`10.8`); before it, one more build — `10.4d`'s, which carries the phone's own
+  geocoder (`modules/geocodificador`).
 - ⚠️⚠️ **A dependency here never moves a version Wera uses.** This folder shares Wera's
   `node_modules`. A module Wera also has takes **Wera's exact range** from `app/package.json`; a
   new native module is pinned to the **newest patch whose dependencies Wera's installed tree

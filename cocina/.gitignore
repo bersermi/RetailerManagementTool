@@ -44,3 +44,8 @@ example
 
 # Firebase, copied in by eas-pre-install.sh on EAS only (plan 10.2a)
 google-services.json
+
+# The module of its own (plan 10.4d): what a local Gradle build leaves inside it.
+modules/*/android/build/
+modules/*/android/.gradle/
+modules/*/android/.cxx/

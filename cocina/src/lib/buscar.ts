@@ -23,11 +23,20 @@
 // typed in the form (`preguntaConColonia`), and asks once more without the
 // number when that finds nothing (`sinNumero`).
 //
+// ⚠️ SINCE `10.4d` (the owner's ruling of 2026-11-01) THE PHONE'S OWN GEOCODER —
+// Google's on Android, Apple's on an iPhone — answers the search that opens the
+// map and the box's *Buscar*, and LocationIQ only when it finds nothing; the
+// suggestions while she types stay LocationIQ's. MEASURED FIRST (2026-11-02, the
+// plan's status log): on the same twenty addresses, asked as this app asks,
+// Google's put the map on her block for 13 and Apple's for 10, where LocationIQ's
+// first suggestion did for 6. The same rule holds for their answers: they only
+// move the map. The section at the end of this file reads them.
+//
 // ⚠️ PURE, so the suite pins every value sent and every answer read; the
-// request itself is `@/lib/locationiq`'s.
+// requests are `@/lib/locationiq`'s and `@/lib/telefono`'s.
 // ============================================================================
 
-import { CLOSE_METRES } from '@/lib/mapa';
+import { CLOSE_METRES, campoDelTelefono } from '@/lib/mapa';
 import { checkAddress, type AddressForm } from '@/api/place';
 
 /** LocationIQ's suggestions as she types — its free plan, OpenStreetMap's data. */
@@ -292,4 +301,112 @@ export function resultadoDe(status: number, body: unknown): Resultado {
 export function anchoPara(respuesta: Respuesta): number {
   if (respuesta.conNumero) return CLOSE_METRES;
   return Math.min(Math.max(respuesta.anchoMetros, ANCHO_CALLE_METROS), ANCHO_ZONA_MAX_METROS);
+}
+
+// ----------------------------------------------------------------------------
+// The phone's own search — `10.4d`, the owner's ruling of 2026-11-01
+// ----------------------------------------------------------------------------
+
+/**
+ * ⚠️ THE VALLE DE MÉXICO AS THE PHONE IS ASKED IT — south, west, north, east —
+ * read out of `VALLE_DE_MEXICO`, so LocationIQ's box and the phone's are one.
+ * Google's geocoder takes it as a box; Apple's as the circle reaching its longer
+ * side's ends (`cocina/modules/geocodificador`), and only as a hint — so an answer
+ * outside the box is dropped here, whichever phone gave it.
+ */
+export const CAJA_DEL_VALLE: readonly [number, number, number, number] = (() => {
+  const [oeste, sur, este, norte] = VALLE_DE_MEXICO.split(',').map(Number);
+  return [sur, oeste, norte, este] as const;
+})();
+
+/** How many answers the phone is asked for. */
+export const RESPUESTAS_DEL_TELEFONO = 5;
+
+/**
+ * ⚠️ THE ADDRESS SHE TYPED, AS THE PHONE IS ASKED IT: all five boxes — street and
+ * number, colonia, city or alcaldía, postcode — as she wrote them, or `null` while
+ * the address is not whole. Unlike LocationIQ's question (`preguntaDeDireccion`)
+ * the postcode is in it: both phones read one, and it is how they were measured.
+ */
+export function preguntaParaElTelefono(form: AddressForm): string | null {
+  if (checkAddress(form) !== null) return null;
+  const partes = [
+    `${form.street.trim()} ${form.number.trim()}`,
+    form.colonia.trim(),
+    form.city.trim(),
+    form.postalCode.trim(),
+  ];
+  return preguntaDe(partes.filter((parte) => parte !== '').join(', '));
+}
+
+function enElValle({ latitude, longitude }: Punto): boolean {
+  const [sur, oeste, norte, este] = CAJA_DEL_VALLE;
+  return latitude >= sur && latitude <= norte && longitude >= oeste && longitude <= este;
+}
+
+/**
+ * One of the phone's answers — the module's row: a point, and the street, house
+ * number, colonia, city and postcode it names — or `null` when it has no point,
+ * names no street and no colonia, or lies outside the Valle de México.
+ */
+function respuestaDelTelefono(fila: unknown, i: number): Respuesta | null {
+  if (typeof fila !== 'object' || fila === null) return null;
+  const f = fila as Record<string, unknown>;
+  const latitude = numero(f.latitude);
+  const longitude = numero(f.longitude);
+  if (latitude === null || longitude === null || Math.abs(latitude) > 90 || Math.abs(longitude) > 180) return null;
+  const punto = { latitude, longitude };
+  if (!enElValle(punto)) return null;
+  const calle = campoDelTelefono(f.calle);
+  const casa = campoDelTelefono(f.numero);
+  const colonia = campoDelTelefono(f.colonia);
+  if (calle === '' && colonia === '') return null;
+  const conNumero = calle !== '' && casa !== '';
+  const titulo = calle === '' ? colonia : conNumero ? `${calle} ${casa}` : calle;
+  const detalle = sinRepetir(
+    [calle === '' ? '' : colonia, campoDelTelefono(f.ciudad), campoDelTelefono(f.cp)].filter((parte) => parte !== '').join(', '),
+  );
+  return { id: `telefono-${i}`, titulo, detalle, punto, conNumero, anchoMetros: 0, caja: null };
+}
+
+/** Every well-formed answer the phone gave inside the Valle de México, in its order; two that read the same are one. */
+export function respuestasDelTelefono(filas: unknown): Respuesta[] {
+  if (!Array.isArray(filas)) return [];
+  const vistas: Respuesta[] = [];
+  filas.forEach((fila, i) => {
+    const respuesta = respuestaDelTelefono(fila, i);
+    if (respuesta !== null && !vistas.some((v) => v.titulo === respuesta.titulo && v.detalle === respuesta.detalle)) {
+      vistas.push(respuesta);
+    }
+  });
+  return vistas;
+}
+
+/**
+ * What the phone came back with: its answers, or *ninguna* when it found nothing
+ * inside the Valle de México. A value that is no list — which no build of this
+ * app sends — is *falla*, and so is every rejection (`@/lib/telefono`).
+ */
+export function resultadoDelTelefono(filas: unknown): Resultado {
+  if (!Array.isArray(filas)) return { kind: 'falla' };
+  const respuestas = respuestasDelTelefono(filas);
+  return respuestas.length === 0 ? { kind: 'ninguna' } : { kind: 'respuestas', respuestas };
+}
+
+/**
+ * ⚠️ THE PHONE FIRST, LOCATIONIQ WHEN IT HAS NOTHING: the phone's answers, or —
+ * when it found nothing, failed, or the build carries no geocoder — LocationIQ's.
+ * The phone cannot tell no signal from any other failure, so it never says *sin
+ * señal*: LocationIQ's own request says it a moment later. And when the phone
+ * found nothing and LocationIQ could not be asked, what she is told is the
+ * phone's *nothing found*, not a failure.
+ */
+export async function primeroElTelefono(
+  telefono: () => Promise<Resultado>,
+  locationiq: () => Promise<Resultado>,
+): Promise<Resultado> {
+  const suya = await telefono();
+  if (suya.kind === 'respuestas') return suya;
+  const otra = await locationiq();
+  return otra.kind === 'falla' && suya.kind === 'ninguna' ? suya : otra;
 }

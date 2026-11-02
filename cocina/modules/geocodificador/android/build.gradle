@@ -1,0 +1,15 @@
+plugins {
+  id 'com.android.library'
+  id 'expo-module-gradle-plugin'
+}
+
+group = 'mx.wera.cocina'
+version = '1.0.0'
+
+android {
+  namespace "mx.wera.cocina.geocodificador"
+  defaultConfig {
+    versionCode 1
+    versionName '1.0.0'
+  }
+}

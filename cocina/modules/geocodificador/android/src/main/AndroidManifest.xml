@@ -1,0 +1,3 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+  <!-- No permission: android.location.Geocoder needs none, and this app asks for none. -->
+</manifest>
