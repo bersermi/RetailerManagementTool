@@ -34,9 +34,13 @@ bash docs/checks/wera-runtime.sh          # after ANY install here: Wera's runti
   foreground-service location are blocked) — so features ship over the air. **No camera.** A
   module missing at the public release waits for the major update (`10.8`); before it, one more
   build.
-- ⚠️ **Her position stays on the phone.** Distance is computed there, which is what lets both
-  stores' forms say location is *not collected* (the owner's plan). Sending it to the server is
-  a change to those forms and to the aviso first.
+- ⚠️ **Her exact position stays on the phone** (the owner's ruling of 2026-11-01, question 6, option
+  C): the phone snaps it to a ~2.2 km square — Google counts an area under 3 km² as precise — and
+  only that square reaches the door, which answers with what is on offer around it; distance and
+  order are computed on the phone. Sent in the request's body, never its URL, and never kept:
+  Apple's form needs nothing (data *"immediately discarded after servicing the request"*), Play's
+  declares approximate location processed ephemerally (not shown on the store), and the aviso
+  says so before the first update that sends it. Declined or approximate: her colonia (D).
 - ⚠️⚠️ **A dependency here never moves a version Wera uses.** This folder shares Wera's
   `node_modules`. A module Wera also has takes **Wera's exact range** from `app/package.json`; a
   new native module is pinned to the **newest patch whose dependencies Wera's installed tree
