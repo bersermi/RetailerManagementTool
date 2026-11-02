@@ -10,13 +10,16 @@
 // §2.11) — the phone is its instrument.
 //
 // ⚠️⚠️ A SEARCH ONLY MOVES THE MAP; HER TAP IS THE PIN. The address she typed is
-// searched as the map opens (`useApertura`) and the box above searches as she
-// types (`useSugerencias`, with the colonia she typed in the form when she types
-// none — measured, it decides the answer); either one flies the map there, and `onPin` is
-// called from her tap alone (`tapped`) — never with a point a provider gave,
-// which Apple's licence and Google's terms forbid keeping (`test/buscar.test.ts`
-// reads this file for it). The opening answer moves the map only if she has not
-// touched it first: a late answer must never pull the map from under her finger.
+// searched as the map opens (`useApertura`), the box above suggests as she types
+// (`useSugerencias`, LocationIQ's, with the colonia she typed in the form when she
+// types none — measured, it decides the answer), and the keyboard's *Buscar* asks
+// for what she typed (`useBuscar`). The opening search and *Buscar* ask the
+// phone's own geocoder first (`@/lib/telefono`, `10.4d`) and LocationIQ when it
+// finds nothing. Any of them flies the map there, and `onPin` is called from her
+// tap alone (`tapped`) — never with a point a provider gave, which Apple's licence
+// and Google's terms forbid keeping (`test/buscar.test.ts` reads this file for
+// it). The opening answer moves the map only if she has not touched it first: a
+// late answer must never pull the map from under her finger.
 //
 // ⚠️ EACH TAP ASKS THE MAP WHERE IT IS (`getMapBoundaries`) and is judged on that,
 // not on the last region the map reported: a tap during an animation, or a
@@ -48,8 +51,8 @@ import { Keyboard, Platform, Text, View } from 'react-native';
 import MapView, { Marker, type MapPressEvent } from 'react-native-maps';
 
 import type { AddressForm, Pin } from '@/api/place';
-import { anchoPara, type Respuesta } from '@/lib/buscar';
-import { LOCATIONIQ_TOKEN, useApertura, useSugerencias } from '@/lib/locationiq';
+import { anchoPara, preguntaConColonia, type Respuesta } from '@/lib/buscar';
+import { LOCATIONIQ_TOKEN, useSugerencias } from '@/lib/locationiq';
 import {
   closeEnough,
   lineaDeLugar,
@@ -60,6 +63,7 @@ import {
   tipoDeMapa,
   type Region,
 } from '@/lib/mapa';
+import { useApertura, useBuscar } from '@/lib/telefono';
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
 import { CampoDeBusqueda, ListaDeSugerencias } from '@/ui/Buscador';
@@ -95,7 +99,10 @@ export function MapaPunto({
   const [texto, setTexto] = useState('');
   const [buscando, setBuscando] = useState(false);
   const [esAqui, setEsAqui] = useState<string | null>(null);
+  /** What she asked with *Buscar*, until she types again or the map flies to its answer. */
+  const [enviada, setEnviada] = useState<string | null>(null);
   const sugerencias = useSugerencias(buscando ? texto : '', direccion?.colonia ?? '');
+  const buscada = useBuscar(enviada);
   const apertura = useApertura(pin === null ? direccion : null);
 
   function cambiarBuscando(next: boolean) {
@@ -112,6 +119,22 @@ export function MapaPunto({
   useEffect(() => {
     if (apertura !== null && listo && !tocado.current) volarA(apertura);
   }, [apertura, listo]);
+
+  // *Buscar*'s answer: the map flies to the first, and the box closes. Nothing
+  // found, no signal or a failure stays on the list, said in words.
+  useEffect(() => {
+    if (buscada.kind !== 'respuestas') return;
+    const primera = buscada.respuestas[0];
+    setEnviada(null);
+    cambiarBuscando(false);
+    if (primera !== undefined) volarA(primera);
+  }, [buscada]);
+
+  /** The keyboard's *Buscar*: what she typed, with her colonia when she typed none. */
+  function buscar() {
+    const pregunta = preguntaConColonia(texto, direccion?.colonia ?? '');
+    if (pregunta !== null) setEnviada(pregunta);
+  }
 
   // ¿Es aquí? — asked of the phone's own maps each time her pin moves.
   const lat = pin?.latitude ?? null;
@@ -172,10 +195,15 @@ export function MapaPunto({
           texto={texto}
           onTexto={(next) => {
             setTexto(next);
+            setEnviada(null);
             if (!buscando) cambiarBuscando(true);
           }}
           onFoco={() => cambiarBuscando(true)}
-          onBorrar={() => setTexto('')}
+          onBorrar={() => {
+            setTexto('');
+            setEnviada(null);
+          }}
+          onBuscar={buscar}
         />
       )}
       <View
@@ -231,7 +259,7 @@ export function MapaPunto({
             )}
           </View>
         )}
-        {buscando && <ListaDeSugerencias sugerencias={sugerencias} onElegir={elegir} />}
+        {buscando && <ListaDeSugerencias sugerencias={enviada !== null ? buscada : sugerencias} onElegir={elegir} />}
       </View>
     </View>
   );

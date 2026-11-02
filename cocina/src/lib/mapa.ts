@@ -158,9 +158,10 @@ export interface LugarDelTelefono {
  * ⚠️ AN IPHONE SENDS A MISSING FIELD AS THE TEXT `(null)`: `react-native-maps`
  * 1.27.2 formats each `CLPlacemark` field with `%@` (`RNMapsAirModule.mm`), so a
  * pin with no house number arrives as `subThoroughfare: "(null)"`. Android sends
- * a JSON null. Both are nothing here — and so is Google's `Unnamed Road`.
+ * a JSON null. Both are nothing here — and so is Google's `Unnamed Road`. The
+ * phone's search (`@/lib/buscar`, `10.4d`) reads its answers' fields through it too.
  */
-function campo(value: unknown): string {
+export function campoDelTelefono(value: unknown): string {
   const text = typeof value === 'string' ? value.trim() : '';
   return /^(\(null\)|null|unnamed road|calle sin nombre)$/i.test(text) ? '' : text;
 }
@@ -172,9 +173,9 @@ function campo(value: unknown): string {
  * terms forbid keeping it; what is saved is her tap and the address she typed.
  */
 export function lineaDeLugar(lugar: LugarDelTelefono | null | undefined): string | null {
-  const calle = campo(lugar?.thoroughfare);
+  const calle = campoDelTelefono(lugar?.thoroughfare);
   if (calle === '') return null;
-  const numero = campo(lugar?.subThoroughfare);
-  const colonia = campo(lugar?.subLocality);
+  const numero = campoDelTelefono(lugar?.subThoroughfare);
+  const colonia = campoDelTelefono(lugar?.subLocality);
   return [numero === '' ? calle : `${calle} ${numero}`, colonia].filter((parte) => parte !== '').join(', ');
 }
