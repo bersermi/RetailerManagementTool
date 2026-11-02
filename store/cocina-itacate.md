@@ -113,7 +113,7 @@ Aviso de privacidad: https://tu-wera.com/privacidad/cocina-e-itacate/
 | Feature graphic, 1024 × 500 | `cocina-grafico-1024x500.png` | `itacate-grafico-1024x500.png` |
 | Phone screenshots (2 to 8) | `cocina-captura-1.jpg`, `cocina-captura-2.jpg` | `itacate-captura-1.jpg`, `itacate-captura-2.jpg` |
 
-Provisional, like the apps' icons: Wera's cow on each app's own ground (green, blue). The
+Wera's cow on each app's own ground (green, blue) — **Wera Cocina's ruled by the owner on 2026-11-02**, as its app icon; Itacate's still provisional. The
 screenshots are each app's `preview` build on the Android emulator, 2026-10-27, its map drawn
 with the real key — the city centre, then panned — cut to 1080 × 2160 (Play refuses a phone
 screenshot more than twice as tall as it is wide). Leave the tablet, Chromebook and video fields empty.

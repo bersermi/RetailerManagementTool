@@ -5,10 +5,11 @@
 #   bash store/cocina-itacate/render.sh
 #
 # Writes, beside this script, for Wera Cocina and Itacate: the 512 px listing icon
-# and the 1024 × 500 feature graphic. PROVISIONAL, like the apps' launcher icons
-# (`10.2a`): Wera's mark (`brand/wera-mark.svg`) on each app's own ground — green
-# `#1C6B4B` for Cocina, blue `#24476B` for Itacate, the colours its Android icon
-# already carries. The real pictures are the owner's call before production.
+# and the 1024 × 500 feature graphic: Wera's mark (`brand/wera-mark.svg`) on each
+# app's own ground — green `#1C6B4B` for Cocina, blue `#24476B` for Itacate, the
+# colours its Android icon already carries (`10.2a`). Wera Cocina's is RULED (the
+# owner, 2026-11-02: the cream cow on its green, on both platforms); Itacate's is
+# still provisional, its owner's call before production.
 #
 # The screenshots are not drawn here: they are the apps themselves, taken on the
 # Android emulator from a `preview` build (`store/cocina-itacate.md`).
