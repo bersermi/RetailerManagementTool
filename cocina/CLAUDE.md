@@ -160,8 +160,8 @@ TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic i
 - **The icon is ruled** (the owner, 2026-11-02): Wera's cream cow on this app's green (`#1C6B4B`), on
   both platforms. Android's launcher icon (Wera's mark files, `../app/assets/images/`, on this app's
   ground) and the Play listing already carry it; the iPhone's still points at Wera's own `icon.png`
-  (the cream cow on rust) until `10.4d-ii`'s store builds. The launch screen is still Wera's rust cow —
-  his question (the plan's decisions block). An icon is native: after the public release it waits for `10.8`.
+  (the cream cow on rust) until `10.4d-ii`'s store builds. The launch screen is ruled too (the same
+  evening): the same cow in this app's green on the cream — today still Wera's rust `splash-icon.png`, until `10.4d-ii`. An icon is native: after the public release it waits for `10.8`.
 - **Its EAS project is `@wera-app/cocina`** (`8aca5e83-56a5-4b39-87b4-dd5312a54c76`), made by the owner on 2026-10-27
   (`eas init`, plan `10.2b`); its builds listen for updates at `updates.url` in `app.json`. The
   map key and `google-services.json` are the organization's variables on expo.dev (*Sensitive*,
