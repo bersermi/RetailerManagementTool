@@ -1,3 +1,4 @@
+import { QueryClient } from '@tanstack/react-query';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { LIMITE_MS } from '@/lib/buscar';
@@ -67,5 +68,30 @@ describe('one question to the phone', () => {
   it('a build without the module asks nothing and says it failed — so LocationIQ is asked, as before this row', async () => {
     const { preguntarAlTelefono } = await conModulo(null);
     await expect(preguntarAlTelefono('Durango 220')).resolves.toEqual({ kind: 'falla' });
+  });
+});
+
+// ⚠️ `10.4e`: the list asks the phone as she types, and *Buscar* may ask the same words
+// a moment later. Apple's geocoder is rate-limited per app and asks for one question per
+// action, so the answer is kept in memory under the question and asked once.
+describe('one answer per question, kept in memory', () => {
+  it('the same words are asked of the phone once, whoever asks', async () => {
+    const buscar = vi.fn(() => Promise.resolve([PUERTA]));
+    const { alTelefono } = await conModulo(buscar);
+    const client = new QueryClient();
+    const first = await alTelefono(client, 'Durango 220, Roma Norte');
+    const again = await alTelefono(client, 'Durango 220, Roma Norte');
+    expect(again).toBe(first);
+    expect(buscar).toHaveBeenCalledTimes(1);
+    await alTelefono(client, 'Durango 221, Roma Norte');
+    expect(buscar).toHaveBeenCalledTimes(2);
+    client.clear();
+  });
+
+  it('a failure is an answer too — never thrown, so Buscar goes on to LocationIQ', async () => {
+    const { alTelefono } = await conModulo(vi.fn(() => Promise.reject(new Error('ERR_GEOCODIFICADOR'))));
+    const client = new QueryClient();
+    await expect(alTelefono(client, 'Durango 220')).resolves.toEqual({ kind: 'falla' });
+    client.clear();
   });
 });

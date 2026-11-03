@@ -136,11 +136,17 @@ export const ES = {
     creditoBusqueda: 'Search by LocationIQ.com',
     creditoDatos: '© OpenStreetMap',
     lejos: 'Toca el mapa cerca de tu cocina para acercarte, o busca tu calle arriba.',
-    cerca: 'Ahora toca justo donde entregas la comida.',
-    puesto: 'Aquí está tu cocina. Si no es el lugar exacto, toca otra vez.',
-    /** ⚠️ The phone's own maps name the point she tapped; shown, never kept (`@/lib/mapa`'s `lineaDeLugar`). */
+    /**
+     * ⚠️ `10.4e` (the owner's ruling of 2026-11-02, as Uber does it): the pin stays in
+     * the middle and she moves the map under it. Said whenever the map is close but
+     * the middle is not hers yet — after a flight to a search's answer, whose point
+     * is never stored (`@/lib/mapa`'s `alLlegar`).
+     */
+    cerca: 'Mueve el mapa hasta que el pin quede justo donde entregas la comida.',
+    puesto: 'Tu cocina queda donde está el pin. Si no es el lugar exacto, mueve el mapa.',
+    /** ⚠️ The phone's own maps name the point under her pin; shown, never kept (`@/lib/mapa`'s `lineaDeLugar`). */
     esAqui: (lugar: string) => `¿Es aquí? ${lugar}`,
-    otraVez: 'Si no es el lugar exacto, toca otra vez.',
+    otraVez: 'Si no es el lugar exacto, mueve el mapa.',
     indicaciones: 'Cómo encontrarte (opcional)',
     /** A hint in muted ink, never a value. */
     indicacionesEjemplo: 'Portón verde, junto a la farmacia',
@@ -150,7 +156,7 @@ export const ES = {
      * 2026-10-28), and nobody has asked whether a fonda is run from a home.
      */
     vecinos: 'Los vecinos verán este punto exacto en el mapa.',
-    falta: 'Toca el mapa justo donde entregas la comida.',
+    falta: 'Mueve el mapa hasta que el pin quede justo donde entregas la comida.',
     registrar: 'Registrar mi cocina',
     guardar: 'Guardar',
   },

@@ -1,7 +1,7 @@
 // ============================================================================
 // THE MAP'S ARITHMETIC — where it opens, when it is close enough for her pin,
-// where a tap takes it, which map it is, and what the phone says her pin is.
-// Plan tasks `10.4b-iii-b` and `10.4c`.
+// where a tap takes it, who put its centre where it is, which map it is, and
+// what the phone says her pin is. Plan tasks `10.4b-iii-b`, `10.4c` and `10.4e`.
 //
 // ⚠️ PURE, so `test/mapa.test.ts` pins it: the map itself (`react-native-maps`)
 // is native and no suite can load it (ADR-035 §2.11), and every number here is a
@@ -9,10 +9,11 @@
 //
 // ⚠️⚠️ THE OWNER'S PRECISION IS IN HOW THE PIN IS SET, NOT IN THE COLUMN (`0072`):
 // *"as precise as possible"* (2026-10-28), and this app has no GPS until the
-// major update (`10.8`) — so a tap on the map, close in. A pin is
-// placed only when the map shows at most `CLOSE_METRES` across its narrower
-// side; until then a tap brings the map closer to where she tapped, a few
-// streets at a time, so she can get there without pinching.
+// major update (`10.8`). Since `10.4e` (his ruling of 2026-11-02, as Uber does
+// it) the pin stays in the middle of the map and she moves the map under it; the
+// centre is her pin only when the map shows at most `CLOSE_METRES` across its
+// narrower side. Until then a tap brings the map closer, centred where she
+// tapped, a few streets at a time, so she can get there without pinching.
 //
 // ⚠️ ACROSS THE NARROWER SIDE, NOT TOP TO BOTTOM: a phone's map is taller than it
 // is wide, and a region asked for is fitted into the view whole — so a region of
@@ -37,7 +38,7 @@ const METRES_PER_DEGREE = 111_320;
  * ⚠️ WHERE THE MAP OPENS WHEN SHE HAS NO PIN: MEXICO CITY, its centre, wide
  * enough to see the central alcaldías. This app asks for no location (its
  * `app.json` blocks the permission). Since `10.4c` the address she typed is
- * searched as the map opens and the map flies there (`@/lib/locationiq`'s
+ * searched as the map opens and the map flies there (`@/lib/telefono`'s
  * `useApertura`); this is where it stays when the search finds nothing, has no
  * signal, or the build has no token. The pilot is in this city.
  */
@@ -94,8 +95,8 @@ export function closerAt(point: Pin, region: Region): Region {
 }
 
 /**
- * Where the map opens: the city, or — when she already has a pin — close around
- * it, close enough that her first tap moves it.
+ * Where the map opens: the city, or — when she already has a pin — centred on it
+ * and close enough that the centre is her pin until she moves the map.
  */
 export function openingRegion(pin: Pin | null): Region {
   return pin === null ? CIUDAD : regionAround(pin, CLOSE_METRES);
@@ -125,12 +126,128 @@ export function regionFromBounds({ northEast, southWest }: Bounds): Region {
   };
 }
 
-/** What a tap does: place the pin, or bring the map closer. */
-export type Tap = { readonly kind: 'place'; readonly pin: Pin } | { readonly kind: 'closer'; readonly region: Region };
-
-export function tapOn(point: Pin, region: Region): Tap {
-  return closeEnough(region) ? { kind: 'place', pin: point } : { kind: 'closer', region: closerAt(point, region) };
+/**
+ * Where a tap takes the map: the point she tapped to the middle, under the pin —
+ * at the same zoom when the map is close enough, closer when it is still too far
+ * (`closerAt`). Since `10.4e` a tap never places a pin by itself: the pin is the
+ * centre, and the tap brings her door to it.
+ */
+export function tapOn(point: Pin, region: Region): Region {
+  if (!closeEnough(region)) return closerAt(point, region);
+  return { latitude: point.latitude, longitude: point.longitude, latitudeDelta: region.latitudeDelta, longitudeDelta: region.longitudeDelta };
 }
+
+// ----------------------------------------------------------------------------
+// The pin is the map's centre, once she has put it there — `10.4e`
+// ----------------------------------------------------------------------------
+
+/**
+ * ⚠️⚠️ THE PIN STAYS IN THE MIDDLE AND SHE MOVES THE MAP UNDER IT, AS UBER DOES IT
+ * (the owner's ruling of 2026-11-02, reversing `10.4c`'s *her tap is the pin*).
+ * What is stored is the map's centre — and ONLY ONCE SHE HAS PUT IT THERE
+ * HERSELF: after a flight to a search's answer the centre is Apple's, Google's or
+ * LocationIQ's point, and Apple's licence and Google's terms forbid keeping
+ * theirs, so it is no pin until her own hand moves the map.
+ *
+ * Who moved it: `ella` — her finger (a drag, a pinch, a double tap), or a tap of
+ * hers that brought her door to the middle; `otro` — a flight to an answer, or
+ * nobody yet (the city the map opens on).
+ */
+export type Autor = 'ella' | 'otro';
+
+/**
+ * Two centres closer than this are one place: a report of the same view — the
+ * map resized under the keyboard, an animation that had nowhere to go — and no
+ * move. Also how far a move the app started may land from where it was sent.
+ */
+export const MISMO_PUNTO_METROS = 2;
+
+/**
+ * How long a move the app started may take to arrive (a flight is 900 ms, a tap's
+ * 600). After it, a report that does not match it is not that move's.
+ */
+export const LLEGADA_MS = 1_500;
+
+/** What the map knows of its centre between two of its reports. */
+export interface Centro {
+  /** Who put the centre where it is now. */
+  readonly autor: Autor;
+  /** Her finger moved the map since the last report — a drag, a pinch, a double tap. */
+  readonly gesto: boolean;
+  /** The centre the map last reported. */
+  readonly ultimo: Pin;
+  /** Where a move the app started is headed, on whose behalf, and until when it can arrive. */
+  readonly destino: { readonly punto: Pin; readonly autor: Autor; readonly hasta: number } | null;
+}
+
+/** Metres between two points a few hundred metres apart at most (flat-earth, exact enough here). */
+export function metrosEntre(a: Pin, b: Pin): number {
+  const alto = (a.latitude - b.latitude) * METRES_PER_DEGREE;
+  const ancho = (a.longitude - b.longitude) * METRES_PER_DEGREE * cosOf((a.latitude + b.latitude) / 2);
+  return Math.hypot(alto, ancho);
+}
+
+const centroDe = (region: Region): Pin => ({ latitude: region.latitude, longitude: region.longitude });
+
+/** As the map opens: on her pin, hers already; on the city, nobody's. */
+export function centroAlAbrir(pin: Pin | null, abre: Region): Centro {
+  return { autor: pin === null ? 'otro' : 'ella', gesto: false, ultimo: centroDe(abre), destino: null };
+}
+
+/** Her finger is moving the map (`onPanDrag`, `onDoublePress`). */
+export function conGesto(centro: Centro): Centro {
+  return centro.gesto ? centro : { ...centro, gesto: true };
+}
+
+/**
+ * The app sends the map to a point — her tap's (`ella`) or an answer's (`otro`).
+ * ⚠️ AN ANSWER'S FLIGHT TAKES THE CENTRE FROM HER AT ONCE: from the first frame the
+ * middle of the map is leaving her point for the provider's.
+ */
+export function haciaUnPunto(centro: Centro, punto: Pin, autor: Autor, ahora: number): Centro {
+  return {
+    ...centro,
+    autor: autor === 'otro' ? 'otro' : centro.autor,
+    destino: { punto, autor, hasta: ahora + LLEGADA_MS },
+  };
+}
+
+/**
+ * ⚠️⚠️ THE MAP STOPPED (`onRegionChangeComplete`): who put the centre there. Her
+ * gesture, seen on the way or flagged by the map (`isGesture`, Android's only —
+ * an iPhone's map always says no) → hers, whatever was under way. Else the arrival
+ * of a move the app started → whoever it was for. Else, with no move of the app's
+ * under way, a centre that moved → hers: nothing but her finger moves this map.
+ * Else (a resize, a report of the same view, a move of the app's cut short) →
+ * unchanged: what was not hers stays not hers.
+ */
+export function alLlegar(centro: Centro, region: Region, gestoDelMapa: boolean, ahora: number): Centro {
+  const aqui = centroDe(region);
+  const destino = centro.destino !== null && ahora <= centro.destino.hasta ? centro.destino : null;
+  if (centro.gesto || gestoDelMapa) return { autor: 'ella', gesto: false, ultimo: aqui, destino: null };
+  if (destino !== null && metrosEntre(aqui, destino.punto) <= MISMO_PUNTO_METROS) {
+    return { autor: destino.autor, gesto: false, ultimo: aqui, destino: null };
+  }
+  if (destino === null && metrosEntre(aqui, centro.ultimo) > MISMO_PUNTO_METROS) {
+    return { autor: 'ella', gesto: false, ultimo: aqui, destino: null };
+  }
+  return { ...centro, gesto: false, ultimo: aqui, destino };
+}
+
+/**
+ * Her pin, as the map now stands: the centre when she put it there and the map
+ * is close enough, else `null` — and what she has already, unchanged, while the
+ * centre is the same place (a resize must not rewrite her pin to the seventh
+ * decimal).
+ */
+export function pinDelCentro(centro: Centro, region: Region, actual: Pin | null): Pin | null {
+  if (centro.autor !== 'ella' || !closeEnough(region)) return null;
+  const aqui = centroDe(region);
+  return actual !== null && metrosEntre(actual, aqui) <= MISMO_PUNTO_METROS ? actual : aqui;
+}
+
+/** How long after the map stops *¿Es aquí?* asks, in ms: a fling and its correction ask once. */
+export const ES_AQUI_PAUSA_MS = 400;
 
 // ----------------------------------------------------------------------------
 // Which map, and what the phone's own maps say her pin is — `10.4c`
@@ -167,10 +284,10 @@ export function campoDelTelefono(value: unknown): string {
 }
 
 /**
- * *¿Es aquí? …* — what the phone's own maps call the point she tapped, as one
+ * *¿Es aquí? …* — what the phone's own maps call the point under her pin, as one
  * line: *Durango 220, Roma Norte*. `null` when they name no street, and then no
  * line is shown. ⚠️ SHOWN AND NEVER KEPT: the answer is Apple's or Google's, whose
- * terms forbid keeping it; what is saved is her tap and the address she typed.
+ * terms forbid keeping it; what is saved is her pin and the address she typed.
  */
 export function lineaDeLugar(lugar: LugarDelTelefono | null | undefined): string | null {
   const calle = campoDelTelefono(lugar?.thoroughfare);

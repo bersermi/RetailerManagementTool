@@ -4,12 +4,13 @@
 // it, within every provider's terms.
 //
 // ⚠️⚠️ AN ANSWER ONLY MOVES THE MAP. What is stored is what she typed (the
-// form's five boxes) and where she tapped (her pin) — never a provider's point
-// or text. Apple's licence and Google's terms forbid keeping theirs; LocationIQ's
-// allow it, and it is still not kept, so the rule holds whichever provider
-// answers. Nothing here makes a pin: `@/ui/MapaPunto` turns an answer into a
-// region and flies there, and only her tap calls `onPin` — `test/buscar.test.ts`
-// reads that file for it, and refuses this module anywhere in `src/api/`.
+// form's five boxes) and her pin — never a provider's point or text. Apple's
+// licence and Google's terms forbid keeping theirs; LocationIQ's allow it, and it
+// is still not kept, so the rule holds whichever provider answers. Nothing here
+// makes a pin: `@/ui/MapaPunto` turns an answer into a region and flies there, and
+// since `10.4e` her pin is the map's centre only once her own hand has moved the
+// map after the flight (`@/lib/mapa`'s `alLlegar`) — `test/buscar.test.ts` reads
+// that file for it, and refuses this module anywhere in `src/api/`.
 //
 // ⚠️ MEASURED BEFORE IT WAS BUILT (2026-10-31, the plan's status log): in Mexico
 // City LocationIQ knows the streets and almost never the house number (4 of its
@@ -25,12 +26,18 @@
 //
 // ⚠️ SINCE `10.4d` (the owner's ruling of 2026-11-01) THE PHONE'S OWN GEOCODER —
 // Google's on Android, Apple's on an iPhone — answers the search that opens the
-// map and the box's *Buscar*, and LocationIQ only when it finds nothing; the
-// suggestions while she types stay LocationIQ's. MEASURED FIRST (2026-11-02, the
-// plan's status log): on the same twenty addresses, asked as this app asks,
-// Google's put the map on her block for 13 and Apple's for 10, where LocationIQ's
-// first suggestion did for 6. The same rule holds for their answers: they only
-// move the map. The section at the end of this file reads them.
+// map and the box's *Buscar*, and LocationIQ only when it finds nothing. MEASURED
+// FIRST (2026-11-02, the plan's status log): on the same twenty addresses, asked
+// as this app asks, Google's put the map on her block for 13 and Apple's for 10,
+// where LocationIQ's first suggestion did for 6. The same rule holds for their
+// answers: they only move the map. The sections at the end of this file read them.
+//
+// ⚠️ SINCE `10.4e` (his ruling of 2026-11-02: *"the search is failing to show a
+// street + number"*) THE LIST AS SHE TYPES OPENS ON THE PHONE'S DOOR once she has
+// typed her number, LocationIQ's streets below it (`conLasPuertas`). Measured as
+// she types (2026-11-02): with the number, the phone's first answer was a door 18
+// times in 20, on her block 12 (Google) and 11 (Apple); LocationIQ's list opened
+// on her block 6 times and never on a door.
 //
 // ⚠️ PURE, so the suite pins every value sent and every answer read; the
 // requests are `@/lib/locationiq`'s and `@/lib/telefono`'s.
@@ -280,6 +287,9 @@ export type Resultado =
   | { readonly kind: 'sin-senal' }
   | { readonly kind: 'falla' };
 
+/** What the box shows under it: nothing yet, a question out, or what came back. */
+export type Sugerencias = { readonly kind: 'nada' } | { readonly kind: 'buscando' } | Resultado;
+
 /**
  * ⚠️ LOCATIONIQ ANSWERS "NOTHING FOUND" WITH A 404 (`Unable to geocode`), not an
  * empty list — so a 404 is *ninguna*, and only the rest is a failure: 429 is its
@@ -409,4 +419,48 @@ export async function primeroElTelefono(
   if (suya.kind === 'respuestas') return suya;
   const otra = await locationiq();
   return otra.kind === 'falla' && suya.kind === 'ninguna' ? suya : otra;
+}
+
+// ----------------------------------------------------------------------------
+// Her door in the list as she types — `10.4e`, the owner's ruling of 2026-11-02
+// ----------------------------------------------------------------------------
+
+/**
+ * How long after her last keystroke the phone is asked, in ms — longer than
+ * LocationIQ's pause: Apple's geocoder is rate-limited per app and asks for at
+ * most one question per action (its documentation, read 2026-11-02), and a number
+ * typed digit by digit should ask once.
+ */
+export const PAUSA_TELEFONO_MS = 600;
+
+/**
+ * ⚠️ THE PHONE IS ASKED AS SHE TYPES ONLY ONCE SHE HAS TYPED HER NUMBER — what she
+ * typed, with her colonia as LocationIQ is asked it, when it ends in a house
+ * number (`sinNumero` finds one to drop: *Calle 6* alone is a street, *Calle 6 46*
+ * a door); else `null`. MEASURED 2026-11-02 on the twenty addresses typed as she
+ * types them: half a street, the phone's first answer was on her block for none
+ * (Google and Apple); the whole street without a number, for 4 and 6 — streets,
+ * as LocationIQ's 5; with the number, a door 18 times in 20, on her block 12 and 11.
+ */
+export function preguntaConPuerta(texto: string, colonia: string): string | null {
+  const pregunta = preguntaConColonia(texto, colonia);
+  return pregunta !== null && sinNumero(pregunta) !== null ? pregunta : null;
+}
+
+/**
+ * ⚠️ THE LIST AS SHE TYPES: the phone's answers that name a door first — the door
+ * is what LocationIQ almost never knows (4 of its 56 rows, measured with the
+ * number typed) — then LocationIQ's, a row reading the same as one above dropped.
+ * With no door from the phone — not asked yet, still out, nothing found, no
+ * signal, a build without the module — LocationIQ's list exactly as before, with
+ * its words for nothing found and no signal.
+ */
+export function conLasPuertas(telefono: Resultado | null, locationiq: Sugerencias): Sugerencias {
+  const puertas = telefono?.kind === 'respuestas' ? telefono.respuestas.filter((r) => r.conNumero) : [];
+  if (puertas.length === 0) return locationiq;
+  const resto =
+    locationiq.kind === 'respuestas'
+      ? locationiq.respuestas.filter((r) => !puertas.some((p) => p.titulo === r.titulo && p.detalle === r.detalle))
+      : [];
+  return { kind: 'respuestas', respuestas: [...puertas, ...resto] };
 }

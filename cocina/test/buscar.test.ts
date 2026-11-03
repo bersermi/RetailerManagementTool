@@ -15,11 +15,14 @@ import {
   LOCATIONIQ_AUTOCOMPLETE,
   MIN_LETRAS,
   PAUSA_MS,
+  PAUSA_TELEFONO_MS,
   RESPUESTAS_DEL_TELEFONO,
   SUGERENCIAS,
   VALLE_DE_MEXICO,
   anchoPara,
+  conLasPuertas,
   preguntaConColonia,
+  preguntaConPuerta,
   preguntaDe,
   preguntaDeDireccion,
   preguntaParaElTelefono,
@@ -440,22 +443,32 @@ describe('one question to LocationIQ', () => {
   });
 });
 
-// ⚠️⚠️ THE RULE THIS ROW EXISTS UNDER: what is stored is what she typed and where
-// she tapped — never a provider's point or text (Apple's licence and Google's
-// terms forbid keeping theirs). Read out of the files, because no suite can tap
-// the map.
-describe('an answer only moves the map; her tap is the pin', () => {
+// ⚠️⚠️ THE RULE THIS ROW EXISTS UNDER: what is stored is what she typed and her
+// pin — never a provider's point or text (Apple's licence and Google's terms
+// forbid keeping theirs). Since `10.4e` (the owner's ruling of 2026-11-02, as Uber
+// does it) her pin is the middle of the map, and only once her own hand put it
+// there: after a flight to an answer, no pin until she moves the map. The
+// sequences are `test/mapa.test.ts`'s (`alLlegar`); here, read out of the file,
+// that the map is wired to them — no suite can move the map.
+describe('an answer only moves the map; her pin is the middle she put there herself', () => {
   const map = code('ui/MapaPunto.tsx');
 
-  it('`onPin` is called once, from her tap, with the point the tap reports', () => {
-    expect(map.match(/onPin\(/g)).toHaveLength(1);
-    expect(map).toMatch(/const point = event\.nativeEvent\.coordinate;/);
-    expect(map).toMatch(/const tap = tapOn\(point, now\);\s*if \(tap\.kind === 'place'\) onPin\(tap\.pin\);/);
+  it('`onPin` hears the middle only through the rule, each time the map settles — and null as a flight leaves', () => {
+    expect(map.match(/onPin\(/g)).toHaveLength(2);
+    expect(map).toMatch(/const suyo = pinDelCentro\(centro\.current, next, pin\);\s*if \(suyo !== pin\) onPin\(suyo\);/);
+    expect(map).toMatch(
+      /function volarA\(respuesta: Respuesta\) \{\s*tocado\.current = true;\s*centro\.current = haciaUnPunto\(centro\.current, respuesta\.punto, 'otro', Date\.now\(\)\);\s*onPin\(null\);/,
+    );
   });
 
-  it('an answer’s point reaches nothing but the map’s flight', () => {
-    expect(map.match(/\.punto\b/g)).toHaveLength(1);
+  it('an answer’s point reaches nothing but the map’s flight, marked as not hers', () => {
+    expect(map.match(/\.punto\b/g)).toHaveLength(2);
+    expect(map).toMatch(/haciaUnPunto\(centro\.current, respuesta\.punto, 'otro', Date\.now\(\)\)/);
     expect(map).toMatch(/map\.current\?\.animateToRegion\(regionAround\(respuesta\.punto, anchoPara\(respuesta\)\), VOLAR_MS\)/);
+    // Only her tap's point is sent on her behalf.
+    expect(map.match(/'ella'/g)).toHaveLength(1);
+    expect(map).toMatch(/haciaUnPunto\(centro\.current, point, 'ella', Date\.now\(\)\)/);
+    expect(map).toMatch(/const point = event\.nativeEvent\.coordinate;/);
   });
 
   it('a pick, the opening answer and Buscar’s all go through that flight, and the opening one never after her finger', () => {
@@ -465,6 +478,13 @@ describe('an answer only moves the map; her tap is the pin', () => {
     expect(map).toMatch(/const buscada = useBuscar\(enviada\);/);
     expect(map).toMatch(/if \(buscada\.kind !== 'respuestas'\) return;\s*const primera = buscada\.respuestas\[0\];[\s\S]*?if \(primera !== undefined\) volarA\(primera\);/);
     expect(map.match(/volarA\(/g)).toHaveLength(4); // its definition and the three above
+  });
+
+  it('the screen saves the pin it was handed — nothing when the middle is not hers', () => {
+    const screen = code('ui/PantallaPunto.tsx');
+    expect(screen).toMatch(/<MapaPunto pin=\{pin\} direccion=\{direccion\} onPin=\{placed\}/);
+    expect(screen).toMatch(/if \(pin === null\) \{\s*setProblem\(ES\.mapa\.falta\);\s*return;\s*\}/);
+    expect(screen).toMatch(/setProblem\(await onGuardar\(pin, directions\)\);/);
   });
 
   it('nothing in the data layer reads the search', () => {
@@ -507,7 +527,8 @@ describe('the box, and the credit it carries', () => {
   it('the keyboard’s Buscar key asks for what she typed, with her colonia', () => {
     expect(code('ui/Buscador.tsx')).toMatch(/onSubmitEditing=\{onBuscar\}/);
     expect(code('ui/Buscador.tsx')).toMatch(/returnKeyType="search"/);
-    expect(code('ui/MapaPunto.tsx')).toMatch(/function buscar\(\) \{\s*const pregunta = preguntaConColonia\(texto, direccion\?\.colonia \?\? ''\);\s*if \(pregunta !== null\) setEnviada\(pregunta\);/);
+    expect(code('ui/MapaPunto.tsx')).toMatch(/const colonia = direccion\?\.colonia \?\? '';/);
+    expect(code('ui/MapaPunto.tsx')).toMatch(/function buscar\(\) \{\s*const pregunta = preguntaConColonia\(texto, colonia\);\s*if \(pregunta !== null\) setEnviada\(pregunta\);/);
     expect(code('ui/MapaPunto.tsx')).toMatch(/onBuscar=\{buscar\}/);
   });
 
@@ -642,6 +663,95 @@ describe('the phone first, LocationIQ when it has nothing', () => {
   });
 });
 
+// ============================================================================
+// HER DOOR IN THE LIST AS SHE TYPES — `10.4e`, the owner's ruling of 2026-11-02
+// (*"I typed Durango 220 and only saw the street"*). MEASURED FIRST (2026-11-02,
+// the plan's status log): the twenty addresses typed as she types them, her
+// colonia added — with the number typed, the phone's first answer was a door 18
+// times in 20 and on her block 12 (Google) and 11 (Apple); LocationIQ's list
+// opened on her block 6 times and never on a door (4 of its 56 rows had a
+// number). Before the number the phone did no better than LocationIQ.
+// ============================================================================
+
+describe('the phone is asked as she types only once she has typed her number', () => {
+  it('what she typed with her colonia — the same question Buscar sends, so one answer serves both', () => {
+    expect(preguntaConPuerta('Durango 220', 'Roma Norte')).toBe('Durango 220, Roma Norte');
+    expect(preguntaConPuerta('Durango 220', 'Roma Norte')).toBe(preguntaConColonia('Durango 220', 'Roma Norte'));
+    expect(preguntaConPuerta('Durango 220, Condesa', 'Roma Norte')).toBe('Durango 220, Condesa');
+    expect(preguntaConPuerta('Nogal 3B', '')).toBe('Nogal 3B');
+  });
+
+  // Measured: half a street, the phone's first answer was on her block for none of 20.
+  it('not while she types the street, nor a street whose name is a number', () => {
+    expect(preguntaConPuerta('Dura', 'Roma Norte')).toBeNull();
+    expect(preguntaConPuerta('Durango', 'Roma Norte')).toBeNull();
+    expect(preguntaConPuerta('Calle 6', 'Progreso Nacional')).toBeNull();
+    expect(preguntaConPuerta('Poniente 110', '')).toBeNull();
+    expect(preguntaConPuerta('Du', 'Roma Norte')).toBeNull();
+  });
+
+  it('but a door on such a street, and her number from its first digit', () => {
+    expect(preguntaConPuerta('Calle 6 46', 'Progreso Nacional')).toBe('Calle 6 46, Progreso Nacional');
+    expect(preguntaConPuerta('Durango 2', 'Roma Norte')).toBe('Durango 2, Roma Norte');
+  });
+
+  // Apple's geocoder is rate-limited per app and asks for one question per action.
+  it('after a longer pause than LocationIQ’s: a number typed digit by digit asks once', () => {
+    expect(PAUSA_TELEFONO_MS).toBe(600);
+    expect(PAUSA_TELEFONO_MS).toBeGreaterThan(PAUSA_MS);
+  });
+});
+
+describe('the list as she types: the phone’s doors first, LocationIQ’s streets below', () => {
+  const puerta = respuestasDelTelefono([PUERTA])[0];
+  const calle = respuestasDelTelefono([{ ...PUERTA, numero: null }])[0];
+  const deLocationiq = respuestasDe([CALLE, { ...CALLE, place_id: 'p', display_place: 'Privada Durango' }]);
+  const liq: Resultado = { kind: 'respuestas', respuestas: deLocationiq };
+
+  it('a door from the phone tops LocationIQ’s list', () => {
+    const lista = conLasPuertas({ kind: 'respuestas', respuestas: [puerta] }, liq);
+    expect(lista).toEqual({ kind: 'respuestas', respuestas: [puerta, ...deLocationiq] });
+    expect(lista.kind === 'respuestas' && lista.respuestas[0].titulo).toBe('Calle Durango 220');
+  });
+
+  it('only the phone’s doors: a street from it adds nothing LocationIQ does not show', () => {
+    expect(conLasPuertas({ kind: 'respuestas', respuestas: [calle] }, liq)).toBe(liq);
+    expect(conLasPuertas({ kind: 'respuestas', respuestas: [calle, puerta] }, liq)).toEqual({ kind: 'respuestas', respuestas: [puerta, ...deLocationiq] });
+  });
+
+  it('no door from the phone — not asked, out, nothing found, failed — is LocationIQ’s list as before, its words too', () => {
+    for (const telefono of [null, { kind: 'ninguna' }, { kind: 'falla' }, { kind: 'sin-senal' }] as const) {
+      expect(conLasPuertas(telefono, liq)).toBe(liq);
+      expect(conLasPuertas(telefono, { kind: 'ninguna' })).toEqual({ kind: 'ninguna' });
+      expect(conLasPuertas(telefono, { kind: 'buscando' })).toEqual({ kind: 'buscando' });
+      expect(conLasPuertas(telefono, { kind: 'nada' })).toEqual({ kind: 'nada' });
+    }
+  });
+
+  it('the phone’s door stands alone when LocationIQ found nothing, failed or is still out', () => {
+    for (const locationiq of [{ kind: 'ninguna' }, { kind: 'falla' }, { kind: 'sin-senal' }, { kind: 'buscando' }, { kind: 'nada' }] as const) {
+      expect(conLasPuertas({ kind: 'respuestas', respuestas: [puerta] }, locationiq)).toEqual({ kind: 'respuestas', respuestas: [puerta] });
+    }
+  });
+
+  it('a LocationIQ row that reads exactly as the phone’s door is dropped', () => {
+    const twin = { ...puerta, id: 'liq-twin' };
+    const lista = conLasPuertas({ kind: 'respuestas', respuestas: [puerta] }, { kind: 'respuestas', respuestas: [twin, ...deLocationiq] });
+    expect(lista.kind === 'respuestas' && lista.respuestas.map((r) => r.id)).toEqual([puerta.id, ...deLocationiq.map((r) => r.id)]);
+  });
+
+  it('is what the box draws, with the phone asked on what she types and her colonia', () => {
+    const map = code('ui/MapaPunto.tsx');
+    expect(map).toMatch(/const puertas = usePuertas\(buscando \? texto : '', colonia\);/);
+    expect(map).toMatch(/const calles = useSugerencias\(buscando \? texto : '', colonia\);/);
+    expect(map).toMatch(/const sugerencias = conLasPuertas\(puertas, calles\);/);
+    expect(map).toMatch(/<ListaDeSugerencias sugerencias=\{enviada !== null \? buscada : sugerencias\} onElegir=\{elegir\} \/>/);
+    expect(code('lib/telefono.ts')).toMatch(/const ahora = preguntaConPuerta\(texto, colonia\);\s*const pregunta = useAsentado\(ahora, PAUSA_TELEFONO_MS\);/);
+    // An answer always names the number in the box: none while she has typed on since.
+    expect(code('lib/telefono.ts')).toMatch(/return ahora === null \|\| pregunta !== ahora \? null : \(data \?\? null\);/);
+  });
+});
+
 // ⚠️⚠️ THE PHONE'S GEOCODER ASKS NOTHING OF HERS. The ruling: Cocina still asks no
 // location permission and never reads her position. `expo-location`'s Android
 // geocoder refuses without the permission (57.0.20), which is why the module is
@@ -677,9 +787,12 @@ describe('the phone’s own geocoder asks for no permission and reads no positio
       .map((path) => path.slice(SRC.length + 1));
     expect(askers).toEqual(['lib/telefono.ts']);
     expect(code('lib/telefono.ts')).toMatch(/GEOCODIFICADOR\.buscar\(pregunta, CAJA_DEL_VALLE, RESPUESTAS_DEL_TELEFONO\)/);
-    // Both of its questions — the map's opening and Buscar — ask the phone first.
-    expect((code('lib/telefono.ts').match(/primeroElTelefono\(\s*\(\) => preguntarAlTelefono\(/g) ?? []).length).toBe(2);
-    expect(code('ui/MapaPunto.tsx')).toMatch(/import \{ useApertura, useBuscar \} from '@\/lib\/telefono';/);
+    // Both of its whole questions — the map's opening and Buscar — ask the phone first,
+    // through the one answer kept per question (`alTelefono`), as the list does (10.4e).
+    expect((code('lib/telefono.ts').match(/primeroElTelefono\(\s*\(\) => alTelefono\(client, /g) ?? []).length).toBe(2);
+    expect(code('lib/telefono.ts')).toMatch(/queryKey: telefonoKey\(pregunta\),\s*queryFn: \(\) => preguntarAlTelefono\(pregunta\),/);
+    expect(code('lib/telefono.ts')).toMatch(/queryKey: telefonoKey\(pregunta\),\s*queryFn: \(\) => preguntarAlTelefono\(pregunta as string\),\s*enabled: pregunta !== null && GEOCODIFICADOR !== null,/);
+    expect(code('ui/MapaPunto.tsx')).toMatch(/import \{ useApertura, useBuscar, usePuertas \} from '@\/lib\/telefono';/);
   });
 
   it('Android: Google’s geocoder, in Mexico’s Spanish, inside the box — no permission, no position', () => {

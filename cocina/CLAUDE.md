@@ -85,28 +85,40 @@ TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic i
 - ⚠️ **The map has no key in a build made on this Mac** (`MAPS_KEY_PLACEHOLDER`, and the key is locked
   to the store and `preview` signatures). Measured 2026-10-30 on the emulator: such a map delivers
   taps but **never moves its camera and draws no marker**, so the zoom, the flights to a search's
-  answer, the flat map and the pin are seen only on the `preview` build (or Apple's map, which needs no
-  key). Its rules are `src/lib/mapa.ts`, pinned by `test/mapa.test.ts`; to walk the rest of the sign-up
+  answer, the flat map and the pin in the middle (`10.4e`) are seen only on the `preview` build (or
+  Apple's map, which needs no key). Its rules are `src/lib/mapa.ts`, pinned by `test/mapa.test.ts`; to walk the rest of the sign-up
   on the emulator, open the map already close in a local edit (`CIUDAD`), and revert it — the search
   box, its list and *¿Es aquí?* all work on such a map (`10.4c`, 2026-10-31).
-- **The map she taps is the flat street map, and the search above it only moves it** (`10.4c`, the
+- **The map she moves is the flat street map, and the search above it only moves it** (`10.4c`, the
   owner's ruling of 2026-10-31; `src/lib/buscar.ts`, `src/lib/locationiq.ts`, `@/ui/Buscador`).
-  ⚠️⚠️ **What is stored is what she typed and where she tapped — never a provider's point or text**
-  (Apple's licence and Google's terms forbid keeping theirs): `onPin` is called from her tap alone,
-  and `test/buscar.test.ts` reads `@/ui/MapaPunto` for it and refuses the search in `src/api/`.
+  ⚠️⚠️ **What is stored is what she typed and her pin — never a provider's point or text** (Apple's
+  licence and Google's terms forbid keeping theirs). **Since `10.4e` (his ruling of 2026-11-02, as Uber
+  does it) the pin is fixed in the middle and she moves the map under it**; the middle is her pin only
+  once her own hand moved the map — a drag, a pinch, a double tap, or a tap, which brings the point she
+  tapped to the middle — and never after a flight to an answer until she does (`src/lib/mapa.ts`'s
+  `alLlegar`, its sequences pinned by `test/mapa.test.ts`). ⚠️ An iPhone's map never says a move was a
+  gesture (`isGesture` is Google's only), so a middle that moved while no move of the app's was under
+  way counts as hers; `onPanDrag` sees her drag on both. `test/buscar.test.ts` reads `@/ui/MapaPunto` for
+  the wiring and refuses the search in `src/api/`.
   LocationIQ's autocomplete is asked from the phone, kept to the Valle de México (`bounded`), with the
   colonia she gave in the form when she types none, and once more without the house number when that
   finds nothing — **measured first** (the plan's status log): it knows streets, almost never doors, so
   an answer opens the map about five blocks wide and her taps come closer. The address she typed is
   searched as the map opens and flies it there unless she has touched it. *¿Es aquí?* is
-  `addressForCoordinate` (the phone's own geocoder), on the card at the TOP of the map — the foot is
-  where Google's logo is, which the terms forbid covering. Its free plan requires the *Search by
+  `addressForCoordinate` (the phone's own geocoder) asked once the map settles on her pin — on an iPhone
+  the same rate-limited geocoder as the search — on the card at the TOP of the map: the foot is where
+  Google's logo is, which the terms forbid covering. Its free plan requires the *Search by
   LocationIQ.com* link under the box, with OpenStreetMap's credit. A build with no token draws no box.
 - **The map's opening search and the keyboard's search key ask the phone first** (`10.4d`, the owner's
   ruling of 2026-11-01): Google's geocoder on Android, Apple's on an iPhone, then LocationIQ when the
-  phone finds nothing (`@/lib/telefono`, `primeroElTelefono`); the suggestions while she types stay
-  LocationIQ's. Measured first (the plan's status log, 2026-11-02): on her block Google 13 of the 20
-  addresses, Apple 10, LocationIQ's first suggestion 6. The same rule: an answer only moves the map.
+  phone finds nothing (`@/lib/telefono`, `primeroElTelefono`). Measured first (the plan's status log,
+  2026-11-02): on her block Google 13 of the 20 addresses, Apple 10, LocationIQ's first suggestion 6.
+  **Since `10.4e` the list as she types opens on her door**: once what she typed ends in a house number
+  (`preguntaConPuerta`) the phone is asked after a 600 ms pause (`usePuertas`) and its doors top
+  LocationIQ's streets (`conLasPuertas`); before the number it is not asked — measured as she types, it
+  did no better there, and Apple's geocoder is rate-limited per app. One answer per question is kept in
+  memory (`alTelefono`), so *Buscar* on the same words asks nothing again. The same rule: an answer only
+  moves the map.
 - ⚠️⚠️ **The phone's geocoder is this app's own native module, `modules/geocodificador`** — one
   function, `buscar(pregunta, caja, limite)`, in Kotlin (Android's `Geocoder`) and Swift (Apple's
   `CLGeocoder`), autolinked from `modules/` for this app alone. **Not `expo-location`**: its Android

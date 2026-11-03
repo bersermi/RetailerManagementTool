@@ -13,8 +13,8 @@ import { PantallaPunto } from '@/ui/PantallaPunto';
 // `10.4b-iii-b` — the second door for a pin the sign-up could not write, and
 // the way to move one placed wrong.
 //
-// ⚠️ THE SIGN-UP'S MAP SCREEN (`@/ui/PantallaPunto`), opened close around her
-// pin when she has one — close enough that her first tap moves it — and saved
+// ⚠️ THE SIGN-UP'S MAP SCREEN (`@/ui/PantallaPunto`), opened centred on her pin
+// when she has one — her pin stays hers until she moves the map — and saved
 // through `set_store_pin`, the owner's (`0072`). It is drawn only once her place
 // is read, so the map opens where her pin is and not on the city.
 // ============================================================================
