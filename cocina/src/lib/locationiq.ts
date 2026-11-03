@@ -21,11 +21,12 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 
+import type { AddressForm } from '@/api/place';
 import {
   LIMITE_MS,
   PAUSA_MS,
   SUGERENCIAS,
-  preguntaConColonia,
+  preguntaConSuDireccion,
   resultadoDe,
   sinNumero,
   tokenOf,
@@ -113,12 +114,12 @@ export function useAsentado<T>(value: T, ms: number): T {
 
 /**
  * The suggestions for what she is typing: nothing until `MIN_LETRAS`, asked
- * `PAUSA_MS` after her last keystroke — with her colonia when she typed none —
+ * `PAUSA_MS` after her last keystroke — with her colonia and city when she typed none —
  * and the last list kept on screen while the next one comes. Never retried: she
  * is still typing.
  */
-export function useSugerencias(texto: string, colonia: string): Sugerencias {
-  const ahora = preguntaConColonia(texto, colonia);
+export function useSugerencias(texto: string, direccion: AddressForm | null): Sugerencias {
+  const ahora = preguntaConSuDireccion(texto, direccion);
   const pregunta = useAsentado(ahora, PAUSA_MS);
   const { data } = useQuery({
     queryKey: [...BUSCAR_KEY, 'sugerencias', pregunta],

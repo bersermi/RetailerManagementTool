@@ -125,7 +125,12 @@ export const ES = {
     buscarEtiqueta: 'Buscar tu calle en el mapa',
     borrarBusqueda: 'Borrar la búsqueda',
     buscando: 'Buscando…',
-    ninguna: 'No encontramos esa calle. Escríbela de otra forma, o busca tu cocina en el mapa.',
+    /**
+     * ⚠️ NAMES WHERE IT LOOKED (`10.4f`, the owner's ruling of 2026-11-02): the search
+     * covers Mexico City and the State of Mexico only (`@/lib/buscar`'s
+     * `ZONA_DE_BUSQUEDA`), and a fonda elsewhere must not read her address as wrong.
+     */
+    ninguna: 'No encontramos esa calle en la Ciudad de México ni en el Estado de México. Escríbela de otra forma, o busca tu cocina en el mapa.',
     sinSenal: 'Sin conexión. Busca tu cocina en el mapa.',
     falla: 'Ahora no podemos buscar. Busca tu cocina en el mapa.',
     /**
