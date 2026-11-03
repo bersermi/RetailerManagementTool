@@ -2,56 +2,60 @@ import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
-import { EMPTY_ADDRESS } from '@/api/place';
+import { EMPTY_ADDRESS, type AddressForm } from '@/api/place';
 import {
   ANCHO_CALLE_METROS,
   ANCHO_ZONA_MAX_METROS,
-  CAJA_DE_BUSQUEDA,
-  CREDITO_LOCATIONIQ_URL,
-  CREDITO_OSM_URL,
+  CAMPOS_DE_DETALLES,
+  DETALLES_URL,
+  FIRMA_ANDROID,
+  GEOCODING_URL,
+  ID_DE_LA_APP,
   LIMITE_MS,
-  LOCATIONIQ_AUTOCOMPLETE,
   MIN_LETRAS,
   PAUSA_MS,
-  PAUSA_TELEFONO_MS,
-  RESPUESTAS_DEL_TELEFONO,
-  SUGERENCIAS,
+  RECTANGULO,
+  SUGERENCIAS_URL,
   ZONA_DE_BUSQUEDA,
   anchoPara,
-  conLasPuertas,
+  cabecerasDeLaApp,
+  cajasDe,
+  calleDeGeocoding,
+  claveDe,
+  cuerpoDeSugerencias,
+  destinoDeGeocoding,
+  lugarDe,
+  otraCalle,
   preguntaConSuDireccion,
-  preguntaConPuerta,
   preguntaDe,
   preguntaDeDireccion,
-  preguntaParaElTelefono,
-  primeroElTelefono,
-  respuestasDe,
-  respuestasDelTelefono,
-  resultadoDe,
-  resultadoDelTelefono,
-  sinNumero,
-  tokenOf,
-  urlDeBusqueda,
-  type Respuesta,
-  type Resultado,
-} from '@/lib/buscar';
+  sugerenciasDe,
+  urlDeDetalles,
+  urlDeGeocodificar,
+  urlDeLaCalle,
+  type Sugerencia,
+} from '@/lib/google';
 import { CLOSE_METRES } from '@/lib/mapa';
 import { ES } from '@/strings';
 
 // ============================================================================
-// THE MAP'S ADDRESS SEARCH. Plan task `10.4c`, the owner's ruling of 2026-10-31.
+// HER KITCHEN'S ADDRESS SEARCH, ON GOOGLE. Plan task `10.4g-i`, the owner's
+// ruling of 2026-11-03 (LocationIQ's since `10.4c` and the phones' own since
+// `10.4d` until then).
 //
-// ⚠️ WHAT ONLY A PHONE CAN SAY — that the suggestions draw over the map, that a
-// pick flies it, that the flat map is the right one — is the `preview` build's
-// (a map built on this Mac has no key and never moves). Here: every value sent
-// to LocationIQ, every answer read back, the request's failures, and the one rule
-// a careless edit could break unseen: AN ANSWER ONLY MOVES THE MAP, and the pin
-// is her tap.
+// ⚠️ WHAT ONLY A PHONE CAN SAY — that Google's map draws on an iPhone, that the
+// suggestions draw over it, that a pick flies it, that the card reads well — is
+// the `preview` build's (a map built on this Mac has no key and never moves).
+// Here: every value sent to Google, every answer read back, her five boxes from
+// Google's parts, the street the card compares, and the rule a careless edit could
+// break unseen: AN ANSWER ONLY MOVES THE MAP, and the pin is the middle she put
+// there herself.
 //
-// The answers below are shaped like LocationIQ's own (read 2026-10-31), with a
-// made-up kitchen on a real street.
+// The answers below are shaped like Google's own (Places API (New), Geocoding),
+// read on 2026-11-03 with the iPhone key — the streets and towns are real, the
+// coordinates rounded.
 // ============================================================================
 
 const SRC = fileURLToPath(new URL('../src', import.meta.url));
@@ -67,41 +71,115 @@ function sources(dir = SRC): string[] {
   });
 }
 
-const CALLE = {
-  place_id: '331520000',
-  osm_type: 'way',
-  lat: '19.4153',
-  lon: '-99.1654',
-  boundingbox: ['19.4120', '19.4190', '-99.1660', '-99.1648'],
-  class: 'highway',
-  type: 'residential',
-  display_place: 'Calle Durango',
-  display_address: 'Roma Norte, Cuauhtémoc, Ciudad de México, 06700, México',
-  address: { name: 'Calle Durango', neighbourhood: 'Roma Norte', suburb: 'Cuauhtémoc', city: 'Ciudad de México', postcode: '06700', country: 'México', country_code: 'mx' },
+const LUPE: AddressForm = { street: 'General Anaya', number: '17', colonia: 'San Bartolo Ameyalco', city: 'La Magdalena Contreras', postalCode: '10010' };
+
+const SUGERENCIA: Sugerencia = {
+  id: 'ChIJ-anaya-17',
+  titulo: 'General Anaya 17',
+  detalle: 'San Bartolo Ameyalco, La Magdalena Contreras, Ciudad de México, CDMX',
 };
 
-const CASA = {
-  ...CALLE,
-  place_id: '331520001',
-  class: 'place',
-  type: 'house',
-  boundingbox: ['19.41530', '19.41540', '-99.16545', '-99.16535'],
-  address: { ...CALLE.address, house_number: '220', road: 'Calle Durango' },
+/** Places Autocomplete (New)'s answer: a place, then a query's own suggestion. */
+const SUGERENCIAS = {
+  suggestions: [
+    {
+      placePrediction: {
+        place: 'places/ChIJ-anaya-17',
+        placeId: 'ChIJ-anaya-17',
+        text: { text: 'General Anaya 17, San Bartolo Ameyalco, La Magdalena Contreras, Ciudad de México, CDMX' },
+        structuredFormat: {
+          mainText: { text: 'General Anaya 17', matches: [{ endOffset: 16 }] },
+          secondaryText: { text: 'San Bartolo Ameyalco, La Magdalena Contreras, Ciudad de México, CDMX' },
+        },
+        types: ['premise', 'geocode'],
+      },
+    },
+    { queryPrediction: { text: { text: 'general anaya 17 restaurantes' } } },
+  ],
 };
 
-describe('the token', () => {
-  it('is LocationIQ’s API kind, trimmed', () => {
-    expect(tokenOf(' pk.abc123 \n')).toBe('pk.abc123');
+const componente = (longText: string, ...types: string[]) => ({ longText, shortText: longText, types, languageCode: 'es' });
+
+/** Place Details (New), Essentials, for the door above. */
+const DETALLES = {
+  id: 'ChIJ-anaya-17',
+  location: { latitude: 19.3302, longitude: -99.2658 },
+  viewport: { low: { latitude: 19.3289, longitude: -99.2671 }, high: { latitude: 19.3316, longitude: -99.2645 } },
+  addressComponents: [
+    componente('17', 'street_number'),
+    componente('General Anaya', 'route'),
+    componente('San Bartolo Ameyalco', 'sublocality_level_1', 'sublocality', 'political'),
+    componente('Ciudad de México', 'locality', 'political'),
+    componente('La Magdalena Contreras', 'administrative_area_level_3', 'political'),
+    componente('Ciudad de México', 'administrative_area_level_1', 'political'),
+    componente('México', 'country', 'political'),
+    componente('10010', 'postal_code'),
+  ],
+};
+
+const v3 = (long_name: string, ...types: string[]) => ({ long_name, short_name: long_name, types });
+
+/** Geocoding's answer for her four parts. */
+const GEOCODIFICADA = {
+  status: 'OK',
+  results: [
+    {
+      types: ['street_address'],
+      formatted_address: 'General Anaya 17, San Bartolo Ameyalco, La Magdalena Contreras, 10010 Ciudad de México, CDMX, México',
+      geometry: {
+        location: { lat: 19.3302, lng: -99.2658 },
+        location_type: 'ROOFTOP',
+        viewport: { northeast: { lat: 19.3315, lng: -99.2645 }, southwest: { lat: 19.3289, lng: -99.2671 } },
+      },
+      address_components: [v3('17', 'street_number'), v3('General Anaya', 'route')],
+    },
+  ],
+};
+
+/** Geocoding's answer for the point under her pin: a door, then the street, then the colonia. */
+const BAJO_EL_PIN = {
+  status: 'OK',
+  results: [
+    { types: ['street_address'], address_components: [v3('17', 'street_number'), v3('General Anaya', 'route'), v3('San Bartolo Ameyalco', 'sublocality_level_1')] },
+    { types: ['route'], address_components: [v3('Rosa Blanca', 'route')] },
+    { types: ['sublocality_level_1', 'political'], address_components: [v3('San Bartolo Ameyalco', 'sublocality_level_1')] },
+  ],
+};
+
+describe('the key', () => {
+  it('is Google’s kind — AIza and 35 more — trimmed', () => {
+    const clave = `AIza${'A1b2C3d4E5'.repeat(3)}x_-y5`;
+    expect(clave).toHaveLength(39);
+    expect(claveDe(` ${clave}\n`)).toBe(clave);
   });
 
-  it('or none — and then no search box is drawn', () => {
-    expect(tokenOf(undefined)).toBeNull();
-    expect(tokenOf('')).toBeNull();
-    expect(tokenOf('   ')).toBeNull();
-    expect(tokenOf('pk.')).toBeNull();
-    // A value put in the wrong variable is refused rather than sent.
-    expect(tokenOf('sb_publishable_abc')).toBeNull();
-    expect(tokenOf('525500000000')).toBeNull();
+  it('or none — the build’s placeholder, nothing, a value put in the wrong variable — and then no box is drawn', () => {
+    expect(claveDe('sin-clave')).toBeNull();
+    expect(claveDe(undefined)).toBeNull();
+    expect(claveDe(null)).toBeNull();
+    expect(claveDe('')).toBeNull();
+    expect(claveDe('AIza')).toBeNull();
+    expect(claveDe('pk.abc123')).toBeNull(); // LocationIQ's, before 10.4g-i
+    expect(claveDe(`AIza${'x'.repeat(36)}`)).toBeNull();
+    expect(claveDe(42)).toBeNull();
+  });
+
+  it('is sent with the app’s own name: the bundle id on an iPhone, the package and a fingerprint the key accepts on Android', () => {
+    const appJson = JSON.parse(readFileSync(new URL('../app.json', import.meta.url), 'utf8')).expo;
+    expect(ID_DE_LA_APP).toBe(appJson.ios.bundleIdentifier);
+    expect(ID_DE_LA_APP).toBe(appJson.android.package);
+    expect(cabecerasDeLaApp('ios')).toEqual({ 'X-Ios-Bundle-Identifier': 'mx.wera.cocina' });
+    expect(cabecerasDeLaApp('android')).toEqual({ 'X-Android-Package': 'mx.wera.cocina', 'X-Android-Cert': FIRMA_ANDROID });
+    // Expo's test-build fingerprint, as the handbook lists it for the key (step 10), without its colons.
+    expect(FIRMA_ANDROID).toBe('4C:38:47:6F:5A:81:5C:5F:D5:7C:65:9F:17:B3:33:1E:CD:77:F1:D0'.replaceAll(':', ''));
+  });
+
+  it('reaches the search only from the config, each phone its own', () => {
+    const hooks = code('lib/useGoogle.ts');
+    expect(hooks).toMatch(/Constants\.expoConfig\?\.extra/);
+    expect(hooks).toMatch(/export const CLAVE: string \| null = claveDe\(Platform\.OS === 'ios' \? CLAVES\.ios : CLAVES\.android\);/);
+    expect(hooks).toMatch(/const APP = cabecerasDeLaApp\(Platform\.OS\);/);
+    expect(hooks).not.toMatch(/process\.env/);
   });
 });
 
@@ -116,29 +194,49 @@ describe('what is asked, and when', () => {
     expect(preguntaDe('Ñuñ')).toBe('Ñuñ');
   });
 
-  // The free plan allows two questions a second; a question goes out only after
-  // she pauses, and a late suggestion is no use.
-  it('after a pause, never faster than the free plan allows, and given up after eight seconds', () => {
-    expect(PAUSA_MS).toBeGreaterThanOrEqual(450);
+  it('after she pauses, and given up after eight seconds — a late suggestion is no use', () => {
+    expect(PAUSA_MS).toBe(450);
     expect(LIMITE_MS).toBe(8_000);
-    expect(SUGERENCIAS).toBe(5);
   });
 
-  it('Spanish names, Mexico only, and nothing outside the search’s zone', () => {
-    const url = new URL(urlDeBusqueda('Durango 220, Roma Norte', 'pk.abc'));
-    expect(`${url.origin}${url.pathname}`).toBe(LOCATIONIQ_AUTOCOMPLETE);
-    expect(LOCATIONIQ_AUTOCOMPLETE).toBe('https://api.locationiq.com/v1/autocomplete');
-    expect(Object.fromEntries(url.searchParams)).toEqual({
-      key: 'pk.abc',
-      q: 'Durango 220, Roma Norte',
-      countrycodes: 'mx',
-      limit: '5',
-      'accept-language': 'es',
-      normalizecity: '1',
-      dedupe: '1',
-      viewbox: ZONA_DE_BUSQUEDA,
-      bounded: '1',
+  it('the suggestions: Mexico’s Spanish, Mexico only, inside the zone, in her session', () => {
+    expect(SUGERENCIAS_URL).toBe('https://places.googleapis.com/v1/places:autocomplete');
+    expect(cuerpoDeSugerencias('General Anaya 17, San Bartolo Ameyalco', 'sesion-1')).toEqual({
+      input: 'General Anaya 17, San Bartolo Ameyalco',
+      languageCode: 'es-MX',
+      regionCode: 'mx',
+      includedRegionCodes: ['mx'],
+      locationRestriction: { rectangle: { low: { latitude: 18.36, longitude: -100.62 }, high: { latitude: 20.29, longitude: -98.59 } } },
+      sessionToken: 'sesion-1',
     });
+  });
+
+  // ⚠️ A session ended by Essentials bills its first 12 requests and nothing after;
+  // a field of a dearer tier bills it all at that tier.
+  it('her pick’s details: Essentials’ fields alone, in the same session', () => {
+    expect(CAMPOS_DE_DETALLES).toBe('id,location,viewport,addressComponents');
+    const url = new URL(urlDeDetalles('ChIJ/anaya 17', 'sesion-1'));
+    expect(`${url.origin}${url.pathname}`).toBe(`${DETALLES_URL}ChIJ%2Fanaya%2017`);
+    expect(Object.fromEntries(url.searchParams)).toEqual({ languageCode: 'es-MX', regionCode: 'mx', sessionToken: 'sesion-1' });
+  });
+
+  it('Geocoding: the generally available one, in Spanish, Mexico only, leaning on the zone', () => {
+    expect(GEOCODING_URL).toBe('https://maps.googleapis.com/maps/api/geocode/json');
+    const url = new URL(urlDeGeocodificar('Niños Héroes 5 & Cía, Centro', 'AIza-clave'));
+    expect(`${url.origin}${url.pathname}`).toBe(GEOCODING_URL);
+    expect(Object.fromEntries(url.searchParams)).toEqual({
+      address: 'Niños Héroes 5 & Cía, Centro',
+      language: 'es',
+      region: 'mx',
+      components: 'country:MX',
+      bounds: '18.36,-100.62|20.29,-98.59',
+      key: 'AIza-clave',
+    });
+  });
+
+  it('the point under her pin, at the six decimals her pin is kept at', () => {
+    const url = new URL(urlDeLaCalle({ latitude: 19.33021234, longitude: -99.2658 }, 'AIza-clave'));
+    expect(Object.fromEntries(url.searchParams)).toEqual({ latlng: '19.330212,-99.265800', language: 'es', key: 'AIza-clave' });
   });
 
   // min_lon,min_lat,max_lon,max_lat. 10.4f, the owner's ruling of 2026-11-02: Mexico City and the
@@ -159,6 +257,10 @@ describe('what is asked, and when', () => {
       expect(dms(18, 22, 1) - minLat).toBeLessThan(0.02);
     });
 
+    it('is the rectangle Google’s suggestions are kept inside', () => {
+      expect(RECTANGULO).toEqual({ low: { latitude: minLat, longitude: minLon }, high: { latitude: maxLat, longitude: maxLon } });
+    });
+
     it('and Mexico City whole — INEGI’s extremes of it too', () => {
       expect(dentro(dms(19, 36, 0), -99.2)).toBe(true); // its north
       expect(dentro(dms(19, 3, 0), -99.1)).toBe(true); // its south
@@ -167,7 +269,7 @@ describe('what is asked, and when', () => {
       expect(dentro(19.4326, -99.1332)).toBe(true); // the Zócalo
     });
 
-    it('the State of Mexico’s towns the old zone left out are in it now', () => {
+    it('the State of Mexico’s towns are in it', () => {
       for (const [lat, lon] of [
         [19.2826, -99.6557], // Toluca
         [19.1951, -100.1309], // Valle de Bravo
@@ -179,7 +281,7 @@ describe('what is asked, and when', () => {
       }
     });
 
-    it('the other states’ cities are still out of it', () => {
+    it('the other states’ cities are out of it', () => {
       for (const [lat, lon] of [
         [20.6597, -103.3496], // Guadalajara
         [25.6866, -100.3161], // Monterrey
@@ -204,20 +306,16 @@ describe('what is asked, and when', () => {
       );
     });
   });
-
-  it('survives the characters a URL would eat', () => {
-    const url = new URL(urlDeBusqueda('Niños Héroes 5 & Cía', 'pk.abc', 1));
-    expect(url.searchParams.get('q')).toBe('Niños Héroes 5 & Cía');
-    expect(url.searchParams.get('limit')).toBe('1');
-  });
 });
 
-// ⚠️ MEASURED 2026-10-31: a street and number alone found the right street for 4
-// of 20 addresses, with the colonia for 12 — and inside the Valle de México a
-// street with a number LocationIQ cannot match is "nothing found".
-describe('the colonia and city she gave, and the number LocationIQ cannot find', () => {
-  it('adds the colonia and the city from her form when she typed none', () => {
-    expect(preguntaConSuDireccion('Durango 220', { colonia: ' Roma  Norte ', city: ' Cuauhtémoc ' })).toBe('Durango 220, Roma Norte, Cuauhtémoc');
+// ⚠️ MEASURED 2026-11-03: without her colonia, hers was among Google's five
+// suggestions for 3 to 5 of the twenty addresses; with her colonia and alcaldía,
+// 11 to 14 — and the first row on her block for 12.
+describe('the colonia and city she gave', () => {
+  it('are added from her form when she typed none', () => {
+    expect(preguntaConSuDireccion('General Anaya 17', { colonia: ' San Bartolo  Ameyalco ', city: ' La Magdalena Contreras ' })).toBe(
+      'General Anaya 17, San Bartolo Ameyalco, La Magdalena Contreras',
+    );
   });
 
   // 10.4f, measured 2026-11-02: most of the State of Mexico's town centres have no colonia, and
@@ -226,40 +324,23 @@ describe('the colonia and city she gave, and the number LocationIQ cannot find',
     expect(preguntaConSuDireccion('Constitución 11', { colonia: '', city: 'Coyotepec' })).toBe('Constitución 11, Coyotepec');
   });
 
-  it('leaves what she typed alone when she typed a comma herself, or gave no form', () => {
+  it('what she typed is left alone when she typed a comma herself, or gave no form', () => {
     expect(preguntaConSuDireccion('Durango 220, Condesa', { colonia: 'Roma Norte', city: 'Cuauhtémoc' })).toBe('Durango 220, Condesa');
     expect(preguntaConSuDireccion('Durango 220', null)).toBe('Durango 220');
     expect(preguntaConSuDireccion('Durango 220', { colonia: '  ', city: '' })).toBe('Durango 220');
     expect(preguntaConSuDireccion('Du', { colonia: 'Roma Norte', city: 'Cuauhtémoc' })).toBeNull();
   });
-
-  it('asks again without the house number, keeping the colonia', () => {
-    expect(sinNumero('Durango 220')).toBe('Durango');
-    expect(sinNumero('Durango 220, Roma Norte')).toBe('Durango, Roma Norte');
-    expect(sinNumero('Nogal 3B, Tlaxopan')).toBe('Nogal, Tlaxopan');
-    expect(sinNumero('Calle 6 46, Progreso Nacional')).toBe('Calle 6, Progreso Nacional');
-    expect(sinNumero('Poniente 110 210')).toBe('Poniente 110');
-  });
-
-  it('never strips a number that is the street’s name, and has nothing to strip without a number', () => {
-    expect(sinNumero('Calle 6')).toBeNull();
-    expect(sinNumero('Poniente 110, Defensores de la República')).toBeNull();
-    expect(sinNumero('Av. 5')).toBeNull();
-    expect(sinNumero('Durango')).toBeNull();
-    expect(sinNumero('Durango, Roma Norte 2')).toBeNull();
-    expect(sinNumero('220')).toBeNull();
-  });
 });
 
 describe('the map opens near her kitchen: the address she typed, asked once', () => {
-  const lupe = { street: ' Durango ', number: '220', colonia: 'Roma Norte', city: 'Cuauhtémoc', postalCode: '06700' };
+  const lupe = { ...LUPE, street: ' General  Anaya ' };
 
-  it('street and number, colonia, city — as she wrote them', () => {
-    expect(preguntaDeDireccion(lupe)).toBe('Durango 220, Roma Norte, Cuauhtémoc');
+  it('street and number, colonia, city, postcode — as she wrote them, as measured', () => {
+    expect(preguntaDeDireccion(lupe)).toBe('General Anaya 17, San Bartolo Ameyalco, La Magdalena Contreras, 10010');
   });
 
   it('the colonia may be empty, as the form allows', () => {
-    expect(preguntaDeDireccion({ ...lupe, colonia: '  ' })).toBe('Durango 220, Cuauhtémoc');
+    expect(preguntaDeDireccion({ ...lupe, colonia: '  ' })).toBe('General Anaya 17, La Magdalena Contreras, 10010');
   });
 
   it('nothing is asked while the address is not whole — the map stays on the city', () => {
@@ -269,245 +350,252 @@ describe('the map opens near her kitchen: the address she typed, asked once', ()
   });
 });
 
-describe('what LocationIQ answers, read', () => {
-  it('a street: its name, its colonia without the country, its point and how far it reaches', () => {
-    const [r] = respuestasDe([CALLE]);
-    expect(r.id).toBe('331520000');
-    expect(r.titulo).toBe('Calle Durango');
-    expect(r.detalle).toBe('Roma Norte, Cuauhtémoc, Ciudad de México, 06700');
-    expect(r.punto).toEqual({ latitude: 19.4153, longitude: -99.1654 });
-    expect(r.conNumero).toBe(false);
-    expect(r.anchoMetros).toBeGreaterThan(770);
-    expect(r.anchoMetros).toBeLessThan(790);
+describe('what Google suggests, read', () => {
+  it('a place: its first line and its second, under its id', () => {
+    expect(sugerenciasDe(200, SUGERENCIAS)).toEqual({ kind: 'sugerencias', sugerencias: [SUGERENCIA] });
   });
 
-  // Seen on the emulator 2026-10-31: LocationIQ names the city and the state, both "Ciudad de México".
-  it('says a part repeated back to back once', () => {
-    const [r] = respuestasDe([{ ...CALLE, display_address: 'Roma Norte, Ciudad de México, Ciudad de México, 06700, México' }]);
-    expect(r.detalle).toBe('Roma Norte, Ciudad de México, 06700');
+  it('a query’s own suggestion is no address, and a malformed row is skipped, never shown', () => {
+    const body = {
+      suggestions: [
+        { queryPrediction: { text: { text: 'tacos' } } },
+        { placePrediction: { placeId: '', structuredFormat: { mainText: { text: 'Sin id' } } } },
+        { placePrediction: { placeId: 'ChIJ-x' } },
+        null,
+        { placePrediction: { placeId: 'ChIJ-y', text: { text: 'Morelos 2, San Antonio Culhuacán' } } },
+      ],
+    };
+    expect(sugerenciasDe(200, body)).toEqual({
+      kind: 'sugerencias',
+      sugerencias: [{ id: 'ChIJ-y', titulo: 'Morelos 2, San Antonio Culhuacán', detalle: '' }],
+    });
   });
 
-  it('a door: the number joins the name, once', () => {
-    const [r] = respuestasDe([CASA]);
-    expect(r.titulo).toBe('Calle Durango 220');
-    expect(r.conNumero).toBe(true);
-    expect(respuestasDe([{ ...CASA, display_place: 'Calle Durango 220' }])[0].titulo).toBe('Calle Durango 220');
-  });
-
-  // A street is several stretches in the map's data: one row, framing them all.
-  it('two rows that read the same are one, in the first’s place, framing both stretches', () => {
-    const norte = { ...CALLE, place_id: 'a', lat: '19.4190', boundingbox: ['19.4170', '19.4210', '-99.1660', '-99.1650'] };
-    const sur = { ...CALLE, place_id: 'b', lat: '19.4110', boundingbox: ['19.4090', '19.4130', '-99.1662', '-99.1648'] };
-    const otra = { ...CALLE, place_id: 'c', display_place: 'Privada Durango' };
-    const filas = respuestasDe([norte, otra, sur]);
-    expect(filas.map((r) => r.id)).toEqual(['a', 'c']);
-    expect(filas[0].caja).toEqual({ sur: 19.409, norte: 19.421, oeste: -99.1662, este: -99.1648 });
-    expect(filas[0].punto.latitude).toBeCloseTo(19.415, 6);
-    expect(filas[0].punto.longitude).toBeCloseTo(-99.1655, 6);
-    expect(filas[0].anchoMetros).toBeGreaterThan(1_300);
-    expect(filas[0].anchoMetros).toBeLessThan(1_350);
-  });
-
-  it('a door is never merged into a street: its number is the point', () => {
-    expect(respuestasDe([CASA, { ...CASA, place_id: 'otra' }]).map((r) => r.id)).toEqual(['331520001']);
-    expect(respuestasDe([CASA, { ...CASA, place_id: 'otra' }])[0].punto).toEqual({ latitude: 19.4153, longitude: -99.1654 });
-  });
-
-  it('a malformed row is skipped, never shown — and anything but a list is no answer', () => {
-    const rows = [CALLE, { ...CALLE, lat: 'x' }, { ...CALLE, lon: undefined }, { ...CALLE, lat: '123' }, null, 'Durango', { ...CALLE, display_place: '', address: {} }];
-    expect(respuestasDe(rows).map((r) => r.id)).toEqual(['331520000']);
-    expect(respuestasDe({ error: 'Unable to geocode' })).toEqual([]);
-    expect(respuestasDe(null)).toEqual([]);
-  });
-
-  it('a row with no bounding box reaches nothing, and is framed as a street', () => {
-    const [r] = respuestasDe([{ ...CALLE, boundingbox: undefined }]);
-    expect(r.anchoMetros).toBe(0);
-    expect(anchoPara(r)).toBe(ANCHO_CALLE_METROS);
-  });
-
-  // ⚠️ LocationIQ's "nothing found" is a 404, not an empty list.
-  it('a 404 is nothing found; 429, a refused token or its own failure are a failure', () => {
-    expect(resultadoDe(200, [CALLE])).toMatchObject({ kind: 'respuestas', respuestas: [{ id: '331520000' }] });
-    expect(resultadoDe(200, [])).toEqual({ kind: 'ninguna' });
-    expect(resultadoDe(404, { error: 'Unable to geocode' })).toEqual({ kind: 'ninguna' });
-    expect(resultadoDe(429, { error: 'Rate Limited Second' })).toEqual({ kind: 'falla' });
-    expect(resultadoDe(401, { error: 'Invalid key' })).toEqual({ kind: 'falla' });
-    expect(resultadoDe(500, null)).toEqual({ kind: 'falla' });
+  // Places (New) says "nothing" with a 200 and no list — not LocationIQ's 404.
+  it('nothing found is a 200 with no list; a refused key or his project’s limit is a failure', () => {
+    expect(sugerenciasDe(200, {})).toEqual({ kind: 'ninguna' });
+    expect(sugerenciasDe(200, { suggestions: [] })).toEqual({ kind: 'ninguna' });
+    expect(sugerenciasDe(200, null)).toEqual({ kind: 'ninguna' });
+    expect(sugerenciasDe(403, { error: { status: 'PERMISSION_DENIED' } })).toEqual({ kind: 'falla' });
+    expect(sugerenciasDe(429, { error: { status: 'RESOURCE_EXHAUSTED' } })).toEqual({ kind: 'falla' });
+    expect(sugerenciasDe(400, {})).toEqual({ kind: 'falla' });
   });
 });
 
-describe('how wide the map opens on an answer', () => {
-  const con = (anchoMetros: number, conNumero = false): Respuesta => ({
-    id: 'x',
-    titulo: 'Calle',
-    detalle: '',
-    punto: { latitude: 19.4, longitude: -99.1 },
-    conNumero,
-    anchoMetros,
-    caja: null,
+describe('her pick: where the map flies, and her five boxes', () => {
+  it('a door: block level, and the five boxes she would have typed — Mexico City’s alcaldía', () => {
+    const lugar = lugarDe(200, DETALLES, SUGERENCIA, EMPTY_ADDRESS);
+    expect(lugar).toEqual({
+      punto: { latitude: 19.3302, longitude: -99.2658 },
+      conNumero: true,
+      anchoMetros: expect.any(Number),
+      direccion: LUPE,
+    });
+    expect(anchoPara(lugar!)).toBe(CLOSE_METRES);
   });
 
-  it('at block level when it names her number — her first tap is the pin', () => {
-    expect(anchoPara(con(10, true))).toBe(CLOSE_METRES);
+  it('a street with no number: about five blocks at least, and her number kept', () => {
+    const calle = { ...DETALLES, addressComponents: DETALLES.addressComponents.filter((c) => !c.types.includes('street_number')) };
+    const lugar = lugarDe(200, calle, SUGERENCIA, { ...EMPTY_ADDRESS, number: '17-B' })!;
+    expect(lugar.conNumero).toBe(false);
+    expect(lugar.direccion.number).toBe('17-B');
+    expect(anchoPara(lugar)).toBe(ANCHO_CALLE_METROS);
   });
 
-  // Measured 2026-10-31: LocationIQ found the right street, often a few blocks
-  // from her door, and almost never the number.
-  it('otherwise about five blocks at least, the stretch it found if longer, and never a whole alcaldía', () => {
-    expect(ANCHO_CALLE_METROS).toBe(500);
-    expect(anchoPara(con(4))).toBe(ANCHO_CALLE_METROS);
-    expect(anchoPara(con(804))).toBe(804);
-    expect(anchoPara(con(12_000))).toBe(ANCHO_ZONA_MAX_METROS);
-    expect(ANCHO_ZONA_MAX_METROS).toBe(2_000);
-  });
-});
-
-describe('one question to LocationIQ', () => {
-  beforeEach(() => {
-    vi.resetModules();
-    vi.stubEnv('EXPO_PUBLIC_LOCATIONIQ_TOKEN', 'pk.prueba');
-  });
-  afterEach(() => {
-    vi.useRealTimers();
-    vi.unstubAllEnvs();
-    vi.unstubAllGlobals();
+  it('outside the zone, without a point, or refused: nothing — the map stays where it is', () => {
+    expect(lugarDe(200, { ...DETALLES, location: { latitude: 20.6597, longitude: -103.3496 } }, SUGERENCIA, EMPTY_ADDRESS)).toBeNull();
+    expect(lugarDe(200, { ...DETALLES, location: undefined }, SUGERENCIA, EMPTY_ADDRESS)).toBeNull();
+    expect(lugarDe(200, { ...DETALLES, location: { latitude: '19.33', longitude: -99.26 } }, SUGERENCIA, EMPTY_ADDRESS)).toBeNull();
+    expect(lugarDe(403, DETALLES, SUGERENCIA, EMPTY_ADDRESS)).toBeNull();
   });
 
-  const answer = (status: number, body: unknown) => async () =>
-    new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
+  // Read off Google's answers on 2026-11-03, five State of Mexico towns.
+  describe('the State of Mexico’s municipality', () => {
+    it('is Google’s locality — Tepetlixpa, Toluca de Lerdo', () => {
+      const tepetlixpa = [
+        componente('5', 'street_number'),
+        componente('Hidalgo', 'route'),
+        componente('031', 'sublocality_level_3', 'sublocality', 'political'),
+        componente('Tepetlixpa', 'locality', 'political'),
+        componente('Estado de México', 'administrative_area_level_1', 'political'),
+        componente('56880', 'postal_code'),
+      ];
+      expect(cajasDe(tepetlixpa, 'MZ 031, Tepetlixpa, Méx.', EMPTY_ADDRESS)).toEqual({
+        street: 'Hidalgo',
+        number: '5',
+        colonia: '',
+        city: 'Tepetlixpa',
+        postalCode: '56880',
+      });
+    });
 
-  it('sends the token and the question, and reads the answer', async () => {
-    const fetchMock = vi.fn(async (_url: string) => answer(200, [CALLE])());
-    vi.stubGlobal('fetch', fetchMock);
-    const { preguntar } = await import('@/lib/locationiq');
-    expect(await preguntar('Durango 220')).toMatchObject({ kind: 'respuestas', respuestas: [{ titulo: 'Calle Durango' }] });
-    const sent = new URL(String(fetchMock.mock.calls[0][0]));
-    expect(sent.searchParams.get('key')).toBe('pk.prueba');
-    expect(sent.searchParams.get('q')).toBe('Durango 220');
+    it('but where Google puts the colonia there too, the town of the suggestion’s second line — Texcoco', () => {
+      const texcoco = [
+        componente('10', 'street_number'),
+        componente('Calle Fray Pedro de Gante', 'route'),
+        componente('020', 'sublocality_level_3', 'sublocality', 'political'),
+        componente('Centro', 'sublocality_level_1', 'sublocality', 'political'),
+        componente('Centro', 'locality', 'political'),
+        componente('Estado de México', 'administrative_area_level_1', 'political'),
+        componente('56100', 'postal_code'),
+      ];
+      expect(cajasDe(texcoco, 'MZ 020, Centro, Texcoco de Mora, Méx.', EMPTY_ADDRESS)).toEqual({
+        street: 'Calle Fray Pedro de Gante',
+        number: '10',
+        colonia: 'Centro',
+        city: 'Texcoco de Mora',
+        postalCode: '56100',
+      });
+    });
+
+    it('and none at all keeps the city she typed — Chalco’s pueblo is its colonia twice', () => {
+      const chalco = [
+        componente('15', 'street_number'),
+        componente('Calle Morelos', 'route'),
+        componente('Santa Maria Huexoculco', 'sublocality_level_1', 'sublocality', 'political'),
+        componente('Santa María Huexoculco', 'locality', 'political'),
+        componente('Estado de México', 'administrative_area_level_1', 'political'),
+        componente('56646', 'postal_code'),
+      ];
+      const cajas = cajasDe(chalco, 'MZ 007, Santa Maria Huexoculco, Santa María Huexoculco, Méx.', { ...EMPTY_ADDRESS, city: 'Chalco' });
+      expect(cajas.city).toBe('Chalco');
+      expect(cajas.colonia).toBe('Santa Maria Huexoculco');
+    });
   });
 
-  it('nothing found, and a refusal, as LocationIQ sends them', async () => {
-    vi.stubGlobal('fetch', vi.fn(answer(404, { error: 'Unable to geocode' })));
-    const { preguntar } = await import('@/lib/locationiq');
-    expect(await preguntar('Durango 999999')).toEqual({ kind: 'ninguna' });
-    vi.stubGlobal('fetch', vi.fn(answer(429, { error: 'Rate Limited Day' })));
-    expect(await preguntar('Durango 220')).toEqual({ kind: 'falla' });
-  });
-
-  it('a street and number found nothing: asked again without the number, half a second later', async () => {
-    vi.useFakeTimers();
-    const asked: string[] = [];
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(async (url: string) => {
-        const q = new URL(url).searchParams.get('q') ?? '';
-        asked.push(q);
-        return q === 'Durango, Roma Norte' ? answer(200, [CALLE])() : answer(404, { error: 'Unable to geocode' })();
-      }),
-    );
-    const { ENTRE_PREGUNTAS_MS, preguntar } = await import('@/lib/locationiq');
-    expect(ENTRE_PREGUNTAS_MS).toBeGreaterThanOrEqual(500);
-    const pending = preguntar('Durango 220, Roma Norte');
-    await vi.advanceTimersByTimeAsync(ENTRE_PREGUNTAS_MS - 1);
-    expect(asked).toEqual(['Durango 220, Roma Norte']);
-    await vi.advanceTimersByTimeAsync(1);
-    expect(await pending).toMatchObject({ kind: 'respuestas', respuestas: [{ titulo: 'Calle Durango' }] });
-    expect(asked).toEqual(['Durango 220, Roma Norte', 'Durango, Roma Norte']);
-  });
-
-  it('and nothing is asked twice when there is no number to drop, or the first answer was not "nothing"', async () => {
-    const fetchMock = vi.fn(async (_url: string) => answer(404, { error: 'Unable to geocode' })());
-    vi.stubGlobal('fetch', fetchMock);
-    const { preguntar } = await import('@/lib/locationiq');
-    expect(await preguntar('Calle 6, Progreso Nacional')).toEqual({ kind: 'ninguna' });
-    expect(fetchMock).toHaveBeenCalledTimes(1);
-    const limited = vi.fn(async (_url: string) => answer(429, { error: 'Rate Limited Second' })());
-    vi.stubGlobal('fetch', limited);
-    expect(await preguntar('Durango 220')).toEqual({ kind: 'falla' });
-    expect(limited).toHaveBeenCalledTimes(1);
-  });
-
-  it('a question replaced while it waits to ask again is dropped, and the second is never sent', async () => {
-    vi.useFakeTimers();
-    const fetchMock = vi.fn(async (_url: string) => answer(404, { error: 'Unable to geocode' })());
-    vi.stubGlobal('fetch', fetchMock);
-    const { preguntar } = await import('@/lib/locationiq');
-    const replaced = new AbortController();
-    const pending = preguntar('Durango 220', replaced.signal);
-    const settled = pending.catch((failure: unknown) => failure);
-    await vi.advanceTimersByTimeAsync(10);
-    replaced.abort();
-    expect(await settled).toBeInstanceOf(Error);
-    await vi.advanceTimersByTimeAsync(5_000);
-    expect(fetchMock).toHaveBeenCalledTimes(1);
-  });
-
-  it('no signal is said as no signal', async () => {
-    vi.stubGlobal('fetch', vi.fn(async () => Promise.reject(new TypeError('Network request failed'))));
-    const { preguntar } = await import('@/lib/locationiq');
-    expect(await preguntar('Durango 220')).toEqual({ kind: 'sin-senal' });
-  });
-
-  it('no answer in eight seconds is no signal, and the request is dropped', async () => {
-    vi.useFakeTimers();
-    let aborted = false;
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(
-        (_url: string, init?: RequestInit) =>
-          new Promise<Response>((_resolve, reject) =>
-            init?.signal?.addEventListener('abort', () => {
-              aborted = true;
-              reject(new DOMException('aborted', 'AbortError'));
-            }),
-          ),
-      ),
-    );
-    const { preguntar } = await import('@/lib/locationiq');
-    const pending = preguntar('Durango 220');
-    await vi.advanceTimersByTimeAsync(LIMITE_MS);
-    expect(await pending).toEqual({ kind: 'sin-senal' });
-    expect(aborted).toBe(true);
-  });
-
-  // TanStack aborts a question a newer one replaced; rethrown, it is dropped
-  // silently instead of being shown as "sin conexión".
-  it('a question replaced by a newer one fails as replaced, not as no signal', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(
-        (_url: string, init?: RequestInit) =>
-          new Promise<Response>((_resolve, reject) =>
-            init?.signal?.addEventListener('abort', () => reject(new DOMException('aborted', 'AbortError'))),
-          ),
-      ),
-    );
-    const { preguntar } = await import('@/lib/locationiq');
-    const replaced = new AbortController();
-    const pending = preguntar('Durango 2', replaced.signal);
-    replaced.abort();
-    await expect(pending).rejects.toThrow(/aborted/);
-  });
-
-  it('a build with no token asks nothing', async () => {
-    vi.stubEnv('EXPO_PUBLIC_LOCATIONIQ_TOKEN', '');
-    const fetchMock = vi.fn(answer(200, [CALLE]));
-    vi.stubGlobal('fetch', fetchMock);
-    const { LOCATIONIQ_TOKEN, preguntar } = await import('@/lib/locationiq');
-    expect(LOCATIONIQ_TOKEN).toBeNull();
-    expect(await preguntar('Durango 220')).toEqual({ kind: 'falla' });
-    expect(fetchMock).not.toHaveBeenCalled();
+  it('a part Google does not name keeps what she typed; a postcode that is not five digits is none', () => {
+    const pocas = [componente('Unnamed Road', 'route'), componente('1001', 'postal_code')];
+    expect(cajasDe(pocas, '', LUPE)).toEqual(LUPE);
+    expect(cajasDe('nada', '', LUPE)).toEqual(LUPE);
   });
 });
 
-// ⚠️⚠️ THE RULE THIS ROW EXISTS UNDER: what is stored is what she typed and her
-// pin — never a provider's point or text (Apple's licence and Google's terms
-// forbid keeping theirs). Since `10.4e` (the owner's ruling of 2026-11-02, as Uber
-// does it) her pin is the middle of the map, and only once her own hand put it
-// there: after a flight to an answer, no pin until she moves the map. The
-// sequences are `test/mapa.test.ts`'s (`alLlegar`); here, read out of the file,
-// that the map is wired to them — no suite can move the map.
+describe('what Geocoding answers, read', () => {
+  it('her door: the first answer inside the zone, at block level', () => {
+    const r = destinoDeGeocoding(200, GEOCODIFICADA);
+    expect(r).toEqual({ kind: 'destino', destino: { punto: { latitude: 19.3302, longitude: -99.2658 }, conNumero: true, anchoMetros: expect.any(Number) } });
+    if (r.kind === 'destino') expect(anchoPara(r.destino)).toBe(CLOSE_METRES);
+  });
+
+  it('a street: as wide as the stretch it found, five blocks at least, never a whole alcaldía', () => {
+    const calle = (sw: number, ne: number) => ({
+      status: 'OK',
+      results: [{ types: ['route'], geometry: { location: { lat: 19.33, lng: -99.26 }, viewport: { southwest: { lat: sw, lng: -99.26 }, northeast: { lat: ne, lng: -99.26 } } } }],
+    });
+    const ancho = (body: unknown) => {
+      const r = destinoDeGeocoding(200, body);
+      return r.kind === 'destino' ? anchoPara(r.destino) : null;
+    };
+    expect(ancho(calle(19.3299, 19.3301))).toBe(ANCHO_CALLE_METROS);
+    expect(ancho(calle(19.325, 19.335))).toBeCloseTo(1113.2, 0);
+    expect(ancho(calle(19.2, 19.5))).toBe(ANCHO_ZONA_MAX_METROS);
+  });
+
+  it('an answer outside the zone is dropped — Geocoding only leans on it', () => {
+    const fuera = { location: { lat: 20.6597, lng: -103.3496 } };
+    expect(destinoDeGeocoding(200, { status: 'OK', results: [{ geometry: fuera }] })).toEqual({ kind: 'ninguna' });
+    expect(destinoDeGeocoding(200, { status: 'OK', results: [{ geometry: fuera }, GEOCODIFICADA.results[0]] }).kind).toBe('destino');
+  });
+
+  // Geocoding answers every question with a 200, and says how it went in `status`.
+  it('ZERO_RESULTS is nothing found; a limit, a refused key or anything else is a failure', () => {
+    expect(destinoDeGeocoding(200, { status: 'ZERO_RESULTS', results: [] })).toEqual({ kind: 'ninguna' });
+    expect(destinoDeGeocoding(200, { status: 'OVER_QUERY_LIMIT' })).toEqual({ kind: 'falla' });
+    expect(destinoDeGeocoding(200, { status: 'REQUEST_DENIED', error_message: 'This IP, site or mobile application is not authorized' })).toEqual({ kind: 'falla' });
+    expect(destinoDeGeocoding(200, null)).toEqual({ kind: 'falla' });
+    expect(destinoDeGeocoding(500, GEOCODIFICADA)).toEqual({ kind: 'falla' });
+  });
+});
+
+describe('the street Google names under her pin', () => {
+  it('is its first door’s street — not the street of an answer after it', () => {
+    expect(calleDeGeocoding(200, BAJO_EL_PIN)).toBe('General Anaya');
+    const sinPuerta = { status: 'OK', results: BAJO_EL_PIN.results.slice(1) };
+    expect(calleDeGeocoding(200, sinPuerta)).toBe('Rosa Blanca');
+  });
+
+  it('or none: no street named, Google’s nameless road, nothing found, a failure', () => {
+    expect(calleDeGeocoding(200, { status: 'OK', results: [BAJO_EL_PIN.results[2]] })).toBeNull();
+    expect(calleDeGeocoding(200, { status: 'OK', results: [{ types: ['route'], address_components: [v3('Unnamed Road', 'route')] }] })).toBeNull();
+    expect(calleDeGeocoding(200, { status: 'ZERO_RESULTS', results: [] })).toBeNull();
+    expect(calleDeGeocoding(200, { status: 'OVER_QUERY_LIMIT' })).toBeNull();
+    expect(calleDeGeocoding(403, BAJO_EL_PIN)).toBeNull();
+  });
+});
+
+// ⚠️ THE CARD WARNS ONLY WHEN GOOGLE NAMES ANOTHER STREET (his ruling of 2026-11-03).
+// The pairs are the twenty recorded doors as she typed her street and as Google
+// named the street there (Geocoding, 2026-11-03): 14 hers, 6 another — 1 of them
+// among the 12 whose recorded point is trusted (*Rey Yupanqui*).
+describe('the card’s warning: her street, and the one Google names under her pin', () => {
+  const SUYAS: readonly [string, string][] = [
+    ['General Anaya', 'General Anaya'],
+    ['Morelos', 'Calle Morelos'],
+    ['Miguel Hidalgo', 'Miguel Hidalgo'],
+    ['Canal del Norte', 'Canal del Norte'],
+    ['Calle 30', 'Calle 30'],
+    ['Cedral', 'Avenida Cedral'],
+    ['Poniente 110', 'Poniente 110'],
+    ['Lucio Blanco', 'Calzada Lucio Blanco'],
+    ['Calle Lago Colhue', 'Cerrada Lago Colhue'],
+    ['Cerrada de la Cruz', 'Cerrada la Cruz'],
+    ['Calle 6', 'Calle 6'],
+    ['Tulipanes', 'Calle Tulipanes'],
+    ['Calzada México Tacuba', 'Calzada México-Tacuba'],
+    ['San Marcos', 'Calle San Marcos'],
+  ];
+  const OTRAS: readonly [string, string][] = [
+    ['Yobain', 'Chilpa'],
+    ['Minas Zoyopan', 'Mina Etzalan'],
+    ['Rey Yupanqui', 'David R. Scott'],
+    ['Nogal', 'Atzayacatl'],
+    ['Higueras', 'Camino Real'],
+    ['Ignacio Molina', 'Avenida 414-A'],
+  ];
+
+  it('the measured twenty: her street at fourteen, another at six', () => {
+    expect(SUYAS.filter(([suya, deGoogle]) => otraCalle(suya, deGoogle))).toEqual([]);
+    expect(OTRAS.filter(([suya, deGoogle]) => !otraCalle(suya, deGoogle))).toEqual([]);
+  });
+
+  it('a kind of street written short or left out is the same street, and accents and case do not count', () => {
+    expect(otraCalle('Av. Gustavo Baz', 'Avenida Doctor Gustavo Baz')).toBe(false);
+    expect(otraCalle('Gral. Anaya', 'General Anaya')).toBe(false);
+    expect(otraCalle('Cda. de la Cruz', 'Cerrada de la Cruz')).toBe(false);
+    expect(otraCalle('pte. 110', 'Poniente 110')).toBe(false);
+    expect(otraCalle('yobaín', 'Yobain')).toBe(false);
+    expect(otraCalle('Reforma', 'Paseo de la Reforma')).toBe(false);
+  });
+
+  it('but a number or a direction is never dropped: Calle 6 is not Calle 16, Poniente 110 is not Oriente 110', () => {
+    expect(otraCalle('Calle 6', 'Calle 16')).toBe(true);
+    expect(otraCalle('Calle 6', '16 de Septiembre')).toBe(true);
+    expect(otraCalle('Poniente 110', 'Oriente 110')).toBe(true);
+    expect(otraCalle('Sur 12', 'Sur 128')).toBe(true);
+  });
+
+  it('no warning when Google names no street, or either name is only a kind of street', () => {
+    expect(otraCalle('General Anaya', null)).toBe(false);
+    expect(otraCalle('Calle', 'Rosa Blanca')).toBe(false);
+    expect(otraCalle('General Anaya', 'Avenida')).toBe(false);
+    expect(otraCalle('', 'Rosa Blanca')).toBe(false);
+  });
+
+  it('says her address, and Google’s street only to warn — never as hers', () => {
+    expect(ES.mapa.suDireccion('General Anaya 17, San Bartolo Ameyalco')).toBe('Tu dirección: General Anaya 17, San Bartolo Ameyalco');
+    expect(ES.mapa.otraCalle('David R. Scott', 'Rey Yupanqui')).toBe(
+      'El pin parece estar en David R. Scott, no en Rey Yupanqui. Mueve el mapa hasta tu puerta.',
+    );
+  });
+});
+
+// ⚠️⚠️ THE RULE A CARELESS EDIT COULD BREAK UNSEEN. What is stored is what she
+// typed and her pin — never Google's point or what it names (its terms forbid
+// keeping them). Since `10.4e` (the owner's ruling of 2026-11-02, as Uber does
+// it) her pin is the middle of the map, and only once her own hand put it there:
+// after a flight to an answer, no pin until she moves the map. The sequences are
+// `test/mapa.test.ts`'s (`alLlegar`); here, read out of the file, that the map is
+// wired to them — no suite can move the map.
 describe('an answer only moves the map; her pin is the middle she put there herself', () => {
   const map = code('ui/MapaPunto.tsx');
 
@@ -515,14 +603,13 @@ describe('an answer only moves the map; her pin is the middle she put there hers
     expect(map.match(/onPin\(/g)).toHaveLength(2);
     expect(map).toMatch(/const suyo = pinDelCentro\(centro\.current, next, pin\);\s*if \(suyo !== pin\) onPin\(suyo\);/);
     expect(map).toMatch(
-      /function volarA\(respuesta: Respuesta\) \{\s*tocado\.current = true;\s*centro\.current = haciaUnPunto\(centro\.current, respuesta\.punto, 'otro', Date\.now\(\)\);\s*onPin\(null\);/,
+      /function volarA\(destino: Destino\) \{\s*tocado\.current = true;\s*centro\.current = haciaUnPunto\(centro\.current, destino\.punto, 'otro', Date\.now\(\)\);\s*onPin\(null\);/,
     );
   });
 
   it('an answer’s point reaches nothing but the map’s flight, marked as not hers', () => {
     expect(map.match(/\.punto\b/g)).toHaveLength(2);
-    expect(map).toMatch(/haciaUnPunto\(centro\.current, respuesta\.punto, 'otro', Date\.now\(\)\)/);
-    expect(map).toMatch(/map\.current\?\.animateToRegion\(regionAround\(respuesta\.punto, anchoPara\(respuesta\)\), VOLAR_MS\)/);
+    expect(map).toMatch(/map\.current\?\.animateToRegion\(regionAround\(destino\.punto, anchoPara\(destino\)\), VOLAR_MS\)/);
     // Only her tap's point is sent on her behalf.
     expect(map.match(/'ella'/g)).toHaveLength(1);
     expect(map).toMatch(/haciaUnPunto\(centro\.current, point, 'ella', Date\.now\(\)\)/);
@@ -530,12 +617,16 @@ describe('an answer only moves the map; her pin is the middle she put there hers
   });
 
   it('a pick, the opening answer and Buscar’s all go through that flight, and the opening one never after her finger', () => {
-    expect(map).toMatch(/function elegir\(respuesta: Respuesta\) \{[\s\S]*?volarA\(respuesta\);\s*\}/);
+    expect(map).toMatch(/async function elegir\(sugerencia: Sugerencia\) \{[\s\S]*?volarA\(lugar\);\s*\}/);
     expect(map).toMatch(/if \(apertura !== null && listo && !tocado\.current\) volarA\(apertura\);/);
     expect(map).toMatch(/onTouchStart=\{\(\) => \{\s*tocado\.current = true;\s*\}\}/);
     expect(map).toMatch(/const buscada = useBuscar\(enviada\);/);
-    expect(map).toMatch(/if \(buscada\.kind !== 'respuestas'\) return;\s*const primera = buscada\.respuestas\[0\];[\s\S]*?if \(primera !== undefined\) volarA\(primera\);/);
+    expect(map).toMatch(/if \(buscada\.kind !== 'destino'\) return;[\s\S]*?volarA\(buscada\.destino\);/);
     expect(map.match(/volarA\(/g)).toHaveLength(4); // its definition and the three above
+  });
+
+  it('on the map a pick only moves it: her five boxes are the form’s, never touched here', () => {
+    expect(map).not.toMatch(/lugar\.direccion|onCambio|direccion\s*=/);
   });
 
   it('the screen saves the pin it was handed — nothing when the middle is not hers', () => {
@@ -548,38 +639,53 @@ describe('an answer only moves the map; her pin is the middle she put there hers
   it('nothing in the data layer reads the search', () => {
     const api = sources(join(SRC, 'api')).map((path) => ({ path, text: readFileSync(path, 'utf8') }));
     expect(api.length).toBeGreaterThan(0);
-    for (const file of api) expect(file.text, file.path).not.toMatch(/@\/lib\/(buscar|locationiq|telefono)|@\/ui\/Buscador/);
+    for (const file of api) expect(file.text, file.path).not.toMatch(/@\/lib\/(google|useGoogle)|@\/ui\/Buscador/);
   });
 
-  it('¿Es aquí? is the phone’s own maps, shown in the map and handed to nobody', () => {
-    expect(map).toMatch(/addressForCoordinate\(\{ latitude: lat, longitude: lng \}\)/);
-    expect(map).toMatch(/setEsAqui\(lineaDeLugar\(lugar\)\)/);
-    expect(map).toMatch(/\{ES\.mapa\.esAqui\(esAqui\)\}/);
+  it('the card names her address, and Google’s street only to warn — shown in the map and handed to nobody', () => {
+    expect(map).toMatch(/const linea = lineaDeSuDireccion\(direccion\);/);
+    expect(map).toMatch(/const bajoElPin = useCalleBajoElPin\(pin, suCalle\);/);
+    expect(map).toMatch(/const aviso = pin !== null && suCalle !== null && otraCalle\(suCalle, bajoElPin\) \? bajoElPin : null;/);
+    expect(map).toMatch(/\{ES\.mapa\.suDireccion\(linea\)\}/);
+    expect(map).toMatch(/\{aviso !== null && suCalle !== null \? \(\s*<Text[^>]*>\s*\{ES\.mapa\.otraCalle\(aviso, suCalle\)\}/);
     const elsewhere = sources()
-      .filter((path) => !path.endsWith(join('ui', 'MapaPunto.tsx')))
-      .filter((path) => /addressForCoordinate|esAqui\b|lineaDeLugar\(/.test(readFileSync(path, 'utf8').replace(/^\s*\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '')));
-    expect(elsewhere.map((path) => path.slice(SRC.length + 1)).sort()).toEqual(['lib/mapa.ts', 'strings.ts']);
+      .filter((path) => !/(ui[/\\]MapaPunto\.tsx|lib[/\\]useGoogle\.ts|lib[/\\]google\.ts)$/.test(path))
+      .filter((path) => /useCalleBajoElPin|calleEn\(|calleDeGeocoding/.test(readFileSync(path, 'utf8')));
+    expect(elsewhere).toEqual([]);
+  });
+
+  // ⚠️ `addressForCoordinate` is Apple's geocoder on an iPhone whatever the map
+  // (react-native-maps 1.27.2): Apple's answers may not be shown on Google's map.
+  it('asks the phone’s own maps for nothing', () => {
+    const askers = sources().filter((path) => /addressForCoordinate/.test(code(path.slice(SRC.length + 1))));
+    expect(askers).toEqual([]);
   });
 });
 
-describe('the box, and the credit it carries', () => {
-  // LocationIQ's free plan: "a prominent link back to us … in this format".
-  it('says LocationIQ’s words and links its site, and credits OpenStreetMap', () => {
-    expect(ES.mapa.creditoBusqueda).toBe('Search by LocationIQ.com');
-    expect(CREDITO_LOCATIONIQ_URL).toBe('https://locationiq.com');
-    expect(ES.mapa.creditoDatos).toBe('© OpenStreetMap');
-    expect(CREDITO_OSM_URL).toBe('https://www.openstreetmap.org/copyright');
-    const box = code('ui/Buscador.tsx');
-    expect(box).toMatch(/Linking\.openURL\(CREDITO_LOCATIONIQ_URL\)[\s\S]*?\{ES\.mapa\.creditoBusqueda\}/);
-    expect(box).toMatch(/Linking\.openURL\(CREDITO_OSM_URL\)[\s\S]*?\{ES\.mapa\.creditoDatos\}/);
+describe('Google’s map on both phones, and Google’s credit', () => {
+  it('both maps are Google’s, on an iPhone too — its terms keep its search off any other map', () => {
+    for (const file of ['ui/MapaPunto.tsx', 'ui/MapaFijo.tsx']) {
+      expect(code(file), file).toMatch(/provider=\{PROVIDER_GOOGLE\}/);
+      expect(code(file), file).toMatch(/mapType=\{TIPO_DE_MAPA\}/);
+    }
+    const maps = sources().filter((path) => /<MapView\b/.test(readFileSync(path, 'utf8')));
+    expect(maps.map((path) => path.slice(SRC.length + 1)).sort()).toEqual(['ui/MapaFijo.tsx', 'ui/MapaPunto.tsx']);
   });
 
-  it('is drawn only on a build that carries the token, and the credit with it', () => {
-    expect(code('ui/MapaPunto.tsx')).toMatch(/\{LOCATIONIQ_TOKEN !== null && \(\s*<CampoDeBusqueda/);
-    expect(code('lib/locationiq.ts')).toMatch(/tokenOf\(process\.env\.EXPO_PUBLIC_LOCATIONIQ_TOKEN\)/);
-    // The suggestions ask only with a token; the phone's two questions ask LocationIQ only with one.
-    expect((code('lib/locationiq.ts').match(/enabled: pregunta !== null && LOCATIONIQ_TOKEN !== null/g) ?? []).length).toBe(1);
-    expect((code('lib/telefono.ts').match(/LOCATIONIQ_TOKEN === null \? Promise\.resolve\(FALLA\)/g) ?? []).length).toBe(2);
+  it('the box is drawn only on a build that carries this phone’s key', () => {
+    expect(code('ui/MapaPunto.tsx')).toMatch(/\{CLAVE !== null && \(\s*<CampoDeBusqueda/);
+    for (const hook of ['useSugerencias', 'useApertura', 'useBuscar']) {
+      expect(code('lib/useGoogle.ts'), hook).toMatch(new RegExp(`export function ${hook}\\([\\s\\S]*?enabled: pregunta !== null && CLAVE !== null,`));
+    }
+  });
+
+  it('carries Google’s words at the foot of the suggestions’ own box, untranslated, on one line', () => {
+    expect(ES.mapa.creditoGoogle).toBe('Google Maps');
+    const box = code('ui/Buscador.tsx');
+    expect(box).toMatch(/<\/ScrollView>\s*<CreditoDeGoogle \/>/);
+    expect(box).toMatch(/numberOfLines=\{1\}[\s\S]*?\{ES\.mapa\.creditoGoogle\}/);
+    expect(box).toMatch(/fontSize: 12,/);
+    expect(box).not.toMatch(/LocationIQ|OpenStreetMap|Linking/);
   });
 
   it('the keyboard’s Buscar key asks for what she typed, with her colonia and city', () => {
@@ -594,232 +700,33 @@ describe('the box, and the credit it carries', () => {
   });
 });
 
-// ============================================================================
-// THE PHONE'S OWN SEARCH — plan task `10.4d`, the owner's ruling of 2026-11-01.
-// Google's geocoder on Android and Apple's on an iPhone answer the search that
-// opens the map and the keyboard's *Buscar*, through this app's own module
-// (`cocina/modules/geocodificador`); LocationIQ when the phone finds nothing.
-// The rows below are shaped like the module's own (2026-11-02, read off the
-// emulator and this Mac), with a made-up kitchen on a real street.
-// ============================================================================
+// ⚠️ ONE SESSION PER SEARCH: the suggestions of one search share a token and her
+// pick's details end it — at most its first 12 requests billed (read 2026-11-02).
+describe('one session per search', () => {
+  const hooks = code('lib/useGoogle.ts');
+  const map = code('ui/MapaPunto.tsx');
 
-const PUERTA = {
-  latitude: 19.41531,
-  longitude: -99.16541,
-  calle: 'Calle Durango',
-  numero: '220',
-  colonia: 'Roma Norte',
-  ciudad: 'Ciudad de México',
-  estado: 'Ciudad de México',
-  cp: '06700',
-};
-
-describe('the phone is asked what she typed, inside the search’s zone', () => {
-  it('the box is LocationIQ’s own, south, west, north, east', () => {
-    const [oeste, sur, este, norte] = ZONA_DE_BUSQUEDA.split(',').map(Number);
-    expect(CAJA_DE_BUSQUEDA).toEqual([sur, oeste, norte, este]);
-    expect(CAJA_DE_BUSQUEDA).toEqual([18.36, -100.62, 20.29, -98.59]);
-    expect(RESPUESTAS_DEL_TELEFONO).toBe(5);
+  it('a token made at the search’s first question, and dropped when it ends', () => {
+    expect(hooks).toMatch(/token: \(\) => \(token\.current \?\?= newId\(\)\),/);
+    expect(hooks).toMatch(/cerrar: \(\) => \{\s*token\.current = null;\s*\},/);
   });
 
-  it('the opening question is all five boxes as she wrote them — the postcode too', () => {
-    const form = { street: ' Durango ', number: '220', colonia: 'Roma Norte', city: 'Cuauhtémoc', postalCode: '06700' };
-    expect(preguntaParaElTelefono(form)).toBe('Durango 220, Roma Norte, Cuauhtémoc, 06700');
-    expect(preguntaParaElTelefono({ ...form, colonia: '' })).toBe('Durango 220, Cuauhtémoc, 06700');
-    // LocationIQ is asked without the postcode, as 10.4c measured it.
-    expect(preguntaDeDireccion(form)).toBe('Durango 220, Roma Norte, Cuauhtémoc');
-  });
-
-  it('nothing is asked while the address is not whole', () => {
-    expect(preguntaParaElTelefono(EMPTY_ADDRESS)).toBeNull();
-    const form = { street: 'Durango', number: '220', colonia: '', city: 'Cuauhtémoc', postalCode: '0670' };
-    expect(preguntaParaElTelefono(form)).toBeNull();
-  });
-});
-
-describe('what the phone answers, read', () => {
-  it('a door: street and number, its colonia, city and postcode, at block level', () => {
-    const [door] = respuestasDelTelefono([PUERTA]);
-    expect(door).toEqual({
-      id: 'telefono-0',
-      titulo: 'Calle Durango 220',
-      detalle: 'Roma Norte, Ciudad de México, 06700',
-      punto: { latitude: 19.41531, longitude: -99.16541 },
-      conNumero: true,
-      anchoMetros: 0,
-      caja: null,
-    });
-    expect(anchoPara(door)).toBe(CLOSE_METRES);
-  });
-
-  it('a street with no number opens about five blocks wide; a colonia alone is its own title', () => {
-    const [street] = respuestasDelTelefono([{ ...PUERTA, numero: null }]);
-    expect(street.titulo).toBe('Calle Durango');
-    expect(street.conNumero).toBe(false);
-    expect(anchoPara(street)).toBe(ANCHO_CALLE_METROS);
-    const [zone] = respuestasDelTelefono([{ ...PUERTA, calle: null, numero: '220' }]);
-    expect(zone.titulo).toBe('Roma Norte');
-    expect(zone.detalle).toBe('Ciudad de México, 06700');
-    expect(zone.conNumero).toBe(false);
-  });
-
-  it('an empty field is nothing — a null, the text "(null)", Google’s Unnamed Road', () => {
-    const [a] = respuestasDelTelefono([{ ...PUERTA, numero: '(null)', cp: null }]);
-    expect(a.titulo).toBe('Calle Durango');
-    expect(a.detalle).toBe('Roma Norte, Ciudad de México');
-    const [b] = respuestasDelTelefono([{ ...PUERTA, calle: 'Unnamed Road' }]);
-    expect(b.titulo).toBe('Roma Norte');
-    expect(b.conNumero).toBe(false);
-  });
-
-  it('an answer outside the zone, without a point or a name, or malformed, is never offered', () => {
-    expect(respuestasDelTelefono([{ ...PUERTA, latitude: 20.6597, longitude: -103.3496 }])).toEqual([]); // Guadalajara
-    expect(respuestasDelTelefono([{ ...PUERTA, latitude: 19.0414, longitude: -98.2063 }])).toEqual([]); // Puebla
-    // 10.4f: the State of Mexico is in the zone — Toluca's answer is offered now.
-    expect(respuestasDelTelefono([{ ...PUERTA, latitude: 19.2826, longitude: -99.6557 }])).toHaveLength(1);
-    expect(respuestasDelTelefono([{ ...PUERTA, latitude: null }])).toEqual([]);
-    expect(respuestasDelTelefono([{ ...PUERTA, calle: null, colonia: null }])).toEqual([]);
-    expect(respuestasDelTelefono([null, 'x', 7])).toEqual([]);
-    expect(respuestasDelTelefono('no es una lista')).toEqual([]);
-    const [kept] = respuestasDelTelefono([{ ...PUERTA, latitude: 99 }, PUERTA]);
-    expect(kept.id).toBe('telefono-1');
-  });
-
-  it('two answers that read the same are one, the first', () => {
-    const both = respuestasDelTelefono([PUERTA, { ...PUERTA, latitude: 19.4154 }]);
-    expect(both).toHaveLength(1);
-    expect(both[0].punto.latitude).toBe(19.41531);
-  });
-
-  it('nothing found is nothing found; anything but a list is a failure', () => {
-    expect(resultadoDelTelefono([])).toEqual({ kind: 'ninguna' });
-    expect(resultadoDelTelefono([{ ...PUERTA, latitude: 25.6866, longitude: -100.3161 }])).toEqual({ kind: 'ninguna' }); // Monterrey
-    expect(resultadoDelTelefono(null)).toEqual({ kind: 'falla' });
-    expect(resultadoDelTelefono([PUERTA])).toMatchObject({ kind: 'respuestas', respuestas: [{ titulo: 'Calle Durango 220' }] });
-  });
-});
-
-describe('the phone first, LocationIQ when it has nothing', () => {
-  const answer = (titulo: string): Resultado => ({ kind: 'respuestas', respuestas: [{ ...respuestasDelTelefono([PUERTA])[0], titulo }] });
-  const of = (r: Resultado) => vi.fn(() => Promise.resolve(r));
-
-  it('the phone’s answers, and LocationIQ is never asked', async () => {
-    const locationiq = of(answer('LocationIQ'));
-    await expect(primeroElTelefono(of(answer('teléfono')), locationiq)).resolves.toMatchObject({ respuestas: [{ titulo: 'teléfono' }] });
-    expect(locationiq).not.toHaveBeenCalled();
-  });
-
-  it('nothing found or a failure on the phone: LocationIQ’s answer, whatever it is', async () => {
-    for (const phone of [{ kind: 'ninguna' }, { kind: 'falla' }] as const) {
-      await expect(primeroElTelefono(of(phone), of(answer('LocationIQ')))).resolves.toMatchObject({ respuestas: [{ titulo: 'LocationIQ' }] });
-      await expect(primeroElTelefono(of(phone), of({ kind: 'sin-senal' }))).resolves.toEqual({ kind: 'sin-senal' });
-      await expect(primeroElTelefono(of(phone), of({ kind: 'ninguna' }))).resolves.toEqual({ kind: 'ninguna' });
-    }
-  });
-
-  it('the phone found nothing and LocationIQ could not be asked: she hears nothing found, not a failure', async () => {
-    await expect(primeroElTelefono(of({ kind: 'ninguna' }), of({ kind: 'falla' }))).resolves.toEqual({ kind: 'ninguna' });
-    await expect(primeroElTelefono(of({ kind: 'falla' }), of({ kind: 'falla' }))).resolves.toEqual({ kind: 'falla' });
+  it('every suggestion carries it, and her pick’s details carry the same, then end it', () => {
+    expect(hooks).toMatch(/queryFn: \(\{ signal \}\) => sugerir\(pregunta as string, sesion\.token\(\), signal\),/);
+    expect(map).toMatch(/const lugar = await detallar\(sugerencia, sesion\.token\(\), direccion \?\? EMPTY_ADDRESS\);\s*sesion\.cerrar\(\);/);
+    expect(hooks).toMatch(/'X-Goog-FieldMask': CAMPOS_DE_DETALLES/);
   });
 });
 
 // ============================================================================
-// HER DOOR IN THE LIST AS SHE TYPES — `10.4e`, the owner's ruling of 2026-11-02
-// (*"I typed Durango 220 and only saw the street"*). MEASURED FIRST (2026-11-02,
-// the plan's status log): the twenty addresses typed as she types them, her
-// colonia added — with the number typed, the phone's first answer was a door 18
-// times in 20 and on her block 12 (Google) and 11 (Apple); LocationIQ's list
-// opened on her block 6 times and never on a door (4 of its 56 rows had a
-// number). Before the number the phone did no better than LocationIQ.
+// THE PHONE'S OWN GEOCODER — `10.4d`, the owner's ruling of 2026-11-01 — STAYS IN
+// THE BUILD, ASKED BY NOTHING since `10.4g-i`: its answers were Apple's on an
+// iPhone, which may not be shown on Google's map. Removing it is a native change,
+// so it waits for a build that has another reason. These lines still hold it to
+// the ruling that made it — no location permission, no position — read out of the
+// files, because no suite can compile the native code.
 // ============================================================================
-
-describe('the phone is asked as she types only once she has typed her number', () => {
-  const lupe = { colonia: 'Roma Norte', city: 'Cuauhtémoc' };
-  it('what she typed with her colonia and city — the same question Buscar sends, so one answer serves both', () => {
-    expect(preguntaConPuerta('Durango 220', lupe)).toBe('Durango 220, Roma Norte, Cuauhtémoc');
-    expect(preguntaConPuerta('Durango 220', lupe)).toBe(preguntaConSuDireccion('Durango 220', lupe));
-    expect(preguntaConPuerta('Durango 220, Condesa', lupe)).toBe('Durango 220, Condesa');
-    expect(preguntaConPuerta('Nogal 3B', null)).toBe('Nogal 3B');
-    expect(preguntaConPuerta('Constitución 11', { colonia: '', city: 'Coyotepec' })).toBe('Constitución 11, Coyotepec');
-  });
-
-  // Measured: half a street, the phone's first answer was on her block for none of 20.
-  it('not while she types the street, nor a street whose name is a number', () => {
-    expect(preguntaConPuerta('Dura', lupe)).toBeNull();
-    expect(preguntaConPuerta('Durango', lupe)).toBeNull();
-    expect(preguntaConPuerta('Calle 6', { colonia: 'Progreso Nacional', city: 'Gustavo A. Madero' })).toBeNull();
-    expect(preguntaConPuerta('Poniente 110', null)).toBeNull();
-    expect(preguntaConPuerta('Du', lupe)).toBeNull();
-  });
-
-  it('but a door on such a street, and her number from its first digit', () => {
-    expect(preguntaConPuerta('Calle 6 46', { colonia: 'Progreso Nacional', city: '' })).toBe('Calle 6 46, Progreso Nacional');
-    expect(preguntaConPuerta('Durango 2', lupe)).toBe('Durango 2, Roma Norte, Cuauhtémoc');
-  });
-
-  // Apple's geocoder is rate-limited per app and asks for one question per action.
-  it('after a longer pause than LocationIQ’s: a number typed digit by digit asks once', () => {
-    expect(PAUSA_TELEFONO_MS).toBe(600);
-    expect(PAUSA_TELEFONO_MS).toBeGreaterThan(PAUSA_MS);
-  });
-});
-
-describe('the list as she types: the phone’s doors first, LocationIQ’s streets below', () => {
-  const puerta = respuestasDelTelefono([PUERTA])[0];
-  const calle = respuestasDelTelefono([{ ...PUERTA, numero: null }])[0];
-  const deLocationiq = respuestasDe([CALLE, { ...CALLE, place_id: 'p', display_place: 'Privada Durango' }]);
-  const liq: Resultado = { kind: 'respuestas', respuestas: deLocationiq };
-
-  it('a door from the phone tops LocationIQ’s list', () => {
-    const lista = conLasPuertas({ kind: 'respuestas', respuestas: [puerta] }, liq);
-    expect(lista).toEqual({ kind: 'respuestas', respuestas: [puerta, ...deLocationiq] });
-    expect(lista.kind === 'respuestas' && lista.respuestas[0].titulo).toBe('Calle Durango 220');
-  });
-
-  it('only the phone’s doors: a street from it adds nothing LocationIQ does not show', () => {
-    expect(conLasPuertas({ kind: 'respuestas', respuestas: [calle] }, liq)).toBe(liq);
-    expect(conLasPuertas({ kind: 'respuestas', respuestas: [calle, puerta] }, liq)).toEqual({ kind: 'respuestas', respuestas: [puerta, ...deLocationiq] });
-  });
-
-  it('no door from the phone — not asked, out, nothing found, failed — is LocationIQ’s list as before, its words too', () => {
-    for (const telefono of [null, { kind: 'ninguna' }, { kind: 'falla' }, { kind: 'sin-senal' }] as const) {
-      expect(conLasPuertas(telefono, liq)).toBe(liq);
-      expect(conLasPuertas(telefono, { kind: 'ninguna' })).toEqual({ kind: 'ninguna' });
-      expect(conLasPuertas(telefono, { kind: 'buscando' })).toEqual({ kind: 'buscando' });
-      expect(conLasPuertas(telefono, { kind: 'nada' })).toEqual({ kind: 'nada' });
-    }
-  });
-
-  it('the phone’s door stands alone when LocationIQ found nothing, failed or is still out', () => {
-    for (const locationiq of [{ kind: 'ninguna' }, { kind: 'falla' }, { kind: 'sin-senal' }, { kind: 'buscando' }, { kind: 'nada' }] as const) {
-      expect(conLasPuertas({ kind: 'respuestas', respuestas: [puerta] }, locationiq)).toEqual({ kind: 'respuestas', respuestas: [puerta] });
-    }
-  });
-
-  it('a LocationIQ row that reads exactly as the phone’s door is dropped', () => {
-    const twin = { ...puerta, id: 'liq-twin' };
-    const lista = conLasPuertas({ kind: 'respuestas', respuestas: [puerta] }, { kind: 'respuestas', respuestas: [twin, ...deLocationiq] });
-    expect(lista.kind === 'respuestas' && lista.respuestas.map((r) => r.id)).toEqual([puerta.id, ...deLocationiq.map((r) => r.id)]);
-  });
-
-  it('is what the box draws, with the phone asked on what she types and her colonia and city', () => {
-    const map = code('ui/MapaPunto.tsx');
-    expect(map).toMatch(/const puertas = usePuertas\(buscando \? texto : '', direccion\);/);
-    expect(map).toMatch(/const calles = useSugerencias\(buscando \? texto : '', direccion\);/);
-    expect(map).toMatch(/const sugerencias = conLasPuertas\(puertas, calles\);/);
-    expect(map).toMatch(/<ListaDeSugerencias sugerencias=\{enviada !== null \? buscada : sugerencias\} onElegir=\{elegir\} \/>/);
-    expect(code('lib/telefono.ts')).toMatch(/const ahora = preguntaConPuerta\(texto, direccion\);\s*const pregunta = useAsentado\(ahora, PAUSA_TELEFONO_MS\);/);
-    // An answer always names the number in the box: none while she has typed on since.
-    expect(code('lib/telefono.ts')).toMatch(/return ahora === null \|\| pregunta !== ahora \? null : \(data \?\? null\);/);
-  });
-});
-
-// ⚠️⚠️ THE PHONE'S GEOCODER ASKS NOTHING OF HERS. The ruling: Cocina still asks no
-// location permission and never reads her position. `expo-location`'s Android
-// geocoder refuses without the permission (57.0.20), which is why the module is
-// this app's own — and these lines hold it to the ruling, read out of the files,
-// because no suite can compile the native code.
-describe('the phone’s own geocoder asks for no permission and reads no position', () => {
+describe('the phone’s own geocoder is asked by nothing, and still asks for no permission', () => {
   const APP = fileURLToPath(new URL('..', import.meta.url));
   const MOD = join(APP, 'modules', 'geocodificador');
   const kotlin = readFileSync(join(MOD, 'android/src/main/java/mx/wera/cocina/geocodificador/GeocodificadorModule.kt'), 'utf8');
@@ -831,8 +738,12 @@ describe('the phone’s own geocoder asks for no permission and reads no positio
   const pkg = JSON.parse(readFileSync(join(APP, 'package.json'), 'utf8')) as { dependencies: Record<string, string> };
   const strip = (text: string) => text.replace(/^\s*\/\/.*$/gm, '').replace(/<!--[\s\S]*?-->/g, '');
 
-  it('one name in the three files — a misspelt one is a build that silently never asks the phone', () => {
-    expect(code('lib/telefono.ts')).toMatch(/requireOptionalNativeModule<Geocodificador>\('Geocodificador'\)/);
+  it('nothing in the app asks it', () => {
+    const askers = sources().filter((path) => /Geocodificador|requireOptionalNativeModule/.test(code(path.slice(SRC.length + 1))));
+    expect(askers).toEqual([]);
+  });
+
+  it('it is still the one module, under its one name', () => {
     expect(kotlin).toMatch(/Name\("Geocodificador"\)/);
     expect(swift).toMatch(/Name\("Geocodificador"\)/);
     const config = JSON.parse(readFileSync(join(MOD, 'expo-module.config.json'), 'utf8'));
@@ -843,30 +754,12 @@ describe('the phone’s own geocoder asks for no permission and reads no positio
     });
   });
 
-  it('only `@/lib/telefono` asks it, with the zone’s box and five answers', () => {
-    const askers = sources()
-      .filter((path) => /Geocodificador|requireOptionalNativeModule/.test(readFileSync(path, 'utf8').replace(/^\s*\/\/.*$/gm, '')))
-      .map((path) => path.slice(SRC.length + 1));
-    expect(askers).toEqual(['lib/telefono.ts']);
-    expect(code('lib/telefono.ts')).toMatch(/GEOCODIFICADOR\.buscar\(pregunta, CAJA_DE_BUSQUEDA, RESPUESTAS_DEL_TELEFONO\)/);
-    // Both of its whole questions — the map's opening and Buscar — ask the phone first,
-    // through the one answer kept per question (`alTelefono`), as the list does (10.4e).
-    expect((code('lib/telefono.ts').match(/primeroElTelefono\(\s*\(\) => alTelefono\(client, /g) ?? []).length).toBe(2);
-    expect(code('lib/telefono.ts')).toMatch(/queryKey: telefonoKey\(pregunta\),\s*queryFn: \(\) => preguntarAlTelefono\(pregunta\),/);
-    expect(code('lib/telefono.ts')).toMatch(/queryKey: telefonoKey\(pregunta\),\s*queryFn: \(\) => preguntarAlTelefono\(pregunta as string\),\s*enabled: pregunta !== null && GEOCODIFICADOR !== null,/);
-    expect(code('ui/MapaPunto.tsx')).toMatch(/import \{ useApertura, useBuscar, usePuertas \} from '@\/lib\/telefono';/);
-  });
-
-  it('Android: Google’s geocoder, in Mexico’s Spanish, inside the box — no permission, no position', () => {
+  it('Android: no permission, no position', () => {
     expect(strip(manifest)).not.toMatch(/uses-permission/);
-    expect(kotlin).toMatch(/Geocoder\(context, ESPANOL_DE_MEXICO\)/);
-    expect(kotlin).toMatch(/Locale\.Builder\(\)\.setLanguage\("es"\)\.setRegion\("MX"\)\.build\(\)/);
-    expect((kotlin.match(/getFromLocationName\(pregunta, limite, sur, oeste, norte, este/g) ?? []).length).toBe(2);
     expect(strip(kotlin)).not.toMatch(/LocationManager|FusedLocation|getLastLocation|requestLocationUpdates|ACCESS_(FINE|COARSE)_LOCATION|requestPermissions/);
   });
 
-  it('iPhone: Apple’s geocoder, in Mexico’s Spanish — no permission, no position', () => {
-    expect(swift).toMatch(/geocodeAddressString\(\s*pregunta, in: region, preferredLocale: Locale\(identifier: "es_MX"\)\)/);
+  it('iPhone: no permission, no position', () => {
     expect(strip(swift)).not.toMatch(/CLLocationManager|requestWhenInUseAuthorization|requestAlwaysAuthorization|startUpdatingLocation/);
   });
 

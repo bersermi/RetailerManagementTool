@@ -6,30 +6,37 @@ import { fileURLToPath } from 'node:url';
 import { afterAll, describe, expect, it } from 'vitest';
 
 // ============================================================================
-// THE RUNTIME DOES NOT DEPEND ON THE TWO SECRETS. Plan task `10.2a`.
-// ⚠️ The same test is in `itacate/test/` — change both.
+// THE RUNTIME DOES NOT DEPEND ON THE SECRETS. Plan tasks `10.2a` and `10.4g-i`.
+// ⚠️ Its twin in `itacate/test/` holds two secrets: Itacate carries no iPhone key
+// yet (`itacate/app.config.ts`) — change both when it does.
 //
-// EAS has the map key and google-services.json; this Mac and CI do not. The
+// EAS has the two map keys and google-services.json; this Mac and CI do not. The
 // runtime an update is published to is computed on this Mac, and the one a
 // build carries is computed on EAS, so if the secrets entered the hash the two
 // would disagree: the build refuses, or an update reaches nobody and still says
-// "Published!". `fingerprint.config.js` drops both. This computes the runtime
-// with the same command the update runbook uses, without the secrets and with
-// stand-ins for both, on both platforms, and requires one answer.
+// "Published!". `fingerprint.config.js` drops or masks each. This computes the
+// runtime with the same command the update runbook uses, without the secrets and
+// with stand-ins for all three, on both platforms, and requires one answer.
 //
 // ⚠️ NOT VACUOUS: before comparing, it shows the stand-ins reached the config —
-// the key in react-native-maps' options, the file as `googleServicesFile`. Equal
-// hashes over a config the stand-ins never reached would prove nothing.
+// each key in react-native-maps' options and in `extra.google`, the file as
+// `googleServicesFile`. Equal hashes over a config the stand-ins never reached
+// would prove nothing.
 // ============================================================================
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const FIREBASE = join(ROOT, 'google-services.json');
 const STAND_IN_KEY = 'clave-de-prueba-10-2a';
+const STAND_IN_IOS_KEY = 'clave-de-prueba-10-4g-i';
 
 function npx(args: string[], withSecrets: boolean): string {
   const env = { ...process.env };
   delete env.GOOGLE_MAPS_ANDROID_API_KEY;
-  if (withSecrets) env.GOOGLE_MAPS_ANDROID_API_KEY = STAND_IN_KEY;
+  delete env.GOOGLE_MAPS_IOS_API_KEY;
+  if (withSecrets) {
+    env.GOOGLE_MAPS_ANDROID_API_KEY = STAND_IN_KEY;
+    env.GOOGLE_MAPS_IOS_API_KEY = STAND_IN_IOS_KEY;
+  }
   return execFileSync('npx', args, { cwd: ROOT, env, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
 }
 
@@ -45,19 +52,21 @@ function config(withSecrets: boolean) {
 
 function mapsOptions(cfg: { plugins?: unknown[] }) {
   const entry = (cfg.plugins ?? []).find((p) => Array.isArray(p) && p[0] === 'react-native-maps');
-  return (entry as [string, { androidGoogleMapsApiKey?: string }] | undefined)?.[1];
+  return (entry as [string, { androidGoogleMapsApiKey?: string; iosGoogleMapsApiKey?: string }] | undefined)?.[1];
 }
 
-describe('the runtime ignores the map key and google-services.json', () => {
+describe('the runtime ignores the two map keys and google-services.json', () => {
   const hadFirebase = existsSync(FIREBASE);
   afterAll(() => {
     if (!hadFirebase) rmSync(FIREBASE, { force: true });
   });
 
-  it('without them: the placeholder key, no Firebase file', () => {
+  it('without them: the placeholder for each key — the iPhone keeps Google’s map — and no Firebase file', () => {
     if (hadFirebase) return; // a real file is here; the comparison below still runs
     const cfg = config(false);
     expect(mapsOptions(cfg)?.androidGoogleMapsApiKey).toBe('sin-clave');
+    expect(mapsOptions(cfg)?.iosGoogleMapsApiKey).toBe('sin-clave');
+    expect(cfg.extra?.google).toEqual({ android: 'sin-clave', ios: 'sin-clave' });
     expect(cfg.android?.googleServicesFile).toBeUndefined();
   }, 120_000);
 
@@ -67,6 +76,8 @@ describe('the runtime ignores the map key and google-services.json', () => {
     if (!hadFirebase) writeFileSync(FIREBASE, JSON.stringify({ project_info: { project_id: 'prueba' } }));
     const cfg = config(true);
     expect(mapsOptions(cfg)?.androidGoogleMapsApiKey).toBe(STAND_IN_KEY);
+    expect(mapsOptions(cfg)?.iosGoogleMapsApiKey).toBe(STAND_IN_IOS_KEY);
+    expect(cfg.extra?.google).toEqual({ android: STAND_IN_KEY, ios: STAND_IN_IOS_KEY });
     expect(cfg.android?.googleServicesFile).toBe('./google-services.json');
 
     expect(runtime('ios', true)).toBe(without.ios);

@@ -11,13 +11,14 @@ import {
   LLEGADA_MS,
   MISMO_PUNTO_METROS,
   TAP_ZOOM,
+  TIPO_DE_MAPA,
   alLlegar,
   centroAlAbrir,
   closeEnough,
   closerAt,
   conGesto,
   haciaUnPunto,
-  lineaDeLugar,
+  lineaDeSuDireccion,
   metresAcross,
   metrosEntre,
   openingRegion,
@@ -25,13 +26,12 @@ import {
   regionAround,
   regionFromBounds,
   tapOn,
-  tipoDeMapa,
   type Centro,
   type Region,
 } from '@/lib/mapa';
 
 // ============================================================================
-// THE MAP'S ARITHMETIC. Plan tasks `10.4b-iii-b`, `10.4c` and `10.4e`.
+// THE MAP'S ARITHMETIC. Plan tasks `10.4b-iii-b`, `10.4c`, `10.4e` and `10.4g-i`.
 //
 // ⚠️ THE MAP ITSELF IS NATIVE AND NO SUITE CAN LOAD IT (ADR-035 §2.11): whether
 // the flat map draws, and whether a drag reaches `onPanDrag`, is the phone's.
@@ -274,44 +274,35 @@ describe('her kitchen’s screen shows the block around her pin', () => {
   });
 
   it('on the same flat map as the one she taps', () => {
-    expect(code('ui/MapaFijo.tsx')).toMatch(/mapType=\{tipoDeMapa\(Platform\.OS\)\}/);
+    expect(code('ui/MapaFijo.tsx')).toMatch(/mapType=\{TIPO_DE_MAPA\}/);
   });
 });
 
-// ⚠️ THE OWNER'S RULING OF 2026-10-31 (`10.4c`): the delivery apps use a standard
-// street map, never satellite.
+// ⚠️ THE OWNER'S RULINGS OF 2026-10-31 (`10.4c`: the delivery apps use a standard
+// street map, never satellite) and 2026-11-03 (`10.4g-i`: Google's, on both phones).
 describe('which map she sees', () => {
-  it('Apple’s muted street map on an iPhone, Google’s standard one on Android', () => {
-    expect(tipoDeMapa('ios')).toBe('mutedStandard');
-    expect(tipoDeMapa('android')).toBe('standard');
+  it('Google’s standard street map, on an iPhone too', () => {
+    expect(TIPO_DE_MAPA).toBe('standard');
   });
 });
 
-// ⚠️ SHOWN AND NEVER KEPT: the line is Apple's or Google's (`addressForCoordinate`).
-describe('¿Es aquí? — what the phone’s own maps call the point she tapped', () => {
-  it('the street and number, then the colonia', () => {
-    expect(lineaDeLugar({ thoroughfare: 'Calle Durango', subThoroughfare: '220', subLocality: 'Roma Norte' })).toBe(
-      'Calle Durango 220, Roma Norte',
+// ⚠️ HER ADDRESS, AS SHE GAVE IT — the card's first line since `10.4g-i`. What
+// Google says is under the pin only warns (`test/buscar.test.ts`).
+describe('the card names her address', () => {
+  it('the street and number, then the colonia, as she typed them', () => {
+    expect(lineaDeSuDireccion({ street: ' General  Anaya ', number: ' 17 ', colonia: 'San Bartolo Ameyalco' })).toBe(
+      'General Anaya 17, San Bartolo Ameyalco',
     );
   });
 
-  // `react-native-maps` 1.27.2 formats each CLPlacemark field with `%@`, so an
-  // iPhone sends a missing one as the text "(null)"; Android sends JSON null.
-  it('reads an iPhone’s "(null)" and Android’s null as nothing', () => {
-    expect(lineaDeLugar({ thoroughfare: 'Calle Durango', subThoroughfare: '(null)', subLocality: 'Roma Norte' })).toBe(
-      'Calle Durango, Roma Norte',
-    );
-    expect(lineaDeLugar({ thoroughfare: 'Calle Durango', subThoroughfare: null, subLocality: null })).toBe('Calle Durango');
-    expect(lineaDeLugar({ thoroughfare: ' Calle 6 ', subThoroughfare: ' 46 ', subLocality: '(null)' })).toBe('Calle 6 46');
+  it('a colonia or a number she left empty is left out', () => {
+    expect(lineaDeSuDireccion({ street: 'Hidalgo', number: '5', colonia: '' })).toBe('Hidalgo 5');
+    expect(lineaDeSuDireccion({ street: 'Hidalgo', number: ' ', colonia: 'Centro' })).toBe('Hidalgo, Centro');
   });
 
-  it('says nothing when no street is named — no line is better than a wrong one', () => {
-    expect(lineaDeLugar({ thoroughfare: '(null)', subThoroughfare: '220', subLocality: 'Roma Norte' })).toBeNull();
-    expect(lineaDeLugar({ thoroughfare: 'Unnamed Road', subLocality: 'Ajusco' })).toBeNull();
-    expect(lineaDeLugar({ thoroughfare: '', subLocality: 'Roma Norte' })).toBeNull();
-    expect(lineaDeLugar(null)).toBeNull();
-    expect(lineaDeLugar(undefined)).toBeNull();
-    expect(lineaDeLugar({ thoroughfare: 42 })).toBeNull();
+  it('says nothing while she gave no street — the card keeps its hint', () => {
+    expect(lineaDeSuDireccion({ street: '  ', number: '5', colonia: 'Centro' })).toBeNull();
+    expect(lineaDeSuDireccion(null)).toBeNull();
   });
 });
 
@@ -319,7 +310,7 @@ describe('the map she moves, as wired — decisions no suite can watch happen', 
   const map = code('ui/MapaPunto.tsx');
 
   it('is the flat street map, and every tap and every stop goes through the rules above', () => {
-    expect(map).toMatch(/mapType=\{tipoDeMapa\(Platform\.OS\)\}/);
+    expect(map).toMatch(/mapType=\{TIPO_DE_MAPA\}/);
     expect(map).not.toMatch(/hybrid|satellite/);
     expect(map).toMatch(/initialRegion=\{first\}/);
     expect(map).toMatch(/onRegionChangeComplete=\{\(next, details\) => llego\(next, details\?\.isGesture === true\)\}/);
@@ -351,8 +342,9 @@ describe('the map she moves, as wired — decisions no suite can watch happen', 
   });
 
   it('hides businesses’ labels on both platforms — a tap on one would not reach the map', () => {
+    // Google's map on both phones since `10.4g-i`: its style hides them on each.
     expect(map).toMatch(/customMapStyle=\{SIN_NEGOCIOS\}/);
-    expect(map).toMatch(/showsPointsOfInterests=\{false\}/);
+    expect(code('ui/MapaFijo.tsx')).toMatch(/customMapStyle=\{SIN_NEGOCIOS\}/);
     expect(map).toMatch(/featureType: 'poi', stylers: \[\{ visibility: 'off' \}\]/);
   });
 

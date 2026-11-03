@@ -14,12 +14,15 @@
 #      (GoDaddy's parking answers 3.33.130.190 and 15.197.148.33).
 #   2. www.tu-wera.com is a CNAME to bersermi.github.io.
 #   3. /, /privacidad/, /privacidad/cocina-e-itacate/ (the two new apps, plans
-#      `10.2b` and `10.4b-iv-b`), /eliminar-cuenta/, /eliminar-cuenta/cocina/
-#      (Wera Cocina's, the link its Play Data safety form gives) and /estilo.css
-#      answer 200 over HTTPS, served by GitHub.
+#      `10.2b` and `10.4b-iv-b`), /terminos/cocina-e-itacate/ (their terms, with
+#      the notice Google's terms ask of an app with its map, `10.4g-i`),
+#      /eliminar-cuenta/, /eliminar-cuenta/cocina/ (Wera Cocina's, the link its
+#      Play Data safety form gives) and /estilo.css answer 200 over HTTPS, served
+#      by GitHub.
 #   4. ⚠️ No response sets a cookie — the pages say *"Este sitio no usa cookies"*.
 #   5. ⚠️ No page holds `{{` — the aviso names its responsable.
-#   6. Both avisos served are the ones on this checkout (their date lines match).
+#   6. Both avisos and the terms served are the ones on this checkout (their date
+#      lines match).
 #   7. http:// redirects to https://.
 #   8. tu-wera.com has MX records, so privacidad@ and ayuda@ can receive mail.
 #      ⚠️ It cannot prove the mail is FORWARDED — only a test email can.
@@ -77,7 +80,7 @@ else
 fi
 
 # 3, 4 and 5. Each page.
-for path in / /privacidad/ /privacidad/cocina-e-itacate/ /eliminar-cuenta/ /eliminar-cuenta/cocina/ /estilo.css; do
+for path in / /privacidad/ /privacidad/cocina-e-itacate/ /terminos/cocina-e-itacate/ /eliminar-cuenta/ /eliminar-cuenta/cocina/ /estilo.css; do
   name="$(echo "$path" | tr '/' '_')"
   code="$(curl -sS ${PIN[@]+"${PIN[@]}"} -o "$TMP/$name.body" -D "$TMP/$name.head" -w '%{http_code}' "$BASE$path" 2>"$TMP/$name.err")"
   if [[ "$code" != "200" ]]; then
@@ -92,8 +95,8 @@ for path in / /privacidad/ /privacidad/cocina-e-itacate/ /eliminar-cuenta/ /elim
   elif [[ "$path" != *.css ]]; then ok "$BASE$path holds no {{ }}"; fi
 done
 
-# 6. Both avisos served are this checkout's.
-for page in privacidad privacidad/cocina-e-itacate; do
+# 6. Both avisos and the terms served are this checkout's.
+for page in privacidad privacidad/cocina-e-itacate terminos/cocina-e-itacate; do
   fecha="$(grep -o '<p class="fecha">[^<]*' "site/$page/index.html" | head -1)"
   body="$TMP/_$(echo "$page" | tr '/' '_')_.body"
   if [[ -s "$body" ]]; then

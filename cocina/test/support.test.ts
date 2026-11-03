@@ -11,6 +11,7 @@ import {
   whatsappUrl as weraWhatsappUrl,
 } from '../../app/src/auth/support';
 import { ES as WERA } from '../../app/src/strings';
+import { EXTRA_ENV } from '../app.config';
 
 // ============================================================================
 // ¿OLVIDASTE TU CONTRASEÑA? Plan task `10.4b-iv-b` — Wera's `5R-h`, in this app.
@@ -122,18 +123,28 @@ describe('every value the bundle reads, the update runbook refuses to ship witho
   const allSource = sources()
     .map((path) => readFileSync(path, 'utf8').replace(/^\s*\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, ''))
     .join('\n');
-  const used = [...new Set([...allSource.matchAll(/process\.env\.(EXPO_PUBLIC_[A-Z0-9_]+)/g)].map((m) => m[1]))].sort();
+  const inlined = [...new Set([...allSource.matchAll(/process\.env\.(EXPO_PUBLIC_[A-Z0-9_]+)/g)].map((m) => m[1]))].sort();
+  // ⚠️ `10.4g-i`: Google's two keys reach the bundle through the config's `extra`,
+  // which Expo writes into every update from EAS's environment — so an update built
+  // without one has no search on that phone, as silently as a missing EXPO_PUBLIC_.
+  const config = readFileSync(new URL('../app.config.ts', import.meta.url), 'utf8');
+  const used = [...inlined, ...EXTRA_ENV].sort();
 
   const runbook = readFileSync(new URL('../../docs/runbooks/ship-an-update.sh', import.meta.url), 'utf8');
   const listed = /\n\s*cocina\)\s+label="Wera Cocina";\s+needed="([^"]*)"/.exec(runbook)?.[1].split(/\s+/).filter(Boolean).sort();
 
-  it('reads the four it should', () => {
-    expect(used).toEqual([
-      'EXPO_PUBLIC_LOCATIONIQ_TOKEN',
-      'EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY',
-      'EXPO_PUBLIC_SUPABASE_URL',
-      'EXPO_PUBLIC_SUPPORT_WHATSAPP',
-    ]);
+  it('reads the three it should from the bundler — LocationIQ’s token is gone since `10.4g-i`', () => {
+    expect(inlined).toEqual(['EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY', 'EXPO_PUBLIC_SUPABASE_URL', 'EXPO_PUBLIC_SUPPORT_WHATSAPP']);
+  });
+
+  it('and the two map keys from the config, each into `extra.google` and nowhere else in the bundle', () => {
+    expect([...EXTRA_ENV]).toEqual(['GOOGLE_MAPS_ANDROID_API_KEY', 'GOOGLE_MAPS_IOS_API_KEY']);
+    expect(config).toMatch(/extra: \{ \.\.\.config\.extra, google: \{ android: androidKey, ios: iosKey \} \}/);
+    expect(config).toMatch(/const androidKey = process\.env\[MAPS_KEY_ENV\] \|\| MAPS_KEY_PLACEHOLDER;/);
+    expect(config).toMatch(/const iosKey = process\.env\[IOS_MAPS_KEY_ENV\] \|\| MAPS_KEY_PLACEHOLDER;/);
+    // The search reads them where Expo puts the config, and only there.
+    const readers = sources().filter((path) => /expoConfig\?\.extra/.test(readFileSync(path, 'utf8')));
+    expect(readers.map((path) => path.slice(SRC.length + 1))).toEqual(['lib/useGoogle.ts']);
   });
 
   it('and the runbook names each of them for Wera Cocina', () => {

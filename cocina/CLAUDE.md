@@ -85,51 +85,43 @@ TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic i
 - ⚠️ **The map has no key in a build made on this Mac** (`MAPS_KEY_PLACEHOLDER`, and the key is locked
   to the store and `preview` signatures). Measured 2026-10-30 on the emulator: such a map delivers
   taps but **never moves its camera and draws no marker**, so the zoom, the flights to a search's
-  answer, the flat map and the pin in the middle (`10.4e`) are seen only on the `preview` build (or
-  Apple's map, which needs no key). Its rules are `src/lib/mapa.ts`, pinned by `test/mapa.test.ts`; to walk the rest of the sign-up
-  on the emulator, open the map already close in a local edit (`CIUDAD`), and revert it — the search
-  box, its list and *¿Es aquí?* all work on such a map (`10.4c`, 2026-10-31).
-- **The map she moves is the flat street map, and the search above it only moves it** (`10.4c`, the
-  owner's ruling of 2026-10-31; `src/lib/buscar.ts`, `src/lib/locationiq.ts`, `@/ui/Buscador`).
-  ⚠️⚠️ **What is stored is what she typed and her pin — never a provider's point or text** (Apple's
-  licence and Google's terms forbid keeping theirs). **Since `10.4e` (his ruling of 2026-11-02, as Uber
-  does it) the pin is fixed in the middle and she moves the map under it**; the middle is her pin only
-  once her own hand moved the map — a drag, a pinch, a double tap, or a tap, which brings the point she
-  tapped to the middle — and never after a flight to an answer until she does (`src/lib/mapa.ts`'s
-  `alLlegar`, its sequences pinned by `test/mapa.test.ts`). ⚠️ An iPhone's map never says a move was a
-  gesture (`isGesture` is Google's only), so a middle that moved while no move of the app's was under
-  way counts as hers; `onPanDrag` sees her drag on both. `test/buscar.test.ts` reads `@/ui/MapaPunto` for
-  the wiring and refuses the search in `src/api/`.
-  LocationIQ's autocomplete is asked from the phone, kept to the search's zone (`bounded`) — **Mexico City
-  and the State of Mexico since `10.4f`** (his ruling of 2026-11-02; the Valle de México alone before), a box
-  on INEGI's extremes, `ZONA_DE_BUSQUEDA` — with the colonia **and the city** she gave in the form when she
-  types none (`preguntaConSuDireccion`: across a state a street and number with no colonia name a dozen towns,
-  measured), and once more without the house number when that
-  finds nothing — **measured first** (the plan's status log): it knows streets, almost never doors, so
-  an answer opens the map about five blocks wide and her taps come closer. The address she typed is
-  searched as the map opens and flies it there unless she has touched it. *¿Es aquí?* is
-  `addressForCoordinate` (the phone's own geocoder) asked once the map settles on her pin — on an iPhone
-  the same rate-limited geocoder as the search — on the card at the TOP of the map: the foot is where
-  Google's logo is, which the terms forbid covering. Its free plan requires the *Search by
-  LocationIQ.com* link under the box, with OpenStreetMap's credit. A build with no token draws no box.
-- **The map's opening search and the keyboard's search key ask the phone first** (`10.4d`, the owner's
-  ruling of 2026-11-01): Google's geocoder on Android, Apple's on an iPhone, then LocationIQ when the
-  phone finds nothing (`@/lib/telefono`, `primeroElTelefono`). Measured first (the plan's status log,
-  2026-11-02): on her block Google 13 of the 20 addresses, Apple 10, LocationIQ's first suggestion 6.
-  **Since `10.4e` the list as she types opens on her door**: once what she typed ends in a house number
-  (`preguntaConPuerta`) the phone is asked after a 600 ms pause (`usePuertas`) and its doors top
-  LocationIQ's streets (`conLasPuertas`); before the number it is not asked — measured as she types, it
-  did no better there, and Apple's geocoder is rate-limited per app. One answer per question is kept in
-  memory (`alTelefono`), so *Buscar* on the same words asks nothing again. The same rule: an answer only
-  moves the map.
-- ⚠️⚠️ **The phone's geocoder is this app's own native module, `modules/geocodificador`** — one
-  function, `buscar(pregunta, caja, limite)`, in Kotlin (Android's `Geocoder`) and Swift (Apple's
-  `CLGeocoder`), autolinked from `modules/` for this app alone. **Not `expo-location`**: its Android
-  geocoder refuses without the location permission this app blocks. The two files are twins — a fix to
-  one is a fix to both — and **no workflow compiles either**: a device build is the check, and the
-  suite reads them for what must hold (no permission, no position, one name in three files; a misspelt
-  name is a build that silently never asks the phone). Any change under `modules/` is native: it moves
-  this app's runtime, so it reaches nobody until new builds. Its rules stay in `@/lib/buscar`, pure.
+  answer, the flat map and the pin in the middle (`10.4e`) are seen only on the `preview` build — on
+  an iPhone too since `10.4g-i`, whose map is Google's and needs its key. Its rules are `src/lib/mapa.ts`, pinned by `test/mapa.test.ts`; to walk the rest of the sign-up
+  on the emulator, open the map already close in a local edit (`CIUDAD`), and revert it. ⚠️ **Since
+  `10.4g-i` such a build has no search either** — the search is Google's, with the same keys — so the
+  box, its list and the card's warning are the `preview` build's to show too.
+- **The map she moves is Google's flat street map, on both phones, and the search above it only moves
+  it** (`10.4c`, the owner's ruling of 2026-10-31, and `10.4g-i`, his of 2026-11-03: Google on both phones;
+  `src/lib/google.ts`, pure, `src/lib/useGoogle.ts`, its requests, `@/ui/Buscador`). ⚠️⚠️ **What is stored is
+  her five boxes and her pin — never Google's point, nor what it names**: a suggestion she picks fills the
+  boxes (Google lets the address an end user picks be hers — *Autocomplete for end user addresses*, its
+  Places policies — never the list) and every box stays hers to change. **Since `10.4e` (his ruling of
+  2026-11-02, as Uber does it) the pin is fixed in the middle and she moves the map under it**; the middle is
+  her pin only once her own hand moved the map — a drag, a pinch, a double tap, or a tap, which brings the
+  point she tapped to the middle — and never after a flight to an answer until she does (`src/lib/mapa.ts`'s
+  `alLlegar`, its sequences pinned by `test/mapa.test.ts`). `test/buscar.test.ts` reads `@/ui/MapaPunto` for the
+  wiring and refuses the search in `src/api/`. **The search, measured first** (the plan's status log,
+  2026-11-03): Places API (New) Autocomplete as she types, kept to the zone (Mexico City and the State of
+  Mexico since `10.4f`, `ZONA_DE_BUSQUEDA`), with the colonia and city she gave in the form when she types
+  none (without them her colonia was among the five for 3 to 5 of twenty, with them 11 to 14); **one session
+  per search**, ended by Place Details Essentials (`CAMPOS_DE_DETALLES` — a field of a dearer tier bills the
+  whole session at it); Geocoding (the GA one; v4 was a Preview) for the map's opening on her four parts and
+  for the keyboard's search key. **The card over the map names her address, and warns only when Google names
+  another street under her pin** (`otraCalle`, measured: her street at 14 of the twenty recorded doors, at 11
+  of the 12 trusted). It sits at the TOP of the map: the foot is where Google's logo is, which the terms forbid
+  covering. The suggestions' box carries *Google Maps* at its foot (its attribution rules: over the map the list
+  can hide the logo, and the form has no map). A build with no key for its phone draws no box.
+- ⚠️ **Each phone asks with its own key, locked to this app**: an iPhone names the bundle id
+  (`X-Ios-Bundle-Identifier`), Android the package and Expo's test-build fingerprint (`X-Android-Cert`, one
+  of the two the Android key accepts). Google says such a lock can be copied, so a copied key is bounded by the
+  project's daily limits and budget alert (the handbook's *Google's search for Wera Cocina*), not by it.
+- ⚠️⚠️ **`modules/geocodificador` — the phone's own geocoder, `10.4d` — stays in the build, asked by nothing
+  since `10.4g-i`**: its answers were Apple's on an iPhone, which may not be shown on Google's map, and
+  `addressForCoordinate` is Apple's geocoder on an iPhone whatever the map (`react-native-maps` 1.27.2). One
+  function, `buscar(pregunta, caja, limite)`, in Kotlin (Android's `Geocoder`) and Swift (Apple's `CLGeocoder`),
+  autolinked from `modules/` for this app alone; **no workflow compiles either**, and the suite still reads them
+  for what must hold (no permission, no position). Removing it is a native change: it leaves with a build that
+  has another reason.
 - ⚠️ **`cocina/.gitignore` is hashed into the runtime** — `@expo/fingerprint` lists it as a file source.
   Measured 2026-11-02 (`10.4d-i`): three lines added to it moved both runtimes (iOS `03e08251` → `04ea3329`,
   Android `1c9713fb` → `5bb2a913`) with no other change. An edit to it is a native change; compute the
@@ -152,20 +144,24 @@ TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic i
   `expo-notifications` 57.0.24 upgraded `expo-constants` and moved Wera's runtime on both
   platforms; 57.0.17 fits. After any install, the root lockfile's diff must only **add**
   entries, and `docs/checks/wera-runtime.sh` (in `app.yml`) must pass.
-- **Two values come from EAS's environment into the config, never the repository:** the Android map key
-  (`GOOGLE_MAPS_ANDROID_API_KEY`) and Firebase's `google-services.json` (file variable
-  `GOOGLE_SERVICES_JSON`, copied in by `eas-pre-install.sh`, which refuses an Android store
-  build without either). **Neither enters the runtime** — `fingerprint.config.js` drops both,
-  and `test/runtime.test.ts` computes the runtime with and without them. A new value read from
-  the environment into the config joins that file and that test, or the runtime this Mac
-  computes stops matching EAS's.
+- **Three values come from EAS's environment into the config, never the repository:** the Android map key
+  (`GOOGLE_MAPS_ANDROID_API_KEY`), the iPhone map key since `10.4g-i` (`GOOGLE_MAPS_IOS_API_KEY`) and Firebase's
+  `google-services.json` (file variable `GOOGLE_SERVICES_JSON`, copied in by `eas-pre-install.sh`, which refuses
+  an Android store build without the file or the Android key, and an iPhone store build without the iPhone key).
+  The two keys go into `react-native-maps`' options — the iPhone key's presence is what compiles Google's map
+  into an iPhone build — and into `extra.google`, where the search reads each phone's own. **None enters the
+  runtime** — `fingerprint.config.js` drops the Android key, masks the iPhone's (its presence is native, its value
+  not) and both copies in `extra`, and ignores the file; `test/runtime.test.ts` computes the runtime with and
+  without them. A new value read from the environment into the config joins that file and that test, or the
+  runtime this Mac computes stops matching EAS's. ⚠️ **Their twins in `itacate/` are as they were before
+  `10.4g-i`** — Itacate keeps Apple's map on iOS until its own map (`10.5-iv`); each header says so.
 - **Ship an update only through the runbook, which computes the runtime the way the build does** —
   `bash docs/runbooks/ship-an-update.sh preview "…" --app cocina`, run on `main` after a green merge
   (`10.4b-iii-a`); its rehearsal in `app.yml` holds the `--app cocina` cases. Never a bare
   `eas update`. ⚠️ **The `preview` builds are the owner's alone; a `production` update reaches his
-  closed testers — since `10.4d-i` only once they have the store build `10.4d-ii` made (Android
-  version code 4, uploaded to Play by his hand), because the module and then the pictures moved this
-  app's runtime — and it is his command** (a session's is refused as *Production Deploy*). The aviso
+  closed testers — since `10.4g-i` only once they have the store build `10.4g-ii` makes (it replaces
+  `10.4d-ii`'s Android version code 4, never uploaded), because the module, the pictures and then
+  Google's map on an iPhone moved this app's runtime — and it is his command** (a session's is refused as *Production Deploy*). The aviso
   says what an account, a kitchen and a publication hold since `10.4b-iv-b`; before the first such
   update, Play Console holds `store/cocina-itacate.md`'s Wera Cocina answers (*Data safety*, *Sign-in
   details*) and Wera's Android store version carries `10.4b-ii` — the handbook's *Before Wera Cocina
@@ -194,11 +190,11 @@ TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic i
   2026-10-29), read by `src/lib/supabase.ts` since `10.4b-iii-a`; and so is the support number,
   `EXPO_PUBLIC_SUPPORT_WHATSAPP` (*Sensitive*, `preview` and `production`, Wera's value, set
   2026-10-31), which *¿Olvidaste tu contraseña?* opens (`src/lib/supportWhatsapp.ts`, `10.4b-iv-b`) —
-  never written in this public repository; and the address search's token,
-  `EXPO_PUBLIC_LOCATIONIQ_TOKEN` (*Sensitive*, both environments, set 2026-10-31, and
-  `cocina/.env.local` on this Mac), read by `src/lib/locationiq.ts` since `10.4c`. On this Mac they come from the shell or
-  `cocina/.env.local`. Metro writes such a value into the JavaScript bundle, not the config, so the
-  runtime does not move with them (computed both ways, 2026-10-30). ⚠️ **A new `EXPO_PUBLIC_` value
-  joins the update runbook's list for `--app cocina`** — `test/support.test.ts` holds every one the
-  source reads to that list, because `eas update` builds from EAS's environment alone and a value it
-  lacks fails silently or on the first launch.
+  never written in this public repository. LocationIQ's token (`EXPO_PUBLIC_LOCATIONIQ_TOKEN`, from `10.4c`)
+  is read by nothing since `10.4g-i`; it can be deleted from EAS and `cocina/.env.local`. The iPhone map key
+  is the organization's, like the Android one (*Sensitive*, both environments, set by a session on
+  2026-11-03 from the key the owner made). On this Mac they come from the shell or `cocina/.env.local`. Metro writes such a value into the JavaScript bundle, not the config, so the
+  runtime does not move with them (computed both ways, 2026-10-30). ⚠️ **A new `EXPO_PUBLIC_` value,
+  or a variable the config hands to `extra`, joins the update runbook's list for `--app cocina`** —
+  `test/support.test.ts` holds every one to that list (the two map keys since `10.4g-i`), because `eas
+  update` builds from EAS's environment alone and a value it lacks fails silently or on the first launch.

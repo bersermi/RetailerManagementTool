@@ -115,7 +115,7 @@ export const ES = {
    * ⚠️ HER PIN, TAPPED ON THE FLAT STREET MAP (`0072`; the owner's *"as precise
    * as possible"*, 2026-10-28, and his ruling of 2026-10-31, `10.4c`). The hint
    * under the map changes with it: too far, close enough, placed (`@/lib/mapa`).
-   * The search box only moves the map (`@/lib/buscar`).
+   * The search box only moves the map (`@/lib/google`).
    */
   mapa: {
     titulo: '¿Dónde entregas la comida?',
@@ -127,19 +127,19 @@ export const ES = {
     buscando: 'Buscando…',
     /**
      * ⚠️ NAMES WHERE IT LOOKED (`10.4f`, the owner's ruling of 2026-11-02): the search
-     * covers Mexico City and the State of Mexico only (`@/lib/buscar`'s
+     * covers Mexico City and the State of Mexico only (`@/lib/google`'s
      * `ZONA_DE_BUSQUEDA`), and a fonda elsewhere must not read her address as wrong.
      */
     ninguna: 'No encontramos esa calle en la Ciudad de México ni en el Estado de México. Escríbela de otra forma, o busca tu cocina en el mapa.',
     sinSenal: 'Sin conexión. Busca tu cocina en el mapa.',
     falla: 'Ahora no podemos buscar. Busca tu cocina en el mapa.',
     /**
-     * ⚠️ LOCATIONIQ'S OWN WORDS, AS ITS FREE PLAN REQUIRES THEM (*"in this format"*,
-     * read 2026-10-31) — a link to its site — and OpenStreetMap's credit, whose
-     * data the answers are. Not translated on purpose.
+     * ⚠️ GOOGLE'S CREDIT, AS ITS PLACES POLICIES ASK IT WHERE ITS MAP MAY NOT SHOW
+     * (read 2026-11-03): the text *Google Maps*, never translated or wrapped, at
+     * the foot of the suggestions' own box — over the map the list can hide the
+     * map's logo, and the address form has no map.
      */
-    creditoBusqueda: 'Search by LocationIQ.com',
-    creditoDatos: '© OpenStreetMap',
+    creditoGoogle: 'Google Maps',
     lejos: 'Toca el mapa cerca de tu cocina para acercarte, o busca tu calle arriba.',
     /**
      * ⚠️ `10.4e` (the owner's ruling of 2026-11-02, as Uber does it): the pin stays in
@@ -149,9 +149,16 @@ export const ES = {
      */
     cerca: 'Mueve el mapa hasta que el pin quede justo donde entregas la comida.',
     puesto: 'Tu cocina queda donde está el pin. Si no es el lugar exacto, mueve el mapa.',
-    /** ⚠️ The phone's own maps name the point under her pin; shown, never kept (`@/lib/mapa`'s `lineaDeLugar`). */
-    esAqui: (lugar: string) => `¿Es aquí? ${lugar}`,
-    otraVez: 'Si no es el lugar exacto, mueve el mapa.',
+    /**
+     * ⚠️ THE CARD NAMES HER OWN ADDRESS (`10.4g-i`, the owner's ruling of 2026-11-03),
+     * and warns only when Google names another street under her pin — *parece*,
+     * because at 1 of the 12 trusted doors measured Google named another street
+     * (`@/lib/google`'s `otraCalle`). Google's name is shown, never kept.
+     */
+    suDireccion: (linea: string) => `Tu dirección: ${linea}`,
+    otraVez: 'Si el pin no está justo en tu puerta, mueve el mapa.',
+    otraCalle: (deGoogle: string, suya: string) =>
+      `El pin parece estar en ${deGoogle}, no en ${suya}. Mueve el mapa hasta tu puerta.`,
     indicaciones: 'Cómo encontrarte (opcional)',
     /** A hint in muted ink, never a value. */
     indicacionesEjemplo: 'Portón verde, junto a la farmacia',

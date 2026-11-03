@@ -1,11 +1,16 @@
 // ============================================================================
-// THE SEARCH BOX ABOVE HER MAP, AND WHAT IT SUGGESTS. Plan task `10.4c`.
+// THE SEARCH BOX ABOVE HER MAP, AND WHAT IT SUGGESTS. Plan tasks `10.4c` and
+// `10.4g-i` (Google's suggestions, the owner's ruling of 2026-11-03).
 //
-// Two pieces `@/ui/MapaPunto` places: the box (with the credit LocationIQ's free
-// plan requires) above the map, and the list of suggestions laid OVER the top of
-// the map. ⚠️ THE LIST IS INSIDE THE MAP'S AREA ON PURPOSE: Android delivers no
-// touch to a child drawn outside its parent's bounds, so a list hanging below
-// the box would be visible and dead.
+// Two pieces `@/ui/MapaPunto` places: the box above the map, and the list of
+// suggestions laid OVER the top of the map. ⚠️ THE LIST IS INSIDE THE MAP'S AREA
+// ON PURPOSE: Android delivers no touch to a child drawn outside its parent's
+// bounds, so a list hanging below the box would be visible and dead.
+//
+// ⚠️ GOOGLE'S CREDIT IS AT THE FOOT OF THE LIST'S OWN BOX (`ES.mapa.creditoGoogle`,
+// its Places policies, read 2026-11-03): no extra credit is owed where Google's map
+// and its logo show, but on a small phone with the keys up the list can cover the
+// map's foot, logo and all. The text is Google's, never translated or wrapped.
 //
 // ⚠️ A MAGNIFIER AND A HINT, NOT A LABEL ABOVE IT — unlike every other box in
 // this app (`@/ui/Campo`): this box is never saved, and a labelled box reads as
@@ -15,23 +20,21 @@
 // the keys up, a small phone has room for two or three rows, and a tap on a
 // suggestion must choose it, not just close the keyboard.
 //
-// ⚠️ THE LIST OPENS ON HER DOOR ONCE SHE HAS TYPED HER NUMBER (`10.4e`): the
-// phone's own search answers it (`@/lib/telefono`'s `usePuertas`) above
-// LocationIQ's streets, which complete the street while she types it. The
-// keyboard's *Buscar* key asks the phone too (`10.4d`) — from memory when the
-// list already asked the same words.
+// ⚠️ THE LIST IS GOOGLE'S SUGGESTIONS (`10.4g-i`): her door once she has typed
+// her number, her street before — measured 2026-11-03, with her colonia and city
+// the first row was on her block for 12 of the twenty addresses. The keyboard's
+// *Buscar* key asks Google's Geocoding for what she typed.
 // ============================================================================
 
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useRef } from 'react';
-import { ActivityIndicator, Linking, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 
-import { CREDITO_LOCATIONIQ_URL, CREDITO_OSM_URL, type Respuesta } from '@/lib/buscar';
-import type { Sugerencias } from '@/lib/locationiq';
+import type { Sugerencia, Sugerencias } from '@/lib/google';
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
 
-/** The box, and under it the credit. ✕ empties it and keeps her in it; *Buscar* asks the phone. */
+/** The box. ✕ empties it and keeps her in it; *Buscar* asks Google's Geocoding. */
 export function CampoDeBusqueda({
   texto,
   onTexto,
@@ -109,22 +112,6 @@ export function CampoDeBusqueda({
           </Pressable>
         ) : null}
       </View>
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: SIZE.space }}>
-        <Text
-          accessibilityRole="link"
-          onPress={() => void Linking.openURL(CREDITO_LOCATIONIQ_URL)}
-          style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada, textDecorationLine: 'underline' }}
-        >
-          {ES.mapa.creditoBusqueda}
-        </Text>
-        <Text
-          accessibilityRole="link"
-          onPress={() => void Linking.openURL(CREDITO_OSM_URL)}
-          style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada, textDecorationLine: 'underline' }}
-        >
-          {ES.mapa.creditoDatos}
-        </Text>
-      </View>
     </View>
   );
 }
@@ -135,7 +122,7 @@ export function ListaDeSugerencias({
   onElegir,
 }: {
   sugerencias: Sugerencias;
-  onElegir: (respuesta: Respuesta) => void;
+  onElegir: (sugerencia: Sugerencia) => void;
 }) {
   if (sugerencias.kind === 'nada') return null;
   const linea =
@@ -169,12 +156,12 @@ export function ListaDeSugerencias({
               <Text style={{ fontSize: SIZE.bodySize, color: PALETTE.tintaApagada }}>{ES.mapa.buscando}</Text>
             </View>
           )}
-          {sugerencias.kind === 'respuestas' &&
-            sugerencias.respuestas.map((respuesta, i) => (
+          {sugerencias.kind === 'sugerencias' &&
+            sugerencias.sugerencias.map((sugerencia, i) => (
               <Pressable
-                key={respuesta.id}
+                key={sugerencia.id}
                 accessibilityRole="button"
-                onPress={() => onElegir(respuesta)}
+                onPress={() => onElegir(sugerencia)}
                 style={({ pressed }) => ({
                   minHeight: SIZE.tapTarget,
                   justifyContent: 'center',
@@ -185,9 +172,9 @@ export function ListaDeSugerencias({
                   backgroundColor: pressed ? PALETTE.accionSuave : PALETTE.superficie,
                 })}
               >
-                <Text style={{ fontSize: SIZE.bodySize, fontWeight: '600', color: PALETTE.tinta }}>{respuesta.titulo}</Text>
-                {respuesta.detalle !== '' && (
-                  <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada }}>{respuesta.detalle}</Text>
+                <Text style={{ fontSize: SIZE.bodySize, fontWeight: '600', color: PALETTE.tinta }}>{sugerencia.titulo}</Text>
+                {sugerencia.detalle !== '' && (
+                  <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada }}>{sugerencia.detalle}</Text>
                 )}
               </Pressable>
             ))}
@@ -195,7 +182,43 @@ export function ListaDeSugerencias({
             <Text style={{ fontSize: SIZE.bodySize, color: PALETTE.tinta, padding: SIZE.space }}>{linea}</Text>
           )}
         </ScrollView>
+        <CreditoDeGoogle />
       </View>
+    </View>
+  );
+}
+
+/** Google's gray, which its attribution rules allow on a light ground. */
+const GRIS_DE_GOOGLE = '#5E5E5E';
+
+/**
+ * ⚠️ *GOOGLE MAPS*, AS ITS ATTRIBUTION RULES WRITE IT (read 2026-11-03): Roboto
+ * (Android's own; an iPhone's system sans-serif), weight 400, 12 to 16 points, its
+ * gray, on one line, untranslated — at the foot of the suggestions' box, the same
+ * container as what it credits. Drawn by the address form's list too.
+ */
+export function CreditoDeGoogle() {
+  return (
+    <View
+      style={{
+        paddingHorizontal: SIZE.space,
+        paddingVertical: SIZE.rowGap / 2,
+        borderTopWidth: 1,
+        borderTopColor: PALETTE.linea,
+        alignItems: 'flex-end',
+      }}
+    >
+      <Text
+        numberOfLines={1}
+        style={{
+          fontFamily: Platform.OS === 'android' ? 'Roboto' : undefined,
+          fontWeight: '400',
+          fontSize: 12,
+          color: GRIS_DE_GOOGLE,
+        }}
+      >
+        {ES.mapa.creditoGoogle}
+      </Text>
     </View>
   );
 }

@@ -16,9 +16,11 @@
 # runtime is its own fingerprint (`cocina/fingerprint.config.js`), computed here
 # exactly as there. It needs the same three values in EAS's environment as Wera:
 # the database's two and, since `10.4b-iv-b`, the support number its
-# *¿Olvidaste tu contraseña?* opens — `cocina/test/support.test.ts` holds this
-# list to every `EXPO_PUBLIC_` value Wera Cocina's source reads. Without the
-# flag it is Wera, as it always was. Itacate's first update adds one case below.
+# *¿Olvidaste tu contraseña?* opens — and, since `10.4g-i`, Google's two map keys,
+# which the config hands its search through `extra` (the organization's
+# variables, so they show in this project's listing too). `cocina/test/support.test.ts`
+# holds this list to every `EXPO_PUBLIC_` value Wera Cocina's source reads and every
+# variable its config hands to `extra`. Without the flag it is Wera, as it always was. Itacate's first update adds one case below.
 # Its rollback is the command below, run from `cocina/` instead of `app/`.
 #
 # ⚠️ `--only ios|android` (2026-10-22, his ask: *"Can I rollout the version with
@@ -102,7 +104,7 @@ done
 # Which app, the values its bundle cannot start without, and its name on a phone.
 case "$app" in
   app)    label="Wera";        needed="EXPO_PUBLIC_SUPABASE_URL EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY EXPO_PUBLIC_SUPPORT_WHATSAPP" ;;
-  cocina) label="Wera Cocina"; needed="EXPO_PUBLIC_SUPABASE_URL EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY EXPO_PUBLIC_SUPPORT_WHATSAPP EXPO_PUBLIC_LOCATIONIQ_TOKEN" ;;
+  cocina) label="Wera Cocina"; needed="EXPO_PUBLIC_SUPABASE_URL EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY EXPO_PUBLIC_SUPPORT_WHATSAPP GOOGLE_MAPS_ANDROID_API_KEY GOOGLE_MAPS_IOS_API_KEY" ;;
   *) usage ;;
 esac
 
@@ -139,7 +141,11 @@ env_names="$(sed -E 's/\x1b\[[0-9;]*m//g' <<<"$env_out" | cut -d= -f1)"
 for name in $needed; do
   if ! grep -qx "$name" <<<"$env_names"; then
     echo "REFUSED: EAS's '$channel' environment has no $name." >&2
-    echo "  (cd $app && npx eas-cli env:set --environment $channel --name $name --value <value> --visibility plaintext)" >&2
+    if [[ "$name" == GOOGLE_* ]]; then
+      echo "  (cd $app && npx eas-cli env:set --scope account --environment $channel --name $name --value <value> --visibility sensitive)" >&2
+    else
+      echo "  (cd $app && npx eas-cli env:set --environment $channel --name $name --value <value> --visibility plaintext)" >&2
+    fi
     exit 1
   fi
 done
