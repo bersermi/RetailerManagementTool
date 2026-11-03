@@ -1,10 +1,16 @@
 // ============================================================================
-// THE PHONE'S OWN SEARCH, AND THE TWO QUESTIONS IT ANSWERS. Plan task `10.4d`,
+// THE PHONE'S OWN SEARCH, AND THE THREE QUESTIONS IT ANSWERS. Plan task `10.4d`,
 // the owner's ruling of 2026-11-01: Wera Cocina's release build asks the phone's
 // own geocoder — Google's on Android, Apple's on an iPhone — for the search that
-// opens the map near her kitchen and for the box's *Buscar*. The suggestions
-// while she types stay LocationIQ's (`@/lib/locationiq`), and LocationIQ answers
-// when the phone finds nothing.
+// opens the map near her kitchen and for the box's *Buscar*, and LocationIQ
+// answers when the phone finds nothing. Since `10.4e` (his ruling of 2026-11-02)
+// it is also asked as she types, once she has typed her number (`usePuertas`):
+// its doors top the list, LocationIQ's streets below (`@/lib/buscar`'s
+// `conLasPuertas`).
+//
+// ⚠️ ONE ANSWER PER QUESTION, KEPT IN MEMORY (`alTelefono`): what she typed is
+// asked once whether the list asked it or *Buscar* did — Apple's geocoder is
+// rate-limited per app and asks for one question per action.
 //
 // ⚠️ THE GEOCODER IS THIS APP'S OWN MODULE (`cocina/modules/geocodificador`), NOT
 // `expo-location`: that one's Android geocoder refuses without the location
@@ -23,14 +29,16 @@
 // licence and Google's terms forbid keeping theirs.
 // ============================================================================
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
 import { requireOptionalNativeModule } from 'expo';
 
 import type { AddressForm } from '@/api/place';
 import {
   CAJA_DEL_VALLE,
   LIMITE_MS,
+  PAUSA_TELEFONO_MS,
   RESPUESTAS_DEL_TELEFONO,
+  preguntaConPuerta,
   preguntaDeDireccion,
   preguntaParaElTelefono,
   primeroElTelefono,
@@ -38,7 +46,7 @@ import {
   type Respuesta,
   type Resultado,
 } from '@/lib/buscar';
-import { BUSCAR_KEY, LOCATIONIQ_TOKEN, preguntar, type Sugerencias } from '@/lib/locationiq';
+import { BUSCAR_KEY, LOCATIONIQ_TOKEN, preguntar, useAsentado, type Sugerencias } from '@/lib/locationiq';
 
 /** The module's one function: the question, the box (south, west, north, east), how many answers. */
 interface Geocodificador {
@@ -70,6 +78,27 @@ export async function preguntarAlTelefono(pregunta: string): Promise<Resultado> 
   }
 }
 
+/** The phone's answer to one question, in memory — whichever of the three asked it. */
+const telefonoKey = (pregunta: string | null) => [...BUSCAR_KEY, 'telefono', pregunta] as const;
+
+/** How long the phone's answer to a question is reused: as long as LocationIQ's. */
+const VIGENCIA_MS = 5 * 60_000;
+
+/**
+ * The phone's answer to `pregunta`, from memory when the list or *Buscar* already
+ * asked it — so Apple's geocoder hears one question once. Never throws:
+ * `preguntarAlTelefono` turns every failure into *falla*.
+ */
+export function alTelefono(client: QueryClient, pregunta: string): Promise<Resultado> {
+  return client.fetchQuery({
+    queryKey: telefonoKey(pregunta),
+    queryFn: () => preguntarAlTelefono(pregunta),
+    staleTime: VIGENCIA_MS,
+    gcTime: 10 * 60_000,
+    retry: false,
+  });
+}
+
 /**
  * The one answer the map opens on: the address she typed in the step before,
  * asked once while she has no pin — the phone first, LocationIQ when it finds
@@ -77,16 +106,17 @@ export async function preguntarAlTelefono(pregunta: string): Promise<Resultado> 
  * stays on the city, as before `10.4c`.
  */
 export function useApertura(direccion: AddressForm | null): Respuesta | null {
-  const alTelefono = direccion === null ? null : preguntaParaElTelefono(direccion);
+  const client = useQueryClient();
+  const deTelefono = direccion === null ? null : preguntaParaElTelefono(direccion);
   const aLocationiq = direccion === null ? null : preguntaDeDireccion(direccion);
   const { data } = useQuery({
-    queryKey: [...BUSCAR_KEY, 'apertura', alTelefono],
+    queryKey: [...BUSCAR_KEY, 'apertura', deTelefono],
     queryFn: ({ signal }) =>
       primeroElTelefono(
-        () => preguntarAlTelefono(alTelefono as string),
+        () => alTelefono(client, deTelefono as string),
         () => (aLocationiq === null || LOCATIONIQ_TOKEN === null ? Promise.resolve(FALLA) : preguntar(aLocationiq, signal, 1)),
       ),
-    enabled: alTelefono !== null,
+    enabled: deTelefono !== null,
     staleTime: Infinity,
     gcTime: 10 * 60_000,
     retry: false,
@@ -96,22 +126,45 @@ export function useApertura(direccion: AddressForm | null): Respuesta | null {
 
 /**
  * *Buscar* — the keyboard's search key, on what she typed (with her colonia when
- * she typed none, as the suggestions are asked): the phone first, LocationIQ when
- * it finds nothing. *Nada* until she presses it.
+ * she typed none, as the suggestions are asked): the phone first — its answer
+ * from memory when the list already asked it — LocationIQ when it finds nothing.
+ * *Nada* until she presses it.
  */
 export function useBuscar(pregunta: string | null): Sugerencias {
+  const client = useQueryClient();
   const { data } = useQuery({
     queryKey: [...BUSCAR_KEY, 'buscar', pregunta],
     queryFn: ({ signal }) =>
       primeroElTelefono(
-        () => preguntarAlTelefono(pregunta as string),
+        () => alTelefono(client, pregunta as string),
         () => (LOCATIONIQ_TOKEN === null ? Promise.resolve(FALLA) : preguntar(pregunta as string, signal)),
       ),
     enabled: pregunta !== null,
-    staleTime: 5 * 60_000,
+    staleTime: VIGENCIA_MS,
     gcTime: 10 * 60_000,
     retry: false,
   });
   if (pregunta === null) return { kind: 'nada' };
   return data ?? { kind: 'buscando' };
+}
+
+/**
+ * ⚠️ HER DOOR AS SHE TYPES (`10.4e`): the phone asked `PAUSA_TELEFONO_MS` after her
+ * last keystroke, and only once what she typed ends in her number
+ * (`preguntaConPuerta`). `null` before that, while it is out, and while she has
+ * typed on since — an answer always names the number she sees in the box. A
+ * build without the module asks nothing, and the list is LocationIQ's.
+ */
+export function usePuertas(texto: string, colonia: string): Resultado | null {
+  const ahora = preguntaConPuerta(texto, colonia);
+  const pregunta = useAsentado(ahora, PAUSA_TELEFONO_MS);
+  const { data } = useQuery({
+    queryKey: telefonoKey(pregunta),
+    queryFn: () => preguntarAlTelefono(pregunta as string),
+    enabled: pregunta !== null && GEOCODIFICADOR !== null,
+    staleTime: VIGENCIA_MS,
+    gcTime: 10 * 60_000,
+    retry: false,
+  });
+  return ahora === null || pregunta !== ahora ? null : (data ?? null);
 }

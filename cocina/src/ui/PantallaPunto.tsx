@@ -1,10 +1,16 @@
 // ============================================================================
-// THE SCREEN WHERE SHE PUTS HER KITCHEN ON THE MAP. Plan tasks `10.4b-iii-b`
-// and `10.4c` (the search above the map, which only moves it).
+// THE SCREEN WHERE SHE PUTS HER KITCHEN ON THE MAP. Plan tasks `10.4b-iii-b`,
+// `10.4c` (the search above the map, which only moves it) and `10.4e` (the pin
+// in the middle, the map moved under it).
 //
 // Two routes draw it and differ only in what the button does: the sign-up's
 // last step (`(onboarding)/punto`, *Registrar mi cocina* makes the kitchen) and
 // her kitchen's *Cambiar el punto* (`(cocina)/ubicacion`, *Guardar* moves it).
+//
+// ⚠️ THE BUTTON SAVES THE MIDDLE OF THE MAP — the pin `@/ui/MapaPunto` hands up
+// each time the map settles, which is `null` while the middle is not hers (just
+// after a flight to a search's answer) or the map is too far; then the button
+// says to move the map, and saves nothing.
 //
 // ⚠️ THE SENTENCE UNDER THE BOX IS SAID BEFORE SHE SAVES, EVERY TIME: neighbours
 // will see this exact spot (the owner's ruling 4 of 2026-10-28), and nobody has
@@ -66,9 +72,9 @@ export function PantallaPunto({
   const [problem, setProblem] = useState<string | null>(null);
   const [buscando, setBuscando] = useState(false);
 
-  function placed(next: Pin) {
+  function placed(next: Pin | null) {
     setPin(next);
-    setProblem(null);
+    if (next !== null) setProblem(null);
     onCambio?.(next, directions);
   }
 

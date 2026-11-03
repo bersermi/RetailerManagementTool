@@ -31,7 +31,10 @@ import {
   tokenOf,
   urlDeBusqueda,
   type Resultado,
+  type Sugerencias,
 } from '@/lib/buscar';
+
+export type { Sugerencias } from '@/lib/buscar';
 
 export const LOCATIONIQ_TOKEN: string | null = tokenOf(process.env.EXPO_PUBLIC_LOCATIONIQ_TOKEN);
 
@@ -98,8 +101,8 @@ async function una(pregunta: string, signal: AbortSignal | undefined, limite: nu
   }
 }
 
-/** A value that settles `ms` after it last changed — what she typed, once she pauses. */
-function useAsentado<T>(value: T, ms: number): T {
+/** A value that settles `ms` after it last changed — what she typed, once she pauses. LocationIQ's and the phone's (`@/lib/telefono`). */
+export function useAsentado<T>(value: T, ms: number): T {
   const [asentado, setAsentado] = useState(value);
   useEffect(() => {
     const timer = setTimeout(() => setAsentado(value), ms);
@@ -107,12 +110,6 @@ function useAsentado<T>(value: T, ms: number): T {
   }, [value, ms]);
   return asentado;
 }
-
-/** What the box shows under it. */
-export type Sugerencias =
-  | { readonly kind: 'nada' }
-  | { readonly kind: 'buscando' }
-  | Resultado;
 
 /**
  * The suggestions for what she is typing: nothing until `MIN_LETRAS`, asked

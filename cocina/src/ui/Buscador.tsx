@@ -15,9 +15,11 @@
 // the keys up, a small phone has room for two or three rows, and a tap on a
 // suggestion must choose it, not just close the keyboard.
 //
-// ⚠️ THE KEYBOARD'S *BUSCAR* KEY ASKS THE PHONE'S OWN SEARCH (`10.4d`,
-// `@/lib/telefono`): the suggestions are LocationIQ's, and the key is how she
-// asks for her door when none of them is it.
+// ⚠️ THE LIST OPENS ON HER DOOR ONCE SHE HAS TYPED HER NUMBER (`10.4e`): the
+// phone's own search answers it (`@/lib/telefono`'s `usePuertas`) above
+// LocationIQ's streets, which complete the street while she types it. The
+// keyboard's *Buscar* key asks the phone too (`10.4d`) — from memory when the
+// list already asked the same words.
 // ============================================================================
 
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
