@@ -17,12 +17,14 @@
 // 47 answers carried one). So an answer without a number opens the map wide
 // enough to show the blocks around it (`ANCHO_CALLE_METROS`), and her first tap
 // brings it closer; one with a number opens at block level, where her first tap
-// is the pin. Answers are kept to the Valle de México (`bounded`): without it,
+// is the pin. Answers are kept to the search's zone (`bounded`): without it,
 // the first suggestion for a street in Milpa Alta was in another state. And
 // THE COLONIA DECIDES IT: a street and number alone found the right street for
 // 4 of 20 addresses, with the colonia for 12 — so the box adds the colonia she
-// typed in the form (`preguntaConColonia`), and asks once more without the
-// number when that finds nothing (`sinNumero`).
+// typed in the form (`preguntaConSuDireccion`), and asks once more without the
+// number when that finds nothing (`sinNumero`). Since `10.4f` the zone is Mexico
+// City and the State of Mexico, and the box adds her city too: across a whole
+// state a street and number with no colonia names a dozen towns.
 //
 // ⚠️ SINCE `10.4d` (the owner's ruling of 2026-11-01) THE PHONE'S OWN GEOCODER —
 // Google's on Android, Apple's on an iPhone — answers the search that opens the
@@ -50,12 +52,19 @@ import { checkAddress, type AddressForm } from '@/api/place';
 export const LOCATIONIQ_AUTOCOMPLETE = 'https://api.locationiq.com/v1/autocomplete';
 
 /**
- * ⚠️ THE VALLE DE MÉXICO — Mexico City and the towns joined to it, as
- * `min_lon,min_lat,max_lon,max_lat` — and answers outside it are never offered.
- * The pilot is in this city; a kitchen outside the box finds no answer and
- * places her pin on the map, as before this row. Widen it with the pilot.
+ * ⚠️ WHERE THE SEARCH LOOKS: MEXICO CITY AND THE STATE OF MEXICO — the owner's
+ * ruling of 2026-11-02 (`10.4f`; until then the Valle de México alone,
+ * `-99.40,19.05,-98.85,19.75`, since `10.4c`), as `min_lon,min_lat,max_lon,max_lat`:
+ * INEGI's extreme coordinates of the State of Mexico (*Aspectos Geográficos*,
+ * 2021, cuadro 1.1 — N 20°17'09", S 18°22'01", E 98°35'49", W 100°36'47"), a
+ * hundredth of a degree wider each way. Mexico City lies inside it whole. A box,
+ * so it also takes in the edges of the states around — Pachuca, Cuernavaca,
+ * Taxco. Answers outside it are never offered: without a bound, a Milpa Alta
+ * street's first suggestion came from another state, 344 km away (measured
+ * 2026-10-31). A kitchen elsewhere finds no answer and places her pin on the
+ * map; the other states come later, his word, as an update.
  */
-export const VALLE_DE_MEXICO = '-99.40,19.05,-98.85,19.75';
+export const ZONA_DE_BUSQUEDA = '-100.62,18.36,-98.59,20.29';
 
 /** Nothing is asked before she has typed this many letters. */
 export const MIN_LETRAS = 3;
@@ -103,15 +112,25 @@ export function preguntaDe(texto: string): string | null {
 }
 
 /**
- * ⚠️ WHAT THE BOX ASKS: what she typed, and — when she typed no colonia (no
- * comma) — the colonia she gave in the form, which is where her kitchen is. Her
- * own words both; nothing of a provider's.
+ * ⚠️ WHAT THE BOX ASKS: what she typed, and — when she typed no comma — the
+ * colonia and the city or alcaldía she gave in the form, which is where her
+ * kitchen is. Her own words all; nothing of a provider's. MEASURED: the colonia
+ * decides it in Mexico City (2026-10-31: a street and number alone found the
+ * right street for 4 of 20, with the colonia 12); the city decides it across the
+ * State of Mexico (2026-11-02, `10.4f`: on eleven municipal seats, most with no
+ * colonia, the list's first row landed within 300 m for 1 of 11 on Android without
+ * the city and 7 with it — and Mexico City's twenty lost nothing).
  */
-export function preguntaConColonia(texto: string, colonia: string): string | null {
+export function preguntaConSuDireccion(
+  texto: string,
+  direccion: Pick<AddressForm, 'colonia' | 'city'> | null,
+): string | null {
   const pregunta = preguntaDe(texto);
-  if (pregunta === null) return null;
-  const suya = colonia.replace(/\s+/g, ' ').trim();
-  return suya === '' || pregunta.includes(',') ? pregunta : `${pregunta}, ${suya}`;
+  if (pregunta === null || pregunta.includes(',')) return pregunta;
+  const suyas = [direccion?.colonia ?? '', direccion?.city ?? '']
+    .map((parte) => parte.replace(/\s+/g, ' ').trim())
+    .filter((parte) => parte !== '');
+  return [pregunta, ...suyas].join(', ');
 }
 
 /** Words that name a kind of street, not a street: what is left of *Calle 6* without its 6. */
@@ -137,7 +156,7 @@ export function sinNumero(pregunta: string): string | null {
   return preguntaDe(`${calle}${resto}`);
 }
 
-/** The question, as a URL: Spanish names, Mexico only, inside the Valle de México. */
+/** The question, as a URL: Spanish names, Mexico only, inside the search's zone. */
 export function urlDeBusqueda(pregunta: string, token: string, limite: number = SUGERENCIAS): string {
   const params = new URLSearchParams({
     key: token,
@@ -147,7 +166,7 @@ export function urlDeBusqueda(pregunta: string, token: string, limite: number = 
     'accept-language': 'es',
     normalizecity: '1',
     dedupe: '1',
-    viewbox: VALLE_DE_MEXICO,
+    viewbox: ZONA_DE_BUSQUEDA,
     bounded: '1',
   });
   return `${LOCATIONIQ_AUTOCOMPLETE}?${params.toString()}`;
@@ -318,14 +337,14 @@ export function anchoPara(respuesta: Respuesta): number {
 // ----------------------------------------------------------------------------
 
 /**
- * ⚠️ THE VALLE DE MÉXICO AS THE PHONE IS ASKED IT — south, west, north, east —
- * read out of `VALLE_DE_MEXICO`, so LocationIQ's box and the phone's are one.
+ * ⚠️ THE SEARCH'S ZONE AS THE PHONE IS ASKED IT — south, west, north, east —
+ * read out of `ZONA_DE_BUSQUEDA`, so LocationIQ's box and the phone's are one.
  * Google's geocoder takes it as a box; Apple's as the circle reaching its longer
  * side's ends (`cocina/modules/geocodificador`), and only as a hint — so an answer
  * outside the box is dropped here, whichever phone gave it.
  */
-export const CAJA_DEL_VALLE: readonly [number, number, number, number] = (() => {
-  const [oeste, sur, este, norte] = VALLE_DE_MEXICO.split(',').map(Number);
+export const CAJA_DE_BUSQUEDA: readonly [number, number, number, number] = (() => {
+  const [oeste, sur, este, norte] = ZONA_DE_BUSQUEDA.split(',').map(Number);
   return [sur, oeste, norte, este] as const;
 })();
 
@@ -349,15 +368,15 @@ export function preguntaParaElTelefono(form: AddressForm): string | null {
   return preguntaDe(partes.filter((parte) => parte !== '').join(', '));
 }
 
-function enElValle({ latitude, longitude }: Punto): boolean {
-  const [sur, oeste, norte, este] = CAJA_DEL_VALLE;
+function enLaZona({ latitude, longitude }: Punto): boolean {
+  const [sur, oeste, norte, este] = CAJA_DE_BUSQUEDA;
   return latitude >= sur && latitude <= norte && longitude >= oeste && longitude <= este;
 }
 
 /**
  * One of the phone's answers — the module's row: a point, and the street, house
  * number, colonia, city and postcode it names — or `null` when it has no point,
- * names no street and no colonia, or lies outside the Valle de México.
+ * names no street and no colonia, or lies outside the search's zone.
  */
 function respuestaDelTelefono(fila: unknown, i: number): Respuesta | null {
   if (typeof fila !== 'object' || fila === null) return null;
@@ -366,7 +385,7 @@ function respuestaDelTelefono(fila: unknown, i: number): Respuesta | null {
   const longitude = numero(f.longitude);
   if (latitude === null || longitude === null || Math.abs(latitude) > 90 || Math.abs(longitude) > 180) return null;
   const punto = { latitude, longitude };
-  if (!enElValle(punto)) return null;
+  if (!enLaZona(punto)) return null;
   const calle = campoDelTelefono(f.calle);
   const casa = campoDelTelefono(f.numero);
   const colonia = campoDelTelefono(f.colonia);
@@ -379,7 +398,7 @@ function respuestaDelTelefono(fila: unknown, i: number): Respuesta | null {
   return { id: `telefono-${i}`, titulo, detalle, punto, conNumero, anchoMetros: 0, caja: null };
 }
 
-/** Every well-formed answer the phone gave inside the Valle de México, in its order; two that read the same are one. */
+/** Every well-formed answer the phone gave inside the search's zone, in its order; two that read the same are one. */
 export function respuestasDelTelefono(filas: unknown): Respuesta[] {
   if (!Array.isArray(filas)) return [];
   const vistas: Respuesta[] = [];
@@ -394,7 +413,7 @@ export function respuestasDelTelefono(filas: unknown): Respuesta[] {
 
 /**
  * What the phone came back with: its answers, or *ninguna* when it found nothing
- * inside the Valle de México. A value that is no list — which no build of this
+ * inside the search's zone. A value that is no list — which no build of this
  * app sends — is *falla*, and so is every rejection (`@/lib/telefono`).
  */
 export function resultadoDelTelefono(filas: unknown): Resultado {
@@ -435,15 +454,19 @@ export const PAUSA_TELEFONO_MS = 600;
 
 /**
  * ⚠️ THE PHONE IS ASKED AS SHE TYPES ONLY ONCE SHE HAS TYPED HER NUMBER — what she
- * typed, with her colonia as LocationIQ is asked it, when it ends in a house
- * number (`sinNumero` finds one to drop: *Calle 6* alone is a street, *Calle 6 46*
- * a door); else `null`. MEASURED 2026-11-02 on the twenty addresses typed as she
- * types them: half a street, the phone's first answer was on her block for none
- * (Google and Apple); the whole street without a number, for 4 and 6 — streets,
- * as LocationIQ's 5; with the number, a door 18 times in 20, on her block 12 and 11.
+ * typed, with her colonia and city as LocationIQ is asked it, when its first part
+ * ends in a house number (`sinNumero` finds one to drop: *Calle 6* alone is a
+ * street, *Calle 6 46* a door); else `null`. MEASURED 2026-11-02 on the twenty
+ * addresses typed as she types them: half a street, the phone's first answer was
+ * on her block for none (Google and Apple); the whole street without a number, for
+ * 4 and 6 — streets, as LocationIQ's 5; with the number, a door 18 times in 20, on
+ * her block 12 and 11.
  */
-export function preguntaConPuerta(texto: string, colonia: string): string | null {
-  const pregunta = preguntaConColonia(texto, colonia);
+export function preguntaConPuerta(
+  texto: string,
+  direccion: Pick<AddressForm, 'colonia' | 'city'> | null,
+): string | null {
+  const pregunta = preguntaConSuDireccion(texto, direccion);
   return pregunta !== null && sinNumero(pregunta) !== null ? pregunta : null;
 }
 

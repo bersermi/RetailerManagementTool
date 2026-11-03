@@ -34,7 +34,7 @@ import { requireOptionalNativeModule } from 'expo';
 
 import type { AddressForm } from '@/api/place';
 import {
-  CAJA_DEL_VALLE,
+  CAJA_DE_BUSQUEDA,
   LIMITE_MS,
   PAUSA_TELEFONO_MS,
   RESPUESTAS_DEL_TELEFONO,
@@ -69,7 +69,7 @@ export async function preguntarAlTelefono(pregunta: string): Promise<Resultado> 
     timer = setTimeout(() => resolve('tarde'), LIMITE_MS);
   });
   try {
-    const filas = await Promise.race([GEOCODIFICADOR.buscar(pregunta, CAJA_DEL_VALLE, RESPUESTAS_DEL_TELEFONO), limite]);
+    const filas = await Promise.race([GEOCODIFICADOR.buscar(pregunta, CAJA_DE_BUSQUEDA, RESPUESTAS_DEL_TELEFONO), limite]);
     return filas === 'tarde' ? FALLA : resultadoDelTelefono(filas);
   } catch {
     return FALLA;
@@ -125,7 +125,7 @@ export function useApertura(direccion: AddressForm | null): Respuesta | null {
 }
 
 /**
- * *Buscar* — the keyboard's search key, on what she typed (with her colonia when
+ * *Buscar* — the keyboard's search key, on what she typed (with her colonia and city when
  * she typed none, as the suggestions are asked): the phone first — its answer
  * from memory when the list already asked it — LocationIQ when it finds nothing.
  * *Nada* until she presses it.
@@ -155,8 +155,8 @@ export function useBuscar(pregunta: string | null): Sugerencias {
  * typed on since — an answer always names the number she sees in the box. A
  * build without the module asks nothing, and the list is LocationIQ's.
  */
-export function usePuertas(texto: string, colonia: string): Resultado | null {
-  const ahora = preguntaConPuerta(texto, colonia);
+export function usePuertas(texto: string, direccion: AddressForm | null): Resultado | null {
+  const ahora = preguntaConPuerta(texto, direccion);
   const pregunta = useAsentado(ahora, PAUSA_TELEFONO_MS);
   const { data } = useQuery({
     queryKey: telefonoKey(pregunta),

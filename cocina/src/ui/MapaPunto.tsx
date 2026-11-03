@@ -15,7 +15,7 @@
 // The address she typed is searched as the map opens (`useApertura`); the box
 // above lists, as she types, the phone's door once she has typed her number
 // (`usePuertas`) over LocationIQ's streets (`useSugerencias`), both with the
-// colonia she typed in the form when she types none; and the keyboard's *Buscar*
+// colonia and city she typed in the form when she types none; and the keyboard's *Buscar*
 // asks for what she typed (`useBuscar`). Any of them flies the map there
 // (`volarA`), and a flight takes the centre from her: the middle of the map is
 // then Apple's, Google's or LocationIQ's point, which Apple's licence and
@@ -62,7 +62,7 @@ import { Keyboard, Platform, Text, View } from 'react-native';
 import MapView, { type MapPressEvent } from 'react-native-maps';
 
 import type { AddressForm, Pin } from '@/api/place';
-import { anchoPara, conLasPuertas, preguntaConColonia, type Respuesta } from '@/lib/buscar';
+import { anchoPara, conLasPuertas, preguntaConSuDireccion, type Respuesta } from '@/lib/buscar';
 import { LOCATIONIQ_TOKEN, useSugerencias } from '@/lib/locationiq';
 import {
   ES_AQUI_PAUSA_MS,
@@ -124,9 +124,8 @@ export function MapaPunto({
   const [esAqui, setEsAqui] = useState<string | null>(null);
   /** What she asked with *Buscar*, until she types again or the map flies to its answer. */
   const [enviada, setEnviada] = useState<string | null>(null);
-  const colonia = direccion?.colonia ?? '';
-  const puertas = usePuertas(buscando ? texto : '', colonia);
-  const calles = useSugerencias(buscando ? texto : '', colonia);
+  const puertas = usePuertas(buscando ? texto : '', direccion);
+  const calles = useSugerencias(buscando ? texto : '', direccion);
   const sugerencias = conLasPuertas(puertas, calles);
   const buscada = useBuscar(enviada);
   const apertura = useApertura(sinPin ? direccion : null);
@@ -162,9 +161,9 @@ export function MapaPunto({
     if (primera !== undefined) volarA(primera);
   }, [buscada]);
 
-  /** The keyboard's *Buscar*: what she typed, with her colonia when she typed none. */
+  /** The keyboard's *Buscar*: what she typed, with her colonia and city when she typed none. */
   function buscar() {
-    const pregunta = preguntaConColonia(texto, colonia);
+    const pregunta = preguntaConSuDireccion(texto, direccion);
     if (pregunta !== null) setEnviada(pregunta);
   }
 

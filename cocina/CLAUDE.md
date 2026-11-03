@@ -100,8 +100,11 @@ TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic i
   gesture (`isGesture` is Google's only), so a middle that moved while no move of the app's was under
   way counts as hers; `onPanDrag` sees her drag on both. `test/buscar.test.ts` reads `@/ui/MapaPunto` for
   the wiring and refuses the search in `src/api/`.
-  LocationIQ's autocomplete is asked from the phone, kept to the Valle de México (`bounded`), with the
-  colonia she gave in the form when she types none, and once more without the house number when that
+  LocationIQ's autocomplete is asked from the phone, kept to the search's zone (`bounded`) — **Mexico City
+  and the State of Mexico since `10.4f`** (his ruling of 2026-11-02; the Valle de México alone before), a box
+  on INEGI's extremes, `ZONA_DE_BUSQUEDA` — with the colonia **and the city** she gave in the form when she
+  types none (`preguntaConSuDireccion`: across a state a street and number with no colonia name a dozen towns,
+  measured), and once more without the house number when that
   finds nothing — **measured first** (the plan's status log): it knows streets, almost never doors, so
   an answer opens the map about five blocks wide and her taps come closer. The address she typed is
   searched as the map opens and flies it there unless she has touched it. *¿Es aquí?* is

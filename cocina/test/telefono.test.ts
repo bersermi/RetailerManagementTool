@@ -31,11 +31,11 @@ afterEach(() => {
 });
 
 describe('one question to the phone', () => {
-  it('asks the module what she typed, inside the Valle de México, for five answers — and reads them', async () => {
+  it('asks the module what she typed, inside the search’s zone, for five answers — and reads them', async () => {
     const buscar = vi.fn(() => Promise.resolve([PUERTA]));
     const { preguntarAlTelefono } = await conModulo(buscar);
     const result = await preguntarAlTelefono('Durango 220, Roma Norte, Cuauhtémoc, 06700');
-    expect(buscar).toHaveBeenCalledExactlyOnceWith('Durango 220, Roma Norte, Cuauhtémoc, 06700', [19.05, -99.4, 19.75, -98.85], 5);
+    expect(buscar).toHaveBeenCalledExactlyOnceWith('Durango 220, Roma Norte, Cuauhtémoc, 06700', [18.36, -100.62, 20.29, -98.59], 5);
     expect(result).toMatchObject({ kind: 'respuestas', respuestas: [{ titulo: 'Calle Durango 220', conNumero: true }] });
   });
 

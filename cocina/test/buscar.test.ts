@@ -8,7 +8,7 @@ import { EMPTY_ADDRESS } from '@/api/place';
 import {
   ANCHO_CALLE_METROS,
   ANCHO_ZONA_MAX_METROS,
-  CAJA_DEL_VALLE,
+  CAJA_DE_BUSQUEDA,
   CREDITO_LOCATIONIQ_URL,
   CREDITO_OSM_URL,
   LIMITE_MS,
@@ -18,10 +18,10 @@ import {
   PAUSA_TELEFONO_MS,
   RESPUESTAS_DEL_TELEFONO,
   SUGERENCIAS,
-  VALLE_DE_MEXICO,
+  ZONA_DE_BUSQUEDA,
   anchoPara,
   conLasPuertas,
-  preguntaConColonia,
+  preguntaConSuDireccion,
   preguntaConPuerta,
   preguntaDe,
   preguntaDeDireccion,
@@ -124,7 +124,7 @@ describe('what is asked, and when', () => {
     expect(SUGERENCIAS).toBe(5);
   });
 
-  it('Spanish names, Mexico only, and nothing outside the Valle de México', () => {
+  it('Spanish names, Mexico only, and nothing outside the search’s zone', () => {
     const url = new URL(urlDeBusqueda('Durango 220, Roma Norte', 'pk.abc'));
     expect(`${url.origin}${url.pathname}`).toBe(LOCATIONIQ_AUTOCOMPLETE);
     expect(LOCATIONIQ_AUTOCOMPLETE).toBe('https://api.locationiq.com/v1/autocomplete');
@@ -136,22 +136,73 @@ describe('what is asked, and when', () => {
       'accept-language': 'es',
       normalizecity: '1',
       dedupe: '1',
-      viewbox: VALLE_DE_MEXICO,
+      viewbox: ZONA_DE_BUSQUEDA,
       bounded: '1',
     });
   });
 
-  // min_lon,min_lat,max_lon,max_lat — Mexico City and its conurbation. Without
-  // the bound, a Milpa Alta street's first suggestion was in another state.
-  it('the Valle de México is a real box around the city', () => {
-    const [minLon, minLat, maxLon, maxLat] = VALLE_DE_MEXICO.split(',').map(Number);
-    expect(minLon).toBeLessThan(maxLon);
-    expect(minLat).toBeLessThan(maxLat);
-    const zocalo = { lat: 19.4326, lon: -99.1332 };
-    expect(zocalo.lon).toBeGreaterThan(minLon);
-    expect(zocalo.lon).toBeLessThan(maxLon);
-    expect(zocalo.lat).toBeGreaterThan(minLat);
-    expect(zocalo.lat).toBeLessThan(maxLat);
+  // min_lon,min_lat,max_lon,max_lat. 10.4f, the owner's ruling of 2026-11-02: Mexico City and the
+  // State of Mexico (until then the Valle de México alone). Without a bound, a Milpa Alta street's
+  // first suggestion came from another state, 344 km away (measured 2026-10-31).
+  describe('the search’s zone: Mexico City and the State of Mexico', () => {
+    const [minLon, minLat, maxLon, maxLat] = ZONA_DE_BUSQUEDA.split(',').map(Number);
+    const dentro = (lat: number, lon: number) => lat > minLat && lat < maxLat && lon > minLon && lon < maxLon;
+    const dms = (g: number, m: number, s: number) => g + m / 60 + s / 3600;
+
+    it('holds INEGI’s extremes of the State of Mexico, a hundredth of a degree to spare (cuadro 1.1, 2021)', () => {
+      expect(ZONA_DE_BUSQUEDA).toBe('-100.62,18.36,-98.59,20.29');
+      expect(maxLat).toBeGreaterThan(dms(20, 17, 9));
+      expect(minLat).toBeLessThan(dms(18, 22, 1));
+      expect(maxLon).toBeGreaterThan(-dms(98, 35, 49));
+      expect(minLon).toBeLessThan(-dms(100, 36, 47));
+      expect(maxLat - dms(20, 17, 9)).toBeLessThan(0.02);
+      expect(dms(18, 22, 1) - minLat).toBeLessThan(0.02);
+    });
+
+    it('and Mexico City whole — INEGI’s extremes of it too', () => {
+      expect(dentro(dms(19, 36, 0), -99.2)).toBe(true); // its north
+      expect(dentro(dms(19, 3, 0), -99.1)).toBe(true); // its south
+      expect(dentro(19.4, -dms(98, 57, 0))).toBe(true); // its east
+      expect(dentro(19.4, -dms(99, 22, 0))).toBe(true); // its west
+      expect(dentro(19.4326, -99.1332)).toBe(true); // the Zócalo
+    });
+
+    it('the State of Mexico’s towns the old zone left out are in it now', () => {
+      for (const [lat, lon] of [
+        [19.2826, -99.6557], // Toluca
+        [19.1951, -100.1309], // Valle de Bravo
+        [19.8, -99.8742], // Atlacomulco
+        [18.6836, -100.1861], // Amatepec
+        [19.7969, -99.0997], // Zumpango
+      ]) {
+        expect(dentro(lat, lon)).toBe(true);
+      }
+    });
+
+    it('the other states’ cities are still out of it', () => {
+      for (const [lat, lon] of [
+        [20.6597, -103.3496], // Guadalajara
+        [25.6866, -100.3161], // Monterrey
+        [19.0414, -98.2063], // Puebla
+        [20.5888, -100.3899], // Querétaro
+        [19.3182, -98.2375], // Tlaxcala
+      ]) {
+        expect(dentro(lat, lon)).toBe(false);
+      }
+    });
+
+    // A rectangle: the honest cost of not drawing the state's outline.
+    it('a box, so the edges of the states around come with it', () => {
+      expect(dentro(20.1011, -98.7591)).toBe(true); // Pachuca, Hidalgo
+      expect(dentro(18.9242, -99.2216)).toBe(true); // Cuernavaca, Morelos
+    });
+
+    // A fonda elsewhere must not read her own address as wrong.
+    it('and when nothing is found, the box says where it looked', () => {
+      expect(ES.mapa.ninguna).toBe(
+        'No encontramos esa calle en la Ciudad de México ni en el Estado de México. Escríbela de otra forma, o busca tu cocina en el mapa.',
+      );
+    });
   });
 
   it('survives the characters a URL would eat', () => {
@@ -164,15 +215,22 @@ describe('what is asked, and when', () => {
 // ⚠️ MEASURED 2026-10-31: a street and number alone found the right street for 4
 // of 20 addresses, with the colonia for 12 — and inside the Valle de México a
 // street with a number LocationIQ cannot match is "nothing found".
-describe('the colonia she gave, and the number LocationIQ cannot find', () => {
-  it('adds the colonia from her form when she typed none', () => {
-    expect(preguntaConColonia('Durango 220', ' Roma  Norte ')).toBe('Durango 220, Roma Norte');
+describe('the colonia and city she gave, and the number LocationIQ cannot find', () => {
+  it('adds the colonia and the city from her form when she typed none', () => {
+    expect(preguntaConSuDireccion('Durango 220', { colonia: ' Roma  Norte ', city: ' Cuauhtémoc ' })).toBe('Durango 220, Roma Norte, Cuauhtémoc');
   });
 
-  it('leaves what she typed alone when she typed a colonia herself, or gave none in the form', () => {
-    expect(preguntaConColonia('Durango 220, Condesa', 'Roma Norte')).toBe('Durango 220, Condesa');
-    expect(preguntaConColonia('Durango 220', '')).toBe('Durango 220');
-    expect(preguntaConColonia('Du', 'Roma Norte')).toBeNull();
+  // 10.4f, measured 2026-11-02: most of the State of Mexico's town centres have no colonia, and
+  // across a state a street and number alone name a dozen towns — the city decides it.
+  it('a town with no colonia: her city alone', () => {
+    expect(preguntaConSuDireccion('Constitución 11', { colonia: '', city: 'Coyotepec' })).toBe('Constitución 11, Coyotepec');
+  });
+
+  it('leaves what she typed alone when she typed a comma herself, or gave no form', () => {
+    expect(preguntaConSuDireccion('Durango 220, Condesa', { colonia: 'Roma Norte', city: 'Cuauhtémoc' })).toBe('Durango 220, Condesa');
+    expect(preguntaConSuDireccion('Durango 220', null)).toBe('Durango 220');
+    expect(preguntaConSuDireccion('Durango 220', { colonia: '  ', city: '' })).toBe('Durango 220');
+    expect(preguntaConSuDireccion('Du', { colonia: 'Roma Norte', city: 'Cuauhtémoc' })).toBeNull();
   });
 
   it('asks again without the house number, keeping the colonia', () => {
@@ -524,11 +582,10 @@ describe('the box, and the credit it carries', () => {
     expect((code('lib/telefono.ts').match(/LOCATIONIQ_TOKEN === null \? Promise\.resolve\(FALLA\)/g) ?? []).length).toBe(2);
   });
 
-  it('the keyboard’s Buscar key asks for what she typed, with her colonia', () => {
+  it('the keyboard’s Buscar key asks for what she typed, with her colonia and city', () => {
     expect(code('ui/Buscador.tsx')).toMatch(/onSubmitEditing=\{onBuscar\}/);
     expect(code('ui/Buscador.tsx')).toMatch(/returnKeyType="search"/);
-    expect(code('ui/MapaPunto.tsx')).toMatch(/const colonia = direccion\?\.colonia \?\? '';/);
-    expect(code('ui/MapaPunto.tsx')).toMatch(/function buscar\(\) \{\s*const pregunta = preguntaConColonia\(texto, colonia\);\s*if \(pregunta !== null\) setEnviada\(pregunta\);/);
+    expect(code('ui/MapaPunto.tsx')).toMatch(/function buscar\(\) \{\s*const pregunta = preguntaConSuDireccion\(texto, direccion\);\s*if \(pregunta !== null\) setEnviada\(pregunta\);/);
     expect(code('ui/MapaPunto.tsx')).toMatch(/onBuscar=\{buscar\}/);
   });
 
@@ -557,11 +614,11 @@ const PUERTA = {
   cp: '06700',
 };
 
-describe('the phone is asked what she typed, inside the Valle de México', () => {
+describe('the phone is asked what she typed, inside the search’s zone', () => {
   it('the box is LocationIQ’s own, south, west, north, east', () => {
-    const [oeste, sur, este, norte] = VALLE_DE_MEXICO.split(',').map(Number);
-    expect(CAJA_DEL_VALLE).toEqual([sur, oeste, norte, este]);
-    expect(CAJA_DEL_VALLE).toEqual([19.05, -99.4, 19.75, -98.85]);
+    const [oeste, sur, este, norte] = ZONA_DE_BUSQUEDA.split(',').map(Number);
+    expect(CAJA_DE_BUSQUEDA).toEqual([sur, oeste, norte, este]);
+    expect(CAJA_DE_BUSQUEDA).toEqual([18.36, -100.62, 20.29, -98.59]);
     expect(RESPUESTAS_DEL_TELEFONO).toBe(5);
   });
 
@@ -615,8 +672,11 @@ describe('what the phone answers, read', () => {
     expect(b.conNumero).toBe(false);
   });
 
-  it('an answer outside the Valle de México, without a point or a name, or malformed, is never offered', () => {
+  it('an answer outside the zone, without a point or a name, or malformed, is never offered', () => {
     expect(respuestasDelTelefono([{ ...PUERTA, latitude: 20.6597, longitude: -103.3496 }])).toEqual([]); // Guadalajara
+    expect(respuestasDelTelefono([{ ...PUERTA, latitude: 19.0414, longitude: -98.2063 }])).toEqual([]); // Puebla
+    // 10.4f: the State of Mexico is in the zone — Toluca's answer is offered now.
+    expect(respuestasDelTelefono([{ ...PUERTA, latitude: 19.2826, longitude: -99.6557 }])).toHaveLength(1);
     expect(respuestasDelTelefono([{ ...PUERTA, latitude: null }])).toEqual([]);
     expect(respuestasDelTelefono([{ ...PUERTA, calle: null, colonia: null }])).toEqual([]);
     expect(respuestasDelTelefono([null, 'x', 7])).toEqual([]);
@@ -674,25 +734,27 @@ describe('the phone first, LocationIQ when it has nothing', () => {
 // ============================================================================
 
 describe('the phone is asked as she types only once she has typed her number', () => {
-  it('what she typed with her colonia — the same question Buscar sends, so one answer serves both', () => {
-    expect(preguntaConPuerta('Durango 220', 'Roma Norte')).toBe('Durango 220, Roma Norte');
-    expect(preguntaConPuerta('Durango 220', 'Roma Norte')).toBe(preguntaConColonia('Durango 220', 'Roma Norte'));
-    expect(preguntaConPuerta('Durango 220, Condesa', 'Roma Norte')).toBe('Durango 220, Condesa');
-    expect(preguntaConPuerta('Nogal 3B', '')).toBe('Nogal 3B');
+  const lupe = { colonia: 'Roma Norte', city: 'Cuauhtémoc' };
+  it('what she typed with her colonia and city — the same question Buscar sends, so one answer serves both', () => {
+    expect(preguntaConPuerta('Durango 220', lupe)).toBe('Durango 220, Roma Norte, Cuauhtémoc');
+    expect(preguntaConPuerta('Durango 220', lupe)).toBe(preguntaConSuDireccion('Durango 220', lupe));
+    expect(preguntaConPuerta('Durango 220, Condesa', lupe)).toBe('Durango 220, Condesa');
+    expect(preguntaConPuerta('Nogal 3B', null)).toBe('Nogal 3B');
+    expect(preguntaConPuerta('Constitución 11', { colonia: '', city: 'Coyotepec' })).toBe('Constitución 11, Coyotepec');
   });
 
   // Measured: half a street, the phone's first answer was on her block for none of 20.
   it('not while she types the street, nor a street whose name is a number', () => {
-    expect(preguntaConPuerta('Dura', 'Roma Norte')).toBeNull();
-    expect(preguntaConPuerta('Durango', 'Roma Norte')).toBeNull();
-    expect(preguntaConPuerta('Calle 6', 'Progreso Nacional')).toBeNull();
-    expect(preguntaConPuerta('Poniente 110', '')).toBeNull();
-    expect(preguntaConPuerta('Du', 'Roma Norte')).toBeNull();
+    expect(preguntaConPuerta('Dura', lupe)).toBeNull();
+    expect(preguntaConPuerta('Durango', lupe)).toBeNull();
+    expect(preguntaConPuerta('Calle 6', { colonia: 'Progreso Nacional', city: 'Gustavo A. Madero' })).toBeNull();
+    expect(preguntaConPuerta('Poniente 110', null)).toBeNull();
+    expect(preguntaConPuerta('Du', lupe)).toBeNull();
   });
 
   it('but a door on such a street, and her number from its first digit', () => {
-    expect(preguntaConPuerta('Calle 6 46', 'Progreso Nacional')).toBe('Calle 6 46, Progreso Nacional');
-    expect(preguntaConPuerta('Durango 2', 'Roma Norte')).toBe('Durango 2, Roma Norte');
+    expect(preguntaConPuerta('Calle 6 46', { colonia: 'Progreso Nacional', city: '' })).toBe('Calle 6 46, Progreso Nacional');
+    expect(preguntaConPuerta('Durango 2', lupe)).toBe('Durango 2, Roma Norte, Cuauhtémoc');
   });
 
   // Apple's geocoder is rate-limited per app and asks for one question per action.
@@ -740,13 +802,13 @@ describe('the list as she types: the phone’s doors first, LocationIQ’s stree
     expect(lista.kind === 'respuestas' && lista.respuestas.map((r) => r.id)).toEqual([puerta.id, ...deLocationiq.map((r) => r.id)]);
   });
 
-  it('is what the box draws, with the phone asked on what she types and her colonia', () => {
+  it('is what the box draws, with the phone asked on what she types and her colonia and city', () => {
     const map = code('ui/MapaPunto.tsx');
-    expect(map).toMatch(/const puertas = usePuertas\(buscando \? texto : '', colonia\);/);
-    expect(map).toMatch(/const calles = useSugerencias\(buscando \? texto : '', colonia\);/);
+    expect(map).toMatch(/const puertas = usePuertas\(buscando \? texto : '', direccion\);/);
+    expect(map).toMatch(/const calles = useSugerencias\(buscando \? texto : '', direccion\);/);
     expect(map).toMatch(/const sugerencias = conLasPuertas\(puertas, calles\);/);
     expect(map).toMatch(/<ListaDeSugerencias sugerencias=\{enviada !== null \? buscada : sugerencias\} onElegir=\{elegir\} \/>/);
-    expect(code('lib/telefono.ts')).toMatch(/const ahora = preguntaConPuerta\(texto, colonia\);\s*const pregunta = useAsentado\(ahora, PAUSA_TELEFONO_MS\);/);
+    expect(code('lib/telefono.ts')).toMatch(/const ahora = preguntaConPuerta\(texto, direccion\);\s*const pregunta = useAsentado\(ahora, PAUSA_TELEFONO_MS\);/);
     // An answer always names the number in the box: none while she has typed on since.
     expect(code('lib/telefono.ts')).toMatch(/return ahora === null \|\| pregunta !== ahora \? null : \(data \?\? null\);/);
   });
@@ -781,12 +843,12 @@ describe('the phone’s own geocoder asks for no permission and reads no positio
     });
   });
 
-  it('only `@/lib/telefono` asks it, with the Valle’s box and five answers', () => {
+  it('only `@/lib/telefono` asks it, with the zone’s box and five answers', () => {
     const askers = sources()
       .filter((path) => /Geocodificador|requireOptionalNativeModule/.test(readFileSync(path, 'utf8').replace(/^\s*\/\/.*$/gm, '')))
       .map((path) => path.slice(SRC.length + 1));
     expect(askers).toEqual(['lib/telefono.ts']);
-    expect(code('lib/telefono.ts')).toMatch(/GEOCODIFICADOR\.buscar\(pregunta, CAJA_DEL_VALLE, RESPUESTAS_DEL_TELEFONO\)/);
+    expect(code('lib/telefono.ts')).toMatch(/GEOCODIFICADOR\.buscar\(pregunta, CAJA_DE_BUSQUEDA, RESPUESTAS_DEL_TELEFONO\)/);
     // Both of its whole questions — the map's opening and Buscar — ask the phone first,
     // through the one answer kept per question (`alTelefono`), as the list does (10.4e).
     expect((code('lib/telefono.ts').match(/primeroElTelefono\(\s*\(\) => alTelefono\(client, /g) ?? []).length).toBe(2);
