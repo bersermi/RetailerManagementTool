@@ -8,9 +8,15 @@
 // `SIZE.space * 2` above it — and watches for focus moving to the next box,
 // which raises no keyboard event. `@/lib/teclado` decides how far.
 // Sign-in draws it now; `10.4b-iii-b`'s kitchen form draws it next.
+//
+// ⚠️ ONE DIFFERENCE FROM WERA'S, `10.4g-i`: a SEARCH box goes to the TOP of the
+// form when focused (`useArriba`, `@/lib/teclado`'s `hastaArriba`), not just above
+// the keyboard — Google's suggestions open under it (`@/ui/Direccion`), and a box
+// held just above the keys would hide every row behind them. The keyboard's room
+// at the foot is what lets it scroll that far.
 // ============================================================================
 
-import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode, type RefObject } from 'react';
 import {
   Keyboard,
   ScrollView,
@@ -21,11 +27,31 @@ import {
   type ScrollViewProps,
 } from 'react-native';
 
-import { desplazamiento } from '@/lib/teclado';
+import { desplazamiento, hastaArriba } from '@/lib/teclado';
 import { SIZE } from '@/theme/palette';
 
 /** How often focus is checked while the keyboard is up. */
 const WATCH_MS = 300;
+
+/**
+ * The boxes this form brings to its top when focused. ⚠️ FOUND BY IDENTITY: the
+ * object `TextInput.State.currentlyFocusedInput()` returns is the one the box's
+ * `ref` receives (React Native 0.86's `TextInput.js`, `focusInput(inputRef.current)`).
+ */
+const ARRIBA = createContext<Set<unknown> | null>(null);
+
+/** Marks a search box as one the form brings to its top when it is focused. Outside a form, nothing. */
+export function useArriba(caja: RefObject<TextInput | null>) {
+  const arriba = useContext(ARRIBA);
+  useEffect(() => {
+    const box = caja.current;
+    if (arriba === null || box === null) return undefined;
+    arriba.add(box);
+    return () => {
+      arriba.delete(box);
+    };
+  }, [arriba, caja]);
+}
 
 export function Formulario({
   children,
@@ -38,6 +64,7 @@ export function Formulario({
   const keyboardTop = useRef<number | null>(null);
   const shown = useRef<unknown>(null);
   const [room, setRoom] = useState(0);
+  const [arriba] = useState(() => new Set<unknown>());
   const margin = SIZE.space * 2;
 
   const reveal = useCallback(() => {
@@ -45,11 +72,20 @@ export function Formulario({
     const input = TextInput.State.currentlyFocusedInput();
     shown.current = input;
     if (top === null || input === null) return;
+    if (arriba.has(input)) {
+      view.current?.getNativeScrollRef()?.measureInWindow((_fx, formTop) => {
+        input.measureInWindow((_x, y) => {
+          const by = hastaArriba(y, formTop, SIZE.space);
+          if (by !== 0) view.current?.scrollTo({ y: Math.max(0, offset.current + by), animated: true });
+        });
+      });
+      return;
+    }
     input.measureInWindow((_x, y, _w, height) => {
       const by = desplazamiento(y, height, top, margin);
       if (by > 0) view.current?.scrollTo({ y: offset.current + by, animated: true });
     });
-  }, [margin]);
+  }, [margin, arriba]);
 
   useEffect(() => {
     let watch: ReturnType<typeof setInterval> | null = null;
@@ -93,7 +129,7 @@ export function Formulario({
       }}
       contentContainerStyle={[contentContainerStyle, room > 0 ? { paddingBottom: foot + room } : null]}
     >
-      {children}
+      <ARRIBA.Provider value={arriba}>{children}</ARRIBA.Provider>
     </ScrollView>
   );
 }

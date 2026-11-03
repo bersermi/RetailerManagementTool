@@ -111,6 +111,16 @@ TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic i
   of the 12 trusted). It sits at the TOP of the map: the foot is where Google's logo is, which the terms forbid
   covering. The suggestions' box carries *Google Maps* at its foot (its attribution rules: over the map the list
   can hide the logo, and the form has no map). A build with no key for its phone draws no box.
+- **Her address form opens on *Busca tu dirección*, above the five boxes** (`@/ui/Direccion`, `10.4g-i`, the
+  owner's answer of 2026-11-03, as Uber and Rappi do it — never under the street box: the street is the first box,
+  so Google would not know her colonia yet). It asks what she typed alone (the map's box adds her colonia and city;
+  this one's hint asks for them), in its own session; a pick's details fill the five boxes and *revisa* asks her to
+  check them; a part Google does not name keeps what she typed, **unless Google's street is another** — then
+  nothing she had is kept, because a number or colonia left over reads as decided (`@/lib/google`'s `cajasDe`).
+  Its list is in the form's own flow, so ⚠️ **the form brings that box to its top when focused** (`@/ui/Formulario`'s
+  `useArriba`, `@/lib/teclado`'s `hastaArriba`) — held just above the keyboard as every other box is, every row
+  would sit behind the keys. `test/buscar.test.ts` reads both files for it; how it looks above a real keyboard is
+  the `preview` build's to show.
 - ⚠️ **Each phone asks with its own key, locked to this app**: an iPhone names the bundle id
   (`X-Ios-Bundle-Identifier`), Android the package and Expo's test-build fingerprint (`X-Android-Cert`, one
   of the two the Android key accepts). Google says such a lock can be copied, so a copied key is bounded by the

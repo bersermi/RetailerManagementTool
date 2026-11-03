@@ -17,3 +17,15 @@
 export function desplazamiento(fieldTop: number, fieldHeight: number, keyboardTop: number, margin: number): number {
   return Math.max(0, fieldTop + fieldHeight + margin - keyboardTop);
 }
+
+/**
+ * ⚠️ THIS APP'S OWN, NOT WERA'S (`10.4g-i`): how far to scroll so a SEARCH box
+ * ends `margin` below the form's top — what opens under it, Google's suggestions
+ * (`@/ui/Direccion`), then has the room down to the keyboard, where a box held
+ * just above the keyboard would hide every row. Negative scrolls back, when the
+ * box sits above that line. In window coordinates, as above: the box's top as
+ * `measureInWindow` gives it, the form's top the same way.
+ */
+export function hastaArriba(fieldTop: number, formTop: number, margin: number): number {
+  return fieldTop - formTop - margin;
+}

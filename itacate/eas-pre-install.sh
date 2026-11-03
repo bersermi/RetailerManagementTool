@@ -1,7 +1,9 @@
 #!/bin/sh
 # ============================================================================
 # RUNS ON EAS ONLY, BEFORE ANYTHING INSTALLS (`eas-build-pre-install` in
-# package.json). Plan task `10.2a`. ⚠️ The same file is in `cocina/` — change both.
+# package.json). Plan task `10.2a`. ⚠️ Its twin in `cocina/` moved ahead in
+# `10.4g-i`: it also refuses an iPhone store build without the iPhone map key,
+# which Itacate does not carry yet — change both when it does (`10.5-iv`).
 #
 # 1. Copies the Firebase file EAS holds (`GOOGLE_SERVICES_JSON`, a file
 #    variable) next to `app.config.ts`, which tells prebuild to use it.

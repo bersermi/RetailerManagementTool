@@ -112,6 +112,25 @@ export const ES = {
   },
 
   /**
+   * ⚠️ THIS APP'S ALONE, NOT WERA'S (`10.4g-i`, the owner's answer of 2026-11-03): the
+   * *Busca tu dirección* box above her five boxes. Its hint asks for the colonia
+   * because Google needs it — measured, hers was among the five suggestions for 3
+   * to 5 of twenty addresses without it, 11 to 14 with it (`@/lib/google`). A pick
+   * fills the boxes; *revisa* says they are a proposal, hers to check. *Buscando…*,
+   * ✕'s name and Google's credit are the map's box's (`ES.mapa`).
+   */
+  buscaDireccion: {
+    /** The box's hint, in muted ink — the magnifier says what it is for. */
+    hint: 'Busca tu calle, número y colonia',
+    etiqueta: 'Busca tu dirección',
+    /** Names where it looked, as the map's box does (`10.4f`): a fonda elsewhere must not read her address as wrong. */
+    ninguna: 'No encontramos esa dirección en la Ciudad de México ni en el Estado de México. Escríbela de otra forma, o llénala abajo.',
+    sinSenal: 'Sin conexión. Llena tu dirección abajo.',
+    falla: 'Ahora no podemos buscar. Llena tu dirección abajo.',
+    revisa: 'Revisa que tu dirección esté bien. Puedes corregir cualquier dato.',
+  },
+
+  /**
    * ⚠️ HER PIN, TAPPED ON THE FLAT STREET MAP (`0072`; the owner's *"as precise
    * as possible"*, 2026-10-28, and his ruling of 2026-10-31, `10.4c`). The hint
    * under the map changes with it: too far, close enough, placed (`@/lib/mapa`).

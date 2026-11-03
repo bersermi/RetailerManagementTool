@@ -16,7 +16,10 @@
 // through Geocoding, 13 (11 of 12); at her own door Google named her street for 14
 // (11 of 12). Without her colonia, hers was among the five suggestions for 3 to 5
 // of the twenty, with it 11 to 14 — so the map's box adds what she typed in the
-// form (`preguntaConSuDireccion`).
+// form (`preguntaConSuDireccion`), and the form's own box, *Busca tu dirección*
+// above her five boxes (the owner's answer of 2026-11-03), asks for her street,
+// number and colonia in its hint and sends what she typed alone (`preguntaDe`):
+// the boxes under it are what her pick fills, not what it asks with.
 //
 // ⚠️⚠️ WHAT IS KEPT: HER FIVE BOXES AND HER PIN, NEVER GOOGLE'S POINT. A
 // suggestion she picks fills the boxes — Google lets the address an end user picks
@@ -42,7 +45,7 @@
 // requests are `@/lib/useGoogle`'s.
 // ============================================================================
 
-import { checkAddress, type AddressForm, type Pin } from '@/api/place';
+import { EMPTY_ADDRESS, checkAddress, type AddressForm, type Pin } from '@/api/place';
 import { CLOSE_METRES } from '@/lib/mapa';
 
 // ----------------------------------------------------------------------------
@@ -361,9 +364,17 @@ const igual = (a: string, b: string): boolean => normal(a) === normal(b);
  * (*Centro*, for Texcoco), and then it is the part of the suggestion's second line
  * before the state (*Texcoco de Mora*). A part Google does not name keeps what she
  * typed; a postcode that is not five digits is none.
+ *
+ * ⚠️ BUT ANOTHER STREET IS ANOTHER ADDRESS (`10.4g-i`, the address form's *Busca tu
+ * dirección*, which fills the five boxes she already has on her kitchen's screen):
+ * when Google names a street that is not the one in her box (`otraCalle`), nothing
+ * she typed is kept — a number or a colonia left over from the address she had
+ * would read as decided. The boxes are hers to check either way.
  */
 export function cajasDe(componentes: unknown, detalle: string, escrita: AddressForm): AddressForm {
   const partes = (Array.isArray(componentes) ? componentes : []).map(objeto);
+  const ruta = parte(partes, 'route');
+  const suya = ruta !== '' && otraCalle(escrita.street, ruta) ? EMPTY_ADDRESS : escrita;
   const colonia = parte(partes, 'sublocality_level_1') || parte(partes, 'neighborhood');
   const localidad = parte(partes, 'locality');
   const delDetalle = detalle
@@ -378,11 +389,11 @@ export function cajasDe(componentes: unknown, detalle: string, escrita: AddressF
     (delDetalle !== '' && !igual(delDetalle, colonia) ? delDetalle : '');
   const cp = parte(partes, 'postal_code');
   return {
-    street: parte(partes, 'route') || escrita.street,
-    number: parte(partes, 'street_number') || escrita.number,
-    colonia: colonia || escrita.colonia,
-    city: ciudad || escrita.city,
-    postalCode: /^\d{5}$/.test(cp) ? cp : escrita.postalCode,
+    street: ruta || suya.street,
+    number: parte(partes, 'street_number') || suya.number,
+    colonia: colonia || suya.colonia,
+    city: ciudad || suya.city,
+    postalCode: /^\d{5}$/.test(cp) ? cp : suya.postalCode,
   };
 }
 

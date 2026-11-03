@@ -53,7 +53,11 @@ bash docs/checks/wera-runtime.sh          # after ANY install here: Wera's runti
   `GOOGLE_SERVICES_JSON`, copied in by `eas-pre-install.sh`, which refuses an Android store
   build without either). **Neither enters the runtime** — `fingerprint.config.js` drops both,
   and `test/runtime.test.ts` computes the runtime with and without them. A new value read from
-  the environment into the config joins that file and that test.
+  the environment into the config joins that file and that test. ⚠️ **Wera Cocina's twins of
+  those four files moved ahead in `10.4g-i`** (the iPhone map key, `GOOGLE_MAPS_IOS_API_KEY`, and
+  `extra.google` for its search); Itacate's stay as they are until its own map (`10.5-iv`), and
+  each header says so. Measured that day: the header edits left Itacate's runtime as it was on
+  both platforms (`npx expo-updates fingerprint:generate`).
 - **Ship an update only through a runbook that computes the runtime the way the build does** —
   `docs/runbooks/ship-an-update.sh` is Wera's (`cd app`); this app has none yet, and the first row
   that ships one writes it. Never a bare `eas update`.

@@ -46,8 +46,9 @@ import { ES } from '@/strings';
 // `10.4d` until then).
 //
 // ⚠️ WHAT ONLY A PHONE CAN SAY — that Google's map draws on an iPhone, that the
-// suggestions draw over it, that a pick flies it, that the card reads well — is
-// the `preview` build's (a map built on this Mac has no key and never moves).
+// suggestions draw over it, that a pick flies it, that the card reads well, that
+// the form's list opens above the keyboard — is the `preview` build's (a build made
+// on this Mac has no key: its map never moves, and it draws no search).
 // Here: every value sent to Google, every answer read back, her five boxes from
 // Google's parts, the street the card compares, and the rule a careless edit could
 // break unseen: AN ANSWER ONLY MOVES THE MAP, and the pin is the middle she put
@@ -468,6 +469,31 @@ describe('her pick: where the map flies, and her five boxes', () => {
     expect(cajasDe(pocas, '', LUPE)).toEqual(LUPE);
     expect(cajasDe('nada', '', LUPE)).toEqual(LUPE);
   });
+
+  // ⚠️ `10.4g-i`: the form's *Busca tu dirección* fills the boxes she already has on
+  // her kitchen's screen — a number or a colonia left over from another address
+  // would read as decided.
+  it('but another street is another address: nothing she had is kept', () => {
+    const otra = [
+      componente('Calle Morelos', 'route'),
+      componente('Santa María Huexoculco', 'locality', 'political'),
+      componente('Estado de México', 'administrative_area_level_1', 'political'),
+    ];
+    expect(cajasDe(otra, 'Santa María Huexoculco, Méx.', LUPE)).toEqual({
+      street: 'Calle Morelos',
+      number: '',
+      colonia: '',
+      city: 'Santa María Huexoculco',
+      postalCode: '',
+    });
+  });
+
+  it('while her own street, written another way, keeps what Google does not name', () => {
+    const suya = [componente('Calle General Anaya', 'route'), componente('San Bartolo Ameyalco', 'sublocality_level_1')];
+    expect(cajasDe(suya, '', LUPE)).toEqual({ ...LUPE, street: 'Calle General Anaya' });
+    // A street of a number is never another's: Calle 6 is not Calle 16.
+    expect(cajasDe([componente('Calle 16', 'route')], '', { ...LUPE, street: 'Calle 6' }).number).toBe('');
+  });
 });
 
 describe('what Geocoding answers, read', () => {
@@ -662,6 +688,67 @@ describe('an answer only moves the map; her pin is the middle she put there hers
   });
 });
 
+// ⚠️ `10.4g-i`, the owner's answer of 2026-11-03: *Busca tu dirección* above her
+// five boxes, as Uber and Rappi do it — never under the street box, where Google
+// would not know her colonia yet. Only a phone can show the list opening above the
+// keyboard; here, read out of the files, what it asks, what a pick fills and what
+// stays hers.
+describe('the address form’s Busca tu dirección: above her five boxes, and a pick fills them', () => {
+  const form = code('ui/Direccion.tsx');
+
+  it('sits above the five boxes, drawn only on a build that carries this phone’s key', () => {
+    expect(form).toMatch(/\{CLAVE !== null && \(\s*<BuscaTuDireccion[\s\S]*?\)\}\s*\{field\('street', ES\.address\.street\)\}/);
+    expect(form.indexOf('<BuscaTuDireccion')).toBeLessThan(form.indexOf("field('street'"));
+  });
+
+  it('its hint asks for the colonia — measured, Google rarely lists hers without it', () => {
+    expect(ES.buscaDireccion.hint).toBe('Busca tu calle, número y colonia');
+    expect(form).toMatch(/hint=\{ES\.buscaDireccion\.hint\}/);
+    expect(form).toMatch(/etiqueta=\{ES\.buscaDireccion\.etiqueta\}/);
+  });
+
+  it('asks what she typed alone, in its own session — the boxes under it are what a pick fills, not what it asks with', () => {
+    expect(form).toMatch(/const sesion = useSesion\(\);\s*const sugerencias = useSugerencias\(abierta && editable \? texto : '', null, sesion\);/);
+    expect(preguntaConSuDireccion('Durango 220 Roma Norte', null)).toBe(preguntaDe('Durango 220 Roma Norte'));
+  });
+
+  it('a pick’s details, in that session, end it — and fill her five boxes, which stay hers', () => {
+    expect(form).toMatch(/const lugar = await detallar\(sugerencia, sesion\.token\(\), value\);\s*sesion\.cerrar\(\);/);
+    expect(form.match(/onChange\(lugar\.direccion\)/g)).toHaveLength(1);
+    // Every box still takes her own typing.
+    expect(form).toMatch(/onChangeText=\{\(text\) => onChange\(\{ \.\.\.value, \[key\]: text \}\)\}/);
+    // Google's point goes nowhere: the form has no map.
+    expect(form).not.toMatch(/\.punto\b|onPin/);
+  });
+
+  it('says why when the details never come, and asks her to check the boxes after a pick', () => {
+    expect(form).toMatch(/setEligiendo\(\{ kind: lugar === null \? 'falla' : 'sin-senal' \}\);\s*return;/);
+    expect(form).toMatch(/\{elegida && !abierta && \(\s*<Text[^>]*>\{ES\.buscaDireccion\.revisa\}<\/Text>/);
+    expect(ES.buscaDireccion.revisa).toBe('Revisa que tu dirección esté bien. Puedes corregir cualquier dato.');
+  });
+
+  it('when hers never shows she fills the boxes: a tap in one closes the list; the keyboard’s key only closes the keys', () => {
+    expect(form).toMatch(/onFocus=\{\(\) => setAbierta\(false\)\}/);
+    expect(form).toMatch(/onBuscar=\{\(\) => undefined\}/);
+    expect(ES.buscaDireccion.ninguna).toBe(
+      'No encontramos esa dirección en la Ciudad de México ni en el Estado de México. Escríbela de otra forma, o llénala abajo.',
+    );
+    for (const linea of [ES.buscaDireccion.sinSenal, ES.buscaDireccion.falla]) expect(linea).toMatch(/Llena tu dirección abajo\.$/);
+  });
+
+  it('the form brings the box to its top as she touches it, so the rows open above the keyboard', () => {
+    expect(form).toMatch(/const caja = useRef<TextInput>\(null\);\s*useArriba\(caja\);/);
+    expect(form).toMatch(/<CajaDeBusqueda\s+caja=\{caja\}/);
+    const formulario = code('ui/Formulario.tsx');
+    expect(formulario).toMatch(/if \(arriba\.has\(input\)\) \{[\s\S]*?hastaArriba\(y, formTop, SIZE\.space\)/);
+    expect(formulario).toMatch(/<ARRIBA\.Provider value=\{arriba\}>\{children\}<\/ARRIBA\.Provider>/);
+    // Both screens that draw the form draw it inside that scroll view.
+    for (const screen of ['app/(onboarding)/registro.tsx', 'app/(cocina)/datos.tsx']) {
+      expect(code(screen), screen).toMatch(/<Formulario[\s\S]*<Direccion [\s\S]*<\/Formulario>/);
+    }
+  });
+});
+
 describe('Google’s map on both phones, and Google’s credit', () => {
   it('both maps are Google’s, on an iPhone too — its terms keep its search off any other map', () => {
     for (const file of ['ui/MapaPunto.tsx', 'ui/MapaFijo.tsx']) {
@@ -674,15 +761,20 @@ describe('Google’s map on both phones, and Google’s credit', () => {
 
   it('the box is drawn only on a build that carries this phone’s key', () => {
     expect(code('ui/MapaPunto.tsx')).toMatch(/\{CLAVE !== null && \(\s*<CampoDeBusqueda/);
+    expect(code('ui/Direccion.tsx')).toMatch(/\{CLAVE !== null && \(\s*<BuscaTuDireccion/);
     for (const hook of ['useSugerencias', 'useApertura', 'useBuscar']) {
       expect(code('lib/useGoogle.ts'), hook).toMatch(new RegExp(`export function ${hook}\\([\\s\\S]*?enabled: pregunta !== null && CLAVE !== null,`));
     }
   });
 
-  it('carries Google’s words at the foot of the suggestions’ own box, untranslated, on one line', () => {
+  it('carries Google’s words at the foot of each list’s own box, untranslated, on one line — over the map and in the form', () => {
     expect(ES.mapa.creditoGoogle).toBe('Google Maps');
     const box = code('ui/Buscador.tsx');
     expect(box).toMatch(/<\/ScrollView>\s*<CreditoDeGoogle \/>/);
+    expect(box).toMatch(
+      /export function SugerenciasEnElFormulario[\s\S]*?<Filas sugerencias=\{sugerencias\} onElegir=\{onElegir\} palabras=\{ES\.buscaDireccion\} \/>\s*<CreditoDeGoogle \/>/,
+    );
+    expect(box.match(/<CreditoDeGoogle \/>/g)).toHaveLength(2);
     expect(box).toMatch(/numberOfLines=\{1\}[\s\S]*?\{ES\.mapa\.creditoGoogle\}/);
     expect(box).toMatch(/fontSize: 12,/);
     expect(box).not.toMatch(/LocationIQ|OpenStreetMap|Linking/);
@@ -695,8 +787,10 @@ describe('Google’s map on both phones, and Google’s credit', () => {
     expect(code('ui/MapaPunto.tsx')).toMatch(/onBuscar=\{buscar\}/);
   });
 
-  it('keeps the keyboard while she picks — a tap on a suggestion chooses it', () => {
+  it('keeps the keyboard while she picks — a tap on a suggestion chooses it, over the map and in the form', () => {
     expect(code('ui/Buscador.tsx')).toMatch(/keyboardShouldPersistTaps="handled"/);
+    // The form's list is in the form's own scroll view.
+    expect(code('ui/Formulario.tsx')).toMatch(/<ScrollView\s+ref=\{view\}\s+keyboardShouldPersistTaps="handled"/);
   });
 });
 
@@ -711,9 +805,12 @@ describe('one session per search', () => {
     expect(hooks).toMatch(/cerrar: \(\) => \{\s*token\.current = null;\s*\},/);
   });
 
-  it('every suggestion carries it, and her pick’s details carry the same, then end it', () => {
+  it('every suggestion carries it, and her pick’s details carry the same, then end it — on the map and in the form', () => {
     expect(hooks).toMatch(/queryFn: \(\{ signal \}\) => sugerir\(pregunta as string, sesion\.token\(\), signal\),/);
     expect(map).toMatch(/const lugar = await detallar\(sugerencia, sesion\.token\(\), direccion \?\? EMPTY_ADDRESS\);\s*sesion\.cerrar\(\);/);
+    expect(code('ui/Direccion.tsx')).toMatch(/const lugar = await detallar\(sugerencia, sesion\.token\(\), value\);\s*sesion\.cerrar\(\);/);
+    // One session each: a search on the map and one in the form never share a token.
+    for (const file of ['ui/MapaPunto.tsx', 'ui/Direccion.tsx']) expect(code(file).match(/useSesion\(\)/g), file).toHaveLength(1);
     expect(hooks).toMatch(/'X-Goog-FieldMask': CAMPOS_DE_DETALLES/);
   });
 });
