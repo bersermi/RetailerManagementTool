@@ -65,6 +65,9 @@ signed_in (proname) as (values
   -- a kitchen's (`0072`, plan `10.4a`): the trades she picks from before she
   -- belongs to anything, her pin, and publishing and withdrawing what she offers
   ('kitchen_giros'), ('publish_listing'), ('set_store_pin'), ('withdraw_listing'),
+  -- her address first (`0075`, plan `10.4h`): her line of directions with no
+  -- pin, and her own pin cleared — the owner's alone, as her pin is
+  ('set_store_directions'), ('clear_store_pin'),
   -- what a policy, a check or a computed column runs as the caller
   ('catalog_image_path'), ('has_role'), ('merma_path_ok'), ('my_locations'),
   ('my_role'), ('my_workspaces'), ('normalize_name'), ('photo_folder_ok'),

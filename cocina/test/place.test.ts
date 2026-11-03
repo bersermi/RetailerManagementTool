@@ -189,6 +189,7 @@ describe('the pin and its one line of directions', () => {
     expect(DIRECTIONS_MAX).toBe(140);
     const long = 'ñ'.repeat(200);
     expect([...(directionsFrom(long) ?? '')].length).toBe(140);
-    expect(code('ui/PantallaPunto.tsx')).toMatch(/maxLength=\{DIRECTIONS_MAX\}/);
+    // ⚠️ `10.4h`: the line moved to her address screen, beside her address.
+    expect(code('ui/PantallaDireccion.tsx')).toMatch(/maxLength=\{DIRECTIONS_MAX\}/);
   });
 });

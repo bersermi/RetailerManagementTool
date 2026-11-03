@@ -1,36 +1,72 @@
 // ============================================================================
-// THE SIGN-UP IN PROGRESS, HELD BETWEEN ITS TWO SCREENS. Plan task `10.4b-iii-b`.
+// WHAT SHE IS GIVING, HELD BETWEEN THE SCREENS THAT ASK IT. Plan tasks
+// `10.4b-iii-b` (the sign-up) and `10.4h` (address first: her address screen and
+// *Ajusta el punto* share one draft, in the sign-up and behind *Cambiar
+// dirección*).
 //
-// The form (`(onboarding)/registro`) and the map (`(onboarding)/punto`) are two
-// routes, so the phone's own back gesture steps between them; what she has given
-// lives here, in the group's layout, for as long as she is signing up. Nothing
-// is written to the database until the map's *Registrar mi cocina*
-// (`@/api/registro`: the kitchen is made whole, in one go, at the end).
+// Each lives in its group's layout, for as long as she is in it: the sign-up's
+// (`(onboarding)/_layout`) — her kitchen's name and trade (`/registro`), her address
+// (`/donde`) and her own point (`/punto`) — and *Cambiar dirección*'s
+// (`(cocina)/direccion/_layout`) — her address and her own point, opened on what is
+// stored. They are routes, so the phone's own back gesture steps between them;
+// nothing is written until the address screen's button (`@/api/registro`,
+// `@/api/direccion`).
 //
-// ⚠️ NOT KEPT ON THE PHONE: an app closed half-way starts the sign-up again.
-// What is checked, and when it is complete, is `@/api/registro`'s, pure.
+// ⚠️ THE PICK RIDES BESIDE THE DRAFT, NEVER IN IT: the suggestion she picked in
+// *Busca tu dirección* places her address on the small map and opens *Ajusta el
+// punto* there, while her boxes still read as it filled them — Google's point,
+// shown and never written, which is why it is not part of what `@/api/` sends.
+//
+// ⚠️ NOT KEPT ON THE PHONE: an app closed half-way starts again. What is checked,
+// and what is written, is `@/api/registro`'s and `@/api/direccion`'s, pure.
 // ============================================================================
 
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
 
+import type { SuDireccion } from '@/api/direccion';
 import { BORRADOR_VACIO, type Borrador } from '@/api/registro';
+import type { Lugar } from '@/lib/google';
 
-interface BorradorContext {
-  readonly borrador: Borrador;
-  readonly cambiar: (parte: Partial<Borrador>) => void;
+interface Contexto<T> {
+  readonly valor: T;
+  readonly cambiar: (parte: Partial<T>) => void;
+  /** The suggestion she picked — its place is the small map's, never written. */
+  readonly elegido: Lugar | null;
+  readonly elegir: (lugar: Lugar | null) => void;
 }
 
-const Contexto = createContext<BorradorContext | null>(null);
+function useDraft<T>(inicial: T): Contexto<T> {
+  const [valor, setValor] = useState<T>(inicial);
+  const [elegido, elegir] = useState<Lugar | null>(null);
+  const cambiar = useCallback((parte: Partial<T>) => setValor((ahora) => ({ ...ahora, ...parte })), []);
+  return useMemo(() => ({ valor, cambiar, elegido, elegir }), [valor, cambiar, elegido]);
+}
+
+// ---- the sign-up ----------------------------------------------------------------
+
+const DelRegistro = createContext<Contexto<Borrador> | null>(null);
 
 export function BorradorProvider({ children }: { children: ReactNode }) {
-  const [borrador, setBorrador] = useState<Borrador>(BORRADOR_VACIO);
-  const cambiar = useCallback((parte: Partial<Borrador>) => setBorrador((ahora) => ({ ...ahora, ...parte })), []);
-  const value = useMemo(() => ({ borrador, cambiar }), [borrador, cambiar]);
-  return <Contexto.Provider value={value}>{children}</Contexto.Provider>;
+  return <DelRegistro.Provider value={useDraft(BORRADOR_VACIO)}>{children}</DelRegistro.Provider>;
 }
 
-export function useBorrador(): BorradorContext {
-  const context = useContext(Contexto);
+export function useBorrador(): Contexto<Borrador> {
+  const context = useContext(DelRegistro);
   if (context === null) throw new Error('useBorrador needs BorradorProvider — the (onboarding) layout');
+  return context;
+}
+
+// ---- *Cambiar dirección* ---------------------------------------------------------
+
+const DeSuDireccion = createContext<Contexto<SuDireccion> | null>(null);
+
+/** ⚠️ Opened on what is stored, once: give it a `key` of her place, so another place starts afresh. */
+export function SuDireccionProvider({ inicial, children }: { inicial: SuDireccion; children: ReactNode }) {
+  return <DeSuDireccion.Provider value={useDraft(inicial)}>{children}</DeSuDireccion.Provider>;
+}
+
+export function useSuDireccion(): Contexto<SuDireccion> {
+  const context = useContext(DeSuDireccion);
+  if (context === null) throw new Error('useSuDireccion needs SuDireccionProvider — the (cocina)/direccion layout');
   return context;
 }

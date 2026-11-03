@@ -1,57 +1,52 @@
 import { router } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
-import { useMakeKitchen } from '@/api/hooks';
-import type { Pin } from '@/api/place';
-import { draftFrom, formIssue } from '@/api/registro';
+import { puntoEn, puntoVigente } from '@/api/direccion';
+import { samePin, type Pin } from '@/api/place';
+import { pasoUno } from '@/api/registro';
 import { useBorrador } from '@/lib/borrador';
-import { ES } from '@/strings';
+import { useDondeEsta } from '@/lib/useGoogle';
 import { PantallaPunto } from '@/ui/PantallaPunto';
 
 // ============================================================================
-// THE SIGN-UP'S LAST STEP: HER KITCHEN ON THE MAP, AND *REGISTRAR MI COCINA*.
-// Plan task `10.4b-iii-b`.
+// *AJUSTA EL PUNTO*, IN THE SIGN-UP — only if she taps the small map. Plan tasks
+// `10.4b-iii-b` and `10.4h` (the owner's ruling of 2026-11-03: the pin is a
+// suggestion she never has to touch; her own point, if she sets one, is kept and
+// used by every map after).
 //
-// ⚠️ THE KITCHEN IS MADE HERE, WHOLE, AT THE END — the form's three answers and
-// this screen's pin in one go (`@/api/registro`), before her kitchens are read
-// again. The guard then takes her to her kitchen (`@/auth/guard`); this screen
-// never navigates there itself.
-//
-// ⚠️ AFTER A SUCCESS THE BUTTON STAYS BUSY until the guard moves her: a second
-// tap would be a second kitchen (`onboard_workspace` takes no id from the phone).
-// A failure keeps her here with what she gave, and the sentence says why.
+// ⚠️ NOTHING IS WRITTEN HERE: *Listo* puts her point in the draft, beside the
+// street and number it belongs to (`puntoEn`), and *Registrar mi cocina* sends it
+// with the rest (`@/api/registro`). Without a move of hers the middle is
+// Google's, and *Listo* only goes back. The map opens where the small map placed
+// her address (`useDondeEsta`, the same answer from the cache).
 // ============================================================================
 export default function Punto() {
-  const { borrador, cambiar } = useBorrador();
-  const { make, busy } = useMakeKitchen();
-  const [hecho, setHecho] = useState(false);
-  const formReady = formIssue(borrador) === null;
+  const { valor: borrador, cambiar, elegido } = useBorrador();
+  const pasoListo = pasoUno(borrador) === null;
+  const propio = puntoVigente(borrador);
+  const donde = useDondeEsta(propio !== null ? null : borrador.address, elegido);
 
-  // Reached without the form — a restart drops the draft, which is not kept on the phone.
+  // Reached without the first step — a restart drops the draft, which is not kept on the phone.
   useEffect(() => {
-    if (!formReady) router.replace('/registro');
-  }, [formReady]);
+    if (!pasoListo) router.replace('/registro');
+  }, [pasoListo]);
 
-  async function registrar(pin: Pin, directions: string): Promise<string | null> {
-    const draft = draftFrom({ ...borrador, pin, directions });
-    if (draft === null) return ES.mapa.falta;
-    const problem = await make(draft);
-    if (problem === null) setHecho(true);
-    return problem;
+  async function listo(pin: Pin | null): Promise<string | null> {
+    if (pin !== null && !samePin(pin, propio)) cambiar({ punto: puntoEn(pin, borrador.address) });
+    router.back();
+    return null;
   }
 
-  if (!formReady) return null;
+  if (!pasoListo) return null;
   return (
     <PantallaPunto
-      antetitulo={ES.registro.titulo}
-      pin={borrador.pin}
+      antetitulo={null}
+      pin={propio}
       direccion={borrador.address}
-      directions={borrador.directions}
-      accion={ES.mapa.registrar}
-      busy={busy || hecho}
+      abreEn={donde.kind === 'punto' ? donde.destino : null}
+      busy={false}
       onVolver={() => router.back()}
-      onCambio={(pin, directions) => cambiar({ pin, directions })}
-      onGuardar={registrar}
+      onListo={listo}
     />
   );
 }

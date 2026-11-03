@@ -9,7 +9,7 @@
 # it, and requires red WITH THE SENTENCE that names that claim — red for the
 # wrong reason is a failure here too. The control, unedited, must be green.
 # C7–C13 are `10.4b-iii-b`'s: making her kitchen. C14–C17 are `10.4b-iii-c`'s:
-# her way out.
+# her way out. C18–C19 are `10.4h`'s: her line with no pin, and her pin cleared.
 #
 # Run:  supabase start && supabase db reset && bash docs/checks/10.4b-iii-a-cocina-contract-falsify.sh
 # Exit: 0 every fixture behaved; 1 otherwise.
@@ -133,10 +133,18 @@ echo "C17 the deletion's function is misspelt — every deletion would be a 404"
 run C17 red "the deletion with a name missing answered 404" account \
   "s/^export const DELETE_MY_ACCOUNT = 'delete_my_account';/export const DELETE_MY_ACCOUNT = 'delete_account';/"
 
+echo "C18 her line's door is misspelt — a line written with no pin would be a 404"
+run C18 red "her line, set_store_direcciones(" place \
+  "s/^export const SET_STORE_DIRECTIONS = 'set_store_directions';/export const SET_STORE_DIRECTIONS = 'set_store_direcciones';/"
+
+echo "C19 the clearing's argument is renamed — a new street or number would never clear her pin"
+run C19 red "her pin cleared, clear_store_pin(" place \
+  '/^export interface ClearStorePinArgs {/,/^}/ s/^  readonly p_location_id: string;/  readonly p_lugar: string;/'
+
 echo
 echo "$pass passed, $fail failed."
-if (( pass + fail < 18 )); then
-  echo "FAIL: only $((pass + fail)) fixtures ran, expected 18."
+if (( pass + fail < 20 )); then
+  echo "FAIL: only $((pass + fail)) fixtures ran, expected 20."
   exit 1
 fi
 (( fail == 0 )) || exit 1

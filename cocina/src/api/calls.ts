@@ -1,8 +1,9 @@
 // ============================================================================
 // EVERY ROUND TRIP THIS APP MAKES TO THE DATABASE. Plan tasks `10.4b-iii-a` (her
 // kitchens), `10.4b-iii-b` (making one: her trade, her address, her pin),
-// `10.4b-iii-c` (her way out: what goes with her account, the deletion, Apple)
-// and `10.4b-iv-a` (what she publishes: her list, publishing, withdrawing).
+// `10.4b-iii-c` (her way out: what goes with her account, the deletion, Apple),
+// `10.4b-iv-a` (what she publishes: her list, publishing, withdrawing) and
+// `10.4h` (address first: her line with no pin, and her pin cleared).
 //
 // ⚠️ THE IMPURE HALF OF `src/api/` (ADR-035 §2.11): the only module here that
 // imports the live client, so no node suite can load it; every name it sends is
@@ -29,6 +30,7 @@ import {
   type Deleted,
   type OwnerRow,
 } from '@/api/account';
+import type { DireccionCalls } from '@/api/direccion';
 import {
   COCINA_KIND,
   GIRO_COLUMN,
@@ -62,17 +64,21 @@ import {
   type WithdrawArgs,
 } from '@/api/listing';
 import {
+  CLEAR_STORE_PIN,
   PLACE_ACTIVE_COLUMN,
   PLACE_COLUMNS,
   PLACE_ORDER,
   PLACE_OWNER_COLUMN,
   PLACE_TABLE,
   SET_STORE_ADDRESS,
+  SET_STORE_DIRECTIONS,
   SET_STORE_PIN,
   toPlace,
+  type ClearStorePinArgs,
   type Place,
   type PlaceRow,
   type SetStoreAddressArgs,
+  type SetStoreDirectionsArgs,
   type SetStorePinArgs,
 } from '@/api/place';
 import type { KitchenCalls } from '@/api/registro';
@@ -145,9 +151,21 @@ export async function setPlaceAddress(args: SetStoreAddressArgs): Promise<void> 
   if (error) throw error;
 }
 
-/** Her pin and its line of directions, through `set_store_pin` (`0072`). */
+/** Her pin and its line of directions, through `set_store_pin` (`0072`). ⚠️ It writes both, every call. */
 export async function setPlacePin(args: SetStorePinArgs): Promise<void> {
   const { error } = await supabase.rpc(SET_STORE_PIN, args);
+  if (error) throw error;
+}
+
+/** Her line of directions alone, through `set_store_directions` (`0075`); her pin untouched. */
+export async function setPlaceDirections(args: SetStoreDirectionsArgs): Promise<void> {
+  const { error } = await supabase.rpc(SET_STORE_DIRECTIONS, args);
+  if (error) throw error;
+}
+
+/** Her own pin cleared, through `clear_store_pin` (`0075`); her line untouched. */
+export async function clearPlacePin(args: ClearStorePinArgs): Promise<void> {
+  const { error } = await supabase.rpc(CLEAR_STORE_PIN, args);
   if (error) throw error;
 }
 
@@ -179,13 +197,22 @@ export async function withdrawListing(args: WithdrawArgs): Promise<void> {
   if (error) throw error;
 }
 
-/** The four writes and the read that make her kitchen, for `@/api/registro`. */
+/** The writes and the read that make her kitchen, for `@/api/registro`. */
 export const kitchenCalls: KitchenCalls = {
   onboard: onboardKitchen,
   setGiro: setKitchenGiro,
   firstPlace,
   setAddress: setPlaceAddress,
   setPin: setPlacePin,
+  setDirections: setPlaceDirections,
+};
+
+/** The writes her address screen's *Guardar* sends, for `@/api/direccion`. */
+export const direccionCalls: DireccionCalls = {
+  setAddress: setPlaceAddress,
+  setPin: setPlacePin,
+  clearPin: clearPlacePin,
+  setDirections: setPlaceDirections,
 };
 
 /**

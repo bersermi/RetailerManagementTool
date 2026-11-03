@@ -54,11 +54,27 @@ TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic i
   made, and her shop stays Wera's. ⚠️ **And a kitchen's place is read by the kitchen's id**
   (`firstPlace`): the walls show a shop's owner her shop's store too, and an unfiltered read's first
   row is that store — her kitchen's address and pin would land on her shop (`10.4b-iii-b`).
-- **A kitchen is made whole at the end of the sign-up** (`src/api/registro.ts`, `10.4b-iii-b`): the
-  form, then the map, then one *Registrar* — `onboard_workspace`, her trade, her address, her pin —
-  before her kitchens are read again, because the guard moves her the moment that read has one. Only
-  the first write can fail the sign-up; **her kitchen's screen is the second door** for the rest, as
-  Wera's Ajustes is for a shop.
+- **A kitchen is made whole at the end of the sign-up** (`src/api/registro.ts`, `10.4b-iii-b`): her
+  kitchen's name and trade (`/registro`), then her address on a screen of its own (`/donde`, `10.4h`),
+  then one *Registrar mi cocina* — `onboard_workspace`, her trade, her address, and her own point with
+  her line **only if she set one**, else her line alone (`set_store_directions`, `0075`) — before her
+  kitchens are read again, because the guard moves her the moment that read has one. Only the first
+  write can fail the sign-up; **her kitchen's screen is the second door** for the rest, as Wera's
+  Ajustes is for a shop.
+- **Her address first** (`10.4h`, the owner's ruling of 2026-11-03: *"The pin is only indicative"*).
+  *¿Dónde está tu cocina?* (`@/ui/PantallaDireccion`, in the sign-up and behind *Cambiar dirección*)
+  holds the search, her five boxes, a small map (`@/ui/MapaFijo`), her line and the button; ⚠️⚠️ **the
+  small map draws her own point while it still belongs to the street and number in the boxes
+  (`@/api/direccion`'s `puntoVigente`), else where Google places her address — her pick's point, or her
+  boxes through Geocoding once they rest (`useDondeEsta`) — looked up live by each phone and never
+  kept.** A tap on it, or *Ajustar punto* on her kitchen, opens *Ajusta el punto* (`@/ui/PantallaPunto`,
+  the full map), the only way to a point of her own; *Listo* keeps nothing while the middle is Google's.
+  ⚠️⚠️ **`set_store_pin` writes her line with the pin on every call**, and *Ajustar punto* has no box for
+  it, so it sends her stored line (`test/direccion.test.ts`). **A new street or number clears her point**
+  (`escrituras`: `clear_store_pin`, `0075`), so the map follows the new address; a colonia, city or
+  postal code never does. *Cambiar giro* is a door of its own (`/giro`). The drafts that cross two routes
+  live in their group's layout (`@/lib/borrador`); the pick rides beside them, never in what `@/api/`
+  sends.
 - **Her way out is Wera's deletion, cut to this app** (`src/api/account.ts`, `@/ui/Salidas`, `10.4b-iii-c`):
   at the foot of the landing and of her kitchen, every business she alone owns named — her kitchens first,
   a shop of hers in Wera too — and each name typed (`0073`), in one body, `{p_business_names}`. No team is
@@ -92,8 +108,9 @@ TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic i
   box, its list and the card's warning are the `preview` build's to show too.
 - **The map she moves is Google's flat street map, on both phones, and the search above it only moves
   it** (`10.4c`, the owner's ruling of 2026-10-31, and `10.4g-i`, his of 2026-11-03: Google on both phones;
-  `src/lib/google.ts`, pure, `src/lib/useGoogle.ts`, its requests, `@/ui/Buscador`). ⚠️⚠️ **What is stored is
-  her five boxes and her pin — never Google's point, nor what it names**: a suggestion she picks in the form fills the
+  `src/lib/google.ts`, pure, `src/lib/useGoogle.ts`, its requests, `@/ui/Buscador`). Since `10.4h` it is
+  *Ajusta el punto*, opened where the small map placed her address (`abreEn`). ⚠️⚠️ **What is stored is
+  her five boxes, her line, and her own pin only if she sets one — never Google's point, nor what it names**: a suggestion she picks in the form fills the
   boxes — on the map a pick only moves the map — (Google lets the address an end user picks be hers — *Autocomplete for end user addresses*, its
   Places policies — never the list) and every box stays hers to change. **Since `10.4e` (his ruling of
   2026-11-02, as Uber does it) the pin is fixed in the middle and she moves the map under it**; the middle is

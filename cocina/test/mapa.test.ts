@@ -29,6 +29,7 @@ import {
   type Centro,
   type Region,
 } from '@/lib/mapa';
+import { ES } from '@/strings';
 
 // ============================================================================
 // THE MAP'S ARITHMETIC. Plan tasks `10.4b-iii-b`, `10.4c`, `10.4e` and `10.4g-i`.
@@ -267,10 +268,16 @@ describe('where the map is, from its two corners', () => {
   });
 });
 
-describe('her kitchen’s screen shows the block around her pin', () => {
-  it('wider than the map she taps, so the streets beside it show', () => {
+describe('the small map shows the block around her point — hers, or where Google places her address', () => {
+  it('wider than the map she moves, so the streets beside it show', () => {
     expect(GLANCE_METRES).toBeGreaterThan(CLOSE_METRES);
-    expect(code('ui/MapaFijo.tsx')).toMatch(/region=\{regionAround\(pin, GLANCE_METRES\)\}/);
+    expect(code('ui/MapaFijo.tsx')).toMatch(/region=\{regionAround\(punto, GLANCE_METRES\)\}/);
+  });
+
+  it('the pin drawn at its centre is the full map’s own, solid — the region is centred on the point', () => {
+    const fijo = code('ui/MapaFijo.tsx');
+    expect(fijo).toMatch(/<PinAlCentro suyo \/>/);
+    expect(fijo).not.toMatch(/<Marker\b/);
   });
 
   it('on the same flat map as the one she taps', () => {
@@ -356,7 +363,9 @@ describe('the map she moves, as wired — decisions no suite can watch happen', 
     );
   });
 
-  it('and the screen says, before she saves, that neighbours will see this exact spot', () => {
-    expect(code('ui/PantallaPunto.tsx')).toMatch(/\{ES\.mapa\.vecinos\}/);
+  // ⚠️ `10.4h`: she registers on her address screen now, so the line is said there.
+  it('and her address screen says, before she saves, that neighbours will see her address and this point', () => {
+    expect(code('ui/PantallaDireccion.tsx')).toMatch(/\{ES\.direccion\.vecinos\}/);
+    expect(ES.direccion.vecinos).toBe('Los vecinos verán tu dirección y este punto en el mapa.');
   });
 });

@@ -1,6 +1,7 @@
 // ============================================================================
 // THE QUESTIONS TO GOOGLE, OVER HTTP, AND THE HOOKS THE MAP AND THE FORM ASK
-// THEM THROUGH. Plan task `10.4g-i`. Every value sent and every answer read is
+// THEM THROUGH. Plan tasks `10.4g-i` and `10.4h` (the small map: where Google
+// places her address, looked up live). Every value sent and every answer read is
 // `@/lib/google`'s, pure and pinned; this file only sends and waits.
 //
 // ⚠️ THE KEYS COME FROM THE CONFIG'S `extra` (`app.config.ts`), NOT `EXPO_PUBLIC_`:
@@ -26,10 +27,11 @@ import Constants from 'expo-constants';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Platform } from 'react-native';
 
-import type { AddressForm, Pin } from '@/api/place';
+import { sameAddress, type AddressForm, type Pin } from '@/api/place';
 import {
   CAMPOS_DE_DETALLES,
   LIMITE_MS,
+  PAUSA_DEL_MAPA_MS,
   PAUSA_MS,
   SUGERENCIAS_URL,
   cabecerasDeLaApp,
@@ -207,6 +209,48 @@ export function useApertura(direccion: AddressForm | null): Destino | null {
     retry: false,
   });
   return data?.kind === 'destino' ? data.destino : null;
+}
+
+/** Where Google places her address, for the small map — or why it shows no point. */
+export type DondeEsta =
+  | { readonly kind: 'punto'; readonly destino: Destino }
+  /** Her address is not whole yet (`checkAddress`, the owner's four): nothing is asked. */
+  | { readonly kind: 'incompleta' }
+  | { readonly kind: 'buscando' }
+  /** Google found nothing inside the zone. */
+  | { readonly kind: 'ninguna' }
+  | { readonly kind: 'sin-senal' }
+  /** Google refused, or this build has no key for its phone. */
+  | { readonly kind: 'falla' };
+
+/**
+ * ⚠️⚠️ WHERE GOOGLE PLACES HER ADDRESS, FOR THE SMALL MAP (`10.4h`, the owner's
+ * ruling of 2026-11-03: address first) — LOOKED UP LIVE, NEVER KEPT: the point of
+ * the suggestion she picked while her boxes still read as it filled them (nothing
+ * asked: its details carried it), else her four parts to Geocoding once her boxes
+ * have rested (`PAUSA_DEL_MAPA_MS`) — the full map's opening question, so *Ajusta
+ * el punto* opens on the same answer from the cache (`useApertura`). While a new
+ * question is out the last point stays. `null`: nothing to ask — she has her own
+ * point, which is drawn instead.
+ */
+export function useDondeEsta(direccion: AddressForm | null, elegido: Lugar | null): DondeEsta {
+  const delElegido = elegido !== null && direccion !== null && sameAddress(direccion, elegido.direccion) ? elegido : null;
+  const asentada = useAsentado(delElegido === null ? direccion : null, PAUSA_DEL_MAPA_MS);
+  const pregunta = asentada === null ? null : preguntaDeDireccion(asentada);
+  const { data } = useQuery({
+    queryKey: [...BUSCAR_KEY, 'apertura', pregunta],
+    queryFn: ({ signal }) => geocodificar(pregunta as string, signal),
+    enabled: pregunta !== null && CLAVE !== null,
+    placeholderData: keepPreviousData,
+    staleTime: Infinity,
+    gcTime: 10 * 60_000,
+    retry: false,
+  });
+  if (delElegido !== null) return { kind: 'punto', destino: delElegido };
+  if (direccion === null || preguntaDeDireccion(direccion) === null) return { kind: 'incompleta' };
+  if (CLAVE === null) return { kind: 'falla' };
+  if (data === undefined) return { kind: 'buscando' };
+  return data.kind === 'destino' ? { kind: 'punto', destino: data.destino } : data;
 }
 
 /** *Buscar* — the keyboard's search key, on what she typed: *nada* until she presses it. */

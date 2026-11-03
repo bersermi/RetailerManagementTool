@@ -24,6 +24,12 @@
 // ⚠️ THE PIN IS THE OWNER'S (`set_store_pin`, `0072`): exact, six decimals,
 // with one optional line of directions — his answers of 2026-10-28 (*"as
 // precise as possible"*) and 2026-10-29 (*"yes to the directions line"*).
+// ⚠️⚠️ AND SINCE `10.4h` IT IS OPTIONAL — HER OWN POINT, ONLY IF SHE SETS ONE (his
+// ruling of 2026-11-03, address first: *"The pin is only indicative"*). Her line
+// of directions is saved without it (`set_store_directions`) and her point is
+// cleared when her street or number changes (`clear_store_pin`), both `0075`'s,
+// both the owner's. ⚠️ `set_store_pin` STILL WRITES THE LINE WITH THE PIN, every
+// call: a pin sent without her line erases it (`setStorePinArgs` takes it).
 // ============================================================================
 
 import { ES } from '@/strings';
@@ -245,4 +251,39 @@ export function setStorePinArgs(placeId: string, pin: Pin, directions: string): 
     p_lng: sixDecimals(pin.longitude),
     p_directions: directionsFrom(directions),
   };
+}
+
+/** Two pins are one when they are one at six decimals — what is stored. */
+export function samePin(a: Pin | null, b: Pin | null): boolean {
+  if (a === null || b === null) return a === b;
+  return sixDecimals(a.latitude) === sixDecimals(b.latitude) && sixDecimals(a.longitude) === sixDecimals(b.longitude);
+}
+
+// ----------------------------------------------------------------------------
+// Her line with no pin, and her pin cleared — `0075`, plan `10.4h`
+// ----------------------------------------------------------------------------
+
+/** Her line of directions alone, the pin untouched; `TD012` and `22023` as `set_store_pin`. */
+export const SET_STORE_DIRECTIONS = 'set_store_directions';
+
+/** `set_store_directions`'s arguments, by the names PostgREST matches on. */
+export interface SetStoreDirectionsArgs {
+  readonly p_location_id: string;
+  readonly p_directions: string | null;
+}
+
+export function setStoreDirectionsArgs(placeId: string, directions: string): SetStoreDirectionsArgs {
+  return { p_location_id: placeId, p_directions: directionsFrom(directions) };
+}
+
+/** Her own pin cleared, her line untouched; a place with no pin answers the same. `TD012` for anyone else. */
+export const CLEAR_STORE_PIN = 'clear_store_pin';
+
+/** `clear_store_pin`'s argument, by the name PostgREST matches on. */
+export interface ClearStorePinArgs {
+  readonly p_location_id: string;
+}
+
+export function clearStorePinArgs(placeId: string): ClearStorePinArgs {
+  return { p_location_id: placeId };
 }
