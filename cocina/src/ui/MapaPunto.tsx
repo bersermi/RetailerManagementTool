@@ -2,8 +2,10 @@
 // HER PIN, IN THE MIDDLE OF THE FLAT STREET MAP — the map she searches and moves.
 // Plan tasks `10.4b-iii-b`, `10.4c`, `10.4e` (the owner's ruling of 2026-11-02:
 // the search shows the door, and the pin stays in the middle while she moves the
-// map under it, as Uber does it) and `10.4g-i` (his of 2026-11-03: Google on both
-// phones).
+// map under it, as Uber does it), `10.4g-i` (his of 2026-11-03: Google on both
+// phones) and `10.4h` (his of the same evening, address first: this is *Ajusta el
+// punto*, reached only if she wants her own point, and it opens where the small
+// map placed her address — `abreEn` — with the centre still not hers).
 //
 // ⚠️ THE RULES ARE `@/lib/mapa`'S AND `@/lib/google`'S, PURE AND PINNED: where it
 // opens, when the centre is close enough to be her pin (about a block across),
@@ -100,24 +102,34 @@ const VOLAR_MS = 900;
 export function MapaPunto({
   pin,
   direccion,
+  abreEn = null,
   onPin,
   onBuscando,
 }: {
   pin: Pin | null;
-  /** The address she typed: searched as the map opens, when the screen opened without a pin. */
+  /** The address she typed: searched as the map opens, when the screen opened without a pin or `abreEn`. */
   direccion: AddressForm | null;
+  /**
+   * ⚠️ WHERE THE SMALL MAP PLACED HER ADDRESS (`10.4h`): with no pin of hers the map
+   * opens there, at once, and the centre is Google's — not hers until she moves it.
+   */
+  abreEn?: Destino | null;
   /** Told each time the map settles: the centre, once she put it there herself and close in — else `null`. */
   onPin: (pin: Pin | null) => void;
   /** Told when the search box is in use, so the screen gives it the room the keyboard leaves. */
   onBuscando?: (buscando: boolean) => void;
 }) {
   const map = useRef<MapView>(null);
-  /** She has touched the map, or it has flown to an answer: the opening answer no longer moves it. */
-  const tocado = useRef(false);
+  /** Where it opens: her pin; else where the small map placed her address; else the city. */
+  const [abreAhi] = useState(pin === null && abreEn !== null ? abreEn : null);
+  /** She has touched the map, or it has flown to an answer, or it opened on one: the opening answer no longer moves it. */
+  const tocado = useRef(abreAhi !== null);
   const [listo, setListo] = useState(false);
-  const [first] = useState<Region>(() => openingRegion(pin));
-  /** The screen opened without a pin: only then is the address she typed searched as the map opens. */
-  const [sinPin] = useState(pin === null);
+  const [first] = useState<Region>(() =>
+    abreAhi !== null ? regionAround(abreAhi.punto, anchoPara(abreAhi)) : openingRegion(pin),
+  );
+  /** The screen opened with neither: only then is the address she typed searched as the map opens. */
+  const [sinPin] = useState(pin === null && abreAhi === null);
   const [region, setRegion] = useState<Region>(first);
   /** Who put the map's centre where it is — her pin only when it was her (`@/lib/mapa`). */
   const centro = useRef<Centro>(centroAlAbrir(pin, first));
@@ -336,7 +348,7 @@ const PUNTA = 8;
  * a proposal never looks decided (the owner's recurring ruling). It takes no
  * touch: her finger reaches the map through it.
  */
-function PinAlCentro({ suyo }: { suyo: boolean }) {
+export function PinAlCentro({ suyo }: { suyo: boolean }) {
   const tinta = suyo ? PALETTE.accion : PALETTE.tintaApagada;
   return (
     <View

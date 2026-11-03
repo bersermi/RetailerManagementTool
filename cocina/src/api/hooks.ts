@@ -1,7 +1,8 @@
 // ============================================================================
 // HOW A SCREEN REACHES THE DATABASE. Plan tasks `10.4b-iii-a` (her kitchens),
 // `10.4b-iii-b` (making one; her trade, her address and her pin),
-// `10.4b-iii-c` (her way out) and `10.4b-iv-a` (what she publishes).
+// `10.4b-iii-c` (her way out), `10.4b-iv-a` (what she publishes) and `10.4h`
+// (address first: her address screen's writes, and her trade's door of its own).
 //
 // ⚠️ A SCREEN NEVER CALLS `@/api/calls` ITSELF — Wera's R12: a hook here owns
 // the query key, when the read may run, and what it means. Every read waits for
@@ -28,6 +29,7 @@ import {
 import {
   accountOwners,
   deleteMyAccount,
+  direccionCalls,
   firstPlace,
   kitchenGiros,
   kitchenCalls,
@@ -36,10 +38,10 @@ import {
   publishListing,
   revokeApple,
   setKitchenGiro,
-  setPlaceAddress,
   setPlacePin,
   withdrawListing,
 } from '@/api/calls';
+import { guardarSuDireccion, type Escritura } from '@/api/direccion';
 import { apiErrorMessage } from '@/api/errors';
 import {
   GIROS_KEY,
@@ -59,7 +61,7 @@ import {
   type Listing,
   type PublishArgs,
 } from '@/api/listing';
-import { PLACES_KEY, placeKey, setStoreAddressArgs, type AddressForm, type SetStorePinArgs } from '@/api/place';
+import { PLACES_KEY, placeKey, type SetStorePinArgs } from '@/api/place';
 import { makeKitchen, withKitchen, type Draft } from '@/api/registro';
 import { useAuth } from '@/auth/AuthProvider';
 import { releaseStep } from '@/auth/apple';
@@ -149,7 +151,11 @@ export function useMakeKitchen() {
   return { make, busy: mutation.isPending };
 }
 
-/** Her pin and its line, moved or given from her kitchen's screen. */
+/**
+ * Her own point, set on *Ajusta el punto* from her kitchen's screen (`10.4h`).
+ * ⚠️ THE ARGUMENTS CARRY HER STORED LINE OF DIRECTIONS: `set_store_pin` writes the
+ * line with the pin on every call, so a pin sent alone would erase it.
+ */
 export function useSavePin() {
   const queries = useQueryClient();
   const mutation = useMutation({
@@ -172,36 +178,42 @@ export function useSavePin() {
 }
 
 /**
- * Her trade and her address, changed or completed from her kitchen's screen.
- * `null` for either leaves it as it is. ⚠️ THE TRADE FIRST: when the address
- * then fails, the trade is saved and the re-read shows it.
+ * Her address screen's *Guardar* (`10.4h`): the writes `@/api/direccion`'s
+ * `escrituras` chose — her address, her point set or cleared, her line — one after
+ * the other, the first failure stopping the rest. `null`, or the sentence to show.
  */
-export function useSaveDatos() {
+export function useSaveDireccion() {
   const queries = useQueryClient();
   const mutation = useMutation({
-    mutationFn: async (input: {
-      kitchenId: string;
-      placeId: string | null;
-      giro: string | null;
-      address: AddressForm | null;
-    }) => {
-      if (input.giro !== null) await setKitchenGiro(input.kitchenId, input.giro);
-      if (input.address !== null && input.placeId !== null) {
-        await setPlaceAddress(setStoreAddressArgs(input.placeId, input.address));
-      }
-    },
+    mutationFn: (lista: readonly Escritura[]) => guardarSuDireccion(lista, direccionCalls),
     onSettled: () => {
-      void queries.invalidateQueries({ queryKey: KITCHENS_KEY });
       void queries.invalidateQueries({ queryKey: PLACES_KEY });
     },
   });
 
-  async function save(input: {
-    kitchenId: string;
-    placeId: string | null;
-    giro: string | null;
-    address: AddressForm | null;
-  }): Promise<string | null> {
+  async function save(lista: readonly Escritura[]): Promise<string | null> {
+    try {
+      await mutation.mutateAsync(lista);
+      return null;
+    } catch (thrown) {
+      return apiErrorMessage(thrown);
+    }
+  }
+
+  return { save, busy: mutation.isPending };
+}
+
+/** Her trade, changed or given from her kitchen's screen — its own door since `10.4h`. */
+export function useSaveGiro() {
+  const queries = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: (input: { kitchenId: string; giro: string }) => setKitchenGiro(input.kitchenId, input.giro),
+    onSettled: () => {
+      void queries.invalidateQueries({ queryKey: KITCHENS_KEY });
+    },
+  });
+
+  async function save(input: { kitchenId: string; giro: string }): Promise<string | null> {
     try {
       await mutation.mutateAsync(input);
       return null;

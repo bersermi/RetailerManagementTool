@@ -1,13 +1,14 @@
 // ============================================================================
 // HER KITCHEN'S ADDRESS, AS FIVE BOXES — street, number, colonia, city, código
-// postal. Plan task `10.4b-iii-b`; the search above them, `10.4g-i`.
+// postal. Plan task `10.4b-iii-b`; the search above them, `10.4g-i`; her pick's
+// place handed up beside the boxes, for the small map, `10.4h`.
 //
 // ⚠️ WERA'S `Direccion`, COPIED (`app/src/ui/Direccion.tsx`, plan `8k`, the
 // owner's ruling of 2026-10-16: *"at least Street, number, ciudad and Código
 // Postal"*; the colonia is offered and may stay empty), at Wera's normal size and
 // in `Campo`'s boxes. It decides nothing: `checkAddress` (`@/api/place`) says
-// what is missing, and the screen says it. Drawn by the sign-up form and by
-// *Giro y dirección*.
+// what is missing, and the screen says it. Drawn by *¿Dónde está tu cocina?*
+// (`@/ui/PantallaDireccion`), in the sign-up and behind *Cambiar dirección*.
 //
 // ⚠️ THE CÓDIGO POSTAL TAKES DIGITS AND STOPS AT FIVE — the number pad and
 // `maxLength`; a leading zero is part of it (CDMX's start with 0). Each box's key
@@ -21,6 +22,9 @@
 // dirección*); a pick's details (`detallar`, which end the search's session) fill
 // the five boxes, and *revisa* asks her to check them; if hers never shows, she
 // fills them as before. The boxes, their order and what is saved are unchanged.
+// ⚠️ THE PICK ITSELF GOES UP WITH THE BOXES (`onChange`'s second argument, `10.4h`):
+// the small map draws Google's point for it while the boxes still read as it
+// filled them — shown, never kept — and asks Google nothing more.
 // Why above and not under the street box: the street is the first box, so Google
 // would not know her colonia yet — measured, hers was among the five suggestions
 // for 3 to 5 of twenty addresses without it, 11 to 14 with it. What Google answers
@@ -33,7 +37,7 @@ import { useRef, useState } from 'react';
 import { Keyboard, Text, TextInput, View } from 'react-native';
 
 import type { AddressForm } from '@/api/place';
-import type { Sugerencia, Sugerencias } from '@/lib/google';
+import type { Lugar, Sugerencia, Sugerencias } from '@/lib/google';
 import { CLAVE, detallar, useSesion, useSugerencias } from '@/lib/useGoogle';
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
@@ -53,7 +57,8 @@ export function Direccion({
   editable = true,
 }: {
   value: AddressForm;
-  onChange: (next: AddressForm) => void;
+  /** Every change of a box; after a pick, the pick too — its place is the small map's, never saved. */
+  onChange: (next: AddressForm, elegido?: Lugar) => void;
   editable?: boolean;
 }) {
   const boxes = useRef<Partial<Record<keyof AddressForm, TextInput | null>>>({});
@@ -118,7 +123,7 @@ function BuscaTuDireccion({
   onAbierta,
 }: {
   value: AddressForm;
-  onChange: (next: AddressForm) => void;
+  onChange: (next: AddressForm, elegido?: Lugar) => void;
   editable: boolean;
   abierta: boolean;
   onAbierta: (abierta: boolean) => void;
@@ -151,7 +156,7 @@ function BuscaTuDireccion({
     onAbierta(false);
     setTexto('');
     setElegida(true);
-    onChange(lugar.direccion);
+    onChange(lugar.direccion, lugar);
   }
 
   return (

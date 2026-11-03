@@ -45,8 +45,12 @@
 #  11. Her address, through the app's door and names: reads back as sent, the
 #      empty colonia as none; her shop's store still has none.
 #  12. Her pin and its line, likewise: six decimals as sent, the line as sent, a
-#      blank line none; her shop's store still has no pin.
-#  13. Signed out: no business, no place, no trades, and no pin set.
+#      blank line none; her shop's store still has no pin. And since `10.4h`
+#      (address first, `0075`): her line alone, by the app's door and names,
+#      leaves her pin; her pin cleared leaves her line; her line saved with no
+#      pin reads back; her shop's store is still untouched.
+#  13. Signed out: no business, no place, no trades, no pin set, no line set and
+#      no pin cleared.
 #  14. What goes with her account, by the app's owners read: her shop and her two
 #      kitchens, each with her as its only owner and its kind.  (`10.4b-iii-c`, 14–18)
 #  15. The deletion as the app sends it, her shop's name missing: 400 `TD007`, and
@@ -120,6 +124,11 @@ SET_ADDRESS="$(const SET_STORE_ADDRESS "$PLACE_TS")"
 SET_ADDRESS_ARGS="$(args_of "$PLACE_TS" SetStoreAddressArgs)"
 SET_PIN="$(const SET_STORE_PIN "$PLACE_TS")"
 SET_PIN_ARGS="$(args_of "$PLACE_TS" SetStorePinArgs)"
+# `10.4h`: her line with no pin, and her pin cleared (`0075`).
+SET_LINE="$(const SET_STORE_DIRECTIONS "$PLACE_TS")"
+SET_LINE_ARGS="$(args_of "$PLACE_TS" SetStoreDirectionsArgs)"
+CLEAR_PIN="$(const CLEAR_STORE_PIN "$PLACE_TS")"
+CLEAR_PIN_ARGS="$(args_of "$PLACE_TS" ClearStorePinArgs)"
 # `10.4b-iii-c`: her way out — what goes with her account, and the deletion.
 OWNERS_TABLE="$(const OWNERS_TABLE "$ACCOUNT_TS")"
 OWNER_COLUMNS="$(const OWNER_COLUMNS "$ACCOUNT_TS")"
@@ -137,6 +146,8 @@ for pair in "WORKSPACE_TABLE:$TABLE" "KITCHEN_COLUMNS:$COLUMNS" "KIND_COLUMN:$KI
             "PLACE_OWNER_COLUMN:$PLACE_OWNER" "PLACE_ACTIVE_COLUMN:$PLACE_ACTIVE" "PLACE_ORDER:$PLACE_ORDER_COLS" \
             "SET_STORE_ADDRESS:$SET_ADDRESS" "SetStoreAddressArgs:$SET_ADDRESS_ARGS" \
             "SET_STORE_PIN:$SET_PIN" "SetStorePinArgs:$SET_PIN_ARGS" \
+            "SET_STORE_DIRECTIONS:$SET_LINE" "SetStoreDirectionsArgs:$SET_LINE_ARGS" \
+            "CLEAR_STORE_PIN:$CLEAR_PIN" "ClearStorePinArgs:$CLEAR_PIN_ARGS" \
             "OWNERS_TABLE:$OWNERS_TABLE" "OWNER_COLUMNS:$OWNER_COLUMNS" "OWNER_ROLE_COLUMN:$OWNER_ROLE_COL" \
             "OWNER_ROLE:$OWNER_ROLE" "OWNER_ACTIVE_COLUMN:$OWNER_ACTIVE_COL" "DELETE_MY_ACCOUNT:$DELETE_RPC" \
             "DeleteArgs:$DELETE_ARGS" "NAME_MISMATCH_CODE:$MISMATCH"; do
@@ -154,7 +165,7 @@ APP_READ="/rest/v1/$TABLE?select=$COLUMNS&$KIND_COL=eq.$KIND&order=$ORDER"
 PLACE_ORDER="$(tr ',' '\n' <<< "$PLACE_ORDER_COLS" | sed 's/$/.asc/' | paste -sd, -)"
 place_read() { echo "/rest/v1/$PLACE_TABLE?select=$PLACE_COLUMNS&$PLACE_OWNER=eq.$1&$PLACE_ACTIVE=eq.true&order=$PLACE_ORDER&limit=1"; }
 ok "read from the app: $TABLE?select=$COLUMNS, $KIND_COL = $KIND, ordered by $ORDER_COLS; the name under $NAME_KEY"
-ok "and to make one: $ONBOARD($ONBOARD_ARGS), $GIROS_RPC(), $GIRO_COL; $PLACE_TABLE by $PLACE_OWNER; $SET_ADDRESS($SET_ADDRESS_ARGS); $SET_PIN($SET_PIN_ARGS)"
+ok "and to make one: $ONBOARD($ONBOARD_ARGS), $GIROS_RPC(), $GIRO_COL; $PLACE_TABLE by $PLACE_OWNER; $SET_ADDRESS($SET_ADDRESS_ARGS); $SET_PIN($SET_PIN_ARGS); $SET_LINE($SET_LINE_ARGS); $CLEAR_PIN($CLEAR_PIN_ARGS)"
 ok "and her way out: $OWNERS_TABLE?select=$OWNER_COLUMNS where $OWNER_ROLE_COL = $OWNER_ROLE and $OWNER_ACTIVE_COL; $DELETE_RPC($DELETE_ARGS), refused $MISMATCH"
 
 # --- the local stack -------------------------------------------------------
@@ -448,19 +459,44 @@ else
   else ok "her pin goes through $SET_PIN and reads back to six decimals with its line, a blank line as none; her shop's store has no pin"; fi
 fi
 
+# `10.4h` — address first (`0075`): her line alone leaves her pin; her pin cleared
+# leaves her line; her line with no pin reads back; her shop's store untouched.
+out="$(api POST "/rest/v1/rpc/$SET_LINE" "$(by_names "$SET_LINE_ARGS" "\"$PLACE_ID\"" '"Portón verde, junto a la farmacia"')")"
+if [[ "$(status "$out")" != 200 && "$(status "$out")" != 204 ]]; then
+  fail "her line, $SET_LINE($SET_LINE_ARGS), answered $(status "$out") $(body "$out" | head -c 200)"
+else
+  v1="$(read_back "$(place_read "$KITCHEN")" '{"pin_lat":19.451234,"pin_lng":-99.159876,"directions":"Portón verde, junto a la farmacia"}')"
+  out="$(api POST "/rest/v1/rpc/$CLEAR_PIN" "$(by_names "$CLEAR_PIN_ARGS" "\"$PLACE_ID\"")")"
+  if [[ "$(status "$out")" != 200 && "$(status "$out")" != 204 ]]; then
+    fail "her pin cleared, $CLEAR_PIN($CLEAR_PIN_ARGS), answered $(status "$out") $(body "$out" | head -c 200)"
+  else
+    v2="$(read_back "$(place_read "$KITCHEN")" '{"pin_lat":null,"pin_lng":null,"directions":"Portón verde, junto a la farmacia"}')"
+    out="$(api POST "/rest/v1/rpc/$SET_LINE" "$(by_names "$SET_LINE_ARGS" "\"$PLACE_ID\"" '"Junto al mercado"')")"
+    v3="$(read_back "$(place_read "$KITCHEN")" '{"pin_lat":null,"pin_lng":null,"directions":"Junto al mercado"}')"
+    v4="$(read_back "/rest/v1/$PLACE_TABLE?select=pin_lat,pin_lng,directions&id=eq.$SHOP_STORE" '{"pin_lat":null,"pin_lng":null,"directions":null}')"
+    if [[ "$v1" != OK ]]; then fail "her line alone, with her pin there: $v1"
+    elif [[ "$v2" != OK ]]; then fail "her pin cleared: $v2"
+    elif [[ "$v3" != OK ]]; then fail "her line with no pin: $v3"
+    elif [[ "$v4" != OK ]]; then fail "her SHOP's store changed when her kitchen's line or pin did: $v4"
+    else ok "her line goes through $SET_LINE and leaves her pin; $CLEAR_PIN clears her pin and leaves her line; her line with no pin reads back; her shop's store untouched"; fi
+  fi
+fi
+
 # --- 13. signed out, nothing ----------------------------------------------------
 out="$(TOKEN="" api GET "$APP_READ")"
 place_out="$(TOKEN="" api GET "$(place_read "$KITCHEN")")"
 giros_out="$(TOKEN="" api POST "/rest/v1/rpc/$GIROS_RPC" '{}')"
 pin_out="$(TOKEN="" api POST "/rest/v1/rpc/$SET_PIN" "$(by_names "$SET_PIN_ARGS" "\"$PLACE_ID\"" '19.4' '-99.1' 'null')")"
+line_out="$(TOKEN="" api POST "/rest/v1/rpc/$SET_LINE" "$(by_names "$SET_LINE_ARGS" "\"$PLACE_ID\"" '"Otra"')")"
+clear_out="$(TOKEN="" api POST "/rest/v1/rpc/$CLEAR_PIN" "$(by_names "$CLEAR_PIN_ARGS" "\"$PLACE_ID\"")")"
 if grep -c '"id"' <<< "$(body "$out")" > /dev/null; then
   fail "signed out, the read returned businesses: $(body "$out" | head -c 200)"
 elif grep -c '"id"' <<< "$(body "$place_out")" > /dev/null; then
   fail "signed out, the place read returned her place: $(body "$place_out" | head -c 200)"
-elif [[ "$(status "$giros_out")" == 2* || "$(status "$pin_out")" == 2* ]]; then
-  fail "signed out, the trades answered $(status "$giros_out") and the pin $(status "$pin_out") — nothing is reachable without an account"
+elif [[ "$(status "$giros_out")" == 2* || "$(status "$pin_out")" == 2* || "$(status "$line_out")" == 2* || "$(status "$clear_out")" == 2* ]]; then
+  fail "signed out, the trades answered $(status "$giros_out"), the pin $(status "$pin_out"), the line $(status "$line_out") and the clearing $(status "$clear_out") — nothing is reachable without an account"
 else
-  ok "signed out: no business ($(status "$out")), no place ($(status "$place_out")), no trades ($(status "$giros_out")), no pin set ($(status "$pin_out"))"
+  ok "signed out: no business ($(status "$out")), no place ($(status "$place_out")), no trades ($(status "$giros_out")), no pin set ($(status "$pin_out")), no line set ($(status "$line_out")), no pin cleared ($(status "$clear_out"))"
 fi
 
 # =============================================================================
@@ -585,4 +621,5 @@ fi
 echo "all 18 assertion groups passed — Wera Cocina's kitchen read is one the database answers, it opens"
 echo "kitchens only and the first-made first, the name typed at sign-up reaches her membership, her"
 echo "kitchen is made, given its trade, its address and its pin on its own place — never on her shop —"
-echo "and her account goes only with every business she alone owns named, a shop of hers included."
+echo "her line is saved without a pin and her pin cleared without her line (10.4h), and her account"
+echo "goes only with every business she alone owns named, a shop of hers included."

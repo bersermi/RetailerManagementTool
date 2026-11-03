@@ -68,11 +68,14 @@ export const ES = {
   /**
    * ⚠️ `10.4b-iii-b`: WHERE A LOGIN WITH NO KITCHEN LANDS, AND MAKES ONE — every
    * first sign-in, and a shop's owner who opens this app with her Wera login (her
-   * shop is Wera's, `0072`). Two screens: this form, then the map.
+   * shop is Wera's, `0072`). Two screens since `10.4h` (the owner's ruling of
+   * 2026-11-03, address first): her kitchen's name and trade, then her address
+   * on a screen of its own (`direccion`).
    */
   registro: {
     antetitulo: 'Wera Cocina',
     titulo: 'Registra tu cocina',
+    paso: (n: number) => `Paso ${n} de 2`,
     quien: (who: string) => `Entraste como ${who}.`,
     nombre: 'Nombre de tu cocina',
     /** A hint in muted ink, never a value: she types her own. */
@@ -81,7 +84,7 @@ export const ES = {
     giroLeyendo: 'Buscando la lista…',
     giroSinLeer: 'No pudimos leer la lista. Revisa tu conexión a internet.',
     donde: '¿Dónde está tu cocina?',
-    siguiente: 'Siguiente: tu cocina en el mapa',
+    siguiente: 'Siguiente: tu dirección',
     errores: {
       nombre: 'Escribe el nombre de tu cocina.',
       giro: 'Elige qué es tu cocina.',
@@ -131,13 +134,51 @@ export const ES = {
   },
 
   /**
-   * ⚠️ HER PIN, TAPPED ON THE FLAT STREET MAP (`0072`; the owner's *"as precise
-   * as possible"*, 2026-10-28, and his ruling of 2026-10-31, `10.4c`). The hint
-   * under the map changes with it: too far, close enough, placed (`@/lib/mapa`).
-   * The search box only moves the map (`@/lib/google`).
+   * ⚠️⚠️ HER ADDRESS FIRST (`10.4h`, the owner's ruling of 2026-11-03): *¿Dónde está
+   * tu cocina?* — the search, her five boxes, a small map with the pin where Google
+   * places her address (looked up live, never kept), her line of directions — in
+   * the sign-up and behind *Cambiar dirección*. The words are the proposal's he
+   * chose (https://claude.ai/artifact/45eNGq6YLmMrV3DF6Lfa1D), but the small map's
+   * sentences when it has no point, and the line about neighbours, which carries
+   * the old map screen's warning to the screen she now registers on.
+   */
+  direccion: {
+    titulo: '¿Dónde está tu cocina?',
+    volver: 'Volver',
+    /** Under the small map, whenever it draws a point: she never has to touch it. */
+    tocaElMapa: 'Si el punto no es tu puerta, toca el mapa.',
+    /** The tag at the small map's top — at its top, never its foot, where Google's logo is. */
+    ajustarEtiqueta: 'Ajustar',
+    /** What a screen reader says the small map is. */
+    ajustarNombre: 'Ajustar el punto en el mapa',
+    /** The small map with no point, and why. */
+    sinDireccion: 'Escribe tu dirección para verla en el mapa.',
+    buscando: 'Buscando tu dirección…',
+    ninguna: 'No encontramos tu dirección en el mapa. Si quieres, toca aquí para poner tu punto.',
+    /** Her kitchen's screen: no tap there, *Ajustar punto* is beside it. */
+    ningunaFija: 'No encontramos tu dirección en el mapa.',
+    sinSenal: 'Sin conexión. El mapa se verá cuando vuelva la señal.',
+    falla: 'Ahora no podemos mostrar el mapa.',
+    /**
+     * ⚠️ SAID BEFORE SHE SAVES, BECAUSE IT IS TRUE: a kitchen's address and its point
+     * are shown to signed-in neighbours before they reserve (the owner's ruling 4,
+     * 2026-10-28), and nobody has asked whether a fonda is run from a home. Until
+     * `10.4h` the map screen said it (*Los vecinos verán este punto exacto*).
+     */
+    vecinos: 'Los vecinos verán tu dirección y este punto en el mapa.',
+    registrar: 'Registrar mi cocina',
+    guardar: 'Guardar',
+  },
+
+  /**
+   * ⚠️ HER OWN POINT, ON THE FLAT STREET MAP — *Ajusta el punto* since `10.4h`, opened
+   * only if she wants it (the owner's ruling of 2026-11-03: the pin is a suggestion
+   * she never has to touch). The pin stays in the middle and she moves the map
+   * under it (`10.4e`); the hint over the map changes with it: too far, close
+   * enough, placed (`@/lib/mapa`). The search box only moves the map (`@/lib/google`).
    */
   mapa: {
-    titulo: '¿Dónde entregas la comida?',
+    titulo: 'Ajusta el punto',
     volver: 'Volver',
     /** The search box's hint, in muted ink — the magnifier says what the box is for. */
     buscar: 'Busca tu calle y número',
@@ -181,18 +222,17 @@ export const ES = {
     indicaciones: 'Cómo encontrarte (opcional)',
     /** A hint in muted ink, never a value. */
     indicacionesEjemplo: 'Portón verde, junto a la farmacia',
-    /**
-     * ⚠️ SAID BEFORE SHE SAVES IT, BECAUSE IT IS TRUE: a kitchen's exact spot is
-     * shown to signed-in neighbours before they reserve (the owner's ruling 4,
-     * 2026-10-28), and nobody has asked whether a fonda is run from a home.
-     */
-    vecinos: 'Los vecinos verán este punto exacto en el mapa.',
-    falta: 'Mueve el mapa hasta que el pin quede justo donde entregas la comida.',
-    registrar: 'Registrar mi cocina',
-    guardar: 'Guardar',
+    /** Under *Listo*: what her own point is for — kept, and used by every map. */
+    guardado: 'Tu punto queda guardado y lo usan todos los mapas.',
+    listo: 'Listo',
   },
 
-  /** Her kitchen, once she has one — and the second door for whatever is missing. Publishing is `publicar`'s. */
+  /**
+   * Her kitchen, once she has one — and the second door for whatever is missing.
+   * Publishing is `publicar`'s. Since `10.4h` her address comes first, the small map
+   * under it, and *Cambiar dirección* and *Cambiar giro* are two doors; her own
+   * point is never missing — it is hers to set (*Ajustar punto*).
+   */
   cocina: {
     antetitulo: 'Tu cocina',
     leyendo: 'Buscando tu cocina…',
@@ -203,11 +243,9 @@ export const ES = {
     indicaciones: (line: string) => `“${line}”`,
     sinGiro: 'Falta qué es tu cocina.',
     sinDireccion: 'Falta tu dirección.',
-    sinPunto: 'Falta tu cocina en el mapa.',
-    ponerPunto: 'Poner mi cocina en el mapa',
-    cambiarPunto: 'Cambiar el punto',
-    completarDatos: 'Completar',
-    cambiarDatos: 'Cambiar giro o dirección',
+    cambiarDireccion: 'Cambiar dirección',
+    ajustarPunto: 'Ajustar punto',
+    cambiarGiro: 'Cambiar giro',
   },
 
   /**
@@ -351,9 +389,9 @@ export const ES = {
     horario: (dia: string, desde: string, hasta: string) => `${dia} · ${desde} a ${hasta}`,
   },
 
-  /** Her trade and her address, changed or completed from her kitchen's screen. */
-  datos: {
-    titulo: 'Giro y dirección',
+  /** Her trade, changed or given from her kitchen's screen — a door of its own since `10.4h`. */
+  giro: {
+    titulo: '¿Qué es tu cocina?',
     volver: 'Volver',
     guardar: 'Guardar',
   },

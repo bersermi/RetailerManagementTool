@@ -634,8 +634,16 @@ describe('an answer only moves the map; her pin is the middle she put there hers
   });
 
   it('an answer’s point reaches nothing but the map’s flight, marked as not hers', () => {
-    expect(map.match(/\.punto\b/g)).toHaveLength(2);
+    expect(map.match(/\.punto\b/g)).toHaveLength(3);
     expect(map).toMatch(/map\.current\?\.animateToRegion\(regionAround\(destino\.punto, anchoPara\(destino\)\), VOLAR_MS\)/);
+    // ⚠️ `10.4h`: and where the small map placed her address — the map opens there
+    // only when she has no pin, the opening answer then never asked, and the centre
+    // Google's (`centroAlAbrir` with no pin), so nothing is hers until she moves it.
+    expect(map).toMatch(/const \[abreAhi\] = useState\(pin === null && abreEn !== null \? abreEn : null\);/);
+    expect(map).toMatch(/abreAhi !== null \? regionAround\(abreAhi\.punto, anchoPara\(abreAhi\)\) : openingRegion\(pin\)/);
+    expect(map).toMatch(/const tocado = useRef\(abreAhi !== null\);/);
+    expect(map).toMatch(/const \[sinPin\] = useState\(pin === null && abreAhi === null\);/);
+    expect(map).toMatch(/const centro = useRef<Centro>\(centroAlAbrir\(pin, first\)\);/);
     // Only her tap's point is sent on her behalf.
     expect(map.match(/'ella'/g)).toHaveLength(1);
     expect(map).toMatch(/haciaUnPunto\(centro\.current, point, 'ella', Date\.now\(\)\)/);
@@ -655,11 +663,16 @@ describe('an answer only moves the map; her pin is the middle she put there hers
     expect(map).not.toMatch(/lugar\.direccion|onCambio|direccion\s*=/);
   });
 
-  it('the screen saves the pin it was handed — nothing when the middle is not hers', () => {
+  // ⚠️ `10.4h`: *Ajusta el punto* hands up the pin it was handed — `null` while the
+  // middle is not hers — and each route keeps a point only when it is one.
+  it('*Listo* hands up the pin it was handed, and every route keeps nothing when the middle is not hers', () => {
     const screen = code('ui/PantallaPunto.tsx');
-    expect(screen).toMatch(/<MapaPunto pin=\{pin\} direccion=\{direccion\} onPin=\{placed\}/);
-    expect(screen).toMatch(/if \(pin === null\) \{\s*setProblem\(ES\.mapa\.falta\);\s*return;\s*\}/);
-    expect(screen).toMatch(/setProblem\(await onGuardar\(pin, directions\)\);/);
+    expect(screen).toMatch(/<MapaPunto pin=\{pin\} direccion=\{direccion\} abreEn=\{abreEn\} onPin=\{setPin\}/);
+    expect(screen).toMatch(/setProblem\(await onListo\(pin\)\);/);
+    for (const route of ['app/(onboarding)/punto.tsx', 'app/(cocina)/direccion/punto.tsx']) {
+      expect(code(route), route).toMatch(/if \(pin !== null && !samePin\(pin, propio\)\) cambiar\(\{ punto: puntoEn\(pin, (borrador|valor)\.address\) \}\);/);
+    }
+    expect(code('app/(cocina)/ubicacion.tsx')).toMatch(/if \(pin === null \|\| samePin\(pin, here\.pin\)\) \{\s*router\.back\(\);\s*return null;\s*\}/);
   });
 
   it('nothing in the data layer reads the search', () => {
@@ -714,7 +727,7 @@ describe('the address form’s Busca tu dirección: above her five boxes, and a 
 
   it('a pick’s details, in that session, end it — and fill her five boxes, which stay hers', () => {
     expect(form).toMatch(/const lugar = await detallar\(sugerencia, sesion\.token\(\), value\);\s*sesion\.cerrar\(\);/);
-    expect(form.match(/onChange\(lugar\.direccion\)/g)).toHaveLength(1);
+    expect(form.match(/onChange\(lugar\.direccion, lugar\)/g)).toHaveLength(1);
     // Every box still takes her own typing.
     expect(form).toMatch(/onChangeText=\{\(text\) => onChange\(\{ \.\.\.value, \[key\]: text \}\)\}/);
     // Google's point goes nowhere: the form has no map.
@@ -742,10 +755,11 @@ describe('the address form’s Busca tu dirección: above her five boxes, and a 
     const formulario = code('ui/Formulario.tsx');
     expect(formulario).toMatch(/if \(arriba\.has\(input\)\) \{[\s\S]*?hastaArriba\(y, formTop, SIZE\.space\)/);
     expect(formulario).toMatch(/<ARRIBA\.Provider value=\{arriba\}>\{children\}<\/ARRIBA\.Provider>/);
-    // Both screens that draw the form draw it inside that scroll view.
-    for (const screen of ['app/(onboarding)/registro.tsx', 'app/(cocina)/datos.tsx']) {
-      expect(code(screen), screen).toMatch(/<Formulario[\s\S]*<Direccion [\s\S]*<\/Formulario>/);
-    }
+    // The one screen that draws the form — the sign-up's and *Cambiar dirección*'s since
+    // `10.4h` — draws it inside that scroll view.
+    expect(code('ui/PantallaDireccion.tsx')).toMatch(/<Formulario[\s\S]*<Direccion[\s\S]*<\/Formulario>/);
+    const drawers = sources().filter((path) => /<Direccion\b/.test(readFileSync(path, 'utf8')));
+    expect(drawers.map((path) => path.slice(SRC.length + 1))).toEqual(['ui/PantallaDireccion.tsx']);
   });
 });
 

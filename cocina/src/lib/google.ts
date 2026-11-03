@@ -102,6 +102,14 @@ export const MIN_LETRAS = 3;
 /** How long after her last keystroke a question goes out, in ms: a word typed letter by letter asks once. */
 export const PAUSA_MS = 450;
 
+/**
+ * ⚠️ HOW LONG HER FIVE BOXES MUST REST BEFORE THE SMALL MAP ASKS WHERE THEY ARE, in
+ * ms (`10.4h`, address first): longer than the suggestions' pause — she types a
+ * whole address box by box, and each question is a Geocoding request, billed past
+ * Google's free monthly amount. A pick asks nothing: its details carry the point.
+ */
+export const PAUSA_DEL_MAPA_MS = 900;
+
 /** How long one question may take before it counts as no signal, in ms: a late suggestion is no use. */
 export const LIMITE_MS = 8_000;
 
