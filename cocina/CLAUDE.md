@@ -93,8 +93,8 @@ TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic i
 - **The map she moves is Google's flat street map, on both phones, and the search above it only moves
   it** (`10.4c`, the owner's ruling of 2026-10-31, and `10.4g-i`, his of 2026-11-03: Google on both phones;
   `src/lib/google.ts`, pure, `src/lib/useGoogle.ts`, its requests, `@/ui/Buscador`). ⚠️⚠️ **What is stored is
-  her five boxes and her pin — never Google's point, nor what it names**: a suggestion she picks fills the
-  boxes (Google lets the address an end user picks be hers — *Autocomplete for end user addresses*, its
+  her five boxes and her pin — never Google's point, nor what it names**: a suggestion she picks in the form fills the
+  boxes — on the map a pick only moves the map — (Google lets the address an end user picks be hers — *Autocomplete for end user addresses*, its
   Places policies — never the list) and every box stays hers to change. **Since `10.4e` (his ruling of
   2026-11-02, as Uber does it) the pin is fixed in the middle and she moves the map under it**; the middle is
   her pin only once her own hand moved the map — a drag, a pinch, a double tap, or a tap, which brings the
