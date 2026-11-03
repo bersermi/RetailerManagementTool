@@ -18,7 +18,7 @@ import {
 } from '@/api/kitchen';
 import { isSecretKey, readSupabaseEnv } from '@/lib/env';
 import { LIMIT_MS, UPLOAD_LIMIT_MS, isTimedOut, limitFor, timedOutError, withLimit, type Timers } from '@/lib/plazo';
-import { desplazamiento } from '@/lib/teclado';
+import { desplazamiento, hastaArriba } from '@/lib/teclado';
 
 // ============================================================================
 // COCINA'S DATA LAYER: what it is built from, what it asks the database, and the
@@ -202,5 +202,13 @@ describe('a form keeps the field being typed in above the keyboard', () => {
   it('scrolls by what the field overlaps, plus the margin, and never backwards', () => {
     expect(desplazamiento(600, 48, 620, 24)).toBe(52);
     expect(desplazamiento(300, 48, 620, 24)).toBe(0);
+  });
+
+  // `10.4g-i`: Busca tu dirección's list opens under its box, so the box goes to the
+  // form's top — just above the keys, every row would be behind them.
+  it('but brings a search box to its top: by how far below the top it sits, less the margin — back up when above it', () => {
+    expect(hastaArriba(520, 110, 12)).toBe(398);
+    expect(hastaArriba(122, 110, 12)).toBe(0);
+    expect(hastaArriba(60, 110, 12)).toBe(-62);
   });
 });

@@ -1,7 +1,8 @@
 // ============================================================================
 // THE MAP'S ARITHMETIC — where it opens, when it is close enough for her pin,
 // where a tap takes it, who put its centre where it is, which map it is, and
-// what the phone says her pin is. Plan tasks `10.4b-iii-b`, `10.4c` and `10.4e`.
+// the line naming her address on the card over it. Plan tasks `10.4b-iii-b`,
+// `10.4c`, `10.4e` and `10.4g-i`.
 //
 // ⚠️ PURE, so `test/mapa.test.ts` pins it: the map itself (`react-native-maps`)
 // is native and no suite can load it (ADR-035 §2.11), and every number here is a
@@ -21,7 +22,7 @@
 // Measuring the height would call it "still too far" for ever.
 // ============================================================================
 
-import type { Pin } from '@/api/place';
+import type { AddressForm, Pin } from '@/api/place';
 
 /** `react-native-maps`' region: a centre and how many degrees the view spans. */
 export interface Region {
@@ -38,9 +39,9 @@ const METRES_PER_DEGREE = 111_320;
  * ⚠️ WHERE THE MAP OPENS WHEN SHE HAS NO PIN: MEXICO CITY, its centre, wide
  * enough to see the central alcaldías. This app asks for no location (its
  * `app.json` blocks the permission). Since `10.4c` the address she typed is
- * searched as the map opens and the map flies there (`@/lib/telefono`'s
- * `useApertura`); this is where it stays when the search finds nothing, has no
- * signal, or the build has no token. The pilot is in this city.
+ * searched as the map opens and the map flies there (`@/lib/useGoogle`'s
+ * `useApertura`, Google's Geocoding since `10.4g-i`); this is where it stays when
+ * the search finds nothing, has no signal, or the build has no key. The pilot is in this city.
  */
 export const CIUDAD: Region = { latitude: 19.4326, longitude: -99.1332, latitudeDelta: 0.18, longitudeDelta: 0.18 };
 
@@ -145,9 +146,9 @@ export function tapOn(point: Pin, region: Region): Region {
  * ⚠️⚠️ THE PIN STAYS IN THE MIDDLE AND SHE MOVES THE MAP UNDER IT, AS UBER DOES IT
  * (the owner's ruling of 2026-11-02, reversing `10.4c`'s *her tap is the pin*).
  * What is stored is the map's centre — and ONLY ONCE SHE HAS PUT IT THERE
- * HERSELF: after a flight to a search's answer the centre is Apple's, Google's or
- * LocationIQ's point, and Apple's licence and Google's terms forbid keeping
- * theirs, so it is no pin until her own hand moves the map.
+ * HERSELF: after a flight to a search's answer the centre is Google's point
+ * (Apple's or LocationIQ's before `10.4g-i`), and Google's terms forbid keeping
+ * it, so it is no pin until her own hand moves the map.
  *
  * Who moved it: `ella` — her finger (a drag, a pinch, a double tap), or a tap of
  * hers that brought her door to the middle; `otro` — a flight to an answer, or
@@ -246,53 +247,33 @@ export function pinDelCentro(centro: Centro, region: Region, actual: Pin | null)
   return actual !== null && metrosEntre(actual, aqui) <= MISMO_PUNTO_METROS ? actual : aqui;
 }
 
-/** How long after the map stops *¿Es aquí?* asks, in ms: a fling and its correction ask once. */
+/** How long after the map stops the card asks Google for the street under her pin, in ms: a fling and its correction ask once. */
 export const ES_AQUI_PAUSA_MS = 400;
 
 // ----------------------------------------------------------------------------
-// Which map, and what the phone's own maps say her pin is — `10.4c`
+// Which map, and the card over it — `10.4c`, and `10.4g-i`
 // ----------------------------------------------------------------------------
 
 /**
- * ⚠️ THE FLAT STREET MAP, THE OWNER'S RULING OF 2026-10-31: the delivery apps use
- * a standard street map and never satellite. An iPhone draws Apple's muted
- * version, which lets her pin stand out; Android draws Google's standard one —
- * `mutedStandard` is Apple's alone. Businesses stay hidden on both
- * (`@/ui/MapaPunto`'s `SIN_NEGOCIOS`, and `showsPointsOfInterests`).
+ * ⚠️ THE FLAT STREET MAP, THE OWNER'S RULING OF 2026-10-31 — Google's standard
+ * one on both phones since `10.4g-i` (his ruling of 2026-11-03; an iPhone drew
+ * Apple's muted map before). The delivery apps use a standard street map and
+ * never satellite. Businesses stay hidden (`@/ui/MapaPunto`'s `SIN_NEGOCIOS`).
  */
-export function tipoDeMapa(os: string): 'mutedStandard' | 'standard' {
-  return os === 'ios' ? 'mutedStandard' : 'standard';
-}
-
-/** `react-native-maps`' `addressForCoordinate` answer, the fields read here. */
-export interface LugarDelTelefono {
-  readonly thoroughfare?: unknown;
-  readonly subThoroughfare?: unknown;
-  readonly subLocality?: unknown;
-}
+export const TIPO_DE_MAPA = 'standard';
 
 /**
- * ⚠️ AN IPHONE SENDS A MISSING FIELD AS THE TEXT `(null)`: `react-native-maps`
- * 1.27.2 formats each `CLPlacemark` field with `%@` (`RNMapsAirModule.mm`), so a
- * pin with no house number arrives as `subThoroughfare: "(null)"`. Android sends
- * a JSON null. Both are nothing here — and so is Google's `Unnamed Road`. The
- * phone's search (`@/lib/buscar`, `10.4d`) reads its answers' fields through it too.
+ * ⚠️ THE CARD NAMES HER OWN ADDRESS (`10.4g-i`, his ruling of 2026-11-03) — street
+ * and number, then her colonia, as she gave them in the form — or `null` while she
+ * gave no street. Until then the card read the phone's own maps, which named the
+ * point under the pin: Apple's answers cannot be shown on Google's map, and hers
+ * is the address she will be found by. What Google says is under the pin only
+ * warns (`@/lib/google`'s `otraCalle`).
  */
-export function campoDelTelefono(value: unknown): string {
-  const text = typeof value === 'string' ? value.trim() : '';
-  return /^(\(null\)|null|unnamed road|calle sin nombre)$/i.test(text) ? '' : text;
-}
-
-/**
- * *¿Es aquí? …* — what the phone's own maps call the point under her pin, as one
- * line: *Durango 220, Roma Norte*. `null` when they name no street, and then no
- * line is shown. ⚠️ SHOWN AND NEVER KEPT: the answer is Apple's or Google's, whose
- * terms forbid keeping it; what is saved is her pin and the address she typed.
- */
-export function lineaDeLugar(lugar: LugarDelTelefono | null | undefined): string | null {
-  const calle = campoDelTelefono(lugar?.thoroughfare);
+export function lineaDeSuDireccion(direccion: Pick<AddressForm, 'street' | 'number' | 'colonia'> | null): string | null {
+  const calle = (direccion?.street ?? '').replace(/\s+/g, ' ').trim();
   if (calle === '') return null;
-  const numero = campoDelTelefono(lugar?.subThoroughfare);
-  const colonia = campoDelTelefono(lugar?.subLocality);
+  const numero = (direccion?.number ?? '').replace(/\s+/g, ' ').trim();
+  const colonia = (direccion?.colonia ?? '').replace(/\s+/g, ' ').trim();
   return [numero === '' ? calle : `${calle} ${numero}`, colonia].filter((parte) => parte !== '').join(', ');
 }

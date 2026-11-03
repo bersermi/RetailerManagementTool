@@ -1,6 +1,8 @@
 // ============================================================================
-// WHICH BUILDS AN OVER-THE-AIR UPDATE MAY REACH. Plan task `10.2a`. ⚠️ The same file is
-// `cocina/fingerprint.config.js` — change both.
+// WHICH BUILDS AN OVER-THE-AIR UPDATE MAY REACH. Plan task `10.2a`. ⚠️ Its twin,
+// `cocina/fingerprint.config.js`, moved ahead in `10.4g-i`: it also masks the
+// iPhone map key and both keys' copies in `extra.google`, which Itacate does not
+// carry yet — change both when Itacate's own map does (`10.5-iv`).
 //
 // The same rules as `app/fingerprint.config.js` (Wera's, measured 2026-10-10:
 // version numbers, masked-view's manifest a local Android build rewrites inside

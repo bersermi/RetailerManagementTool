@@ -1,35 +1,39 @@
 // ============================================================================
 // HER PIN, IN THE MIDDLE OF THE FLAT STREET MAP — the map she searches and moves.
-// Plan tasks `10.4b-iii-b`, `10.4c` and `10.4e` (the owner's ruling of
-// 2026-11-02: the search shows the door, and the pin stays in the middle while
-// she moves the map under it, as Uber does it).
+// Plan tasks `10.4b-iii-b`, `10.4c`, `10.4e` (the owner's ruling of 2026-11-02:
+// the search shows the door, and the pin stays in the middle while she moves the
+// map under it, as Uber does it) and `10.4g-i` (his of 2026-11-03: Google on both
+// phones).
 //
-// ⚠️ THE RULES ARE `@/lib/mapa`'S AND `@/lib/buscar`'S, PURE AND PINNED: where it
+// ⚠️ THE RULES ARE `@/lib/mapa`'S AND `@/lib/google`'S, PURE AND PINNED: where it
 // opens, when the centre is close enough to be her pin (about a block across),
 // who put the centre where it is, where a tap takes the map, how wide an answer
 // opens it, and what the list shows as she types. This file only wires them to
 // the native map, which no suite can load (ADR-035 §2.11) — the phone is its
 // instrument.
 //
-// ⚠️⚠️ A SEARCH ONLY MOVES THE MAP; HER PIN IS THE CENTRE SHE PUT THERE HERSELF.
-// The address she typed is searched as the map opens (`useApertura`); the box
-// above lists, as she types, the phone's door once she has typed her number
-// (`usePuertas`) over LocationIQ's streets (`useSugerencias`), both with the
-// colonia and city she typed in the form when she types none; and the keyboard's *Buscar*
-// asks for what she typed (`useBuscar`). Any of them flies the map there
-// (`volarA`), and a flight takes the centre from her: the middle of the map is
-// then Apple's, Google's or LocationIQ's point, which Apple's licence and
-// Google's terms forbid keeping, so `onPin` hears `null` until her own hand moves
-// the map — a drag, a pinch, a double tap (`onPanDrag`, `onDoublePress`, Android's
-// `isGesture`), or a tap, which brings the point she tapped to the middle.
-// `test/buscar.test.ts` reads this file for it. The opening answer moves the map
-// only if she has not touched it first: a late answer must never pull the map
-// from under her finger.
+// ⚠️⚠️ GOOGLE'S MAP ON BOTH PHONES SINCE `10.4g-i` (the owner's ruling of
+// 2026-11-03; an iPhone drew Apple's before): Google's terms let its search be
+// shown only with its own map (3.2.3(e)), and Apple's answers only on Apple's.
 //
-// ⚠️ AN IPHONE'S MAP NEVER SAYS WHETHER A MOVE WAS HER FINGER (`isGesture` is
-// Google's only, `react-native-maps` 1.27.2), so `@/lib/mapa`'s `alLlegar` also
-// counts a centre that moved while no move of the app's was under way: nothing
-// else moves this map.
+// ⚠️⚠️ A SEARCH ONLY MOVES THE MAP; HER PIN IS THE CENTRE SHE PUT THERE HERSELF.
+// The address she typed is searched as the map opens (`useApertura`, Google's
+// Geocoding); the box above lists Google's suggestions as she types
+// (`useSugerencias`), with the colonia and city she typed in the form when she
+// types none, and a pick's details say where it is (`detallar`); and the
+// keyboard's *Buscar* asks Geocoding for what she typed (`useBuscar`). Any of
+// them flies the map there (`volarA`), and a flight takes the centre from her: the
+// middle of the map is then Google's point, which its terms forbid keeping, so
+// `onPin` hears `null` until her own hand moves the map — a drag, a pinch, a
+// double tap (`onPanDrag`, `onDoublePress`, `isGesture`), or a tap, which brings
+// the point she tapped to the middle. `test/buscar.test.ts` reads this file for
+// it. The opening answer moves the map only if she has not touched it first: a
+// late answer must never pull the map from under her finger.
+//
+// ⚠️ GOOGLE'S MAP SAYS WHETHER A MOVE WAS HER FINGER ON BOTH PHONES (`isGesture`,
+// `react-native-maps` 1.27.2's `AIRGoogleMap.mm` too), but `@/lib/mapa`'s
+// `alLlegar` still counts a centre that moved while no move of the app's was
+// under way, as it did for Apple's map: nothing else moves this map.
 //
 // ⚠️ EACH TAP ASKS THE MAP WHERE IT IS (`getMapBoundaries`) and is judged on that,
 // not on the last region the map reported: a tap during an animation, or a
@@ -38,50 +42,48 @@
 // delivers taps but never moves, so the zoom, the flights and the pin in the
 // middle are the `preview` build's to show.
 //
-// ⚠️ *¿ES AQUÍ?* is the phone's own maps naming the point under her pin
-// (`addressForCoordinate`: Apple's on an iPhone, Google's on Android), asked once
-// the map has settled and shown on the card over the map, never kept. On an
-// iPhone it is the same rate-limited geocoder as the search. No answer, no line.
+// ⚠️ THE CARD NAMES HER OWN ADDRESS ONCE THE PIN IS HERS (`10.4g-i`), and warns
+// only when Google names another street under the pin (`useCalleBajoElPin`, then
+// `@/lib/google`'s `otraCalle`) — shown, never kept. It no longer asks the phone
+// (`addressForCoordinate` is Apple's geocoder on an iPhone whatever the map,
+// `react-native-maps` 1.27.2's `RNMapsAirModule.mm`). No answer, no warning.
 //
 // ⚠️ THE CARD IS AT THE TOP OF THE MAP, NEVER THE FOOT: Google's logo sits at the
-// foot of its map on Android (Apple's and its *Legal* link on an iPhone), and the
-// maps' terms forbid covering them — measured 2026-10-31, a card at the foot hid
-// Google's logo.
+// foot of its map, and its terms forbid covering it — measured 2026-10-31, a card
+// at the foot hid Google's logo.
 //
 // ⚠️ BUSINESSES' LABELS HIDDEN, ON PURPOSE: on Android a tap on one is the label's
 // tap (`onPoiClick`), not the map's, so her tap at her own door would do nothing;
-// and its point is Google's place, not hers. Streets stay named. Android hides
-// them by style; an iPhone by `showsPointsOfInterests`.
+// and its point is Google's place, not hers. Streets stay named. Google's map hides
+// them by style, on both phones.
 //
 // ⚠️ NO LOCATION: this app asks for none (`app.json` blocks the permission), so
 // there is no "you are here" — she finds her kitchen, the search helping.
 // ============================================================================
 
 import { useEffect, useRef, useState } from 'react';
-import { Keyboard, Platform, Text, View } from 'react-native';
-import MapView, { type MapPressEvent } from 'react-native-maps';
+import { Keyboard, Text, View } from 'react-native';
+import MapView, { PROVIDER_GOOGLE, type MapPressEvent } from 'react-native-maps';
 
-import type { AddressForm, Pin } from '@/api/place';
-import { anchoPara, conLasPuertas, preguntaConSuDireccion, type Respuesta } from '@/lib/buscar';
-import { LOCATIONIQ_TOKEN, useSugerencias } from '@/lib/locationiq';
+import { EMPTY_ADDRESS, type AddressForm, type Pin } from '@/api/place';
+import { anchoPara, otraCalle, preguntaConSuDireccion, type Destino, type Sugerencia, type Sugerencias } from '@/lib/google';
 import {
-  ES_AQUI_PAUSA_MS,
+  TIPO_DE_MAPA,
   alLlegar,
   centroAlAbrir,
   closeEnough,
   conGesto,
   haciaUnPunto,
-  lineaDeLugar,
+  lineaDeSuDireccion,
   openingRegion,
   pinDelCentro,
   regionAround,
   regionFromBounds,
   tapOn,
-  tipoDeMapa,
   type Centro,
   type Region,
 } from '@/lib/mapa';
-import { useApertura, useBuscar, usePuertas } from '@/lib/telefono';
+import { CLAVE, detallar, useApertura, useBuscar, useCalleBajoElPin, useSesion, useSugerencias } from '@/lib/useGoogle';
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
 import { CampoDeBusqueda, ListaDeSugerencias } from '@/ui/Buscador';
@@ -121,14 +123,19 @@ export function MapaPunto({
   const centro = useRef<Centro>(centroAlAbrir(pin, first));
   const [texto, setTexto] = useState('');
   const [buscando, setBuscando] = useState(false);
-  const [esAqui, setEsAqui] = useState<string | null>(null);
   /** What she asked with *Buscar*, until she types again or the map flies to its answer. */
   const [enviada, setEnviada] = useState<string | null>(null);
-  const puertas = usePuertas(buscando ? texto : '', direccion);
-  const calles = useSugerencias(buscando ? texto : '', direccion);
-  const sugerencias = conLasPuertas(puertas, calles);
+  /** Her pick's details on their way, or why they never came — shown in the list; `null` otherwise. */
+  const [eligiendo, setEligiendo] = useState<Sugerencias | null>(null);
+  const sesion = useSesion();
+  const sugerencias = useSugerencias(buscando ? texto : '', direccion, sesion);
   const buscada = useBuscar(enviada);
   const apertura = useApertura(sinPin ? direccion : null);
+  /** The card: her address as she gave it, and the street Google names under her pin. */
+  const linea = lineaDeSuDireccion(direccion);
+  const suCalle = linea === null ? null : (direccion?.street.trim() ?? null);
+  const bajoElPin = useCalleBajoElPin(pin, suCalle);
+  const aviso = pin !== null && suCalle !== null && otraCalle(suCalle, bajoElPin) ? bajoElPin : null;
 
   function cambiarBuscando(next: boolean) {
     setBuscando(next);
@@ -140,25 +147,24 @@ export function MapaPunto({
    * never her pin: the centre is the provider's from the first frame, and hers
    * again only when her own hand moves the map.
    */
-  function volarA(respuesta: Respuesta) {
+  function volarA(destino: Destino) {
     tocado.current = true;
-    centro.current = haciaUnPunto(centro.current, respuesta.punto, 'otro', Date.now());
+    centro.current = haciaUnPunto(centro.current, destino.punto, 'otro', Date.now());
     onPin(null);
-    map.current?.animateToRegion(regionAround(respuesta.punto, anchoPara(respuesta)), VOLAR_MS);
+    map.current?.animateToRegion(regionAround(destino.punto, anchoPara(destino)), VOLAR_MS);
   }
 
   useEffect(() => {
     if (apertura !== null && listo && !tocado.current) volarA(apertura);
   }, [apertura, listo]);
 
-  // *Buscar*'s answer: the map flies to the first, and the box closes. Nothing
-  // found, no signal or a failure stays on the list, said in words.
+  // *Buscar*'s answer: the map flies there, and the box closes. Nothing found,
+  // no signal or a failure stays on the list, said in words.
   useEffect(() => {
-    if (buscada.kind !== 'respuestas') return;
-    const primera = buscada.respuestas[0];
+    if (buscada.kind !== 'destino') return;
     setEnviada(null);
     cambiarBuscando(false);
-    if (primera !== undefined) volarA(primera);
+    volarA(buscada.destino);
   }, [buscada]);
 
   /** The keyboard's *Buscar*: what she typed, with her colonia and city when she typed none. */
@@ -166,27 +172,6 @@ export function MapaPunto({
     const pregunta = preguntaConSuDireccion(texto, direccion);
     if (pregunta !== null) setEnviada(pregunta);
   }
-
-  // ¿Es aquí? — asked of the phone's own maps once the map has settled on a new pin.
-  const lat = pin?.latitude ?? null;
-  const lng = pin?.longitude ?? null;
-  useEffect(() => {
-    setEsAqui(null);
-    if (lat === null || lng === null || !listo) return;
-    let vigente = true;
-    const timer = setTimeout(() => {
-      map.current?.addressForCoordinate({ latitude: lat, longitude: lng }).then(
-        (lugar) => {
-          if (vigente) setEsAqui(lineaDeLugar(lugar));
-        },
-        () => {},
-      );
-    }, ES_AQUI_PAUSA_MS);
-    return () => {
-      vigente = false;
-      clearTimeout(timer);
-    };
-  }, [lat, lng, listo]);
 
   /** Where the map is now — asked of the map; the last region it reported if it cannot say. */
   async function whereNow(): Promise<Region> {
@@ -198,11 +183,24 @@ export function MapaPunto({
     }
   }
 
-  function elegir(respuesta: Respuesta) {
-    setTexto(respuesta.titulo);
+  /**
+   * Her pick: its details say where it is, and end her search's session. The
+   * list says *Buscando…* meanwhile, and why if they never come; she may type on.
+   * On this screen a pick only moves the map — her five boxes are the form's.
+   */
+  async function elegir(sugerencia: Sugerencia) {
+    setTexto(sugerencia.titulo);
     Keyboard.dismiss();
+    setEligiendo({ kind: 'buscando' });
+    const lugar = await detallar(sugerencia, sesion.token(), direccion ?? EMPTY_ADDRESS);
+    sesion.cerrar();
+    if (lugar === null || lugar === 'sin-senal') {
+      setEligiendo({ kind: lugar === null ? 'falla' : 'sin-senal' });
+      return;
+    }
+    setEligiendo(null);
     cambiarBuscando(false);
-    volarA(respuesta);
+    volarA(lugar);
   }
 
   /** Her tap: the point she tapped comes to the middle, under the pin — closer while the map is too far. */
@@ -237,18 +235,20 @@ export function MapaPunto({
 
   return (
     <View style={{ flex: 1 }}>
-      {LOCATIONIQ_TOKEN !== null && (
+      {CLAVE !== null && (
         <CampoDeBusqueda
           texto={texto}
           onTexto={(next) => {
             setTexto(next);
             setEnviada(null);
+            setEligiendo(null);
             if (!buscando) cambiarBuscando(true);
           }}
           onFoco={() => cambiarBuscando(true)}
           onBorrar={() => {
             setTexto('');
             setEnviada(null);
+            setEligiendo(null);
           }}
           onBuscar={buscar}
         />
@@ -262,7 +262,8 @@ export function MapaPunto({
         <MapView
           ref={map}
           style={{ flex: 1 }}
-          mapType={tipoDeMapa(Platform.OS)}
+          provider={PROVIDER_GOOGLE}
+          mapType={TIPO_DE_MAPA}
           initialRegion={first}
           onMapReady={() => setListo(true)}
           onRegionChangeComplete={(next, details) => llego(next, details?.isGesture === true)}
@@ -270,7 +271,6 @@ export function MapaPunto({
           onDoublePress={gesto}
           onPress={(event) => void tapped(event)}
           customMapStyle={SIN_NEGOCIOS}
-          showsPointsOfInterests={false}
           showsUserLocation={false}
           rotateEnabled={false}
           pitchEnabled={false}
@@ -294,19 +294,30 @@ export function MapaPunto({
               gap: SIZE.rowGap / 2,
             }}
           >
-            {pin !== null && esAqui !== null ? (
+            {pin !== null && linea !== null ? (
               <>
                 <Text style={{ fontSize: SIZE.bodySize, fontWeight: '600', color: PALETTE.tinta }}>
-                  {ES.mapa.esAqui(esAqui)}
+                  {ES.mapa.suDireccion(linea)}
                 </Text>
-                <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada }}>{ES.mapa.otraVez}</Text>
+                {aviso !== null && suCalle !== null ? (
+                  <Text style={{ fontSize: SIZE.smallSize, fontWeight: '600', color: PALETTE.error }}>
+                    {ES.mapa.otraCalle(aviso, suCalle)}
+                  </Text>
+                ) : (
+                  <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada }}>{ES.mapa.otraVez}</Text>
+                )}
               </>
             ) : (
               <Text style={{ fontSize: SIZE.bodySize, fontWeight: '600', color: PALETTE.tinta }}>{hint}</Text>
             )}
           </View>
         )}
-        {buscando && <ListaDeSugerencias sugerencias={enviada !== null ? buscada : sugerencias} onElegir={elegir} />}
+        {buscando && (
+          <ListaDeSugerencias
+            sugerencias={eligiendo ?? (enviada === null ? sugerencias : buscada.kind === 'destino' || buscada.kind === 'nada' ? { kind: 'buscando' } : buscada)}
+            onElegir={(sugerencia) => void elegir(sugerencia)}
+          />
+        )}
       </View>
     </View>
   );

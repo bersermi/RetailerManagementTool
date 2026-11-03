@@ -5,8 +5,12 @@ import type { ConfigContext, ExpoConfig } from 'expo/config';
 
 // ============================================================================
 // THE TWO VALUES A STORE BUILD CARRIES AND THIS PUBLIC REPOSITORY DOES NOT.
-// Plan task `10.2a`; `app.json` holds everything else. ⚠️ The same file is
-// `cocina/app.config.ts` with that app's names — change both.
+// Plan task `10.2a`; `app.json` holds everything else. ⚠️ Its twin,
+// `cocina/app.config.ts`, moved ahead in `10.4g-i`: Wera Cocina carries the
+// iPhone map key too (Google's map and search on both phones) and hands both keys
+// to its search through `extra.google`. This one is as it was — Itacate draws
+// Apple's map on an iPhone and asks no search — until Itacate's own map
+// (`10.5-iv`); change both then.
 //
 //   GOOGLE_MAPS_ANDROID_API_KEY — the map on Android (Apple Maps needs no key)
 //   google-services.json        — push on Android (Firebase)

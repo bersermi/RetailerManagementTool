@@ -1,17 +1,23 @@
 // ============================================================================
-// WHICH BUILDS AN OVER-THE-AIR UPDATE MAY REACH. Plan task `10.2a`. ⚠️ The same file is
-// `itacate/fingerprint.config.js` — change both.
+// WHICH BUILDS AN OVER-THE-AIR UPDATE MAY REACH. Plan tasks `10.2a` and `10.4g-i`.
+// ⚠️ Its twin, `itacate/fingerprint.config.js`, is as it was before `10.4g-i`:
+// Itacate carries no iPhone key yet — change both when it does (`10.5-iv`).
 //
 // The same rules as `app/fingerprint.config.js` (Wera's, measured 2026-10-10:
 // version numbers, masked-view's manifest a local Android build rewrites inside
-// `node_modules`, Kotlin's `.kotlin/` files), plus the two values `app.config.ts`
+// `node_modules`, Kotlin's `.kotlin/` files), plus the values `app.config.ts`
 // takes from EAS's environment:
 //   - the Android map key, removed from the config before it is hashed;
+//   - the iPhone map key, MASKED, not removed: its presence is what compiles
+//     Google's map into an iPhone build (`react-native-maps`' plugin), so a config
+//     without it must hash as another runtime — measured 2026-11-03, it moves the
+//     runtime of both platforms;
+//   - both keys' copies in `extra.google`, which the search reads, masked;
 //   - `google-services.json`, ignored as a file.
-// Neither is JavaScript's business, and both exist on EAS and not here — so a
-// hash that included them would differ between this Mac and the cloud build.
-// `test/runtime.test.ts` computes the runtime with and without stand-ins for
-// both and requires one answer.
+// None of the values is JavaScript's business to hash, and all exist on EAS and not
+// here — so a hash that included them would differ between this Mac and the cloud
+// build. `test/runtime.test.ts` computes the runtime with and without stand-ins
+// for all of them and requires one answer.
 //
 // ⚠️ IF THIS FILE THROWS WHILE LOADING, @expo/fingerprint USES AN EMPTY CONFIG
 // AND SAYS NOTHING (Config.js, 0.20.12) — every rule here would be dropped
@@ -19,7 +25,10 @@
 // ============================================================================
 const { SourceSkips } = require('@expo/fingerprint');
 
-/** The config with the map key taken out; anything else passes untouched. */
+/** What a key's value is replaced by before the config is hashed. */
+const OCULTA = 'clave-oculta';
+
+/** The config with the keys' values taken out; anything else passes untouched. */
 function withoutMapsKey(source, chunk) {
   if (source.type !== 'contents' || source.id !== 'expoConfig' || typeof chunk !== 'string') {
     return chunk;
@@ -33,7 +42,11 @@ function withoutMapsKey(source, chunk) {
   for (const plugin of config.plugins ?? []) {
     if (Array.isArray(plugin) && plugin[0] === 'react-native-maps' && plugin[1]) {
       delete plugin[1].androidGoogleMapsApiKey;
+      if (plugin[1].iosGoogleMapsApiKey) plugin[1].iosGoogleMapsApiKey = OCULTA;
     }
+  }
+  if (config.extra && config.extra.google) {
+    config.extra.google = { android: OCULTA, ios: OCULTA };
   }
   return JSON.stringify(config);
 }

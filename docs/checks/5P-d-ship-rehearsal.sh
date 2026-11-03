@@ -81,10 +81,12 @@ publish_line="STUB-PUBLISH: --yes eas-cli@24 update --channel production --envir
 # needs Wera's three — its *¿Olvidaste tu contraseña?* reads the support number —
 # so this is what an environment missing that number looks like, for both apps.
 two=$'EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=k\nEXPO_PUBLIC_SUPABASE_URL=u'
-# ⚠️ `10.4c`: Wera Cocina's map search reads LocationIQ's token, so its environment
-# needs a fourth value Wera's does not — `three` is now what Wera Cocina's looks
-# like with the token missing.
-four="$three"$'\nEXPO_PUBLIC_LOCATIONIQ_TOKEN=t'
+# ⚠️ `10.4g-i`: Wera Cocina's search reads Google's two map keys through its
+# config (LocationIQ's token from `10.4c` until then), so its environment needs two
+# values Wera's does not — `three` is what Wera Cocina's looks like with both
+# missing, `sin_ios` with the iPhone's alone missing.
+four="$three"$'\nGOOGLE_MAPS_ANDROID_API_KEY=a\nGOOGLE_MAPS_IOS_API_KEY=i'
+sin_ios="$three"$'\nGOOGLE_MAPS_ANDROID_API_KEY=a'
 
 # One case: the runbook's exit code AND a sentence it printed. Prints `ok` or `FAIL`.
 one() {
@@ -130,9 +132,10 @@ N_ONLY_SENT="--only android publishes to Android alone"
 N_ONLY_CHECK="--check with --only names the one platform it would reach"
 N_ONLY_BAD="--only with a platform that is not one is refused"
 N_COCINA_SENT="--app cocina publishes from Wera Cocina's folder"
-N_COCINA_CHECK="Wera Cocina with the database's two values, the support number and the search's token passes"
+N_COCINA_CHECK="Wera Cocina with the database's two values, the support number and Google's two map keys passes"
 N_COCINA_THREE="Wera Cocina without the support number is refused"
-N_COCINA_FOUR="Wera Cocina without the search's token is refused"
+N_COCINA_FOUR="Wera Cocina without Google's map keys is refused"
+N_COCINA_IOS="Wera Cocina without the iPhone's map key is refused"
 N_WERA_THREE="Wera without its support number is still refused"
 N_COCINA_FIRST="Wera Cocina without the database's key is refused"
 N_APP_BAD="--app with an app this runbook does not ship is refused"
@@ -155,7 +158,8 @@ cases() {
   one "$dir" "$N_COCINA_SENT"  preview    "--app cocina" "$four" 0 "--clear-cache --non-interactive (in cocina)"
   one "$dir" "$N_COCINA_CHECK" preview    "--check --app cocina" "$four" 0 "to Wera Cocina's 'preview'"
   one "$dir" "$N_COCINA_THREE" preview    "--check --app cocina" "$two" 1 "has no EXPO_PUBLIC_SUPPORT_WHATSAPP"
-  one "$dir" "$N_COCINA_FOUR"  preview    "--check --app cocina" "$three" 1 "has no EXPO_PUBLIC_LOCATIONIQ_TOKEN"
+  one "$dir" "$N_COCINA_FOUR"  preview    "--check --app cocina" "$three" 1 "has no GOOGLE_MAPS_ANDROID_API_KEY"
+  one "$dir" "$N_COCINA_IOS"   preview    "--check --app cocina" "$sin_ios" 1 "has no GOOGLE_MAPS_IOS_API_KEY"
   one "$dir" "$N_WERA_THREE"   preview    --check "$two" 1 "has no EXPO_PUBLIC_SUPPORT_WHATSAPP"
   one "$dir" "$N_COCINA_FIRST" preview    "--check --app cocina" 'EXPO_PUBLIC_SUPABASE_URL=u' 1 "has no EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY"
   one "$dir" "$N_APP_BAD"      preview    "--app itacate" "$two" 2 "usage:"
@@ -224,13 +228,16 @@ broken "--app that is read and then ignored" \
 # ⚠️ `10.4b-iv-b`: an update to Wera Cocina built without the support number has no
 # *¿Olvidaste tu contraseña?*, and nothing on the phone says so.
 broken "Wera Cocina's list without the support number" \
-  'label="Wera Cocina"; needed="EXPO_PUBLIC_SUPABASE_URL EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY EXPO_PUBLIC_SUPPORT_WHATSAPP EXPO_PUBLIC_LOCATIONIQ_TOKEN"' \
-  'label="Wera Cocina"; needed="EXPO_PUBLIC_SUPABASE_URL EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY EXPO_PUBLIC_LOCATIONIQ_TOKEN"' "$N_COCINA_THREE"
-# ⚠️ `10.4c`: an update built without the token has no search box above her map,
-# and nothing on the phone says so.
-broken "Wera Cocina's list without the search's token" \
-  'label="Wera Cocina"; needed="EXPO_PUBLIC_SUPABASE_URL EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY EXPO_PUBLIC_SUPPORT_WHATSAPP EXPO_PUBLIC_LOCATIONIQ_TOKEN"' \
-  'label="Wera Cocina"; needed="EXPO_PUBLIC_SUPABASE_URL EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY EXPO_PUBLIC_SUPPORT_WHATSAPP"' "$N_COCINA_FOUR"
+  'label="Wera Cocina"; needed="EXPO_PUBLIC_SUPABASE_URL EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY EXPO_PUBLIC_SUPPORT_WHATSAPP GOOGLE_MAPS_ANDROID_API_KEY GOOGLE_MAPS_IOS_API_KEY"' \
+  'label="Wera Cocina"; needed="EXPO_PUBLIC_SUPABASE_URL EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY GOOGLE_MAPS_ANDROID_API_KEY GOOGLE_MAPS_IOS_API_KEY"' "$N_COCINA_THREE"
+# ⚠️ `10.4g-i`: an update built without a phone's key has no search box above her
+# map on that phone, and nothing on the phone says so.
+broken "Wera Cocina's list without the Android key" \
+  'label="Wera Cocina"; needed="EXPO_PUBLIC_SUPABASE_URL EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY EXPO_PUBLIC_SUPPORT_WHATSAPP GOOGLE_MAPS_ANDROID_API_KEY GOOGLE_MAPS_IOS_API_KEY"' \
+  'label="Wera Cocina"; needed="EXPO_PUBLIC_SUPABASE_URL EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY EXPO_PUBLIC_SUPPORT_WHATSAPP GOOGLE_MAPS_IOS_API_KEY"' "$N_COCINA_FOUR"
+broken "Wera Cocina's list without the iPhone's key" \
+  'label="Wera Cocina"; needed="EXPO_PUBLIC_SUPABASE_URL EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY EXPO_PUBLIC_SUPPORT_WHATSAPP GOOGLE_MAPS_ANDROID_API_KEY GOOGLE_MAPS_IOS_API_KEY"' \
+  'label="Wera Cocina"; needed="EXPO_PUBLIC_SUPABASE_URL EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY EXPO_PUBLIC_SUPPORT_WHATSAPP GOOGLE_MAPS_ANDROID_API_KEY"' "$N_COCINA_IOS"
 
 echo
 if [[ "$bad" -ne 0 ]]; then

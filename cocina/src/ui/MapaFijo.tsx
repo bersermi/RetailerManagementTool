@@ -1,19 +1,21 @@
 // ============================================================================
 // HER PIN, SHOWN — a still picture of the map around it on her kitchen's screen.
-// Plan tasks `10.4b-iii-b` and `10.4c`.
+// Plan tasks `10.4b-iii-b`, `10.4c` and `10.4g-i`.
 //
 // ⚠️ IT TAKES NO TOUCH: moving the pin is *Cambiar el punto*'s screen, where the
 // rules are (`@/ui/MapaPunto`). On Android it is Google's lite mode — a picture,
 // not a live map, cheap on the screen she opens most; an iPhone draws a live map
-// with every gesture off. The same view as the map she tapped: the flat street
-// map (`tipoDeMapa`, the owner's ruling of 2026-10-31), no businesses' labels.
+// with every gesture off. The same view as the map she tapped: Google's flat
+// street map on both phones (`TIPO_DE_MAPA`, the owner's rulings of 2026-10-31 and
+// 2026-11-03), no businesses' labels — and Google's, not Apple's, on an iPhone
+// too: Google's terms keep its search off any other map (3.2.3(e)).
 // ============================================================================
 
-import { Platform, View } from 'react-native';
-import MapView, { Marker } from 'react-native-maps';
+import { View } from 'react-native';
+import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 
 import type { Pin } from '@/api/place';
-import { GLANCE_METRES, regionAround, tipoDeMapa } from '@/lib/mapa';
+import { GLANCE_METRES, TIPO_DE_MAPA, regionAround } from '@/lib/mapa';
 import { PALETTE, SIZE } from '@/theme/palette';
 import { SIN_NEGOCIOS } from '@/ui/MapaPunto';
 
@@ -34,11 +36,11 @@ export function MapaFijo({ pin }: { pin: Pin }) {
     >
       <MapView
         style={{ flex: 1 }}
+        provider={PROVIDER_GOOGLE}
         liteMode
-        mapType={tipoDeMapa(Platform.OS)}
+        mapType={TIPO_DE_MAPA}
         region={regionAround(pin, GLANCE_METRES)}
         customMapStyle={SIN_NEGOCIOS}
-        showsPointsOfInterests={false}
         scrollEnabled={false}
         zoomEnabled={false}
         rotateEnabled={false}

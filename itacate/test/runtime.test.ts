@@ -7,7 +7,9 @@ import { afterAll, describe, expect, it } from 'vitest';
 
 // ============================================================================
 // THE RUNTIME DOES NOT DEPEND ON THE TWO SECRETS. Plan task `10.2a`.
-// ⚠️ The same test is in `cocina/test/` — change both.
+// ⚠️ Its twin in `cocina/test/` moved ahead in `10.4g-i`: it also holds the iPhone
+// map key and `extra.google`, which Itacate does not carry yet — change both when
+// it does (`10.5-iv`).
 //
 // EAS has the map key and google-services.json; this Mac and CI do not. The
 // runtime an update is published to is computed on this Mac, and the one a
