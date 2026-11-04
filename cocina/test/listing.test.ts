@@ -43,10 +43,12 @@ import {
   toListing,
   withListing,
   withWithdrawn,
+  fotosPorSubir,
   type LineDraft,
   type Listing,
   type ListingRow,
 } from '@/api/listing';
+import { NINGUNA, guardada } from '@/api/fotos';
 import { AHEAD_MS, LONGEST_MS } from '@/lib/ventana';
 import { ES } from '@/strings';
 
@@ -89,7 +91,7 @@ describe('her list, as the app asks for it', () => {
     expect(LISTING_TABLE).toBe('listing');
     expect(LINES_TABLE).toBe('listing_line');
     expect(LISTING_COLUMNS).toBe(
-      'id,location_id,pickup_start,pickup_end,created_at,withdrawn_at,listing_line(line_no,name,description,tags,unit_price,quantity,surprise,usual_price)',
+      'id,location_id,pickup_start,pickup_end,created_at,withdrawn_at,listing_line(line_no,name,description,tags,unit_price,quantity,surprise,usual_price,image_path)',
     );
     expect(LISTING_COLUMNS).not.toContain('*');
     expect(LISTING_COLUMNS).toContain(`${LINES_TABLE}(`);
@@ -140,8 +142,14 @@ describe('the database’s rules, as `0072` and `0076` write them', () => {
   it('every key a line is sent under is one the function reads — a misspelt key would be silently dropped', () => {
     const read = new Set([...PUBLISH_BODY.matchAll(/v_line (?:->>|->|\?) '([a-z_]+)'/g)].map((m) => m[1]));
     const sent = Object.keys(lineBody(line({ surprise: true, usual: '90', tags: ['pica'], description: 'x' })));
-    expect(sent.length).toBe(7);
+    expect(sent.length).toBe(8);
     for (const key of sent) expect(read, key).toContain(key);
+  });
+
+  it('`10.5-ii`: a dish’s photo is `0076`’s key, `image_path`, a picture in her own folder', () => {
+    expect(PUBLISH_BODY).toContain(`v_line ? 'image_path'`);
+    expect(PUBLISH_BODY).toContain('public.picture_in_folder(v_photo, v_loc.workspace_id)');
+    expect(LATEST).toMatch(/alter table public\.listing_line add column image_path text;/);
   });
 
   it('the two functions are the migration’s, by name', () => {
@@ -226,7 +234,21 @@ describe('what the database is sent', () => {
       quantity: 4,
       surprise: false,
       usual_price: null,
+      image_path: null,
     });
+  });
+
+  it('`10.5-ii`: a line sends its photo’s path — one saved, or one just taken — and none as null', () => {
+    const path = '11111111-2222-4333-8444-555555555555/66666666-7777-4888-9999-aaaaaaaaaaaa';
+    expect(lineBody(line({ foto: guardada(path) })).image_path).toBe(path);
+    expect(lineBody(line({ foto: { kind: 'nueva', path, archivos: [] } })).image_path).toBe(path);
+    expect(lineBody(line({ foto: NINGUNA })).image_path).toBeNull();
+  });
+
+  it('`10.5-ii`: the photos taken on the form go up once each; a saved one never goes up again', () => {
+    const nueva = { kind: 'nueva', path: 'k/nueva', archivos: [] } as const;
+    const lines = [line({ key: 'a', foto: nueva }), line({ key: 'b', foto: guardada('k/vieja') }), line({ key: 'c', foto: nueva }), line({ key: 'd' })];
+    expect(fotosPorSubir(lines)).toEqual([nueva]);
   });
 
   it('a bag with its vale; a dish never sends one, even with one typed before the switch', () => {
@@ -261,12 +283,17 @@ describe('a retry is the same publication; an edit is a new one', () => {
     expect(attemptFor(first, publishBody('p', [line()], ventana), mint)).toBe(first);
     const edited = attemptFor(first, publishBody('p', [line({ count: '3' })], ventana), mint);
     expect(edited.id).toBe('id-2');
+    // `10.5-ii`: a photo taken is a change — its path is in the body — and the same photo again is not.
+    const foto = guardada('k/foto');
+    const withPhoto = attemptFor(edited, publishBody('p', [line({ count: '3', foto })], ventana), mint);
+    expect(withPhoto.id).toBe('id-3');
+    expect(attemptFor(withPhoto, publishBody('p', [line({ count: '3', foto })], ventana), mint)).toBe(withPhoto);
   });
 
   it('and the screen sends the attempt’s id, never a fresh one per press', () => {
     const screen = code('app/(cocina)/publicar.tsx');
     expect(screen).toMatch(/attempt\.current = attemptFor\(attempt\.current, body, newId\)/);
-    expect(screen).toMatch(/publish\(publishArgs\(attempt\.current, body\)\)/);
+    expect(screen).toMatch(/publish\(publishArgs\(attempt\.current, body\), fotosPorSubir\(lines\)\)/);
     expect(screen).toMatch(/useRef<Attempt \| null>\(null\)/);
   });
 });
@@ -291,9 +318,22 @@ describe('her list, read back', () => {
     expect(l.placeId).toBe('place-1');
     expect(l.start.toISOString()).toBe('2026-10-31T23:00:00.000Z');
     expect(l.lines.map((x) => x.name)).toEqual(['Comida corrida', 'Bolsa de pan']);
-    expect(l.lines[0]).toEqual({ name: 'Comida corrida', description: null, tags: ['pica'], priceCentavos: 6550, count: 4, surprise: false, usualCentavos: null });
+    expect(l.lines[0]).toEqual({ name: 'Comida corrida', description: null, tags: ['pica'], priceCentavos: 6550, count: 4, surprise: false, usualCentavos: null, imagePath: null });
     expect(l.lines[1]).toMatchObject({ priceCentavos: 4500, count: 5, surprise: true, usualCentavos: 9000 });
     expect(centavosOf(65.1)).toBe(6510);
+  });
+
+  it('`10.5-ii`: reads a line’s photo, and a blank or absent one as none', () => {
+    const lines = toListing(
+      row({
+        listing_line: [
+          { line_no: 1, name: 'a', description: null, tags: [], unit_price: 1, quantity: 1, surprise: false, usual_price: null, image_path: 'k/p' },
+          { line_no: 2, name: 'b', description: null, tags: [], unit_price: 1, quantity: 1, surprise: false, usual_price: null, image_path: ' ' },
+          { line_no: 3, name: 'c', description: null, tags: [], unit_price: 1, quantity: 1, surprise: false, usual_price: null },
+        ],
+      }),
+    ).lines;
+    expect(lines.map((l) => l.imagePath)).toEqual(['k/p', null, null]);
   });
 
   it('drops a row it cannot read rather than drawing it wrong or blanking the list', () => {
@@ -355,16 +395,19 @@ describe('Repetir', () => {
       end: new Date(2026, 9, 30, 20),
       withdrawnAt: null,
       lines: [
-        { name: 'Comida corrida', description: null, tags: ['pica'], priceCentavos: 6550, count: 4, surprise: false, usualCentavos: 9000 },
-        { name: 'Bolsa de pan', description: '6 piezas', tags: [], priceCentavos: 4500, count: 5, surprise: true, usualCentavos: 9000 },
+        { name: 'Comida corrida', description: null, tags: ['pica'], priceCentavos: 6550, count: 4, surprise: false, usualCentavos: 9000, imagePath: 'k/comida' },
+        { name: 'Bolsa de pan', description: '6 piezas', tags: [], priceCentavos: 4500, count: 5, surprise: true, usualCentavos: 9000, imagePath: null },
       ],
     };
     let n = 0;
     const draft = repeatDraft(past, new Date(2026, 9, 31, 19), () => `key-${(n += 1)}`);
     expect(draft.lines).toEqual([
-      { key: 'key-1', surprise: false, name: 'Comida corrida', description: '', tags: ['pica'], price: '65.50', count: '4', usual: '' },
-      { key: 'key-2', surprise: true, name: 'Bolsa de pan', description: '6 piezas', tags: [], price: '45', count: '5', usual: '90' },
+      { key: 'key-1', surprise: false, name: 'Comida corrida', description: '', tags: ['pica'], price: '65.50', count: '4', usual: '', foto: { kind: 'guardada', path: 'k/comida' } },
+      { key: 'key-2', surprise: true, name: 'Bolsa de pan', description: '6 piezas', tags: [], price: '45', count: '5', usual: '90', foto: { kind: 'ninguna' } },
     ]);
+    // ⚠️ `10.5-ii`: yesterday's photo is sent again, as it was — never uploaded twice.
+    expect(draft.lines.map((l) => lineBody(l).image_path)).toEqual(['k/comida', null]);
+    expect(fotosPorSubir(draft.lines)).toEqual([]);
     expect(draft.ventana).toEqual({ start: new Date(2026, 9, 31, 19, 30), end: new Date(2026, 9, 31, 20) });
     expect(checkLines(draft.lines)).toBeNull();
   });
@@ -398,7 +441,16 @@ describe('the screens’ wiring, read as text', () => {
     const hooks = code('api/hooks.ts');
     const publish = hooks.slice(hooks.indexOf('export function usePublish'), hooks.indexOf('export function useWithdraw'));
     expect(publish).toMatch(/onSettled: \(\) => \{\s*void queries\.invalidateQueries\(\{ queryKey: LISTINGS_KEY \}\)/);
-    expect(publish).toMatch(/withListing\(listings, listingFrom\(args\)\)/);
+    expect(publish).toMatch(/withListing\(listings, listingFrom\(input\.args\)\)/);
+  });
+
+  it('`10.5-ii`: the photos go up before the call that names them, and the form hands them in', () => {
+    const hooks = code('api/hooks.ts');
+    const publish = hooks.slice(hooks.indexOf('export function usePublish'), hooks.indexOf('export function usePage'));
+    const up = publish.indexOf('await uploadPictures(input.fotos)');
+    expect(up).toBeGreaterThan(-1);
+    expect(publish.indexOf('return publishListing(input.args)')).toBeGreaterThan(up);
+    expect(code('app/(cocina)/publicar.tsx')).toMatch(/await publish\(publishArgs\(attempt\.current, body\), fotosPorSubir\(lines\)\)/);
   });
 
   it('her kitchen draws publishing first and her list; the list’s Repetir opens the form with the publication', () => {

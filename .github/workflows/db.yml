@@ -478,6 +478,10 @@ on:
       - "docs/checks/8o-photos-contract-falsify.sh"
       - "docs/checks/10.5-i-a-kitchen-photos-contract.sh"
       - "docs/checks/10.5-i-a-kitchen-photos-contract-falsify.sh"
+      # ⚠️ AND THE HAND THE AVISOS PROMISE, as of plan task `10.5-ii`: the runbook that
+      # deletes a deleted business's photos within 30 days, which the owner runs on the
+      # hosted project and that check's step 15 rehearses on the stack it starts.
+      - "docs/runbooks/delete-orphan-photos.sh"
       - "docs/checks/7a-sales-contract.sh"
       - "docs/checks/7a-sales-contract-falsify.sh"
       - "docs/checks/7d-month-export-contract.sh"
@@ -1219,8 +1223,10 @@ jobs:
       # buckets, whose shape the bucket `cocina` takes. Its walls are only real over
       # the Storage API: the owner and managers of a KITCHEN write in her folder,
       # anyone signed in reads while the kitchen EXISTS, nobody signed out, pictures
-      # only, nothing overwritten or deleted. No app names the bucket until `10.5-ii`.
-      - name: Contract — the kitchens' photos, their walls over the real Storage API (plan 10.5-i-a)
+      # only, nothing overwritten or deleted. Since `10.5-ii` its names are Wera
+      # Cocina's, read out of `cocina/src/api/`, and its last step rehearses the
+      # runbook that deletes a deleted kitchen's photos (`delete-orphan-photos.sh`).
+      - name: Contract — the kitchens' photos, their walls over the real Storage API, and the runbook that deletes a deleted kitchen's (plans 10.5-i-a, 10.5-ii)
         run: bash docs/checks/10.5-i-a-kitchen-photos-contract.sh
 
       - name: Falsify it — nine broken walls of the bucket, each red for its reason

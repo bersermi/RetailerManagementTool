@@ -2,14 +2,15 @@
 // EVERY ROUND TRIP THIS APP MAKES TO THE DATABASE. Plan tasks `10.4b-iii-a` (her
 // kitchens), `10.4b-iii-b` (making one: her trade, her address, her pin),
 // `10.4b-iii-c` (her way out: what goes with her account, the deletion, Apple),
-// `10.4b-iv-a` (what she publishes: her list, publishing, withdrawing) and
-// `10.4h` (address first: her line with no pin, and her pin cleared).
+// `10.4b-iv-a` (what she publishes: her list, publishing, withdrawing),
+// `10.4h` (address first: her line with no pin, and her pin cleared) and `10.5-ii`
+// (her page in Itacate, and the pictures that go up before what points at them).
 //
 // ⚠️ THE IMPURE HALF OF `src/api/` (ADR-035 §2.11): the only module here that
 // imports the live client, so no node suite can load it; every name it sends is
 // a constant from a pure module beside it (`@/api/kitchen`, `@/api/place`,
-// `@/api/account`, `@/api/listing`), which the suite and the contract checks
-// read. Screens reach these through `@/api/hooks`.
+// `@/api/account`, `@/api/listing`, `@/api/pagina`, `@/api/fotos`), which the
+// suite and the contract checks read. Screens reach these through `@/api/hooks`.
 // ============================================================================
 
 import type { FunctionRegion } from '@supabase/supabase-js';
@@ -31,6 +32,16 @@ import {
   type OwnerRow,
 } from '@/api/account';
 import type { DireccionCalls } from '@/api/direccion';
+import {
+  PHOTO_BUCKET,
+  PHOTO_TYPE,
+  alreadyStored,
+  bytesOf,
+  photoHeaders,
+  photoUrl,
+  type FotoNueva,
+  type PhotoSize,
+} from '@/api/fotos';
 import {
   COCINA_KIND,
   GIRO_COLUMN,
@@ -81,8 +92,18 @@ import {
   type SetStoreDirectionsArgs,
   type SetStorePinArgs,
 } from '@/api/place';
+import {
+  PAGE_COLUMNS,
+  PAGE_OWNER_COLUMN,
+  PAGE_TABLE,
+  SET_KITCHEN_PAGE,
+  toPage,
+  type Page,
+  type PageFields,
+  type SetPageArgs,
+} from '@/api/pagina';
 import type { KitchenCalls } from '@/api/registro';
-import { supabase } from '@/lib/supabase';
+import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL, supabase } from '@/lib/supabase';
 
 /**
  * Her kitchens, the first-made first. An empty array is an answer — "no kitchen
@@ -195,6 +216,55 @@ export async function publishListing(args: PublishArgs): Promise<string> {
 export async function withdrawListing(args: WithdrawArgs): Promise<void> {
   const { error } = await supabase.rpc(WITHDRAW_LISTING, args);
   if (error) throw error;
+}
+
+/**
+ * Her page (`10.5-ii`, `0076`): the open kitchen's row, or the page of defaults
+ * when she has never saved one — no row is an answer, not a failure.
+ */
+export async function kitchenPage(kitchenId: string): Promise<Page> {
+  const { data, error } = await supabase.from(PAGE_TABLE).select(PAGE_COLUMNS).eq(PAGE_OWNER_COLUMN, kitchenId).maybeSingle();
+  if (error) throw error;
+  return toPage(data as Partial<PageFields> | null);
+}
+
+/** What she changed on her page, through its one door (`0076`); it answers with the page as saved. */
+export async function setKitchenPage(args: SetPageArgs): Promise<Page> {
+  const { data, error } = await supabase.rpc(SET_KITCHEN_PAGE, args);
+  if (error) throw error;
+  return toPage(data as Partial<PageFields> | null);
+}
+
+/**
+ * ⚠️ `10.5-ii`: EVERY FILE OF EVERY PICTURE TAKEN, into `cocina`, before what
+ * points at it is saved — so a page or a dish never names a file that is not
+ * there. One file at a time, the large one first. Already there is a success: the
+ * retry of a save whose first attempt got this far (`alreadyStored`). Anything
+ * else throws, and nothing is saved.
+ */
+export async function uploadPictures(fotos: readonly FotoNueva[]): Promise<void> {
+  for (const foto of fotos) {
+    for (const archivo of foto.archivos) {
+      const { error } = await supabase.storage
+        .from(PHOTO_BUCKET)
+        .upload(`${foto.path}/${archivo.name}`, bytesOf(archivo.base64), { contentType: PHOTO_TYPE, upsert: false });
+      if (error !== null && !alreadyStored(error)) throw error;
+    }
+  }
+}
+
+/**
+ * ⚠️ `10.5-ii`: WHERE ONE SAVED PICTURE'S FILE IS, AND THE HEADERS THAT OPEN IT —
+ * her own token, so the bucket's walls decide (`0076`) — Wera's `photoRequest`.
+ * ⚠️ THE TOKEN IS HANDED IN, from `useAuth()`'s session: `supabase.auth` has
+ * exactly one caller (`test/data-layer.test.ts`).
+ */
+export function photoRequest(
+  path: string,
+  size: PhotoSize,
+  token: string,
+): { readonly uri: string; readonly headers: Record<string, string> } {
+  return { uri: photoUrl(SUPABASE_URL, path, size), headers: photoHeaders(token, SUPABASE_PUBLISHABLE_KEY) };
 }
 
 /** The writes and the read that make her kitchen, for `@/api/registro`. */

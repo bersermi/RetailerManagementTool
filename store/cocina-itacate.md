@@ -181,7 +181,7 @@ The same answers for both:
 | Email | `ayuda@tu-wera.com` |
 | Category | **All other app types** |
 | Violence, blood, fear; sexuality, nudity; offensive language; gambling; drugs; alcohol or tobacco | **No** to all |
-| Users interact or exchange content with other users | **No** — not yet: what a kitchen publishes reaches nobody until `10.5`, which answers it again for both apps |
+| Users interact or exchange content with other users | **No** — not yet: what a kitchen publishes, her page and her photos (`10.5-ii`) reach nobody until Itacate shows kitchens (`10.5-iv`), which answers it again for both apps. Re-read for `10.5-ii` (2026-11-04): photos are uploaded and kept, and nobody outside her kitchen sees them yet |
 | Shares the user's location with others | **No** — not yet: a kitchen's address, and her own point if she set one, are shown to neighbours from `10.5` |
 | Lets users buy digital goods | **No** |
 | Is a web browser or a search engine | **No** |
@@ -209,7 +209,7 @@ the aviso (`site/privacidad/cocina-e-itacate/`, section 3) and `site/README.md`'
 | Can users ask for some data to be deleted without deleting the account? | **No** — leave the optional link empty |
 | *Can users login to your app with accounts created outside of the app?* | **Yes** — one login serves Wera and Wera Cocina (ADR-035 §2.7): an account made in Wera opens Wera Cocina |
 
-**Data types** — tick exactly these ten:
+**Data types** — tick exactly these eleven (*Photos* since `10.5-ii`):
 
 | Section | Data type | What it is in Wera Cocina |
 |---|---|---|
@@ -218,19 +218,20 @@ the aviso (`site/privacidad/cocina-e-itacate/`, section 3) and `site/README.md`'
 | Personal info | **User IDs** | The account id, and Google's account id for a sign-in with Google |
 | Personal info | **Address** | Her kitchen's address — a home when the kitchen is in one. ⚠️ Since `10.4g-i` the whole search is Google's (LocationIQ and the phone's own geocoder until then): what she types in the address search and the map's box — with the colonia and city she gave, in the map's box — goes to Google's Places API for suggestions, and a suggestion she picks fills her address, which she can correct and which is what is kept; the address she wrote goes to Google's Geocoding as the map opens, and what she searches with the keyboard's search key. ⚠️ Since `10.4h` (address first) her address also goes to Google's Geocoding to show it on the small map — as she fills it, and each time her kitchen's screen opens while she has no point of her own — shown, never kept. Nothing Google answers is kept but the address she picks as hers |
 | Location | **Precise location** | Her kitchen's pin — ⚠️ **optional since `10.4h`** (address first): kept only if she sets her own point, and cleared when her street or number changes; since `10.4e` the middle of the map once she has moved the map under it (before, where she tapped) — kept to six decimals; since `10.4g-i` sent to Google's Geocoding each time it settles, for the street under it, which the card compares with hers — shown, never kept (the phone's own geocoder answered it from `10.4c`). ⚠️ Not the phone's location — the app has no location permission — but Google's definition is the *"user or device physical location within an area less than 3 square kilometers"*, and the pin may be her home; Google's page says nothing of a place the user picks, so both this and *Address* are declared |
-| App activity | **Other user-generated content** | What she publishes — each dish or surprise bag, its description, tags, price, count and usual price, and the pickup window — and her kitchen's name and line of directions |
+| App activity | **Other user-generated content** | What she publishes — each dish or surprise bag, its description, tags, price, count and usual price, and the pickup window — her kitchen's name and line of directions; and since `10.5-ii` her page's sentence, colour and Google Maps link |
+| Photos and videos | **Photos** | Since `10.5-ii`: her page's cover and logo and each dish's photo — taken with the camera, or ONE photo she picks in the phone's own picker (the app has no photo-library permission) — cut to its shape, made smaller and stripped of where and when it was taken before it is uploaded; kept in a private store, seen by nobody outside her kitchen until Itacate shows kitchens (`10.5-iv`) |
 | Device or other IDs | **Device or other IDs** | The random install id sent to Expo with each update check; the Maps SDK's own pseudonymous id; Firebase's installation id and push token (Android) |
 | App activity | **App interactions** | The map's panning and zooming, which Google's Maps SDK reports |
 | App info and performance | **Crash logs** | The Maps SDK's stack traces when it crashes |
 | App info and performance | **Diagnostics** | The Maps SDK's crash metrics and request metadata (phone model, Android version) |
 
-**For every one of the ten:**
+**For every one of the eleven:**
 
 | Question | Answer |
 |---|---|
 | Is this data collected, shared, or both? | **Collected** — Supabase, Expo and Google (since `10.4g-i` the whole search too; LocationIQ from `10.4c` until then) are the app's service providers, and nothing is shown to another user yet. Re-read for `10.4d` (2026-11-02): Android's own geocoder is Google's, already the map's provider, and it answers a search she makes — Google's own exception for a transfer *"based on a specific user-initiated action"* — so the ticks stay; the aviso, under Mexican law, calls it a *transferencia* (its section 6), a different test. ⚠️ `10.5` answers it again: neighbours see a kitchen's pin and publications, which Google may count as a transfer *"based on a specific user-initiated action, where the user reasonably expects the data to be shared"* (not sharing) |
 | Is this data processed ephemerally? | **No** |
-| Is this data required, or can users choose? | **Required** for nine of the ten — a kitchen cannot be registered without its address, and the rest come with the account and the map. ✅ ***Precise location*: Users can choose whether this data is collected** (`10.4g-ii`, 2026-11-03): since `10.4h` every fonda registers without a point of her own, it is kept only if she sets one on *Ajusta el punto*, and only that screen sends a point to Google. Google allows *optional* only when every user, on any device, can decline it, and *required* when the app's primary function needs the data (answer 10787469, read 2026-11-03) — her address is that function, her point is not |
+| Is this data required, or can users choose? | **Required** for nine of the eleven — a kitchen cannot be registered without its address, and the rest come with the account and the map. ✅ ***Precise location*: Users can choose whether this data is collected** (`10.4g-ii`, 2026-11-03): since `10.4h` every fonda registers without a point of her own, it is kept only if she sets one on *Ajusta el punto*, and only that screen sends a point to Google. Google allows *optional* only when every user, on any device, can decline it, and *required* when the app's primary function needs the data (answer 10787469, read 2026-11-03) — her address is that function, her point is not. ✅ ***Photos*: Users can choose** (`10.5-ii`): every photo is optional — a page and a dish without one wear her trade's drawing — and none is asked for to register or to publish |
 
 **Why it is collected:**
 
@@ -242,6 +243,7 @@ the aviso (`site/privacidad/cocina-e-itacate/`, section 3) and `site/README.md`'
 | Address | App functionality |
 | Precise location | App functionality |
 | Other user-generated content | App functionality |
+| Photos | App functionality |
 | Device or other IDs | App functionality · Analytics |
 | App interactions | Analytics |
 | Crash logs | Analytics |
@@ -254,8 +256,8 @@ data is used, or for what (its section 11) — before Itacate shows a kitchen to
 asked (Wera declares one ahead of use by the owner's ruling of 2026-10-21 for Wera; nothing ruled
 it for Wera Cocina). *Financial info* — a price she sets for her own dish is her offer, written
 under *Other user-generated content*; nothing is paid in the app and no card or bank detail is
-asked (Google: *"Other financial info: … such as user salary or debts"*). *Photos* — the camera is
-in the build and not used yet (`10.6`). Approximate location, contacts, files, messages, health,
+asked (Google: *"Other financial info: … such as user salary or debts"*). *Videos* — the camera and
+the picker are asked for images only. Approximate location, contacts, files, messages, health,
 web browsing — none read.
 
 ### Data safety — Itacate
@@ -375,7 +377,8 @@ read off this bundle's signature.
 **Nothing here has been entered anywhere.** Wera Cocina has no App Store record yet: `10.5b` makes
 it, with the public release. These answers describe the iPhone store version `10.4g-ii` built —
 1.0.0 build 4, EAS `e1f09169`, kept as `~/RetailerToolDev/wera-builds/cocina-1.0.0-4-produccion-google.ipa`
-— and they change before then if a later build collects anything else (photos come with `10.5-ii`).
+— and they change before then if a later build collects anything else. ✅ **Photos came with `10.5-ii`**
+(2026-11-04) as an update to the same build — the camera and the picker were in it — and are declared below.
 Apple's definitions are its *App privacy details* page, read 2026-11-03. Privacy Policy URL:
 `https://tu-wera.com/privacidad/cocina-e-itacate/`.
 
@@ -389,7 +392,8 @@ Apple's definitions are its *App privacy details* page, read 2026-11-03. Privacy
 | Location → **Precise Location** | App Functionality | Yes | No | Her own point on the map, only if she sets one (six decimals), and the point under the pin sent to Google while she sets it |
 | Identifiers → **User ID** | App Functionality · Analytics | Yes | No | The account's id, and Apple's or Google's for their sign-in; and the user id Google's map declares, for its analytics |
 | Identifiers → **Device ID** | App Functionality · Analytics | Yes | No | The random id each install sends to Expo with its update check (not linked), and the Maps SDK's own, which one of its two manifests calls linked |
-| User Content → **Other User Content** | App Functionality | Yes | No | What she publishes — each dish or bag, its price, count and pickup window — her kitchen's name and its line of directions |
+| User Content → **Other User Content** | App Functionality | Yes | No | What she publishes — each dish or bag, its price, count and pickup window — her kitchen's name and its line of directions; her page's sentence, colour and Google Maps link (`10.5-ii`) |
+| User Content → **Photos or Videos** | App Functionality | Yes | No | Since `10.5-ii`: her page's cover and logo and each dish's photo, taken with the camera or picked in the system picker, cut, made smaller and stripped of where and when it was taken; kept with her kitchen |
 | Usage Data → **Product Interaction** | Analytics | No | No | Google's map: how it is used |
 | Diagnostics → **Crash Data** | Analytics | No | No | Google's map: its crash reports |
 | Diagnostics → **Performance Data** | Analytics | No | No | Google's map |
@@ -410,8 +414,7 @@ in the app's own *Device ID* row.
 and longitude to six decimals and her kitchen may be her home — the reason Play's form declares it
 (section 4), where it is answered *Users can choose*.
 
-**Not declared, and why:** *Photos or Videos* — the camera is in the build and unused until `10.5-ii`,
-which declares it. *Search History* — what she searches for is her own address, declared as *Physical
+**Not declared, and why:** *Search History* — what she searches for is her own address, declared as *Physical
 Address*, as Play's *Address* covers it (Play's *In-app search history* is not ticked either). *Coarse
 Location* — the app reads no location and has no permission for it (`Info.plist` holds no location key,
 read inside build 4). *Phone Number* — no account or kitchen carries one. *Purchases*, *Financial Info*

@@ -290,13 +290,16 @@ list_is() { # kitchen expect-json -> "OK" or why not
   verdict listing "$(status "$out")" "$SCRATCH/list.json" "$COLUMNS" "$LINES_TABLE" "$2"
 }
 # One line under the APP's keys, in their order (`LineBody`): name, description,
-# tags, unit_price, quantity, surprise, usual_price.
+# tags, unit_price, quantity, surprise, usual_price, image_path — the dish's photo
+# since `10.5-ii` (`0076`), a picture in her kitchen's own folder; the bag has none.
 line() { by_names "$LINE_KEYS" "$@"; }
-DISH="$(line '"Comida corrida"' '"Sopa, arroz y guisado del día"' '["pica", "gluten"]' '"65.00"' '4' 'false' 'null')"
-BAG="$(line '"Bolsa de pan"' '"6 piezas de pan dulce"' '[]' '"45.00"' '5' 'true' '"90.00"')"
+DISH_PHOTO="$KITCHEN/$(uuid)"
+DISH="$(line '"Comida corrida"' '"Sopa, arroz y guisado del día"' '["pica", "gluten"]' '"65.00"' '4' 'false' 'null' "\"$DISH_PHOTO\"")"
+BAG="$(line '"Bolsa de pan"' '"6 piezas de pan dulce"' '[]' '"45.00"' '5' 'true' '"90.00"' 'null')"
 # What the list must read back for those two, by the database's columns.
-SENT_LINES='[{"line_no":1,"name":"Comida corrida","description":"Sopa, arroz y guisado del día","tags":["gluten","pica"],"unit_price":65,"quantity":4,"surprise":false,"usual_price":null},
-             {"line_no":2,"name":"Bolsa de pan","description":"6 piezas de pan dulce","tags":[],"unit_price":45,"quantity":5,"surprise":true,"usual_price":90}]'
+SENT_LINES="$(python3 -c 'import json,sys; print(json.dumps([
+  {"line_no":1,"name":"Comida corrida","description":"Sopa, arroz y guisado del día","tags":["gluten","pica"],"unit_price":65,"quantity":4,"surprise":False,"usual_price":None,"image_path":sys.argv[1]},
+  {"line_no":2,"name":"Bolsa de pan","description":"6 piezas de pan dulce","tags":[],"unit_price":45,"quantity":5,"surprise":True,"usual_price":90,"image_path":None}]))' "$DISH_PHOTO")"
 publish() { # id place start end lines-json -> the response
   api POST "/rest/v1/rpc/$PUBLISH" "$(by_names "$PUBLISH_ARGS" "\"$1\"" "\"$2\"" "\"$3\"" "\"$4\"" "$5")"
 }

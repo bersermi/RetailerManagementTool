@@ -3,13 +3,15 @@ import { useRef, useState } from 'react';
 import { ActivityIndicator, Keyboard, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { useKitchen, useListings, usePlace, usePublish } from '@/api/hooks';
+import { newPicturePath } from '@/api/fotos';
+import { useKitchen, useListings, usePage, usePlace, usePublish } from '@/api/hooks';
 import type { Kitchen } from '@/api/kitchen';
 import {
   MAX_LINES,
   attemptFor,
   checkLines,
   emptyLine,
+  fotosPorSubir,
   issueSentence,
   publishArgs,
   publishBody,
@@ -18,6 +20,8 @@ import {
   type LineDraft,
   type Listing,
 } from '@/api/listing';
+import { EMPTY_PAGE, colorOf, defaultsFor } from '@/api/pagina';
+import { elegirFoto, tomarFoto } from '@/lib/foto';
 import { newId } from '@/lib/ids';
 import { checkVentana, firstVentana, type Ventana } from '@/lib/ventana';
 import { ES } from '@/strings';
@@ -55,6 +59,12 @@ import { TecladoListo } from '@/ui/TecladoListo';
 // ⚠️ AT HER KITCHEN'S OWN PLACE — `usePlace(kitchen.id)`, the read filtered on
 // the kitchen (`@/api/place`): `publish_listing` refuses a shop's store
 // (`TD013`), and a login with a shop could otherwise send it.
+//
+// ⚠️ `10.5-ii`: A PHOTO PER DISH. *Tomar foto* or *Elegir* on a line makes the
+// photo's path at once — so the body, and with it the attempt's id, changes once
+// and a retry sends the same photo — and the photos go up when she presses
+// *Publicar*, before the call that names them (`usePublish`). A dish with no
+// photo wears her kitchen's drawing on her page's colour.
 // ============================================================================
 
 const PAD = 'publicar-numeros';
@@ -95,6 +105,10 @@ function salir() {
 function Form({ kitchen, placeId, source }: { kitchen: Kitchen; placeId: string; source: Listing | null }) {
   const insets = useSafeAreaInsets();
   const { publish, busy } = usePublish(kitchen.id);
+  const page = usePage(kitchen.id);
+  const fondo = { dibujo: defaultsFor(kitchen.giroPrincipal).dibujo, color: colorOf(page.data ?? EMPTY_PAGE, kitchen.giroPrincipal) };
+  const [notas, setNotas] = useState<Record<string, string | null>>({});
+  const [abierta, setAbierta] = useState(false);
   const [start] = useState(() => (source === null ? null : repeatDraft(source, new Date(), newId)));
   const [lines, setLines] = useState<LineDraft[]>(() => start?.lines ?? [emptyLine(newId())]);
   const [ventana, setVentana] = useState<Ventana>(() => start?.ventana ?? firstVentana(new Date()));
@@ -105,8 +119,25 @@ function Form({ kitchen, placeId, source }: { kitchen: Kitchen; placeId: string;
     setLines((now) => now.map((line) => (line.key === key ? { ...line, ...update(line), key } : line)));
   }
 
+  async function foto(key: string, tomar: boolean) {
+    if (busy || abierta) return;
+    setAbierta(true);
+    try {
+      const outcome = tomar ? await tomarFoto('platillo') : await elegirFoto('platillo');
+      if (outcome.kind === 'tomada') {
+        const path = newPicturePath(kitchen.id, newId());
+        change(key, () => ({ foto: { kind: 'nueva', path, archivos: outcome.archivos } }));
+        setNotas((now) => ({ ...now, [key]: null }));
+      } else if (outcome.kind !== 'cancelada') {
+        setNotas((now) => ({ ...now, [key]: outcome.kind === 'denegada' ? ES.foto.denegada : ES.foto.fallo }));
+      }
+    } finally {
+      setAbierta(false);
+    }
+  }
+
   async function publicar() {
-    if (busy) return;
+    if (busy || abierta) return;
     Keyboard.dismiss();
     const issue = checkLines(lines);
     if (issue !== null) return setProblem(issueSentence(issue, lines));
@@ -114,7 +145,7 @@ function Form({ kitchen, placeId, source }: { kitchen: Kitchen; placeId: string;
     if (late !== null) return setProblem(ES.publicar.errores.ventana[late]);
     const body = publishBody(placeId, lines, ventana);
     attempt.current = attemptFor(attempt.current, body, newId);
-    const answer = await publish(publishArgs(attempt.current, body));
+    const answer = await publish(publishArgs(attempt.current, body), fotosPorSubir(lines));
     setProblem(answer);
     if (answer === null) salir();
   }
@@ -144,8 +175,11 @@ function Form({ kitchen, placeId, source }: { kitchen: Kitchen; placeId: string;
             n={i + 1}
             onChange={(update) => change(line.key, update)}
             onRemove={lines.length > 1 ? () => setLines((now) => now.filter((l) => l.key !== line.key)) : null}
-            editable={!busy}
+            editable={!busy && !abierta}
             padId={PAD}
+            fondo={fondo}
+            nota={notas[line.key] ?? null}
+            onFoto={(tomar) => void foto(line.key, tomar)}
           />
         ))}
         {lines.length < MAX_LINES && (
