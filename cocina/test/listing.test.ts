@@ -58,8 +58,11 @@ import { ES } from '@/strings';
 // retry is one publication and a second kitchen's stay out — is
 // `docs/checks/10.4b-iv-a-listing-contract.sh`, which reads them out of
 // `src/api/listing.ts`. Here: the values, the rules the form checks before
-// anything is sent — held to `0072`'s TEXT, where the database's own rule is
-// written, so the two cannot drift apart unseen — and the wiring.
+// anything is sent — held to the migrations' TEXT, where the database's own rule
+// is written, so the two cannot drift apart unseen — and the wiring. ⚠️ Since
+// `0076` (plan `10.5-i-a`) `publish_listing`'s body is `0076`'s: re-created with
+// its signature unchanged and a photo per line, every limit `0072`'s character for
+// character; the table's tag check and the two names stay `0072`'s.
 // ============================================================================
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
@@ -67,7 +70,11 @@ const SRC = join(ROOT, 'src');
 const strip = (text: string) => text.replace(/^\s*\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '');
 const code = (path: string) => strip(readFileSync(join(SRC, path), 'utf8'));
 const MIGRATION = readFileSync(join(ROOT, '../supabase/migrations/0072_a_kitchen_publishes.sql'), 'utf8');
-const PUBLISH_BODY = MIGRATION.slice(MIGRATION.indexOf('create function public.publish_listing('), MIGRATION.indexOf('create function public.withdraw_listing('));
+const LATEST = readFileSync(join(ROOT, '../supabase/migrations/0076_a_kitchens_own_page.sql'), 'utf8');
+const PUBLISH_BODY = LATEST.slice(
+  LATEST.indexOf('create or replace function public.publish_listing('),
+  LATEST.indexOf('comment on function public.publish_listing('),
+);
 
 const line = (patch: Partial<LineDraft> = {}): LineDraft => ({
   ...emptyLine('k1'),
@@ -112,7 +119,7 @@ describe('her list, as the app asks for it', () => {
   });
 });
 
-describe('the database’s rules, as `0072` writes them', () => {
+describe('the database’s rules, as `0072` and `0076` write them', () => {
   it('the six tags are the migration’s list, in its order', () => {
     const list = /v_known\s+constant text\[\] := array\[([^\]]+)\]/.exec(PUBLISH_BODY)?.[1] ?? '';
     expect(list.split(',').map((t) => t.trim().replace(/'/g, ''))).toEqual([...TAGS]);

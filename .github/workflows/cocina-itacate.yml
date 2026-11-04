@@ -38,11 +38,13 @@ on:
       # (ADR-035 §2.11 — its first dependency on a workspace package), draws it with
       # a copy of Wera's formatter that its suite runs beside Wera's file, cleans a
       # typed price as Wera's `catalogWrite.ts` does, and holds the form's limits to
-      # the text of `0072`, where the database's own are written.
+      # the text of `0072` and `0076`, where the database's own are written —
+      # `publish_listing`'s body is `0076`'s since `10.5-i-a`.
       - "packages/money/**"
       - "app/src/format/mxn.ts"
       - "app/src/api/catalogWrite.ts"
       - "supabase/migrations/0072_a_kitchen_publishes.sql"
+      - "supabase/migrations/0076_a_kitchens_own_page.sql"
       # ⚠️ `10.4b-iv-b`, *¿OLVIDASTE TU CONTRASEÑA?*: Cocina's copy of Wera's
       # support link is run beside Wera's file, and every `EXPO_PUBLIC_` value its
       # source reads is held to the update runbook's list for `--app cocina`.

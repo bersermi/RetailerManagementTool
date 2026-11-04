@@ -358,6 +358,19 @@ select gen_random_uuid(), x.id, x.workspace_id, x.location_id, 1,
   from public.listing x
  where x.workspace_id in (select ws_id from iso_actor);
 
+-- ⚠️ AND `kitchen_page`, ADDED 2026-11-03 WITH `0076` (plan `10.5-i-a`) — the
+-- SEVENTH tenant table the seed leaves empty, and the same answer: one page per
+-- workspace, written as postgres. Every member reads it (`my_workspaces()`). The
+-- seed's two businesses are shops; the TABLE does not ask the kind (only
+-- `set_kitchen_page` does), so a shop's row tests the wall as well as a
+-- kitchen's would.
+create temp table iso_kitchen_page_before as
+select count(*)::int as n from public.kitchen_page;
+
+insert into public.kitchen_page (workspace_id, sentence, updated_by)
+select a.ws_id, 'Comida casera pgtap-3.2b-' || a.tag, a.user_id
+from iso_actor a;
+
 -- ---------------------------------------------------------------------------
 -- Classification — 02's, plus the two columns a WRITE suite needs
 --
@@ -706,14 +719,14 @@ end;
 $$;
 
 -- ---------------------------------------------------------------------------
--- The plan is COMPUTED from what was measured, never hardcoded: 17 fixed tests,
+-- The plan is COMPUTED from what was measured, never hardcoded: 24 fixed tests,
 -- one per grant-wall pair, one per cross-tenant measurement and one per control,
 -- one per move, one per append-only probe. A table or a grant added by a future
 -- migration is measured and asserted the day it lands. F1 and F5 are what stop
 -- that arithmetic from being satisfied by measuring nothing.
 -- ---------------------------------------------------------------------------
 select plan(
-  23
+  24
   + (select count(*)::int from iso_grant)
   + (select count(*)::int from iso_cross)
   + (select count(*)::int from iso_own)
@@ -835,6 +848,10 @@ select is((select n from iso_collection_request_before), 0,
 -- F10e. THE SAME, FOR THE TWO TABLES `0072` ADDED.
 select is((select n from iso_listing_before), 0,
   'F10e listing and listing_line were empty in the seed; this suite supplied their rows');
+
+-- F10f. THE SAME, FOR THE TABLE `0076` ADDED.
+select is((select n from iso_kitchen_page_before), 0,
+  'F10f kitchen_page was empty in the seed; this suite supplied its own rows');
 
 -- F11. NO MEASUREMENT ANYWHERE CAME BACK `unclassified`. THIS IS THE ONE THAT
 -- GUARDS THE OTHER SIXTEEN. Two of the three refusals share sqlstate 42501 and

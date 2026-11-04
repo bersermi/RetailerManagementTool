@@ -68,9 +68,15 @@ signed_in (proname) as (values
   -- her address first (`0075`, plan `10.4h`): her line of directions with no
   -- pin, and her own pin cleared — the owner's alone, as her pin is
   ('set_store_directions'), ('clear_store_pin'),
+  -- a kitchen's own page (`0076`, plan `10.5-i-a`): the owner or a manager
+  -- changes the fields she sends
+  ('set_kitchen_page'),
   -- what a policy, a check or a computed column runs as the caller
   ('catalog_image_path'), ('has_role'), ('merma_path_ok'), ('my_locations'),
   ('my_role'), ('my_workspaces'), ('normalize_name'), ('photo_folder_ok'),
+  -- the bucket `cocina`'s fence (`0076`): Storage runs its two policies as the
+  -- caller, and it answers whether a path's first folder is a kitchen that exists
+  ('kitchen_folder_ok'),
   -- what a trigger runs as the writer: `purging_workspace` is called inside
   -- three trigger functions, so a manager's own product or supplier edit
   -- needs it; the other two are trigger functions that were never revoked
