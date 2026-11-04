@@ -54,8 +54,10 @@ if ! eas whoami >/dev/null 2>&1; then
   echo "  REFUSED: this Mac is not logged in to Expo. Run: npx eas-cli login" >&2
   exit 1
 fi
-cocina="$(listing cocina)"
-itacate="$(listing itacate)"
+if ! cocina="$(listing cocina)" || ! itacate="$(listing itacate)"; then
+  echo "  REFUSED: could not read the two projects' EAS environments (npx eas-cli env:list). Nothing changed." >&2
+  exit 1
+fi
 for name in $NEEDED; do
   from="$(value_of "$name" "$cocina")"
   if [[ -z "$from" ]]; then
@@ -75,7 +77,10 @@ for name in $NEEDED; do
     fi
   fi
 done
-itacate="$(listing itacate)"
+if ! itacate="$(listing itacate)"; then
+  echo "  REFUSED: could not read Itacate's EAS environment back (npx eas-cli env:list)." >&2
+  exit 1
+fi
 for name in $NEEDED; do
   from="$(value_of "$name" "$cocina")"
   have="$(value_of "$name" "$itacate")"
@@ -121,7 +126,10 @@ if [[ "$wanted" != "$current" && "$mode" != "--check" ]]; then
     exit 1
   fi
 fi
-after="$(read_auth)"
+if ! after="$(read_auth)"; then
+  echo "  FAIL  could not read the hosted project's sign-in settings back" >&2
+  exit 1
+fi
 node -e '
   const c = JSON.parse(process.argv[1]), id = process.argv[2];
   const ids = (c.external_apple_client_id || "").split(","), uris = (c.uri_allow_list || "").split(",");
