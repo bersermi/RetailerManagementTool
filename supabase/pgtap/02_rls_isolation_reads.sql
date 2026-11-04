@@ -219,6 +219,19 @@ select gen_random_uuid(), x.id, x.workspace_id, x.location_id, 1,
   from public.listing x
  where x.workspace_id in (select ws_id from iso_actor);
 
+-- ⚠️ AND `kitchen_page`, ADDED 2026-11-03 WITH `0076` (plan `10.5-i-a`) — the
+-- SEVENTH tenant table the seed leaves empty, and the same answer: one page per
+-- workspace, written as postgres. Every member reads it (`my_workspaces()`). The
+-- seed's two businesses are shops; the TABLE does not ask the kind (only
+-- `set_kitchen_page` does), so a shop's row tests the wall as well as a
+-- kitchen's would.
+create temp table iso_kitchen_page_before as
+select count(*)::int as n from public.kitchen_page;
+
+insert into public.kitchen_page (workspace_id, sentence, updated_by)
+select a.ws_id, 'Comida casera pgtap-3.2a-' || a.tag, a.user_id
+from iso_actor a;
+
 -- ---------------------------------------------------------------------------
 -- Classification, stated so that a new table cannot slip through unmeasured
 --
@@ -361,13 +374,13 @@ end;
 $$;
 
 -- ---------------------------------------------------------------------------
--- The plan is COMPUTED from what was measured, never hardcoded: 10 fixed tests,
+-- The plan is COMPUTED from what was measured, never hardcoded: 15 fixed tests,
 -- 4 per tenant table, 1 per table in `public` for the anon pass. A tenant table
 -- added by a future migration is measured and asserted the day it lands. F1 is
 -- what stops that arithmetic from being satisfied by measuring nothing.
 -- ---------------------------------------------------------------------------
 select plan(
-  14
+  15
   + 4 * (select count(*)::int from iso_read)
   + (select count(*)::int from iso_anon)
 );
@@ -474,6 +487,10 @@ select is((select n from iso_collection_request_before), 0,
 -- `listing` and `listing_line`.
 select is((select n from iso_listing_before), 0,
   'F14 listing and listing_line were empty in the seed; this suite supplied their rows');
+
+-- F15. THE SEVENTH EMPTY TENANT TABLE, F11's argument for `0076`'s `kitchen_page`.
+select is((select n from iso_kitchen_page_before), 0,
+  'F15 kitchen_page was empty in the seed; this suite supplied its own rows');
 
 -- ---------------------------------------------------------------------------
 -- Per tenant table, both directions

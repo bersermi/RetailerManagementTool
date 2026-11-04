@@ -96,9 +96,11 @@ select chk('2.1 one message, to the vault''s webhook, by POST',
        and (select method::text from net.http_request_queue where id > :q1) = 'POST',
            coalesce((select string_agg(url, ' ') from public._enviados(:q1)), 'none'));
 
-select chk('2.2 it says how she signed up and how many accounts there are now',
+-- ⚠️ RE-WORDED BY `0076` (plan `10.5-i-a`): one login, three apps, so the line
+-- names no app — it said *Nueva cuenta en Wera* until then.
+select chk('2.2 it says how she signed up and how many accounts there are now, and names no app',
            (select content from public._enviados(:q1))
-             = format('👤 Nueva cuenta en Wera (con Google). Ya son %s cuentas.', :cuentas),
+             = format('👤 Nueva cuenta (con Google). Ya son %s cuentas.', :cuentas),
            coalesce((select content from public._enviados(:q1)), 'none'));
 
 select chk('2.3 it names nobody — no name, no email',
@@ -144,7 +146,7 @@ insert into auth.users (id, email, raw_app_meta_data)
 values (:pepe, 'pepe.0070@example.mx', '{"provider":"email"}');
 
 select chk('4.1 an email signup says «con correo»',
-           (select content from public._enviados(:q3)) like '👤 Nueva cuenta en Wera (con correo). Ya son % cuentas.',
+           (select content from public._enviados(:q3)) like '👤 Nueva cuenta (con correo). Ya son % cuentas.',
            coalesce((select content from public._enviados(:q3)), 'none'));
 
 -- ---------------------------------------------------------------------------

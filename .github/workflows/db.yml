@@ -476,6 +476,8 @@ on:
       # the shop's own column and Wera's computed one, against the app's own names.
       - "docs/checks/8o-photos-contract.sh"
       - "docs/checks/8o-photos-contract-falsify.sh"
+      - "docs/checks/10.5-i-a-kitchen-photos-contract.sh"
+      - "docs/checks/10.5-i-a-kitchen-photos-contract-falsify.sh"
       - "docs/checks/7a-sales-contract.sh"
       - "docs/checks/7a-sales-contract-falsify.sh"
       - "docs/checks/7d-month-export-contract.sh"
@@ -1211,6 +1213,18 @@ jobs:
 
       - name: Falsify it — four broken names and two broken policies, each red for its reason
         run: bash docs/checks/8o-photos-contract-falsify.sh
+
+      # ⚠️⚠️ AND THE KITCHENS' PHOTOS — plan task `10.5-i-a`, `0076` — APPENDED to this
+      # job because it is the one that starts Storage and already drives `0063`'s
+      # buckets, whose shape the bucket `cocina` takes. Its walls are only real over
+      # the Storage API: the owner and managers of a KITCHEN write in her folder,
+      # anyone signed in reads while the kitchen EXISTS, nobody signed out, pictures
+      # only, nothing overwritten or deleted. No app names the bucket until `10.5-ii`.
+      - name: Contract — the kitchens' photos, their walls over the real Storage API (plan 10.5-i-a)
+        run: bash docs/checks/10.5-i-a-kitchen-photos-contract.sh
+
+      - name: Falsify it — nine broken walls of the bucket, each red for its reason
+        run: bash docs/checks/10.5-i-a-kitchen-photos-contract-falsify.sh
 
       - name: Stop
         if: always()
