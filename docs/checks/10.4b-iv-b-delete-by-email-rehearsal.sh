@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # ============================================================================
 # DOES THE DELETION ASKED FOR BY EMAIL STILL DELETE WHAT IT SAYS, AND REFUSE
-# WHAT IT MUST? Plan task `10.4b-iv-b`.
+# WHAT IT MUST? Plan task `10.4b-iv-b` — and, since `10.5-iii-c`, the deletion of
+# ONE KITCHEN asked for by email, the account kept (`delete-a-kitchen.sh`, `0077`).
 #
 #   bash docs/checks/10.4b-iv-b-delete-by-email-rehearsal.sh            # every case (it prints the count)
 #   bash docs/checks/10.4b-iv-b-delete-by-email-rehearsal.sh --falsify  # broken copies, each red for its reason
@@ -10,7 +11,12 @@
 # `docs/runbooks/delete-an-account.sh --local` exactly as the owner runs it on
 # the hosted project, as five people — a kitchen alone, a shop and a kitchen, a
 # shop alone, a co-owner of a shop, nobody — and reads every answer back from
-# the database itself, never from what the runbook printed.
+# the database itself, never from what the runbook printed. And
+# `docs/runbooks/delete-a-kitchen.sh --local` as one more person, who owns a shop
+# and two kitchens: her kitchens listed and never her shop, a shop's name and a
+# name with an accent refused, the line it printed for one kitchen run as printed
+# — that kitchen gone, her login, her shop and her other kitchen kept — and the
+# same line again refused.
 #
 # WHY IT EXISTS. The runbook is the only way out without the app, and the aviso
 # and both deletion pages promise it (Google requires one). It is run by hand,
@@ -31,9 +37,11 @@ set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd)"
 root="$(cd "$here/../.." && pwd)"
 runbook="$root/docs/runbooks/delete-an-account.sh"
+kitchen_runbook="$root/docs/runbooks/delete-a-kitchen.sh"
 mode="${1:-}"
 [[ -z "$mode" || "$mode" == "--falsify" ]] || { echo "usage: bash docs/checks/10.4b-iv-b-delete-by-email-rehearsal.sh [--falsify]" >&2; exit 2; }
 [[ -f "$runbook" ]] || { echo "no runbook at $runbook" >&2; exit 2; }
+[[ -f "$kitchen_runbook" ]] || { echo "no runbook at $kitchen_runbook" >&2; exit 2; }
 command -v supabase >/dev/null || { echo "the Supabase CLI is not on PATH" >&2; exit 2; }
 cd "$root"
 
@@ -114,6 +122,14 @@ fixtures() {
   sql "insert into public.workspace_member (workspace_id, user_id, role, display_name, is_active)
        values ('$s_d', '$u_d', 'owner', 'Rehearsal socia', true) returning id::text as id;" id >/dev/null || return 1
   u_f="$(login nada)" || return 1
+  # `10.5-iii-c`: a shop and two kitchens, all hers alone. ⚠️ The kitchen the cases
+  # delete sorts SECOND by name, so a runbook that took the first row it listed
+  # would send the other kitchen's id — and the server would refuse the name.
+  shop_g="Abarrotes Gabi $tag"
+  kitchen_g="Cocina D'Gabi $tag"
+  kitchen_g2="Antojitos Gabi $tag"
+  u_g="$(login tres)" && s_g="$(business "$u_g" "$shop_g" tienda)" \
+    && k_g="$(business "$u_g" "$kitchen_g" cocina)" && k_g2="$(business "$u_g" "$kitchen_g2" cocina)" || return 1
 }
 
 # One case: the runbook's exit code, a sentence it printed, and what the
@@ -131,6 +147,7 @@ check() { # name want-exit text readback-command want-readback
   fi
 }
 run() { out="$(bash "$book" "$@" 2>&1)"; code=$?; }
+run_kitchen() { out="$(bash "$kbook" "$@" 2>&1)"; code=$?; }
 
 N_NOBODY="an email with no account is refused, and nothing changes"
 N_KITCHEN_ASKED="a kitchen alone, asked for without its name, is refused and named as a kitchen"
@@ -142,10 +159,17 @@ N_APOSTROPHE="a kitchen's name with an apostrophe, typed in another case and spa
 N_SHOP_ALONE="a shop alone and one --shop, as before this row, deletes both"
 N_COOWNER="a co-owner needs no name: her login goes, the shop stays, her name stays on it"
 N_NOTHING="an account with no business goes with no name, its email typed in capitals"
+K_NOBODY="the kitchen's runbook: an email with no account is refused, and nothing changes"
+K_ASKED="no kitchen named: her two kitchens listed, never her shop, and nothing changes"
+K_SHOP="her shop's name is no kitchen's: refused, and nothing changes"
+K_ACCENT="her kitchen's name with an accent added: refused — accents count — and nothing changes"
+K_PRINTED="the line it printed for one kitchen, run as printed: that kitchen gone, her login, her shop and her other kitchen kept"
+K_AGAIN="the same line again: refused — no kitchen of hers is called that any more — and nothing else changes"
 
-cases() {
+cases() { # account-runbook kitchen-runbook
   book="$1"
-  local again args
+  kbook="$2"
+  local again args listed
 
   run "$(mail ninguna)" --local
   check "$N_NOBODY" 1 "NOTHING CHANGED: no account has the email" "users_with $(mail ninguna)" "0"
@@ -186,6 +210,36 @@ cases() {
 
   run "$(mail nada | tr '[:lower:]' '[:upper:]')" --local
   check "$N_NOTHING" 0 "businesses deleted: 0" "users_with $(mail nada)" "0"
+
+  # --- one kitchen alone, the account kept (`10.5-iii-c`) ---
+  local everything="users_with $(mail tres); business_left $k_g; business_left $k_g2; business_left $s_g"
+
+  run_kitchen "$(mail ninguna)" --local
+  check "$K_NOBODY" 1 "NOTHING CHANGED: no account has the email" "users_with $(mail ninguna)" "0"
+
+  run_kitchen "$(mail tres)" --local
+  listed="$out"
+  check "$K_ASKED" 1 "is the ONLY owner of 2 kitchen(s)" "$everything" "1 1 1 1"
+  if grep -qF -- "$shop_g" <<<"$listed"; then echo "  FAIL  $K_ASKED (her shop was listed as a kitchen)"; fi
+
+  run_kitchen "$(mail tres)" --kitchen "$shop_g" --local
+  check "$K_SHOP" 1 "no kitchen $(mail tres) alone owns is called" "$everything" "1 1 1 1"
+
+  run_kitchen "$(mail tres)" --kitchen "Cocina D'Gabí $tag" --local
+  check "$K_ACCENT" 1 "no kitchen $(mail tres) alone owns is called" "$everything" "1 1 1 1"
+
+  # The line the owner would paste for that kitchen, as printed, read the way his
+  # shell reads it, handed to the runbook under test.
+  again="$(grep -F -- "Gabi $tag" <<<"$listed" | grep -m1 -F -- "D'" | sed 's/^    bash docs\/runbooks\/delete-a-kitchen.sh //')"
+  if [[ -z "$again" ]] || ! eval "args=($again)"; then
+    out="(no line for the kitchen was printed)"; code=99
+  else
+    run_kitchen "${args[@]}"
+  fi
+  check "$K_PRINTED" 0 "Done on the LOCAL database" "$everything" "1 0 1 1"
+
+  if [[ -n "$again" ]] && eval "args=($again)"; then run_kitchen "${args[@]}"; else out="(no line)"; code=99; fi
+  check "$K_AGAIN" 1 "no kitchen $(mail tres) alone owns is called" "$everything" "1 0 1 1"
 }
 
 tally() { # cases-output
@@ -197,31 +251,32 @@ tally() { # cases-output
 
 if [[ -z "$mode" ]]; then
   fixtures || { echo "could not make the fixtures (above) — is \`supabase start\` up, with the migrations applied?" >&2; exit 2; }
-  result="$(cases "$runbook")"
+  result="$(cases "$runbook" "$kitchen_runbook")"
   echo "$result"
   read -r red green <<<"$(tally "$result")"
   echo
   if [[ "$red" -ne 0 ]]; then
-    echo "$red of $((red + green)) case(s) failed — delete-an-account.sh no longer does what its header says."
+    echo "$red of $((red + green)) case(s) failed — delete-an-account.sh or delete-a-kitchen.sh no longer does what its header says."
     exit 1
   fi
-  echo "all $green cases passed — the deletion by email refuses what it must and deletes what it names."
+  echo "all $green cases passed — the deletion by email, of an account or of one kitchen, refuses what it must and deletes what it names."
   exit 0
 fi
 
 # --- --falsify: a broken copy must turn the case that guards it red ---------
 bad=0
 tried=0
-broken() { # name from to must-fail
-  local name="$1" from="$2" to="$3" must_fail="$4"
-  local copy="$scratch/broken.sh"
+broken() { # name from to must-fail [which: account|kitchen]
+  local name="$1" from="$2" to="$3" must_fail="$4" which="${5:-account}"
+  local copy="$scratch/broken.sh" real="$runbook"
+  [[ "$which" == kitchen ]] && real="$kitchen_runbook"
   tried=$((tried + 1))
   FROM="$from" TO="$to" node -e '
     const fs = require("fs");
     const s = fs.readFileSync(process.argv[1], "utf8");
     fs.writeFileSync(process.argv[2], s.split(process.env.FROM).join(process.env.TO));
-  ' "$runbook" "$copy"
-  if cmp -s "$runbook" "$copy"; then
+  ' "$real" "$copy"
+  if cmp -s "$real" "$copy"; then
     echo "  FAIL  $name — the breakage did not apply; the runbook no longer has: $from"
     bad=$((bad + 1))
     return
@@ -233,7 +288,7 @@ broken() { # name from to must-fail
     return
   fi
   local result
-  result="$(cases "$copy")"
+  if [[ "$which" == kitchen ]]; then result="$(cases "$runbook" "$copy")"; else result="$(cases "$copy" "$kitchen_runbook")"; fi
   if grep -qF -- "  FAIL  $must_fail" <<<"$result"; then
     echo "  ok    $name — red on: $must_fail"
   else
@@ -251,6 +306,14 @@ broken "a co-owned shop counted as hers" \
   'and o.user_id <> who.id)' 'and o.user_id <> who.id and false)' "$N_COOWNER"
 broken "the printed names left unquoted" \
   "again+=\" --shop '\${name//\$q/\$q\$bs\$q\$q}'\"" 'again+=" --shop ${name}"' "$N_PRINTED"
+# `10.5-iii-c`: the kitchen's runbook.
+broken "the kitchen's: the first kitchen listed taken, not the one named" \
+  '$2 == "yes" { print $1; exit }' '$1 != "" { print $1; exit }' "$K_PRINTED" kitchen
+broken "the kitchen's: a shop counted among her kitchens" \
+  "where wm.is_active and wm.role = 'owner' and w.kind = 'cocina'" \
+  "where wm.is_active and wm.role = 'owner'" "$K_SHOP" kitchen
+broken "the kitchen's: the typed name sent unquoted" \
+  'typed_sql="${typed//$q/$q$q}"' 'typed_sql="$typed"' "$K_PRINTED" kitchen
 
 echo
 if [[ "$bad" -ne 0 ]]; then

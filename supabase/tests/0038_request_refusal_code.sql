@@ -538,12 +538,16 @@ select chk(
 -- code will read this file's siblings and not `supabase/README.md`. `TD007` was
 -- minted by `0053` (5R-c) for `delete_my_account`'s shop-name refusal, and only
 -- there; `TD008` is the next slot. If this goes red, somebody has minted one
--- without saying so.
+-- without saying so. ⚠️ RE-CUT 2026-11-04 (`0077`, plan `10.5-iii-c`): a kitchen
+-- deleted alone refuses a typed name that does not match with the SAME code —
+-- `delete_my_business` beside `delete_my_account`, one meaning behind two doors,
+-- so an app reads `TD007` one way wherever it meets it. A third function wearing
+-- it is still red here.
 select chk(
-  '7.2 TD007 is delete_my_account''s alone, and TD008 is request_collection''s (0059)',
+  '7.2 TD007 is the two deletions'' typed-name refusal — delete_my_account (0053) and delete_my_business (0077) — and TD008 is request_collection''s (0059)',
   (select coalesce(array_agg(proname::text order by proname), '{}') from pg_proc
     where pronamespace = 'public'::regnamespace and prosrc like '%TD007%')
-    = array['delete_my_account']::text[]
+    = array['delete_my_account', 'delete_my_business']::text[]
   and (select coalesce(array_agg(proname::text order by proname), '{}') from pg_proc
     where pronamespace = 'public'::regnamespace and prosrc like '%TD008%')
     = array['request_collection']::text[],

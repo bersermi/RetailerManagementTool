@@ -1,6 +1,7 @@
 // ============================================================================
 // SHE DELETES HER ACCOUNT, AS A CONTRACT WITH POSTGRES — AND APPLE IS TOLD
-// WHICH APP ASKED. Plan task `10.4b-iii-c`.
+// WHICH APP ASKED. Plan task `10.4b-iii-c`. And, since `10.5-iii-c`, she deletes
+// ONE KITCHEN and keeps the account (`0077`, the section before Apple's).
 //
 // ⚠️ WERA'S RULES, COPIED (`app/src/api/account.ts`, plans `5R-c`, `5R-k` and
 // `10.4b-i`, whose header carries the reasons) and cut to this app. What goes
@@ -225,6 +226,64 @@ export function deleteErrorMessage(error: unknown): string {
   if (typeof error === 'object' && error !== null && (error as { code?: unknown }).code === NAME_MISMATCH_CODE) {
     return ES.account.errors.listChanged;
   }
+  return apiErrorMessage(error);
+}
+
+// ----------------------------------------------------------------------------
+// HER KITCHEN DELETED ALONE — `10.5-iii-c`, `0077`. The owner's ruling of
+// 2026-11-04: *Eliminar esta cocina* beside *Eliminar mi cuenta*, the kitchen's
+// name typed; her login — Itacate's and Wera's too — and every other business
+// she owns stay, and nothing is told to Apple (no login goes, so no sheet).
+//
+// ⚠️ OFFERED ONLY FOR THE KITCHEN OPEN HERE, AND ONLY ONCE THE OWNERS READ SAYS
+// IT IS HERS ALONE (`kitchenAlone`): the server refuses anything else (`TD012`
+// not hers alone, `TD013` a shop), and a button that can only be refused is not
+// offered. The same one read as *Eliminar mi cuenta*, so the two never disagree.
+//
+// ⚠️ NOT IN ITACATE'S COPY: Itacate opens no kitchen. These names are this
+// app's alone, so the contract check reads them out of this file and holds
+// nothing of Itacate's to them.
+// ----------------------------------------------------------------------------
+
+/** `0077`'s function: one business she alone owns, after its typed name — a kitchen, here. */
+export const DELETE_MY_BUSINESS = 'delete_my_business';
+
+/** `0077`'s refusal of a business that is not hers alone — none such, not an owner, or shared. */
+export const NOT_HERS_ALONE_CODE = 'TD012';
+
+/** The arguments, by the name PostgREST matches on: which kitchen, and the name she typed. */
+export interface DeleteBusinessArgs {
+  readonly p_workspace_id: string;
+  readonly p_business_name: string;
+}
+
+/**
+ * The kitchen open here, when the owners read says she is its only active owner
+ * — the one kitchen this screen may delete alone — else `null`: the read is out,
+ * nothing is open (where a kitchen is made), or another owner shares it.
+ */
+export function kitchenAlone(goes: readonly Business[] | null, openKitchenId: string | null): Business | null {
+  if (goes === null || openKitchenId === null) return null;
+  return goes.find((business) => business.id === openKitchenId && business.kind === 'cocina') ?? null;
+}
+
+/** The body: the kitchen's id and what she typed, as typed — the server folds it (`normalize_name`). */
+export function deleteKitchenArgs(kitchen: Business, typed: string): DeleteBusinessArgs {
+  return { p_workspace_id: kitchen.id, p_business_name: typed };
+}
+
+/**
+ * The Spanish sentence for a refused kitchen deletion. ⚠️ `TD007` HERE MEANS THE
+ * NAME MOVED: the button enables only once the box matches the name the owners
+ * read gave, so the server finding another means it changed since. `TD012` means
+ * the kitchen is not hers alone — or no longer exists, when an answer that it was
+ * deleted was lost on the way back: the hook reads her kitchens again either way,
+ * and the guard moves her if it is gone.
+ */
+export function deleteKitchenErrorMessage(error: unknown): string {
+  const code = typeof error === 'object' && error !== null ? (error as { code?: unknown }).code : undefined;
+  if (code === NAME_MISMATCH_CODE) return ES.kitchenDeletion.errors.nameChanged;
+  if (code === NOT_HERS_ALONE_CODE) return ES.kitchenDeletion.errors.notHersAlone;
   return apiErrorMessage(error);
 }
 

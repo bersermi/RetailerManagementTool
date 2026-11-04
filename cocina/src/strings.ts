@@ -345,6 +345,29 @@ export const ES = {
       listChanged: 'La lista de tus negocios cambió. Revísala y escribe otra vez cada nombre.',
     },
   },
+  /**
+   * ⚠️ *ELIMINAR ESTA COCINA* — this app's own words (`10.5-iii-c`, `0077`, the
+   * owner's ruling of 2026-11-04): Wera has no such deletion, so nothing here is
+   * held to Wera's file. What goes is the deletion page's list, cut to a screen;
+   * what stays is the one login. The box's label, *Eliminando…* and *Cancelar*
+   * are `account`'s, Wera's words.
+   */
+  kitchenDeletion: {
+    open: 'Eliminar esta cocina',
+    /** What goes. ⚠️ The photos are in "todo lo que tiene"; when they are deleted is the aviso's. */
+    warning:
+      'Se borra esta cocina completa, con todo lo que tiene: su dirección, su punto en el mapa, ' +
+      'su página en Itacate y lo que publicó. No se puede deshacer.',
+    /** What stays: the login, which is the same in the three apps. */
+    keeps: 'Tu cuenta sigue: entras con ella a Wera Cocina, a Itacate y a Wera, y puedes registrar otra cocina.',
+    confirm: 'Eliminar esta cocina',
+    errors: {
+      /** `0077`'s `TD007`: the kitchen's name changed after the screen read it. */
+      nameChanged: 'El nombre de la cocina cambió. Revísalo y escríbelo otra vez.',
+      /** `0077`'s `TD012`: the kitchen is not hers alone, or is gone already. */
+      notHersAlone: 'Solo la única persona dueña de esta cocina puede eliminarla.',
+    },
+  },
 
   /**
    * ⚠️ `10.4b-iv-a`: WHAT SHE PUBLISHES — proposal B, his choice of 2026-10-29: one

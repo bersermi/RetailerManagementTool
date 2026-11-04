@@ -42,6 +42,9 @@
 #   - a name matches none of them (`delete_my_account` checks every one before
 #     it changes anything — the same check the apps' typed names pass).
 #
+# ⚠️ TO DELETE ONE KITCHEN AND KEEP THE ACCOUNT, this is the wrong script:
+# `docs/runbooks/delete-a-kitchen.sh` (`10.5-iii-c`) — it can never delete a login.
+#
 # `docs/checks/10.4b-iv-b-delete-by-email-rehearsal.sh` runs this against the
 # local database, each refusal and each deletion read back (CI: `db.yml`).
 # ============================================================================

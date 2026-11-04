@@ -2,8 +2,9 @@
 // HOW A SCREEN REACHES THE DATABASE. Plan tasks `10.4b-iii-a` (her kitchens),
 // `10.4b-iii-b` (making one; her trade, her address and her pin),
 // `10.4b-iii-c` (her way out), `10.4b-iv-a` (what she publishes), `10.4h`
-// (address first: her address screen's writes, and her trade's door of its own)
-// and `10.5-ii` (her page in Itacate, and a photo per dish).
+// (address first: her address screen's writes, and her trade's door of its own),
+// `10.5-ii` (her page in Itacate, and a photo per dish) and `10.5-iii-c` (her
+// kitchen deleted alone).
 //
 // ⚠️ A SCREEN NEVER CALLS `@/api/calls` ITSELF — Wera's R12: a hook here owns
 // the query key, when the read may run, and what it means. Every read waits for
@@ -23,13 +24,16 @@ import {
   OWNERS_KEY,
   businessesThatGo,
   deleteErrorMessage,
+  deleteKitchenErrorMessage,
   ownersKey,
   type Business,
   type DeleteArgs,
+  type DeleteBusinessArgs,
 } from '@/api/account';
 import {
   accountOwners,
   deleteMyAccount,
+  deleteMyBusiness,
   direccionCalls,
   firstPlace,
   kitchenGiros,
@@ -469,4 +473,42 @@ export function useDeleteMyAccount() {
   }
 
   return { remove, busy: mutation.isPending || leaving };
+}
+
+/**
+ * Deleting ONE kitchen and keeping her account (`10.5-iii-c`, `0077`). Returns a
+ * Spanish sentence or `null`. Nothing is asked of Apple and nobody is signed out:
+ * the login stays, in the three apps.
+ *
+ * ⚠️ ON SUCCESS THE KITCHEN LEAVES HER LIST AT ONCE (`setQueryData`), so the guard
+ * sends her where a kitchen is made — or to her other kitchen, the next-made —
+ * without waiting for the re-read that follows. ⚠️ ON A REFUSAL HER KITCHENS ARE
+ * READ AGAIN TOO: `TD012` is also what a kitchen already deleted answers, when the
+ * first answer was lost on the way back, and the guard moves her if it is gone.
+ */
+export function useDeleteKitchen() {
+  const { session } = useAuth();
+  const userId = session?.user.id ?? null;
+  const queries = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: (args: DeleteBusinessArgs) => deleteMyBusiness(args),
+  });
+
+  async function remove(args: DeleteBusinessArgs): Promise<string | null> {
+    try {
+      await mutation.mutateAsync(args);
+    } catch (thrown) {
+      void queries.invalidateQueries({ queryKey: KITCHENS_KEY });
+      void queries.invalidateQueries({ queryKey: OWNERS_KEY });
+      return deleteKitchenErrorMessage(thrown);
+    }
+    queries.setQueryData<Kitchen[]>(kitchensKey(userId), (kitchens) =>
+      kitchens?.filter((kitchen) => kitchen.id !== args.p_workspace_id),
+    );
+    void queries.invalidateQueries({ queryKey: KITCHENS_KEY });
+    void queries.invalidateQueries({ queryKey: OWNERS_KEY });
+    return null;
+  }
+
+  return { remove, busy: mutation.isPending };
 }

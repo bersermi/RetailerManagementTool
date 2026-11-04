@@ -71,6 +71,9 @@ signed_in (proname) as (values
   -- a kitchen's own page (`0076`, plan `10.5-i-a`): the owner or a manager
   -- changes the fields she sends
   ('set_kitchen_page'),
+  -- a kitchen deleted alone (`0077`, plan `10.5-iii-c`): its only owner, after
+  -- its name, her login kept
+  ('delete_my_business'),
   -- what a policy, a check or a computed column runs as the caller
   ('catalog_image_path'), ('has_role'), ('merma_path_ok'), ('my_locations'),
   ('my_role'), ('my_workspaces'), ('normalize_name'), ('photo_folder_ok'),

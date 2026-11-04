@@ -59,6 +59,9 @@ import { Salidas } from '@/ui/Salidas';
 // ⚠️ HER WAY OUT AT THE FOOT (`@/ui/Salidas`, `10.4b-iii-c`): *Cerrar sesión*,
 // and *Eliminar mi cuenta*, which names this kitchen first and every other
 // business she alone owns — a shop of hers in Wera too — and asks each name.
+// ⚠️ And *Eliminar esta cocina* (`10.5-iii-c`): this kitchen alone, her account
+// kept. The block is KEYED ON THE KITCHEN, so when one goes and her next-made
+// kitchen opens here, nothing typed for the first is left in its boxes.
 // The boxes are typed at the foot, so the screen is a `Formulario`: the box
 // being typed in stays above the keyboard.
 // ============================================================================
@@ -199,7 +202,7 @@ export default function TuCocina() {
         />
 
         <View style={{ marginTop: SIZE.space, paddingTop: SIZE.space, borderTopWidth: 1, borderTopColor: PALETTE.linea, gap: SIZE.space }}>
-          <Salidas openKitchenId={kitchen.id} />
+          <Salidas key={kitchen.id} openKitchenId={kitchen.id} />
         </View>
       </Formulario>
     </View>

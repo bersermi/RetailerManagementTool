@@ -17,18 +17,20 @@
 # name is stored under at sign-up, which the database reads when she makes a
 # business (`auth_full_name`, `0034`). And `cocina/src/api/account.ts`
 # (`10.4b-iii-c`) names her way out: the read that says what goes with her
-# account, and the deletion's function and argument.
+# account, and the deletion's function and argument — and, since `10.5-iii-c`,
+# her kitchen deleted alone (`0077`): the function, its two arguments, and the
+# refusal the app reads as *not hers alone*.
 #
 # ⚠️ AND ITACATE'S WAY OUT (`10.5-iii-b`), THE FIRST MODULE IN `itacate/src/api/`
 # THAT NAMES THE SCHEMA. Itacate deletes an account as Wera Cocina does — the
 # owner's ruling of 2026-11-04 — so `itacate/src/api/account.ts` sends the same
 # read and the same body. Group 1 holds each of its eight names to Wera Cocina's
-# BEFORE anything is sent, so every request groups 14–18 make is Itacate's too:
+# BEFORE anything is sent, so every request groups 14 and 18–21 make is Itacate's too:
 # one check over one shared engine, not a copy of it (the owner's rule of
 # 2026-09-19). Itacate's own case — a neighbour, who owns nothing and sends an
 # empty list — needs no sign-up here: `0053`'s suite deletes a login with no
 # business it owns (its section 2), `5R-k-apple-revoke-contract.sh` deletes one
-# over HTTP (its group 12), and group 17 below shows PostgREST hands `[]` to
+# over HTTP (its group 12), and group 20 below shows PostgREST hands `[]` to
 # `delete_my_account`.
 #
 # WHAT IT ASSERTS, over HTTP against a real GoTrue and PostgREST, as ONE login
@@ -62,21 +64,29 @@
 #      (address first, `0075`): her line alone, by the app's door and names,
 #      leaves her pin; her pin cleared leaves her line; her line saved with no
 #      pin reads back; her shop's store is still untouched.
-#  13. Signed out: no business, no place, no trades, no pin set, no line set and
-#      no pin cleared.
+#  13. Signed out: no business, no place, no trades, no pin set, no line set, no
+#      pin cleared and no kitchen deleted.
 #  14. What goes with her account, by the app's owners read: her shop and her two
-#      kitchens, each with her as its only owner and its kind.  (`10.4b-iii-c`, 14–18)
-#  15. The deletion as the app sends it, her shop's name missing: 400 `TD007`, and
-#      all three businesses still there.
-#  16. Every name, in any case and spacing: 200 {3 deleted, 0 left}, none of the
-#      three left in the database, and her login gone.
-#  17. A shop's owner who opens Cocina with no kitchen: the read names her shop as
+#      kitchens, each with her as its only owner and its kind.  (`10.4b-iii-c`, 14–21)
+#  15. Her second kitchen alone, by the app's names, a wrong name: 400 `TD007`,
+#      and all three businesses still there.                      (`10.5-iii-c`, 15–17)
+#  16. Her SHOP through the kitchen's door, its right name: 400, her shop still
+#      there — a shop goes only with its owner's account.
+#  17. Her second kitchen's name in another case and spacing: 200, that kitchen
+#      gone and only it — her shop and her first kitchen there, her login still
+#      signed in, the app's read her first kitchen alone; and the same call again
+#      is the refusal the app reads as *not hers alone*.
+#  18. The account's deletion as the app sends it, her shop's name missing: 400
+#      `TD007`, and both businesses still there.
+#  19. Every name, in any case and spacing: 200 {2 deleted, 0 left}, neither left
+#      in the database, and her login gone.
+#  20. A shop's owner who opens Cocina with no kitchen: the read names her shop as
 #      a shop; an empty list — a screen that thought nothing goes — is refused
 #      `TD007`, and her shop stays.
-#  18. Her shop's name: 200 {1 deleted, 0 left}, her shop gone, her login gone.
+#  21. Her shop's name: 200 {1 deleted, 0 left}, her shop gone, her login gone.
 #
 # ⚠️ WHETHER A BUSINESS IS GONE IS ASKED OF THE DATABASE ITSELF (`supabase db
-# query --local`, as the superuser, groups 15–18): read as her, a deleted login
+# query --local`, as the superuser, groups 15–21): read as her, a deleted login
 # sees nothing whether or not anything was deleted.
 #
 # ⚠️ WHAT IT DOES NOT ASSERT: Google's and Apple's sign-ins. Neither runs on this
@@ -153,6 +163,10 @@ OWNER_ACTIVE_COL="$(const OWNER_ACTIVE_COLUMN "$ACCOUNT_TS")"
 DELETE_RPC="$(const DELETE_MY_ACCOUNT "$ACCOUNT_TS")"
 DELETE_ARGS="$(args_of "$ACCOUNT_TS" DeleteArgs)"
 MISMATCH="$(const NAME_MISMATCH_CODE "$ACCOUNT_TS")"
+# `10.5-iii-c`: her kitchen deleted alone, her login kept (`0077`).
+KDELETE_RPC="$(const DELETE_MY_BUSINESS "$ACCOUNT_TS")"
+KDELETE_ARGS="$(args_of "$ACCOUNT_TS" DeleteBusinessArgs)"
+NOT_HERS="$(const NOT_HERS_ALONE_CODE "$ACCOUNT_TS")"
 
 for pair in "WORKSPACE_TABLE:$TABLE" "KITCHEN_COLUMNS:$COLUMNS" "KIND_COLUMN:$KIND_COL" \
             "COCINA_KIND:$KIND" "KITCHEN_ORDER:$ORDER_COLS" "FULL_NAME_KEY:$NAME_KEY" \
@@ -165,7 +179,8 @@ for pair in "WORKSPACE_TABLE:$TABLE" "KITCHEN_COLUMNS:$COLUMNS" "KIND_COLUMN:$KI
             "CLEAR_STORE_PIN:$CLEAR_PIN" "ClearStorePinArgs:$CLEAR_PIN_ARGS" \
             "OWNERS_TABLE:$OWNERS_TABLE" "OWNER_COLUMNS:$OWNER_COLUMNS" "OWNER_ROLE_COLUMN:$OWNER_ROLE_COL" \
             "OWNER_ROLE:$OWNER_ROLE" "OWNER_ACTIVE_COLUMN:$OWNER_ACTIVE_COL" "DELETE_MY_ACCOUNT:$DELETE_RPC" \
-            "DeleteArgs:$DELETE_ARGS" "NAME_MISMATCH_CODE:$MISMATCH"; do
+            "DeleteArgs:$DELETE_ARGS" "NAME_MISMATCH_CODE:$MISMATCH" \
+            "DELETE_MY_BUSINESS:$KDELETE_RPC" "DeleteBusinessArgs:$KDELETE_ARGS" "NOT_HERS_ALONE_CODE:$NOT_HERS"; do
   if [[ -z "${pair#*:}" ]]; then
     echo "FAIL: could not read ${pair%%:*} out of the app's source"
     echo "      This check asserts the app's own claim. Without it there is nothing to"
@@ -174,7 +189,7 @@ for pair in "WORKSPACE_TABLE:$TABLE" "KITCHEN_COLUMNS:$COLUMNS" "KIND_COLUMN:$KI
   fi
 done
 # `10.5-iii-b`: Itacate's way out, name by name against Wera Cocina's. ⚠️ FATAL,
-# and before any request: groups 14–18 speak for Itacate only while every name is
+# and before any request: groups 14 and 18–21 speak for Itacate only while every name is
 # the same, and a difference is a request no group here has sent.
 itacate_names=0
 for pair in "OWNERS_TABLE:$OWNERS_TABLE" "OWNER_COLUMNS:$OWNER_COLUMNS" "OWNER_ROLE_COLUMN:$OWNER_ROLE_COL" \
@@ -204,6 +219,7 @@ place_read() { echo "/rest/v1/$PLACE_TABLE?select=$PLACE_COLUMNS&$PLACE_OWNER=eq
 ok "read from the app: $TABLE?select=$COLUMNS, $KIND_COL = $KIND, ordered by $ORDER_COLS; the name under $NAME_KEY"
 ok "and to make one: $ONBOARD($ONBOARD_ARGS), $GIROS_RPC(), $GIRO_COL; $PLACE_TABLE by $PLACE_OWNER; $SET_ADDRESS($SET_ADDRESS_ARGS); $SET_PIN($SET_PIN_ARGS); $SET_LINE($SET_LINE_ARGS); $CLEAR_PIN($CLEAR_PIN_ARGS)"
 ok "and her way out: $OWNERS_TABLE?select=$OWNER_COLUMNS where $OWNER_ROLE_COL = $OWNER_ROLE and $OWNER_ACTIVE_COL; $DELETE_RPC($DELETE_ARGS), refused $MISMATCH"
+ok "and her kitchen alone: $KDELETE_RPC($KDELETE_ARGS), refused $MISMATCH for a name and $NOT_HERS for a kitchen not hers alone"
 ok "and Itacate's way out sends the same, all $itacate_names names read out of $ITACATE_ACCOUNT_TS — every deletion below is Itacate's too"
 
 # --- the local stack -------------------------------------------------------
@@ -527,14 +543,15 @@ giros_out="$(TOKEN="" api POST "/rest/v1/rpc/$GIROS_RPC" '{}')"
 pin_out="$(TOKEN="" api POST "/rest/v1/rpc/$SET_PIN" "$(by_names "$SET_PIN_ARGS" "\"$PLACE_ID\"" '19.4' '-99.1' 'null')")"
 line_out="$(TOKEN="" api POST "/rest/v1/rpc/$SET_LINE" "$(by_names "$SET_LINE_ARGS" "\"$PLACE_ID\"" '"Otra"')")"
 clear_out="$(TOKEN="" api POST "/rest/v1/rpc/$CLEAR_PIN" "$(by_names "$CLEAR_PIN_ARGS" "\"$PLACE_ID\"")")"
+kdel_out="$(TOKEN="" api POST "/rest/v1/rpc/$KDELETE_RPC" "$(by_names "$KDELETE_ARGS" "\"$SECOND\"" '"Antojitos, segunda cocina"')")"
 if grep -c '"id"' <<< "$(body "$out")" > /dev/null; then
   fail "signed out, the read returned businesses: $(body "$out" | head -c 200)"
 elif grep -c '"id"' <<< "$(body "$place_out")" > /dev/null; then
   fail "signed out, the place read returned her place: $(body "$place_out" | head -c 200)"
-elif [[ "$(status "$giros_out")" == 2* || "$(status "$pin_out")" == 2* || "$(status "$line_out")" == 2* || "$(status "$clear_out")" == 2* ]]; then
-  fail "signed out, the trades answered $(status "$giros_out"), the pin $(status "$pin_out"), the line $(status "$line_out") and the clearing $(status "$clear_out") — nothing is reachable without an account"
+elif [[ "$(status "$giros_out")" == 2* || "$(status "$pin_out")" == 2* || "$(status "$line_out")" == 2* || "$(status "$clear_out")" == 2* || "$(status "$kdel_out")" == 2* ]]; then
+  fail "signed out, the trades answered $(status "$giros_out"), the pin $(status "$pin_out"), the line $(status "$line_out"), the clearing $(status "$clear_out") and the kitchen's deletion $(status "$kdel_out") — nothing is reachable without an account"
 else
-  ok "signed out: no business ($(status "$out")), no place ($(status "$place_out")), no trades ($(status "$giros_out")), no pin set ($(status "$pin_out")), no line set ($(status "$line_out")), no pin cleared ($(status "$clear_out"))"
+  ok "signed out: no business ($(status "$out")), no place ($(status "$place_out")), no trades ($(status "$giros_out")), no pin set ($(status "$pin_out")), no line set ($(status "$line_out")), no pin cleared ($(status "$clear_out")), no kitchen deleted ($(status "$kdel_out"))"
 fi
 
 # =============================================================================
@@ -588,30 +605,69 @@ v="$(owners_read "$UID_" "$(expect "$SHOP" "Tienda de la fonda" tienda "$KITCHEN
 if [[ "$v" == OK ]]; then ok "the app's owners read names her shop and her two kitchens, each with her as its only owner and its kind — what goes with her account"
 else fail "what goes with her account: $v"; fi
 
-# --- 15. a name missing: refused, and nothing goes --------------------------------
+# =============================================================================
+# `10.5-iii-c` — HER KITCHEN DELETED ALONE (`0077`), by the app's names: her second
+# kitchen goes, and only it; her login, her shop and her first kitchen stay.
+# =============================================================================
+
+# --- 15. her second kitchen alone, a wrong name: refused, and nothing goes ------
 HELD="$(exists "$SHOP,$KITCHEN,$SECOND")"
-out="$(api POST "/rest/v1/rpc/$DELETE_RPC" "$(by_names "$DELETE_ARGS" '["Zona de la fonda", "Antojitos, segunda cocina"]')")"
+out="$(api POST "/rest/v1/rpc/$KDELETE_RPC" "$(by_names "$KDELETE_ARGS" "\"$SECOND\"" '"Antojitos, tercera cocina"')")"
 STILL="$(exists "$SHOP,$KITCHEN,$SECOND")"
 if [[ "$HELD" != 3 ]]; then
   fail "before any deletion the database holds '$HELD' of her three businesses — the observer cannot see them"
 elif [[ "$(status "$out")" == 400 && "$(pick code "$(body "$out")")" == "$MISMATCH" && "$STILL" == 3 ]]; then
-  ok "$DELETE_RPC($DELETE_ARGS) with her shop's name missing: 400 $MISMATCH, and all three businesses are still there"
+  ok "$KDELETE_RPC($KDELETE_ARGS) for her second kitchen with a wrong name: 400 $MISMATCH, and all three businesses are still there"
 else
-  fail "the deletion with a name missing answered $(status "$out") $(body "$out" | head -c 200); the database holds $STILL of 3"
+  fail "her kitchen alone with a wrong name answered $(status "$out") $(body "$out" | head -c 200); the database holds $STILL of 3"
 fi
 
-# --- 16. every name, as she might type them: all three go, and her login ----------
-out="$(api POST "/rest/v1/rpc/$DELETE_RPC" "$(by_names "$DELETE_ARGS" '["  zona de la FONDA", "antojitos,   segunda cocina", "TIENDA DE LA FONDA"]')")"
-LEFT="$(exists "$SHOP,$KITCHEN,$SECOND")"
+# --- 16. her shop through the kitchen's door: refused, and it stays ---------------
+out="$(api POST "/rest/v1/rpc/$KDELETE_RPC" "$(by_names "$KDELETE_ARGS" "\"$SHOP\"" '"Tienda de la fonda"')")"
+if [[ "$(status "$out")" == 400 && "$(exists "$SHOP,$KITCHEN,$SECOND")" == 3 ]]; then
+  ok "her shop through the kitchen's door, its right name: 400 $(pick code "$(body "$out")") — a shop goes only with its owner's account — and all three are still there"
+else
+  fail "her shop through the kitchen's door answered $(status "$out") $(body "$out" | head -c 200); the database holds $(exists "$SHOP,$KITCHEN,$SECOND") of 3"
+fi
+
+# --- 17. her second kitchen's name: it goes, alone, and she is still signed in ----
+out="$(api POST "/rest/v1/rpc/$KDELETE_RPC" "$(by_names "$KDELETE_ARGS" "\"$SECOND\"" '"  ANTOJITOS,   segunda cocina "')")"
+GONE="$(exists "$SECOND")"
+KEPT="$(exists "$SHOP,$KITCHEN")"
 WHO="$(status "$(api GET /auth/v1/user)")"
-if [[ "$(status "$out")" == 200 && "$(pick shops_deleted "$(body "$out")")" == 3 && "$(pick shops_left "$(body "$out")")" == 0 \
-      && "$LEFT" == 0 && "$WHO" != 200 ]]; then
-  ok "every name, in any case and spacing: 200 {3 deleted, 0 left}; the database holds none of the three, and her login is gone ($WHO)"
+v="$(app_read "$KITCHEN")"
+again="$(api POST "/rest/v1/rpc/$KDELETE_RPC" "$(by_names "$KDELETE_ARGS" "\"$SECOND\"" '"Antojitos, segunda cocina"')")"
+if [[ "$(status "$out")" == 200 && "$(pick business_deleted "$(body "$out")")" == "$SECOND" && "$GONE" == 0 && "$KEPT" == 2 \
+      && "$WHO" == 200 && "$v" == OK && "$(status "$again")" == 400 && "$(pick code "$(body "$again")")" == "$NOT_HERS" ]]; then
+  ok "her second kitchen's name, in another case and spacing: 200, that kitchen gone and only it — her shop and her first kitchen there, her login still signed in ($WHO), the app's read her first kitchen alone; the same call again 400 $NOT_HERS"
 else
-  fail "the deletion with every name answered $(status "$out") $(body "$out" | head -c 200); the database holds $LEFT of 3; her login answers $WHO"
+  fail "her kitchen alone answered $(status "$out") $(body "$out" | head -c 200); the second kitchen left: $GONE; her shop and first kitchen: $KEPT of 2; her login answers $WHO; the app's read: $v; the same call again: $(status "$again") $(body "$again" | head -c 120)"
 fi
 
-# --- 17–18. a shop's owner who opens Cocina and never makes a kitchen --------------
+# --- 18. the account, a name missing: refused, and nothing goes -------------------
+HELD="$(exists "$SHOP,$KITCHEN")"
+out="$(api POST "/rest/v1/rpc/$DELETE_RPC" "$(by_names "$DELETE_ARGS" '["Zona de la fonda"]')")"
+STILL="$(exists "$SHOP,$KITCHEN")"
+if [[ "$HELD" != 2 ]]; then
+  fail "before her account's deletion the database holds '$HELD' of her two businesses — the observer cannot see them"
+elif [[ "$(status "$out")" == 400 && "$(pick code "$(body "$out")")" == "$MISMATCH" && "$STILL" == 2 ]]; then
+  ok "$DELETE_RPC($DELETE_ARGS) with her shop's name missing: 400 $MISMATCH, and both businesses are still there"
+else
+  fail "the deletion with a name missing answered $(status "$out") $(body "$out" | head -c 200); the database holds $STILL of 2"
+fi
+
+# --- 19. every name, as she might type them: both go, and her login ---------------
+out="$(api POST "/rest/v1/rpc/$DELETE_RPC" "$(by_names "$DELETE_ARGS" '["  zona de la FONDA", "TIENDA DE LA FONDA"]')")"
+LEFT="$(exists "$SHOP,$KITCHEN")"
+WHO="$(status "$(api GET /auth/v1/user)")"
+if [[ "$(status "$out")" == 200 && "$(pick shops_deleted "$(body "$out")")" == 2 && "$(pick shops_left "$(body "$out")")" == 0 \
+      && "$LEFT" == 0 && "$WHO" != 200 ]]; then
+  ok "every name, in any case and spacing: 200 {2 deleted, 0 left}; the database holds neither, and her login is gone ($WHO)"
+else
+  fail "the deletion with every name answered $(status "$out") $(body "$out" | head -c 200); the database holds $LEFT of 2; her login answers $WHO"
+fi
+
+# --- 20–21. a shop's owner who opens Cocina and never makes a kitchen --------------
 python3 -c 'import json,sys; print(json.dumps({"email": sys.argv[1], "password": "cocina-probe-123", "data": {sys.argv[2]: sys.argv[3]}}))' \
   "cocina-tienda-$STAMP@example.com" "$NAME_KEY" "Dueña de Tienda" > "$SCRATCH/signup-shop.json"
 TOKEN=""
@@ -656,9 +712,10 @@ if (( fails > 0 )); then
   echo "$fails assertion group(s) failed."
   exit 1
 fi
-echo "all 18 assertion groups passed — Wera Cocina's kitchen read is one the database answers, it opens"
+echo "all 21 assertion groups passed — Wera Cocina's kitchen read is one the database answers, it opens"
 echo "kitchens only and the first-made first, the name typed at sign-up reaches her membership, her"
 echo "kitchen is made, given its trade, its address and its pin on its own place — never on her shop —"
-echo "her line is saved without a pin and her pin cleared without her line (10.4h), and her account"
-echo "goes only with every business she alone owns named, a shop of hers included — by the names"
-echo "Itacate's way out sends too (10.5-iii-b)."
+echo "her line is saved without a pin and her pin cleared without her line (10.4h), one kitchen goes"
+echo "alone after its name with her login and her other businesses kept, never her shop (10.5-iii-c),"
+echo "and her account goes only with every business she alone owns named, a shop of hers included —"
+echo "by the names Itacate's way out sends too (10.5-iii-b)."

@@ -226,7 +226,7 @@ the aviso (`site/privacidad/cocina-e-itacate/`, section 3) and `site/README.md`'
 | Is all of the user data collected by your app encrypted in transit? | **Yes** |
 | Which methods of account creation does your app support? | **Username and password**, and **OAuth** (Google — the Android app has no Apple button) |
 | Delete account URL | `https://tu-wera.com/eliminar-cuenta/cocina/` — it names Wera Cocina, as Google requires (*"reference the app or developer name … as it appears on your store listing"*, answer 13327111, read 2026-10-31) |
-| Can users ask for some data to be deleted without deleting the account? | **No** — leave the optional link empty |
+| Can users ask for some data to be deleted without deleting the account? | **Yes** since `10.5-iii-c` — her kitchen, alone (*Eliminar esta cocina*, or by email): give `https://tu-wera.com/eliminar-cuenta/cocina/#solo-la-cocina`. ⚠️ Until 2026-11-04 this row said **No**; if that is what was pasted, change it the next time the form is open — it understates what the app does, so nothing waits on it |
 | *Can users login to your app with accounts created outside of the app?* | **Yes** — one login serves Wera and Wera Cocina (ADR-035 §2.7): an account made in Wera opens Wera Cocina |
 
 **Data types** — tick exactly these eleven (*Photos* since `10.5-ii`):
