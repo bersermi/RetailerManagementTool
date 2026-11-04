@@ -14,7 +14,7 @@
 # `supabase/README.md` calls a green CI run the evidence for a schema claim; this
 # script is the half of that sentence CI cannot reach.
 #
-# WHAT IT ASSERTS. Seven groups, and every one of them is about the REAL remote:
+# WHAT IT ASSERTS. Eight groups, and every one of them is about the REAL remote:
 #
 #   1. The `supabase` CLI is on PATH — the instrument exists.
 #   2. The repository NAMES a deploy target and the CLI is linked to THAT project.
@@ -34,6 +34,10 @@
 #      applied. On 2026-10-27 groups 1–6 were green and `anon` could execute 50
 #      functions there, because the hosted defaults are not CI's. It runs
 #      `supabase/pgtap/_walls.sql`, the same query CI asserts as F12.
+#   8. No Google point is kept past 30 days there (plan `10.5-i-b-i`, `0078`): the
+#      nightly `pg_cron` job is scheduled and active, nothing is older, and its last
+#      run, once it has had a night, succeeded. CI proves the job clears what it
+#      should; only the shop proves it is there and running.
 #
 # ⚠️⚠️ IT IS DELIBERATELY NOT IN ANY WORKFLOW, AND THAT WAS THE FIRST DECISION THIS
 # TASK MADE. `supabase migration list --linked` needs a Supabase ACCESS TOKEN, and
@@ -329,11 +333,49 @@ else
   rm -f "$WALLS_ERR"
 fi
 
+# --- 8. Google's points kept under 30 days there (plan 10.5-i-b-i, 0078) -------
+# ⚠️ GOOGLE'S TERMS, NOT OURS: a point Google gave for a kitchen's address may be
+# kept 30 days at most (Service Specific Terms §14.3, §6.3.1), and the job that
+# clears it runs inside the hosted database, where nothing else watches it. So this
+# asks the shop itself: the job `0078` schedules is there and active, no point is
+# older than 30 days, and the job's last run — once it has had a night — succeeded.
+# One statement that always answers one row, the walls group's lesson.
+note
+if (( link_ok == 0 )); then
+  fail "Google's points were not read: group 2 did not accept the link."
+else
+  GP_ERR="$(mktemp)"
+  GP_OUT="$(supabase db query --linked -o csv --workdir "$ROOT" "select
+      (select count(*) from cron.job where jobname = 'forget-old-google-points' and active
+          and schedule = '17 9 * * *' and command = 'select public.forget_old_google_points()')::text as job,
+      (select count(*) from public.location where google_at < now() - interval '30 days')::text as old,
+      coalesce((select d.status from cron.job_run_details d join cron.job j on j.jobid = d.jobid
+                 where j.jobname = 'forget-old-google-points' order by d.start_time desc limit 1), 'none') as last_run" 2>"$GP_ERR")"
+  GP_RC=$?
+  GP_ROW="$(printf '%s\n' "$GP_OUT" | grep -v '^job,' | grep . | tail -1 | tr -d '\r')"
+  GP_JOB="${GP_ROW%%,*}"; GP_REST="${GP_ROW#*,}"; GP_OLD="${GP_REST%%,*}"; GP_LAST="${GP_REST#*,}"
+  if (( GP_RC != 0 )) || ! [[ "$GP_JOB" =~ ^[0-9]+$ && "$GP_OLD" =~ ^[0-9]+$ ]]; then
+    fail "Google's points could not be read on the hosted project (exit $GP_RC). What it said:"
+    { printf '%s\n' "$GP_OUT"; cat "$GP_ERR"; } | grep -v '^Initialising\|^Connecting' | sed 's/^/        /' | head -6
+  elif [[ "$GP_JOB" != 1 ]]; then
+    fail "the nightly job that clears Google's points is not scheduled there ($GP_JOB found):"
+    echo "      0078 schedules it — has it been pushed? supabase db push"
+  elif [[ "$GP_OLD" != 0 ]]; then
+    fail "$GP_OLD kitchen place(s) hold a Google point older than 30 days — Google's terms say"
+    echo "      delete it. The job runs at 09:17 UTC: read cron.job_run_details for why it did not."
+  elif [[ "$GP_LAST" != none && "$GP_LAST" != succeeded ]]; then
+    fail "the job's last run there did not succeed (status: $GP_LAST)."
+  else
+    ok "Google's points are kept under 30 days there — the nightly job scheduled and active, its last run: $GP_LAST"
+  fi
+  rm -f "$GP_ERR"
+fi
+
 echo ""
 if (( fails == 0 )); then
   echo "all $ran assertion groups passed — the hosted project $EXPECTED_REF is"
-  echo "carrying exactly the migrations this repository has merged, and keeps"
-  echo "the walls."
+  echo "carrying exactly the migrations this repository has merged, keeps the"
+  echo "walls, and keeps no Google point past 30 days."
   exit 0
 fi
 echo "$ran assertion groups ran, $fails failed — the deployed schema and this"

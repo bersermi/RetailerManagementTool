@@ -74,6 +74,9 @@ signed_in (proname) as (values
   -- a kitchen deleted alone (`0077`, plan `10.5-iii-c`): its only owner, after
   -- its name, her login kept
   ('delete_my_business'),
+  -- the one door, and the point each kitchen is drawn at (`0078`, plan `10.5-i-b-i`):
+  -- every kitchen a neighbour may see; Google's point written by her kitchen's owner
+  ('on_offer_now'), ('set_google_point'),
   -- what a policy, a check or a computed column runs as the caller
   ('catalog_image_path'), ('has_role'), ('merma_path_ok'), ('my_locations'),
   ('my_role'), ('my_workspaces'), ('normalize_name'), ('photo_folder_ok'),
