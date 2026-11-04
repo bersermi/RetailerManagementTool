@@ -18,6 +18,8 @@ bash docs/checks/wera-runtime.sh          # after ANY install here: Wera's runti
 bash docs/checks/10.4b-iii-a-cocina-contract.sh   # against a local `supabase start`: the kitchen read, making one and deleting the account, as the schema answers
 bash docs/checks/10.4b-iv-a-listing-contract.sh   # the same stack: her list, publishing (each line's keys), a retry, withdrawing
 bash docs/checks/5R-k-apple-revoke-contract.sh     # the same stack: the function that tells Apple, served, with Wera's body and this app's
+bash docs/checks/10.5-i-a-kitchen-photos-contract.sh   # the same stack WITH Storage started before the reset: her page and the bucket `cocina`, by this app's names
+bash store/cocina-itacate/render.sh giros         # the nine trades' drawings, from brand/giros.svg into src/marca/giros/ — and nothing else
 TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic is local time, and the Mac is UTC−6
 ```
 
@@ -98,6 +100,23 @@ TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic i
   package — and is drawn by `src/format/mxn.ts`, a copy of Wera's that `test/mxn.test.ts` runs beside Wera's file.
   Nothing is queued: with no signal she is told so and the form keeps what she typed. Her list is read by the
   open kitchen's id, newest first; *Repetir* is that list.
+- **Her page in Itacate and her photos** (`10.5-ii`, proposal B, the owner's ruling of 2026-11-01): *Tu página en
+  Itacate* (`/pagina`, from her kitchen's screen) — the page's head live (`@/ui/Portada`), a cover, six colours, one
+  sentence, her logo, her Google Maps link — and a photo per dish on *Publicar* (`@/ui/Renglon`), *Repetir* sending the
+  same path again. `@/api/pagina` is the table and its door (`set_kitchen_page`, ⚠️ **sent only what she changed** —
+  `pagePatch` — so a field a later build adds is never erased by this one) and every default: her trade's colour and
+  drawing (`POR_GIRO`), her initials (`kitchenInitials`: *Fonda Doña Mari* is `DM`). `@/api/fotos` is the bucket and
+  ⚠️⚠️ **the files' names, a contract with Itacate (`10.5-iv`)**: each picture is a folder `<kitchen>/<uuid>` of two
+  JPEGs, `720.jpg` and `160.jpg`, the number the shorter side — the cover 16:9, the logo and a dish square. A new photo
+  is a new path, made when it is taken, so a retry finds its file (409, `alreadyStored`); the files go up BEFORE what
+  names them is sent. ⚠️ **`@/lib/foto` is the one module that opens the camera or the gallery** (Wera's
+  `@/capture/photo`, twinned): the gallery is the system picker, which needs no permission (`photosPermission` stays
+  `false`); every photo is cut, resized and re-encoded, which strips where it was taken; the bytes come back as base64
+  from the manipulator, because `expo-file-system` is only `expo`'s own dependency here. A saved photo is drawn by
+  `expo-image` with her token in a header (`@/ui/Foto`, `photoRequest`), its disk cache never stale. The nine drawings
+  are PNGs (no app has SVG), drawn by `render.sh giros` — never the script's default run, which re-draws the icon and
+  the launch screen, both native. ⚠️ **A deleted kitchen's photos stay in the bucket** until
+  `docs/runbooks/delete-orphan-photos.sh` deletes them — the aviso promises within 30 days.
 - ⚠️ **The map has no key in a build made on this Mac** (`MAPS_KEY_PLACEHOLDER`, and the key is locked
   to the store and `preview` signatures). Measured 2026-10-30 on the emulator: such a map delivers
   taps but **never moves its camera and draws no marker**, so the zoom, the flights to a search's

@@ -14,14 +14,23 @@
 // ⚠️ THE NUMBER BOXES SHARE ONE *Listo* BAR (`padId`, `@/ui/TecladoListo`): an
 // iPhone's number pad has no key to put it away. Hints are muted ink, never
 // values; nothing is chosen for her — a dish, no tag — until she chooses.
+//
+// ⚠️ `10.5-ii`: A PHOTO PER DISH (proposal B), under what the dish is — its
+// square, *Tomar foto* and *Elegir* (`@/ui/CampoFoto`); with none, her kitchen's
+// drawing on her colour (`fondo`). *Repetir* opens with yesterday's photo in it.
+// The form opens the camera and makes the photo's path; this draws the slot.
 // ============================================================================
 
 import { Pressable, Text, View } from 'react-native';
 
+import { NINGUNA } from '@/api/fotos';
 import { DESCRIPTION_MAX, NAME_MAX, TAGS, type LineDraft, type Tag } from '@/api/listing';
+import type { Defaults } from '@/api/pagina';
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
 import { Campo } from '@/ui/Campo';
+import { CampoFoto } from '@/ui/CampoFoto';
+import { Dibujo } from '@/ui/Dibujo';
 
 type Change = (line: LineDraft) => Partial<Omit<LineDraft, 'key'>>;
 
@@ -32,6 +41,9 @@ export function Renglon({
   onRemove,
   editable,
   padId,
+  fondo,
+  nota,
+  onFoto,
 }: {
   line: LineDraft;
   n: number;
@@ -39,6 +51,12 @@ export function Renglon({
   onRemove: (() => void) | null;
   editable: boolean;
   padId: string;
+  /** Her kitchen's drawing and colour — what a dish with no photo wears. */
+  fondo: Defaults;
+  /** What a refused camera or a failed photo meant, in words; `null` for none. */
+  nota: string | null;
+  /** The camera (`true`) or the gallery, for this line. */
+  onFoto: (tomar: boolean) => void;
 }) {
   const kind = line.surprise ? 'bolsa' : 'platillo';
   const toggle = (tag: Tag) =>
@@ -122,6 +140,17 @@ export function Renglon({
         maxLength={DESCRIPTION_MAX}
         autoCapitalize="sentences"
         editable={editable}
+      />
+      <CampoFoto
+        label={ES.publicar.foto}
+        forma="platillo"
+        foto={line.foto}
+        defecto={<Dibujo dibujo={fondo.dibujo} color={fondo.color} modo="cuadro" />}
+        nota={nota ?? (line.foto.kind === 'ninguna' ? ES.publicar.sinFoto : null)}
+        busy={!editable}
+        onTomar={() => onFoto(true)}
+        onElegir={() => onFoto(false)}
+        onQuitar={() => onChange(() => ({ foto: NINGUNA }))}
       />
       <View style={{ flexDirection: 'row', gap: SIZE.space }}>
         <Campo

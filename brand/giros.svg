@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 220" width="640" height="220">
+  <!--
+    THE NINE TRADES' DRAWINGS — a kitchen's default cover and dish picture in Wera
+    Cocina and Itacate (plan `10.5-ii`, proposal B, the owner's ruling of 2026-11-01).
+    One <symbol> per drawing, 64 × 64, drawn in `currentColor` with details in black
+    at a fifth of its strength, so the same drawing reads on any of the six colours.
+    The cazuela, the concha and the bolsa are the proposals page's own
+    (https://claude.ai/artifact/EaiMkYqn2skPXn7MiKeULu).
+
+    Which trade wears which: `cocina/src/api/pagina.ts`, `POR_GIRO`.
+    Drawn into the app as white PNGs by: bash store/cocina-itacate/render.sh giros
+    Below the symbols, all nine on their trades' colours, to look at in a browser.
+  -->
+  <defs>
+    <symbol id="cazuela" viewBox="0 0 64 64">
+      <path d="M10 30h44c0 13-9.5 22-22 22S10 43 10 30z" fill="currentColor"/>
+      <rect x="6" y="26" width="52" height="6" rx="3" fill="currentColor"/>
+      <path d="M8 34c-4 .5-4 6.5.5 7M56 34c4 .5 4 6.5-.5 7" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"/>
+      <path d="M22 20c0-4 4-4 4-8M32 20c0-4 4-4 4-8M42 20c0-4 4-4 4-8" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+      <path d="M17 38h30" stroke="#000" stroke-opacity=".2" stroke-width="2.4" stroke-linecap="round"/>
+    </symbol>
+
+    <symbol id="plato" viewBox="0 0 64 64">
+      <circle cx="32" cy="33" r="16" fill="currentColor"/>
+      <circle cx="32" cy="33" r="10.5" fill="none" stroke="#000" stroke-opacity=".2" stroke-width="2.4"/>
+      <path d="M5 12v11a4 4 0 0 0 3 3.9V54h3V26.9a4 4 0 0 0 3-3.9V12h-2.2v10h-1.2V12h-2.2v10H8.2V12z" fill="currentColor"/>
+      <path d="M57 12c-3.5 1.5-5.5 8-5.5 15v4.5H55V54h3V12z" fill="currentColor"/>
+    </symbol>
+
+    <symbol id="taza" viewBox="0 0 64 64">
+      <path d="M12 26h34v9c0 9.4-7.6 17-17 17s-17-7.6-17-17z" fill="currentColor"/>
+      <path d="M46 30h3.5a6.5 6.5 0 0 1 0 13H45" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+      <rect x="6" y="53" width="46" height="5" rx="2.5" fill="currentColor"/>
+      <path d="M23 20c0-4 4-4 4-8M33 20c0-4 4-4 4-8" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+      <path d="M17 33h24" stroke="#000" stroke-opacity=".2" stroke-width="2.4" stroke-linecap="round"/>
+    </symbol>
+
+    <symbol id="concha" viewBox="0 0 64 64">
+      <path d="M8 40c0-14 11-24 24-24s24 10 24 24z" fill="currentColor"/>
+      <path d="M14 38l10-16M24 39l6-21M34 39l2-21M44 38l-4-19M52 36l-9-14" stroke="#000" stroke-opacity=".22" stroke-width="2.4"/>
+      <rect x="8" y="40" width="48" height="8" rx="4" fill="currentColor" opacity=".7"/>
+    </symbol>
+
+    <symbol id="bolsa" viewBox="0 0 64 64">
+      <path d="M14 22h36l-3 32H17z" fill="currentColor"/>
+      <path d="M24 22v-4a8 8 0 0 1 16 0v4" stroke="currentColor" stroke-width="3.5" fill="none"/>
+      <path d="M26 36h12" stroke="#000" stroke-opacity=".22" stroke-width="3" stroke-linecap="round"/>
+    </symbol>
+
+    <symbol id="pollo" viewBox="0 0 64 64">
+      <path d="M40 8c9.4 0 17 7.6 17 17 0 10.2-8.2 17.8-17.6 17.8-2.4 0-4.4.8-6 2.4l-5.2 5.2-6.6-6.6 5.2-5.2c1.6-1.6 2.4-3.6 2.4-6C29.2 22.6 30.6 8 40 8z" fill="currentColor"/>
+      <circle cx="17.4" cy="47.2" r="5.2" fill="currentColor"/>
+      <circle cx="22.8" cy="52.6" r="5.2" fill="currentColor"/>
+      <path d="M38.5 15.5c4.6.2 9.2 3.4 10.4 8.6" fill="none" stroke="#000" stroke-opacity=".2" stroke-width="2.4" stroke-linecap="round"/>
+    </symbol>
+
+    <symbol id="taco" viewBox="0 0 64 64">
+      <path d="M9 35c.8-5 5-7.4 8.4-5.2 1.4-5 6.6-6.8 9.8-3.4 2.2-4.8 8.4-4.8 10.6-.6 3-4 8.6-2.8 9.6 1.6 4.2-2.6 9.6.2 9.6 5.6z" fill="currentColor" opacity=".7"/>
+      <path d="M6 35h52c0 11.6-11.6 20-26 20S6 46.6 6 35z" fill="currentColor"/>
+      <path d="M17 42h.1M25.5 47.5h.1M38.5 47h.1M47 41.5h.1M32 41h.1" stroke="#000" stroke-opacity=".22" stroke-width="3.2" stroke-linecap="round"/>
+    </symbol>
+
+    <symbol id="elote" viewBox="0 0 64 64">
+      <g transform="rotate(-38 32 32)">
+        <path d="M23.6 40c-6.4 3.6-9 11.4-7.4 19.4 4.4-3.6 8.8-8.4 10.6-14.4zM40.4 40c6.4 3.6 9 11.4 7.4 19.4-4.4-3.6-8.8-8.4-10.6-14.4z" fill="currentColor" opacity=".7"/>
+        <rect x="23.5" y="5" width="17" height="42" rx="8.5" fill="currentColor"/>
+        <path d="M29.2 9v34M34.8 9v34M24.5 13h15M24 19h16M24 25h16M24 31h16M24 37h16M24.5 43h15" stroke="#000" stroke-opacity=".18" stroke-width="1.6"/>
+      </g>
+    </symbol>
+
+    <symbol id="pescado" viewBox="0 0 64 64">
+      <path d="M5 32c6.4-10 16.4-15 27-15 9 0 15.6 4.4 19.8 9.4L59 19.6v24.8l-7.2-6.8C47.6 42.6 41 47 32 47c-10.6 0-20.6-5-27-15z" fill="currentColor"/>
+      <circle cx="16" cy="30" r="2.6" fill="#000" fill-opacity=".35"/>
+      <path d="M25 22.5c2.8 6 2.8 13 0 19" fill="none" stroke="#000" stroke-opacity=".2" stroke-width="2.4" stroke-linecap="round"/>
+    </symbol>
+  </defs>
+
+  <rect width="640" height="220" fill="#FFFCF6"/>
+  <g fill="#FFFFFF" color="#FFFFFF" font-family="-apple-system, Helvetica, Arial, sans-serif" font-size="10">
+    <rect x="10" y="10" width="64" height="64" rx="10" fill="#B23A2B"/><use href="#cazuela" x="10" y="10" width="64" height="64"/>
+    <rect x="80" y="10" width="64" height="64" rx="10" fill="#22508F"/><use href="#plato" x="80" y="10" width="64" height="64"/>
+    <rect x="150" y="10" width="64" height="64" rx="10" fill="#6E3B26"/><use href="#taza" x="150" y="10" width="64" height="64"/>
+    <rect x="220" y="10" width="64" height="64" rx="10" fill="#B0530E"/><use href="#concha" x="220" y="10" width="64" height="64"/>
+    <rect x="290" y="10" width="64" height="64" rx="10" fill="#2E6B3A"/><use href="#bolsa" x="290" y="10" width="64" height="64"/>
+    <rect x="360" y="10" width="64" height="64" rx="10" fill="#B23A2B"/><use href="#pollo" x="360" y="10" width="64" height="64"/>
+    <rect x="430" y="10" width="64" height="64" rx="10" fill="#2E6B3A"/><use href="#taco" x="430" y="10" width="64" height="64"/>
+    <rect x="500" y="10" width="64" height="64" rx="10" fill="#8C2457"/><use href="#elote" x="500" y="10" width="64" height="64"/>
+    <rect x="570" y="10" width="64" height="64" rx="10" fill="#22508F"/><use href="#pescado" x="570" y="10" width="64" height="64"/>
+  </g>
+</svg>

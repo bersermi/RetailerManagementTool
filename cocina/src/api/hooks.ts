@@ -1,8 +1,9 @@
 // ============================================================================
 // HOW A SCREEN REACHES THE DATABASE. Plan tasks `10.4b-iii-a` (her kitchens),
 // `10.4b-iii-b` (making one; her trade, her address and her pin),
-// `10.4b-iii-c` (her way out), `10.4b-iv-a` (what she publishes) and `10.4h`
-// (address first: her address screen's writes, and her trade's door of its own).
+// `10.4b-iii-c` (her way out), `10.4b-iv-a` (what she publishes), `10.4h`
+// (address first: her address screen's writes, and her trade's door of its own)
+// and `10.5-ii` (her page in Itacate, and a photo per dish).
 //
 // ⚠️ A SCREEN NEVER CALLS `@/api/calls` ITSELF — Wera's R12: a hook here owns
 // the query key, when the read may run, and what it means. Every read waits for
@@ -33,16 +34,21 @@ import {
   firstPlace,
   kitchenGiros,
   kitchenCalls,
+  kitchenPage,
   myKitchens,
   myListings,
+  photoRequest,
   publishListing,
   revokeApple,
   setKitchenGiro,
+  setKitchenPage,
   setPlacePin,
+  uploadPictures,
   withdrawListing,
 } from '@/api/calls';
 import { guardarSuDireccion, type Escritura } from '@/api/direccion';
 import { apiErrorMessage } from '@/api/errors';
+import { FILE_OF, porSubir, type Foto, type FotoNueva, type PhotoSize } from '@/api/fotos';
 import {
   GIROS_KEY,
   KITCHENS_KEY,
@@ -61,6 +67,14 @@ import {
   type Listing,
   type PublishArgs,
 } from '@/api/listing';
+import {
+  PAGES_KEY,
+  pageKey,
+  pagePatch,
+  setPageArgs,
+  type Page,
+  type PageDraft,
+} from '@/api/pagina';
 import { PLACES_KEY, placeKey, type SetStorePinArgs } from '@/api/place';
 import { makeKitchen, withKitchen, type Draft } from '@/api/registro';
 import { useAuth } from '@/auth/AuthProvider';
@@ -252,18 +266,24 @@ export function usePublish(kitchenId: string | null) {
   const { session } = useAuth();
   const userId = session?.user.id ?? null;
   const mutation = useMutation({
-    mutationFn: (args: PublishArgs) => publishListing(args),
-    onSuccess: (_id, args) => {
-      queries.setQueryData<Listing[]>(listingsKey(userId, kitchenId), (listings) => withListing(listings, listingFrom(args)));
+    // ⚠️ `10.5-ii`: THE PHOTOS GO UP FIRST — each under the path made when it was
+    // taken, the one its line sends — so a dish never names a file that is not
+    // there; a failed upload publishes nothing, and a retry finds what went up.
+    mutationFn: async (input: { args: PublishArgs; fotos: readonly FotoNueva[] }) => {
+      await uploadPictures(input.fotos);
+      return publishListing(input.args);
+    },
+    onSuccess: (_id, input) => {
+      queries.setQueryData<Listing[]>(listingsKey(userId, kitchenId), (listings) => withListing(listings, listingFrom(input.args)));
     },
     onSettled: () => {
       void queries.invalidateQueries({ queryKey: LISTINGS_KEY });
     },
   });
 
-  async function publish(args: PublishArgs): Promise<string | null> {
+  async function publish(args: PublishArgs, fotos: readonly FotoNueva[] = []): Promise<string | null> {
     try {
-      await mutation.mutateAsync(args);
+      await mutation.mutateAsync({ args, fotos });
       return null;
     } catch (thrown) {
       return apiErrorMessage(thrown);
@@ -271,6 +291,80 @@ export function usePublish(kitchenId: string | null) {
   }
 
   return { publish, busy: mutation.isPending };
+}
+
+/**
+ * Her page in Itacate (`10.5-ii`, `0076`): the open kitchen's, or every slot's
+ * default when she has never saved one. Keyed on the login and the kitchen.
+ */
+export function usePage(kitchenId: string | null) {
+  const { session, ready } = useAuth();
+  const userId = session?.user.id ?? null;
+  return useQuery({
+    queryKey: pageKey(userId, kitchenId),
+    queryFn: () => kitchenPage(kitchenId as string),
+    enabled: ready && userId !== null && kitchenId !== null,
+  });
+}
+
+/**
+ * *Guardar* on her page: the pictures she took go up first, then
+ * `set_kitchen_page` is sent ONLY WHAT CHANGED (`pagePatch`) — nothing at all
+ * when nothing did. `save` answers `null`, or the sentence to show. The page it
+ * answers with is drawn at once, and the page is read again either way.
+ */
+export function useSavePage(kitchenId: string | null) {
+  const queries = useQueryClient();
+  const { session } = useAuth();
+  const userId = session?.user.id ?? null;
+  const mutation = useMutation({
+    mutationFn: async (input: { kitchenId: string; saved: Page; draft: PageDraft }): Promise<Page> => {
+      const patch = pagePatch(input.saved, input.draft);
+      if (Object.keys(patch).length === 0) return input.saved;
+      await uploadPictures(porSubir([input.draft.cover, input.draft.logo]));
+      return setKitchenPage(setPageArgs(input.kitchenId, patch));
+    },
+    onSuccess: (page) => {
+      queries.setQueryData<Page>(pageKey(userId, kitchenId), page);
+    },
+    onSettled: () => {
+      void queries.invalidateQueries({ queryKey: PAGES_KEY });
+    },
+  });
+
+  async function save(input: { kitchenId: string; saved: Page; draft: PageDraft }): Promise<string | null> {
+    try {
+      await mutation.mutateAsync(input);
+      return null;
+    } catch (thrown) {
+      return apiErrorMessage(thrown);
+    }
+  }
+
+  return { save, busy: mutation.isPending };
+}
+
+/**
+ * ⚠️ `10.5-ii`: WHAT A PICTURE IS DRAWN FROM — the file on this phone for one just
+ * taken; Storage's private door with her token for one saved (`photoRequest`);
+ * `null` for none, and the slot's default shows. ⚠️ NOT A QUERY: `expo-image`
+ * keeps each file on disk under its path, which a new picture never reuses, so
+ * a kept file is never stale; with no signal, a picture never seen is the default.
+ */
+export function useFotoSource(
+  foto: Foto,
+  size: PhotoSize,
+): { readonly uri: string; readonly headers?: Record<string, string>; readonly cacheKey?: string } | null {
+  const { session } = useAuth();
+  const token = session?.access_token ?? null;
+  if (foto.kind === 'ninguna') return null;
+  if (foto.kind === 'nueva') {
+    const file = foto.archivos.find((archivo) => archivo.name === FILE_OF[size]);
+    return file === undefined ? null : { uri: file.uri };
+  }
+  if (token === null) return null;
+  const request = photoRequest(foto.path, size, token);
+  return { uri: request.uri, headers: request.headers, cacheKey: `${foto.path}/${FILE_OF[size]}` };
 }
 
 /**

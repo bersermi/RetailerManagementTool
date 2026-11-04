@@ -35,10 +35,18 @@
 //
 // ⚠️ HER LIST IS READ BY THE KITCHEN'S ID, as her place is (`@/api/place`): the
 // walls show a login every kitchen she belongs to, and the list is the open one's.
+//
+// ⚠️ `10.5-ii`: A PHOTO PER DISH, ONE MORE KEY OF EACH LINE (`image_path`, `0076`)
+// — `publish_listing`'s signature unchanged, so a build that sends none publishes
+// as before. The photo goes up BEFORE the line that names it (`@/api/hooks`'s
+// `usePublish`), under the path made when it was taken, so a retry is the same
+// photo and the same publication. *Repetir* sends yesterday's path again: a dish
+// she sells every week is photographed once (proposal B).
 // ============================================================================
 
 import { SCALE, formatDecimal, parseDecimal } from '@tienda/money';
 
+import { NINGUNA, guardada, pathOf, porSubir, type Foto, type FotoNueva } from '@/api/fotos';
 import { formatMXN } from '@/format/mxn';
 import { repeatVentana, type Ventana } from '@/lib/ventana';
 import { ES } from '@/strings';
@@ -58,7 +66,7 @@ export const LINES_TABLE = 'listing_line';
  * Named, never `*`; the embed is `LINES_TABLE`'s. ⚠️ ONE LINE: the contract
  * check reads it with one `sed`.
  */
-export const LISTING_COLUMNS = 'id,location_id,pickup_start,pickup_end,created_at,withdrawn_at,listing_line(line_no,name,description,tags,unit_price,quantity,surprise,usual_price)';
+export const LISTING_COLUMNS = 'id,location_id,pickup_start,pickup_end,created_at,withdrawn_at,listing_line(line_no,name,description,tags,unit_price,quantity,surprise,usual_price,image_path)';
 
 /** ⚠️ The column the list is filtered on — the open kitchen's id. See the header. */
 export const LISTING_OWNER_COLUMN = 'workspace_id';
@@ -100,6 +108,8 @@ export interface LineRow {
   readonly quantity: number | string;
   readonly surprise: boolean;
   readonly usual_price: number | string | null;
+  /** `10.5-ii`: the dish's photo, `<kitchen>/<uuid>` in the bucket `cocina` (`0076`). */
+  readonly image_path?: string | null;
 }
 
 /** A publication as PostgREST sends it. */
@@ -126,6 +136,8 @@ export interface Line {
   readonly count: number;
   readonly surprise: boolean;
   readonly usualCentavos: number | null;
+  /** Its photo's path, or `null` — her kitchen's drawing. */
+  readonly imagePath: string | null;
 }
 
 /** A publication, as this app holds it. */
@@ -171,6 +183,7 @@ export function toListing(row: ListingRow): Listing {
       count: countOf(line.quantity),
       surprise: line.surprise === true,
       usualCentavos: line.usual_price === null ? null : centavosOf(line.usual_price),
+      imagePath: typeof line.image_path === 'string' && line.image_path.trim() !== '' ? line.image_path : null,
     })),
   };
 }
@@ -241,11 +254,18 @@ export interface LineDraft {
   readonly count: string;
   /** What it is usually worth — read only for a surprise bag. */
   readonly usual: string;
+  /** `10.5-ii`: its photo — none, one already saved (*Repetir*), or one just taken. */
+  readonly foto: Foto;
 }
 
-/** A line nobody has typed into: a dish, nothing chosen. */
+/** A line nobody has typed into: a dish, nothing chosen, no photo. */
 export function emptyLine(key: string): LineDraft {
-  return { key, surprise: false, name: '', description: '', tags: [], price: '', count: '', usual: '' };
+  return { key, surprise: false, name: '', description: '', tags: [], price: '', count: '', usual: '', foto: NINGUNA };
+}
+
+/** The photos taken on this form that must go up before it is published, each once. */
+export function fotosPorSubir(lines: readonly LineDraft[]): FotoNueva[] {
+  return porSubir(lines.map((line) => line.foto));
 }
 
 /** What a typed price is once the decoration is off — Wera's `cleanPesos`, to the character. */
@@ -374,6 +394,7 @@ export interface LineBody {
   readonly quantity: number;
   readonly surprise: boolean;
   readonly usual_price: string | null;
+  readonly image_path: string | null;
 }
 
 function required<T>(value: T | null, what: string): T {
@@ -393,6 +414,7 @@ export function lineBody(line: LineDraft): LineBody {
     quantity: required(parseCount(line.count), 'a count'),
     surprise: line.surprise,
     usual_price: usual === null ? null : formatDecimal(usual, SCALE.money),
+    image_path: pathOf(line.foto),
   };
 }
 
@@ -450,6 +472,7 @@ export function listingFrom(args: PublishArgs): Listing {
       count: line.quantity,
       surprise: line.surprise,
       usualCentavos: line.usual_price === null ? null : centavosOf(line.usual_price),
+      imagePath: line.image_path,
     })),
   };
 }
@@ -491,9 +514,9 @@ export function pesosText(centavos: number): string {
 
 /**
  * The form *Repetir* opens: her lines as she published them — each with a new
- * handle — and the window's hours on the next day they have not ended
- * (`repeatVentana`). ⚠️ NOTHING IS SENT UNTIL SHE PRESSES *PUBLICAR*: a
- * repeated publication is a new one, under a new id.
+ * handle and its photo, already saved — and the window's hours on the next day
+ * they have not ended (`repeatVentana`). ⚠️ NOTHING IS SENT UNTIL SHE PRESSES
+ * *PUBLICAR*: a repeated publication is a new one, under a new id.
  */
 export function repeatDraft(
   listing: Listing,
@@ -510,6 +533,7 @@ export function repeatDraft(
       price: pesosText(line.priceCentavos),
       count: String(line.count),
       usual: line.surprise && line.usualCentavos !== null ? pesosText(line.usualCentavos) : '',
+      foto: guardada(line.imagePath),
     })),
     ventana: repeatVentana(listing.start, listing.end, now),
   };

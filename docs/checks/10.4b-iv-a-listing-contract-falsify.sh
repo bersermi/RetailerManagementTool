@@ -102,10 +102,14 @@ echo "C11 the kitchen's place is read by the wrong column — there is no place 
 run C11 red "could not read the kitchens' places and the shop's store apart" place \
   "s/^export const PLACE_OWNER_COLUMN = 'workspace_id';/export const PLACE_OWNER_COLUMN = 'id';/"
 
+echo "C12 the dish photo's key is misspelt (\`10.5-ii\`) — accepted, and the dish silently loses its photo"
+run C12 red "image_path reads back None, sent" listing \
+  's/^  readonly image_path: string | null;/  readonly image: string | null;/'
+
 echo
 echo "$pass passed, $fail failed."
-if (( pass + fail < 12 )); then
-  echo "FAIL: only $((pass + fail)) fixtures ran, expected 12."
+if (( pass + fail < 13 )); then
+  echo "FAIL: only $((pass + fail)) fixtures ran, expected 13."
   exit 1
 fi
 (( fail == 0 )) || exit 1

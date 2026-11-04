@@ -1,7 +1,8 @@
 // ============================================================================
 // EVERY WORD WERA COCINA SHOWS, IN ONE FILE (ADR-035 §2.11). Plan tasks `10.2a`
 // (the skeleton), `10.4b-iii-a` (signing in), `10.4b-iii-b` (her kitchen),
-// `10.4b-iii-c` (her way out) and `10.4b-iv-a` (what she publishes).
+// `10.4b-iii-c` (her way out), `10.4b-iv-a` (what she publishes) and `10.5-ii`
+// (her page in Itacate, and a photo per dish).
 //
 // ⚠️ WHERE A SCREEN HERE DOES WHAT ONE OF WERA'S DOES, ITS WORDS ARE WERA'S
 // (`app/src/strings.ts`, `ES.auth`). One person can use both apps with one
@@ -246,6 +247,60 @@ export const ES = {
     cambiarDireccion: 'Cambiar dirección',
     ajustarPunto: 'Ajustar punto',
     cambiarGiro: 'Cambiar giro',
+    /** `10.5-ii`: her page's door, under a small picture of it. */
+    pagina: 'Tu página en Itacate',
+    editarPagina: 'Editar tu página',
+  },
+
+  /**
+   * ⚠️ `10.5-ii`: *TU PÁGINA EN ITACATE* — proposal B as the proposals page drew it
+   * (https://claude.ai/artifact/EaiMkYqn2skPXn7MiKeULu), the owner's ruling of
+   * 2026-11-01: *Así te ven tus vecinos*, *Foto de portada* with *Tomar foto* and
+   * *Elegir*, *Tu color* with the six names, *Una frase sobre tu cocina* with its
+   * count, the hint about a home's front, *Guardar*. Her logo and her Google Maps
+   * link were not drawn; their words are this row's.
+   */
+  pagina: {
+    titulo: 'Tu página en Itacate',
+    volver: 'Volver',
+    asiTeVen: 'Así te ven tus vecinos',
+    portada: 'Foto de portada',
+    tomar: 'Tomar foto',
+    elegir: 'Elegir',
+    quitar: 'Quitar',
+    color: 'Tu color',
+    colores: {
+      chile: 'Chile',
+      mole: 'Mole',
+      nopal: 'Nopal',
+      talavera: 'Talavera',
+      cempasuchil: 'Cempasúchil',
+      jamaica: 'Jamaica',
+    },
+    frase: 'Una frase sobre tu cocina',
+    fraseEjemplo: 'Comida casera desde 1998. Menú distinto cada día.',
+    /** The sentence's count, as the drawing shows it: `49 / 100`. */
+    cuenta: (n: number, max: number) => `${n} / ${max}`,
+    logo: 'Tu logo (opcional)',
+    sinLogo: 'Sin logo, van tus iniciales.',
+    enlace: 'Tu enlace de Google Maps (opcional)',
+    enlaceEjemplo: 'https://maps.app.goo.gl/…',
+    enlaceComo: 'En Google Maps, busca tu cocina, toca Compartir, copia el enlace y pégalo aquí.',
+    /** What Itacate will show for her link — the owner's Google ruling of 2026-11-01. */
+    verEnMaps: 'Ver en Google Maps ›',
+    aviso: 'Tus vecinos verán estas fotos y esta frase. Si tu cocina está en tu casa, mejor una foto de tu comida que de tu fachada.',
+    guardar: 'Guardar',
+    leyendo: 'Buscando tu página…',
+    errores: {
+      sentenceLong: 'La frase es muy larga: hasta 100 letras.',
+      link: 'Ese enlace no es de Google Maps. En Google Maps, toca Compartir y copia el enlace.',
+    },
+  },
+
+  /** `10.5-ii`: what a tap on *Tomar foto* or *Elegir* can come to, besides a photo. */
+  foto: {
+    denegada: 'Wera Cocina no tiene permiso para usar la cámara. Puedes darlo en los ajustes de tu teléfono.',
+    fallo: 'No se pudo usar esa foto. Intenta de nuevo.',
   },
 
   /**
@@ -324,6 +379,9 @@ export const ES = {
       gluten: 'Gluten',
     },
     quitar: 'Quitar',
+    /** `10.5-ii`: each line's photo — *Repetir* brings yesterday's back. */
+    foto: 'Foto (opcional)',
+    sinFoto: 'Sin foto, va el dibujo de tu cocina.',
     otro: 'Otro platillo',
     cuando: '¿Cuándo pueden pasar?',
     desde: 'Desde',

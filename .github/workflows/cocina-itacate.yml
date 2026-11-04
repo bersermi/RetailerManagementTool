@@ -51,6 +51,12 @@ on:
       - "app/src/auth/support.ts"
       - "docs/runbooks/ship-an-update.sh"
       - "site/privacidad/cocina-e-itacate/index.html"
+      # ⚠️ `10.5-ii`, HER PAGE AND HER PHOTOS: a square photo's two files are Wera's
+      # sizes (`app/src/api/photos.ts`), and the nine trades' drawings are held to
+      # their source (`brand/giros.svg`) and to the script that draws them.
+      - "app/src/api/photos.ts"
+      - "brand/giros.svg"
+      - "store/cocina-itacate/render.sh"
       - "package.json"
       - "package-lock.json"
       - ".github/workflows/cocina-itacate.yml"

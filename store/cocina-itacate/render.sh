@@ -28,6 +28,16 @@
 #
 # Needs Google Chrome (it draws the SVG). Wera's own pictures are
 # `brand/render-icons.sh` and `store/google-play/grafico.html`; this touches neither.
+#
+# AND, ON ITS OWN, THE NINE TRADES' DRAWINGS (`10.5-ii`) — a kitchen's default cover
+# and dish picture, her trade's drawing on her colour:
+#
+#   bash store/cocina-itacate/render.sh giros
+#
+# draws each `<symbol>` of `brand/giros.svg` white on nothing, 512 px square, into
+# `cocina/src/marca/giros/<name>.png` (no app has SVG), and NOTHING ELSE: run with no
+# argument this script re-draws the icon and the launch screen too, which are part of
+# the native build. The drawings are JavaScript assets and move no runtime.
 # ============================================================================
 set -euo pipefail
 cd "$(dirname "$0")"
@@ -98,6 +108,32 @@ HTML
   [[ "$(sips -g hasAlpha "$1/icon.png" | tail -1 | awk '{print $2}')" == "no" ]] \
     || { echo "FAIL: $1/icon.png has an alpha channel; App Store Connect will refuse it"; exit 1; }
 }
+
+giros() { # each symbol of brand/giros.svg, white on nothing, 512 px, into cocina/src/marca/giros/
+  local out="$REPO/cocina/src/marca/giros" id
+  mkdir -p "$out"
+  python3 - "$REPO/brand/giros.svg" "$WORK" > "$WORK/giros.txt" <<'PY'
+import re, sys
+svg, work = sys.argv[1], sys.argv[2]
+text = open(svg, encoding="utf-8").read()
+for name, inner in re.findall(r"<symbol id=\"([a-z]+)\" viewBox=\"0 0 64 64\">(.*?)</symbol>", text, re.S):
+    page = ("<!doctype html><meta charset=\"utf-8\"><style>html,body{margin:0;width:512px;height:512px;"
+            "overflow:hidden;background:transparent}svg{display:block;width:512px;height:512px;color:#FFFFFF}</style>"
+            "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\">" + inner + "</svg>")
+    open(work + "/giro-" + name + ".html", "w", encoding="utf-8").write(page)
+    print(name)
+PY
+  [[ -s "$WORK/giros.txt" ]] || { echo "FAIL: no <symbol> found in brand/giros.svg"; exit 1; }
+  while read -r id; do
+    shoot "$WORK/giro-$id.html" "$out/$id.png" 512 512
+    printf '  %-36s %s\n' "cocina/src/marca/giros/$id.png" "$(sips -g pixelWidth -g pixelHeight -g hasAlpha "$out/$id.png" | tail -3 | awk '{print $2}' | tr '\n' ' ')"
+  done < "$WORK/giros.txt"
+}
+
+if [[ "${1:-}" == "giros" ]]; then
+  giros
+  exit 0
+fi
 
 icon    cocina  "#1C6B4B"
 icon    itacate "#24476B"

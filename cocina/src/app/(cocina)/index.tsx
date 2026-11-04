@@ -1,9 +1,11 @@
 import { router } from 'expo-router';
-import { ActivityIndicator, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { useKitchenGiros, useMyKitchens, usePlace } from '@/api/hooks';
+import { guardada } from '@/api/fotos';
+import { useKitchenGiros, useMyKitchens, usePage, usePlace } from '@/api/hooks';
 import { giroLabel, openKitchen } from '@/api/kitchen';
+import { colorOf } from '@/api/pagina';
 import { addressComplete, addressLine } from '@/api/place';
 import { useAuth } from '@/auth/AuthProvider';
 import { useDondeEsta } from '@/lib/useGoogle';
@@ -14,6 +16,7 @@ import { BotonLleno } from '@/ui/BotonLleno';
 import { Formulario } from '@/ui/Formulario';
 import { MapaFijo } from '@/ui/MapaFijo';
 import { sinPuntoPara } from '@/ui/PantallaDireccion';
+import { Portada } from '@/ui/Portada';
 import { Publicaciones } from '@/ui/Publicaciones';
 import { Salidas } from '@/ui/Salidas';
 
@@ -48,6 +51,11 @@ import { Salidas } from '@/ui/Salidas';
 // ⚠️ Publishing does not wait on them: nothing she publishes is shown to anyone
 // until slice 2's door.
 //
+// ⚠️ `10.5-ii`: HER PAGE IN ITACATE, under her list — the page's head as
+// neighbours will see it (`@/ui/Portada`), and *Editar tu página*. A tap on the
+// picture opens the editor too. Until the page is read, nothing is drawn there:
+// it is not what she opens the app for.
+//
 // ⚠️ HER WAY OUT AT THE FOOT (`@/ui/Salidas`, `10.4b-iii-c`): *Cerrar sesión*,
 // and *Eliminar mi cuenta*, which names this kitchen first and every other
 // business she alone owns — a shop of hers in Wera too — and asks each name.
@@ -61,6 +69,7 @@ export default function TuCocina() {
   const kitchen = openKitchen(kitchens.data);
   const giros = useKitchenGiros();
   const place = usePlace(kitchen?.id ?? null);
+  const page = usePage(kitchen?.id ?? null);
   const here = place.data;
   // ⚠️ Asked only while she has no point of her own, and only a whole address.
   const donde = useDondeEsta(here === undefined || here === null || here.pin !== null ? null : here.address, null);
@@ -119,6 +128,26 @@ export default function TuCocina() {
           {ES.publicaciones.titulo}
         </Text>
         <Publicaciones kitchenId={kitchen.id} />
+
+        {page.data !== undefined && (
+          <>
+            <View style={{ marginTop: SIZE.space, borderTopWidth: 1, borderTopColor: PALETTE.linea }} />
+            <Text style={{ fontSize: SIZE.bodySize, fontWeight: '700', color: PALETTE.tinta }}>{ES.cocina.pagina}</Text>
+            <Pressable accessibilityRole="button" accessibilityLabel={ES.cocina.editarPagina} onPress={() => router.push('/pagina')}>
+              <Portada
+                nombre={kitchen.displayName}
+                giro={kitchen.giroPrincipal}
+                giroNombre={trade}
+                color={colorOf(page.data, kitchen.giroPrincipal)}
+                frase={page.data.sentence}
+                enlace={page.data.mapsLink}
+                cover={guardada(page.data.cover)}
+                logo={guardada(page.data.logo)}
+              />
+            </Pressable>
+            <BotonLleno label={ES.cocina.editarPagina} onPress={() => router.push('/pagina')} />
+          </>
+        )}
 
         <View style={{ marginTop: SIZE.space, borderTopWidth: 1, borderTopColor: PALETTE.linea }} />
         <Text style={{ fontSize: SIZE.bodySize, fontWeight: '700', color: PALETTE.tinta }}>{ES.cocina.donde}</Text>
