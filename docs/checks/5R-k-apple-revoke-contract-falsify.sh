@@ -2,15 +2,16 @@
 # ============================================================================
 # 5R-k — can the Apple-revoke contract check still fail?
 # ============================================================================
-# Runs `5R-k-apple-revoke-contract.sh` eight times, each against one thing made
+# Runs `5R-k-apple-revoke-contract.sh` ten times, each against one thing made
 # wrong, and requires it to go red FOR THE REASON the fixture names. A check
 # that can only pass asserts nothing. Needs the same local Supabase.
 #
-# SIX fixtures are broken COPIES of a file the check reads, as every sibling
+# EIGHT fixtures are broken COPIES of a file the check reads, as every sibling
 # falsifier does it — three of them Wera Cocina's, since plan `10.4b-iii-c`:
 # its body's app key renamed (the function then signs for Wera, and Apple
 # refuses Cocina's code), an id that is not its bundle id, and a second
-# function's name. ⚠️ TWO ARE NOT, AND CANNOT BE: the function is served from
+# function's name; and two Itacate's, since plan `10.5-iii-b`: the same app key
+# renamed, and an id that is not its bundle id. ⚠️ TWO ARE NOT, AND CANNOT BE: the function is served from
 # `supabase/functions/`, so a broken copy of it would not be the one running.
 # Those two leave the function alone and make the stand-in for Apple LIE
 # instead (`APPLE_STAND_IN_MODE`), which is the only way to show that the
@@ -24,6 +25,7 @@ CHECK="docs/checks/5R-k-apple-revoke-contract.sh"
 CONTRACT="app/src/api/account.ts"
 FUNCTION="supabase/functions/apple-revoke/index.ts"
 COCINA="cocina/src/api/account.ts"
+ITACATE="itacate/src/api/account.ts"
 SCRATCH="$(mktemp -d)"
 trap 'rm -rf "$SCRATCH"' EXIT
 
@@ -52,6 +54,7 @@ fixture() { # name file-to-mutate sed-expression expected-reason-regex
   local contract="$CONTRACT"
   local function="$FUNCTION"
   local cocina="$COCINA"
+  local itacate="$ITACATE"
   local copy="$SCRATCH/$name.ts"
   sed "$expr" "$which" > "$copy"
   if cmp -s "$copy" "$which"; then
@@ -59,10 +62,11 @@ fixture() { # name file-to-mutate sed-expression expected-reason-regex
   fi
   if [[ "$which" == "$CONTRACT" ]]; then contract="$copy"
   elif [[ "$which" == "$COCINA" ]]; then cocina="$copy"
+  elif [[ "$which" == "$ITACATE" ]]; then itacate="$copy"
   else function="$copy"; fi
   local out
   local rc
-  out="$(bash "$CHECK" "$contract" "$function" "$cocina" 2>&1)"; rc=$?
+  out="$(bash "$CHECK" "$contract" "$function" "$cocina" "$itacate" 2>&1)"; rc=$?
   judge "$name" "$rc" "$out" "$reason"
 }
 
@@ -95,10 +99,16 @@ fixture cocina-not-its-bundle-id "$COCINA" \
 fixture cocina-other-function "$COCINA" \
   "s/^export const APPLE_REVOKE = 'apple-revoke';/export const APPLE_REVOKE = 'apple-revoke-cocina';/" \
   "there is one function"
+fixture itacate-app-key-renamed "$ITACATE" \
+  's/^  readonly client_id: string;/  readonly clientId: string;/' \
+  "Itacate.s call answered 502"
+fixture itacate-not-its-bundle-id "$ITACATE" \
+  "s/^export const APPLE_CLIENT_ID = 'mx.wera.vecino';/export const APPLE_CLIENT_ID = 'mx.wera.vecinos';/" \
+  "its bundle id is 'mx.wera.vecino'"
 
 echo
-if (( failed == 0 && passed == 8 )); then
-  echo "all 8 fixtures behaved as recorded — the contract check goes red on every defect it names."
+if (( failed == 0 && passed == 10 )); then
+  echo "all 10 fixtures behaved as recorded — the contract check goes red on every defect it names."
   exit 0
 fi
 echo "$failed of $((passed + failed)) fixtures misbehaved."

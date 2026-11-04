@@ -23,15 +23,17 @@
 //
 // ⚠️⚠️ WHICH APP THE CODE CAME FROM, SINCE BUILD 2 (plan `10.4b-iii-c`). Apple
 // issues a code to the ONE app whose sheet asked for it — its bundle id — and
-// refuses a trade that names any other client. Wera and Wera Cocina both offer
-// Sign in with Apple, so the body says which: `client_id`, one of `APPS` below.
+// refuses a trade that names any other client. Wera, Wera Cocina and, since
+// build 3 (plan `10.5-iii-b`), Itacate offer Sign in with Apple, so the body says
+// which: `client_id`, one of `APPS` below.
 // ⚠️ ABSENT IS WERA, because every Wera build in the field sends `{code}` alone
 // and must keep working (ADR-035 §2.2). ⚠️ ANY OTHER VALUE IS REFUSED, 400, and
 // Apple hears nothing: this function signs with the owner's key, and it signs
-// for the owner's apps and nobody else's. The one key covers both apps because
-// Cocina is grouped under Wera's App ID in Apple's portal (the owner, 2026-10-30)
-// — which only a real deletion from an iPhone can prove: Apple answers
-// `invalid_client` when the key does not cover the id.
+// for the owner's apps and nobody else's. The one key covers every app grouped
+// under Wera's App ID in Apple's portal — Cocina by the owner on 2026-10-30,
+// Itacate by his hands too (the handbook) — which only a real deletion from an
+// iPhone can prove: Apple answers `invalid_client` when the key does not cover
+// the id, and the app deletes the account regardless.
 //
 // ⚠️ IT STORES NOTHING AND LOGS NO SECRET. No table, no file. The code, the
 // tokens Apple returns and the client secret live for the length of the
@@ -65,17 +67,18 @@
  * `5R-k-function-deployed.sh` compares what is deployed with what is merged:
  * merging is not deploying, here as for a migration.
  */
-export const BUILD = 2;
+export const BUILD = 3;
 
 const APPLE = 'https://appleid.apple.com';
 
 /**
  * ⚠️ THE APPS WHOSE CODES THIS FUNCTION TRADES — each one's bundle id, which is
- * its client id at Apple. Wera, and Wera Cocina since build 2 (`10.4b-iii-c`).
- * Itacate joins when it offers Sign in with Apple (plan `10.5`): its id here, a
- * `BUILD` bump and the deploy, after it is grouped under Wera's App ID too.
+ * its client id at Apple. Wera; Wera Cocina since build 2 (`10.4b-iii-c`); and
+ * Itacate since build 3 (`10.5-iii-b`, its *Eliminar mi cuenta*). A fourth app
+ * joins the same way: its id here, a `BUILD` bump and the deploy, after it is
+ * grouped under Wera's App ID too.
  */
-const APPS: readonly string[] = ['mx.wera.app', 'mx.wera.cocina'];
+const APPS: readonly string[] = ['mx.wera.app', 'mx.wera.cocina', 'mx.wera.vecino'];
 
 /** What a body with no `client_id` means: every Wera build before build 2 sends `{code}` alone. */
 const DEFAULT_CLIENT_ID = 'mx.wera.app';

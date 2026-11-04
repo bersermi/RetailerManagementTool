@@ -9,10 +9,10 @@
 // back to the front. Nothing here is needed offline yet, so nothing is kept, and
 // the cache dies with the app.
 //
-// ⚠️ NOTHING READS THROUGH IT YET: signing in reads nothing from the database.
-// It is mounted now so the first read — her way out's (`10.5-iii-b`), the door's
-// (`10.5-iv`) — adds a hook and touches no root. Every read here is scoped to
-// whoever holds the session, so its key carries the login, as Wera Cocina's does.
+// ⚠️ ITS FIRST READ IS HER WAY OUT'S (`10.5-iii-b`): what goes with her account
+// (`@/api/hooks`' `useBusinessesThatGo`); the door's (`10.5-iv`) adds a hook and
+// touches no root. Every read here is scoped to whoever holds the session, so its
+// key carries the login, as Wera Cocina's does.
 //
 // ⚠️ ONE CLIENT PER MOUNT, held in state and never at module scope, as Wera's.
 // ============================================================================

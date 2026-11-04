@@ -10,6 +10,12 @@
 # wrong reason is a failure here too. The control, unedited, must be green.
 # C7–C13 are `10.4b-iii-b`'s: making her kitchen. C14–C17 are `10.4b-iii-c`'s:
 # her way out. C18–C19 are `10.4h`'s: her line with no pin, and her pin cleared.
+# C20–C21 are `10.5-iii-b`'s: Itacate's way out drifting from Wera Cocina's —
+# each refused before any sign-up, so each costs a second. ⚠️ And since then
+# C14–C17 break Itacate's copy the same way as Wera Cocina's (`run`'s `account`
+# target): the deletion's names are one engine in two files, and broken in one
+# alone the comparison refused them first — red for the wrong reason, which is
+# what this harness's first run of `10.5-iii-b` found.
 #
 # Run:  supabase start && supabase db reset && bash docs/checks/10.4b-iii-a-cocina-contract-falsify.sh
 # Exit: 0 every fixture behaved; 1 otherwise.
@@ -21,33 +27,49 @@ KITCHEN="cocina/src/api/kitchen.ts"
 CREDENTIALS="cocina/src/auth/credentials.ts"
 PLACE="cocina/src/api/place.ts"
 ACCOUNT="cocina/src/api/account.ts"
-[[ -r "$CHECK" && -r "$KITCHEN" && -r "$CREDENTIALS" && -r "$PLACE" && -r "$ACCOUNT" ]] || { echo "FAIL: run this from the repository root"; exit 1; }
+ITACATE="itacate/src/api/account.ts"
+[[ -r "$CHECK" && -r "$KITCHEN" && -r "$CREDENTIALS" && -r "$PLACE" && -r "$ACCOUNT" && -r "$ITACATE" ]] || { echo "FAIL: run this from the repository root"; exit 1; }
 
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 pass=0
 fail=0
 
-run() { # name want phrase target(kitchen|credentials|place|account) sed-program
+run() { # name want phrase target(kitchen|credentials|place|account|itacate) sed-program
   local name="$1" want="$2" phrase="$3" target="$4" program="$5"
   local real="$KITCHEN"
   [[ "$target" == credentials ]] && real="$CREDENTIALS"
   [[ "$target" == place ]] && real="$PLACE"
   [[ "$target" == account ]] && real="$ACCOUNT"
+  [[ "$target" == itacate ]] && real="$ITACATE"
   local copy="$TMP/$name.ts"
   sed "$program" "$real" > "$copy"
   if [[ "$program" != "" ]] && cmp -s "$copy" "$real"; then
     echo "  ✗ $name — THE MUTATION CHANGED NOTHING: a fixture that edits nothing tests the control twice."
     fail=$((fail+1)); return
   fi
-  local out rc k="$KITCHEN" c="$CREDENTIALS" p="$PLACE" a="$ACCOUNT"
+  local out rc k="$KITCHEN" c="$CREDENTIALS" p="$PLACE" a="$ACCOUNT" i="$ITACATE"
   case "$target" in
     credentials) c="$copy" ;;
     place) p="$copy" ;;
-    account) a="$copy" ;;
+    account)
+      # ⚠️ `10.5-iii-b`: THE DELETION'S NAMES ARE ONE ENGINE IN TWO FILES — the
+      # check's first group refuses Itacate's differing from Wera Cocina's, before
+      # any request — so a break in it is made in BOTH, and what must turn red is
+      # the group that asks PostgREST. Broken in Cocina's alone, every one of these
+      # was red at the comparison instead: the reason, not the database's answer.
+      a="$copy"
+      i="$TMP/$name-itacate.ts"
+      sed "$program" "$ITACATE" > "$i"
+      if cmp -s "$i" "$ITACATE"; then
+        echo "  ✗ $name — THE MUTATION DOES NOT APPLY TO ITACATE'S COPY: the two files no longer share the line it breaks."
+        fail=$((fail+1)); return
+      fi
+      ;;
+    itacate) i="$copy" ;;
     *) k="$copy" ;;
   esac
-  out="$(bash "$CHECK" "$k" "$c" "$p" "$a" 2>&1)"; rc=$?
+  out="$(bash "$CHECK" "$k" "$c" "$p" "$a" "$i" 2>&1)"; rc=$?
   local got=red; (( rc == 0 )) && got=green
   if [[ "$got" != "$want" ]]; then
     echo "  ✗ $name — expected $want, got $got"
@@ -141,10 +163,18 @@ echo "C19 the clearing's argument is renamed — a new street or number would ne
 run C19 red "her pin cleared, clear_store_pin(" place \
   '/^export interface ClearStorePinArgs {/,/^}/ s/^  readonly p_location_id: string;/  readonly p_lugar: string;/'
 
+echo "C20 Itacate's owners read drifts from Wera Cocina's — a read no group here has sent"
+run C20 red "Itacate's OWNER_COLUMNS is" itacate \
+  "s/^export const OWNER_COLUMNS = 'workspace_id,user_id,workspace(display_name,kind)';/export const OWNER_COLUMNS = 'workspace_id,user_id,workspace(display_name)';/"
+
+echo "C21 Itacate's names' argument is renamed — a body no group here has sent"
+run C21 red "Itacate's DeleteArgs is" itacate \
+  's/^  readonly p_business_names: readonly string\[\];/  readonly p_nombres: readonly string[];/'
+
 echo
 echo "$pass passed, $fail failed."
-if (( pass + fail < 20 )); then
-  echo "FAIL: only $((pass + fail)) fixtures ran, expected 20."
+if (( pass + fail < 22 )); then
+  echo "FAIL: only $((pass + fail)) fixtures ran, expected 22."
   exit 1
 fi
 (( fail == 0 )) || exit 1

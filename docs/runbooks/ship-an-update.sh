@@ -27,10 +27,15 @@
 # ⚠️ `--app itacate` (plan `10.5-iii-a`, Itacate's first update — its sign-in): the
 # same steps in `itacate/`, against Itacate's own EAS project, with Wera's three
 # values (its config hands nothing to `extra`; `itacate/test/support.test.ts`
-# holds the list to its source). ⚠️⚠️ AND IT REFUSES `production`: Itacate's store
-# version in Play's closed test shares its test build's runtime, so a store update
-# would hand his testers a sign-in with no *Eliminar mi cuenta* — Apple's 5.1.1(v)
-# and Play's deletion rule. Its way out is plan `10.5-iii-b`, which lifts this.
+# holds the list to its source). Until plan `10.5-iii-b` it refused `production`:
+# Itacate's store version in Play's closed test shares its test build's runtime,
+# and a store update would have handed his testers a sign-in with no *Eliminar mi
+# cuenta* (Apple's 5.1.1(v), Play's deletion rule). Its way out is in the code
+# since then, so `production` is refused only as any channel is — while EAS's
+# `production` lacks one of the three values, which `set-itacate-sign-in.sh`
+# copies there. ⚠️ Before the first one reaches his testers, Play Console holds
+# Itacate's answers for an app with accounts (`store/cocina-itacate.md`, *Data
+# safety — Itacate* and *App access*): an update passes no Google review.
 #
 # ⚠️ `--only ios|android` (2026-10-22, his ask: *"Can I rollout the version with
 # your fixes for the Android testers?"* — while the iOS build sat in Apple's
@@ -117,13 +122,6 @@ case "$app" in
   itacate) label="Itacate";     needed="EXPO_PUBLIC_SUPABASE_URL EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY EXPO_PUBLIC_SUPPORT_WHATSAPP" ;;
   *) usage ;;
 esac
-
-# --- 0. Itacate's store version gets no sign-in without its way out ---------
-if [[ "$app" == "itacate" && "$channel" == "production" ]]; then
-  echo "REFUSED: Itacate's store version would get a sign-in with no Eliminar mi cuenta (Apple's 5.1.1(v), Play's deletion rule)." >&2
-  echo "  Its way out is plan 10.5-iii-b, which lifts this. Until then, Itacate's updates go to preview." >&2
-  exit 1
-fi
 
 root="$(git rev-parse --show-toplevel)"
 cd "$root/$app"

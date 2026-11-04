@@ -3,10 +3,11 @@
 # DELETE ONE ACCOUNT WHEN ITS OWNER ASKS BY EMAIL. Plan tasks `5R-d-i`, and
 # `10.4b-iv-b` (a name for each business).
 #
-# The deletion pages (site/eliminar-cuenta/, and Wera Cocina's beside it) promise
-# a way out without the app, because Google requires one: somebody who
-# uninstalled Wera or Wera Cocina writes to privacidad@tu-wera.com. One login
-# serves both apps, so one deletion serves both. This is what the owner runs
+# The deletion pages (site/eliminar-cuenta/, and Wera Cocina's and Itacate's
+# beside it) promise a way out without the app, because Google requires one:
+# somebody who uninstalled Wera, Wera Cocina or Itacate writes to
+# privacidad@tu-wera.com. One login serves the three apps, so one deletion
+# serves the three. This is what the owner runs
 # once he has confirmed the request comes from the account's own address
 # (docs/HANDBOOK.md, *If somebody asks to delete their account*).
 #
@@ -15,7 +16,7 @@
 #   bash docs/runbooks/delete-an-account.sh someone@example.com --shop 'La Tienda' --shop 'Fonda Lupe'
 #   bash docs/runbooks/delete-an-account.sh someone@example.com --local               # rehearsal
 #
-# It does EXACTLY what *Eliminar mi cuenta* does in either app: it calls
+# It does EXACTLY what *Eliminar mi cuenta* does in any of them: it calls
 # `delete_my_account` (`0053`, `0073`) as that person, so the login goes, every
 # business keeps their name as a former member, and every business they alone
 # own — a shop in Wera, a kitchen in Wera Cocina — goes with them. There is no

@@ -19,10 +19,23 @@
 # (`10.4b-iii-c`) names her way out: the read that says what goes with her
 # account, and the deletion's function and argument.
 #
+# ⚠️ AND ITACATE'S WAY OUT (`10.5-iii-b`), THE FIRST MODULE IN `itacate/src/api/`
+# THAT NAMES THE SCHEMA. Itacate deletes an account as Wera Cocina does — the
+# owner's ruling of 2026-11-04 — so `itacate/src/api/account.ts` sends the same
+# read and the same body. Group 1 holds each of its eight names to Wera Cocina's
+# BEFORE anything is sent, so every request groups 14–18 make is Itacate's too:
+# one check over one shared engine, not a copy of it (the owner's rule of
+# 2026-09-19). Itacate's own case — a neighbour, who owns nothing and sends an
+# empty list — needs no sign-up here: `0053`'s suite deletes a login with no
+# business it owns (its section 2), `5R-k-apple-revoke-contract.sh` deletes one
+# over HTTP (its group 12), and group 17 below shows PostgREST hands `[]` to
+# `delete_my_account`.
+#
 # WHAT IT ASSERTS, over HTTP against a real GoTrue and PostgREST, as ONE login
 # that owns a shop and then makes kitchens — so every group asks as the kitchen's
 # owner AND as a shop's:
-#   1. The claim is read OUT OF THOSE THREE FILES — nothing is retyped here.
+#   1. The claim is read OUT OF THOSE FILES — nothing is retyped here — and
+#      Itacate's deletion names are Wera Cocina's, each one.  (`10.5-iii-b`)
 #   2. A fonda signs up by the email door as Cocina does, her name under that key,
 #      and gets a session at once (confirmations off, as on the hosted project).
 #   3. With no business, the app's read answers 200 and `[]` — the landing.
@@ -76,8 +89,9 @@
 # owner's Mac as well as in CI.
 #
 # Run:  supabase start && supabase db reset && bash docs/checks/10.4b-iii-a-cocina-contract.sh
-# With: $1 a copy of kitchen.ts, $2 of credentials.ts, $3 of place.ts and $4 of
-#       account.ts — how the falsifier points it at a broken one.
+# With: $1 a copy of kitchen.ts, $2 of credentials.ts, $3 of place.ts, $4 of
+#       account.ts and $5 of Itacate's account.ts — how the falsifier points it
+#       at a broken one.
 # Exit: 0 every assertion holds; 1 otherwise.
 
 set -uo pipefail
@@ -86,7 +100,8 @@ KITCHEN_TS="${1:-cocina/src/api/kitchen.ts}"
 CREDENTIALS_TS="${2:-cocina/src/auth/credentials.ts}"
 PLACE_TS="${3:-cocina/src/api/place.ts}"
 ACCOUNT_TS="${4:-cocina/src/api/account.ts}"
-for f in "$KITCHEN_TS" "$CREDENTIALS_TS" "$PLACE_TS" "$ACCOUNT_TS"; do
+ITACATE_ACCOUNT_TS="${5:-itacate/src/api/account.ts}"
+for f in "$KITCHEN_TS" "$CREDENTIALS_TS" "$PLACE_TS" "$ACCOUNT_TS" "$ITACATE_ACCOUNT_TS"; do
   [[ -r "$f" ]] || { echo "FAIL: cannot read $f"; exit 1; }
 done
 
@@ -158,6 +173,28 @@ for pair in "WORKSPACE_TABLE:$TABLE" "KITCHEN_COLUMNS:$COLUMNS" "KIND_COLUMN:$KI
     exit 1
   fi
 done
+# `10.5-iii-b`: Itacate's way out, name by name against Wera Cocina's. ⚠️ FATAL,
+# and before any request: groups 14–18 speak for Itacate only while every name is
+# the same, and a difference is a request no group here has sent.
+itacate_names=0
+for pair in "OWNERS_TABLE:$OWNERS_TABLE" "OWNER_COLUMNS:$OWNER_COLUMNS" "OWNER_ROLE_COLUMN:$OWNER_ROLE_COL" \
+            "OWNER_ROLE:$OWNER_ROLE" "OWNER_ACTIVE_COLUMN:$OWNER_ACTIVE_COL" "DELETE_MY_ACCOUNT:$DELETE_RPC" \
+            "NAME_MISMATCH_CODE:$MISMATCH"; do
+  ours="$(const "${pair%%:*}" "$ITACATE_ACCOUNT_TS")"
+  if [[ "$ours" != "${pair#*:}" ]]; then
+    echo "FAIL: Itacate's ${pair%%:*} is '$ours' and Wera Cocina's '${pair#*:}' — one deletion, so one spelling;"
+    echo "      every request below is Wera Cocina's, and Itacate's would be one this check never sent."
+    exit 1
+  fi
+  itacate_names=$((itacate_names+1))
+done
+ITACATE_DELETE_ARGS="$(args_of "$ITACATE_ACCOUNT_TS" DeleteArgs)"
+if [[ "$ITACATE_DELETE_ARGS" != "$DELETE_ARGS" ]]; then
+  echo "FAIL: Itacate's DeleteArgs is '$ITACATE_DELETE_ARGS' and Wera Cocina's '$DELETE_ARGS' — one deletion, so one body;"
+  echo "      every request below is Wera Cocina's, and Itacate's would be one this check never sent."
+  exit 1
+fi
+itacate_names=$((itacate_names+1))
 # The order as supabase-js sends it: `.order(c)` once per column, each ascending.
 ORDER="$(tr ',' '\n' <<< "$ORDER_COLS" | sed 's/$/.asc/' | paste -sd, -)"
 APP_READ="/rest/v1/$TABLE?select=$COLUMNS&$KIND_COL=eq.$KIND&order=$ORDER"
@@ -167,6 +204,7 @@ place_read() { echo "/rest/v1/$PLACE_TABLE?select=$PLACE_COLUMNS&$PLACE_OWNER=eq
 ok "read from the app: $TABLE?select=$COLUMNS, $KIND_COL = $KIND, ordered by $ORDER_COLS; the name under $NAME_KEY"
 ok "and to make one: $ONBOARD($ONBOARD_ARGS), $GIROS_RPC(), $GIRO_COL; $PLACE_TABLE by $PLACE_OWNER; $SET_ADDRESS($SET_ADDRESS_ARGS); $SET_PIN($SET_PIN_ARGS); $SET_LINE($SET_LINE_ARGS); $CLEAR_PIN($CLEAR_PIN_ARGS)"
 ok "and her way out: $OWNERS_TABLE?select=$OWNER_COLUMNS where $OWNER_ROLE_COL = $OWNER_ROLE and $OWNER_ACTIVE_COL; $DELETE_RPC($DELETE_ARGS), refused $MISMATCH"
+ok "and Itacate's way out sends the same, all $itacate_names names read out of $ITACATE_ACCOUNT_TS — every deletion below is Itacate's too"
 
 # --- the local stack -------------------------------------------------------
 STATUS="$(supabase status -o env 2>/dev/null)"
@@ -622,4 +660,5 @@ echo "all 18 assertion groups passed — Wera Cocina's kitchen read is one the d
 echo "kitchens only and the first-made first, the name typed at sign-up reaches her membership, her"
 echo "kitchen is made, given its trade, its address and its pin on its own place — never on her shop —"
 echo "her line is saved without a pin and her pin cleared without her line (10.4h), and her account"
-echo "goes only with every business she alone owns named, a shop of hers included."
+echo "goes only with every business she alone owns named, a shop of hers included — by the names"
+echo "Itacate's way out sends too (10.5-iii-b)."

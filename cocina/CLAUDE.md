@@ -17,7 +17,7 @@ npm run typecheck --workspace @tienda/cocina
 bash docs/checks/wera-runtime.sh          # after ANY install here: Wera's runtime must not move
 bash docs/checks/10.4b-iii-a-cocina-contract.sh   # against a local `supabase start`: the kitchen read, making one and deleting the account, as the schema answers
 bash docs/checks/10.4b-iv-a-listing-contract.sh   # the same stack: her list, publishing (each line's keys), a retry, withdrawing
-bash docs/checks/5R-k-apple-revoke-contract.sh     # the same stack: the function that tells Apple, served, with Wera's body and this app's
+bash docs/checks/5R-k-apple-revoke-contract.sh     # the same stack: the function that tells Apple, served, with Wera's body, this app's and Itacate's
 bash docs/checks/10.5-i-a-kitchen-photos-contract.sh   # the same stack WITH Storage started before the reset: her page and the bucket `cocina`, by this app's names
 bash store/cocina-itacate/render.sh giros         # the nine trades' drawings, from brand/giros.svg into src/marca/giros/ — and nothing else
 TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic is local time, and the Mac is UTC−6
@@ -87,6 +87,9 @@ TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic i
   `account.ts`. Only an iPhone shows the sheet: Android deletes without telling Apple, as Wera does. ⚠️ **The
   first deletion made with Apple from an iPhone build of this app is the only proof that the owner's key covers
   its id** (his grouping under Wera's App ID, 2026-10-30): Apple answers `invalid_client` when it does not.
+  ⚠️ **Itacate's way out is this one, copied** (`itacate/src/api/account.ts`, `10.5-iii-b`):
+  `10.4b-iii-a-cocina-contract.sh` refuses any of its names that differs from this file's before it sends a
+  request, so a change to the owners read or the deletion's body is made in both apps, in one PR.
 - **What she publishes is `0072`'s, checked first on the phone** (`src/api/listing.ts`, `src/lib/ventana.ts`,
   `10.4b-iv-a`): one to ten lines, each a dish or a surprise bag with its *vale* (proposal B, his choice of
   2026-10-29), and a pickup window moved by quarter-hour steppers that stop where `publish_listing` would refuse —

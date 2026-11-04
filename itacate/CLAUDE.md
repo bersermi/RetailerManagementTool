@@ -13,10 +13,12 @@ notes) and copies nothing from it here.
 ## Measure, don't remember
 
 ```
-npm --prefix itacate test                 # the runner's tally — identity, permissions, sign-in's rules, the runtime both ways
+npm --prefix itacate test                 # the runner's tally — identity, permissions, sign-in's rules, her way out, the runtime both ways
 npm run typecheck --workspace @tienda/itacate
 bash docs/checks/wera-runtime.sh          # after ANY install here: Wera's runtime must not move
 bash docs/runbooks/set-itacate-sign-in.sh --check   # the two settings outside this repository its sign-in needs, read back
+bash docs/checks/10.4b-iii-a-cocina-contract.sh     # against a local `supabase start`: her way out's names held to Wera Cocina's, which the database answers
+bash docs/checks/5R-k-apple-revoke-contract.sh      # the same stack: the function that tells Apple, served, with this app's body among the three
 ```
 
 ## Rules
@@ -41,25 +43,40 @@ bash docs/runbooks/set-itacate-sign-in.sh --check   # the two settings outside t
   Decided, as Wera Cocina's: **no persisted cache**, and the way in **opens on *Crear cuenta***. Its
   own: **two rooms** — the way in (`(auth)`) and the app (`(vecino)`), a session the whole answer,
   because a neighbour is no business's member and nothing is read to decide (`@/auth/guard`);
-  **one time limit**, 30 s, since Itacate sends no photo; and **nothing read from the database
-  yet** — `src/api/` holds the query layer alone, mounted inside the session for the first read.
-  ⚠️ **Her way out is not here yet** (`10.5-iii-b`): no *Eliminar mi cuenta*, no second Apple sheet.
+  **one time limit**, 30 s, since Itacate sends no photo; and **one read** — her own owner
+  memberships, for her way out (`10.5-iii-b`), inside the session, keyed on the login.
+- **Her way out is Wera Cocina's, cut to this app** (`src/api/account.ts`, `@/ui/Salidas`, the owner's
+  ruling of 2026-11-04): at the foot of the one screen, *Cerrar sesión* and *Eliminar mi cuenta*; a
+  neighbour owns nothing and just confirms; a sole owner sees every kitchen (in Wera Cocina) and shop
+  (in Wera) that goes with the account and types each name (`0073`), in one body, `{p_business_names}`.
+  No business is open here, so they are named kitchens first, then shops. Wera's words, held to Wera's
+  file (`test/account.test.ts`); each business's line is the twin's that is not its home. ⚠️ **Apple
+  is told through Wera's one function**, its body's `client_id` this app's bundle id (`apple-revoke`
+  build 3); only an iPhone shows the sheet, and **Itacate has no iPhone build**, so that half has
+  never run from it. ⚠️ **The screen is a `Formulario`** so a typed name stays above the keyboard; the
+  map fills what the lines leave until the deletion opens, then keeps 240 points.
 - **A module in `src/api/` is a claim about the applied schema**, as in Wera and Wera Cocina:
-  `db.yml` fires on `itacate/src/api/**` since `10.5-iii-a`, before anything there names the
-  schema. The first module that does — her way out's (`10.5-iii-b`), the door's (`10.5-iv`) —
-  brings the contract check that workflow runs.
+  `db.yml` fires on `itacate/src/api/**` since `10.5-iii-a`. ⚠️ **Her way out's names
+  (`src/api/account.ts`) are Wera Cocina's, one by one**: the first group of
+  `docs/checks/10.4b-iii-a-cocina-contract.sh` refuses any that differs before a request is sent,
+  so its deletions are this app's too — one check over one engine, not a copy (its falsifier breaks
+  both files at once). A change to the read or the body is made in both apps. The door (`10.5-iv`)
+  brings its own check.
 - **Sign-in leans on two settings outside this repository**, both made by the owner's one command,
   `bash docs/runbooks/set-itacate-sign-in.sh` (a session's write to either is refused), and read
-  back by `--check`: the three values its bundle reads in this EAS project's `preview`, and the
+  back by `--check`: the three values its bundle reads in this EAS project's `preview` and, since
+  `10.5-iii-b`, `production`, and the
   hosted project's Apple client ids and redirect list holding `mx.wera.vecino` and
   `mx.wera.vecino://**` — without the redirect, Google's sign-in hangs with no error; without the
   id, Apple's token is refused. Android delivers Google's redirect to the router as well as to the
   browser session, which is what `src/app/auth/callback.tsx` is for.
-- ⚠️⚠️ **No store version of Itacate carries a sign-in without its way out** (`10.5-iii-b`; Apple's
-  5.1.1(v), Play's deletion rule). Its store version in Play's closed test shares the `preview`
-  build's runtime, so `ship-an-update.sh` refuses `--app itacate` on `production` until then, and
-  **no store build of Itacate is made** before it: one built from `main` carries the sign-in (and,
-  with `production` lacking the three values, would not even start).
+- ⚠️⚠️ **Its store version gets the sign-in and the way out together, with its first `production`
+  update** (Apple's 5.1.1(v), Play's deletion rule: both in the code since `10.5-iii-b`). Its store
+  version in Play's closed test shares the `preview` build's runtime, so `ship-an-update.sh` ships
+  `--app itacate` to `production` as to any channel — refusing while EAS's `production` lacks one of
+  the three values — and that update is the owner's command. ⚠️ **Before it reaches his testers, Play
+  Console holds `store/cocina-itacate.md`'s Itacate answers for an app with accounts** (*App access*,
+  with a demo account that owns nothing; *Data safety — Itacate*): an update passes no Google review.
 - **SDK 57, through the pilot.** Every native module this app will need is in its first store
   build — maps (`react-native-maps`), notifications (`expo-notifications`) and location
   (`expo-location`, **only while the app is open**: every "always" string is off, background and
@@ -95,12 +112,14 @@ bash docs/runbooks/set-itacate-sign-in.sh --check   # the two settings outside t
   both platforms (`npx expo-updates fingerprint:generate`).
 - **Ship an update only through the runbook, which computes the runtime the way the build does** —
   `bash docs/runbooks/ship-an-update.sh preview "…" --app itacate`, run on `main` after a green merge
-  (`10.5-iii-a`, its first); its rehearsal in `app.yml` holds the `--app itacate` cases. Never a bare
+  (`10.5-iii-a`, its first; `production` since `10.5-iii-b`, his); its rehearsal in `app.yml` holds the
+  `--app itacate` cases. Never a bare
   `eas update`. ⚠️ **Its only test build is Android's `preview` APK** (`2b638d21`, from `10.2b`; EAS
   keeps it to 2026-11-11, installed copies keep working) — no iPhone test build exists, and the first
   needs the owner at Terminal.app for its signing profile (`5R-b-iii`'s finding). The bundle reads
-  three values — the database's two and the support number — which this project holds in `preview`;
-  a new `EXPO_PUBLIC_` value joins the runbook's list for `--app itacate`, held by `test/support.test.ts`.
+  three values — the database's two and the support number — which this project holds in `preview`,
+  and in `production` once his command has run again (`10.5-iii-b`); a new `EXPO_PUBLIC_` value joins
+  the runbook's list for `--app itacate`, held by `test/support.test.ts`.
 - **`ios/` and `android/` are generated by `expo prebuild` and gitignored. No workflow compiles
   this app**: `cocina-itacate.yml` is a typecheck and the suite. A device build is the evidence
   for anything native.
@@ -111,7 +130,8 @@ bash docs/runbooks/set-itacate-sign-in.sh --check   # the two settings outside t
   map key and `google-services.json` are the organization's variables on expo.dev (*Sensitive*,
   `preview` and `production`), read by every project in it.
 - **Sign in with Apple needs the hosted project to list this app's id** (above); **telling Apple
-  about a deletion needs `apple-revoke` to learn it** (ADR-035 §2.2, plan `10.5-iii-b`) — a `BUILD`
-  bump and its deploy, never a second function — and Itacate grouped under Wera's App ID in Apple's
-  portal, so the function's one key covers it. One person has one Apple id across the team's apps,
-  grouped or not.
+  about a deletion needs `apple-revoke` to list it — build 3 does** (ADR-035 §2.2, plan `10.5-iii-b`;
+  a fourth app the same way, never a second function) — and Itacate grouped under Wera's App ID in
+  Apple's portal, the owner's hands, so the function's one key covers it: until then Apple answers
+  `invalid_client` to a deletion from an iPhone build, and the account is deleted regardless. One
+  person has one Apple id across the team's apps, grouped or not.

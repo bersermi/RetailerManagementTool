@@ -11,20 +11,23 @@ import { desplazamiento } from '@/lib/teclado';
 
 // ============================================================================
 // ITACATE'S DATA LAYER: what it is built from, and the lines its wiring must not
-// cross. Plan task `10.5-iii-a`.
+// cross. Plan tasks `10.5-iii-a` and `10.5-iii-b` (its first calls).
 //
 // ⚠️ THE CONVENTIONS GATE DOES NOT READ THIS APP (`docs/CONVENTIONS.md` and
 // `conventions-gate.sh` are written about Wera — density for elder shopkeepers,
 // four environment values, money), decided for Wera Cocina by `10.4b-iii-a` and
 // for Itacate by `10.5-iii-a`, its first real screens. This suite pins the rules
 // that carry this app's risks instead, as `cocina/test/data-layer.test.ts` does:
-// `supabase.auth` in `AuthProvider` alone, the live client imported by it alone,
-// `@/` imports, and no word on a screen outside `src/strings.ts`.
+// `supabase.auth` in `AuthProvider` alone, the live client imported by it and by
+// `src/api/calls.ts` alone, a screen reaching the database through a hook, `@/`
+// imports, and no word on a screen outside `src/strings.ts`.
 //
-// ⚠️ NOTHING HERE READS THE DATABASE YET: signing in is GoTrue's, and Itacate's
-// first read of a table or a door is `10.5-iii-b`'s or `10.5-iv`'s — each brings
-// its contract check against a real PostgREST, as Wera Cocina's do (`db.yml`
-// fires on `itacate/src/api/**` since this row).
+// ⚠️ ITS FIRST CALLS TO THE DATABASE ARE HER WAY OUT'S (`10.5-iii-b`): what goes
+// with her account and the deletion, `test/account.test.ts`'s. What only a real
+// PostgREST can say about them — that the names reach the schema — is
+// `docs/checks/10.4b-iii-a-cocina-contract.sh`'s, which holds them to Wera
+// Cocina's and asks the database with those (`db.yml` fires on
+// `itacate/src/api/**` since `10.5-iii-a`). The door (`10.5-iv`) brings its own.
 // ============================================================================
 
 const SRC = fileURLToPath(new URL('../src', import.meta.url));
@@ -115,11 +118,11 @@ describe('the lines the wiring does not cross', () => {
     expect(callers.sort()).toEqual(['auth/AuthProvider.tsx', 'lib/supabase.ts']);
   });
 
-  // ⚠️ When the first read lands (`10.5-iii-b`), `api/calls.ts` joins this list —
-  // the data layer, and no screen.
-  it('the live client is imported by the provider alone', () => {
+  // ⚠️ Since `10.5-iii-b` (her way out), `api/calls.ts` is on this list — the data
+  // layer, and no screen.
+  it('the live client is imported by the data layer and the provider alone', () => {
     const importers = files.filter((f) => /from '@\/lib\/supabase'/.test(f.text)).map((f) => f.name);
-    expect(importers.sort()).toEqual(['auth/AuthProvider.tsx']);
+    expect(importers.sort()).toEqual(['api/calls.ts', 'auth/AuthProvider.tsx']);
   });
 
   it('a screen reaches the database through a hook, never `@/api/calls`', () => {

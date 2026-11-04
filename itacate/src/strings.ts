@@ -1,6 +1,6 @@
 // ============================================================================
 // EVERY WORD ITACATE SHOWS, IN ONE FILE (ADR-035 §2.11). Plan tasks `10.2a`
-// (the skeleton) and `10.5-iii-a` (signing in).
+// (the skeleton), `10.5-iii-a` (signing in) and `10.5-iii-b` (her way out).
 //
 // ⚠️ WHERE A SCREEN HERE DOES WHAT ONE OF WERA'S DOES, ITS WORDS ARE WERA'S
 // (`app/src/strings.ts`, `ES.auth`), as Wera Cocina's are (`cocina/src/strings.ts`).
@@ -74,5 +74,58 @@ export const ES = {
     detalle:
       'Estás probando una versión temprana. Todavía no hace nada: la iremos llenando con actualizaciones.',
     quien: (who: string) => `Entraste como ${who}.`,
+  },
+
+  /**
+   * ⚠️ HER WAY OUT, `10.5-iii-b` — WERA'S WORDS (`app/src/strings.ts`, `ES.account`,
+   * plans `5R-c` and `10.4b-i`), as Wera Cocina's are, held to Wera's file by
+   * `test/account.test.ts`: one login in the three apps, so deleting it reads the
+   * same in each. Nothing here is new: where each business lives is said as the
+   * twin that is not its home says it — a kitchen as Wera does (*tu cocina en
+   * Wera Cocina*), a shop as Wera Cocina does (*tu tienda en Wera*) — and where a
+   * shop's records can be downloaded first is Wera Cocina's sentence.
+   */
+  account: {
+    open: 'Eliminar mi cuenta',
+    /** Nothing goes but the login — a neighbour's case. ⚠️ It promises nothing about a name staying. */
+    aloneWarning:
+      'Se borra tu acceso: tu correo, tu contraseña y tu entrada con Google o con Apple. ' +
+      'No se puede deshacer.',
+    /** ⚠️ The count is passed in, the grammar lives here. */
+    businessesWarning: (count: number) =>
+      count === 1
+        ? 'Eres la única persona dueña de este negocio. Si eliminas tu cuenta, se borra completo, ' +
+          'con todo lo que tiene. No se puede deshacer.'
+        : 'Eres la única persona dueña de estos negocios. Si eliminas tu cuenta, se borran ' +
+          'completos, con todo lo que tienen. No se puede deshacer.',
+    /** Neither business lives here: a kitchen is in Wera Cocina, a shop in Wera. */
+    businessLine: (name: string, kind: 'tienda' | 'cocina') =>
+      kind === 'cocina' ? `${name}: tu cocina en Wera Cocina` : `${name}: tu tienda en Wera`,
+    /** Wera's Ajustes offers a shop's month as a file before it goes (`5R-c`); this app cannot make it. */
+    shopRecords: 'Antes, puedes descargar las ventas, compras y merma de tu tienda en Wera: Números → Descargar un mes.',
+    typeShopName: (shop: string) => `Para confirmar, escribe el nombre de la tienda: ${shop}`,
+    typeKitchenName: (kitchen: string) => `Para confirmar, escribe el nombre de la cocina: ${kitchen}`,
+    confirm: 'Eliminar mi cuenta',
+    confirmShop: 'Eliminar mi cuenta y la tienda',
+    confirmKitchen: 'Eliminar mi cuenta y la cocina',
+    confirmBusinesses: 'Eliminar mi cuenta y mis negocios',
+    working: 'Eliminando…',
+    cancel: 'Cancelar',
+    errors: {
+      /** `0073`'s refusal: a business the screen did not show. */
+      listChanged: 'La lista de tus negocios cambió. Revísala y escribe otra vez cada nombre.',
+    },
+  },
+
+  /**
+   * What she is told when a call to the database fails — `@/api/errors`' keys,
+   * Wera Cocina's sentences cut to what her way out can answer (`10.5-iii-b`).
+   */
+  api: {
+    errors: {
+      sessionEnded: 'Tu sesión se cerró. Entra de nuevo.',
+      offline: 'Sin conexión a internet. Intenta de nuevo en un momento.',
+      unknown: 'Algo salió mal. Intenta de nuevo.',
+    },
   },
 } as const;
