@@ -186,6 +186,9 @@ what the estimate found.** Update `docs/PLAN.md` (and usually the handbook) when
   skipped step looks like. Confirm the checks by name in the log.
 - **Report every decision made on the owner's behalf**, in the closing message and the PR body.
   Flag loudly the ones cheap now and expensive later — anything a migration or the seed bakes in.
+- **A paid provider's change goes on his private price sheet** — a new provider, a new paid call, or a change in how often one is
+  made also updates `negocio/costos.md` in `~/RetailerToolDev/wera-vision` (committed and pushed there). Prices never go in this
+  public repository.
 - **Merging is not deploying.** A session that merges a migration owes `supabase db push` and
   a green `5R-f-schema-deployed.sh`, or a sentence to the owner saying why not. A change to
   the Edge Function owes its own deploy and `5R-k-function-deployed.sh`, the same way.
