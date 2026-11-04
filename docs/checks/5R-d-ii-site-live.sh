@@ -17,8 +17,8 @@
 #      `10.2b` and `10.4b-iv-b`), /terminos/cocina-e-itacate/ (their terms, with
 #      the notice Google's terms ask of an app with its map, `10.4g-i`),
 #      /eliminar-cuenta/, /eliminar-cuenta/cocina/ (Wera Cocina's, the link its
-#      Play Data safety form gives) and /estilo.css answer 200 over HTTPS, served
-#      by GitHub.
+#      Play Data safety form gives), /eliminar-cuenta/itacate/ (Itacate's, the same,
+#      `10.5-iii-b`) and /estilo.css answer 200 over HTTPS, served by GitHub.
 #   4. ⚠️ No response sets a cookie — the pages say *"Este sitio no usa cookies"*.
 #   5. ⚠️ No page holds `{{` — the aviso names its responsable.
 #   6. Both avisos and the terms served are the ones on this checkout (their date
@@ -80,7 +80,7 @@ else
 fi
 
 # 3, 4 and 5. Each page.
-for path in / /privacidad/ /privacidad/cocina-e-itacate/ /terminos/cocina-e-itacate/ /eliminar-cuenta/ /eliminar-cuenta/cocina/ /estilo.css; do
+for path in / /privacidad/ /privacidad/cocina-e-itacate/ /terminos/cocina-e-itacate/ /eliminar-cuenta/ /eliminar-cuenta/cocina/ /eliminar-cuenta/itacate/ /estilo.css; do
   name="$(echo "$path" | tr '/' '_')"
   code="$(curl -sS ${PIN[@]+"${PIN[@]}"} -o "$TMP/$name.body" -D "$TMP/$name.head" -w '%{http_code}' "$BASE$path" 2>"$TMP/$name.err")"
   if [[ "$code" != "200" ]]; then
