@@ -15,7 +15,7 @@ notes) and copies nothing from it here.
 npm --prefix cocina test                  # the runner's tally — identity, permissions, sign-in's rules, the runtime both ways
 npm run typecheck --workspace @tienda/cocina
 bash docs/checks/wera-runtime.sh          # after ANY install here: Wera's runtime must not move
-bash docs/checks/10.4b-iii-a-cocina-contract.sh   # against a local `supabase start`: the kitchen read, making one and deleting the account, as the schema answers
+bash docs/checks/10.4b-iii-a-cocina-contract.sh   # against a local `supabase start`: the kitchen read, making one, deleting one alone and deleting the account, as the schema answers
 bash docs/checks/10.4b-iv-a-listing-contract.sh   # the same stack: her list, publishing (each line's keys), a retry, withdrawing
 bash docs/checks/5R-k-apple-revoke-contract.sh     # the same stack: the function that tells Apple, served, with Wera's body, this app's and Itacate's
 bash docs/checks/10.5-i-a-kitchen-photos-contract.sh   # the same stack WITH Storage started before the reset: her page and the bucket `cocina`, by this app's names
@@ -90,6 +90,15 @@ TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic i
   ⚠️ **Itacate's way out is this one, copied** (`itacate/src/api/account.ts`, `10.5-iii-b`):
   `10.4b-iii-a-cocina-contract.sh` refuses any of its names that differs from this file's before it sends a
   request, so a change to the owners read or the deletion's body is made in both apps, in one PR.
+- **Her kitchen deleted alone, her account kept** (`10.5-iii-c`, `0077`, the owner's ruling of 2026-11-04):
+  *Eliminar esta cocina* in `@/ui/Salidas`, on her kitchen only and only once the owners read says it is hers
+  alone (`kitchenAlone`); one of the two deletions opens at a time. `delete_my_business(p_workspace_id,
+  p_business_name)` — the kitchen's id and the name as typed — and nothing told to Apple, nobody signed out:
+  the hook drops the kitchen from her list at once and reads her kitchens and the owners again, so the guard
+  sends her where a kitchen is made, or to her next-made kitchen; the block is keyed on the kitchen so nothing
+  typed survives into the next. ⚠️ **A kitchen only**: the database refuses a shop (`TD013`), and Itacate's
+  copy has none of these names — `account.ts` is the file the contract check reads them from. By email:
+  `docs/runbooks/delete-a-kitchen.sh`, which can never delete a login.
 - **What she publishes is `0072`'s, checked first on the phone** (`src/api/listing.ts`, `src/lib/ventana.ts`,
   `10.4b-iv-a`): one to ten lines, each a dish or a surprise bag with its *vale* (proposal B, his choice of
   2026-10-29), and a pickup window moved by quarter-hour steppers that stop where `publish_listing` would refuse —

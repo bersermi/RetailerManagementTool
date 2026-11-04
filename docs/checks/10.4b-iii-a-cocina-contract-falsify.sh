@@ -15,7 +15,9 @@
 # C14–C17 break Itacate's copy the same way as Wera Cocina's (`run`'s `account`
 # target): the deletion's names are one engine in two files, and broken in one
 # alone the comparison refused them first — red for the wrong reason, which is
-# what this harness's first run of `10.5-iii-b` found.
+# what this harness's first run of `10.5-iii-b` found. C22–C24 are `10.5-iii-c`'s:
+# her kitchen deleted alone — names Itacate does not have, so they break Wera
+# Cocina's file alone (`run`'s `kitchen-alone` target).
 #
 # Run:  supabase start && supabase db reset && bash docs/checks/10.4b-iii-a-cocina-contract-falsify.sh
 # Exit: 0 every fixture behaved; 1 otherwise.
@@ -35,12 +37,12 @@ trap 'rm -rf "$TMP"' EXIT
 pass=0
 fail=0
 
-run() { # name want phrase target(kitchen|credentials|place|account|itacate) sed-program
+run() { # name want phrase target(kitchen|credentials|place|account|kitchen-alone|itacate) sed-program
   local name="$1" want="$2" phrase="$3" target="$4" program="$5"
   local real="$KITCHEN"
   [[ "$target" == credentials ]] && real="$CREDENTIALS"
   [[ "$target" == place ]] && real="$PLACE"
-  [[ "$target" == account ]] && real="$ACCOUNT"
+  [[ "$target" == account || "$target" == kitchen-alone ]] && real="$ACCOUNT"
   [[ "$target" == itacate ]] && real="$ITACATE"
   local copy="$TMP/$name.ts"
   sed "$program" "$real" > "$copy"
@@ -66,6 +68,9 @@ run() { # name want phrase target(kitchen|credentials|place|account|itacate) sed
         fail=$((fail+1)); return
       fi
       ;;
+    # `10.5-iii-c`: the kitchen's own deletion is this app's alone — Itacate has
+    # no such names, so only Wera Cocina's file is broken.
+    kitchen-alone) a="$copy" ;;
     itacate) i="$copy" ;;
     *) k="$copy" ;;
   esac
@@ -171,10 +176,22 @@ echo "C21 Itacate's names' argument is renamed — a body no group here has sent
 run C21 red "Itacate's DeleteArgs is" itacate \
   's/^  readonly p_business_names: readonly string\[\];/  readonly p_nombres: readonly string[];/'
 
+echo "C22 the kitchen's deletion is misspelt — Eliminar esta cocina would be a 404"
+run C22 red "her kitchen alone with a wrong name answered 404" kitchen-alone \
+  "s/^export const DELETE_MY_BUSINESS = 'delete_my_business';/export const DELETE_MY_BUSINESS = 'delete_my_kitchen';/"
+
+echo "C23 the typed name's argument is renamed — PostgREST finds no such function"
+run C23 red "her kitchen alone with a wrong name answered 404" kitchen-alone \
+  '/^export interface DeleteBusinessArgs {/,/^}/ s/^  readonly p_business_name: string;/  readonly p_name: string;/'
+
+echo "C24 'not hers alone' is read as another code — a lost answer would be told as something that broke"
+run C24 red "the same call again: 400" kitchen-alone \
+  "s/^export const NOT_HERS_ALONE_CODE = 'TD012';/export const NOT_HERS_ALONE_CODE = 'TD013';/"
+
 echo
 echo "$pass passed, $fail failed."
-if (( pass + fail < 22 )); then
-  echo "FAIL: only $((pass + fail)) fixtures ran, expected 22."
+if (( pass + fail < 25 )); then
+  echo "FAIL: only $((pass + fail)) fixtures ran, expected 25."
   exit 1
 fi
 (( fail == 0 )) || exit 1

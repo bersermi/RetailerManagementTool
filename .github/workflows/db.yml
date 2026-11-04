@@ -477,8 +477,11 @@ on:
       - "docs/checks/5R-c-account-deletion-contract-falsify.sh"
       # ⚠️ AND THE DELETION ASKED FOR BY EMAIL, as of plan task `10.4b-iv-b`: the
       # runbook the owner runs on the hosted project, rehearsed in its own job,
-      # `delete-by-email`, against `delete_my_account` as the migrations leave it.
+      # `delete-by-email`, against `delete_my_account` as the migrations leave it —
+      # and, since `10.5-iii-c`, its sibling that deletes one kitchen and keeps the
+      # account, against `delete_my_business` (`0077`).
       - "docs/runbooks/delete-an-account.sh"
+      - "docs/runbooks/delete-a-kitchen.sh"
       - "docs/checks/10.4b-iv-b-delete-by-email-rehearsal.sh"
       # ⚠️ AND THE PRODUCT PHOTOS, as of plan task `8o` (`0063`) — the two buckets,
       # the shop's own column and Wera's computed one, against the app's own names.
@@ -2341,7 +2344,10 @@ jobs:
   # it; what it deletes cannot be put back. Rehearsed against this job's reset as
   # the owner runs it, `--local` for `--linked`: one name for each business she
   # alone owns, the command it prints run as printed, every answer read back from
-  # the database. ⚠️ Its own job for `cocina-listings`' reason: the falsifier makes
+  # the database. ⚠️ And since `10.5-iii-c` the one that deletes ONE KITCHEN and
+  # keeps the account (`delete-a-kitchen.sh`, `0077`), in the same cases file: the
+  # line it prints for a kitchen run as printed, that kitchen gone and the login,
+  # her shop and her other kitchen kept. ⚠️ Its own job for `cocina-listings`' reason: the falsifier makes
   # the fixtures again for each broken copy, one `supabase db query` per
   # statement, and `catalog-origin`, where the app's own deletion is checked,
   # would end near its fifteen minutes. Only Postgres and GoTrue: the runbook and
@@ -2350,7 +2356,10 @@ jobs:
   delete-by-email:
     name: the deletion asked for by email, as the owner runs it
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    # ⚠️ 25, not 15, since `10.5-iii-c`: the kitchen's runbook added six cases and
+    # three broken copies, and its first run was cancelled at fifteen minutes with
+    # two copies left. Each copy now runs its own runbook's cases alone.
+    timeout-minutes: 25
 
     steps:
       - uses: actions/checkout@v4
@@ -2371,7 +2380,7 @@ jobs:
       - name: Apply migrations from scratch
         run: supabase db reset
 
-      - name: Rehearsal — does the deletion asked for by email delete what it names, and refuse what it must (plan 10.4b-iv-b)
+      - name: Rehearsal — does the deletion asked for by email, of an account or of one kitchen, delete what it names and refuse what it must (plans 10.4b-iv-b, 10.5-iii-c)
         run: bash docs/checks/10.4b-iv-b-delete-by-email-rehearsal.sh
 
       - name: Rehearsal — can it still fail (broken copies of the runbook, each red for its reason)

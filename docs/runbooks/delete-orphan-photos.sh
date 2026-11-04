@@ -14,8 +14,9 @@
 # AN ORPHAN is the first folder of a file in `producto` (a shop's product photos,
 # `0063`), `merma` (Te lo compro's, `0060`) or `cocina` (a kitchen's cover, logo
 # and dishes, `0076`) that names no business any more. Each of those buckets
-# keeps a business's files under its id, and `delete_my_account`'s purge deletes
-# the business's row but cannot reach the files: no bucket has a delete policy,
+# keeps a business's files under its id, and `delete_my_account`'s purge — or
+# `delete_my_business`'s, a kitchen deleted alone (`0077`) — deletes the
+# business's row but cannot reach the files: no bucket has a delete policy,
 # and SQL cannot delete a file (Supabase's `storage.protect_delete` refuses it,
 # and a row deleted under it would leave the bytes in the store). So the files go
 # through the Storage API — `supabase storage rm`, which the CLI signs with the

@@ -8,7 +8,9 @@ import {
   APPLE_REVOKE_REGION,
   APPLE_REVOKE_TIMEOUT_MS,
   DELETE_MY_ACCOUNT,
+  DELETE_MY_BUSINESS,
   NAME_MISMATCH_CODE,
+  NOT_HERS_ALONE_CODE,
   OWNERS_KEY,
   OWNER_ACTIVE_COLUMN,
   OWNER_COLUMNS,
@@ -19,8 +21,11 @@ import {
   confirmWords,
   deleteArgs,
   deleteErrorMessage,
+  deleteKitchenArgs,
+  deleteKitchenErrorMessage,
   deletedFrom,
   deletionFrom,
+  kitchenAlone,
   nameMatches,
   namesReady,
   normalizedName,
@@ -47,7 +52,7 @@ import { ES as WERA } from '../../app/src/strings';
 // ⚠️ WHAT ONLY A REAL DATABASE AND THE REAL FUNCTION CAN SAY — that the owners
 // read, the deletion's names and the body PostgREST and `0073` answer as this
 // app sends them, and that `apple-revoke` signs for this app's id — is
-// `docs/checks/10.4b-iii-a-cocina-contract.sh` (groups 14–17) and
+// `docs/checks/10.4b-iii-a-cocina-contract.sh` (groups 14 and 18–21) and
 // `docs/checks/5R-k-apple-revoke-contract.sh`, which read these names out of
 // `src/api/account.ts`. What no check can see: Apple's sheet on an iPhone, and
 // Apple accepting the trade — the owner's iPhone, with a Cocina build for it.
@@ -282,7 +287,8 @@ describe('the words: Wera’s, word for word', () => {
 describe('the two screens a signed-in person stands on both have the way out', () => {
   it('where a kitchen is made, with no kitchen open — and her kitchen, open first', () => {
     expect(read('src/app/(onboarding)/registro.tsx')).toMatch(/<Salidas openKitchenId=\{null\} \/>/);
-    expect(read('src/app/(cocina)/index.tsx')).toMatch(/<Salidas openKitchenId=\{kitchen\.id\} \/>/);
+    // ⚠️ Keyed on the kitchen (`10.5-iii-c`): when one goes and her next-made opens, nothing typed is left.
+    expect(read('src/app/(cocina)/index.tsx')).toMatch(/<Salidas key=\{kitchen\.id\} openKitchenId=\{kitchen\.id\} \/>/);
   });
 
   it('and the block reads what goes, asks each name, and sends what the rules build', () => {
@@ -293,5 +299,88 @@ describe('the two screens a signed-in person stands on both have the way out', (
     expect(block).toMatch(/disabled=\{removing \|\| !ready\}/);
     // Offered once what goes is known.
     expect(block).toMatch(/deletion\.kind !== 'unknown' && \(/);
+  });
+});
+
+// ============================================================================
+// HER KITCHEN DELETED ALONE — `10.5-iii-c`, `0077`, the owner's ruling of
+// 2026-11-04. What a real database says about these names is
+// `docs/checks/10.4b-iii-a-cocina-contract.sh` (groups 15–17); what no check can
+// see is the block on a phone, and the guard moving her once her kitchen goes.
+// ============================================================================
+describe('her kitchen deleted alone', () => {
+  const lupe = kitchen('k1', 'Fonda Doña Lupe');
+  const second = kitchen('k2', 'Antojitos Lupe');
+  const store = shop('t1', 'Tienda Lupe');
+
+  it('offered for the kitchen open here, only while the read says it is hers alone', () => {
+    expect(kitchenAlone([second, lupe, store], 'k1')).toEqual(lupe);
+    // Another owner shares it: it is not in what goes, so it is not offered.
+    expect(kitchenAlone([second, store], 'k1')).toBeNull();
+    // Where a kitchen is made, nothing is open; while the read is out, nothing is known.
+    expect(kitchenAlone([lupe], null)).toBeNull();
+    expect(kitchenAlone(null, 'k1')).toBeNull();
+    // ⚠️ Never a shop, even one whose id were open here: `0077` refuses it (`TD013`).
+    expect(kitchenAlone([store], 't1')).toBeNull();
+  });
+
+  it('sends the kitchen and the name as she typed it — the server folds it — and the button waits for a match', () => {
+    expect(deleteKitchenArgs(lupe, '  fonda DOÑA lupe ')).toEqual({
+      p_workspace_id: 'k1',
+      p_business_name: '  fonda DOÑA lupe ',
+    });
+    expect(Object.keys(deleteKitchenArgs(lupe, 'x'))).toEqual(['p_workspace_id', 'p_business_name']);
+    expect(nameMatches('  fonda DOÑA lupe ', lupe.name)).toBe(true);
+    expect(nameMatches('Fonda Dona Lupe', lupe.name)).toBe(false);
+    expect(nameMatches(second.name, lupe.name)).toBe(false);
+  });
+
+  it('says a refusal in Spanish: the name moved, not hers alone, and the shared ones', () => {
+    expect(DELETE_MY_BUSINESS).toBe('delete_my_business');
+    expect(NOT_HERS_ALONE_CODE).toBe('TD012');
+    expect(deleteKitchenErrorMessage({ code: 'TD007' })).toBe(ES.kitchenDeletion.errors.nameChanged);
+    expect(deleteKitchenErrorMessage({ code: 'TD012' })).toBe(ES.kitchenDeletion.errors.notHersAlone);
+    expect(deleteKitchenErrorMessage(new TypeError('Network request failed'))).toBe(ES.api.errors.offline);
+    expect(deleteKitchenErrorMessage({ code: '42501' })).toBe(ES.api.errors.sessionEnded);
+    expect(deleteKitchenErrorMessage({ code: 'TD013' })).toBe(ES.api.errors.unknown);
+  });
+
+  it('the call is the function by its name, with the rules’ body', () => {
+    expect(code('src/api/calls.ts')).toMatch(/supabase\.rpc\(DELETE_MY_BUSINESS, args\)/);
+  });
+
+  // ⚠️ THE MISTAKES THAT WOULD BE SILENT EVERYWHERE ELSE: no check loads the hook.
+  it('keeps her signed in and tells Apple nothing; her kitchen leaves her list at once, then both reads run again', () => {
+    const all = code('src/api/hooks.ts');
+    const hook = all.slice(all.indexOf('export function useDeleteKitchen'));
+    expect(hook).toMatch(/mutationFn: \(args: DeleteBusinessArgs\) => deleteMyBusiness\(args\)/);
+    for (const never of ['signOut', 'askAppleAgain', 'revokeApple', 'deleteMyAccount']) {
+      expect(hook, never).not.toContain(never);
+    }
+    const dropped = hook.indexOf('queries.setQueryData<Kitchen[]>(kitchensKey(userId)');
+    const reread = hook.lastIndexOf('void queries.invalidateQueries({ queryKey: KITCHENS_KEY })');
+    expect(dropped).toBeGreaterThan(-1);
+    expect(reread).toBeGreaterThan(dropped);
+    expect(hook).toMatch(/kitchens\?\.filter\(\(kitchen\) => kitchen\.id !== args\.p_workspace_id\)/);
+    expect(hook.match(/invalidateQueries\(\{ queryKey: OWNERS_KEY \}\)/g)?.length).toBe(2);
+  });
+
+  it('the block offers it only for her kitchen alone, asks its name, and sends what the rules build', () => {
+    const block = code('src/ui/Salidas.tsx');
+    expect(block).toMatch(/const alone = kitchenAlone\(goes, openKitchenId\);/);
+    expect(block).toMatch(/\{alone !== null && \(/);
+    expect(block).toMatch(/removeKitchen\(deleteKitchenArgs\(alone, kitchenTyped\)\)/);
+    expect(block).toMatch(/disabled=\{removingKitchen \|\| !kitchenReady\}/);
+    expect(block).toMatch(/const kitchenReady = alone !== null && nameMatches\(kitchenTyped, alone\.name\);/);
+    expect(block).toMatch(/label=\{typedLabel\(alone\)\}/);
+  });
+
+  it('in this app’s words, the box Wera’s: what goes, what stays, and the ruling’s button', () => {
+    expect(ES.kitchenDeletion.open).toBe('Eliminar esta cocina');
+    expect(ES.kitchenDeletion.confirm).toBe('Eliminar esta cocina');
+    expect(ES.kitchenDeletion.warning).toContain('No se puede deshacer.');
+    expect(ES.kitchenDeletion.warning).toContain('su página en Itacate');
+    for (const app of ['Wera Cocina', 'Itacate', 'Wera']) expect(ES.kitchenDeletion.keeps).toContain(app);
+    expect(typedLabel(lupe)).toBe(WERA.account.typeKitchenName('Fonda Doña Lupe'));
   });
 });

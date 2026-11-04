@@ -2,6 +2,7 @@
 // EVERY ROUND TRIP THIS APP MAKES TO THE DATABASE. Plan tasks `10.4b-iii-a` (her
 // kitchens), `10.4b-iii-b` (making one: her trade, her address, her pin),
 // `10.4b-iii-c` (her way out: what goes with her account, the deletion, Apple),
+// `10.5-iii-c` (her kitchen deleted alone, her login kept),
 // `10.4b-iv-a` (what she publishes: her list, publishing, withdrawing),
 // `10.4h` (address first: her line with no pin, and her pin cleared) and `10.5-ii`
 // (her page in Itacate, and the pictures that go up before what points at them).
@@ -20,6 +21,7 @@ import {
   APPLE_REVOKE_REGION,
   APPLE_REVOKE_TIMEOUT_MS,
   DELETE_MY_ACCOUNT,
+  DELETE_MY_BUSINESS,
   OWNERS_TABLE,
   OWNER_ACTIVE_COLUMN,
   OWNER_COLUMNS,
@@ -28,6 +30,7 @@ import {
   deletedFrom,
   revokeBody,
   type DeleteArgs,
+  type DeleteBusinessArgs,
   type Deleted,
   type OwnerRow,
 } from '@/api/account';
@@ -305,6 +308,16 @@ export async function deleteMyAccount(args: DeleteArgs): Promise<Deleted> {
   const { data, error } = await supabase.rpc(DELETE_MY_ACCOUNT, args);
   if (error) throw error;
   return deletedFrom(data);
+}
+
+/**
+ * Deletes one kitchen she alone owns and keeps her login (`0077`, `10.5-iii-c`).
+ * ⚠️ The arguments arrive built by `deleteKitchenArgs`: the kitchen's id and the
+ * name she typed. No Apple: no login goes.
+ */
+export async function deleteMyBusiness(args: DeleteBusinessArgs): Promise<void> {
+  const { error } = await supabase.rpc(DELETE_MY_BUSINESS, args);
+  if (error) throw error;
 }
 
 /**
