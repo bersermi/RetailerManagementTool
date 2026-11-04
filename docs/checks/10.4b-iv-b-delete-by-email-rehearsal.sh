@@ -166,10 +166,17 @@ K_ACCENT="her kitchen's name with an accent added: refused — accents count —
 K_PRINTED="the line it printed for one kitchen, run as printed: that kitchen gone, her login, her shop and her other kitchen kept"
 K_AGAIN="the same line again: refused — no kitchen of hers is called that any more — and nothing else changes"
 
-cases() { # account-runbook kitchen-runbook
+# ⚠️ `part` is `all`, `account` or `kitchen`: a broken copy of ONE runbook runs that
+# runbook's cases alone — the other runbook is the real file, so its cases could
+# only pass again — which keeps the falsifier inside its job's time (`db.yml`;
+# measured on `10.5-iii-c`'s first run: every case for every copy was cancelled at
+# fifteen minutes with two copies left).
+cases() { # account-runbook kitchen-runbook [part]
   book="$1"
   kbook="$2"
+  local part="${3:-all}"
   local again args listed
+  if [[ "$part" != kitchen ]]; then
 
   run "$(mail ninguna)" --local
   check "$N_NOBODY" 1 "NOTHING CHANGED: no account has the email" "users_with $(mail ninguna)" "0"
@@ -210,6 +217,8 @@ cases() { # account-runbook kitchen-runbook
 
   run "$(mail nada | tr '[:lower:]' '[:upper:]')" --local
   check "$N_NOTHING" 0 "businesses deleted: 0" "users_with $(mail nada)" "0"
+  fi
+  if [[ "$part" == account ]]; then return 0; fi
 
   # --- one kitchen alone, the account kept (`10.5-iii-c`) ---
   local everything="users_with $(mail tres); business_left $k_g; business_left $k_g2; business_left $s_g"
@@ -288,7 +297,7 @@ broken() { # name from to must-fail [which: account|kitchen]
     return
   fi
   local result
-  if [[ "$which" == kitchen ]]; then result="$(cases "$runbook" "$copy")"; else result="$(cases "$copy" "$kitchen_runbook")"; fi
+  if [[ "$which" == kitchen ]]; then result="$(cases "$runbook" "$copy" kitchen)"; else result="$(cases "$copy" "$kitchen_runbook" account)"; fi
   if grep -qF -- "  FAIL  $must_fail" <<<"$result"; then
     echo "  ok    $name — red on: $must_fail"
   else

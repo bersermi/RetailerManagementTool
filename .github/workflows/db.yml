@@ -2356,7 +2356,10 @@ jobs:
   delete-by-email:
     name: the deletion asked for by email, as the owner runs it
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    # ⚠️ 25, not 15, since `10.5-iii-c`: the kitchen's runbook added six cases and
+    # three broken copies, and its first run was cancelled at fifteen minutes with
+    # two copies left. Each copy now runs its own runbook's cases alone.
+    timeout-minutes: 25
 
     steps:
       - uses: actions/checkout@v4
