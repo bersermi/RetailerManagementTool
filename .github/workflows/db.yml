@@ -85,12 +85,13 @@ on:
       # keys, `withdraw_listing`. Its own job, `cocina-listings`, below.
       - "docs/checks/10.4b-iv-a-listing-contract.sh"
       - "docs/checks/10.4b-iv-a-listing-contract-falsify.sh"
-      # ⚠️ `10.5-iii-a`: ITACATE'S DATA LAYER, BEFORE ITS FIRST CLAIM. Its sign-in is
-      # GoTrue's and reads no table, so `itacate/src/api/` holds the query layer
-      # alone today; the filter is here first because a filter added later is
-      # wrong for every commit merged before it. The first module there that names
-      # the schema — her way out (`10.5-iii-b`), the door (`10.5-iv`) — brings the
-      # contract check this workflow runs, as Wera Cocina's did.
+      # ⚠️ `10.5-iii-a`: ITACATE'S DATA LAYER, BEFORE ITS FIRST CLAIM — the filter
+      # was here first because a filter added later is wrong for every commit
+      # merged before it. ⚠️ `10.5-iii-b`: ITS FIRST CLAIM, her way out
+      # (`itacate/src/api/account.ts`) — Wera Cocina's read and deletion, so the
+      # Cocina contract check above holds each of its names to Cocina's and asks
+      # the database with them, and the function's check puts its Apple body on
+      # the wire. The door (`10.5-iv`) brings its own check.
       - "itacate/src/api/**"
       # ⚠️⚠️ AND THE ROSTER'S, as of plan task 5b-ii-a. `app/src/api/members.ts`
       # is a second claim about the applied schema — two column lists — and it
@@ -1819,9 +1820,11 @@ jobs:
       # goes with her account and the deletion, by `cocina/src/api/account.ts`'s
       # names, as that login and as a shop's owner who never makes a kitchen;
       # whether a business is gone is asked of the database as the superuser.
-      - name: Contract — does Wera Cocina open kitchens only, make one on its own place, and delete an account with every business named (plans 10.4b-iii-a, -b and -c)
+      # ⚠️ `10.5-iii-b` ADDED TWO FIXTURES AND NO SIGN-UP: Itacate's way out, its
+      # names held to Wera Cocina's in the check's first group, before any request.
+      - name: Contract — does Wera Cocina open kitchens only, make one on its own place, and delete an account with every business named — by the names Itacate's way out sends too (plans 10.4b-iii-a, -b and -c, and 10.5-iii-b)
         run: bash docs/checks/10.4b-iii-a-cocina-contract.sh
-      - name: Contract — can the Cocina check still fail (its own eighteen fixtures)
+      - name: Contract — can the Cocina check still fail (its own fixtures, Itacate's among them; the runner counts them)
         run: bash docs/checks/10.4b-iii-a-cocina-contract-falsify.sh
 
       # ⚠️⚠️ AJUSTES' ROSTER, ASKED OF THE DATABASE AND OF ITS POLICIES (plan
@@ -2281,10 +2284,11 @@ jobs:
 
       # ⚠️ `10.4b-iii-c` (the function's build 2): Wera Cocina's call too — its
       # body names its app, and the stand-in issues each code to one app.
-      - name: Contract — do both apps' calls reach the function, and does it sign and revoke as Apple asks, for the app the code came from (plans 5R-k and 10.4b-iii-c)
+      # ⚠️ `10.5-iii-b` (build 3): Itacate's, with Cocina's body and its own id.
+      - name: Contract — do the three apps' calls reach the function, and does it sign and revoke as Apple asks, for the app the code came from (plans 5R-k, 10.4b-iii-c and 10.5-iii-b)
         run: bash docs/checks/5R-k-apple-revoke-contract.sh
 
-      - name: Contract — can the function check still fail (its own eight fixtures)
+      - name: Contract — can the function check still fail (its own fixtures; the runner counts them)
         run: bash docs/checks/5R-k-apple-revoke-contract-falsify.sh
 
       - name: Deployed check — can it still fail (five canned replies, no network)

@@ -5,7 +5,7 @@
 # docs/PLAN.md task `5R-k`. ADR-035's amendment of 2026-10-13.
 #
 #   supabase start && supabase db reset
-#   bash docs/checks/5R-k-apple-revoke-contract.sh [wera account.ts] [index.ts] [cocina account.ts]
+#   bash docs/checks/5R-k-apple-revoke-contract.sh [wera account.ts] [index.ts] [cocina account.ts] [itacate account.ts]
 #
 # `app/src/api/account.ts` names one Edge Function and the one key of its body.
 # `supabase/functions/apple-revoke/index.ts` is that function. Nothing else in
@@ -21,6 +21,10 @@
 # issues each code to one app the same way (`good` is Wera's, `good@<id>` that
 # app's), so the check can show both halves: Cocina's body is signed for
 # Cocina, and a Cocina code sent WITHOUT the key fails at the trade.
+#
+# ⚠️ AND, SINCE PLAN `10.5-iii-b` (the function's build 3), A THIRD:
+# `itacate/src/api/account.ts`, Itacate's *Eliminar mi cuenta*, with Cocina's
+# body and its own bundle id, `mx.wera.vecino` (group 8b).
 #
 # WHAT IT ASSERTS, each measured on the wire:
 #   1. the app's constants and the function's build number are readable;
@@ -38,6 +42,9 @@
 #   8. ⚠️⚠️ Cocina's body, a Cocina code: the same, every call and both secrets
 #      naming Cocina's id — the one in Cocina's file, which must be
 #      `cocina/app.json`'s bundle id;
+#  8b. ⚠️⚠️ Itacate's body, an Itacate code: the same for Itacate's id, which
+#      must be `itacate/app.json`'s bundle id — refused `unknown_app` by a
+#      function that does not list it (build 2 did not);
 #   9. ⚠️ a Cocina code under Wera's body (no `client_id`): 502 at the trade and
 #      no revoke — what a Cocina build without the key would get;
 #  10. ⚠️ a code that belongs to ANOTHER Apple account: 409, traded, NOT revoked;
@@ -50,8 +57,9 @@
 #
 # ⚠️ AND WHAT IT CANNOT CLAIM. That Apple accepts what this function sends: the
 # stand-in is this repository's reading of Apple's documentation, not Apple —
-# and that the owner's one key covers Cocina's id, which only his grouping in
-# Apple's portal makes true (Apple answers `invalid_client` when it does not).
+# and that the owner's one key covers Cocina's and Itacate's ids, which only his
+# grouping in Apple's portal makes true (Apple answers `invalid_client` when it
+# does not).
 # That the function is DEPLOYED, or holds the owner's real key:
 # `5R-k-function-deployed.sh` reads the first, and only a real deletion from an
 # iPhone proves the second. That the app calls it at the right moment (R9):
@@ -63,11 +71,13 @@ set -uo pipefail
 CONTRACT="${1:-app/src/api/account.ts}"
 FUNCTION="${2:-supabase/functions/apple-revoke/index.ts}"
 COCINA="${3:-cocina/src/api/account.ts}"
+ITACATE="${4:-itacate/src/api/account.ts}"
 MODE="${APPLE_STAND_IN_MODE:-honest}"
 STAND_IN="docs/checks/lib/5R-k-apple-stand-in.mjs"
 [[ -r "$CONTRACT" ]] || { echo "FAIL: cannot read $CONTRACT"; exit 1; }
 [[ -r "$FUNCTION" ]] || { echo "FAIL: cannot read $FUNCTION"; exit 1; }
 [[ -r "$COCINA" ]]   || { echo "FAIL: cannot read $COCINA"; exit 1; }
+[[ -r "$ITACATE" ]]  || { echo "FAIL: cannot read $ITACATE"; exit 1; }
 
 fails=0
 ran=0
@@ -93,9 +103,16 @@ COCINA_CODE_KEY="${COCINA_KEYS%%,*}"
 CLIENT_KEY="${COCINA_KEYS#*,}"
 COCINA_ID="$(str APPLE_CLIENT_ID "$COCINA")"
 COCINA_BUNDLE="$(bundle_id cocina/app.json)"
+# Itacate's (`10.5-iii-b`), the same three things: it must be Cocina's body to the
+# key, with its own bundle id.
+ITACATE_NAME="$(str APPLE_REVOKE "$ITACATE")"
+ITACATE_KEYS="$(body_keys "$ITACATE")"
+ITACATE_ID="$(str APPLE_CLIENT_ID "$ITACATE")"
+ITACATE_BUNDLE="$(bundle_id itacate/app.json)"
 
 note
-for name in NAME BODY_KEY BUILD WERA_ID COCINA_NAME COCINA_KEYS COCINA_ID COCINA_BUNDLE; do
+for name in NAME BODY_KEY BUILD WERA_ID COCINA_NAME COCINA_KEYS COCINA_ID COCINA_BUNDLE \
+            ITACATE_NAME ITACATE_KEYS ITACATE_ID ITACATE_BUNDLE; do
   if [[ -z "${!name}" ]]; then
     fail "could not read $name — this check would assert nothing"
     exit 1
@@ -124,12 +141,26 @@ if [[ "$COCINA_ID" != "$COCINA_BUNDLE" ]]; then
   fail "Cocina sends $CLIENT_KEY '$COCINA_ID' and its bundle id is '$COCINA_BUNDLE' — Apple issues the code to the bundle id"
   exit 1
 fi
+if [[ "$ITACATE_NAME" != "$NAME" ]]; then
+  fail "Itacate names the function '$ITACATE_NAME' and Wera '$NAME' — there is one function, and Itacate's call would be a 404"
+  exit 1
+fi
+if [[ "$ITACATE_ID" != "$ITACATE_BUNDLE" ]]; then
+  fail "Itacate sends $CLIENT_KEY '$ITACATE_ID' and its bundle id is '$ITACATE_BUNDLE' — Apple issues the code to the bundle id"
+  exit 1
+fi
+# ⚠️ NOT FATAL, AS THE CODE KEY BELOW: Itacate's body still goes on the wire in
+# group 8b, so a renamed app key is ALSO seen where it matters — the function
+# signing for Wera, and Apple refusing Itacate's code at the trade.
+if [[ "$ITACATE_KEYS" != "$COCINA_KEYS" ]]; then
+  fail "Itacate's body is {$ITACATE_KEYS} and Cocina's {$COCINA_KEYS} — one function reads one body"
+fi
 # ⚠️ NOT FATAL: both apps' bodies still go on the wire below, so a renamed code
 # key is ALSO seen where it matters — the function answering 400.
 if [[ "$COCINA_CODE_KEY" != "$BODY_KEY" ]]; then
   fail "Cocina's code travels under '$COCINA_CODE_KEY' and Wera's under '$BODY_KEY' — one function reads one key"
 fi
-ok "read from Wera: $NAME({$BODY_KEY}), for $WERA_ID; from Cocina: {$COCINA_KEYS}, $CLIENT_KEY $COCINA_ID; from the function: build $BUILD"
+ok "read from Wera: $NAME({$BODY_KEY}), for $WERA_ID; from Cocina: {$COCINA_KEYS}, $CLIENT_KEY $COCINA_ID; from Itacate: {$ITACATE_KEYS}, $CLIENT_KEY $ITACATE_ID; from the function: build $BUILD"
 
 STATUS="$(supabase status -o env 2>/dev/null)"
 API_URL="$(sed -n 's/^API_URL="\(.*\)"$/\1/p' <<< "$STATUS")"
@@ -216,6 +247,8 @@ pick()   { python3 -c "import sys,json;d=json.load(sys.stdin);print(d.get('$1','
 code_body() { python3 -c 'import json,sys;print(json.dumps({sys.argv[1]: sys.argv[2]}))' "$1" "$2"; }
 # Cocina's body, by its two keys as Cocina's file names them: the code, and the app.
 cocina_body() { python3 -c 'import json,sys;print(json.dumps({sys.argv[1]: sys.argv[2], sys.argv[3]: sys.argv[4]}))' "$COCINA_CODE_KEY" "$1" "$CLIENT_KEY" "$2"; }
+# Itacate's, by ITS file's two keys — so a key renamed there is a different body on the wire.
+itacate_body() { python3 -c 'import json,sys;print(json.dumps({sys.argv[1]: sys.argv[2], sys.argv[3]: sys.argv[4]}))' "${ITACATE_KEYS%%,*}" "$1" "${ITACATE_KEYS#*,}" "$2"; }
 heard()  { curl -s "$APPLE/__log"; }
 forget() { curl -s -X POST "$APPLE/__reset" > /dev/null; }
 # How many calls Apple received, optionally only those to one path.
@@ -376,6 +409,22 @@ else
   ok "Cocina's body {$COCINA_KEYS}, a Cocina code: 200, the trade and the revoke both name $COCINA_ID and both secrets are signed for it"
 fi
 
+# 8b ------------------------------------------------------------------------
+# ⚠️ `10.5-iii-b` (build 3): Itacate's *Eliminar mi cuenta*. A function that does
+# not list its id answers 400 `unknown_app` here, before anything reaches Apple.
+note
+forget
+ITACATE_CODE="good@$ITACATE_ID"
+HERS="$(call POST "$(itacate_body "$ITACATE_CODE" "$ITACATE_ID")")"
+VERDICT="$(wire "$ITACATE_CODE" "$ITACATE_ID")"
+if [[ "$(status "$HERS")" != "200" || "$(pick revoked "$(body "$HERS")")" != "True" ]]; then
+  fail "Itacate's call answered $(status "$HERS") $(body "$HERS") — expected 200 with its body {$ITACATE_KEYS}"
+elif [[ -n "$VERDICT" ]]; then
+  fail "Itacate's call: $VERDICT"
+else
+  ok "Itacate's body {$ITACATE_KEYS}, an Itacate code: 200, the trade and the revoke both name $ITACATE_ID and both secrets are signed for it"
+fi
+
 # 9 -------------------------------------------------------------------------
 note
 forget
@@ -437,12 +486,12 @@ else
 fi
 
 echo
-if (( fails == 0 && ran < 14 )); then
-  echo "FAIL: only $ran assertion groups ran, expected 14 — this check asserted almost nothing."
+if (( fails == 0 && ran < 15 )); then
+  echo "FAIL: only $ran assertion groups ran, expected 15 — this check asserted almost nothing."
   exit 1
 fi
 if (( fails == 0 )); then
-  echo "all $ran assertion groups passed — both apps' calls reach the function, it signs for"
+  echo "all $ran assertion groups passed — the three apps' calls reach the function, it signs for"
   echo "Apple with the key it was given, for the app the code came from and only the owner's apps,"
   echo "and it revokes one account and no other."
   exit 0

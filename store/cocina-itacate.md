@@ -5,8 +5,12 @@ Paste from here, **once per app**: where the two differ, the field gives both. T
 *Before the two new apps' first builds* is the order of work. Section 7, the App Store's privacy
 answers for Wera Cocina, was added by `10.4g-ii` (2026-11-03) and waits for `10.5b`'s App Store record.
 
-**These are the listings for the CLOSED TESTS.** Only the testers you add see them. Itacate is
-still the skeleton — one screen, a map, nothing else. **Wera Cocina makes accounts since `10.4b-iii`**
+**These are the listings for the CLOSED TESTS.** Only the testers you add see them. **Itacate's
+store version is still the skeleton** — one screen, a map, nothing else — but its test build signs
+people in since `10.5-iii-a` and deletes an account since `10.5-iii-b`, and the store version gets
+both with its first `production` update: ⚠️ **section 4's Itacate answers go into Play Console
+BEFORE that update** (*App access* and *Data safety — Itacate*, rewritten by `10.5-iii-b`).
+**Wera Cocina makes accounts since `10.4b-iii`**
 (sign-in, her kitchen with its address — her own point on the map optional since `10.4h` — and
 publishing), so its section 4 answers changed with `10.4b-iv-b` (2026-10-31) and again with `10.4g-ii`
 (2026-11-03), and they go into Play Console **before** the store version that brings sign-in to the
@@ -144,8 +148,24 @@ https://tu-wera.com/privacidad/cocina-e-itacate/
 
 ### App access — *Sign-in details*
 
-**Itacate:** Play asks ***Is any part of your app restricted?*** → **No** — there is no sign-in,
-nothing to pay and nothing locked. ⚠️ It becomes **Yes** when `10.5` adds Itacate's sign-up.
+**Itacate** (since `10.5-iii-b`, for its store version's first sign-in — paste it before that
+update; until then Play holds **No**, true of version 3): **All or some functionality is restricted**
+→ *Add instructions*, as Wera Cocina's is below. Everything in Itacate is behind its sign-in.
+
+| Field | Answer |
+|---|---|
+| Instruction name | `Cuenta de demostración` |
+| Username | the Itacate demo account's email — **an account that owns nothing**, which you make in Itacate itself (*Crear cuenta*, on your Android test build) with an address of yours. Not Wera's or Wera Cocina's demo account: in Itacate, *Eliminar mi cuenta* would name their shop or kitchen, and a reviewer who deleted it would end that app's way in too |
+| Password | its password. **Never write it in this repository** |
+| No other information is required | tick it |
+
+<!-- max:500 -->
+```
+On the first screen tap "¿Ya tienes cuenta? Entrar" (under the "Crear cuenta" button), then sign in with the email and password. No second factor. The account owns nothing, so the app opens on its one screen: a map and a note that this is a test version. Nothing else is shown to anyone yet. The app is in Spanish.
+```
+
+⚠️ **Keep the demo account.** Deleting it, or changing the password without changing it here,
+breaks Google's way in.
 
 **Wera Cocina** (since `10.4b-iii`): **All or some functionality is restricted** → *Add
 instructions*, as Wera's is (`google-play.md`, *App access*). Google: *"you must provide the
@@ -262,41 +282,61 @@ web browsing — none read.
 
 ### Data safety — Itacate
 
+⚠️ **Rewritten by `10.5-iii-b` for the store version's first sign-in**: an account — Itacate's
+sign-in (`10.5-iii-a`) and its *Eliminar mi cuenta* (`10.5-iii-b`). **Paste it before the first
+`production` update to Itacate**: an update passes no Google review, and the answers must be true
+of what testers run. Version 3, the skeleton with no sign-in, ticked the last four types alone. What
+each answer stands on is the aviso (`site/privacidad/cocina-e-itacate/`, section 10) and
+`site/README.md`'s table.
+
 **Data collection and security**
 
 | Question | Answer |
 |---|---|
 | Does your app collect or share any of the required user data types? | **Yes** |
 | Is all of the user data collected by your app encrypted in transit? | **Yes** |
-| Account creation | **My app does not allow users to create an account** |
-| *Can users login to your app with accounts created outside of the app?* | **No** — there is no login at all yet. ⚠️ **Yes** once `10.5` adds sign-in: one login serves all three apps (ADR-035 §2.7) |
+| Which methods of account creation does your app support? | **Username and password**, and **OAuth** (Google — the Android app has no Apple button) |
+| Delete account URL | `https://tu-wera.com/eliminar-cuenta/itacate/` — it names Itacate, as Google requires (*"reference the app or developer name … as it appears on your store listing"*, answer 13327111, read 2026-10-31 for Wera Cocina's) |
+| Can users ask for some data to be deleted without deleting the account? | **No** — leave the optional link empty |
+| *Can users login to your app with accounts created outside of the app?* | **Yes** — one login serves Wera, Wera Cocina and Itacate (ADR-035 §2.7): an account made in either opens Itacate |
 
-**Data types** — tick exactly these four. None comes from something the person types: they are
-what the update check, Google's map and Firebase send on their own.
+**Data types** — tick exactly these seven: the three of the account, and the four the update
+check, Google's map and Firebase send on their own.
 
-| Section | Data type | What it is |
+| Section | Data type | What it is in Itacate |
 |---|---|---|
+| Personal info | **Name** | The name and surname typed at sign-up, or Google's |
+| Personal info | **Email address** | The account's email |
+| Personal info | **User IDs** | The account id, and Google's account id for a sign-in with Google |
 | Device or other IDs | **Device or other IDs** | The random install id sent to Expo with each update check; the Maps SDK's own pseudonymous id; Firebase's installation id and push token (Android) |
 | App activity | **App interactions** | The map's panning and zooming, which Google's Maps SDK reports |
 | App info and performance | **Crash logs** | The Maps SDK's stack traces when it crashes |
 | App info and performance | **Diagnostics** | The Maps SDK's crash metrics and request metadata (phone model, Android version) |
 
-**For every one of the four:**
+**For every one of the seven:**
 
 | Question | Answer |
 |---|---|
-| Is this data collected, shared, or both? | **Collected** |
+| Is this data collected, shared, or both? | **Collected** — Supabase, Expo and Google are the app's service providers, and nothing of a neighbour is shown to another user: no kitchen or shop learns who signs in (the aviso's section 10) |
 | Is this data processed ephemerally? | **No** |
-| Is this data required, or can users choose? | **Required** |
+| Is this data required, or can users choose? | **Required** — the account is the way in, and the rest comes with the map and the update check |
 
 **Why it is collected:**
 
 | Data type | Purposes |
 |---|---|
+| Name | App functionality · Account management |
+| Email address | App functionality · Account management · Developer communications |
+| User IDs | App functionality · Account management |
 | Device or other IDs | App functionality · Analytics |
 | App interactions | Analytics |
 | Crash logs | Analytics |
 | Diagnostics | Analytics |
+
+*Developer communications* on the email, as Wera Cocina's: the aviso promises an email before any
+change to which data is used, or for what (its section 11). ⚠️ **`10.5-iv` answers this section
+again**: her approximate square, sent to the door and never kept (*Approximate location*, processed
+ephemerally — `itacate/CLAUDE.md`).
 
 ⚠️ **What stands behind the technical answers, in both apps**: Expo's update check
 (`expo-updates` sends `EAS-Client-ID`, as for Wera); Google's *Prepare for Google Play's data
@@ -304,7 +344,7 @@ disclosure requirements* for the Maps SDK for Android, read 2026-10-27; Firebase
 which generates a push token at launch unless told not to. *Collected* rather than *shared* treats
 Google and Expo as the apps' service providers, as Wera's answers treat Supabase and Expo; Google's
 page does not say which it is for its own SDK. **Not ticked for Itacate:** location (it does not
-read it), personal info, photos, financial info, messages, contacts, files, health.
+read it yet — `10.5-iv`), phone number, photos, financial info, messages, contacts, files, health.
 
 ### Government apps · Financial features · Health · Advertising ID
 

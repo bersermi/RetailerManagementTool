@@ -4,7 +4,7 @@ import type { Session } from '@supabase/supabase-js';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import * as WebBrowser from 'expo-web-browser';
 
-import { APPLE_PROVIDER, appleOutcome, appleThrown, nameToStore, type AppleReturn } from '@/auth/apple';
+import { APPLE_PROVIDER, appleOutcome, appleThrown, asksAppleFirst, nameToStore, type AppleReturn } from '@/auth/apple';
 import { FULL_NAME_KEY, checkCredentials, checkSignUp } from '@/auth/credentials';
 import { authErrorKey, authErrorMessage } from '@/auth/errors';
 import { sessionKeyOf, sessionToHold } from '@/auth/held';
@@ -15,7 +15,8 @@ import { SUPABASE_URL, supabase } from '@/lib/supabase';
 import { ES } from '@/strings';
 
 // ============================================================================
-// WHO IS HOLDING THE PHONE. Plan task `10.5-iii-a`.
+// WHO IS HOLDING THE PHONE. Plan tasks `10.5-iii-a` (signing in) and
+// `10.5-iii-b` (Apple asked again, for her way out).
 //
 // ⚠️ WERA'S PROVIDER, FOR THE THREE WAYS IN (`app/src/auth/AuthProvider.tsx`,
 // plans `5a-iii-a`, `5a-iii-b`, `5b.7`, `5R-d-iii`, `5R-k` and `8g`, whose notes
@@ -31,8 +32,9 @@ import { ES } from '@/strings';
 // which this app opens. Each app keeps its own copy of the session, so signing
 // in here or out here changes nothing in the other two.
 //
-// ⚠️ NOT HERE YET: Apple asked again for a deletion (`askAppleAgain` in the
-// twins) — it comes with Itacate's way out, plan `10.5-iii-b`.
+// ⚠️ AND APPLE, ASKED AGAIN FOR A DELETION (`askAppleAgain`, `10.5-iii-b`, as
+// in the twins): the same sheet, whose fresh code `apple-revoke` spends before
+// the account goes.
 // ============================================================================
 
 /** Where `supabase-js` keeps the session on this phone. See `@/auth/held`. */
@@ -59,6 +61,11 @@ interface Auth {
   /** Whether this phone can show Apple's sheet: `false` on Android, and until asked. */
   readonly appleAvailable: boolean;
   readonly signInWithApple: () => Promise<string | null>;
+  /**
+   * Apple, asked once more, for a deletion (`10.5-iii-b`). `null` when there is
+   * nothing to ask: no Apple link on this login, or no sheet on this phone.
+   */
+  readonly askAppleAgain: () => Promise<AppleReturn | null>;
   readonly signOut: () => Promise<void>;
 }
 
@@ -72,6 +79,7 @@ const AuthContext = createContext<Auth>({
   signInWithGoogle: async () => null,
   appleAvailable: false,
   signInWithApple: async () => null,
+  askAppleAgain: async () => null,
   signOut: async () => {},
 });
 
@@ -231,12 +239,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  // ⚠️ THE SAME SHEET, ASKED AGAIN, AND ONLY A DELETION ASKS (Wera's `5R-k`).
+  // Apple hands back a fresh authorization code, issued to THIS app's bundle id,
+  // which `apple-revoke` trades and revokes before the account goes. No nonce
+  // and no scopes: nothing here signs anybody in, and the name is not wanted.
+  const askAppleAgain = useCallback(async (): Promise<AppleReturn | null> => {
+    if (!asksAppleFirst(session?.user, appleAvailable)) return null;
+    try {
+      return appleOutcome(await AppleAuthentication.signInAsync());
+    } catch (thrown) {
+      return appleThrown(thrown);
+    }
+  }, [session, appleAvailable]);
+
   // ⚠️ THE ONLY THING THAT ENDS A SESSION — no failure path may call it.
   // ⚠️ OFFLINE, WITH A SIGN-IN THAT COULD NOT BE RENEWED, THE LIBRARY REFUSES TO
   // SIGN OUT and removes nothing — and `@/auth/held` keeps that sign-in on
   // screen, so *Cerrar sesión* would do nothing. The phone forgets it here: the
   // same removal the library's local sign-out makes. Nothing else is kept on the
-  // phone to forget: this app keeps no query cache.
+  // phone to forget: this app keeps no query cache on disk, and every key carries
+  // the login (`ownersKey`).
   const signOut = useCallback(async () => {
     const { error } = await supabase.auth.signOut();
     if (error) {
@@ -246,8 +268,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo<Auth>(
-    () => ({ session, ready, signIn, signUp, signInWithGoogle, appleAvailable, signInWithApple, signOut }),
-    [session, ready, signIn, signUp, signInWithGoogle, appleAvailable, signInWithApple, signOut],
+    () => ({ session, ready, signIn, signUp, signInWithGoogle, appleAvailable, signInWithApple, askAppleAgain, signOut }),
+    [session, ready, signIn, signUp, signInWithGoogle, appleAvailable, signInWithApple, askAppleAgain, signOut],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

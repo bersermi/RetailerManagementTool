@@ -1,19 +1,22 @@
 #!/usr/bin/env bash
 # ============================================================================
 # THE TWO SETTINGS OUTSIDE THIS REPOSITORY THAT ITACATE'S SIGN-IN NEEDS. Plan
-# task `10.5-iii-a`. The owner runs it once — a session's own write to either is
-# refused by its permission check (*Secret-Store Writes* on EAS, *Modify Shared
-# Resources* on the hosted project) — and anyone reads both back with `--check`.
+# tasks `10.5-iii-a` and `10.5-iii-b` (its store version's). The owner runs it —
+# a session's own write to either is refused by its permission check
+# (*Secret-Store Writes* on EAS, *Modify Shared Resources* on the hosted project)
+# — and anyone reads both back with `--check`. Running it again changes only
+# what is missing.
 #
 #   bash docs/runbooks/set-itacate-sign-in.sh            # makes both, then reads both back
 #   bash docs/runbooks/set-itacate-sign-in.sh --check    # reads both back, changes nothing
 #
-# 1. ITACATE'S EAS PROJECT HOLDS THE THREE VALUES ITS BUNDLE READS, in `preview`:
-#    the database's address and publishable key, and the support number its
-#    *¿Olvidaste tu contraseña?* opens — copied from Wera Cocina's project (Wera's
-#    values), never printed. Without them `ship-an-update.sh --app itacate`
-#    refuses to publish. ⚠️ `production` waits for Itacate's way out (`10.5-iii-b`):
-#    no store version carries a sign-in before it.
+# 1. ITACATE'S EAS PROJECT HOLDS THE THREE VALUES ITS BUNDLE READS, in `preview`
+#    and `production`: the database's address and publishable key, and the support
+#    number its *¿Olvidaste tu contraseña?* opens — copied from the same
+#    environment of Wera Cocina's project (Wera's values), never printed. Without
+#    them `ship-an-update.sh --app itacate` refuses to publish to that channel.
+#    `preview` since `10.5-iii-a` (his command of 2026-11-04); `production` since
+#    Itacate's way out, `10.5-iii-b` — no store version carried a sign-in before it.
 # 2. THE HOSTED PROJECT ACCEPTS ITACATE: `mx.wera.vecino` among the Apple
 #    provider's client ids — without it Supabase refuses Apple's token
 #    (*Unacceptable audience*) — and `mx.wera.vecino://**` on the redirect list —
@@ -25,7 +28,8 @@
 # Wera Cocina's twin of step 2 was his command of 2026-10-30 (the plan's status
 # log). Apple's portal is not touched: one person has one Apple id across the
 # team's apps, grouped or not; grouping Itacate under Wera's App ID is for
-# telling Apple about a deletion, `10.5-iii-b`.
+# telling Apple about a deletion (`10.5-iii-b`), his hands in Apple's portal —
+# the handbook's *Itacate's way out*.
 # ============================================================================
 set -euo pipefail
 
@@ -37,62 +41,66 @@ PROJECT_REF="hweutzjhzvioswnjzqki"
 API="https://api.supabase.com/v1/projects/$PROJECT_REF/config/auth"
 APP_ID="mx.wera.vecino"
 NEEDED="EXPO_PUBLIC_SUPABASE_URL EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY EXPO_PUBLIC_SUPPORT_WHATSAPP"
+# `production` since `10.5-iii-b`: the store version's first sign-in.
+ENVIRONMENTS="preview production"
 fails=0
 
 eas() { npx --yes eas-cli@24 "$@"; }
-# One environment's `NAME=value` lines, colours off. ⚠️ Values included: never echo this.
-listing() {
-  (cd "$root/$1" && eas env:list --environment preview --format short --include-sensitive 2>/dev/null) \
+# One project's environment as `NAME=value` lines, colours off. ⚠️ Values included: never echo this.
+listing() { # folder environment
+  (cd "$root/$1" && eas env:list --environment "$2" --format short --include-sensitive 2>/dev/null) \
     | sed -E 's/\x1b\[[0-9;]*m//g'
 }
 value_of() { sed -n "s/^$1=//p" <<<"$2" | head -1; }
 digest() { printf '%s' "$1" | shasum -a 256 | cut -c1-12; }
 
 # --- 1. Itacate's EAS project ------------------------------------------------
-echo "1. Itacate's EAS project, 'preview' (values copied from Wera Cocina's, never shown)"
 if ! eas whoami >/dev/null 2>&1; then
   echo "  REFUSED: this Mac is not logged in to Expo. Run: npx eas-cli login" >&2
   exit 1
 fi
-if ! cocina="$(listing cocina)" || ! itacate="$(listing itacate)"; then
-  echo "  REFUSED: could not read the two projects' EAS environments (npx eas-cli env:list). Nothing changed." >&2
-  exit 1
-fi
-for name in $NEEDED; do
-  from="$(value_of "$name" "$cocina")"
-  if [[ -z "$from" ]]; then
-    echo "  FAIL  Wera Cocina's 'preview' has no $name to copy" >&2
-    fails=$((fails + 1))
-    continue
+for environment in $ENVIRONMENTS; do
+  echo "1. Itacate's EAS project, '$environment' (values copied from Wera Cocina's '$environment', never shown)"
+  if ! cocina="$(listing cocina "$environment")" || ! itacate="$(listing itacate "$environment")"; then
+    echo "  REFUSED: could not read the two projects' '$environment' environments (npx eas-cli env:list). Nothing more changed." >&2
+    exit 1
   fi
-  have="$(value_of "$name" "$itacate")"
-  if [[ -z "$have" && "$mode" != "--check" ]]; then
-    visibility="plaintext"
-    [[ "$name" == "EXPO_PUBLIC_SUPPORT_WHATSAPP" ]] && visibility="sensitive"
-    if ! (cd "$root/itacate" && eas env:create --scope project --environment preview --name "$name" \
-          --value "$from" --visibility "$visibility" --non-interactive >/dev/null 2>&1); then
-      echo "  FAIL  could not create $name in Itacate's 'preview'" >&2
+  for name in $NEEDED; do
+    from="$(value_of "$name" "$cocina")"
+    if [[ -z "$from" ]]; then
+      echo "  FAIL  Wera Cocina's '$environment' has no $name to copy" >&2
       fails=$((fails + 1))
       continue
     fi
+    have="$(value_of "$name" "$itacate")"
+    if [[ -z "$have" && "$mode" != "--check" ]]; then
+      visibility="plaintext"
+      [[ "$name" == "EXPO_PUBLIC_SUPPORT_WHATSAPP" ]] && visibility="sensitive"
+      if ! (cd "$root/itacate" && eas env:create --scope project --environment "$environment" --name "$name" \
+            --value "$from" --visibility "$visibility" --non-interactive >/dev/null 2>&1); then
+        echo "  FAIL  could not create $name in Itacate's '$environment'" >&2
+        fails=$((fails + 1))
+        continue
+      fi
+    fi
+  done
+  if ! itacate="$(listing itacate "$environment")"; then
+    echo "  REFUSED: could not read Itacate's '$environment' environment back (npx eas-cli env:list)." >&2
+    exit 1
   fi
-done
-if ! itacate="$(listing itacate)"; then
-  echo "  REFUSED: could not read Itacate's EAS environment back (npx eas-cli env:list)." >&2
-  exit 1
-fi
-for name in $NEEDED; do
-  from="$(value_of "$name" "$cocina")"
-  have="$(value_of "$name" "$itacate")"
-  if [[ -z "$have" ]]; then
-    echo "  FAIL  Itacate's 'preview' has no $name"
-    fails=$((fails + 1))
-  elif [[ -n "$from" && "$(digest "$have")" == "$(digest "$from")" ]]; then
-    echo "  ok    $name — ${#have} characters, the same as Wera Cocina's"
-  else
-    echo "  FAIL  $name differs from Wera Cocina's"
-    fails=$((fails + 1))
-  fi
+  for name in $NEEDED; do
+    from="$(value_of "$name" "$cocina")"
+    have="$(value_of "$name" "$itacate")"
+    if [[ -z "$have" ]]; then
+      echo "  FAIL  Itacate's '$environment' has no $name"
+      fails=$((fails + 1))
+    elif [[ -n "$from" && "$(digest "$have")" == "$(digest "$from")" ]]; then
+      echo "  ok    $name — ${#have} characters, the same as Wera Cocina's"
+    else
+      echo "  FAIL  $name differs from Wera Cocina's"
+      fails=$((fails + 1))
+    fi
+  done
 done
 
 # --- 2. The hosted project's sign-in settings --------------------------------
@@ -146,7 +154,7 @@ node -e '
 
 echo
 if [[ "$fails" -gt 0 ]]; then
-  echo "$fails setting(s) missing — Itacate's sign-in is not ready."
+  echo "$fails setting(s) missing — each FAIL above names one; run this without --check to make what is missing."
   exit 1
 fi
-echo "both settings hold — Itacate's update can ship, and its Google and Apple sign-ins reach the hosted project."
+echo "both settings hold — Itacate's updates can ship to both channels, and its Google and Apple sign-ins reach the hosted project."
