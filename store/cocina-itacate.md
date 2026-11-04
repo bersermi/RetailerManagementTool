@@ -1,14 +1,16 @@
-# Google Play — Wera Cocina and Itacate, the test versions
+# Wera Cocina and Itacate — Google Play's test versions, and Wera Cocina's App Store privacy answers
 
 Written by plan task `10.2b` (2026-10-27), on the shape of [`google-play.md`](google-play.md), Wera's.
 Paste from here, **once per app**: where the two differ, the field gives both. The handbook's
-*Before the two new apps' first builds* is the order of work.
+*Before the two new apps' first builds* is the order of work. Section 7, the App Store's privacy
+answers for Wera Cocina, was added by `10.4g-ii` (2026-11-03) and waits for `10.5b`'s App Store record.
 
 **These are the listings for the CLOSED TESTS.** Only the testers you add see them. Itacate is
 still the skeleton — one screen, a map, nothing else. **Wera Cocina makes accounts since `10.4b-iii`**
-(sign-in, her kitchen with its pin, publishing), so its section 4 answers changed with `10.4b-iv-b`
-(2026-10-31), and they go into Play Console **before** the first update that brings sign-in to the
-closed testers' builds. The pictures are replaced before production is requested (`10.5b`).
+(sign-in, her kitchen with its address — her own point on the map optional since `10.4h` — and
+publishing), so its section 4 answers changed with `10.4b-iv-b` (2026-10-31) and again with `10.4g-ii`
+(2026-11-03), and they go into Play Console **before** the store version that brings sign-in to the
+closed testers (version 5, section 6). The pictures are replaced before production is requested (`10.5b`).
 
 ⚠️ **The upload in section 6 makes the id permanent**: `mx.wera.cocina` and `mx.wera.vecino`,
 the owner's yes of 2026-10-27.
@@ -63,7 +65,7 @@ Versión de prueba de la app de Wera para fondas y cocinas.
 ```
 Wera Cocina es la app de Wera para fondas y cocinas: publica lo que te sobró del día para que los vecinos pasen por ello.
 
-Esta es una versión de prueba, solo para quienes la están probando. Por ahora puedes crear tu cuenta, registrar tu cocina con su punto exacto en el mapa y publicar platillos o bolsas sorpresa, con el horario en que pueden pasar. Los vecinos todavía no ven lo que publicas: lo verán en Itacate, la app de Wera para vecinos.
+Esta es una versión de prueba, solo para quienes la están probando. Por ahora puedes crear tu cuenta, registrar tu cocina con su dirección —y, si quieres, su punto exacto en el mapa— y publicar platillos o bolsas sorpresa, con el horario en que pueden pasar. Los vecinos todavía no ven lo que publicas: lo verán en Itacate, la app de Wera para vecinos.
 
 Usa la misma cuenta que Wera: tu tienda.
 
@@ -228,7 +230,7 @@ the aviso (`site/privacidad/cocina-e-itacate/`, section 3) and `site/README.md`'
 |---|---|
 | Is this data collected, shared, or both? | **Collected** — Supabase, Expo and Google (since `10.4g-i` the whole search too; LocationIQ from `10.4c` until then) are the app's service providers, and nothing is shown to another user yet. Re-read for `10.4d` (2026-11-02): Android's own geocoder is Google's, already the map's provider, and it answers a search she makes — Google's own exception for a transfer *"based on a specific user-initiated action"* — so the ticks stay; the aviso, under Mexican law, calls it a *transferencia* (its section 6), a different test. ⚠️ `10.5` answers it again: neighbours see a kitchen's pin and publications, which Google may count as a transfer *"based on a specific user-initiated action, where the user reasonably expects the data to be shared"* (not sharing) |
 | Is this data processed ephemerally? | **No** |
-| Is this data required, or can users choose? | **Required** — a kitchen cannot be registered without its address. ⚠️ Since `10.4h` her pin is optional — Play asks it per data type, so *Precise location* could be answered *optional* when the form is next opened (`10.4g-ii`, the store versions); *Address* stays required |
+| Is this data required, or can users choose? | **Required** for nine of the ten — a kitchen cannot be registered without its address, and the rest come with the account and the map. ✅ ***Precise location*: Users can choose whether this data is collected** (`10.4g-ii`, 2026-11-03): since `10.4h` every fonda registers without a point of her own, it is kept only if she sets one on *Ajusta el punto*, and only that screen sends a point to Google. Google allows *optional* only when every user, on any device, can decline it, and *required* when the app's primary function needs the data (answer 10787469, read 2026-11-03) — her address is that function, her point is not |
 
 **Why it is collected:**
 
@@ -316,7 +318,9 @@ declares `AD_ID` (read with `aapt2`, 2026-10-27). The same for both.
 | Testers | the same email list as Wera's (`Wera – prueba cerrada`) if Play offers it; otherwise the same twelve Gmail addresses. **Not in this repository** |
 | Feedback URL or email | `ayuda@tu-wera.com` |
 
-## 6. Closed testing — the release
+## 6. Closed testing — the releases
+
+### The first — both apps, version 3 (`10.2b`, sent 2026-10-28)
 
 Upload the app's `.aab` — `~/RetailerToolDev/wera-builds/cocina-1.0.0-3-produccion.aab` for Wera Cocina,
 `itacate-1.0.0-3-produccion.aab` for Itacate. Accept Play App Signing when it offers. Then *Next →
@@ -336,3 +340,85 @@ Primera versión de prueba: por ahora, un mapa.
 **After the first upload:** *Test and release → App integrity → App signing* shows the app
 signing key's **SHA-1**. Give it to the session: it goes, with the upload key's, into the map
 key's *Application restrictions* in Google Cloud, so the key works only for these two apps.
+
+### Wera Cocina's second — version 5 (`10.4g-ii`, built 2026-11-03)
+
+Everything since the first: the account, her kitchen with its address, publishing, and Google's map
+and address search on both phones. ⚠️ **Version 4 (`10.4d-ii`) was never sent and never will be** —
+it searched with the phone's own geocoder, which Google's replaced. Play only needs each upload's
+version code to be higher than the last one it received (3), so the unused 4 changes nothing.
+**Before it, the handbook's *Before Wera Cocina reaches your testers***:
+this file's section 4 goes into Play Console first, because this version brings the account.
+
+Play Console → **Wera Cocina** → *Closed testing* → its track → **Create new release** → upload
+`~/RetailerToolDev/wera-builds/cocina-1.0.0-5-produccion-google.aab` → *Next* → *Save* →
+*Publishing overview* → send the changes for review.
+
+| Field | Answer |
+|---|---|
+| Release name | leave what Play fills in from the upload — **`5 (1.0.0)`** |
+
+**Release notes** (es-419):
+
+<!-- max:500 -->
+```
+Ya puedes crear tu cuenta, registrar tu cocina con su dirección y publicar lo que te sobra: platillos o bolsas sorpresa, con el horario en que pueden pasar por ellos. El mapa y la búsqueda de direcciones ahora son de Google. Los vecinos todavía no ven lo que publicas.
+```
+
+**The map key needs nothing new.** Play re-signs version 5 with the same app signing key as
+version 3, already on the key's list (`10.2b`); and the search's requests name the upload key's
+fingerprint (`cocina/src/lib/google.ts`, `FIRMA_ANDROID`), the other one on it — the key `10.4g-ii`
+read off this bundle's signature.
+
+## 7. The App Store — Wera Cocina's privacy answers (for `10.5b`'s record)
+
+**Nothing here has been entered anywhere.** Wera Cocina has no App Store record yet: `10.5b` makes
+it, with the public release. These answers describe the iPhone store version `10.4g-ii` built —
+1.0.0 build 4, EAS `e1f09169`, kept as `~/RetailerToolDev/wera-builds/cocina-1.0.0-4-produccion-google.ipa`
+— and they change before then if a later build collects anything else (photos come with `10.5-ii`).
+Apple's definitions are its *App privacy details* page, read 2026-11-03. Privacy Policy URL:
+`https://tu-wera.com/privacidad/cocina-e-itacate/`.
+
+*Do you or your third-party partners collect data from this app?* **Yes.**
+
+| Data type | Purposes | Linked to the user | Tracking | What it is in Wera Cocina |
+|---|---|---|---|---|
+| Contact Info → **Name** | App Functionality | Yes | No | The name at sign-up, or Apple's or Google's; her name as her kitchen's owner |
+| Contact Info → **Email Address** | App Functionality | Yes | No | The account's email — Apple's relay address included |
+| Contact Info → **Physical Address** | App Functionality | Yes | No | Her kitchen's address — a home when the kitchen is in one — and what she types to find it, which goes to Google for suggestions and to place it on the map |
+| Location → **Precise Location** | App Functionality | Yes | No | Her own point on the map, only if she sets one (six decimals), and the point under the pin sent to Google while she sets it |
+| Identifiers → **User ID** | App Functionality · Analytics | Yes | No | The account's id, and Apple's or Google's for their sign-in; and the user id Google's map declares, for its analytics |
+| Identifiers → **Device ID** | App Functionality · Analytics | Yes | No | The random id each install sends to Expo with its update check (not linked), and the Maps SDK's own, which one of its two manifests calls linked |
+| User Content → **Other User Content** | App Functionality | Yes | No | What she publishes — each dish or bag, its price, count and pickup window — her kitchen's name and its line of directions |
+| Usage Data → **Product Interaction** | Analytics | No | No | Google's map: how it is used |
+| Diagnostics → **Crash Data** | Analytics | No | No | Google's map: its crash reports |
+| Diagnostics → **Performance Data** | Analytics | No | No | Google's map |
+| Other Data → **Other Data Types** | Analytics | Yes | No | Google's map — its manifest names nothing more |
+
+**What the Google rows stand on:** the build carries the Maps SDK for iOS with two privacy manifests,
+`GoogleMapsPrivacy.bundle` and `GoogleMapsResources.bundle/GoogleMaps.bundle`, read inside build 4
+(2026-11-03). Between them: crash data, performance data and product interaction, not linked; a user
+id and "other data", linked; a device id, for analytics and the app's function — linked in one and not
+in the other, so declared linked; everything for analytics; neither declares tracking or a tracking
+domain. The other fourteen manifests in the build (React Native's, Expo's) declare no data. Apple:
+*"You need to identify all of the data you or your third-party partners collect"*, and
+none of Google's meets the optional-disclosure criteria — it is collected each time the map is used,
+not in an optional form she fills in. Google's own pages point to the manifest. Expo's update id is
+in the app's own *Device ID* row.
+
+⚠️ **Apple's form asks nothing about *optional*.** Her own point is declared because it is a latitude
+and longitude to six decimals and her kitchen may be her home — the reason Play's form declares it
+(section 4), where it is answered *Users can choose*.
+
+**Not declared, and why:** *Photos or Videos* — the camera is in the build and unused until `10.5-ii`,
+which declares it. *Search History* — what she searches for is her own address, declared as *Physical
+Address*, as Play's *Address* covers it (Play's *In-app search history* is not ticked either). *Coarse
+Location* — the app reads no location and has no permission for it (`Info.plist` holds no location key,
+read inside build 4). *Phone Number* — no account or kitchen carries one. *Purchases*, *Financial Info*
+— nothing is paid in the app; her price is her offer, under *Other User Content*. *Contacts*, *Health*,
+*Browsing History*, *Sensitive Info*, *Other Diagnostic Data* — none.
+
+**For the App Review notes, when `10.5b` writes them** (English, first line): *"No widgets and no widget
+extension: WidgetKit is linked only by Expo's UI library (pulled in by expo-router), unused."* — build 4's
+binary links `WidgetKit.framework` and has no `PlugIns/` folder, as Wera's did when Apple's first review
+of Wera stopped on *"Does the app include widgets?"* (2.1, 2026-10-31).
