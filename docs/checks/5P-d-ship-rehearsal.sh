@@ -62,7 +62,7 @@ repo_for() {
   local copy="$1"
   local dir="$2"
   rm -rf "$dir" "$dir.git"
-  mkdir -p "$dir/app" "$dir/cocina" "$dir/docs/runbooks"
+  mkdir -p "$dir/app" "$dir/cocina" "$dir/itacate" "$dir/docs/runbooks"
   cp "$copy" "$dir/docs/runbooks/ship-an-update.sh"
   ( cd "$dir" \
     && git init -q -b main \
@@ -138,6 +138,10 @@ N_COCINA_FOUR="Wera Cocina without Google's map keys is refused"
 N_COCINA_IOS="Wera Cocina without the iPhone's map key is refused"
 N_WERA_THREE="Wera without its support number is still refused"
 N_COCINA_FIRST="Wera Cocina without the database's key is refused"
+N_ITACATE_SENT="--app itacate publishes from Itacate's folder"
+N_ITACATE_CHECK="Itacate with the database's two values and the support number passes"
+N_ITACATE_THREE="Itacate without the support number is refused"
+N_ITACATE_PROD="Itacate's production is refused, and nothing is sent, until its way out (10.5-iii-b)"
 N_APP_BAD="--app with an app this runbook does not ship is refused"
 
 cases() {
@@ -162,7 +166,13 @@ cases() {
   one "$dir" "$N_COCINA_IOS"   preview    "--check --app cocina" "$sin_ios" 1 "has no GOOGLE_MAPS_IOS_API_KEY"
   one "$dir" "$N_WERA_THREE"   preview    --check "$two" 1 "has no EXPO_PUBLIC_SUPPORT_WHATSAPP"
   one "$dir" "$N_COCINA_FIRST" preview    "--check --app cocina" 'EXPO_PUBLIC_SUPABASE_URL=u' 1 "has no EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY"
-  one "$dir" "$N_APP_BAD"      preview    "--app itacate" "$two" 2 "usage:"
+  # ⚠️ `10.5-iii-a`: Itacate's first update. Until then `--app itacate` was this
+  # rehearsal's example of an app the runbook does not ship; `ruta` is now.
+  one "$dir" "$N_ITACATE_SENT"  preview    "--app itacate" "$three" 0 "--clear-cache --non-interactive (in itacate)"
+  one "$dir" "$N_ITACATE_CHECK" preview    "--check --app itacate" "$three" 0 "to Itacate's 'preview'"
+  one "$dir" "$N_ITACATE_THREE" preview    "--check --app itacate" "$two" 1 "has no EXPO_PUBLIC_SUPPORT_WHATSAPP"
+  one "$dir" "$N_ITACATE_PROD"  production "--app itacate" "$three" 1 "REFUSED: Itacate's store version"
+  one "$dir" "$N_APP_BAD"      preview    "--app ruta" "$two" 2 "usage:"
 }
 
 if [[ -z "$mode" ]]; then
@@ -238,6 +248,14 @@ broken "Wera Cocina's list without the Android key" \
 broken "Wera Cocina's list without the iPhone's key" \
   'label="Wera Cocina"; needed="EXPO_PUBLIC_SUPABASE_URL EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY EXPO_PUBLIC_SUPPORT_WHATSAPP GOOGLE_MAPS_ANDROID_API_KEY GOOGLE_MAPS_IOS_API_KEY"' \
   'label="Wera Cocina"; needed="EXPO_PUBLIC_SUPABASE_URL EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY EXPO_PUBLIC_SUPPORT_WHATSAPP GOOGLE_MAPS_ANDROID_API_KEY"' "$N_COCINA_IOS"
+# ⚠️ `10.5-iii-a`: an update to Itacate built without the support number has no
+# *¿Olvidaste tu contraseña?*; and a store update before its way out hands Play's
+# closed testers a sign-in they cannot delete.
+broken "Itacate's list without the support number" \
+  'label="Itacate";     needed="EXPO_PUBLIC_SUPABASE_URL EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY EXPO_PUBLIC_SUPPORT_WHATSAPP"' \
+  'label="Itacate";     needed="EXPO_PUBLIC_SUPABASE_URL EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY"' "$N_ITACATE_THREE"
+broken "Itacate's store refusal aimed at a channel nobody ships to" \
+  '[[ "$app" == "itacate" && "$channel" == "production" ]]' '[[ "$app" == "itacate" && "$channel" == "nowhere" ]]' "$N_ITACATE_PROD"
 
 echo
 if [[ "$bad" -ne 0 ]]; then

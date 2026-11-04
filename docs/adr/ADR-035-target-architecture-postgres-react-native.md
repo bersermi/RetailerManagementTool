@@ -2335,7 +2335,10 @@ A shared package for both copies stays possible, and is a refactor of Wera's sig
 row of its own. ⚠️ **Money is never copied (2026-10-31, plan `10.4b-iv-a`):** the money row above holds for
 every app, so Cocina reads and writes a price through `packages/money` — its one workspace package, which
 moved neither app's runtime — and only the formatter that draws one is a copy, which its suite runs beside
-Wera's file.
+Wera's file. ⚠️ **Itacate's is the third copy (2026-11-04, plan `10.5-iii-a`)**, made from Wera Cocina's and
+held to Wera's files the same way: the same five client decisions, no query cache, the same three packages
+at Wera's versions (no runtime moved), and nothing read from the database until her way out and the door —
+so its `src/api/` holds the query layer alone, and `db.yml` fires on it from the start.
 
 ---
 

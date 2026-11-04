@@ -85,6 +85,13 @@ on:
       # keys, `withdraw_listing`. Its own job, `cocina-listings`, below.
       - "docs/checks/10.4b-iv-a-listing-contract.sh"
       - "docs/checks/10.4b-iv-a-listing-contract-falsify.sh"
+      # ⚠️ `10.5-iii-a`: ITACATE'S DATA LAYER, BEFORE ITS FIRST CLAIM. Its sign-in is
+      # GoTrue's and reads no table, so `itacate/src/api/` holds the query layer
+      # alone today; the filter is here first because a filter added later is
+      # wrong for every commit merged before it. The first module there that names
+      # the schema — her way out (`10.5-iii-b`), the door (`10.5-iv`) — brings the
+      # contract check this workflow runs, as Wera Cocina's did.
+      - "itacate/src/api/**"
       # ⚠️⚠️ AND THE ROSTER'S, as of plan task 5b-ii-a. `app/src/api/members.ts`
       # is a second claim about the applied schema — two column lists — and it
       # carries something `workspace.ts` does not: a claim about a POLICY. The

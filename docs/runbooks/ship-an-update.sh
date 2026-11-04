@@ -9,6 +9,7 @@
 #   bash docs/runbooks/ship-an-update.sh preview "…" --check    # refuses or says what it would do
 #   bash docs/runbooks/ship-an-update.sh production "…" --only android   # one platform's phones only
 #   bash docs/runbooks/ship-an-update.sh preview "…" --app cocina        # Wera Cocina's phones, not Wera's
+#   bash docs/runbooks/ship-an-update.sh preview "…" --app itacate       # Itacate's test builds
 #
 # ⚠️ `--app cocina` (plan `10.4b-iii-a`, the first row that shipped Wera Cocina an
 # update — `cocina/CLAUDE.md` asked that row to write this). The same steps in
@@ -20,8 +21,16 @@
 # which the config hands its search through `extra` (the organization's
 # variables, so they show in this project's listing too). `cocina/test/support.test.ts`
 # holds this list to every `EXPO_PUBLIC_` value Wera Cocina's source reads and every
-# variable its config hands to `extra`. Without the flag it is Wera, as it always was. Itacate's first update adds one case below.
+# variable its config hands to `extra`. Without the flag it is Wera, as it always was.
 # Its rollback is the command below, run from `cocina/` instead of `app/`.
+#
+# ⚠️ `--app itacate` (plan `10.5-iii-a`, Itacate's first update — its sign-in): the
+# same steps in `itacate/`, against Itacate's own EAS project, with Wera's three
+# values (its config hands nothing to `extra`; `itacate/test/support.test.ts`
+# holds the list to its source). ⚠️⚠️ AND IT REFUSES `production`: Itacate's store
+# version in Play's closed test shares its test build's runtime, so a store update
+# would hand his testers a sign-in with no *Eliminar mi cuenta* — Apple's 5.1.1(v)
+# and Play's deletion rule. Its way out is plan `10.5-iii-b`, which lifts this.
 #
 # ⚠️ `--only ios|android` (2026-10-22, his ask: *"Can I rollout the version with
 # your fixes for the Android testers?"* — while the iOS build sat in Apple's
@@ -84,7 +93,7 @@ only=""
 app="app"
 
 usage() {
-  echo "usage: bash docs/runbooks/ship-an-update.sh <preview|production> \"<message>\" [--check] [--only ios|android] [--app cocina]" >&2
+  echo "usage: bash docs/runbooks/ship-an-update.sh <preview|production> \"<message>\" [--check] [--only ios|android] [--app cocina|itacate]" >&2
   exit 2
 }
 [[ "$channel" == "preview" || "$channel" == "production" ]] || usage
@@ -103,10 +112,18 @@ done
 
 # Which app, the values its bundle cannot start without, and its name on a phone.
 case "$app" in
-  app)    label="Wera";        needed="EXPO_PUBLIC_SUPABASE_URL EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY EXPO_PUBLIC_SUPPORT_WHATSAPP" ;;
-  cocina) label="Wera Cocina"; needed="EXPO_PUBLIC_SUPABASE_URL EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY EXPO_PUBLIC_SUPPORT_WHATSAPP GOOGLE_MAPS_ANDROID_API_KEY GOOGLE_MAPS_IOS_API_KEY" ;;
+  app)     label="Wera";        needed="EXPO_PUBLIC_SUPABASE_URL EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY EXPO_PUBLIC_SUPPORT_WHATSAPP" ;;
+  cocina)  label="Wera Cocina"; needed="EXPO_PUBLIC_SUPABASE_URL EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY EXPO_PUBLIC_SUPPORT_WHATSAPP GOOGLE_MAPS_ANDROID_API_KEY GOOGLE_MAPS_IOS_API_KEY" ;;
+  itacate) label="Itacate";     needed="EXPO_PUBLIC_SUPABASE_URL EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY EXPO_PUBLIC_SUPPORT_WHATSAPP" ;;
   *) usage ;;
 esac
+
+# --- 0. Itacate's store version gets no sign-in without its way out ---------
+if [[ "$app" == "itacate" && "$channel" == "production" ]]; then
+  echo "REFUSED: Itacate's store version would get a sign-in with no Eliminar mi cuenta (Apple's 5.1.1(v), Play's deletion rule)." >&2
+  echo "  Its way out is plan 10.5-iii-b, which lifts this. Until then, Itacate's updates go to preview." >&2
+  exit 1
+fi
 
 root="$(git rev-parse --show-toplevel)"
 cd "$root/$app"
