@@ -1768,7 +1768,10 @@ jobs:
     # ⚠️ 20, NOT 15, SINCE `10.4b-iii-a`: this job ran 11 min 51 s on `main` the day
     # Wera Cocina's check and its seven fixtures joined it, and every sign-up past
     # GoTrue's 30 per 5 minutes waits about 10 s for its turn.
-    timeout-minutes: 20
+    # ⚠️ 25, NOT 20, SINCE `10.5-i-b-ii`: it ran 15 min 5 s with the Cocina check's
+    # 25 fixtures (`d4a6349`) and 17 min 44 s with its 27 (pull request 495) — a
+    # cancelled job reads *fail*, and the next fixture would have reached the cap.
+    timeout-minutes: 25
 
     steps:
       - uses: actions/checkout@v4
