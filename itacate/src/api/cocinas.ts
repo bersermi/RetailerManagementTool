@@ -1,0 +1,395 @@
+// ============================================================================
+// THE DOOR, AS A CONTRACT WITH POSTGRES. Plan task `10.5-iv-a-i`, on `0078`'s
+// `on_offer_now()` (`10.5-i-b-i`) — ADR-035 §2.7's one door: everything a
+// neighbour reads of any kitchen comes through it, because she belongs to no
+// business and every policy denies her.
+//
+// ⚠️ ITS ANSWER IS A CONTRACT THAT GROWS ONLY BY KEYS (`0078`): the interfaces
+// below name the keys THIS APP reads, by the database's names, one per line, and
+// `docs/checks/10.5-iv-a-door-contract.sh` reads those names out of this file and
+// asks a real PostgREST for each one, signed in as a neighbour. A key the door
+// adds later is ignored here; a key this file misspells is a 200 with nothing in
+// it — the typecheck, the suite and the bundler all pass over it — which only that
+// check sees.
+//
+// ⚠️ MONEY AND QUANTITIES ARRIVE AS DECIMAL STRINGS (`"65.00"`, `"4.000"`) and are
+// read by `parseDecimal` (`packages/money`, ADR-035 §2.11) into integer centavos
+// and thousandths: no float ever holds a peso. A point arrives as JSON numbers.
+// An instant arrives as Postgres writes it — up to six decimals of a second — and
+// is cut to three before any engine reads it (Wera Cocina's `toMilliseconds`).
+//
+// ⚠️ A KITCHEN IT CANNOT READ IS DROPPED, NEVER THE LIST — Wera Cocina's
+// `listingsFrom` tolerance: a dish it cannot read leaves its publication, and a
+// publication left with none leaves its kitchen.
+//
+// ⚠️ GOOGLE'S POINT IS READ HERE AND KEPT NOWHERE: the door hands out each
+// kitchen's point to draw — her own pin, else Google's 30-day copy (`0078`) — and
+// this app holds it in memory only, for distance and order on her phone (ADR-035
+// §2.2: never a filter, a sort or a count on the server; §2.7: the phone works out
+// distance and order). Nothing here writes to the database.
+//
+// Everything with a right answer is here, and nothing that talks: the call is
+// `@/api/calls`' `onOfferNow`, the hook `@/api/hooks`' `useCocinas`.
+// ============================================================================
+
+import { SCALE, parseDecimal } from '@tienda/money';
+
+import { toPage, type Page } from '@/api/pagina';
+
+/** The one door (`0078`): no arguments — for the pilot it takes no area. */
+export const ON_OFFER_NOW = 'on_offer_now';
+
+/** The prefix every answer is cached under — in memory, keyed on the login. */
+export const COCINAS_KEY = ['itacate', 'cocinas'] as const;
+
+/** Cached under the login, Wera Cocina's rule: a read is scoped to whoever holds the session. */
+export function cocinasKey(userId: string | null): readonly unknown[] {
+  return [...COCINAS_KEY, userId ?? ''];
+}
+
+// ----------------------------------------------------------------------------
+// The answer, by the database's names — ⚠️ the contract check reads each field
+// ----------------------------------------------------------------------------
+
+/** One kitchen a neighbour may see: on offer now, or quiet — published in the last 14 days. */
+export interface KitchenRow {
+  readonly id: string;
+  readonly name: string;
+  readonly giro: string | null;
+  readonly address: AddressRow | null;
+  readonly directions: string | null;
+  readonly point: PointRow | null;
+  readonly page: PageRow | null;
+  readonly on_offer: readonly OfferRow[] | null;
+  readonly summary: SummaryRow | null;
+}
+
+/** Her address, as she gave it in Wera Cocina's five boxes. */
+export interface AddressRow {
+  readonly street: string | null;
+  readonly street_number: string | null;
+  readonly colonia: string | null;
+  readonly city: string | null;
+  readonly postal_code: string | null;
+}
+
+/** Where she is drawn: her own pin, else Google's 30-day copy; the door says which. */
+export interface PointRow {
+  readonly lat: number;
+  readonly lng: number;
+  readonly source: string;
+}
+
+/** Her page in Itacate (`kitchen_page`, `0076`), when she made one. */
+export interface PageRow {
+  readonly sentence: string | null;
+  readonly color: string | null;
+  readonly cover_path: string | null;
+  readonly logo_path: string | null;
+  readonly maps_link: string | null;
+}
+
+/** One publication on offer now: not withdrawn, its window not over. */
+export interface OfferRow {
+  readonly id: string;
+  readonly pickup_start: string;
+  readonly pickup_end: string;
+  readonly lines: readonly LineRow[] | null;
+}
+
+/** One dish or surprise bag of it. */
+export interface LineRow {
+  readonly line_no: number;
+  readonly name: string;
+  readonly description: string | null;
+  readonly tags: readonly string[] | null;
+  readonly unit_price: string;
+  readonly quantity: string;
+  readonly surprise: boolean;
+  readonly usual_price: string | null;
+  readonly image_path: string | null;
+}
+
+/** What she usually publishes, over four weeks, in her kitchen's own zone — never the raw history. */
+export interface SummaryRow {
+  readonly weekdays: readonly number[] | null;
+  readonly usual_hour: number | null;
+  readonly last_day: string | null;
+  readonly repeats: readonly RepeatRow[] | null;
+}
+
+/** A dish she published on two days or more. */
+export interface RepeatRow {
+  readonly name: string;
+  readonly times: number;
+  readonly usual_price: string | null;
+}
+
+/** Whose point the door sends (`0078`): her own pin, or Google's copy for her address. */
+export const POINT_SOURCES = ['pin', 'google'] as const;
+export type PointSource = (typeof POINT_SOURCES)[number];
+
+/** The fixed list of tags, as codes (`listing_line_tags_known`, `0072`) — Wera Cocina's `TAGS`. */
+export const TAGS = ['pica', 'cerdo', 'mariscos', 'cacahuate', 'lacteos', 'gluten'] as const;
+export type Tag = (typeof TAGS)[number];
+
+// ----------------------------------------------------------------------------
+// The answer, as this app holds it
+// ----------------------------------------------------------------------------
+
+/** A place on the map. */
+export interface Punto {
+  readonly latitude: number;
+  readonly longitude: number;
+}
+
+/** A kitchen's point, and whose it is. */
+export interface Point extends Punto {
+  readonly source: PointSource;
+}
+
+/** Her address — each part as she wrote it, `''` when she left it out. */
+export interface Address {
+  readonly street: string;
+  readonly number: string;
+  readonly colonia: string;
+  readonly city: string;
+  readonly postalCode: string;
+}
+
+/** A dish or a bag. Money in integer centavos. */
+export interface Dish {
+  readonly lineNo: number;
+  readonly name: string;
+  readonly description: string | null;
+  readonly tags: readonly Tag[];
+  readonly priceCentavos: number;
+  /** How many she offered — a whole number, or `null` for a fraction (a shop's *Ofrecer*, later). */
+  readonly count: number | null;
+  readonly surprise: boolean;
+  readonly usualCentavos: number | null;
+  /** Its photo's path in the bucket, or `null` — her trade's drawing. */
+  readonly photo: string | null;
+}
+
+/** A publication on offer. */
+export interface Offer {
+  readonly id: string;
+  readonly start: Date;
+  readonly end: Date;
+  readonly dishes: readonly Dish[];
+}
+
+/** A dish she repeats. */
+export interface Repeat {
+  readonly name: string;
+  readonly times: number;
+  readonly usualCentavos: number | null;
+}
+
+/** What she usually publishes, over four weeks. */
+export interface Summary {
+  /** Publications per weekday, Monday first (ISO's order), seven numbers. */
+  readonly weekdays: readonly number[];
+  /** The hour she usually publishes for, in her kitchen's zone, 0–23. */
+  readonly usualHour: number | null;
+  /** The last day she published for, `YYYY-MM-DD` in her kitchen's zone. */
+  readonly lastDay: string | null;
+  readonly repeats: readonly Repeat[];
+}
+
+/** A kitchen, as the list draws it. */
+export interface Kitchen {
+  readonly id: string;
+  readonly name: string;
+  readonly giro: string | null;
+  readonly address: Address;
+  readonly directions: string | null;
+  readonly point: Point | null;
+  readonly page: Page;
+  /** What she has on offer, the earliest window first. */
+  readonly offers: readonly Offer[];
+  readonly summary: Summary;
+}
+
+// ----------------------------------------------------------------------------
+// Reading it
+// ----------------------------------------------------------------------------
+
+const text = (value: unknown): string => (typeof value === 'string' ? value.trim() : '');
+const orNull = (value: unknown): string | null => (text(value) === '' ? null : text(value));
+const object = (value: unknown): Record<string, unknown> | null =>
+  typeof value === 'object' && value !== null && !Array.isArray(value) ? (value as Record<string, unknown>) : null;
+const list = (value: unknown): readonly unknown[] => (Array.isArray(value) ? value : []);
+
+/** A money string as centavos. Throws on anything `parseDecimal` refuses — a number included. */
+export function centavosOf(value: unknown): number {
+  if (typeof value !== 'string') throw new TypeError(`money as ${typeof value}`);
+  const centavos = parseDecimal(value.trim(), SCALE.money);
+  if (centavos <= 0) throw new RangeError(`a price of ${value}`);
+  return centavos;
+}
+
+/** A quantity string as a whole count, or `null` when it holds a fraction. Throws on anything else. */
+export function countOf(value: unknown): number | null {
+  if (typeof value !== 'string') throw new TypeError(`a quantity as ${typeof value}`);
+  const thousandths = parseDecimal(value.trim(), SCALE.quantity);
+  if (thousandths <= 0) throw new RangeError(`a quantity of ${value}`);
+  return thousandths % 1000 === 0 ? thousandths / 1000 : null;
+}
+
+/**
+ * A `timestamptz` as Postgres writes it, cut to milliseconds: up to six decimals
+ * of a second arrive, and a phone's engine need not read more than three — Wera
+ * Cocina's `toMilliseconds` (`cocina/src/api/place.ts`). ⚠️ Node reads six, so only
+ * this function's own test sees the cut.
+ */
+export function aMilisegundos(value: string): string {
+  return value.trim().replace(/(\.\d{3})\d+/, '$1');
+}
+
+/** An instant as Postgres writes it, cut to milliseconds before the engine reads it. Throws when unreadable. */
+export function instantOf(value: unknown): Date {
+  const ms = Date.parse(aMilisegundos(text(value)));
+  if (!Number.isFinite(ms)) throw new RangeError(`an instant of ${String(value)}`);
+  return new Date(ms);
+}
+
+/** Her point, or `null` — a source this build does not know is still a point to measure from. */
+export function pointOf(value: unknown): Point | null {
+  const p = object(value);
+  if (p === null) return null;
+  const latitude = p.lat;
+  const longitude = p.lng;
+  if (typeof latitude !== 'number' || typeof longitude !== 'number') return null;
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude) || Math.abs(latitude) > 90 || Math.abs(longitude) > 180) return null;
+  if (latitude === 0 && longitude === 0) return null;
+  return { latitude, longitude, source: p.source === 'pin' ? 'pin' : 'google' };
+}
+
+function addressOf(value: unknown): Address {
+  const a = object(value) ?? {};
+  return {
+    street: text(a.street),
+    number: text(a.street_number),
+    colonia: text(a.colonia),
+    city: text(a.city),
+    postalCode: text(a.postal_code),
+  };
+}
+
+/** One line; throws when it cannot be read. */
+function dishOf(value: unknown): Dish {
+  const l = object(value);
+  if (l === null) throw new TypeError('a line that is not an object');
+  const name = text(l.name);
+  if (name === '' || typeof l.line_no !== 'number') throw new RangeError('a line with no name or number');
+  const usual = l.usual_price === null || l.usual_price === undefined ? null : centavosOf(l.usual_price);
+  return {
+    lineNo: l.line_no,
+    name,
+    description: orNull(l.description),
+    tags: TAGS.filter((tag) => list(l.tags).includes(tag)),
+    priceCentavos: centavosOf(l.unit_price),
+    count: countOf(l.quantity),
+    surprise: l.surprise === true,
+    usualCentavos: usual,
+    photo: orNull(l.image_path),
+  };
+}
+
+/** One publication with the lines it can read, or `null` when none is left. */
+function offerOf(value: unknown): Offer | null {
+  const o = object(value);
+  if (o === null || text(o.id) === '') return null;
+  const dishes: Dish[] = [];
+  for (const line of list(o.lines)) {
+    try {
+      dishes.push(dishOf(line));
+    } catch {
+      // A dish it cannot read is left out; the rest of her publication still shows.
+    }
+  }
+  if (dishes.length === 0) return null;
+  return {
+    id: text(o.id),
+    start: instantOf(o.pickup_start),
+    end: instantOf(o.pickup_end),
+    dishes: dishes.sort((a, b) => a.lineNo - b.lineNo),
+  };
+}
+
+function summaryOf(value: unknown): Summary {
+  const s = object(value) ?? {};
+  const days = list(s.weekdays);
+  const weekdays =
+    days.length === 7 && days.every((n) => typeof n === 'number' && Number.isInteger(n) && n >= 0)
+      ? (days as number[])
+      : [0, 0, 0, 0, 0, 0, 0];
+  const hour = s.usual_hour;
+  const lastDay = text(s.last_day);
+  const repeats: Repeat[] = [];
+  for (const r of list(s.repeats)) {
+    const row = object(r);
+    if (row === null || text(row.name) === '' || typeof row.times !== 'number') continue;
+    let usualCentavos: number | null = null;
+    try {
+      usualCentavos = row.usual_price === null || row.usual_price === undefined ? null : centavosOf(row.usual_price);
+    } catch {
+      usualCentavos = null;
+    }
+    repeats.push({ name: text(row.name), times: row.times, usualCentavos });
+  }
+  return {
+    weekdays,
+    usualHour: typeof hour === 'number' && Number.isInteger(hour) && hour >= 0 && hour <= 23 ? hour : null,
+    lastDay: /^\d{4}-\d{2}-\d{2}$/.test(lastDay) ? lastDay : null,
+    repeats,
+  };
+}
+
+/** One kitchen of the door's answer. The only place that knows both spellings. Throws when it cannot be read. */
+export function toKitchen(row: KitchenRow): Kitchen {
+  const k = object(row);
+  if (k === null) throw new TypeError('a kitchen that is not an object');
+  const id = text(k.id);
+  const name = text(k.name);
+  if (id === '' || name === '') throw new RangeError('a kitchen with no id or name');
+  const offers: Offer[] = [];
+  for (const o of list(k.on_offer)) {
+    try {
+      const offer = offerOf(o);
+      if (offer !== null) offers.push(offer);
+    } catch {
+      // A publication it cannot read is left out; her kitchen still shows.
+    }
+  }
+  offers.sort((a, b) => a.start.getTime() - b.start.getTime() || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+  return {
+    id,
+    name,
+    giro: orNull(k.giro),
+    address: addressOf(k.address),
+    directions: orNull(k.directions),
+    point: pointOf(k.point),
+    page: toPage(object(k.page) ?? null),
+    offers,
+    summary: summaryOf(k.summary),
+  };
+}
+
+/**
+ * The door's answer as a list. ⚠️ A KITCHEN IT CANNOT READ IS DROPPED, not drawn
+ * wrong and not allowed to blank the whole list.
+ */
+export function kitchensFrom(data: unknown): Kitchen[] {
+  const kitchens: Kitchen[] = [];
+  for (const row of list(data)) {
+    try {
+      kitchens.push(toKitchen(row as KitchenRow));
+    } catch {
+      // Dropped, as Wera Cocina's `listingsFrom` drops a row it cannot read.
+    }
+  }
+  return kitchens;
+}

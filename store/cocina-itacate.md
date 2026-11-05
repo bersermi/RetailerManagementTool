@@ -69,7 +69,7 @@ Versión de prueba de la app de Wera para fondas y cocinas.
 ```
 Wera Cocina es la app de Wera para fondas y cocinas: publica lo que te sobró del día para que los vecinos pasen por ello.
 
-Esta es una versión de prueba, solo para quienes la están probando. Por ahora puedes crear tu cuenta, registrar tu cocina con su dirección —y, si quieres, su punto exacto en el mapa— y publicar platillos o bolsas sorpresa, con el horario en que pueden pasar. Los vecinos todavía no ven lo que publicas: lo verán en Itacate, la app de Wera para vecinos.
+Esta es una versión de prueba, solo para quienes la están probando. Por ahora puedes crear tu cuenta, registrar tu cocina con su dirección —y, si quieres, su punto exacto en el mapa— y publicar platillos o bolsas sorpresa, con el horario en que pueden pasar. Lo que publicas lo ven los vecinos en Itacate, la app de Wera para vecinos, que también está en prueba.
 
 Usa la misma cuenta que Wera: tu tienda.
 
@@ -102,7 +102,7 @@ Versión de prueba de Itacate, la app de Wera para vecinos.
 ```
 Itacate es la app de Wera para vecinos.
 
-Esta es una versión de prueba, solo para quienes la están probando: por ahora muestra un mapa y nada más. La iremos llenando con actualizaciones.
+Esta es una versión de prueba, solo para quienes la están probando. Te muestra las cocinas cercanas que tienen algo publicado, de la más cercana a la más lejana, con lo que ofrecen, su precio y a qué hora pasar por ello. Tu ubicación se usa solo en tu teléfono; si no quieres darla, escribe tu código postal. La iremos llenando con actualizaciones.
 
 No tiene anuncios y no vende datos.
 
@@ -201,8 +201,8 @@ The same answers for both:
 | Email | `ayuda@tu-wera.com` |
 | Category | **All other app types** |
 | Violence, blood, fear; sexuality, nudity; offensive language; gambling; drugs; alcohol or tobacco | **No** to all |
-| Users interact or exchange content with other users | **No** — not yet: what a kitchen publishes, her page and her photos (`10.5-ii`) reach nobody until Itacate shows kitchens (`10.5-iv`), which answers it again for both apps. Re-read for `10.5-ii` (2026-11-04): photos are uploaded and kept, and nobody outside her kitchen sees them yet |
-| Shares the user's location with others | **No** — not yet: a kitchen's address, and her own point if she set one, are shown to neighbours from `10.5` |
+| Users interact or exchange content with other users | ⚠️ **Yes, both, since `10.5-iv-a-i`** (was *No*): what a kitchen publishes, her page and her photos reach the neighbours who sign in to Itacate, and Itacate shows them. Neither app has messages or comments; reserving is `10.5b`'s |
+| Shares the user's location with others | ⚠️ **Wera Cocina: Yes, since `10.5-iv-a-i`** (was *No*) — her kitchen's address and its point (hers, or where Google places her address) reach the neighbours, and a kitchen may be her home. **Itacate: No** — her location never leaves her phone |
 | Lets users buy digital goods | **No** |
 | Is a web browser or a search engine | **No** |
 
@@ -270,7 +270,8 @@ the aviso (`site/privacidad/cocina-e-itacate/`, section 3) and `site/README.md`'
 | Diagnostics | Analytics |
 
 *Developer communications* on the email: the aviso promises an email before any change to which
-data is used, or for what (its section 11) — before Itacate shows a kitchen to neighbours, first.
+data is used, or for what (its section 11) — before Itacate shows a kitchen to neighbours, first
+(`10.5-iv-a-i` built Itacate's list; the email is the handbook's *Before Wera Cocina reaches your testers*).
 
 **Not ticked, and why:** *Phone number* — no account carries one, and a kitchen's phone is not
 asked (Wera declares one ahead of use by the owner's ruling of 2026-10-21 for Wera; nothing ruled
@@ -283,11 +284,13 @@ web browsing — none read.
 ### Data safety — Itacate
 
 ⚠️ **Rewritten by `10.5-iii-b` for the store version's first sign-in**: an account — Itacate's
-sign-in (`10.5-iii-a`) and its *Eliminar mi cuenta* (`10.5-iii-b`). **Paste it before the first
-`production` update to Itacate**: an update passes no Google review, and the answers must be true
-of what testers run. Version 3, the skeleton with no sign-in, ticked the last four types alone. What
-each answer stands on is the aviso (`site/privacidad/cocina-e-itacate/`, section 10) and
-`site/README.md`'s table.
+sign-in (`10.5-iii-a`) and its *Eliminar mi cuenta* (`10.5-iii-b`). ⚠️ **And by `10.5-iv-a-i` for
+its list of the kitchens near her**: one more type, *Approximate location* — the postal code she
+types when she gives no location, which her phone sends to Google's address search. **Paste it
+before the first `production` update to Itacate**: an update passes no Google review, and the
+answers must be true of what testers run. Version 3, the skeleton with no sign-in, ticked the last
+four types alone. What each answer stands on is the aviso (`site/privacidad/cocina-e-itacate/`,
+section 10) and `site/README.md`'s table.
 
 **Data collection and security**
 
@@ -300,26 +303,27 @@ each answer stands on is the aviso (`site/privacidad/cocina-e-itacate/`, section
 | Can users ask for some data to be deleted without deleting the account? | **No** — leave the optional link empty |
 | *Can users login to your app with accounts created outside of the app?* | **Yes** — one login serves Wera, Wera Cocina and Itacate (ADR-035 §2.7): an account made in either opens Itacate |
 
-**Data types** — tick exactly these seven: the three of the account, and the four the update
-check, Google's map and Firebase send on their own.
+**Data types** — tick exactly these eight: the three of the account, her postal code, and the four
+the update check, Google's SDKs and Firebase send on their own.
 
 | Section | Data type | What it is in Itacate |
 |---|---|---|
 | Personal info | **Name** | The name and surname typed at sign-up, or Google's |
 | Personal info | **Email address** | The account's email |
 | Personal info | **User IDs** | The account id, and Google's account id for a sign-in with Google |
+| Location | **Approximate location** | ⚠️ Since `10.5-iv-a-i`: the postal code she types when she gives no location, or her phone gives only an approximate one — sent by her phone to Google's Geocoding to find where it is, and forgotten when the app closes; Wera never receives it. ⚠️ **Her location itself is not declared**: it is used on her phone alone and never leaves it (Google: data *"only processed locally on the user's device"* is not collected — its *Data safety* page, read 2026-11-01) |
 | Device or other IDs | **Device or other IDs** | The random install id sent to Expo with each update check; the Maps SDK's own pseudonymous id; Firebase's installation id and push token (Android) |
 | App activity | **App interactions** | The map's panning and zooming, which Google's Maps SDK reports |
 | App info and performance | **Crash logs** | The Maps SDK's stack traces when it crashes |
 | App info and performance | **Diagnostics** | The Maps SDK's crash metrics and request metadata (phone model, Android version) |
 
-**For every one of the seven:**
+**For every one of the eight:**
 
 | Question | Answer |
 |---|---|
 | Is this data collected, shared, or both? | **Collected** — Supabase, Expo and Google are the app's service providers, and nothing of a neighbour is shown to another user: no kitchen or shop learns who signs in (the aviso's section 10) |
-| Is this data processed ephemerally? | **No** |
-| Is this data required, or can users choose? | **Required** — the account is the way in, and the rest comes with the map and the update check |
+| Is this data processed ephemerally? | **No** — ⚠️ but **Yes for *Approximate location***: her phone sends the postal code to Google's address search for the one answer, keeps it in memory while the app is open, and nobody stores it on Wera's side (Google's own handling is under its terms, the aviso's section 10) |
+| Is this data required, or can users choose? | **Required** — the account is the way in, and the rest comes with the map and the update check — ⚠️ but **Users can choose** for *Approximate location*: it is typed only by a neighbour who gives no location, and she may type none |
 
 **Why it is collected:**
 
@@ -328,23 +332,27 @@ check, Google's map and Firebase send on their own.
 | Name | App functionality · Account management |
 | Email address | App functionality · Account management · Developer communications |
 | User IDs | App functionality · Account management |
+| Approximate location | App functionality |
 | Device or other IDs | App functionality · Analytics |
 | App interactions | Analytics |
 | Crash logs | Analytics |
 | Diagnostics | Analytics |
 
 *Developer communications* on the email, as Wera Cocina's: the aviso promises an email before any
-change to which data is used, or for what (its section 11). ⚠️ **`10.5-iv` answers this section
-again**: her approximate square, sent to the door and never kept (*Approximate location*, processed
-ephemerally — `itacate/CLAUDE.md`).
+change to which data is used, or for what (its section 11). ⚠️ **Since the owner's ruling of
+2026-11-04, night, nothing of her location reaches the door** — no square, as `10.5` once planned —
+so her location is not declared at all, and the postal code is the one location type. `10.5-iv-b`
+(Google's map in Itacate) reads this section again.
 
 ⚠️ **What stands behind the technical answers, in both apps**: Expo's update check
 (`expo-updates` sends `EAS-Client-ID`, as for Wera); Google's *Prepare for Google Play's data
 disclosure requirements* for the Maps SDK for Android, read 2026-10-27; Firebase's documentation,
 which generates a push token at launch unless told not to. *Collected* rather than *shared* treats
 Google and Expo as the apps' service providers, as Wera's answers treat Supabase and Expo; Google's
-page does not say which it is for its own SDK. **Not ticked for Itacate:** location (it does not
-read it yet — `10.5-iv`), phone number, photos, financial info, messages, contacts, files, health.
+page does not say which it is for its own SDK. **Not ticked for Itacate:** *Precise location* —
+her location never leaves her phone (`10.5-iv-a-i`); phone number, photos — the kitchens' photos
+are theirs, and Itacate asks for no camera or picture of hers —, financial info, messages,
+contacts, files, health.
 
 ### Government apps · Financial features · Health · Advertising ID
 

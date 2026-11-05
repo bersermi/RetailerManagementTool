@@ -1,67 +1,158 @@
-import { StyleSheet, Text, View } from 'react-native';
-import MapView from 'react-native-maps';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
+import { useMemo, useState } from 'react';
+import { ActivityIndicator, FlatList, Pressable, RefreshControl, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { useAuth } from '@/auth/AuthProvider';
-import { quienEntro } from '@/auth/quien';
+import { apiErrorMessage } from '@/api/errors';
+import { useCocinas } from '@/api/hooks';
+import { tarjetasDe, type Tarjeta } from '@/lib/lista';
+import { motivoDe, origenDe, puntoDeOrigen, type Codigo, type Origen } from '@/lib/ubicacion';
+import { usePuntosBuscados } from '@/lib/useGoogle';
+import { useAhora, useDondeEstoy } from '@/lib/useUbicacion';
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { Banda } from '@/ui/Banda';
+import { CodigoPostal } from '@/ui/CodigoPostal';
 import { Formulario } from '@/ui/Formulario';
-import { Salidas } from '@/ui/Salidas';
+import { TarjetaCocina } from '@/ui/TarjetaCocina';
+import { TarjetaPlatillo } from '@/ui/TarjetaPlatillo';
 
 // ============================================================================
-// THE SKELETON'S ONE SCREEN, NOW BEHIND THE SIGN-IN. Plan tasks `10.2a` (the
-// map and its three lines), `10.5-iii-a` (who is signed in, and *Cerrar
-// sesión*) and `10.5-iii-b` (her way out, `@/ui/Salidas`).
+// *CERCA DE TI* — THE KITCHENS CLOSE TO HER, AS A LIST. Plan task `10.5-iv-a-i`; it
+// replaced the skeleton's map (`10.2a`), and her way out moved to *Tu cuenta*.
 //
-// ⚠️ THE MAP IS HERE ON PURPOSE: it is how a build shows whether its map key
-// works. On Android a build made without the key draws an empty map (the
-// placeholder in `app.config.ts`); with the key, the streets. iOS draws Apple's
-// map, which needs no key. `10.5-iv` replaces this screen with what is close to her.
-//
-// ⚠️ HER WAY OUT AT THE FOOT (`@/ui/Salidas`, `10.5-iii-b`): *Cerrar sesión*,
-// always, and *Eliminar mi cuenta* once what goes with her account is known —
-// Wera Cocina's block. A login that owns a kitchen or a shop types each name at
-// the foot, so the screen is a `Formulario`, as Wera Cocina's kitchen is: the
-// box being typed in stays above the keyboard. ⚠️ While the deletion is closed
-// the map still fills what the lines leave (the content grows to the screen and
-// the map takes the rest); opened, the page scrolls and the map keeps
-// `MAPA_MINIMO`. A map inside a scroll view keeps its own drags on Android:
-// react-native-maps 1.27.2's `MapView.dispatchTouchEvent` asks its parents not to
-// intercept from a finger's down to its up. ⚠️ NO CHECK CAN SEE THIS SCREEN
-// (ADR-035 §2.11): the phone is its instrument.
+// ⚠️ WHAT IT CARRIES OUT, EVERY RULE ELSEWHERE AND PINNED:
+//   - where she is — her location while the app is open, never sent anywhere
+//     (`@/lib/useUbicacion`); declined or approximate, her postal code
+//     (`@/ui/CodigoPostal`); outside the zone, *Itacate aún no llega a tu zona*
+//     (`@/lib/ubicacion`'s `origenDe`);
+//   - every kitchen the door sends (`@/api/hooks`' `useCocinas`), placed at the
+//     door's point, else where her phone found its address (`@/lib/useGoogle`);
+//   - its cards, nearest first, made again as she walks and every minute, so a
+//     window that ends turns its kitchen quiet (`@/lib/lista`);
+//   - a pull asks the door and her phone again; so does a return to the front.
+// ⚠️ NO KITCHEN IS DRAWN ON A MAP: Google's points go only on Google's map, which
+// is `10.5-iv-b`. ⚠️ NO CHECK CAN SEE THIS SCREEN (ADR-035 §2.11): the phone is its
+// instrument.
 // ============================================================================
-const CENTRO = { latitude: 19.4326, longitude: -99.1332, latitudeDelta: 0.04, longitudeDelta: 0.04 };
 
-/** How short the map may get once the deletion is open and the page scrolls. */
-const MAPA_MINIMO = 240;
+/** How often the cards are made again while she looks, so an ended window drops. */
+const CADA_MINUTO = 60_000;
 
-export default function Inicio() {
-  const { session } = useAuth();
-  const quien = quienEntro(session?.user);
+export default function Cerca() {
+  const insets = useSafeAreaInsets();
+  const { donde, otraVez } = useDondeEstoy();
+  const [codigo, setCodigo] = useState<Codigo | null>(null);
+  const cocinas = useCocinas();
+  const buscados = usePuntosBuscados(cocinas.data);
+  const ahora = useAhora(CADA_MINUTO);
+  const [jalando, setJalando] = useState(false);
+
+  const origen = origenDe(donde, codigo);
+  const desde = puntoDeOrigen(origen);
+  const tarjetas = useMemo(
+    () => (desde === null || cocinas.data === undefined ? [] : tarjetasDe(cocinas.data, desde, buscados, ahora)),
+    [cocinas.data, desde, buscados, ahora],
+  );
+
+  async function refrescar() {
+    setJalando(true);
+    otraVez();
+    try {
+      await cocinas.refetch();
+    } finally {
+      setJalando(false);
+    }
+  }
+
+  const banda = (
+    <Banda
+      titulo={ES.cerca.titulo}
+      accion={{ label: ES.cerca.tuCuenta, icon: 'account-circle-outline', onPress: () => router.push('/cuenta') }}
+    />
+  );
+
+  if (origen.kind === 'buscando') {
+    return (
+      <View style={{ flex: 1, backgroundColor: PALETTE.fondo }}>
+        {banda}
+        <Aviso texto={ES.cerca.buscandote} esperando />
+      </View>
+    );
+  }
+
+  if (origen.kind === 'pide-codigo' || origen.kind === 'fuera') {
+    return (
+      <Formulario style={{ flex: 1, backgroundColor: PALETTE.fondo }} contentContainerStyle={{ flexGrow: 1 }}>
+        {banda}
+        <View style={{ padding: SIZE.space * 2, paddingBottom: insets.bottom + SIZE.space * 2, gap: SIZE.space }}>
+          {origen.kind === 'fuera' && (
+            <View style={{ gap: SIZE.rowGap / 2 }}>
+              <Text style={{ fontSize: SIZE.titleSize - 2, fontWeight: '700', color: PALETTE.tinta }}>{ES.cerca.fueraDeZona}</Text>
+              <Text style={{ fontSize: SIZE.bodySize, lineHeight: 22, color: PALETTE.tintaApagada }}>{ES.cerca.fueraDeZonaDetalle}</Text>
+            </View>
+          )}
+          <CodigoPostal
+            motivo={origen.kind === 'fuera' ? ES.cerca.otroCodigo : motivoDe(origen.porque)}
+            onLugar={setCodigo}
+          />
+        </View>
+      </Formulario>
+    );
+  }
 
   return (
-    <Formulario style={styles.pantalla} contentContainerStyle={styles.contenido}>
-      <MapView style={styles.mapa} initialRegion={CENTRO} />
-      <SafeAreaView edges={['bottom']} style={styles.texto}>
-        <Text style={styles.nombre}>{ES.nombre}</Text>
-        <Text style={styles.pronto}>{ES.inicio.pronto}</Text>
-        <Text style={styles.detalle}>{ES.inicio.detalle}</Text>
-        {quien !== null && <Text style={styles.detalle}>{ES.inicio.quien(quien)}</Text>}
-        <View style={{ marginTop: SIZE.rowGap }}>
-          <Salidas />
-        </View>
-      </SafeAreaView>
-    </Formulario>
+    <View style={{ flex: 1, backgroundColor: PALETTE.fondo }}>
+      {banda}
+      <FlatList<Tarjeta>
+        data={tarjetas}
+        keyExtractor={(tarjeta) => tarjeta.key}
+        renderItem={({ item }) =>
+          item.kind === 'platillo' ? <TarjetaPlatillo tarjeta={item} ahora={ahora} /> : <TarjetaCocina tarjeta={item} ahora={ahora} />
+        }
+        ListHeaderComponent={<Desde origen={origen} onCambiar={() => setCodigo(null)} />}
+        ListEmptyComponent={
+          cocinas.isPending ? (
+            <Aviso texto={ES.cerca.cargando} esperando />
+          ) : cocinas.isError ? (
+            <Aviso texto={apiErrorMessage(cocinas.error)} />
+          ) : (
+            <Aviso texto={ES.cerca.vacio} />
+          )
+        }
+        refreshControl={<RefreshControl refreshing={jalando} onRefresh={() => void refrescar()} />}
+        contentContainerStyle={{
+          paddingHorizontal: SIZE.space * 1.5,
+          paddingTop: SIZE.space,
+          paddingBottom: insets.bottom + SIZE.space * 2,
+          gap: SIZE.space,
+        }}
+      />
+    </View>
   );
 }
 
-const styles = StyleSheet.create({
-  pantalla: { flex: 1, backgroundColor: PALETTE.fondo },
-  contenido: { flexGrow: 1 },
-  mapa: { flex: 1, minHeight: MAPA_MINIMO },
-  texto: { paddingHorizontal: 24, paddingTop: 20, paddingBottom: 12, gap: 6 },
-  nombre: { fontSize: 28, fontWeight: '700', color: PALETTE.tinta },
-  pronto: { fontSize: 18, fontWeight: '600', color: PALETTE.itacate },
-  detalle: { fontSize: SIZE.bodySize, lineHeight: 22, color: PALETTE.tintaApagada },
-});
+/** Where the distances are measured from — and, from a postal code, the way back to the box. */
+function Desde({ origen, onCambiar }: { origen: Origen; onCambiar: () => void }) {
+  if (origen.kind === 'codigo') {
+    return (
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: SIZE.rowGap }}>
+        <Text style={{ flex: 1, fontSize: SIZE.smallSize, color: PALETTE.tintaApagada }}>{ES.cerca.desdeCodigo(origen.cp)}</Text>
+        <Pressable accessibilityRole="button" accessibilityLabel={ES.cerca.cambiarCodigo} onPress={onCambiar} hitSlop={SIZE.rowGap}>
+          <Text style={{ fontSize: SIZE.smallSize, fontWeight: '700', color: PALETTE.accion }}>{ES.cerca.cambiarCodigo}</Text>
+        </Pressable>
+      </View>
+    );
+  }
+  return <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada }}>{ES.cerca.desdeTuUbicacion}</Text>;
+}
+
+/** One line in the middle of the screen — while something is on its way, or why there is nothing. */
+function Aviso({ texto, esperando = false }: { texto: string; esperando?: boolean }) {
+  return (
+    <View style={{ alignItems: 'center', gap: SIZE.space, paddingVertical: SIZE.space * 3, paddingHorizontal: SIZE.space * 2 }}>
+      {esperando && <ActivityIndicator color={PALETTE.accion} />}
+      <Text style={{ fontSize: SIZE.bodySize, lineHeight: 22, color: PALETTE.tintaApagada, textAlign: 'center' }}>{texto}</Text>
+    </View>
+  );
+}

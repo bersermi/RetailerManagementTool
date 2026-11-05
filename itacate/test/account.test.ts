@@ -311,13 +311,24 @@ describe('the words: Wera’s, word for word', () => {
   });
 });
 
-describe('the one screen a signed-in neighbour stands on has the way out', () => {
+// ⚠️ `10.5-iv-a-i`: THE LIST OF KITCHENS REPLACED THE ONE SCREEN her way out stood at
+// the foot of, so it moved to *Tu cuenta*, a screen of its own reached from the
+// list's band — still one tap from where she lands (Apple's 5.1.1(v)).
+describe('her way out, on *Tu cuenta*, one tap from the list she lands on', () => {
   it('at its foot, in a form that keeps the box being typed in above the keyboard', () => {
-    const screen = code('src/app/(vecino)/index.tsx');
+    const screen = code('src/app/(vecino)/cuenta.tsx');
     expect(screen).toMatch(/<Salidas \/>/);
     expect(screen).toMatch(/<Formulario[\s\S]*<Salidas \/>[\s\S]*<\/Formulario>/);
-    // *Cerrar sesión* is the block's now: one sign-out on the screen, not two.
+    // *Cerrar sesión* is the block's: one sign-out on the screen, not two.
     expect(screen).not.toMatch(/signOut/);
+    // And a way back to the list — an iPhone has no back button.
+    expect(screen).toMatch(/volver=\{\{ label: ES\.cuenta\.volver, onPress: \(\) => router\.back\(\) \}\}/);
+  });
+
+  it('the list opens it from its band, and draws no second way out of its own', () => {
+    const list = code('src/app/(vecino)/index.tsx');
+    expect(list).toMatch(/accion=\{\{ label: ES\.cerca\.tuCuenta, icon: '[a-z-]+', onPress: \(\) => router\.push\('\/cuenta'\) \}\}/);
+    expect(list).not.toMatch(/Salidas|signOut/);
   });
 
   it('and the block reads what goes, asks each name, and sends what the rules build', () => {

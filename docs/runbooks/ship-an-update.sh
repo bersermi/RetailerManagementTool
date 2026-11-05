@@ -26,8 +26,10 @@
 #
 # ⚠️ `--app itacate` (plan `10.5-iii-a`, Itacate's first update — its sign-in): the
 # same steps in `itacate/`, against Itacate's own EAS project, with Wera's three
-# values (its config hands nothing to `extra`; `itacate/test/support.test.ts`
-# holds the list to its source). Until plan `10.5-iii-b` it refused `production`:
+# values — and, since `10.5-iv-a-i`, Google's two keys, which its config hands to
+# her phone's questions to Google through `extra`, as Wera Cocina's does
+# (`itacate/test/support.test.ts` holds the list to its source and its config).
+# Until plan `10.5-iii-b` it refused `production`:
 # Itacate's store version in Play's closed test shares its test build's runtime,
 # and a store update would have handed his testers a sign-in with no *Eliminar mi
 # cuenta* (Apple's 5.1.1(v), Play's deletion rule). Its way out is in the code
@@ -119,7 +121,7 @@ done
 case "$app" in
   app)     label="Wera";        needed="EXPO_PUBLIC_SUPABASE_URL EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY EXPO_PUBLIC_SUPPORT_WHATSAPP" ;;
   cocina)  label="Wera Cocina"; needed="EXPO_PUBLIC_SUPABASE_URL EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY EXPO_PUBLIC_SUPPORT_WHATSAPP GOOGLE_MAPS_ANDROID_API_KEY GOOGLE_MAPS_IOS_API_KEY" ;;
-  itacate) label="Itacate";     needed="EXPO_PUBLIC_SUPABASE_URL EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY EXPO_PUBLIC_SUPPORT_WHATSAPP" ;;
+  itacate) label="Itacate";     needed="EXPO_PUBLIC_SUPABASE_URL EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY EXPO_PUBLIC_SUPPORT_WHATSAPP GOOGLE_MAPS_ANDROID_API_KEY GOOGLE_MAPS_IOS_API_KEY" ;;
   *) usage ;;
 esac
 
