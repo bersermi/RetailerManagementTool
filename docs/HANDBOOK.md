@@ -1420,7 +1420,7 @@ minutes:**
 *Google Maps Platform Support* page, read 4 November). ⚠️ **Google's own FAQ says its engineers *"are not qualified to offer
 legal advice"***, so the answer may be *ask your own counsel* — an answer too, and the decisions block's recommendation
 stands without it. A support reply does not change the terms (only an amendment signed by both does), but it is the written
-record your word asked for. If the form refuses the text's length (3,265 characters), a session shortens it; if the form
+record your word asked for. If the form refuses the text's length (3,457 characters), a session shortens it; if the form
 itself fails, Google's web form, support.google.com/cloud/contact/maps_technical_support, takes 1,000 characters per box.
 
 ```
@@ -1432,9 +1432,9 @@ I build two apps for Mexico City on Google Maps Platform, in this project:
 
 What we do today:
 1. For each kitchen we store the latitude/longitude Google returns for that kitchen's own address, with the Place ID when she picked a suggestion, and nothing else from the response. It is a temporary copy: refreshed from the kitchen owner's phone at most once a week while she uses the app, and deleted by a nightly job before it is 30 days old. If she sets her own point on the map, we use hers instead.
-2. Itacate shows a neighbour a list, with no map, of the kitchens with something on offer: the straight-line distance from her to each kitchen, computed on her phone (her location never leaves her phone), nearest first. A kitchen's position is its own point, else the stored copy from (1), else her phone geocodes the kitchen's address for her alone, kept only while the app is open. A neighbour who does not share her location types her postal code, and her phone geocodes it.
+2. Itacate shows a neighbour a list, with no map, of the kitchens with something on offer: the straight-line distance from her to each kitchen, computed on her phone (her location never leaves her phone). The list is ordered on her phone: by default what she can pick up now comes first, nearest first within that; she can also sort it by distance alone or by price. A kitchen's position is its own point, else the stored copy from (1), else her phone geocodes the kitchen's address for her alone, kept only while the app is open. A neighbour who does not share her location types her postal code, and her phone geocodes it.
 
-What we plan: draw each kitchen as a marker on a Google map in Itacate (Maps SDK for Android and iOS), at the same point, so neighbours can browse the kitchens across the city.
+What we plan: draw each kitchen as a marker on a Google map in Itacate (Maps SDK for Android and iOS), at the same point, so neighbours can browse the kitchens across the city, with the list from (2) sliding over the map.
 
 None of the kitchens comes from Google: each is a business that registered with us and gave us its own address. We import nothing about places from Google (no names, ratings, photos or opening hours) and show no Google listings or ads.
 
