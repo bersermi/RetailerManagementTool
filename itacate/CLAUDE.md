@@ -120,7 +120,7 @@ TZ=UTC npm --prefix itacate test          # CI's zone: the list's days and windo
   quiet kitchen (`@/ui/TarjetaCocina` — the owner's words of 2026-11-01, late: *Suele publicar entre
   semana, hacia las 17:00* once 3 publications in 4 weeks show a pattern, else *Publicó ayer*, *Publicó el
   martes*), held word for word by `test/lista.test.ts`. **Nearest first, every kitchen the door sends**,
-  an unknown distance last — the order he chooses (the plan's decisions block) is `antes` alone. A window
+  an unknown distance last — the order he chooses (in `10.5-iv-a-iii`, a discussion of its own) is `antes` alone. A window
   that ends while she looks turns its kitchen quiet without asking the door (the cards are made again
   every minute). ⚠️ **No kitchen is drawn on a map**: Google's points go only on Google's map, which is
   `10.5-iv-b`'s. A card opens nothing yet — a kitchen's page and a dish's are `10.5-iv-a-ii`'s.
