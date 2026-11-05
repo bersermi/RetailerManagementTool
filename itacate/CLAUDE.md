@@ -103,6 +103,12 @@ TZ=UTC npm --prefix itacate test          # CI's zone: the list's days and windo
   (`@/lib/useUbicacion`: the last known location, then a fresh one, a watch every 50 m while the app is
   open — removed whenever it leaves the front — and the whole question again on a pull or a return; the
   permission asked once, only while never asked), and the list alone reads it (`test/donde.test.ts`).
+  ⚠️ **Found on the emulator (`10.5-iv-a-i`)**: a request the phone answers *denied* with no dialog (its
+  permission screen frozen) must not strand her — *Usar mi ubicación* under the postal code's box asks again
+  where the phone still allows it, else opens Itacate's page in Settings, and a request that fails reads as
+  *not found*; ⚠️ **never Google's *Location Accuracy* prompt** (`mayShowUserSettingsDialog: false`, on both
+  calls) — and so **high accuracy**: a balanced fix is served by Google's network location, and without it no
+  GPS ran and the walk never reached the list.
   **Declined or approximate** — read from the permission: an iPhone's `reduced`, Android's `coarse` —
   **her postal code**, typed (`@/ui/CodigoPostal`, the ruling of 2026-11-03), asked of Google by her phone
   and held in memory only. **Outside Wera Cocina's search zone** (`@/lib/zona`, held to Wera Cocina's

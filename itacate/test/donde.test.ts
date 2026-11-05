@@ -17,7 +17,7 @@ import {
   urlDeGeocodificar,
   urlDelCodigoPostal,
 } from '@/lib/google';
-import { mensajeDelCodigo, motivoDe, origenDe, permisoDe, puntoDeOrigen } from '@/lib/ubicacion';
+import { comoPedirla, mensajeDelCodigo, motivoDe, origenDe, permisoDe, puntoDeOrigen } from '@/lib/ubicacion';
 import { RECTANGULO, enLaZona } from '@/lib/zona';
 
 // ============================================================================
@@ -54,6 +54,23 @@ describe('what her answer allows', () => {
     expect(permisoDe({ granted: true, ios: { accuracy: 'reduced' } })).toBe('aproximada');
     expect(permisoDe({ granted: true, android: { accuracy: 'fine' } })).toBe('precisa');
     expect(permisoDe({ granted: true, android: { accuracy: 'coarse' } })).toBe('aproximada');
+  });
+});
+
+describe('*Usar mi ubicación* — her way back to her location (found on the emulator)', () => {
+  it('asks again where the phone still allows it, else opens her app in Settings; not found, asks again', () => {
+    expect(comoPedirla('sin-permiso', true)).toBe('preguntar');
+    expect(comoPedirla('sin-permiso', false)).toBe('ajustes');
+    expect(comoPedirla('aproximada', true)).toBe('ajustes');
+    expect(comoPedirla('sin-ubicacion', false)).toBe('otra-vez');
+  });
+
+  it('a request that fails is *not found*, never a *no* — and the button is drawn under the box', () => {
+    const ubicacion = code('lib/useUbicacion.ts');
+    expect(ubicacion).toMatch(/if \(permiso === null\) return setDonde\(\{ kind: 'sin-ubicacion' \}\);/);
+    expect(ubicacion).toMatch(/setPuedePreguntar\(permiso\.canAskAgain\);/);
+    const list = code('app/(vecino)/index.tsx');
+    expect(list).toMatch(/origen\.kind === 'pide-codigo' && \(\s*<BotonLleno label=\{ES\.cerca\.usarUbicacion\}[^>]*onPress=\{usarUbicacion\}/);
   });
 });
 
@@ -199,6 +216,17 @@ describe('her location never leaves the phone, and nothing of Google’s is kept
     expect(askers).toEqual(['lib/useUbicacion.ts']);
     const users = files.filter((f) => /from '@\/lib\/useUbicacion'/.test(f.text)).map((f) => f.name);
     expect(users).toEqual(['app/(vecino)/index.tsx']);
+  });
+
+  it('never Google’s *Location Accuracy* prompt — her GPS is enough, and that consent is not Itacate’s to ask for', () => {
+    const ubicacion = code('lib/useUbicacion.ts');
+    const calls = ubicacion.match(/Location\.(getCurrentPositionAsync|watchPositionAsync)\(/g) ?? [];
+    expect(calls.length).toBe(2);
+    expect((ubicacion.match(/mayShowUserSettingsDialog: false/g) ?? []).length).toBe(calls.length);
+    // ⚠️ And the GPS itself: a balanced request is served by Google's network location,
+    // which that prompt turns on — without it, no fix ever reached the emulator's list.
+    expect((ubicacion.match(/accuracy: Location\.Accuracy\.High/g) ?? []).length).toBe(calls.length);
+    expect(ubicacion).not.toMatch(/Accuracy\.Balanced/);
   });
 
   it('only while the app is open — no background location of any kind', () => {

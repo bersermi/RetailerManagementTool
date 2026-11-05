@@ -12,7 +12,22 @@
 //
 // ⚠️ THE PERMISSION IS ASKED FOR ONCE — only while the phone has never been asked.
 // A neighbour who said no is not asked again at every return; she has her postal
-// code, and Settings.
+// code, and *Usar mi ubicación* under its box (`usarUbicacion`, `@/lib/ubicacion`'s
+// `comoPedirla`): it asks again where the phone still allows it, else opens Itacate's
+// page in Settings. ⚠️ A REQUEST THAT FAILS IS NOT A *NO*: found on the emulator, a
+// phone whose permission screen was frozen answered *denied* with no dialog shown —
+// a call that throws reads as *not found*, and the button asks again.
+//
+// ⚠️ NEVER GOOGLE'S *LOCATION ACCURACY* PROMPT (`mayShowUserSettingsDialog: false`):
+// Android's default answers a balanced fix with Google Play's dialog asking her to let
+// Google *"periodically process information about device sensors and wireless
+// signals"* — seen twice on the emulator, once per call. The list needs a fix to
+// about 50 m, which her GPS gives; that consent is not Itacate's to ask for.
+// ⚠️ AND SO *HIGH* ACCURACY, NOT *BALANCED*: on Android a balanced request is served
+// by Google's network location, which that same prompt turns on — without it no GPS
+// runs, and on the emulator the walk to another city never reached the list (its
+// GPS kept the first fix). High asks the GPS, with or without Google's; it costs
+// battery only while the app is open, and the watch reports every 50 m at most.
 //
 // ⚠️ THE WATCH STOPS IN THE BACKGROUND: `app.json` blocks background location on
 // Android and carries no *always* sentence on an iPhone, and the watch is removed
@@ -22,13 +37,14 @@
 
 import * as Location from 'expo-location';
 import { useCallback, useEffect, useState } from 'react';
-import { AppState } from 'react-native';
+import { AppState, Linking } from 'react-native';
 
 import {
   CADA_METROS,
   CADA_MS,
   ESPERA_MS,
   ULTIMA_VALE_MS,
+  comoPedirla,
   permisoDe,
   type DondeEstoy,
 } from '@/lib/ubicacion';
@@ -50,11 +66,33 @@ function conPlazo<T>(promesa: Promise<T>, ms: number): Promise<T> {
   });
 }
 
-export function useDondeEstoy(): { readonly donde: DondeEstoy; readonly otraVez: () => void } {
+export function useDondeEstoy(): {
+  readonly donde: DondeEstoy;
+  readonly otraVez: () => void;
+  readonly usarUbicacion: () => void;
+} {
   const [donde, setDonde] = useState<DondeEstoy>({ kind: 'buscando' });
   const [vuelta, setVuelta] = useState(0);
   const [enFrente, setEnFrente] = useState(AppState.currentState !== 'background');
+  const [puedePreguntar, setPuedePreguntar] = useState(true);
   const otraVez = useCallback(() => setVuelta((n) => n + 1), []);
+
+  /** *Usar mi ubicación*: ask again where the phone allows it, else her app's page in Settings. */
+  const usarUbicacion = useCallback(() => {
+    if (donde.kind !== 'sin-permiso' && donde.kind !== 'aproximada' && donde.kind !== 'sin-ubicacion') return;
+    const como = comoPedirla(donde.kind, puedePreguntar);
+    if (como === 'ajustes') {
+      void Linking.openSettings();
+      return;
+    }
+    if (como === 'otra-vez') {
+      otraVez();
+      return;
+    }
+    void Location.requestForegroundPermissionsAsync()
+      .catch((falla: unknown) => console.warn(`[ubicacion] the request failed: ${String(falla)}`))
+      .finally(otraVez);
+  }, [donde.kind, puedePreguntar, otraVez]);
 
   useEffect(() => {
     const sub = AppState.addEventListener('change', (estado) => {
@@ -77,12 +115,18 @@ export function useDondeEstoy(): { readonly donde: DondeEstoy; readonly otraVez:
     };
 
     void (async () => {
-      let permiso = await Location.getForegroundPermissionsAsync().catch(() => null);
+      const noSe = (falla: unknown) => {
+        console.warn(`[ubicacion] the phone could not be asked: ${String(falla)}`);
+        return null;
+      };
+      let permiso = await Location.getForegroundPermissionsAsync().catch(noSe);
       if (permiso !== null && !permiso.granted && permiso.status === 'undetermined') {
-        permiso = await Location.requestForegroundPermissionsAsync().catch(() => null);
+        permiso = await Location.requestForegroundPermissionsAsync().catch(noSe);
       }
       if (!vivo) return;
-      const cual = permiso === null ? 'negada' : permisoDe(permiso);
+      if (permiso === null) return setDonde({ kind: 'sin-ubicacion' });
+      setPuedePreguntar(permiso.canAskAgain);
+      const cual = permisoDe(permiso);
       if (cual === 'negada') return setDonde({ kind: 'sin-permiso' });
       if (cual === 'aproximada') return setDonde({ kind: 'aproximada' });
       if (!(await Location.hasServicesEnabledAsync().catch(() => false))) {
@@ -92,14 +136,14 @@ export function useDondeEstoy(): { readonly donde: DondeEstoy; readonly otraVez:
       const ultima = await Location.getLastKnownPositionAsync({ maxAge: ULTIMA_VALE_MS }).catch(() => null);
       if (ultima !== null) aqui(ultima);
       const fresca = await conPlazo(
-        Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced }),
+        Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High, mayShowUserSettingsDialog: false }),
         ESPERA_MS,
       ).catch(() => null);
       if (!vivo) return;
       if (fresca !== null) aqui(fresca);
       else if (ultima === null) setDonde((antes) => (antes.kind === 'aqui' ? antes : { kind: 'sin-ubicacion' }));
       const sub = await Location.watchPositionAsync(
-        { accuracy: Location.Accuracy.Balanced, distanceInterval: CADA_METROS, timeInterval: CADA_MS },
+        { accuracy: Location.Accuracy.High, distanceInterval: CADA_METROS, timeInterval: CADA_MS, mayShowUserSettingsDialog: false },
         aqui,
       ).catch(() => null);
       if (vivo) reloj = sub;
@@ -112,7 +156,7 @@ export function useDondeEstoy(): { readonly donde: DondeEstoy; readonly otraVez:
     };
   }, [vuelta, enFrente]);
 
-  return { donde, otraVez };
+  return { donde, otraVez, usarUbicacion };
 }
 
 /** The time, read again every `ms` while the screen is up — a window that ends drops from the list on its own. */

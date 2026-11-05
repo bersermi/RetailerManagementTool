@@ -12,6 +12,7 @@ import { useAhora, useDondeEstoy } from '@/lib/useUbicacion';
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
 import { Banda } from '@/ui/Banda';
+import { BotonLleno } from '@/ui/BotonLleno';
 import { CodigoPostal } from '@/ui/CodigoPostal';
 import { Formulario } from '@/ui/Formulario';
 import { TarjetaCocina } from '@/ui/TarjetaCocina';
@@ -24,8 +25,8 @@ import { TarjetaPlatillo } from '@/ui/TarjetaPlatillo';
 // ⚠️ WHAT IT CARRIES OUT, EVERY RULE ELSEWHERE AND PINNED:
 //   - where she is — her location while the app is open, never sent anywhere
 //     (`@/lib/useUbicacion`); declined or approximate, her postal code
-//     (`@/ui/CodigoPostal`); outside the zone, *Itacate aún no llega a tu zona*
-//     (`@/lib/ubicacion`'s `origenDe`);
+//     (`@/ui/CodigoPostal`), with *Usar mi ubicación* under it as her way back;
+//     outside the zone, *Itacate aún no llega a tu zona* (`@/lib/ubicacion`'s `origenDe`);
 //   - every kitchen the door sends (`@/api/hooks`' `useCocinas`), placed at the
 //     door's point, else where her phone found its address (`@/lib/useGoogle`);
 //   - its cards, nearest first, made again as she walks and every minute, so a
@@ -41,7 +42,7 @@ const CADA_MINUTO = 60_000;
 
 export default function Cerca() {
   const insets = useSafeAreaInsets();
-  const { donde, otraVez } = useDondeEstoy();
+  const { donde, otraVez, usarUbicacion } = useDondeEstoy();
   const [codigo, setCodigo] = useState<Codigo | null>(null);
   const cocinas = useCocinas();
   const buscados = usePuntosBuscados(cocinas.data);
@@ -96,6 +97,9 @@ export default function Cerca() {
             motivo={origen.kind === 'fuera' ? ES.cerca.otroCodigo : motivoDe(origen.porque)}
             onLugar={setCodigo}
           />
+          {origen.kind === 'pide-codigo' && (
+            <BotonLleno label={ES.cerca.usarUbicacion} icon="crosshairs-gps" variante="discreto" onPress={usarUbicacion} />
+          )}
         </View>
       </Formulario>
     );

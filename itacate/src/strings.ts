@@ -92,6 +92,8 @@ export const ES = {
     fueraDeZona: 'Itacate aún no llega a tu zona.',
     fueraDeZonaDetalle: 'Por ahora está en la Ciudad de México y el Estado de México.',
     otroCodigo: 'Si quieres ver otro lugar, escribe su código postal.',
+    /** Her way back to her location, under the box: asks again, or opens Itacate in Settings. */
+    usarUbicacion: 'Usar mi ubicación',
     codigoPostal: 'Código postal',
     buscar: 'Buscar',
     codigo: {

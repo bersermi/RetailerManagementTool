@@ -80,6 +80,24 @@ export function puntoDeOrigen(origen: Origen): Punto | null {
   return origen.kind === 'aqui' || origen.kind === 'codigo' ? origen.punto : null;
 }
 
+/**
+ * ⚠️ *USAR MI UBICACIÓN*, UNDER THE POSTAL CODE'S BOX — her way back to her location
+ * (`10.5-iv-a-i`, found on the emulator: a request the phone answered *no* with no
+ * dialog shown, its permission screen frozen, left her the postal code alone). The
+ * permission is asked for on its own once only; this button asks again where the
+ * phone still allows it — Android after one *no* — else opens the app's page in
+ * Settings, where she can allow it; on her way back the whole question is asked
+ * again. Not found at all (location off, no fix): it simply asks again.
+ */
+export function comoPedirla(
+  porque: 'sin-permiso' | 'aproximada' | 'sin-ubicacion',
+  puedePreguntar: boolean,
+): 'preguntar' | 'ajustes' | 'otra-vez' {
+  if (porque === 'sin-ubicacion') return 'otra-vez';
+  if (porque === 'sin-permiso' && puedePreguntar) return 'preguntar';
+  return 'ajustes';
+}
+
 /** Why the postal code is asked for — the line above its box. */
 export function motivoDe(porque: 'sin-permiso' | 'aproximada' | 'sin-ubicacion'): string {
   if (porque === 'sin-permiso') return ES.cerca.sinPermiso;
