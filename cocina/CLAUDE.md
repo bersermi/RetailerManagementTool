@@ -279,3 +279,19 @@ TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic i
   or a variable the config hands to `extra`, joins the update runbook's list for `--app cocina`** —
   `test/support.test.ts` holds every one to that list (the two map keys since `10.4g-i`), because `eas
   update` builds from EAS's environment alone and a value it lacks fails silently or on the first launch.
+
+## Screens — the family shell (ruled 2026-11-05)
+
+The owner ruled how the two apps are arranged and worded on 2026-11-05 (`docs/PLAN.md`, rows `10.5-v-a` to `10.5-v-d`
+and `10.5b`; the drawn reference is the family-shell page in his private notes' `diseno/`). Every screen built here
+follows it, as `itacate/CLAUDE.md`'s does:
+
+- **The tab bar is *Hoy · Apartados · Clientes · Mi cocina*** — four tabs at most, each with its word; the two ends never move; a tab appears only when
+  its feature ships; a new feature arrives first as a card on *Hoy*. Wera's JavaScript tabs, not native tabs.
+- **No word that makes the food sound left over** where a fonda or a neighbour reads (*lo que sobra*, *sobrante*,
+  *restos*, *desperdicio*): *Publicar una oferta*, *Tu oferta de hoy*, *aprovechar*, *Por hoy ya se terminó*, *Se liberó*.
+  **No sentence saying there are no penalties**: a reservation is drawn as a handover — the hour, how she pays, the code.
+- **The look:** titles in Nunito ExtraBold (`expo-font`); Wera Cocina's green `#1C6B4B` for actions; Wera's terracotta `#A9501C` for
+  promotions only; state first, before anything tappable (ADR-035 §2.8); one staggered entrance per screen, transform and
+  opacity only (§2.11).
+- **Money:** no screen stores or shows a bank account, a card or an amount paid — only how she will pay.
