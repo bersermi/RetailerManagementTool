@@ -19,7 +19,8 @@ import { HUES as HUES_DE_COCINA } from '../../cocina/src/theme/colores';
 import { formatMXN as weraFormatMXN } from '../../app/src/format/mxn';
 
 // ============================================================================
-// EVERY COPY OF WERA COCINA'S, HELD TO ITS FILE. Plan task `10.5-iv-a-i`.
+// EVERY COPY OF WERA COCINA'S, HELD TO ITS FILE. Plan tasks `10.5-iv-a-i` and
+// `10.5-iv-a-ii` (her link's rule, her trade's name, the tags' words).
 //
 // ⚠️ ONE CLAIM, TWO APPS: what a fonda sees in *Tu página en Itacate* is what a
 // neighbour sees here — her colour, her trade's drawing, her initials, her photos'
@@ -81,6 +82,11 @@ describe('the page’s defaults — `cocina/src/api/pagina.ts`, block by block',
     'export function colorOf(',
     'const TRADE_WORDS:',
     'export function kitchenInitials(',
+    // `10.5-iv-a-ii`: the rule *Ver en Google Maps* asks before it opens her link —
+    // the one Wera Cocina asks of what she pastes, which is the database's.
+    'export const LINK_MAX =',
+    'const LINK_SHAPE =',
+    'export function mapsLinkOk(',
   ];
   for (const inicio of blocks) {
     it(inicio, () => {
@@ -237,4 +243,24 @@ describe('the tags — `cocina/src/api/listing.ts`', () => {
   it('the same six codes, in the same order', () => {
     expect(bloque(itacate('api/cocinas.ts'), 'export const TAGS =')).toBe(bloque(cocina('api/listing.ts'), 'export const TAGS ='));
   });
+
+  it('and, on a dish’s page, the same six words she ticked (`10.5-iv-a-ii`)', () => {
+    expect(ES.platillo.etiqueta).toEqual(COCINA.publicar.etiqueta);
+  });
+});
+
+describe('her page’s words that Wera Cocina showed her first — `cocina/src/strings.ts` (`10.5-iv-a-ii`)', () => {
+  it('*Ver en Google Maps ›*, as her preview says it', () => {
+    expect(ES.pagina.verEnMaps).toBe(COCINA.pagina.verEnMaps);
+  });
+});
+
+describe('her trade’s name — `cocina/src/api/kitchen.ts`, block by block (`10.5-iv-a-ii`)', () => {
+  const ours = itacate('api/cocinas.ts');
+  const theirs = cocina('api/kitchen.ts');
+  for (const inicio of ['export const KITCHEN_GIROS =', 'export interface Giro {', 'export function girosFrom(', 'export function giroLabel(']) {
+    it(inicio, () => {
+      expect(bloque(ours, inicio)).toBe(bloque(theirs, inicio));
+    });
+  }
 });

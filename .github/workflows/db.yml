@@ -2376,7 +2376,7 @@ jobs:
       - name: Apply migrations from scratch
         run: supabase db reset
 
-      - name: Contract — does itacate/src/api/cocinas.ts read every key the door answers a neighbour, a quiet kitchen at Google's point, and never a shop (plan 10.5-iv-a-i)
+      - name: Contract — does itacate/src/api/cocinas.ts read every key the door answers a neighbour, a quiet kitchen at Google's point, never a shop, and the trades' names (plans 10.5-iv-a-i, 10.5-iv-a-ii)
         run: bash docs/checks/10.5-iv-a-door-contract.sh
 
       - name: Contract — can the door check still fail (its own fixtures; the runner counts them)

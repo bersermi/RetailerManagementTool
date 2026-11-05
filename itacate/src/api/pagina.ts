@@ -68,6 +68,33 @@ export function toPage(row: Partial<PageFields> | null | undefined): Page {
 }
 
 // ----------------------------------------------------------------------------
+// Her Google Maps link — opened only when it is one (`10.5-iv-a-ii`)
+// ----------------------------------------------------------------------------
+// ⚠️ A LINK ANOTHER PERSON WROTE, OPENED ON A NEIGHBOUR'S PHONE: the database lets
+// only a Google Maps address into `kitchen_page.maps_link` (`0076`'s
+// `google_maps_link_ok`), and this app asks the same before *Ver en Google Maps*
+// opens it — so a link the door ever sends that is not one (a later rule, a row
+// edited by hand) is never handed to the phone. Wera Cocina's rule, which checks
+// what she pastes, copied block for block (`test/gemelos.test.ts`).
+
+/** A link of at most this many (`google_maps_link_ok`). */
+export const LINK_MAX = 1000;
+
+/**
+ * `google_maps_link_ok`, the database's rule (`0076`), to the character: https,
+ * then one of the addresses Google Maps gives a place — the share button's
+ * `maps.app.goo.gl/…`, `goo.gl/maps/…`, a Business Profile's `g.page/…`, or the
+ * long `google.com/maps…` and `maps.google.com…`, with `.mx` or without — only
+ * a URL's characters, no `..` and no encoded dot, at most 1,000 characters.
+ */
+const LINK_SHAPE =
+  /^https:\/\/(maps\.app\.goo\.gl\/|goo\.gl\/maps\/|g\.page\/|(www\.)?google\.com(\.mx)?\/maps([/?#]|$)|maps\.google\.com(\.mx)?([/?#]|$))[\]A-Za-z0-9._~:/?#@!$&'()*+,;=%[-]*$/;
+
+export function mapsLinkOk(link: string): boolean {
+  return link.length <= LINK_MAX && LINK_SHAPE.test(link) && !link.includes('..') && !/%2e/i.test(link);
+}
+
+// ----------------------------------------------------------------------------
 // The defaults — what each empty slot shows
 // ----------------------------------------------------------------------------
 

@@ -1,7 +1,8 @@
 // ============================================================================
 // EVERY WORD ITACATE SHOWS, IN ONE FILE (ADR-035 §2.11). Plan tasks `10.2a`
-// (the skeleton), `10.5-iii-a` (signing in), `10.5-iii-b` (her way out) and
-// `10.5-iv-a-i` (the kitchens close to her).
+// (the skeleton), `10.5-iii-a` (signing in), `10.5-iii-b` (her way out),
+// `10.5-iv-a-i` (the kitchens close to her) and `10.5-iv-a-ii` (a kitchen's page
+// and a dish's).
 //
 // ⚠️ WHERE A SCREEN HERE DOES WHAT ONE OF WERA'S DOES, ITS WORDS ARE WERA'S
 // (`app/src/strings.ts`, `ES.auth`), as Wera Cocina's are (`cocina/src/strings.ts`).
@@ -133,6 +134,66 @@ export const ES = {
     publicoAyer: 'Publicó ayer',
     publicoEl: (dia: string) => `Publicó el ${dia}`,
     publicoFecha: (dia: number, mes: string) => `Publicó el ${dia} de ${mes}`,
+    /** `10.5-iv-a-ii`: what a screen reader says for a card, which now opens a page. */
+    abrirPlatillo: (platillo: string, cocina: string) => `${platillo}, de ${cocina}`,
+    abrirCocina: (cocina: string) => `${cocina}, sin nada en oferta ahora`,
+  },
+
+  /**
+   * ⚠️ `10.5-iv-a-ii`: A KITCHEN'S OWN PAGE — proposal B as the proposals page drew it
+   * (the owner's ruling of 2026-11-01): her cover, her circle, her name, her trade and
+   * her colonia, her sentence, where she is and *Cómo llegar*, and under *Hoy* what she
+   * has on offer now; and his ruling of 2026-11-01, late: else *Hoy no ha publicado*
+   * with her pattern, and *Lo que suele publicar* — her repeated dishes over four
+   * weeks, how often and the usual price. *Ver en Google Maps* is Wera Cocina's words,
+   * held to its file. Every other word here is this row's own.
+   */
+  pagina: {
+    volver: 'Volver',
+    hoy: 'Hoy',
+    /** Nothing on offer, and she has not published for today. */
+    hoyNoHaPublicado: 'Hoy no ha publicado',
+    /** Nothing on offer, though she did publish for today: it ended, or she took it down. */
+    nadaPorHoy: 'Ya no tiene nada por hoy',
+    loQueSuele: 'Lo que suele publicar',
+    /** How often, over the door's four weeks — two or more, by the door's rule. */
+    veces: (n: number) => (n === 1 ? '1 vez en las últimas 4 semanas' : `${n} veces en las últimas 4 semanas`),
+    /** And the price she usually gives it, when the door has one. */
+    vecesYPrecio: (veces: string, precio: string) => `${veces} · normalmente a ${precio}`,
+    /** ⚠️ Wera Cocina's words for her link, in her preview (`cocina/src/strings.ts`, `ES.pagina.verEnMaps`). */
+    verEnMaps: 'Ver en Google Maps ›',
+    comoLlegar: 'Cómo llegar ›',
+    /** What a screen reader says for the two links, which open Google Maps. */
+    comoLlegarAyuda: 'Cómo llegar, en Google Maps',
+    verEnMapsAyuda: 'Ver en Google Maps',
+    /** The door no longer sends her: she has not published in 14 days, or the kitchen was deleted. */
+    yaNoEsta: 'Esta cocina ya no está en Itacate.',
+    cargando: 'Buscando la cocina…',
+  },
+
+  /**
+   * ⚠️ `10.5-iv-a-ii`: A DISH'S PAGE — proposal B's, *"everything she needs to reserve
+   * it"*, without the reserving, which is `10.5b`'s: its photo, the kitchen's row, its
+   * name, what it has, the tags, the price and the *vale*, the window, *Quedan N*,
+   * where and *Cómo llegar*. The allergy line is the drawing's, word for word.
+   */
+  platillo: {
+    /** For a surprise bag — the proposals page's fixed sentence, as every app it read has one. */
+    alergia: 'Es sorpresa: si tienes alergia, pregunta antes o elige otro',
+    /** ⚠️ Wera Cocina's six words for the tags (`cocina/src/strings.ts`, `ES.publicar.etiqueta`), held to its file. */
+    etiqueta: {
+      pica: 'Pica',
+      cerdo: 'Cerdo',
+      mariscos: 'Mariscos',
+      cacahuate: 'Cacahuate',
+      lacteos: 'Lácteos',
+      gluten: 'Gluten',
+    },
+    /** Its window ended, or she took it down, while the page was open. */
+    terminado: 'Este platillo ya no está en oferta.',
+    /** The kitchen's row, for a screen reader: it opens her page. */
+    verCocina: (cocina: string) => `Ver la página de ${cocina}`,
+    cargando: 'Buscando el platillo…',
   },
 
   /**

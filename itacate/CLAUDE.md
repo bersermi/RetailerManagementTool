@@ -45,8 +45,9 @@ TZ=UTC npm --prefix itacate test          # CI's zone: the list's days and windo
   Decided, as Wera Cocina's: **no persisted cache**, and the way in **opens on *Crear cuenta***. Its
   own: **two rooms** — the way in (`(auth)`) and the app (`(vecino)`), a session the whole answer,
   because a neighbour is no business's member and nothing is read to decide (`@/auth/guard`);
-  **one time limit**, 30 s, since Itacate sends no photo; and **two reads** — her own owner
-  memberships, for her way out (`10.5-iii-b`), and the one door (`10.5-iv-a-i`) — inside the
+  **one time limit**, 30 s, since Itacate sends no photo; and **three reads** — her own owner
+  memberships, for her way out (`10.5-iii-b`), the one door (`10.5-iv-a-i`), and the kitchens'
+  trades' names (`kitchen_giros()`, `10.5-iv-a-ii`: the catalogue, no business's rows) — inside the
   session, keyed on the login. ⚠️ **Nothing of a read is kept on the phone's disk**: the
   kitchens' photos too are drawn from memory (`@/ui/Foto`'s `cachePolicy="memory"`), so a
   deleted kitchen's photos leave every neighbour's reach at once, as Wera Cocina's aviso promises.
@@ -72,6 +73,9 @@ TZ=UTC npm --prefix itacate test          # CI's zone: the list's days and windo
   that file and asks a real PostgREST as a neighbour, a fonda set up through Wera Cocina's own names;
   money and quantities arrive as decimal text and are read by `parseDecimal` (`@tienda/money`, this
   app's one workspace package since `10.5-iv-a-i`); a kitchen it cannot read is dropped, never the list.
+  ⚠️ **Since `10.5-iv-a-ii` the same file names `kitchen_giros()` and its two keys** (Wera Cocina's
+  names, held to `cocina/src/api/kitchen.ts` by `test/gemelos.test.ts`), and the same check asks for them
+  as a neighbour and refuses them signed out (its group 8; its falsifier's C13 and C14).
 - **Sign-in leans on two settings outside this repository**, both made by the owner's one command,
   `bash docs/runbooks/set-itacate-sign-in.sh` (a session's write to either is refused), and read
   back by `--check`: the three values its bundle reads in this EAS project's `preview` and, since
@@ -103,6 +107,11 @@ TZ=UTC npm --prefix itacate test          # CI's zone: the list's days and windo
   (`@/lib/useUbicacion`: the last known location, then a fresh one, a watch every 50 m while the app is
   open — removed whenever it leaves the front — and the whole question again on a pull or a return; the
   permission asked once, only while never asked), and the list alone reads it (`test/donde.test.ts`).
+  ⚠️ **The two pages show the list's distance and never learn where she is** (`10.5-iv-a-ii`): the list
+  hands each kitchen's distance — a number — to `@/lib/DistanciasProvider` (React state at the root, as
+  `AuthProvider` holds the session: ADR-035 §2.11 keeps Zustand for the cart), and empties it when it
+  leaves; the census holds the list its one writer and the pages away from every location module. The clock
+  is `@/lib/useAhora`, a module of its own so the pages need not import `@/lib/useUbicacion`.
   ⚠️ **Found on the emulator (`10.5-iv-a-i`)**: a request the phone answers *denied* with no dialog (its
   permission screen frozen) must not strand her — *Usar mi ubicación* under the postal code's box asks again
   where the phone still allows it, else opens Itacate's page in Settings, and a request that fails reads as
@@ -123,7 +132,22 @@ TZ=UTC npm --prefix itacate test          # CI's zone: the list's days and windo
   an unknown distance last — the order he chooses (in `10.5-iv-a-iii`, a discussion of its own) is `antes` alone. A window
   that ends while she looks turns its kitchen quiet without asking the door (the cards are made again
   every minute). ⚠️ **No kitchen is drawn on a map**: Google's points go only on Google's map, which is
-  `10.5-iv-b`'s. A card opens nothing yet — a kitchen's page and a dish's are `10.5-iv-a-ii`'s.
+  `10.5-iv-b`'s. Since `10.5-iv-a-ii` a card opens a page — the next bullet.
+- **A kitchen's page and a dish's are proposal B's, as drawn** (`10.5-iv-a-ii`; `(vecino)/cocina/[id]`,
+  `(vecino)/platillo/[cocina]/[oferta]/[linea]`, every word and link `@/lib/paginas`', pinned by
+  `test/paginas.test.ts`). A dish's card opens its page; a quiet kitchen's card, hers; a dish's page opens
+  her page from the kitchen's row, and her page each dish under *Hoy*. ⚠️ **Nothing new is read**: both find
+  their kitchen and dish in the door's answer the list holds (in memory), and a window that ends while she
+  reads is *Este platillo ya no está en oferta* without asking the door. **Her page's head is Wera Cocina's
+  preview of it** (`cocina/src/ui/Portada.tsx`: cover, circle over its edge, name, trade, sentence, *Ver en
+  Google Maps ›* in her colour) — what she was shown is what a neighbour sees — then how far she is, where
+  and *Cómo llegar*, *Hoy* (else *Hoy no ha publicado* and her pattern; *Ya no tiene nada por hoy* once she
+  published for today and it ended — his words would be false then) and *Lo que suele publicar*. ⚠️ **Both
+  links open Google Maps and send nothing of hers**: *Cómo llegar* is Google's Maps URLs (no key, nothing
+  billed), to her own pin, else her address as she wrote it — never Google's 30-day copy — with no origin;
+  *Ver en Google Maps* opens her link only when `mapsLinkOk` (the database's rule, Wera Cocina's copy)
+  takes it. The reserving is `10.5b`'s: no button, no line about paying. The price, *Quedan* and *Sorpresa*
+  are `@/ui/Precio`'s, drawn alike on the list and both pages.
 - **Google, from her phone, for her alone, kept nowhere** (`@/lib/google`, pure; `@/lib/useGoogle`, the
   requests): Geocoding for a kitchen the door sends with no point — her address, asked once while the app
   is open, the answer in TanStack's memory (Service Specific Terms §6.3.2) — and for her postal code, never

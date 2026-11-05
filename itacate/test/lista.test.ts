@@ -6,7 +6,11 @@ import {
   PATRON_MINIMO,
   ahorroDe,
   cuandoPublica,
+  diasAtras,
   diasTexto,
+  distanciasDe,
+  mismasDistancias,
+  patronDe,
   precioTexto,
   publicoTexto,
   quedanTexto,
@@ -235,5 +239,46 @@ describe('what a quiet kitchen’s card says — his words of 2026-11-01, late',
 
   it('nothing at all only when the door sent nothing to say', () => {
     expect(cuandoPublica(resumen([0, 0, 0, 0, 0, 0, 0], null, null), local(2026, 11, 5))).toBeNull();
+  });
+
+  // `10.5-iv-a-ii`: her page says the pattern alone, and counts the days itself.
+  it('the pattern on its own — the card’s first choice, and her page’s line', () => {
+    expect(patronDe(resumen([1, 1, 1, 1, 1, 0, 0], 17, '2026-11-04'))).toBe('Suele publicar entre semana, hacia las 17:00');
+    expect(patronDe(resumen([0, 1, 0, 1, 0, 0, 0], 17, '2026-11-03'))).toBeNull();
+    expect(patronDe(resumen([1, 1, 1, 0, 0, 0, 0], null, '2026-11-03'))).toBeNull();
+  });
+
+  it('days back from her last day: 0 today, 1 yesterday, −1 a day still to come, nothing unreadable', () => {
+    const jueves = local(2026, 11, 5, 23, 30);
+    expect(diasAtras('2026-11-05', jueves)).toBe(0);
+    expect(diasAtras('2026-11-04', jueves)).toBe(1);
+    expect(diasAtras('2026-11-06', jueves)).toBe(-1);
+    expect(diasAtras('2026-10-29', jueves)).toBe(7);
+    expect(diasAtras('5 de noviembre', jueves)).toBeNull();
+  });
+});
+
+describe('what the list hands her two pages — each kitchen’s distance (`10.5-iv-a-ii`)', () => {
+  it('one number per kitchen, as its cards were measured; none for a kitchen whose place is not known', () => {
+    const ahora = local(2026, 11, 5, 16);
+    const fonda = cocina('k-1', 'Fonda Doña Mari', NORTE_1, [
+      oferta('o-1', local(2026, 11, 5, 17, 30), local(2026, 11, 5, 18, 15), [plato(1), plato(2)]),
+    ]);
+    const quieta = cocina('k-2', 'Cocina Lupita', NORTE_2, []);
+    const sinPunto = cocina('k-3', 'Taquería', null, []);
+    const cards = tarjetasDe([fonda, quieta, sinPunto], AQUI, new Map(), ahora);
+    const distancias = distanciasDe(cards);
+    expect([...distancias.keys()].sort()).toEqual(['k-1', 'k-2']);
+    expect(distancias.get('k-1')).toBe(cards.find((c) => c.cocina.id === 'k-1')?.metros);
+    expect(distancias.get('k-2')).toBe(cards.find((c) => c.cocina.id === 'k-2')?.metros);
+    expect(distanciasDe([]).size).toBe(0);
+  });
+
+  it('the same distances are the same answer — so a page is not drawn again for nothing', () => {
+    expect(mismasDistancias(new Map([['k-1', 350]]), new Map([['k-1', 350]]))).toBe(true);
+    expect(mismasDistancias(new Map([['k-1', 350]]), new Map([['k-1', 351]]))).toBe(false);
+    expect(mismasDistancias(new Map([['k-1', 350]]), new Map([['k-2', 350]]))).toBe(false);
+    expect(mismasDistancias(new Map([['k-1', 350]]), new Map([['k-1', 350], ['k-2', 1]]))).toBe(false);
+    expect(mismasDistancias(new Map(), new Map())).toBe(true);
   });
 });

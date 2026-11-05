@@ -6,6 +6,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   COCINAS_KEY,
+  KITCHEN_GIROS,
   ON_OFFER_NOW,
   POINT_SOURCES,
   TAGS,
@@ -13,6 +14,9 @@ import {
   centavosOf,
   cocinasKey,
   countOf,
+  giroLabel,
+  girosFrom,
+  girosKey,
   instantOf,
   kitchensFrom,
   pointOf,
@@ -233,5 +237,38 @@ describe('the tags', () => {
     const sql = readFileSync(join(MIGRATIONS, readdirSync(MIGRATIONS).find((n) => n.startsWith('0072_')) as string), 'utf8');
     const known = /tags <@ array\[([^\]]+)\]/.exec(sql)?.[1].split(',').map((t) => t.trim().replace(/'/g, ''));
     expect([...TAGS]).toEqual(known);
+  });
+});
+
+describe('her trade’s name — `kitchen_giros()`, read beside the door (`10.5-iv-a-ii`)', () => {
+  const sql = readFileSync(join(MIGRATIONS, readdirSync(MIGRATIONS).find((n) => n.startsWith('0072_')) as string), 'utf8');
+
+  it('is `0072`’s function, granted to anyone signed in, answering code and label — nothing of a business', () => {
+    expect(KITCHEN_GIROS).toBe('kitchen_giros');
+    expect(sql).toMatch(/create function public\.kitchen_giros\(\)/);
+    expect(sql).toMatch(/grant execute on function public\.kitchen_giros\(\) to authenticated;/);
+    expect(sql).toMatch(/jsonb_build_object\('code', t\.code, 'label', t\.label\)/);
+    expect(read('api/calls.ts')).toMatch(/supabase\.rpc\(KITCHEN_GIROS\)/);
+  });
+
+  it('a row with no code or label is dropped, never drawn blank; the name trimmed', () => {
+    expect(girosFrom([{ code: 'giro-fonda', label: ' Fonda o cocina económica ' }, { code: '', label: 'x' }, { code: 'giro-x' }, null, 'giro'])).toEqual([
+      { code: 'giro-fonda', label: 'Fonda o cocina económica' },
+    ]);
+    expect(girosFrom(null)).toEqual([]);
+  });
+
+  it('her trade’s name, or none — no trade, a code the list no longer has, or the list not in yet', () => {
+    const giros = girosFrom([{ code: 'giro-fonda', label: 'Fonda o cocina económica' }]);
+    expect(giroLabel(giros, 'giro-fonda')).toBe('Fonda o cocina económica');
+    expect(giroLabel(giros, 'giro-mariscos')).toBeNull();
+    expect(giroLabel(giros, null)).toBeNull();
+    expect(giroLabel(undefined, 'giro-fonda')).toBeNull();
+  });
+
+  it('cached in memory under the login, as every read here', () => {
+    expect(girosKey('u-1')).toEqual(['itacate', 'giros', 'u-1']);
+    expect(girosKey(null)).toEqual(['itacate', 'giros', '']);
+    expect(girosKey('u-1')[0]).toBe(COCINAS_KEY[0]);
   });
 });

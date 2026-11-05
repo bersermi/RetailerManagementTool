@@ -29,7 +29,9 @@
 // distance and order). Nothing here writes to the database.
 //
 // Everything with a right answer is here, and nothing that talks: the call is
-// `@/api/calls`' `onOfferNow`, the hook `@/api/hooks`' `useCocinas`.
+// `@/api/calls`' `onOfferNow`, the hook `@/api/hooks`' `useCocinas`. Since
+// `10.5-iv-a-ii`, beside it, the kitchens' trades' names (`kitchen_giros()`, at the
+// foot), which a kitchen's page draws under her name.
 // ============================================================================
 
 import { SCALE, parseDecimal } from '@tienda/money';
@@ -392,4 +394,55 @@ export function kitchensFrom(data: unknown): Kitchen[] {
     }
   }
   return kitchens;
+}
+
+// ----------------------------------------------------------------------------
+// Her trade's name — the kitchens' own list (`0072`), read beside the door
+// ----------------------------------------------------------------------------
+// ⚠️ `10.5-iv-a-ii`: HER PAGE SAYS WHAT SHE IS UNDER HER NAME — *Fonda o cocina
+// económica* — as Wera Cocina's preview of it does (`cocina/src/ui/Portada.tsx`).
+// The door sends her trade's CODE (`giro`); its name is a row the owner edits in the
+// dashboard (`catalogo.tag`, `0072`), so it is read, never copied into this app:
+// `kitchen_giros()` answers anyone signed in and reads no business's rows — the
+// catalogue, not a second door into anyone's data (ADR-035 §2.7). Wera Cocina's
+// names, copied from `cocina/src/api/kitchen.ts`, and `test/gemelos.test.ts` holds
+// each block to it; `docs/checks/10.5-iv-a-door-contract.sh` asks for it as a
+// neighbour, by the names below.
+
+/** The kitchens' trades, in their order (`0072`): `[{code, label}]`. */
+export const KITCHEN_GIROS = 'kitchen_giros';
+
+/** Cached in memory under the login, as every read here — the list is the same for everyone. */
+export function girosKey(userId: string | null): readonly unknown[] {
+  return ['itacate', 'giros', userId ?? ''];
+}
+
+/** One trade: `giro-fonda`, *Fonda o cocina económica*. */
+export interface Giro {
+  readonly code: string;
+  readonly label: string;
+}
+
+/**
+ * The function's answer as a list. ⚠️ TOLERANT ON PURPOSE: a row without a
+ * code or a label is dropped rather than drawn as a blank choice — the rows are
+ * edited by hand in the dashboard (`catalogo.tag`, `0072`'s header).
+ */
+export function girosFrom(data: unknown): Giro[] {
+  if (!Array.isArray(data)) return [];
+  const giros: Giro[] = [];
+  for (const row of data) {
+    if (typeof row !== 'object' || row === null) continue;
+    const { code, label } = row as { code?: unknown; label?: unknown };
+    if (typeof code === 'string' && code !== '' && typeof label === 'string' && label.trim() !== '') {
+      giros.push({ code, label: label.trim() });
+    }
+  }
+  return giros;
+}
+
+/** Her trade's name, or `null` — none chosen, or one the list no longer has. */
+export function giroLabel(giros: readonly Giro[] | null | undefined, code: string | null): string | null {
+  if (code === null || giros === null || giros === undefined) return null;
+  return giros.find((giro) => giro.code === code)?.label ?? null;
 }
