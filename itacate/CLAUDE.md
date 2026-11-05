@@ -128,9 +128,12 @@ TZ=UTC npm --prefix itacate test          # CI's zone: the list's days and windo
   the *vale* struck and the saving; *Quedan 2*, *Último*; the window; the distance) and a faded card per
   quiet kitchen (`@/ui/TarjetaCocina` — the owner's words of 2026-11-01, late: *Suele publicar entre
   semana, hacia las 17:00* once 3 publications in 4 weeks show a pattern, else *Publicó ayer*, *Publicó el
-  martes*), held word for word by `test/lista.test.ts`. **Nearest first, every kitchen the door sends**,
-  an unknown distance last — the order he chooses (in `10.5-iv-a-iii`, a discussion of its own) is `antes` alone. A window
-  that ends while she looks turns its kitchen quiet without asking the door (the cards are made again
+  martes*), held word for word by `test/lista.test.ts`. **The order is the owner's answers of 2026-11-05**
+  (`10.5-iv-a-iv`, asked on `10.5-iv-a-iii`'s page): it opens on *Ahora* — now, later today, another day, the quiet
+  kitchens, nearest first inside each — and *Ordenar* (`@/ui/Ordenar`) offers *Más cerca* (nearest first, the order
+  until then) and *Más barato*, and nothing else; every kitchen the door sends, an unknown distance last among its
+  equals. The orders are `@/lib/lista`'s (`ORDENES`, `ORDEN_INICIAL`, `ordenDe`), her pick the list's state. A window
+  that opens or ends while she looks moves its card without asking the door (the cards are made again
   every minute). ⚠️ **No kitchen is drawn on a map**: Google's points go only on Google's map, which is
   `10.5-iv-b`'s. Since `10.5-iv-a-ii` a card opens a page — the next bullet.
 - **A kitchen's page and a dish's are proposal B's, as drawn** (`10.5-iv-a-ii`; `(vecino)/cocina/[id]`,

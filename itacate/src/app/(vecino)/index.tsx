@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { apiErrorMessage } from '@/api/errors';
 import { useCocinas } from '@/api/hooks';
 import { SIN_DISTANCIAS, usePonerDistancias } from '@/lib/DistanciasProvider';
-import { distanciasDe, tarjetasDe, type Tarjeta } from '@/lib/lista';
+import { ORDEN_INICIAL, distanciasDe, tarjetasDe, type Orden, type Tarjeta } from '@/lib/lista';
 import { motivoDe, origenDe, puntoDeOrigen, type Codigo, type Origen } from '@/lib/ubicacion';
 import { useAhora } from '@/lib/useAhora';
 import { usePuntosBuscados } from '@/lib/useGoogle';
@@ -17,6 +17,7 @@ import { Banda } from '@/ui/Banda';
 import { BotonLleno } from '@/ui/BotonLleno';
 import { CodigoPostal } from '@/ui/CodigoPostal';
 import { Formulario } from '@/ui/Formulario';
+import { Ordenar } from '@/ui/Ordenar';
 import { TarjetaCocina } from '@/ui/TarjetaCocina';
 import { TarjetaPlatillo } from '@/ui/TarjetaPlatillo';
 
@@ -31,8 +32,10 @@ import { TarjetaPlatillo } from '@/ui/TarjetaPlatillo';
 //     outside the zone, *Itacate aún no llega a tu zona* (`@/lib/ubicacion`'s `origenDe`);
 //   - every kitchen the door sends (`@/api/hooks`' `useCocinas`), placed at the
 //     door's point, else where her phone found its address (`@/lib/useGoogle`);
-//   - its cards, nearest first, made again as she walks and every minute, so a
-//     window that ends turns its kitchen quiet (`@/lib/lista`);
+//   - its cards, in her pick of the order — *Ahora* until she picks, with
+//     *Ordenar* (`@/ui/Ordenar`, plan `10.5-iv-a-iv`) at the head of the list — made
+//     again as she walks and every minute, so a window that opens or ends moves its
+//     card (`@/lib/lista`);
 //   - a pull asks the door and her phone again; so does a return to the front;
 //   - ⚠️ since `10.5-iv-a-ii` a card opens a page — a dish's card the dish's, a quiet
 //     kitchen's card hers — and the list hands both pages each kitchen's distance
@@ -54,12 +57,13 @@ export default function Cerca() {
   const buscados = usePuntosBuscados(cocinas.data);
   const ahora = useAhora(CADA_MINUTO);
   const [jalando, setJalando] = useState(false);
+  const [orden, setOrden] = useState<Orden>(ORDEN_INICIAL);
 
   const origen = origenDe(donde, codigo);
   const desde = puntoDeOrigen(origen);
   const tarjetas = useMemo(
-    () => (desde === null || cocinas.data === undefined ? [] : tarjetasDe(cocinas.data, desde, buscados, ahora)),
-    [cocinas.data, desde, buscados, ahora],
+    () => (desde === null || cocinas.data === undefined ? [] : tarjetasDe(cocinas.data, desde, buscados, ahora, orden)),
+    [cocinas.data, desde, buscados, ahora, orden],
   );
 
   // Each kitchen's distance, to her two pages — and none once the list leaves (her sign-out).
@@ -143,7 +147,12 @@ export default function Cerca() {
             />
           )
         }
-        ListHeaderComponent={<Desde origen={origen} onCambiar={() => setCodigo(null)} />}
+        ListHeaderComponent={
+          <View style={{ gap: SIZE.space }}>
+            <Desde origen={origen} onCambiar={() => setCodigo(null)} />
+            {tarjetas.length > 1 && <Ordenar orden={orden} onOrden={setOrden} />}
+          </View>
+        }
         ListEmptyComponent={
           cocinas.isPending ? (
             <Aviso texto={ES.cerca.cargando} esperando />
