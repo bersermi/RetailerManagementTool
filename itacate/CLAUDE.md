@@ -215,3 +215,19 @@ TZ=UTC npm --prefix itacate test          # CI's zone: the list's days and windo
   Apple's portal, the owner's hands, so the function's one key covers it: until then Apple answers
   `invalid_client` to a deletion from an iPhone build, and the account is deleted regardless. One
   person has one Apple id across the team's apps, grouped or not.
+
+## Screens — the family shell (ruled 2026-11-05)
+
+The owner ruled how the two apps are arranged and worded on 2026-11-05 (`docs/PLAN.md`, rows `10.5-v-a` to `10.5-v-d`
+and `10.5b`; the drawn reference is the family-shell page in his private notes' `diseno/`). Every screen built here
+follows it, as `cocina/CLAUDE.md`'s does:
+
+- **The tab bar is *Cerca · Apartados · Mis cocinas · Tú*** — four tabs at most, each with its word; the two ends never move; a tab appears only when
+  its feature ships; a new feature arrives first as a card on *Cerca*. Wera's JavaScript tabs, not native tabs.
+- **No word that makes the food sound left over** where a fonda or a neighbour reads (*lo que sobra*, *sobrante*,
+  *restos*, *desperdicio*): *Publicar una oferta*, *Tu oferta de hoy*, *aprovechar*, *Por hoy ya se terminó*, *Se liberó*.
+  **No sentence saying there are no penalties**: a reservation is drawn as a handover — the hour, how she pays, the code.
+- **The look:** titles in Nunito ExtraBold (`expo-font`); Itacate's blue `#24476B` for actions; Wera's terracotta `#A9501C` for
+  promotions only; state first, before anything tappable (ADR-035 §2.8); one staggered entrance per screen, transform and
+  opacity only (§2.11).
+- **Money:** no screen stores or shows a bank account, a card or an amount paid — only how she will pay.
