@@ -3,8 +3,9 @@
 // `10.4b-iii-b` (making one; her trade, her address and her pin),
 // `10.4b-iii-c` (her way out), `10.4b-iv-a` (what she publishes), `10.4h`
 // (address first: her address screen's writes, and her trade's door of its own),
-// `10.5-ii` (her page in Itacate, and a photo per dish) and `10.5-iii-c` (her
-// kitchen deleted alone).
+// `10.5-ii` (her page in Itacate, and a photo per dish), `10.5-iii-c` (her
+// kitchen deleted alone) and `10.5-i-b-ii` (Google's point for her address, kept
+// again when its 30-day copy is a week old).
 //
 // ⚠️ A SCREEN NEVER CALLS `@/api/calls` ITSELF — Wera's R12: a hook here owns
 // the query key, when the read may run, and what it means. Every read waits for
@@ -46,6 +47,7 @@ import {
   revokeApple,
   setKitchenGiro,
   setKitchenPage,
+  setPlaceGooglePoint,
   setPlacePin,
   uploadPictures,
   withdrawListing,
@@ -79,7 +81,7 @@ import {
   type Page,
   type PageDraft,
 } from '@/api/pagina';
-import { PLACES_KEY, placeKey, type SetStorePinArgs } from '@/api/place';
+import { PLACES_KEY, placeKey, type SetGooglePointArgs, type SetStorePinArgs } from '@/api/place';
 import { makeKitchen, withKitchen, type Draft } from '@/api/registro';
 import { useAuth } from '@/auth/AuthProvider';
 import { releaseStep } from '@/auth/apple';
@@ -193,6 +195,27 @@ export function useSavePin() {
   }
 
   return { save, busy: mutation.isPending };
+}
+
+/**
+ * ⚠️ `10.5-i-b-ii`: HER KITCHEN'S COPY OF GOOGLE'S POINT, KEPT AGAIN — the refresh
+ * her kitchen's screen makes (`useDondeEstaSuCocina`) when the copy is a week old, which
+ * hands in the arguments (`setGooglePointArgs`). Fire and forget, with nothing on
+ * screen: on success her place is read again, so the new copy is what draws and the
+ * next refresh is a week away; a failure is only logged — the next open asks again.
+ */
+export function useSaveGooglePoint(): (args: SetGooglePointArgs) => void {
+  const queries = useQueryClient();
+  const { mutate } = useMutation({
+    mutationFn: (args: SetGooglePointArgs) => setPlaceGooglePoint(args),
+    onSuccess: () => {
+      void queries.invalidateQueries({ queryKey: PLACES_KEY });
+    },
+    onError: (thrown) => {
+      console.warn(`[api] Google's point for her address was not kept: ${String(thrown)}`);
+    },
+  });
+  return mutate;
 }
 
 /**

@@ -30,6 +30,13 @@
 // cleared when her street or number changes (`clear_store_pin`), both `0075`'s,
 // both the owner's. ⚠️ `set_store_pin` STILL WRITES THE LINE WITH THE PIN, every
 // call: a pin sent without her line erases it (`setStorePinArgs` takes it).
+//
+// ⚠️⚠️ AND SINCE `10.5-i-b-ii`, GOOGLE'S POINT FOR HER ADDRESS — A 30-DAY COPY
+// (`set_google_point`, `0078`; the owner's ruling of 2026-11-04, night), with
+// Google's ID for the place she picked. It is the point her kitchen is drawn at
+// while she has no pin of her own: in Itacate, and on her own small map. Written
+// AFTER her address, always — `0078`'s trigger clears it whenever any part of her
+// address changes. The section at the foot says the rest.
 // ============================================================================
 
 import { ES } from '@/strings';
@@ -41,8 +48,12 @@ import { ES } from '@/strings';
 /** The table a kitchen's place lives in. */
 export const PLACE_TABLE = 'location';
 
-/** What this app reads of it: the address `0058` added and the pin `0072` did. Named, never `*`. */
-export const PLACE_COLUMNS = 'id,name,street,street_number,colonia,city,postal_code,pin_lat,pin_lng,directions';
+/**
+ * What this app reads of it: the address `0058` added, the pin `0072` did, and
+ * Google's point `0078` did (`10.5-i-b-ii`). Named, never `*`. ⚠️ ON ONE LINE: the
+ * contract check reads it out of this file line by line.
+ */
+export const PLACE_COLUMNS = 'id,name,street,street_number,colonia,city,postal_code,pin_lat,pin_lng,directions,google_place_id,google_lat,google_lng,google_at';
 
 /** ⚠️ The column the read is filtered on — the kitchen's id. See the header. */
 export const PLACE_OWNER_COLUMN = 'workspace_id';
@@ -73,6 +84,11 @@ export interface PlaceRow {
   readonly pin_lat: number | string | null;
   readonly pin_lng: number | string | null;
   readonly directions: string | null;
+  readonly google_place_id: string | null;
+  readonly google_lat: number | string | null;
+  readonly google_lng: number | string | null;
+  /** A `timestamptz`, as PostgREST sends it: `2026-11-04T23:50:01.123456+00:00`. */
+  readonly google_at: string | null;
 }
 
 /** A point on the map — `react-native-maps`' own shape. */
@@ -88,6 +104,8 @@ export interface Place {
   readonly address: AddressForm;
   readonly pin: Pin | null;
   readonly directions: string | null;
+  /** Google's point for her address, as the database keeps it — a 30-day copy (`0078`); `null` when there is none. */
+  readonly google: StoredGooglePoint | null;
 }
 
 /** One row, renamed. The only place in this app that knows both spellings. */
@@ -104,7 +122,16 @@ export function toPlace(row: PlaceRow): Place {
     },
     pin: pinFrom(row.pin_lat, row.pin_lng),
     directions: row.directions === null || row.directions.trim() === '' ? null : row.directions,
+    google: googleFrom(row),
   };
+}
+
+/** Point and moment together or none (`location_google_point_whole`, `0078`); the ID only beside them. */
+function googleFrom(row: PlaceRow): StoredGooglePoint | null {
+  const pin = pinFrom(row.google_lat, row.google_lng);
+  if (pin === null || typeof row.google_at !== 'string' || row.google_at.trim() === '') return null;
+  const placeId = typeof row.google_place_id === 'string' && row.google_place_id.trim() !== '' ? row.google_place_id : null;
+  return { pin, placeId, at: row.google_at };
 }
 
 /**
@@ -286,4 +313,105 @@ export interface ClearStorePinArgs {
 
 export function clearStorePinArgs(placeId: string): ClearStorePinArgs {
   return { p_location_id: placeId };
+}
+
+// ----------------------------------------------------------------------------
+// Google's point for her address, a 30-day copy — `0078`, plan `10.5-i-b-ii`
+// ----------------------------------------------------------------------------
+//
+// ⚠️⚠️ THE OWNER'S RULING OF 2026-11-04, NIGHT (*"Yes, record it and follow your
+// recommendation"*): her kitchen is drawn at Google's point for her address, kept
+// as a 30-DAY COPY (Google's Service Specific Terms §14.3 for Places, §6.3.1 for
+// Geocoding) — written when she registers or changes her address, asked again
+// when the app opens and the copy is over `GOOGLE_REFRESH_DAYS` old, and cleared by
+// the database every night once it is 29 days old (`0078`'s job), so nothing here
+// has to delete it. Google's ID for the place she picked rides with it, so the
+// refresh asks Google for that place again.
+//
+// ⚠️ ONLY THE POINT AND THE ID — NEVER WHAT GOOGLE NAMES (the street under her
+// pin, the suggestions' list): what Google answers reaches this layer as a
+// `GooglePoint` and nothing else, and no module of this layer asks Google.
+// ⚠️ NONE WHILE SHE HAS A PIN OF HER OWN: hers wins everywhere — in Itacate's door
+// and on her small map — so a copy of Google's would be kept for nothing.
+// ⚠️⚠️ AFTER HER ADDRESS, ALWAYS: `0078`'s trigger clears the copy whenever any
+// part of her address changes (it was Google's answer for the old one), so a
+// point sent before the address it belongs to is erased by it, with no error.
+// `@/api/registro` and `@/api/direccion` send it last.
+
+/** What is kept of where Google places her address: its point, and Google's ID for the place she picked. */
+export interface GooglePoint {
+  readonly pin: Pin;
+  /** The suggestion she picked (Places); `null` for Geocoding's answer to her boxes, which keeps no ID. */
+  readonly placeId: string | null;
+}
+
+/** The copy as the database holds it, with the moment it stamped it. */
+export interface StoredGooglePoint extends GooglePoint {
+  /** `google_at`: when `set_google_point` ran — never a date a phone sent. */
+  readonly at: string;
+}
+
+/** The one door it is written through (`0078`): her kitchen's owner; `TD012` anyone else, `TD013` a shop, `22023` not a point. */
+export const SET_GOOGLE_POINT = 'set_google_point';
+
+/** `set_google_point`'s arguments, by the names PostgREST matches on. */
+export interface SetGooglePointArgs {
+  readonly p_location_id: string;
+  readonly p_lat: number;
+  readonly p_lng: number;
+  readonly p_place_id: string | null;
+}
+
+/** `location_google_place_id_shape` (`0078`): an ID is at most this many characters. */
+export const GOOGLE_PLACE_ID_MAX = 512;
+
+/**
+ * Six decimals, as the column keeps them; the ID trimmed — and none when it is
+ * blank or longer than the column takes, so the point is kept either way.
+ */
+export function setGooglePointArgs(placeId: string, google: GooglePoint): SetGooglePointArgs {
+  const id = (google.placeId ?? '').trim();
+  return {
+    p_location_id: placeId,
+    p_lat: sixDecimals(google.pin.latitude),
+    p_lng: sixDecimals(google.pin.longitude),
+    p_place_id: id === '' || [...id].length > GOOGLE_PLACE_ID_MAX ? null : id,
+  };
+}
+
+/**
+ * ⚠️ THE RULING'S 7 DAYS: the copy is asked again once it is older than this. A
+ * kitchen Itacate shows published within 14 days, so the point a neighbour sees
+ * is at most about three weeks old — and never 30 (the nightly job).
+ */
+export const GOOGLE_REFRESH_DAYS = 7;
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * A moment as PostgREST sends it, cut to milliseconds. ⚠️ Postgres sends six
+ * decimals of a second and JavaScript's date format is written with three: Node
+ * reads more, and an engine that read only three would see every copy as never
+ * stamped — so the phone is never asked to.
+ */
+export function toMilliseconds(value: string): string {
+  return value.trim().replace(/(\.\d{3})\d+/, '$1');
+}
+
+/** A `timestamptz` as PostgREST sends it, in ms since 1970 — or `null`. */
+export function instantFrom(value: string | null): number | null {
+  if (value === null) return null;
+  const ms = Date.parse(toMilliseconds(value));
+  return Number.isFinite(ms) ? ms : null;
+}
+
+/**
+ * Is Google's point due to be asked again, at `now` by this phone's clock? Yes
+ * with none, yes once older than `GOOGLE_REFRESH_DAYS`, and yes when its moment
+ * cannot be read — a copy never refreshed would sit until the nightly job.
+ */
+export function googlePointDue(google: StoredGooglePoint | null, now: number): boolean {
+  if (google === null) return true;
+  const at = instantFrom(google.at);
+  return at === null || now - at > GOOGLE_REFRESH_DAYS * DAY_MS;
 }

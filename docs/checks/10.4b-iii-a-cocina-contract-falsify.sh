@@ -17,7 +17,8 @@
 # alone the comparison refused them first — red for the wrong reason, which is
 # what this harness's first run of `10.5-iii-b` found. C22–C24 are `10.5-iii-c`'s:
 # her kitchen deleted alone — names Itacate does not have, so they break Wera
-# Cocina's file alone (`run`'s `kitchen-alone` target).
+# Cocina's file alone (`run`'s `kitchen-alone` target). C25–C26 are `10.5-i-b-ii`'s:
+# Google's point for her address, written through `set_google_point` (`0078`).
 #
 # Run:  supabase start && supabase db reset && bash docs/checks/10.4b-iii-a-cocina-contract-falsify.sh
 # Exit: 0 every fixture behaved; 1 otherwise.
@@ -138,11 +139,11 @@ run C11 red "her address, set_store_address(" place \
 
 echo "C12 a pin argument is renamed — her pin is never set"
 run C12 red "her pin, set_store_pin(" place \
-  's/^  readonly p_lat: number;/  readonly p_latitud: number;/'
+  '/^export interface SetStorePinArgs {/,/^}/ s/^  readonly p_lat: number;/  readonly p_latitud: number;/'
 
 echo "C13 a place column is misspelt — PostgREST refuses the read"
 run C13 red "the app's place read answered 400" place \
-  "s/^export const PLACE_COLUMNS = 'id,name,street,street_number,colonia,city,postal_code,pin_lat,pin_lng,directions';/export const PLACE_COLUMNS = 'id,name,street,street_number,colonia,city,postal_code,lat,pin_lng,directions';/"
+  "s/^export const PLACE_COLUMNS = 'id,name,street,street_number,colonia,city,postal_code,pin_lat,pin_lng,directions,google_place_id,google_lat,google_lng,google_at';/export const PLACE_COLUMNS = 'id,name,street,street_number,colonia,city,postal_code,lat,pin_lng,directions,google_place_id,google_lat,google_lng,google_at';/"
 
 echo "C14 the owners read embeds a column the table has not — PostgREST refuses it, and nothing could be deleted"
 run C14 red "the app's owners read answered 400" account \
@@ -188,10 +189,18 @@ echo "C24 'not hers alone' is read as another code — a lost answer would be to
 run C24 red "the same call again: 400" kitchen-alone \
   "s/^export const NOT_HERS_ALONE_CODE = 'TD012';/export const NOT_HERS_ALONE_CODE = 'TD013';/"
 
+echo "C25 Google's point's door is misspelt — no kitchen would ever keep one, and Itacate would ask Google for every kitchen"
+run C25 red "her Google point, set_google_punto(" place \
+  "s/^export const SET_GOOGLE_POINT = 'set_google_point';/export const SET_GOOGLE_POINT = 'set_google_punto';/"
+
+echo "C26 the place's ID argument is renamed — PostgREST finds no such function, and no point is kept"
+run C26 red "her Google point, set_google_point(p_location_id,p_lat,p_lng,p_google_id), answered 404" place \
+  '/^export interface SetGooglePointArgs {/,/^}/ s/^  readonly p_place_id: string | null;/  readonly p_google_id: string | null;/'
+
 echo
 echo "$pass passed, $fail failed."
-if (( pass + fail < 25 )); then
-  echo "FAIL: only $((pass + fail)) fixtures ran, expected 25."
+if (( pass + fail < 27 )); then
+  echo "FAIL: only $((pass + fail)) fixtures ran, expected 27."
   exit 1
 fi
 (( fail == 0 )) || exit 1

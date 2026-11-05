@@ -67,16 +67,36 @@ TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic i
   *¿Dónde está tu cocina?* (`@/ui/PantallaDireccion`, in the sign-up and behind *Cambiar dirección*)
   holds the search, her five boxes, a small map (`@/ui/MapaFijo`), her line and the button; ⚠️⚠️ **the
   small map draws her own point while it still belongs to the street and number in the boxes
-  (`@/api/direccion`'s `puntoVigente`), else where Google places her address — her pick's point, or her
-  boxes through Geocoding once they rest (`useDondeEsta`) — looked up live by each phone and never
-  kept.** A tap on it, or *Ajustar punto* on her kitchen, opens *Ajusta el punto* (`@/ui/PantallaPunto`,
+  (`@/api/direccion`'s `puntoVigente`), else where Google places her address — her pick's point, behind
+  *Cambiar dirección* her kitchen's stored copy while the boxes read as stored, or her boxes through
+  Geocoding once they rest (`useDondeEsta`) — and since `10.5-i-b-ii` what it draws is what her save keeps
+  as Google's point (the next bullet).** A tap on it, or *Ajustar punto* on her kitchen, opens *Ajusta el punto* (`@/ui/PantallaPunto`,
   the full map), the only way to a point of her own; *Listo* keeps nothing while the middle is Google's.
   ⚠️⚠️ **`set_store_pin` writes her line with the pin on every call**, and *Ajustar punto* has no box for
   it, so it sends her stored line (`test/direccion.test.ts`). **A new street or number clears her point**
   (`escrituras`: `clear_store_pin`, `0075`), so the map follows the new address; a colonia, city or
   postal code never does. *Cambiar giro* is a door of its own (`/giro`). The drafts that cross two routes
-  live in their group's layout (`@/lib/borrador`); the pick rides beside them, never in what `@/api/`
-  sends.
+  live in their group's layout (`@/lib/borrador`); the pick rides beside them — ⚠️ and since `10.5-i-b-ii`
+  its point and Google's ID for the place reach what `@/api/` sends as Google's point, never as her pin.
+- **Google's point for her address, a 30-day copy** (`10.5-i-b-ii`, `0078`; the owner's ruling of
+  2026-11-04, night — Google's Service Specific Terms §14.3 and §6.3.1 allow 30 days). The address screen hands
+  its small map's point to her save (`useDondeEsta`'s `google`: her pick's point with its place's ID, or
+  Geocoding's for her boxes with none), and the sign-up and *Guardar* send it through `set_google_point`
+  (`@/api/place`'s `setGooglePointArgs`) — ⚠️⚠️ **LAST, after her address**, because `0078`'s trigger clears
+  the copy whenever any part of her address changes; never while she has a pin of her own, which wins
+  everywhere; and its failure never fails her save. **Her kitchen's screen draws the stored copy**
+  (`@/lib/useGoogle`'s `useDondeEstaSuCocina`), so the app no longer asks Google each time it runs (`10.4h`'s
+  decision (f), reversed); once the copy is older than `GOOGLE_REFRESH_DAYS` (7) or missing, ONE question —
+  Place Details for the ID (`CAMPOS_DEL_REFRESCO`, `id,location`; a 404 or 400 falls back to her address
+  through Geocoding) or Geocoding for her address — and ⚠️ the answer is kept in the same step that asked
+  (`useSaveGooglePoint`), keyed on the copy it replaces, so an answer held in memory is never written later as
+  fresh. "When the app opens" is its launch and each return to the front (`useAlAbrir`); nothing on screen
+  says any of it. *Ajustar punto* opens on the copy, and *Cambiar dirección* starts with it as the place known
+  for her boxes (`@/lib/google`'s `lugarGuardado`). The database clears every copy at 29 days, every night
+  (`0078`'s job), so nothing here deletes one. ⚠️ **Only the point and the ID** — never what Google names:
+  `test/punto-google.test.ts` holds the four columns to `src/api/place.ts` and `set_google_point` to one call
+  and one argument builder, and `docs/checks/10.4b-iii-a-cocina-contract.sh`'s group 12 asks a real PostgREST
+  (stamped by the database, a shop's store refused, a new address clearing it).
 - **Her way out is Wera's deletion, cut to this app** (`src/api/account.ts`, `@/ui/Salidas`, `10.4b-iii-c`):
   at the foot of the landing and of her kitchen, every business she alone owns named — her kitchens first,
   a shop of hers in Wera too — and each name typed (`0073`), in one body, `{p_business_names}`. No team is
@@ -141,7 +161,8 @@ TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic i
   it** (`10.4c`, the owner's ruling of 2026-10-31, and `10.4g-i`, his of 2026-11-03: Google on both phones;
   `src/lib/google.ts`, pure, `src/lib/useGoogle.ts`, its requests, `@/ui/Buscador`). Since `10.4h` it is
   *Ajusta el punto*, opened where the small map placed her address (`abreEn`). ⚠️⚠️ **What is stored is
-  her five boxes, her line, and her own pin only if she sets one — never Google's point, nor what it names**: a suggestion she picks in the form fills the
+  her five boxes, her line, her own pin only if she sets one, and — since `10.5-i-b-ii` — Google's point for
+  her address as a 30-day copy (the bullet above), never as her pin; never what Google names**: a suggestion she picks in the form fills the
   boxes — on the map a pick only moves the map — (Google lets the address an end user picks be hers — *Autocomplete for end user addresses*, its
   Places policies — never the list) and every box stays hers to change. **Since `10.4e` (his ruling of
   2026-11-02, as Uber does it) the pin is fixed in the middle and she moves the map under it**; the middle is

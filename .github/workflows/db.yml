@@ -1825,7 +1825,10 @@ jobs:
       # whether a business is gone is asked of the database as the superuser.
       # ⚠️ `10.5-iii-b` ADDED TWO FIXTURES AND NO SIGN-UP: Itacate's way out, its
       # names held to Wera Cocina's in the check's first group, before any request.
-      - name: Contract — does Wera Cocina open kitchens only, make one on its own place, and delete an account with every business named — by the names Itacate's way out sends too (plans 10.4b-iii-a, -b and -c, and 10.5-iii-b)
+      # ⚠️ `10.5-i-b-ii` ADDED A PART TO GROUP 12 AND TWO FIXTURES, NO SIGN-UP: Google's
+      # point for her address (`0078`), by `place.ts`'s names — stamped by the
+      # database, refused on a shop's store, cleared by a new address.
+      - name: Contract — does Wera Cocina open kitchens only, make one on its own place, keep Google's point for its address, and delete an account with every business named — by the names Itacate's way out sends too (plans 10.4b-iii-a, -b and -c, 10.5-iii-b and 10.5-i-b-ii)
         run: bash docs/checks/10.4b-iii-a-cocina-contract.sh
       - name: Contract — can the Cocina check still fail (its own fixtures, Itacate's among them; the runner counts them)
         run: bash docs/checks/10.4b-iii-a-cocina-contract-falsify.sh

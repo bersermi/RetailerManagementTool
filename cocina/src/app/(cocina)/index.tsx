@@ -8,7 +8,7 @@ import { giroLabel, openKitchen } from '@/api/kitchen';
 import { colorOf } from '@/api/pagina';
 import { addressComplete, addressLine } from '@/api/place';
 import { useAuth } from '@/auth/AuthProvider';
-import { useDondeEsta } from '@/lib/useGoogle';
+import { useDondeEstaSuCocina } from '@/lib/useGoogle';
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
 import { Banda } from '@/ui/Banda';
@@ -36,10 +36,12 @@ import { Salidas } from '@/ui/Salidas';
 //     over: her address, the small map under it and her line of directions.
 //
 // ⚠️⚠️ THE SMALL MAP IS HER OWN POINT, OR WHERE GOOGLE PLACES HER ADDRESS (`10.4h`,
-// the owner's ruling of 2026-11-03: *"The pin is only indicative"*) — looked up
-// live by this phone each time the app runs, never kept (`useDondeEsta`); with
-// her own point nothing is asked. It takes no touch here: *Ajustar punto* is
-// beside it.
+// the owner's ruling of 2026-11-03: *"The pin is only indicative"*) — ⚠️ since
+// `10.5-i-b-ii` THE COPY OF GOOGLE'S POINT THE DATABASE KEEPS (his ruling of
+// 2026-11-04, night), so the app no longer asks Google each time it runs: asked
+// again only when the copy is a week old or missing, kept again at once, with
+// nothing on screen (`useDondeEstaSuCocina`); with her own point nothing is asked.
+// It takes no touch here: *Ajustar punto* is beside it.
 //
 // ⚠️⚠️ THE SECOND DOOR. Making a kitchen is several writes and only the first can
 // fail the sign-up (`@/api/registro`): a trade or an address that did not reach
@@ -74,8 +76,8 @@ export default function TuCocina() {
   const place = usePlace(kitchen?.id ?? null);
   const page = usePage(kitchen?.id ?? null);
   const here = place.data;
-  // ⚠️ Asked only while she has no point of her own, and only a whole address.
-  const donde = useDondeEsta(here === undefined || here === null || here.pin !== null ? null : here.address, null);
+  // ⚠️ Her kitchen's copy of Google's point, asked again a week on — only while she has no point of her own, and a whole address.
+  const donde = useDondeEstaSuCocina(here);
 
   const body = { paddingHorizontal: SIZE.space * 2, paddingTop: SIZE.space * 2, paddingBottom: SIZE.space * 2 + insets.bottom, gap: SIZE.space };
   const wheel = (words: string) => (

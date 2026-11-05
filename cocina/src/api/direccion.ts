@@ -3,10 +3,14 @@
 // 2026-11-03 (*"The address is the most relevant thing … The pin is only
 // indicative"*).
 //
-// ⚠️⚠️ WHAT IS KEPT: HER ADDRESS, HER LINE OF DIRECTIONS, AND HER OWN POINT ONLY
-// IF SHE SETS ONE. Every map that draws her kitchen asks Google where her address
-// is, live, and keeps nothing (the small map's `useDondeEsta`, outside this layer);
-// a point is stored only when her own hand put it on *Ajusta el punto*.
+// ⚠️⚠️ WHAT IS KEPT: HER ADDRESS, HER LINE OF DIRECTIONS, HER OWN POINT ONLY IF
+// SHE SETS ONE — and, since `10.5-i-b-ii`, while she has none, GOOGLE'S POINT FOR
+// HER ADDRESS as Google's 30-day copy (`set_google_point`, `0078`, the owner's
+// ruling of 2026-11-04, night): where the small map placed the new address, handed
+// in by the screen (the small map's `useDondeEsta`, outside this layer), and
+// written LAST — the address sent before it clears the old copy (`0078`'s trigger).
+// Her own point is stored only when her own hand put it on *Ajusta el punto*;
+// Google's never becomes hers.
 //
 // ⚠️ A NEW STREET OR NUMBER CLEARS HER OWN POINT, so the map follows the new
 // address (his ruling). Her point carries the street and number it was set at
@@ -25,13 +29,16 @@ import {
   directionsFrom,
   samePin,
   sameAddress,
+  setGooglePointArgs,
   setStoreAddressArgs,
   setStoreDirectionsArgs,
   setStorePinArgs,
   type AddressForm,
   type ClearStorePinArgs,
+  type GooglePoint,
   type Pin,
   type Place,
+  type SetGooglePointArgs,
   type SetStoreAddressArgs,
   type SetStoreDirectionsArgs,
   type SetStorePinArgs,
@@ -90,17 +97,23 @@ export type Escritura =
   | { readonly kind: 'direccion'; readonly args: SetStoreAddressArgs }
   | { readonly kind: 'punto'; readonly args: SetStorePinArgs }
   | { readonly kind: 'sinPunto'; readonly args: ClearStorePinArgs }
-  | { readonly kind: 'indicaciones'; readonly args: SetStoreDirectionsArgs };
+  | { readonly kind: 'indicaciones'; readonly args: SetStoreDirectionsArgs }
+  | { readonly kind: 'google'; readonly args: SetGooglePointArgs };
 
 /**
  * ⚠️ WHAT *GUARDAR* WRITES, IN ORDER, AND ONLY WHAT CHANGED: her address; then her
  * point — set (with her line, which `set_store_pin` writes with it), or cleared
  * when the one stored no longer applies; then her line alone, when no point was
- * sent. Nothing changed, nothing sent.
+ * sent; ⚠️ and LAST, for a new address and no point of her own, Google's point for
+ * it (`google`, where the small map placed it as she pressed *Guardar*; `null`
+ * while Google had not answered — her kitchen's screen then asks). Nothing
+ * changed, nothing sent — not even a fresher copy of Google's: that is the
+ * refresh's, a week on.
  */
-export function escrituras(place: Place, ahora: SuDireccion): Escritura[] {
+export function escrituras(place: Place, ahora: SuDireccion, google: GooglePoint | null = null): Escritura[] {
   const out: Escritura[] = [];
-  if (!sameAddress(ahora.address, place.address)) {
+  const otraDireccion = !sameAddress(ahora.address, place.address);
+  if (otraDireccion) {
     out.push({ kind: 'direccion', args: setStoreAddressArgs(place.id, ahora.address) });
   }
   const vigente = puntoVigente(ahora);
@@ -114,6 +127,9 @@ export function escrituras(place: Place, ahora: SuDireccion): Escritura[] {
   if (directionsFrom(ahora.directions) !== place.directions) {
     out.push({ kind: 'indicaciones', args: setStoreDirectionsArgs(place.id, ahora.directions) });
   }
+  if (otraDireccion && vigente === null && google !== null) {
+    out.push({ kind: 'google', args: setGooglePointArgs(place.id, google) });
+  }
   return out;
 }
 
@@ -123,18 +139,26 @@ export interface DireccionCalls {
   readonly setPin: (args: SetStorePinArgs) => Promise<void>;
   readonly clearPin: (args: ClearStorePinArgs) => Promise<void>;
   readonly setDirections: (args: SetStoreDirectionsArgs) => Promise<void>;
+  readonly setGooglePoint: (args: SetGooglePointArgs) => Promise<void>;
 }
 
 /**
  * Sends them one after the other. ⚠️ THE FIRST THAT FAILS STOPS THE REST, and its
  * error is thrown: an address that did not change must not lose her point. What
  * landed is re-read; a second *Guardar* sends only what is still different.
+ * ⚠️ BUT GOOGLE'S POINT NEVER FAILS HER SAVE: it is last, nothing on screen says it
+ * exists, and her kitchen's screen asks Google again when it finds none.
  */
 export async function guardarSuDireccion(lista: readonly Escritura[], calls: DireccionCalls): Promise<void> {
   for (const escritura of lista) {
     if (escritura.kind === 'direccion') await calls.setAddress(escritura.args);
     else if (escritura.kind === 'punto') await calls.setPin(escritura.args);
     else if (escritura.kind === 'sinPunto') await calls.clearPin(escritura.args);
-    else await calls.setDirections(escritura.args);
+    else if (escritura.kind === 'indicaciones') await calls.setDirections(escritura.args);
+    else {
+      await calls.setGooglePoint(escritura.args).catch((thrown: unknown) => {
+        console.warn(`[api] Google's point for her address was not kept: ${String(thrown)}`);
+      });
+    }
   }
 }

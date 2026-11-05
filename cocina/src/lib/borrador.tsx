@@ -14,8 +14,13 @@
 //
 // ⚠️ THE PICK RIDES BESIDE THE DRAFT, NEVER IN IT: the suggestion she picked in
 // *Busca tu dirección* places her address on the small map and opens *Ajusta el
-// punto* there, while her boxes still read as it filled them — Google's point,
-// shown and never written, which is why it is not part of what `@/api/` sends.
+// punto* there, while her boxes still read as it filled them. It is Google's point,
+// never hers: ⚠️ since `10.5-i-b-ii` the address screen hands it to her save as
+// GOOGLE'S POINT — a 30-day copy, with the place's ID (`set_google_point`, `0078`)
+// — and never as her own point, which only her hand on *Ajusta el punto* sets.
+// Behind *Cambiar dirección* the place known for her boxes as stored is her
+// kitchen's stored copy (`@/lib/google`'s `lugarGuardado`), so its small map draws
+// what her kitchen's screen draws and asks Google nothing until she changes them.
 //
 // ⚠️ NOT KEPT ON THE PHONE: an app closed half-way starts again. What is checked,
 // and what is written, is `@/api/registro`'s and `@/api/direccion`'s, pure.
@@ -30,14 +35,14 @@ import type { Lugar } from '@/lib/google';
 interface Contexto<T> {
   readonly valor: T;
   readonly cambiar: (parte: Partial<T>) => void;
-  /** The suggestion she picked — its place is the small map's, never written. */
+  /** The place Google gave for her boxes — the suggestion she picked, or her stored copy — the small map's, and Google's point for her save. */
   readonly elegido: Lugar | null;
   readonly elegir: (lugar: Lugar | null) => void;
 }
 
-function useDraft<T>(inicial: T): Contexto<T> {
+function useDraft<T>(inicial: T, conocido: Lugar | null = null): Contexto<T> {
   const [valor, setValor] = useState<T>(inicial);
-  const [elegido, elegir] = useState<Lugar | null>(null);
+  const [elegido, elegir] = useState<Lugar | null>(conocido);
   const cambiar = useCallback((parte: Partial<T>) => setValor((ahora) => ({ ...ahora, ...parte })), []);
   return useMemo(() => ({ valor, cambiar, elegido, elegir }), [valor, cambiar, elegido]);
 }
@@ -60,9 +65,21 @@ export function useBorrador(): Contexto<Borrador> {
 
 const DeSuDireccion = createContext<Contexto<SuDireccion> | null>(null);
 
-/** ⚠️ Opened on what is stored, once: give it a `key` of her place, so another place starts afresh. */
-export function SuDireccionProvider({ inicial, children }: { inicial: SuDireccion; children: ReactNode }) {
-  return <DeSuDireccion.Provider value={useDraft(inicial)}>{children}</DeSuDireccion.Provider>;
+/**
+ * ⚠️ Opened on what is stored, once — her address, and the place Google gave for it
+ * (`conocido`, her kitchen's stored copy): give it a `key` of her place, so another
+ * place starts afresh.
+ */
+export function SuDireccionProvider({
+  inicial,
+  conocido,
+  children,
+}: {
+  inicial: SuDireccion;
+  conocido: Lugar | null;
+  children: ReactNode;
+}) {
+  return <DeSuDireccion.Provider value={useDraft(inicial, conocido)}>{children}</DeSuDireccion.Provider>;
 }
 
 export function useSuDireccion(): Contexto<SuDireccion> {

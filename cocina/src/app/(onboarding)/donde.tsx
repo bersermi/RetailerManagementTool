@@ -2,7 +2,7 @@ import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 
 import { useMakeKitchen } from '@/api/hooks';
-import { checkAddress } from '@/api/place';
+import { checkAddress, type GooglePoint } from '@/api/place';
 import { draftFrom, pasoUno } from '@/api/registro';
 import { useBorrador } from '@/lib/borrador';
 import { ES } from '@/strings';
@@ -16,7 +16,8 @@ import { PantallaDireccion } from '@/ui/PantallaDireccion';
 //
 // ⚠️ THE KITCHEN IS MADE HERE, WHOLE, AT THE END — the first step's two answers,
 // her address, her line of directions and, only if she set one on *Ajusta el
-// punto*, her own point, in one go (`@/api/registro`), before her kitchens are
+// punto*, her own point — else Google's point for her address, as the small map
+// drew it (`10.5-i-b-ii`) — in one go (`@/api/registro`), before her kitchens are
 // read again. The guard then takes her to her kitchen (`@/auth/guard`); this
 // screen never navigates there itself.
 //
@@ -35,10 +36,10 @@ export default function Donde() {
     if (!pasoListo) router.replace('/registro');
   }, [pasoListo]);
 
-  async function registrar(): Promise<string | null> {
+  async function registrar(google: GooglePoint | null): Promise<string | null> {
     const issue = checkAddress(borrador.address);
     if (issue !== null) return ES.address.issues[issue];
-    const draft = draftFrom(borrador);
+    const draft = draftFrom(borrador, google);
     if (draft === null) return ES.api.errors.unknown;
     const problem = await make(draft);
     if (problem === null) setHecho(true);

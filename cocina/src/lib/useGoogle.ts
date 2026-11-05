@@ -17,18 +17,33 @@
 // search carries, made at its first question and dropped by the details of her
 // pick, which end it.
 //
-// ⚠️ NOTHING HERE IS KEPT: TanStack's cache lives in memory and dies with the app
-// (this app persists nothing), and an answer reaches only the map's flight, her
-// boxes when she picks it, and the card (`@/lib/google`'s header).
+// ⚠️ TANSTACK'S CACHE LIVES IN MEMORY AND DIES WITH THE APP (this app persists
+// nothing). An answer reaches the map's flight, her boxes when she picks it, the
+// card — and, ⚠️⚠️ SINCE `10.5-i-b-ii`, where Google places her address is KEPT as
+// Google's 30-day copy (the owner's ruling of 2026-11-04, night): the address
+// screen hands it to her save (`DondeEsta`'s `google`), and her kitchen's stored
+// copy is drawn, asked again a week on and kept again (`useDondeEstaSuCocina`).
+// Only the point and the ID of the place she picked — never what Google names.
 // ============================================================================
 
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import Constants from 'expo-constants';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Platform } from 'react-native';
+import { AppState, Platform } from 'react-native';
 
-import { sameAddress, type AddressForm, type Pin } from '@/api/place';
+import { useSaveGooglePoint } from '@/api/hooks';
 import {
+  checkAddress,
+  googlePointDue,
+  sameAddress,
+  setGooglePointArgs,
+  type AddressForm,
+  type GooglePoint,
+  type Pin,
+  type Place,
+} from '@/api/place';
+import {
+  CAMPOS_DEL_REFRESCO,
   CAMPOS_DE_DETALLES,
   LIMITE_MS,
   PAUSA_DEL_MAPA_MS,
@@ -39,15 +54,20 @@ import {
   claveDe,
   cuerpoDeSugerencias,
   destinoDeGeocoding,
+  destinoGuardado,
   lugarDe,
   preguntaConSuDireccion,
   preguntaDeDireccion,
+  preguntaDeRefresco,
+  suLugarDe,
   sugerenciasDe,
   urlDeDetalles,
   urlDeGeocodificar,
   urlDeLaCalle,
+  urlDeSuLugar,
   type Destino,
   type Lugar,
+  type PreguntaDeRefresco,
   type ResultadoDeDestino,
   type ResultadoDeSugerencias,
   type Sugerencia,
@@ -213,7 +233,12 @@ export function useApertura(direccion: AddressForm | null): Destino | null {
 
 /** Where Google places her address, for the small map — or why it shows no point. */
 export type DondeEsta =
-  | { readonly kind: 'punto'; readonly destino: Destino }
+  | {
+      readonly kind: 'punto';
+      readonly destino: Destino;
+      /** ⚠️ What is kept of it (`10.5-i-b-ii`): the point drawn, and Google's ID for the place she picked. */
+      readonly google: GooglePoint;
+    }
   /** Her address is not whole yet (`checkAddress`, the owner's four): nothing is asked. */
   | { readonly kind: 'incompleta' }
   | { readonly kind: 'buscando' }
@@ -224,14 +249,17 @@ export type DondeEsta =
   | { readonly kind: 'falla' };
 
 /**
- * ⚠️⚠️ WHERE GOOGLE PLACES HER ADDRESS, FOR THE SMALL MAP (`10.4h`, the owner's
- * ruling of 2026-11-03: address first) — LOOKED UP LIVE, NEVER KEPT: the point of
- * the suggestion she picked while her boxes still read as it filled them (nothing
- * asked: its details carried it), else her four parts to Geocoding once her boxes
- * have rested (`PAUSA_DEL_MAPA_MS`) — the full map's opening question, so *Ajusta
- * el punto* opens on the same answer from the cache (`useApertura`). While a new
- * question is out the last point stays. `null`: nothing to ask — she has her own
- * point, which is drawn instead.
+ * ⚠️⚠️ WHERE GOOGLE PLACES HER ADDRESS, FOR THE ADDRESS SCREEN'S SMALL MAP (`10.4h`,
+ * the owner's ruling of 2026-11-03: address first): the point of the place she
+ * picked while her boxes still read as it filled them (nothing asked: its details
+ * carried it) — or, behind *Cambiar dirección*, her kitchen's stored copy while the
+ * boxes read as stored (`lugarGuardado`) — else her four parts to Geocoding once
+ * her boxes have rested (`PAUSA_DEL_MAPA_MS`) — the full map's opening question, so
+ * *Ajusta el punto* opens on the same answer from the cache (`useApertura`). While a
+ * new question is out the last point stays. ⚠️ `10.5-i-b-ii`: its `google` is what
+ * her save keeps — the point drawn, with the ID of the place she picked; Geocoding's
+ * answer keeps none. `null` `direccion`: nothing to ask — she has her own point,
+ * which is drawn instead.
  */
 export function useDondeEsta(direccion: AddressForm | null, elegido: Lugar | null): DondeEsta {
   const delElegido = elegido !== null && direccion !== null && sameAddress(direccion, elegido.direccion) ? elegido : null;
@@ -246,11 +274,101 @@ export function useDondeEsta(direccion: AddressForm | null, elegido: Lugar | nul
     gcTime: 10 * 60_000,
     retry: false,
   });
-  if (delElegido !== null) return { kind: 'punto', destino: delElegido };
+  if (delElegido !== null) {
+    return { kind: 'punto', destino: delElegido, google: { pin: delElegido.punto, placeId: delElegido.placeId } };
+  }
   if (direccion === null || preguntaDeDireccion(direccion) === null) return { kind: 'incompleta' };
   if (CLAVE === null) return { kind: 'falla' };
   if (data === undefined) return { kind: 'buscando' };
-  return data.kind === 'destino' ? { kind: 'punto', destino: data.destino } : data;
+  return data.kind === 'destino' ? { kind: 'punto', destino: data.destino, google: { pin: data.destino.punto, placeId: null } } : data;
+}
+
+/**
+ * The moment, taken when the screen opens and again each time the app comes back
+ * to the front — the ruling's *when the app opens*. ⚠️ ITS OWN SIGNAL: her
+ * kitchen's screen stays mounted for days behind the phone's other apps, and a
+ * read that comes back unchanged draws nothing again.
+ */
+export function useAlAbrir(): number {
+  const [ahora, setAhora] = useState(() => Date.now());
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') setAhora(Date.now());
+    });
+    return () => sub.remove();
+  }, []);
+  return ahora;
+}
+
+/**
+ * How long a refresh's answer stands for the same copy, in ms — a point found (whose
+ * write, if it failed, is tried again after it) or Google finding none. ⚠️ No signal
+ * or a refusal stands for nothing: asked again at the next open, so the small map's
+ * *El mapa se verá cuando vuelva la señal* comes true.
+ */
+const REFRESCO_VIGENCIA_MS = 60 * 60_000;
+
+/**
+ * The refresh's one question — or two: Place Details for the place she picked and,
+ * when Google no longer knows it, her address through Geocoding, whose answer keeps
+ * no ID. Answers where to draw her kitchen and what to keep of it.
+ */
+async function refrescar(pregunta: PreguntaDeRefresco, signal?: AbortSignal): Promise<DondeEsta> {
+  if (CLAVE === null) return { kind: 'falla' };
+  if (pregunta.kind === 'lugar') {
+    const r = await pedir(
+      urlDeSuLugar(pregunta.placeId),
+      { headers: { ...APP, 'X-Goog-Api-Key': CLAVE, 'X-Goog-FieldMask': CAMPOS_DEL_REFRESCO } },
+      signal,
+    );
+    if (r === null) return { kind: 'sin-senal' };
+    const suyo = suLugarDe(r.status, r.body, pregunta.placeId);
+    if (suyo.kind === 'punto') return { kind: 'punto', destino: destinoGuardado(suyo.google), google: suyo.google };
+    if (suyo.kind !== 'perdido') return suyo;
+  }
+  const g = await geocodificar(pregunta.direccion, signal);
+  return g.kind === 'destino' ? { kind: 'punto', destino: g.destino, google: { pin: g.destino.punto, placeId: null } } : g;
+}
+
+/**
+ * ⚠️⚠️ WHERE HER KITCHEN IS DRAWN WHILE SHE HAS NO PIN OF HER OWN — her kitchen's
+ * screen's small map, and where *Ajustar punto* opens (`10.5-i-b-ii`, the owner's
+ * ruling of 2026-11-04, night): **the copy of Google's point the database keeps**,
+ * and nothing asked of Google while it is under `GOOGLE_REFRESH_DAYS` old — so the
+ * app no longer asks Google each time it runs (`10.4h`'s decision (f), reversed).
+ * Once the copy is older, or there is none, ONE question goes to Google
+ * (`preguntaDeRefresco`), the old copy drawn meanwhile, and its answer is drawn and
+ * KEPT IN THE SAME STEP THAT ASKED (`set_google_point`, through `useSaveGooglePoint`)
+ * — so an answer held in memory is never later written as fresh. Keyed on the copy
+ * it replaces: once a new one is kept, the next refresh is a new question. Nothing
+ * on screen says so, and a failure says nothing: the next open asks again. "Opens"
+ * is its launch and each return to the front (`useAlAbrir`). With no place yet, her
+ * address not whole, or her own pin — which is drawn instead — nothing is asked.
+ */
+export function useDondeEstaSuCocina(place: Place | null | undefined): DondeEsta {
+  const save = useSaveGooglePoint();
+  const ahora = useAlAbrir();
+  const suya = place === undefined || place === null || place.pin !== null || checkAddress(place.address) !== null ? null : place;
+  const guardado = suya?.google ?? null;
+  const pregunta = suya !== null && googlePointDue(guardado, ahora) ? preguntaDeRefresco(guardado?.placeId ?? null, suya.address) : null;
+  const lugarId = suya?.id ?? null;
+  const { data } = useQuery({
+    queryKey: [...BUSCAR_KEY, 'su-cocina', lugarId, guardado?.at ?? null, pregunta],
+    queryFn: async ({ signal }) => {
+      const r = await refrescar(pregunta as PreguntaDeRefresco, signal);
+      if (r.kind === 'punto') save(setGooglePointArgs(lugarId as string, r.google));
+      return r;
+    },
+    enabled: pregunta !== null && lugarId !== null && CLAVE !== null,
+    staleTime: (query) => (query.state.data?.kind === 'punto' || query.state.data?.kind === 'ninguna' ? REFRESCO_VIGENCIA_MS : 0),
+    gcTime: 10 * 60_000,
+    retry: false,
+  });
+  if (suya === null) return { kind: 'incompleta' };
+  if (pregunta !== null && data?.kind === 'punto') return data;
+  if (guardado !== null) return { kind: 'punto', destino: destinoGuardado(guardado), google: guardado };
+  if (CLAVE === null) return { kind: 'falla' };
+  return data ?? { kind: 'buscando' };
 }
 
 /** *Buscar* — the keyboard's search key, on what she typed: *nada* until she presses it. */
