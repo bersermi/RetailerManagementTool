@@ -1,13 +1,14 @@
 // ============================================================================
-// EVERY ROUND TRIP THIS APP MAKES TO THE DATABASE. Plan task `10.5-iii-b` (her
-// way out: what goes with her account, the deletion, Apple).
+// EVERY ROUND TRIP THIS APP MAKES TO THE DATABASE. Plan tasks `10.5-iii-b` (her
+// way out: what goes with her account, the deletion, Apple) and `10.5-iv-a-i` (the
+// door, and the kitchens' photos).
 //
 // ⚠️ THE IMPURE HALF OF `src/api/` (ADR-035 §2.11), as Wera's and Wera Cocina's
 // (`app/src/api/calls.ts`, `cocina/src/api/calls.ts`): the only module here that
 // imports the live client besides the provider, so no node suite can load it;
-// every name it sends is a constant from the pure module beside it
-// (`@/api/account`), which the suite and the contract checks read. Screens reach
-// these through `@/api/hooks`. The door (`10.5-iv`) adds its call here.
+// every name it sends is a constant from the pure modules beside it
+// (`@/api/account`, `@/api/cocinas`, `@/api/fotos`), which the suite and the
+// contract checks read. Screens reach these through `@/api/hooks`.
 // ============================================================================
 
 import type { FunctionRegion } from '@supabase/supabase-js';
@@ -28,7 +29,36 @@ import {
   type Deleted,
   type OwnerRow,
 } from '@/api/account';
-import { supabase } from '@/lib/supabase';
+import { ON_OFFER_NOW, kitchensFrom, type Kitchen } from '@/api/cocinas';
+import { photoHeaders, photoUrl, type PhotoSize } from '@/api/fotos';
+import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL, supabase } from '@/lib/supabase';
+
+/**
+ * ⚠️ `10.5-iv-a-i`: THE ONE DOOR (`0078`) — every kitchen a neighbour may see, with
+ * what it offers and the point to draw. No arguments: for the pilot it takes no
+ * area, so nothing of where she is is sent (the owner's ruling of 2026-11-04,
+ * night). A kitchen it cannot read is dropped by `kitchensFrom`, never the list.
+ */
+export async function onOfferNow(): Promise<Kitchen[]> {
+  const { data, error } = await supabase.rpc(ON_OFFER_NOW);
+  if (error) throw error;
+  return kitchensFrom(data);
+}
+
+/**
+ * Where one of a kitchen's pictures is, and the headers that open it — HER OWN
+ * token, so the bucket's walls decide (`0076`: anyone signed in, while the kitchen
+ * exists) — Wera Cocina's `photoRequest`. ⚠️ The token is handed in, from
+ * `useAuth()`'s session: `supabase.auth` has exactly one caller
+ * (`test/data-layer.test.ts`).
+ */
+export function photoRequest(
+  path: string,
+  size: PhotoSize,
+  token: string,
+): { readonly uri: string; readonly headers: Record<string, string> } {
+  return { uri: photoUrl(SUPABASE_URL, path, size), headers: photoHeaders(token, SUPABASE_PUBLISHABLE_KEY) };
+}
 
 /**
  * Every active owner of every business she belongs to — what `businessesThatGo`

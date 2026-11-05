@@ -40,6 +40,8 @@ const env = readSupabaseEnv({
 
 /** The project's address: `@/auth/held` derives the key the session is stored under from it. */
 export const SUPABASE_URL = env.url;
+/** The publishable key, which a photo's request carries beside her token (`photoRequest`, `10.5-iv-a-i`), as Wera Cocina's does. */
+export const SUPABASE_PUBLISHABLE_KEY = env.publishableKey;
 
 export const supabase = createClient(env.url, env.publishableKey, {
   auth: {

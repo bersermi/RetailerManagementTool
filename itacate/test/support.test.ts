@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 
 import { describe, expect, it } from 'vitest';
 
+import { EXTRA_ENV } from '../app.config';
 import { forgotPasswordUrl, supportNumberOf, whatsappUrl } from '@/auth/support';
 import { ES } from '@/strings';
 import {
@@ -109,9 +110,11 @@ describe('the link on the screen', () => {
 // LAUNCH. `eas update` builds the bundle from EAS's environment alone, and the
 // update runbook is the only thing that refuses to publish without a value — so
 // every `EXPO_PUBLIC_` value this app's source reads must be on the runbook's
-// list for `--app itacate`. Its config hands nothing to `extra` from the
-// environment (Wera Cocina's hands Google's two keys, `cocina/app.config.ts`), so
-// nothing else reaches the bundle — until `10.5-iv` gives Itacate Google's search.
+// list for `--app itacate`. ⚠️ SINCE `10.5-iv-a-i` THE CONFIG HANDS GOOGLE'S TWO KEYS
+// TO `extra` too, as Wera Cocina's has since `10.4g-i` (`cocina/app.config.ts`):
+// Expo writes `extra` into every update, so an update built without one asks Google
+// nothing on that phone — a kitchen with no point shows no distance, a postal code
+// cannot be placed — as silently as a missing `EXPO_PUBLIC_` value.
 describe('every value the bundle reads, the update runbook refuses to ship without', () => {
   function sources(dir = SRC): string[] {
     return readdirSync(dir).flatMap((name) => {
@@ -126,6 +129,7 @@ describe('every value the bundle reads, the update runbook refuses to ship witho
     .join('\n');
   const inlined = [...new Set([...allSource.matchAll(/process\.env\.(EXPO_PUBLIC_[A-Z0-9_]+)/g)].map((m) => m[1]))].sort();
   const config = readFileSync(new URL('../app.config.ts', import.meta.url), 'utf8').replace(/^\s*\/\/.*$/gm, '');
+  const used = [...inlined, ...EXTRA_ENV].sort();
 
   const runbook = readFileSync(new URL('../../docs/runbooks/ship-an-update.sh', import.meta.url), 'utf8');
   const listed = /\n\s*itacate\)\s+label="Itacate";\s+needed="([^"]*)"/.exec(runbook)?.[1].split(/\s+/).filter(Boolean).sort();
@@ -134,13 +138,22 @@ describe('every value the bundle reads, the update runbook refuses to ship witho
     expect(inlined).toEqual(['EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY', 'EXPO_PUBLIC_SUPABASE_URL', 'EXPO_PUBLIC_SUPPORT_WHATSAPP']);
   });
 
-  it('and nothing through the config’s `extra`', () => {
-    expect(config).not.toMatch(/\bextra\b/);
-    expect(sources().filter((path) => /expoConfig\?\.extra/.test(readFileSync(path, 'utf8')))).toEqual([]);
+  it('and Google’s two keys from the config, into `extra.google` and nowhere else in the bundle', () => {
+    expect([...EXTRA_ENV]).toEqual(['GOOGLE_MAPS_ANDROID_API_KEY', 'GOOGLE_MAPS_IOS_API_KEY']);
+    expect(config).toMatch(/extra: \{ \.\.\.config\.extra, google: \{ android: mapsKey, ios: iosKey \} \}/);
+    expect(config).toMatch(/const mapsKey = process\.env\[MAPS_KEY_ENV\] \|\| MAPS_KEY_PLACEHOLDER;/);
+    expect(config).toMatch(/const iosKey = process\.env\[IOS_MAPS_KEY_ENV\] \|\| MAPS_KEY_PLACEHOLDER;/);
+    // ⚠️ The iPhone key is NOT in the map's options: there its presence compiles Google's
+    // map into an iPhone build, a native change that is `10.5-iv-b`'s.
+    expect(config).toMatch(/\['react-native-maps', \{ androidGoogleMapsApiKey: mapsKey \}\]/);
+    expect(config).not.toMatch(/iosGoogleMapsApiKey/);
+    // Her phone's questions to Google read them where Expo puts the config, and only there.
+    const readers = sources().filter((path) => /expoConfig\?\.extra/.test(readFileSync(path, 'utf8')));
+    expect(readers.map((path) => path.slice(SRC.length + 1))).toEqual(['lib/useGoogle.ts']);
   });
 
   it('and the runbook names each of them for Itacate', () => {
     expect(listed, 'the runbook’s itacate) line').toBeDefined();
-    expect(listed).toEqual(inlined);
+    expect(listed).toEqual(used);
   });
 });

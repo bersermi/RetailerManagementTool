@@ -91,8 +91,14 @@ on:
       # (`itacate/src/api/account.ts`) — Wera Cocina's read and deletion, so the
       # Cocina contract check above holds each of its names to Cocina's and asks
       # the database with them, and the function's check puts its Apple body on
-      # the wire. The door (`10.5-iv`) brings its own check.
+      # the wire. ⚠️ `10.5-iv-a-i`: ITS SECOND CLAIM, THE ONE DOOR
+      # (`itacate/src/api/cocinas.ts`, `0078`'s `on_offer_now`) — every key the list
+      # reads, at every level of one jsonb answer, where a misspelt key is a 200 with
+      # that part missing. Its own job, `itacate-door`, below; its fonda is set up
+      # through Wera Cocina's names, under `cocina/src/api/**` above.
       - "itacate/src/api/**"
+      - "docs/checks/10.5-iv-a-door-contract.sh"
+      - "docs/checks/10.5-iv-a-door-contract-falsify.sh"
       # ⚠️⚠️ AND THE ROSTER'S, as of plan task 5b-ii-a. `app/src/api/members.ts`
       # is a second claim about the applied schema — two column lists — and it
       # carries something `workspace.ts` does not: a claim about a POLICY. The
@@ -2338,6 +2344,43 @@ jobs:
 
       - name: Contract — can the publishing check still fail (its own eleven fixtures)
         run: bash docs/checks/10.4b-iv-a-listing-contract-falsify.sh
+
+      - name: Stop
+        if: always()
+        run: supabase stop --no-backup
+
+  # ⚠️⚠️ THE ONE DOOR, AS ITACATE READS IT (`10.5-iv-a-i`), ITS OWN JOB FOR
+  # `cocina-listings`' REASON: its check signs up a fonda and a neighbour, and its
+  # falsifier runs the check again per fixture — 28 sign-ups, which beside that
+  # job's 12 would pass GoTrue's 30 in five minutes (`supabase/config.toml`) and
+  # wait their turn. Jobs run in parallel, so this costs no wall-clock. The claim is
+  # `itacate/src/api/cocinas.ts`: the door's name and every key the list reads; the
+  # fonda's side — her kitchens, address, pin, Google's point, page and
+  # publications — goes through Wera Cocina's own names.
+  itacate-door:
+    name: what a neighbour reads through the one door, against Itacate's own names
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: 2.114.0
+
+      - name: Start Postgres, GoTrue and PostgREST
+        run: supabase start -x realtime,storage-api,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
+
+      - name: Apply migrations from scratch
+        run: supabase db reset
+
+      - name: Contract — does itacate/src/api/cocinas.ts read every key the door answers a neighbour, a quiet kitchen at Google's point, and never a shop (plan 10.5-iv-a-i)
+        run: bash docs/checks/10.5-iv-a-door-contract.sh
+
+      - name: Contract — can the door check still fail (its own fixtures; the runner counts them)
+        run: bash docs/checks/10.5-iv-a-door-contract-falsify.sh
 
       - name: Stop
         if: always()

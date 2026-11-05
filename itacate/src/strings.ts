@@ -1,6 +1,7 @@
 // ============================================================================
 // EVERY WORD ITACATE SHOWS, IN ONE FILE (ADR-035 §2.11). Plan tasks `10.2a`
-// (the skeleton), `10.5-iii-a` (signing in) and `10.5-iii-b` (her way out).
+// (the skeleton), `10.5-iii-a` (signing in), `10.5-iii-b` (her way out) and
+// `10.5-iv-a-i` (the kitchens close to her).
 //
 // ⚠️ WHERE A SCREEN HERE DOES WHAT ONE OF WERA'S DOES, ITS WORDS ARE WERA'S
 // (`app/src/strings.ts`, `ES.auth`), as Wera Cocina's are (`cocina/src/strings.ts`).
@@ -65,15 +66,101 @@ export const ES = {
   },
 
   /**
-   * The skeleton's one screen (`10.2a`), now behind the sign-in: the map, and the
-   * three lines it always had, with who is signed in and the way out under them.
-   * `10.5-iv` replaces it with what is close to her.
+   * ⚠️ `10.5-iv-a-i`: THE KITCHENS CLOSE TO HER, AS A LIST — the screen she lands
+   * on, which replaced the skeleton's map. Proposal B's list (the owner's ruling of
+   * 2026-11-01, https://claude.ai/artifact/EaiMkYqn2skPXn7MiKeULu): a card per dish
+   * on offer, and a faded card per quiet kitchen saying when it usually publishes —
+   * his ruling of 2026-11-01, late, word for word: *Suele publicar entre semana,
+   * hacia las 17:00*, else *Publicó ayer* or *Publicó el martes*.
    */
-  inicio: {
-    pronto: 'Muy pronto',
-    detalle:
-      'Estás probando una versión temprana. Todavía no hace nada: la iremos llenando con actualizaciones.',
+  cerca: {
+    titulo: 'Cerca de ti',
+    tuCuenta: 'Tu cuenta',
+    /** Under the title: where the distances are measured from. */
+    desdeTuUbicacion: 'Según tu ubicación',
+    desdeCodigo: (cp: string) => `Cerca del código postal ${cp}`,
+    cambiarCodigo: 'Cambiar',
+    buscandote: 'Buscando dónde estás…',
+    cargando: 'Buscando cocinas…',
+    vacio: 'Todavía ninguna cocina tiene algo publicado. Vuelve más tarde.',
+    /** Why the postal code is asked for — one line each, above the box. */
+    sinPermiso: 'Sin tu ubicación, escribe tu código postal y te mostramos lo que hay cerca.',
+    aproximada:
+      'Tu teléfono solo nos deja ver tu ubicación aproximada. Escribe tu código postal para ver lo que hay cerca.',
+    sinUbicacion: 'No pudimos saber dónde estás. Escribe tu código postal para ver lo que hay cerca.',
+    /** Outside Wera Cocina's search zone (`ZONA_DE_BUSQUEDA`, the owner's ruling of 2026-11-04, night). */
+    fueraDeZona: 'Itacate aún no llega a tu zona.',
+    fueraDeZonaDetalle: 'Por ahora está en la Ciudad de México y el Estado de México.',
+    otroCodigo: 'Si quieres ver otro lugar, escribe su código postal.',
+    /** Her way back to her location, under the box: asks again, or opens Itacate in Settings. */
+    usarUbicacion: 'Usar mi ubicación',
+    codigoPostal: 'Código postal',
+    buscar: 'Buscar',
+    codigo: {
+      corto: 'Escribe los 5 números del código postal.',
+      ninguno: 'No encontramos ese código postal.',
+      fuera: 'Itacate aún no llega a esa zona.',
+      sinSenal: 'Sin conexión a internet. Intenta de nuevo en un momento.',
+      falla: 'No pudimos buscar ese código postal. Intenta de nuevo.',
+    },
+    /** A distance — `@/lib/distancia` rounds it, the unit is here. */
+    metros: (n: number) => `${n} m`,
+    kilometros: (cifra: string) => `${cifra} km`,
+    sorpresa: 'Sorpresa',
+    /** How many are left, before reservations exist (`10.5b`): what she published. */
+    quedan: (n: number) => `Quedan ${n}`,
+    ultimo: 'Último',
+    /** The saving, on her colour — the drawing's *−50%*, with a true minus sign. */
+    ahorro: (pct: number) => `−${pct}%`,
+    /** A quiet kitchen's card: the pattern once 3 or more publications in 4 weeks show one. */
+    suele: (dias: string, hora: string) => `Suele publicar ${dias}, ${hora}`,
+    hacia: (hora: number) => (hora === 1 ? 'hacia la 1:00' : `hacia las ${hora}:00`),
+    todosLosDias: 'todos los días',
+    casiTodosLosDias: 'casi todos los días',
+    entreSemana: 'entre semana',
+    finesDeSemana: 'los fines de semana',
+    /** Monday first — the door's `weekdays`, ISO's order. Plural, as in *los lunes y jueves*. */
+    losDias: ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábados', 'domingos'],
+    los: (dias: readonly string[]) =>
+      dias.length === 1 ? `los ${dias[0]}` : `los ${dias.slice(0, -1).join(', ')} y ${dias[dias.length - 1]}`,
+    /** Otherwise, when she last did. Monday first; singular, as in *Publicó el martes*. */
+    elDia: ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo'],
+    meses: [
+      'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+      'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre',
+    ],
+    publicoHoy: 'Publicó hoy',
+    publicoAyer: 'Publicó ayer',
+    publicoEl: (dia: string) => `Publicó el ${dia}`,
+    publicoFecha: (dia: number, mes: string) => `Publicó el ${dia} de ${mes}`,
+  },
+
+  /**
+   * ⚠️ WERA COCINA'S DAYS AND TIMES, WORD FOR WORD (`cocina/src/strings.ts`, `ES.fechas`,
+   * plan `10.4b-iv-a`): a window reads the same in the app that published it and
+   * the app that shows it. `@/lib/ventana` is Wera Cocina's, copied, and
+   * `test/gemelos.test.ts` holds both to Wera Cocina's files.
+   */
+  fechas: {
+    hoy: 'Hoy',
+    manana: 'Mañana',
+    ayer: 'Ayer',
+    /** The first three letters of each day, Sunday first — `Date.getDay()`'s order. */
+    dias: ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'],
+    dia: (abreviatura: string, numero: number) => `${abreviatura} ${numero}`,
+    momento: (dia: string, hora: string) => `${dia} ${hora}`,
+    horario: (dia: string, desde: string, hasta: string) => `${dia} · ${desde} a ${hasta}`,
+  },
+
+  /**
+   * Her account, on a screen of its own since `10.5-iv-a-i` (the list replaced the
+   * one screen her way out stood at the foot of): who is signed in, and `@/ui/Salidas`.
+   */
+  cuenta: {
+    titulo: 'Tu cuenta',
+    volver: 'Volver',
     quien: (who: string) => `Entraste como ${who}.`,
+    version: 'Estás probando una versión temprana de Itacate: la iremos llenando con actualizaciones.',
   },
 
   /**

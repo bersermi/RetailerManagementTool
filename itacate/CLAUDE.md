@@ -19,6 +19,8 @@ bash docs/checks/wera-runtime.sh          # after ANY install here: Wera's runti
 bash docs/runbooks/set-itacate-sign-in.sh --check   # the two settings outside this repository its sign-in needs, read back
 bash docs/checks/10.4b-iii-a-cocina-contract.sh     # against a local `supabase start`: her way out's names held to Wera Cocina's, which the database answers
 bash docs/checks/5R-k-apple-revoke-contract.sh      # the same stack: the function that tells Apple, served, with this app's body among the three
+bash docs/checks/10.5-iv-a-door-contract.sh         # the same stack: the one door, every key the list reads, asked as a neighbour
+TZ=UTC npm --prefix itacate test          # CI's zone: the list's days and windows are local time, and the Mac is UTC−6
 ```
 
 ## Rules
@@ -43,25 +45,33 @@ bash docs/checks/5R-k-apple-revoke-contract.sh      # the same stack: the functi
   Decided, as Wera Cocina's: **no persisted cache**, and the way in **opens on *Crear cuenta***. Its
   own: **two rooms** — the way in (`(auth)`) and the app (`(vecino)`), a session the whole answer,
   because a neighbour is no business's member and nothing is read to decide (`@/auth/guard`);
-  **one time limit**, 30 s, since Itacate sends no photo; and **one read** — her own owner
-  memberships, for her way out (`10.5-iii-b`), inside the session, keyed on the login.
+  **one time limit**, 30 s, since Itacate sends no photo; and **two reads** — her own owner
+  memberships, for her way out (`10.5-iii-b`), and the one door (`10.5-iv-a-i`) — inside the
+  session, keyed on the login. ⚠️ **Nothing of a read is kept on the phone's disk**: the
+  kitchens' photos too are drawn from memory (`@/ui/Foto`'s `cachePolicy="memory"`), so a
+  deleted kitchen's photos leave every neighbour's reach at once, as Wera Cocina's aviso promises.
 - **Her way out is Wera Cocina's, cut to this app** (`src/api/account.ts`, `@/ui/Salidas`, the owner's
-  ruling of 2026-11-04): at the foot of the one screen, *Cerrar sesión* and *Eliminar mi cuenta*; a
+  ruling of 2026-11-04): on *Tu cuenta* (`(vecino)/cuenta`, since `10.5-iv-a-i`, reached from the list's
+  band — the foot of the one screen before), *Cerrar sesión* and *Eliminar mi cuenta*; a
   neighbour owns nothing and just confirms; a sole owner sees every kitchen (in Wera Cocina) and shop
   (in Wera) that goes with the account and types each name (`0073`), in one body, `{p_business_names}`.
   No business is open here, so they are named kitchens first, then shops. Wera's words, held to Wera's
   file (`test/account.test.ts`); each business's line is the twin's that is not its home. ⚠️ **Apple
   is told through Wera's one function**, its body's `client_id` this app's bundle id (`apple-revoke`
   build 3); only an iPhone shows the sheet, and **Itacate has no iPhone build**, so that half has
-  never run from it. ⚠️ **The screen is a `Formulario`** so a typed name stays above the keyboard; the
-  map fills what the lines leave until the deletion opens, then keeps 240 points.
+  never run from it. ⚠️ ***Tu cuenta* is a `Formulario`** so a typed name stays above the keyboard.
 - **A module in `src/api/` is a claim about the applied schema**, as in Wera and Wera Cocina:
   `db.yml` fires on `itacate/src/api/**` since `10.5-iii-a`. ⚠️ **Her way out's names
   (`src/api/account.ts`) are Wera Cocina's, one by one**: the first group of
   `docs/checks/10.4b-iii-a-cocina-contract.sh` refuses any that differs before a request is sent,
   so its deletions are this app's too — one check over one engine, not a copy (its falsifier breaks
-  both files at once). A change to the read or the body is made in both apps. The door (`10.5-iv`)
-  brings its own check.
+  both files at once). A change to the read or the body is made in both apps. ⚠️ **The door's claim
+  is `src/api/cocinas.ts`** (`10.5-iv-a-i`): `on_offer_now` and every key the list reads, at every level
+  of one jsonb answer, by the database's names — where a misspelt key is a 200 with that part missing.
+  `docs/checks/10.5-iv-a-door-contract.sh` (its own job in `db.yml`, `itacate-door`) reads them out of
+  that file and asks a real PostgREST as a neighbour, a fonda set up through Wera Cocina's own names;
+  money and quantities arrive as decimal text and are read by `parseDecimal` (`@tienda/money`, this
+  app's one workspace package since `10.5-iv-a-i`); a kitchen it cannot read is dropped, never the list.
 - **Sign-in leans on two settings outside this repository**, both made by the owner's one command,
   `bash docs/runbooks/set-itacate-sign-in.sh` (a session's write to either is refused), and read
   back by `--check`: the three values its bundle reads in this EAS project's `preview` and, since
@@ -86,13 +96,51 @@ bash docs/checks/5R-k-apple-revoke-contract.sh      # the same stack: the functi
   (measured). **No camera.** A
   module missing at the public release waits for the major update (`10.8`); before it, one more
   build.
-- ⚠️ **Her exact position stays on the phone** (the owner's ruling of 2026-11-01, question 6, option
-  C): the phone snaps it to a ~2.2 km square — Google counts an area under 3 km² as precise — and
-  only that square reaches the door, which answers with what is on offer around it; distance and
-  order are computed on the phone. Sent in the request's body, never its URL, and never kept:
-  Apple's form needs nothing (data *"immediately discarded after servicing the request"*), Play's
-  declares approximate location processed ephemerally (not shown on the store), and the aviso
-  says so before the first update that sends it. Declined or approximate: her colonia (D).
+- ⚠️⚠️ **Her location never leaves the phone** (the owner's ruling of 2026-11-04, night, which replaced
+  2026-11-01's 2 km square — this bullet said the square reaches the door until `10.5-iv-a-i`): the door
+  takes no area and sends every kitchen a neighbour may see, and the distance and the order are worked
+  out on her phone (`@/lib/distancia`, `@/lib/lista`). One module asks `expo-location`
+  (`@/lib/useUbicacion`: the last known location, then a fresh one, a watch every 50 m while the app is
+  open — removed whenever it leaves the front — and the whole question again on a pull or a return; the
+  permission asked once, only while never asked), and the list alone reads it (`test/donde.test.ts`).
+  ⚠️ **Found on the emulator (`10.5-iv-a-i`)**: a request the phone answers *denied* with no dialog (its
+  permission screen frozen) must not strand her — *Usar mi ubicación* under the postal code's box asks again
+  where the phone still allows it, else opens Itacate's page in Settings, and a request that fails reads as
+  *not found*; ⚠️ **never Google's *Location Accuracy* prompt** (`mayShowUserSettingsDialog: false`, on both
+  calls) — and so **high accuracy**: a balanced fix is served by Google's network location, and without it no
+  GPS ran and the walk never reached the list.
+  **Declined or approximate** — read from the permission: an iPhone's `reduced`, Android's `coarse` —
+  **her postal code**, typed (`@/ui/CodigoPostal`, the ruling of 2026-11-03), asked of Google by her phone
+  and held in memory only. **Outside Wera Cocina's search zone** (`@/lib/zona`, held to Wera Cocina's
+  constant): *Itacate aún no llega a tu zona*. Apple's form needs nothing; Play's declares *Approximate
+  location* for the postal code (`store/cocina-itacate.md`); the aviso's section 10 says all of it.
+- **The list is proposal B's, as drawn** (`10.5-iv-a-i`, `(vecino)/index`, `@/lib/lista`): a card per dish on
+  offer (`@/ui/TarjetaPlatillo` — its photo, else her trade's drawing on her colour; her circle; the price,
+  the *vale* struck and the saving; *Quedan 2*, *Último*; the window; the distance) and a faded card per
+  quiet kitchen (`@/ui/TarjetaCocina` — the owner's words of 2026-11-01, late: *Suele publicar entre
+  semana, hacia las 17:00* once 3 publications in 4 weeks show a pattern, else *Publicó ayer*, *Publicó el
+  martes*), held word for word by `test/lista.test.ts`. **Nearest first, every kitchen the door sends**,
+  an unknown distance last — the order he chooses (the plan's decisions block) is `antes` alone. A window
+  that ends while she looks turns its kitchen quiet without asking the door (the cards are made again
+  every minute). ⚠️ **No kitchen is drawn on a map**: Google's points go only on Google's map, which is
+  `10.5-iv-b`'s. A card opens nothing yet — a kitchen's page and a dish's are `10.5-iv-a-ii`'s.
+- **Google, from her phone, for her alone, kept nowhere** (`@/lib/google`, pure; `@/lib/useGoogle`, the
+  requests): Geocoding for a kitchen the door sends with no point — her address, asked once while the app
+  is open, the answer in TanStack's memory (Service Specific Terms §6.3.2) — and for her postal code, never
+  cached. Each request names THIS app (`mx.wera.vecino`; on Android its test builds' signature, held to the
+  handbook's record of what the key accepts). ⚠️⚠️ **Measured 2026-11-05: Google's Android key gets
+  Itacate's requests past its app lock and then refuses Places and Geocoding (`API_KEY_SERVICE_BLOCKED`) —
+  for Wera Cocina too** — until the owner's console step (the handbook's *Before Wera Cocina reaches your
+  testers*, item 6): meanwhile, on Android, a kitchen with no point shows no distance and a postal code
+  cannot be placed; the iPhone key answers both apps.
+- **Wera Cocina's defaults and names, copied — each copy naming its twin**: `@/api/pagina` (the six
+  colours, each trade's colour and drawing, the initials), `@/api/fotos` (the photos' names and how a
+  phone asks for one), `@/theme/colores`, `@/theme/dibujos` with `src/marca/giros/` (the nine PNGs, byte
+  for byte), `@/format/mxn` (Wera's, through Wera Cocina's), `@/lib/ventana` (a window's words),
+  `@/lib/zona`, `@/ui/Dibujo`, `@/ui/Iniciales`, and `@/lib/google`'s shared code. `test/gemelos.test.ts`
+  holds each to the TWIN'S FILE: it runs the twin where it loads under this app's `@/`, compares the code
+  block by block where it cannot, and the drawings by their bytes — a re-drawing in Wera Cocina is copied
+  here in the same PR, or that test is red.
 - ⚠️⚠️ **A dependency here never moves a version Wera uses.** This folder shares Wera's
   `node_modules`. A module Wera also has takes **Wera's exact range** from `app/package.json`; a
   new native module is pinned to the **newest patch whose dependencies Wera's installed tree
@@ -100,16 +148,19 @@ bash docs/checks/5R-k-apple-revoke-contract.sh      # the same stack: the functi
   `expo-notifications` 57.0.24 upgraded `expo-constants` and moved Wera's runtime on both
   platforms; 57.0.17 fits, and `expo-location` 57.0.20. After any install, the root lockfile's
   diff must only **add** entries, and `docs/checks/wera-runtime.sh` (in `app.yml`) must pass.
-- **Two values come from EAS's environment, never the repository:** the Android map key
-  (`GOOGLE_MAPS_ANDROID_API_KEY`) and Firebase's `google-services.json` (file variable
-  `GOOGLE_SERVICES_JSON`, copied in by `eas-pre-install.sh`, which refuses an Android store
-  build without either). **Neither enters the runtime** — `fingerprint.config.js` drops both,
-  and `test/runtime.test.ts` computes the runtime with and without them. A new value read from
-  the environment into the config joins that file and that test. ⚠️ **Wera Cocina's twins of
-  those four files moved ahead in `10.4g-i`** (the iPhone map key, `GOOGLE_MAPS_IOS_API_KEY`, and
-  `extra.google` for its search); Itacate's stay as they are until its own map (`10.5-iv`), and
-  each header says so. Measured that day: the header edits left Itacate's runtime as it was on
-  both platforms (`npx expo-updates fingerprint:generate`).
+- **Three values come from EAS's environment, never the repository:** the Android map key
+  (`GOOGLE_MAPS_ANDROID_API_KEY`), the iPhone key (`GOOGLE_MAPS_IOS_API_KEY`, since `10.5-iv-a-i`) and
+  Firebase's `google-services.json` (file variable `GOOGLE_SERVICES_JSON`, copied in by
+  `eas-pre-install.sh`, which refuses an Android store build without the file or the Android key). The
+  Android key goes into `react-native-maps`' options, and **both keys into `extra.google`**
+  (`10.5-iv-a-i`), where her phone's questions to Google read their own (`@/lib/useGoogle`). ⚠️ **The
+  iPhone key is NOT in the map's options**: there its presence compiles Google's map into an iPhone
+  build, a native change that is `10.5-iv-b`'s. **None enters the runtime** — `fingerprint.config.js`
+  drops the Android key from the map's options and **the whole of `extra.google`** (removed, not
+  masked as Wera Cocina's are, so the config hashes as it did before), and ignores the file;
+  `test/runtime.test.ts` computes the runtime with and without them, and pins Android's to the one
+  Itacate's test build in the field carries (`4de35b0b…`, build `2b638d21`). A new value read from the
+  environment into the config joins that file and that test, and the update runbook's list.
 - **Ship an update only through the runbook, which computes the runtime the way the build does** —
   `bash docs/runbooks/ship-an-update.sh preview "…" --app itacate`, run on `main` after a green merge
   (`10.5-iii-a`, its first; `production` since `10.5-iii-b`, his); its rehearsal in `app.yml` holds the
@@ -117,9 +168,11 @@ bash docs/checks/5R-k-apple-revoke-contract.sh      # the same stack: the functi
   `eas update`. ⚠️ **Its only test build is Android's `preview` APK** (`2b638d21`, from `10.2b`; EAS
   keeps it to 2026-11-11, installed copies keep working) — no iPhone test build exists, and the first
   needs the owner at Terminal.app for its signing profile (`5R-b-iii`'s finding). The bundle reads
-  three values — the database's two and the support number — which this project holds in `preview`,
-  and in `production` once his command has run again (`10.5-iii-b`); a new `EXPO_PUBLIC_` value joins
-  the runbook's list for `--app itacate`, held by `test/support.test.ts`.
+  five values — the database's two and the support number, which this project holds in `preview`, and
+  in `production` once his command has run again (`10.5-iii-b`), and since `10.5-iv-a-i` Google's two
+  keys through `extra`, the organization's variables in both environments; a new `EXPO_PUBLIC_` value, or
+  a variable the config hands to `extra`, joins the runbook's list for `--app itacate`, held by
+  `test/support.test.ts`.
 - **`ios/` and `android/` are generated by `expo prebuild` and gitignored. No workflow compiles
   this app**: `cocina-itacate.yml` is a typecheck and the suite. A device build is the evidence
   for anything native.

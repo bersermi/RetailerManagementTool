@@ -1,5 +1,6 @@
 // ============================================================================
-// HOW A SCREEN REACHES THE DATABASE. Plan task `10.5-iii-b` (her way out).
+// HOW A SCREEN REACHES THE DATABASE. Plan tasks `10.5-iii-b` (her way out) and
+// `10.5-iv-a-i` (the kitchens close to her, and their photos).
 //
 // ⚠️ A SCREEN NEVER CALLS `@/api/calls` ITSELF — Wera's R12, as in Wera Cocina
 // (`cocina/src/api/hooks.ts`, whose two deletion hooks these are, copied): a
@@ -20,9 +21,48 @@ import {
   type Business,
   type DeleteArgs,
 } from '@/api/account';
-import { accountOwners, deleteMyAccount, revokeApple } from '@/api/calls';
+import { accountOwners, deleteMyAccount, onOfferNow, photoRequest, revokeApple } from '@/api/calls';
+import { cocinasKey, type Kitchen } from '@/api/cocinas';
+import { FILE_OF, isPicturePath, type PhotoSize } from '@/api/fotos';
 import { releaseStep } from '@/auth/apple';
 import { useAuth } from '@/auth/AuthProvider';
+
+/**
+ * ⚠️ `10.5-iv-a-i`: EVERY KITCHEN A NEIGHBOUR MAY SEE, through the one door (`0078`).
+ * Keyed on the login, as every read here. Read again when she pulls the list, and
+ * when the app comes back to the front once the answer is a minute old
+ * (`@/api/QueryProvider`'s focus and `staleTime`). In memory only: Itacate keeps no
+ * read on the phone's disk.
+ */
+export function useCocinas() {
+  const { session, ready } = useAuth();
+  const userId = session?.user.id ?? null;
+  return useQuery<Kitchen[]>({
+    queryKey: cocinasKey(userId),
+    queryFn: onOfferNow,
+    enabled: ready && userId !== null,
+  });
+}
+
+/**
+ * The source `expo-image` draws one of a kitchen's pictures from: Storage's private
+ * door with her own token — Wera Cocina's `useFotoSource`, cut to pictures already
+ * saved. `null` — her default shows — with no picture, no session, or a path that
+ * is not in that kitchen's own folder (`isPicturePath`, `0076`'s rule), which is
+ * never asked for. ⚠️ The cache key is the path and the file, never the token: a
+ * renewed session still finds the picture on disk, and a saved path never changes.
+ */
+export function useFotoSource(
+  path: string | null,
+  kitchenId: string,
+  size: PhotoSize,
+): { readonly uri: string; readonly headers: Record<string, string>; readonly cacheKey: string } | null {
+  const { session } = useAuth();
+  const token = session?.access_token ?? null;
+  if (path === null || token === null || !isPicturePath(path, kitchenId)) return null;
+  const request = photoRequest(path, size, token);
+  return { uri: request.uri, headers: request.headers, cacheKey: `${path}/${FILE_OF[size]}` };
+}
 
 /**
  * Every business that goes with her account when it is deleted (`0073`): those

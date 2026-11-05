@@ -139,10 +139,12 @@ N_COCINA_IOS="Wera Cocina without the iPhone's map key is refused"
 N_WERA_THREE="Wera without its support number is still refused"
 N_COCINA_FIRST="Wera Cocina without the database's key is refused"
 N_ITACATE_SENT="--app itacate publishes from Itacate's folder"
-N_ITACATE_CHECK="Itacate with the database's two values and the support number passes"
+N_ITACATE_CHECK="Itacate with the database's two values, the support number and Google's two keys passes"
+N_ITACATE_FOUR="Itacate without Google's keys is refused"
+N_ITACATE_IOS="Itacate without the iPhone's key is refused"
 N_ITACATE_THREE="Itacate without the support number is refused"
 N_ITACATE_PROD="Itacate's production publishes from Itacate's folder, its way out built (10.5-iii-b)"
-N_ITACATE_PROD_BARE="Itacate's production without the three values is refused, by name, and nothing is sent"
+N_ITACATE_PROD_BARE="Itacate's production without its values is refused, by name, and nothing is sent"
 N_APP_BAD="--app with an app this runbook does not ship is refused"
 
 cases() {
@@ -169,12 +171,17 @@ cases() {
   one "$dir" "$N_COCINA_FIRST" preview    "--check --app cocina" 'EXPO_PUBLIC_SUPABASE_URL=u' 1 "has no EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY"
   # ⚠️ `10.5-iii-a`: Itacate's first update. Until then `--app itacate` was this
   # rehearsal's example of an app the runbook does not ship; `ruta` is now.
-  one "$dir" "$N_ITACATE_SENT"  preview    "--app itacate" "$three" 0 "--clear-cache --non-interactive (in itacate)"
-  one "$dir" "$N_ITACATE_CHECK" preview    "--check --app itacate" "$three" 0 "to Itacate's 'preview'"
+  one "$dir" "$N_ITACATE_SENT"  preview    "--app itacate" "$four" 0 "--clear-cache --non-interactive (in itacate)"
+  one "$dir" "$N_ITACATE_CHECK" preview    "--check --app itacate" "$four" 0 "to Itacate's 'preview'"
   one "$dir" "$N_ITACATE_THREE" preview    "--check --app itacate" "$two" 1 "has no EXPO_PUBLIC_SUPPORT_WHATSAPP"
+  # ⚠️ `10.5-iv-a-i`: her phone's questions to Google read the two keys through the
+  # config's `extra`, as Wera Cocina's search does — an update built without one asks
+  # Google nothing on that phone, and nothing on the phone says so.
+  one "$dir" "$N_ITACATE_FOUR"  preview    "--check --app itacate" "$three" 1 "has no GOOGLE_MAPS_ANDROID_API_KEY"
+  one "$dir" "$N_ITACATE_IOS"   preview    "--check --app itacate" "$sin_ios" 1 "has no GOOGLE_MAPS_IOS_API_KEY"
   # ⚠️ `10.5-iii-b`: Itacate's way out lifted the refusal of its store version, so
   # `production` is refused as any channel is — while its environment lacks a value.
-  one "$dir" "$N_ITACATE_PROD"  production "--app itacate" "$three" 0 "--channel production --environment production --platform all --message mensaje --clear-cache --non-interactive (in itacate)"
+  one "$dir" "$N_ITACATE_PROD"  production "--app itacate" "$four" 0 "--channel production --environment production --platform all --message mensaje --clear-cache --non-interactive (in itacate)"
   one "$dir" "$N_ITACATE_PROD_BARE" production "--app itacate" "" 1 "EAS's 'production' environment has no EXPO_PUBLIC_SUPABASE_URL"
   one "$dir" "$N_APP_BAD"      preview    "--app ruta" "$two" 2 "usage:"
 }
@@ -257,11 +264,19 @@ broken "Wera Cocina's list without the iPhone's key" \
 # updates, a list that asks nothing would send his closed testers a bundle that
 # throws on its first launch (no database address).
 broken "Itacate's list without the support number" \
-  'label="Itacate";     needed="EXPO_PUBLIC_SUPABASE_URL EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY EXPO_PUBLIC_SUPPORT_WHATSAPP"' \
-  'label="Itacate";     needed="EXPO_PUBLIC_SUPABASE_URL EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY"' "$N_ITACATE_THREE"
+  'label="Itacate";     needed="EXPO_PUBLIC_SUPABASE_URL EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY EXPO_PUBLIC_SUPPORT_WHATSAPP GOOGLE_MAPS_ANDROID_API_KEY GOOGLE_MAPS_IOS_API_KEY"' \
+  'label="Itacate";     needed="EXPO_PUBLIC_SUPABASE_URL EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY GOOGLE_MAPS_ANDROID_API_KEY GOOGLE_MAPS_IOS_API_KEY"' "$N_ITACATE_THREE"
 broken "Itacate's list emptied" \
-  'label="Itacate";     needed="EXPO_PUBLIC_SUPABASE_URL EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY EXPO_PUBLIC_SUPPORT_WHATSAPP"' \
+  'label="Itacate";     needed="EXPO_PUBLIC_SUPABASE_URL EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY EXPO_PUBLIC_SUPPORT_WHATSAPP GOOGLE_MAPS_ANDROID_API_KEY GOOGLE_MAPS_IOS_API_KEY"' \
   'label="Itacate";     needed=""' "$N_ITACATE_PROD_BARE"
+# ⚠️ `10.5-iv-a-i`: an update to Itacate built without a phone's key asks Google
+# nothing on that phone — no distance for a kitchen with no point, no postal code.
+broken "Itacate's list without the Android key" \
+  'label="Itacate";     needed="EXPO_PUBLIC_SUPABASE_URL EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY EXPO_PUBLIC_SUPPORT_WHATSAPP GOOGLE_MAPS_ANDROID_API_KEY GOOGLE_MAPS_IOS_API_KEY"' \
+  'label="Itacate";     needed="EXPO_PUBLIC_SUPABASE_URL EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY EXPO_PUBLIC_SUPPORT_WHATSAPP GOOGLE_MAPS_IOS_API_KEY"' "$N_ITACATE_FOUR"
+broken "Itacate's list without the iPhone's key" \
+  'label="Itacate";     needed="EXPO_PUBLIC_SUPABASE_URL EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY EXPO_PUBLIC_SUPPORT_WHATSAPP GOOGLE_MAPS_ANDROID_API_KEY GOOGLE_MAPS_IOS_API_KEY"' \
+  'label="Itacate";     needed="EXPO_PUBLIC_SUPABASE_URL EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY EXPO_PUBLIC_SUPPORT_WHATSAPP GOOGLE_MAPS_ANDROID_API_KEY"' "$N_ITACATE_IOS"
 
 echo
 if [[ "$bad" -ne 0 ]]; then
