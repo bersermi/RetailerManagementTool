@@ -6,6 +6,13 @@
 // `useOnboardWorkspace`): the kitchen (`onboard_workspace` with the kind), then
 // her trade, her address, and — only when she set her own point — her pin with
 // her line of directions; else her line alone, when she wrote one (`0075`).
+// ⚠️⚠️ AND LAST, WHEN SHE SET NO POINT OF HER OWN, GOOGLE'S POINT FOR HER ADDRESS
+// (`set_google_point`, `0078`, plan `10.5-i-b-ii`) — what the small map drew: her
+// pick's, with its ID, or Geocoding's for her boxes. LAST BECAUSE A NEW ADDRESS
+// CLEARS IT (`0078`'s trigger), and only once her address landed: it is Google's
+// answer for that address. Its failure is no step missing — nothing on screen
+// says Google's point exists — and her kitchen's screen asks Google again for it
+// (`useDondeEstaSuCocina`, outside this layer).
 //
 // ⚠️⚠️ ONLY THE FIRST CAN FAIL THE SIGN-UP. Once `onboard_workspace` answers,
 // the kitchen exists, and a later step that fails leaves it made — Wera's rule —
@@ -28,13 +35,16 @@ import {
   EMPTY_ADDRESS,
   checkAddress,
   directionsFrom,
+  setGooglePointArgs,
   setStoreAddressArgs,
   setStoreDirectionsArgs,
   setStorePinArgs,
   type AddressForm,
   type AddressIssue,
+  type GooglePoint,
   type Pin,
   type Place,
+  type SetGooglePointArgs,
   type SetStoreAddressArgs,
   type SetStoreDirectionsArgs,
   type SetStorePinArgs,
@@ -69,12 +79,18 @@ export function formIssue(borrador: Borrador): FormIssue | null {
   return pasoUno(borrador) ?? checkAddress(borrador.address);
 }
 
-/** The draft *Registrar mi cocina* sends, or `null` while anything is missing. ⚠️ Her point is not needed. */
-export function draftFrom(borrador: Borrador): Draft | null {
+/**
+ * The draft *Registrar mi cocina* sends, or `null` while anything is missing. ⚠️ Her
+ * point is not needed. ⚠️ `google` is where the small map placed her address as she
+ * pressed it (`10.5-i-b-ii`) — `null` while Google had not answered — and is dropped
+ * when she set her own point, which wins everywhere.
+ */
+export function draftFrom(borrador: Borrador, google: GooglePoint | null = null): Draft | null {
   const name = checkKitchenName(borrador.name);
   if (name === null || borrador.giro === null) return null;
   if (checkAddress(borrador.address) !== null) return null;
-  return { name, giro: borrador.giro, address: borrador.address, pin: puntoVigente(borrador), directions: borrador.directions };
+  const pin = puntoVigente(borrador);
+  return { name, giro: borrador.giro, address: borrador.address, pin, directions: borrador.directions, google: pin === null ? google : null };
 }
 
 /** Everything the sign-up collects, checked. */
@@ -86,6 +102,8 @@ export interface Draft {
   readonly pin: Pin | null;
   /** As she typed it; `directionsFrom` makes it one line, or none. */
   readonly directions: string;
+  /** Google's point for her address, kept as Google's 30-day copy (`0078`); `null` with a pin of her own, or none from Google. */
+  readonly google: GooglePoint | null;
 }
 
 /** The round trips, as `@/api/calls` makes them. */
@@ -96,6 +114,7 @@ export interface KitchenCalls {
   readonly setAddress: (args: SetStoreAddressArgs) => Promise<void>;
   readonly setPin: (args: SetStorePinArgs) => Promise<void>;
   readonly setDirections: (args: SetStoreDirectionsArgs) => Promise<void>;
+  readonly setGooglePoint: (args: SetGooglePointArgs) => Promise<void>;
 }
 
 /** What a later step could not write, which her kitchen's screen asks for again. */
@@ -136,9 +155,11 @@ export async function makeKitchen(draft: Draft, calls: KitchenCalls): Promise<Ma
     return { kitchenId, missing: [...missing, ...rest] };
   }
 
+  let addressLanded = true;
   try {
     await calls.setAddress(setStoreAddressArgs(place.id, draft.address));
   } catch {
+    addressLanded = false;
     missing.push('address');
   }
   if (draft.pin !== null) {
@@ -153,6 +174,14 @@ export async function makeKitchen(draft: Draft, calls: KitchenCalls): Promise<Ma
       await calls.setDirections(setStoreDirectionsArgs(place.id, draft.directions));
     } catch {
       missing.push('directions');
+    }
+  }
+  // ⚠️ LAST, AND ONLY ON THE ADDRESS IT BELONGS TO (the header): never with her own point.
+  if (draft.pin === null && draft.google !== null && addressLanded) {
+    try {
+      await calls.setGooglePoint(setGooglePointArgs(place.id, draft.google));
+    } catch {
+      // Nothing to tell her: her kitchen's screen asks Google again.
     }
   }
   return { kitchenId, missing };

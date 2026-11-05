@@ -13,10 +13,16 @@
 //
 // ⚠️⚠️ THE SMALL MAP NEEDS NO TOUCH. It draws her own point while it still belongs
 // to the street and number in the boxes (`puntoVigente`), else where Google places
-// her address — her pick's point, or her boxes through Geocoding once they rest —
-// looked up live by this phone and never kept (`useDondeEsta`). A tap on it opens
-// *Ajusta el punto*, the only way to a point of her own. No point, no problem:
-// she registers with her address alone, and the box says why there is no pin.
+// her address — her pick's point, behind *Cambiar dirección* her kitchen's stored
+// copy while the boxes read as stored, or her boxes through Geocoding once they
+// rest (`useDondeEsta`). A tap on it opens *Ajusta el punto*, the only way to a point
+// of her own. No point, no problem: she registers with her address alone, and the
+// box says why there is no pin.
+//
+// ⚠️⚠️ WHAT IT DRAWS IS WHAT HER SAVE KEEPS AS GOOGLE'S (`10.5-i-b-ii`, the owner's
+// ruling of 2026-11-04, night): the button hands the route `google` — the point on
+// the small map, with the ID of the place she picked — as Google's 30-day copy, never
+// as her pin; `null` with her own point, or while Google has not answered.
 //
 // ⚠️ THE LINE ABOUT NEIGHBOURS IS SAID BEFORE SHE SAVES, EVERY TIME: her address
 // and its point are shown to signed-in neighbours before they reserve (the owner's
@@ -33,7 +39,7 @@ import { Keyboard, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { puntoVigente, type SuDireccion } from '@/api/direccion';
-import { DIRECTIONS_MAX } from '@/api/place';
+import { DIRECTIONS_MAX, type GooglePoint } from '@/api/place';
 import type { Lugar } from '@/lib/google';
 import { useDondeEsta, type DondeEsta } from '@/lib/useGoogle';
 import { ES } from '@/strings';
@@ -89,19 +95,20 @@ export function PantallaDireccion({
   /** Opens *Ajusta el punto*. */
   onAjustar: () => void;
   onVolver: () => void;
-  /** Checks and saves; answers `null`, or the sentence to show. */
-  onGuardar: () => Promise<string | null>;
+  /** Checks and saves — with Google's point for her address, as drawn; answers `null`, or the sentence to show. */
+  onGuardar: (google: GooglePoint | null) => Promise<string | null>;
 }) {
   const insets = useSafeAreaInsets();
   const [problem, setProblem] = useState<string | null>(null);
   const propio = puntoVigente(valor);
   const donde = useDondeEsta(propio !== null ? null : valor.address, elegido);
   const punto = propio ?? (donde.kind === 'punto' ? donde.destino.punto : null);
+  const google = propio === null && donde.kind === 'punto' ? donde.google : null;
 
   async function guardar() {
     if (busy) return;
     Keyboard.dismiss();
-    setProblem(await onGuardar());
+    setProblem(await onGuardar(google));
   }
 
   const quiet = { fontSize: SIZE.bodySize, color: PALETTE.tintaApagada } as const;

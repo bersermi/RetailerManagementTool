@@ -3,7 +3,7 @@ import { ActivityIndicator, View } from 'react-native';
 
 import { useKitchen, usePlace, useSavePin } from '@/api/hooks';
 import { samePin, setStorePinArgs, type Pin } from '@/api/place';
-import { useDondeEsta } from '@/lib/useGoogle';
+import { useDondeEstaSuCocina } from '@/lib/useGoogle';
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
 import { Banda } from '@/ui/Banda';
@@ -14,9 +14,10 @@ import { PantallaPunto } from '@/ui/PantallaPunto';
 // at once. Plan tasks `10.4b-iii-b` and `10.4h` (the owner's ruling of
 // 2026-11-03: her own point, if she sets one, is kept and used by every map after).
 //
-// ⚠️ THE MAP OPENS ON HER POINT, OR WHERE THE SMALL MAP PLACED HER ADDRESS — the
-// same answer, from the cache (`useDondeEsta`); there the middle is Google's, and
-// *Listo* saves nothing until her own hand has moved the map.
+// ⚠️ THE MAP OPENS ON HER POINT, OR WHERE HER KITCHEN'S SMALL MAP DRAWS HER — her
+// kitchen's copy of Google's point, the same answer (`useDondeEstaSuCocina`,
+// `10.5-i-b-ii`); there the middle is Google's, and *Listo* saves nothing until her
+// own hand has moved the map.
 //
 // ⚠️⚠️ HER STORED LINE OF DIRECTIONS GOES WITH HER POINT: `set_store_pin` (`0072`)
 // writes the line with the pin on every call, and this screen has no box for it —
@@ -28,7 +29,7 @@ export default function Ubicacion() {
   const place = usePlace(kitchen?.id ?? null);
   const { save, busy } = useSavePin();
   const here = place.data;
-  const donde = useDondeEsta(here === undefined || here === null || here.pin !== null ? null : here.address, null);
+  const donde = useDondeEstaSuCocina(here);
 
   async function listo(pin: Pin | null): Promise<string | null> {
     if (here === undefined || here === null) return ES.api.errors.unknown;

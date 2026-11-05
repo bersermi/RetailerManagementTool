@@ -21,14 +21,20 @@
 // number and colonia in its hint and sends what she typed alone (`preguntaDe`):
 // the boxes under it are what her pick fills, not what it asks with.
 //
-// ⚠️⚠️ WHAT IS KEPT: HER FIVE BOXES AND HER PIN, NEVER GOOGLE'S POINT. A
-// suggestion she picks fills the boxes — Google lets the address an end user picks
-// be hers (*Autocomplete for end user addresses*, its Places policies, read
-// 2026-11-03), never the list — and every box stays hers to change. Google's point
-// only moves the map: her pin is the centre once her own hand moved it
-// (`@/lib/mapa`'s `alLlegar`). What Google calls the street under her pin is shown
-// on the card and never kept. `test/buscar.test.ts` reads the screens for it, and
-// refuses this module in `src/api/`.
+// ⚠️⚠️ WHAT IS KEPT: HER FIVE BOXES, HER PIN IF SHE SETS ONE, AND — SINCE
+// `10.5-i-b-ii` — GOOGLE'S POINT FOR HER ADDRESS AS A 30-DAY COPY, never what Google
+// names. A suggestion she picks fills the boxes — Google lets the address an end
+// user picks be hers (*Autocomplete for end user addresses*, its Places policies,
+// read 2026-11-03), never the list — and every box stays hers to change. On *Ajusta
+// el punto* Google's point only moves the map: her pin is the centre once her own
+// hand moved it (`@/lib/mapa`'s `alLlegar`). Where Google places her address — her
+// pick's point, or her boxes through Geocoding — is kept as Google's, apart from
+// her pin, with the ID of the place she picked (`GooglePoint`, `0078`; the owner's
+// ruling of 2026-11-04, night: Service Specific Terms §14.3 and §6.3.1 allow 30
+// days), and asked again when the copy is a week old (`preguntaDeRefresco`). What
+// Google calls the street under her pin is shown on the card and never kept.
+// `test/buscar.test.ts` reads the screens for it, and refuses this module in
+// `src/api/`: the data layer is handed a `GooglePoint` and never asks Google.
 //
 // ⚠️ ONE SESSION PER SEARCH (Google's session pricing, read 2026-11-02): every
 // suggestion asked while she looks for one address carries one token, and the
@@ -45,7 +51,7 @@
 // requests are `@/lib/useGoogle`'s.
 // ============================================================================
 
-import { EMPTY_ADDRESS, checkAddress, type AddressForm, type Pin } from '@/api/place';
+import { EMPTY_ADDRESS, checkAddress, type AddressForm, type GooglePoint, type Pin, type Place } from '@/api/place';
 import { CLOSE_METRES } from '@/lib/mapa';
 
 // ----------------------------------------------------------------------------
@@ -272,6 +278,12 @@ export interface Destino {
 /** The suggestion she picked, read: where the map flies, and her five boxes from Google's parts. */
 export interface Lugar extends Destino {
   readonly direccion: AddressForm;
+  /**
+   * ⚠️ `10.5-i-b-ii`: Google's ID for the place — kept with its point, so the copy
+   * is refreshed by asking for that place again. `null` for her kitchen's stored
+   * copy of Geocoding's answer (`lugarGuardado`), which has none.
+   */
+  readonly placeId: string | null;
 }
 
 /** What the suggestions came back as. No signal is `@/lib/useGoogle`'s: `fetch` fails before any status. */
@@ -423,6 +435,8 @@ export function lugarDe(status: number, body: unknown, sugerencia: Sugerencia, e
     conNumero,
     anchoMetros: anchoEntre(puntoDe(viewport.low, 'latitude', 'longitude'), puntoDe(viewport.high, 'latitude', 'longitude')),
     direccion: cajasDe(componentes, sugerencia.detalle, escrita),
+    // The details' own `id` is Google's current one for the place; the suggestion's, else.
+    placeId: texto(b.id) || sugerencia.id,
   };
 }
 
@@ -564,4 +578,82 @@ export function otraCalle(suya: string, deGoogle: string | null): boolean {
   const b = palabras(deGoogle);
   if (a.length === 0 || b.length === 0) return false;
   return !(dentro(a, b) || dentro(b, a));
+}
+
+// ----------------------------------------------------------------------------
+// Her kitchen's stored copy, drawn, and asked again a week on — `10.5-i-b-ii`
+// ----------------------------------------------------------------------------
+
+/**
+ * Where a stored copy flies a map: block level, as a door's answer does — her
+ * address always carries its number (`checkAddress`, the owner's four).
+ */
+export function destinoGuardado(google: GooglePoint): Destino {
+  return { punto: google.pin, conNumero: true, anchoMetros: 0 };
+}
+
+/**
+ * Her kitchen's stored copy as the place the address screen knows for her boxes
+ * as stored — so *Cambiar dirección* opens drawing the point her kitchen's screen
+ * draws, and asks Google nothing until she changes them. `null` with no copy, and
+ * while she has a pin of her own, which is drawn instead.
+ */
+export function lugarGuardado(place: Place): Lugar | null {
+  if (place.pin !== null || place.google === null) return null;
+  return { ...destinoGuardado(place.google), direccion: place.address, placeId: place.google.placeId };
+}
+
+/**
+ * ⚠️ WHAT THE REFRESH ASKS FOR: Place Details Essentials' `location`, and the
+ * place's `id` — nothing more, as a field of a dearer tier would bill the call at
+ * that tier. No session token: it ends no search.
+ */
+export const CAMPOS_DEL_REFRESCO = 'id,location';
+
+/** Place Details for the place she picked, outside any search's session. */
+export function urlDeSuLugar(placeId: string): string {
+  const params = new URLSearchParams({ languageCode: IDIOMA, regionCode: REGION });
+  return `${DETALLES_URL}${encodeURIComponent(placeId)}?${params.toString()}`;
+}
+
+/** The refresh's question: the place she picked — with her address, for when Google no longer knows it — or her address alone. */
+export type PreguntaDeRefresco =
+  | { readonly kind: 'lugar'; readonly placeId: string; readonly direccion: string }
+  | { readonly kind: 'direccion'; readonly direccion: string };
+
+/**
+ * ⚠️ ONE QUESTION A REFRESH (the ruling's *"one Place Details call for her place's
+ * ID, or Geocoding for her stored address"*): Place Details for the ID she picked,
+ * else her stored address through Geocoding, asked as the small map asks it
+ * (`preguntaDeDireccion`). `null` while her address is not whole: nothing is asked.
+ */
+export function preguntaDeRefresco(placeId: string | null, address: AddressForm): PreguntaDeRefresco | null {
+  const direccion = preguntaDeDireccion(address);
+  if (direccion === null) return null;
+  const id = (placeId ?? '').trim();
+  return id === '' ? { kind: 'direccion', direccion } : { kind: 'lugar', placeId: id, direccion };
+}
+
+/** What the refresh's Place Details came back as. */
+export type RespuestaDeSuLugar =
+  | { readonly kind: 'punto'; readonly google: GooglePoint }
+  /** Google answers nothing for that ID — a place it no longer knows, or an ID it cannot read: ask by her address. */
+  | { readonly kind: 'perdido' }
+  | { readonly kind: 'ninguna' }
+  | { readonly kind: 'falla' };
+
+/**
+ * ⚠️ A 404 (*NOT_FOUND*: a place Google no longer knows) AND A 400 (an ID it cannot
+ * read) ARE THE ID LOST, NOT A FAILURE: the refresh then asks for her address, and
+ * the copy keeps no ID. Any other status outside 2xx fails — 403 a key it refuses,
+ * 429 a limit. A point outside the zone is none, as a pick's is. The answer's own
+ * `id` is what is kept: Google's current one for the place.
+ */
+export function suLugarDe(status: number, body: unknown, pedido: string): RespuestaDeSuLugar {
+  if (status === 404 || status === 400) return { kind: 'perdido' };
+  if (status < 200 || status >= 300) return { kind: 'falla' };
+  const b = objeto(body);
+  const punto = puntoDe(b.location, 'latitude', 'longitude');
+  if (punto === null || !enLaZona(punto)) return { kind: 'ninguna' };
+  return { kind: 'punto', google: { pin: punto, placeId: texto(b.id) || pedido } };
 }

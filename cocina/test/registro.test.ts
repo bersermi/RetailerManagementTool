@@ -17,6 +17,8 @@ import { puntoEn } from '@/api/direccion';
 import {
   EMPTY_ADDRESS,
   toPlace,
+  type GooglePoint,
+  type SetGooglePointArgs,
   type SetStoreAddressArgs,
   type SetStoreDirectionsArgs,
   type SetStorePinArgs,
@@ -36,8 +38,9 @@ import { ES as WERA } from '../../app/src/strings';
 
 // ============================================================================
 // MAKING HER KITCHEN: what the sign-up asks, what is sent, and what happens when
-// a step fails. Plan tasks `10.4b-iii-b` and `10.4h` (address first: her own point
-// only if she sets one, and her line of directions saved without it).
+// a step fails. Plan tasks `10.4b-iii-b`, `10.4h` (address first: her own point
+// only if she sets one, and her line of directions saved without it) and
+// `10.5-i-b-ii` (else Google's point for her address, written last).
 //
 // ⚠️ THE ROUND TRIPS THEMSELVES ARE THE CONTRACT CHECK'S
 // (`docs/checks/10.4b-iii-a-cocina-contract.sh`, as a login that owns a shop).
@@ -60,9 +63,14 @@ const DRAFT: Draft = {
   address: ADDRESS,
   pin: { latitude: 19.45123449, longitude: -99.15987651 },
   directions: 'Portón verde',
+  google: null,
 };
 /** ⚠️ The usual one since `10.4h`: her address alone, and a line of directions. */
 const SIN_PUNTO: Draft = { ...DRAFT, pin: null };
+/** Where the small map placed her address as she pressed *Registrar mi cocina* — her pick's, with its ID. */
+const GOOGLE: GooglePoint = { pin: { latitude: 19.4513318, longitude: -99.1601129 }, placeId: ' ChIJ-fresno-45 ' };
+/** ⚠️ The usual one since `10.5-i-b-ii`: her address, her line, and Google's point for it. */
+const CON_GOOGLE: Draft = { ...SIN_PUNTO, google: GOOGLE };
 
 /** Stand-ins that record what they were sent; `fail` names the ones that throw. */
 function calls(fail: readonly string[] = []) {
@@ -83,6 +91,10 @@ function calls(fail: readonly string[] = []) {
     pin_lat: null,
     pin_lng: null,
     directions: null,
+    google_place_id: null,
+    google_lat: null,
+    google_lng: null,
+    google_at: null,
   });
   const api: KitchenCalls = {
     onboard: step('onboard', 'new-kitchen'),
@@ -91,6 +103,7 @@ function calls(fail: readonly string[] = []) {
     setAddress: step('setAddress', undefined),
     setPin: step('setPin', undefined),
     setDirections: step('setDirections', undefined),
+    setGooglePoint: step('setGooglePoint', undefined),
   };
   return { api, sent, names: () => sent.map((s) => s.name) };
 }
@@ -125,6 +138,33 @@ describe('the writes, in order', () => {
       p_lng: -99.159877,
       p_directions: 'Portón verde',
     });
+  });
+
+  it('⚠️ with Google’s point for her address: written LAST, on the new kitchen’s place — after the address that would clear it', async () => {
+    const { api, sent, names } = calls();
+    expect(await makeKitchen(CON_GOOGLE, api)).toEqual({ kitchenId: 'new-kitchen', missing: [] });
+    expect(names()).toEqual(['onboard', 'setGiro', 'firstPlace', 'setAddress', 'setDirections', 'setGooglePoint']);
+    expect(sent[5].args as SetGooglePointArgs).toEqual({
+      p_location_id: 'place-of-the-new-kitchen',
+      p_lat: 19.451332,
+      p_lng: -99.160113,
+      p_place_id: 'ChIJ-fresno-45',
+    });
+  });
+
+  it('never with her own point — hers wins — and never when her address did not land: it is Google’s answer for that address', async () => {
+    const own = calls();
+    await makeKitchen({ ...CON_GOOGLE, pin: DRAFT.pin }, own.api);
+    expect(own.names()).not.toContain('setGooglePoint');
+    const noAddress = calls(['setAddress']);
+    expect(await makeKitchen(CON_GOOGLE, noAddress.api)).toEqual({ kitchenId: 'new-kitchen', missing: ['address'] });
+    expect(noAddress.names()).not.toContain('setGooglePoint');
+  });
+
+  it('⚠️ a Google point that does not land is no step missing — her kitchen’s screen asks Google again', async () => {
+    const failing = calls(['setGooglePoint']);
+    expect(await makeKitchen(CON_GOOGLE, failing.api)).toEqual({ kitchenId: 'new-kitchen', missing: [] });
+    expect(failing.names()).toContain('setGooglePoint');
   });
 
   it('when the kitchen is not made, nothing else is sent and the sign-up says so', async () => {
@@ -214,7 +254,10 @@ describe('what the sign-up asks, in the screens’ order', () => {
       address: ADDRESS,
       pin: null,
       directions: '',
+      google: null,
     });
+    // ⚠️ `10.5-i-b-ii`: with where the small map placed her address, kept as Google's.
+    expect(draftFrom(FILLED, GOOGLE)?.google).toEqual(GOOGLE);
   });
 
   it('and her own point only while it belongs to the street and number in the boxes', () => {
@@ -223,6 +266,9 @@ describe('what the sign-up asks, in the screens’ order', () => {
     expect(draftFrom(conPunto)?.pin).toEqual(pin);
     expect(draftFrom({ ...conPunto, address: { ...ADDRESS, number: '47' } })?.pin).toBeNull();
     expect(draftFrom({ ...conPunto, address: { ...ADDRESS, colonia: 'Santa María la Ribera' } })?.pin).toEqual(pin);
+    // ⚠️ Her own point wins: Google's is dropped beside it, and kept when hers no longer applies.
+    expect(draftFrom(conPunto, GOOGLE)?.google).toBeNull();
+    expect(draftFrom({ ...conPunto, address: { ...ADDRESS, number: '47' } }, GOOGLE)?.google).toEqual(GOOGLE);
   });
 
   it('refuses a blank name and nothing else — every other name is somebody’s kitchen', () => {

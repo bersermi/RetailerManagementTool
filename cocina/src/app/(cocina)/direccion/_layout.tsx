@@ -4,6 +4,7 @@ import { ActivityIndicator, View } from 'react-native';
 import { desdeSuLugar } from '@/api/direccion';
 import { useKitchen, usePlace } from '@/api/hooks';
 import { SuDireccionProvider } from '@/lib/borrador';
+import { lugarGuardado } from '@/lib/google';
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
 import { Banda } from '@/ui/Banda';
@@ -16,8 +17,11 @@ import { Banda } from '@/ui/Banda';
 // ⚠️ THE DRAFT LIVES HERE (`@/lib/borrador`'s `SuDireccionProvider`), opened ONCE
 // on what is stored (`desdeSuLugar`) — her address, her line, her own point with
 // the street and number it belongs to — and written by the address screen's
-// *Guardar*. Keyed by her place, so another place starts afresh. It waits for her
-// place to be read; her kitchen's screen has read it already, so that is a moment.
+// *Guardar*. ⚠️ `10.5-i-b-ii`: the place known for her boxes as stored is her
+// kitchen's copy of Google's point (`lugarGuardado`), so the small map opens where
+// her kitchen's screen draws her, and asks Google nothing until she changes them.
+// Keyed by her place, so another place starts afresh. It waits for her place to be
+// read; her kitchen's screen has read it already, so that is a moment.
 // ============================================================================
 export default function DireccionLayout() {
   const kitchen = useKitchen();
@@ -33,7 +37,7 @@ export default function DireccionLayout() {
   }
 
   return (
-    <SuDireccionProvider key={place.data.id} inicial={desdeSuLugar(place.data)}>
+    <SuDireccionProvider key={place.data.id} inicial={desdeSuLugar(place.data)} conocido={lugarGuardado(place.data)}>
       <Stack screenOptions={{ headerShown: false }} />
     </SuDireccionProvider>
   );

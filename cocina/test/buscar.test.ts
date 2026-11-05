@@ -391,8 +391,12 @@ describe('her pick: where the map flies, and her five boxes', () => {
       conNumero: true,
       anchoMetros: expect.any(Number),
       direccion: LUPE,
+      // ⚠️ `10.5-i-b-ii`: Google's ID for the place, kept with its point — the details' own, else the suggestion's.
+      placeId: 'ChIJ-anaya-17',
     });
     expect(anchoPara(lugar!)).toBe(CLOSE_METRES);
+    expect(lugarDe(200, { ...DETALLES, id: 'ChIJ-anaya-17-nuevo' }, SUGERENCIA, EMPTY_ADDRESS)?.placeId).toBe('ChIJ-anaya-17-nuevo');
+    expect(lugarDe(200, { ...DETALLES, id: undefined }, SUGERENCIA, EMPTY_ADDRESS)?.placeId).toBe('ChIJ-anaya-17');
   });
 
   it('a street with no number: about five blocks at least, and her number kept', () => {
@@ -615,13 +619,16 @@ describe('the card’s warning: her street, and the one Google names under her p
   });
 });
 
-// ⚠️⚠️ THE RULE A CARELESS EDIT COULD BREAK UNSEEN. What is stored is what she
-// typed and her pin — never Google's point or what it names (its terms forbid
-// keeping them). Since `10.4e` (the owner's ruling of 2026-11-02, as Uber does
-// it) her pin is the middle of the map, and only once her own hand put it there:
-// after a flight to an answer, no pin until she moves the map. The sequences are
-// `test/mapa.test.ts`'s (`alLlegar`); here, read out of the file, that the map is
-// wired to them — no suite can move the map.
+// ⚠️⚠️ THE RULE A CARELESS EDIT COULD BREAK UNSEEN. On *Ajusta el punto* what is
+// stored is her pin — never Google's point or what it names. Since `10.4e` (the
+// owner's ruling of 2026-11-02, as Uber does it) her pin is the middle of the map,
+// and only once her own hand put it there: after a flight to an answer, no pin
+// until she moves the map. The sequences are `test/mapa.test.ts`'s (`alLlegar`);
+// here, read out of the file, that the map is wired to them — no suite can move the
+// map. ⚠️ `10.5-i-b-ii` (the owner's ruling of 2026-11-04, night) keeps Google's
+// point for her address as Google's 30-day copy — from the address screen's small
+// map and her kitchen's refresh, never from this map, and never as her pin
+// (`test/punto-google.test.ts`); what Google names is still never kept.
 describe('an answer only moves the map; her pin is the middle she put there herself', () => {
   const map = code('ui/MapaPunto.tsx');
 

@@ -4,8 +4,9 @@
 // `10.4b-iii-c` (her way out: what goes with her account, the deletion, Apple),
 // `10.5-iii-c` (her kitchen deleted alone, her login kept),
 // `10.4b-iv-a` (what she publishes: her list, publishing, withdrawing),
-// `10.4h` (address first: her line with no pin, and her pin cleared) and `10.5-ii`
-// (her page in Itacate, and the pictures that go up before what points at them).
+// `10.4h` (address first: her line with no pin, and her pin cleared), `10.5-ii`
+// (her page in Itacate, and the pictures that go up before what points at them) and
+// `10.5-i-b-ii` (Google's point for her address, kept as a 30-day copy).
 //
 // ⚠️ THE IMPURE HALF OF `src/api/` (ADR-035 §2.11): the only module here that
 // imports the live client, so no node suite can load it; every name it sends is
@@ -84,6 +85,7 @@ import {
   PLACE_ORDER,
   PLACE_OWNER_COLUMN,
   PLACE_TABLE,
+  SET_GOOGLE_POINT,
   SET_STORE_ADDRESS,
   SET_STORE_DIRECTIONS,
   SET_STORE_PIN,
@@ -91,6 +93,7 @@ import {
   type ClearStorePinArgs,
   type Place,
   type PlaceRow,
+  type SetGooglePointArgs,
   type SetStoreAddressArgs,
   type SetStoreDirectionsArgs,
   type SetStorePinArgs,
@@ -194,6 +197,16 @@ export async function clearPlacePin(args: ClearStorePinArgs): Promise<void> {
 }
 
 /**
+ * Google's point for her address, through `set_google_point` (`0078`, `10.5-i-b-ii`):
+ * a 30-day copy, stamped by the database. ⚠️ SENT AFTER HER ADDRESS: a new address
+ * clears it (`0078`'s trigger).
+ */
+export async function setPlaceGooglePoint(args: SetGooglePointArgs): Promise<void> {
+  const { error } = await supabase.rpc(SET_GOOGLE_POINT, args);
+  if (error) throw error;
+}
+
+/**
  * Her last publications at this kitchen, the newest first, each with its lines
  * in her order. ⚠️ FILTERED ON THE KITCHEN (`@/api/listing`'s header): the walls
  * show a login every kitchen she belongs to. ⚠️ THE LINES' ORDER IS THE EMBED'S
@@ -278,6 +291,7 @@ export const kitchenCalls: KitchenCalls = {
   setAddress: setPlaceAddress,
   setPin: setPlacePin,
   setDirections: setPlaceDirections,
+  setGooglePoint: setPlaceGooglePoint,
 };
 
 /** The writes her address screen's *Guardar* sends, for `@/api/direccion`. */
@@ -286,6 +300,7 @@ export const direccionCalls: DireccionCalls = {
   setPin: setPlacePin,
   clearPin: clearPlacePin,
   setDirections: setPlaceDirections,
+  setGooglePoint: setPlaceGooglePoint,
 };
 
 /**

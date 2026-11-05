@@ -59,12 +59,19 @@ const ROW: PlaceRow = {
   pin_lat: 19.451234,
   pin_lng: -99.159876,
   directions: 'Portón verde',
+  google_place_id: null,
+  google_lat: null,
+  google_lng: null,
+  google_at: null,
 };
 
 describe('her kitchen’s place, as the app asks for it', () => {
   it('names the table, the columns, the filter and the order once', () => {
     expect(PLACE_TABLE).toBe('location');
-    expect(PLACE_COLUMNS).toBe('id,name,street,street_number,colonia,city,postal_code,pin_lat,pin_lng,directions');
+    // ⚠️ `10.5-i-b-ii`: and Google's point for her address, `0078`'s four columns.
+    expect(PLACE_COLUMNS).toBe(
+      'id,name,street,street_number,colonia,city,postal_code,pin_lat,pin_lng,directions,google_place_id,google_lat,google_lng,google_at',
+    );
     expect(PLACE_COLUMNS).not.toContain('*');
     expect(PLACE_OWNER_COLUMN).toBe('workspace_id');
     expect(PLACE_ACTIVE_COLUMN).toBe('is_active');
@@ -93,6 +100,7 @@ describe('her kitchen’s place, as the app asks for it', () => {
       address: { street: 'Fresno', number: '45', colonia: 'Santa María la Ribera', city: 'Cuauhtémoc', postalCode: '06400' },
       pin: { latitude: 19.451234, longitude: -99.159876 },
       directions: 'Portón verde',
+      google: null,
     });
     const bare = toPlace({ ...ROW, street: null, colonia: null, pin_lat: null, pin_lng: null, directions: '  ' });
     expect(bare.address.street).toBe('');

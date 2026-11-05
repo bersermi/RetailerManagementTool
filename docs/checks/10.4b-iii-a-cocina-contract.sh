@@ -63,9 +63,15 @@
 #      blank line none; her shop's store still has no pin. And since `10.4h`
 #      (address first, `0075`): her line alone, by the app's door and names,
 #      leaves her pin; her pin cleared leaves her line; her line saved with no
-#      pin reads back; her shop's store is still untouched.
+#      pin reads back; her shop's store is still untouched. And since
+#      `10.5-i-b-ii` (`0078`): Google's point for her address, by the app's door
+#      and names, reads back through the app's own place read — six decimals, the
+#      place's ID as sent, stamped by the database at that moment in the shape the
+#      app reads; without an ID, none; refused on her SHOP's store (`TD013`),
+#      which keeps none; and ⚠️ a new address through the app's door clears it —
+#      the reason the app always writes it last — and written after, it stays.
 #  13. Signed out: no business, no place, no trades, no pin set, no line set, no
-#      pin cleared and no kitchen deleted.
+#      pin cleared, no Google point set and no kitchen deleted.
 #  14. What goes with her account, by the app's owners read: her shop and her two
 #      kitchens, each with her as its only owner and its kind.  (`10.4b-iii-c`, 14–21)
 #  15. Her second kitchen alone, by the app's names, a wrong name: 400 `TD007`,
@@ -154,6 +160,9 @@ SET_LINE="$(const SET_STORE_DIRECTIONS "$PLACE_TS")"
 SET_LINE_ARGS="$(args_of "$PLACE_TS" SetStoreDirectionsArgs)"
 CLEAR_PIN="$(const CLEAR_STORE_PIN "$PLACE_TS")"
 CLEAR_PIN_ARGS="$(args_of "$PLACE_TS" ClearStorePinArgs)"
+# `10.5-i-b-ii`: Google's point for her address, a 30-day copy (`0078`).
+SET_GOOGLE="$(const SET_GOOGLE_POINT "$PLACE_TS")"
+SET_GOOGLE_ARGS="$(args_of "$PLACE_TS" SetGooglePointArgs)"
 # `10.4b-iii-c`: her way out — what goes with her account, and the deletion.
 OWNERS_TABLE="$(const OWNERS_TABLE "$ACCOUNT_TS")"
 OWNER_COLUMNS="$(const OWNER_COLUMNS "$ACCOUNT_TS")"
@@ -177,6 +186,7 @@ for pair in "WORKSPACE_TABLE:$TABLE" "KITCHEN_COLUMNS:$COLUMNS" "KIND_COLUMN:$KI
             "SET_STORE_PIN:$SET_PIN" "SetStorePinArgs:$SET_PIN_ARGS" \
             "SET_STORE_DIRECTIONS:$SET_LINE" "SetStoreDirectionsArgs:$SET_LINE_ARGS" \
             "CLEAR_STORE_PIN:$CLEAR_PIN" "ClearStorePinArgs:$CLEAR_PIN_ARGS" \
+            "SET_GOOGLE_POINT:$SET_GOOGLE" "SetGooglePointArgs:$SET_GOOGLE_ARGS" \
             "OWNERS_TABLE:$OWNERS_TABLE" "OWNER_COLUMNS:$OWNER_COLUMNS" "OWNER_ROLE_COLUMN:$OWNER_ROLE_COL" \
             "OWNER_ROLE:$OWNER_ROLE" "OWNER_ACTIVE_COLUMN:$OWNER_ACTIVE_COL" "DELETE_MY_ACCOUNT:$DELETE_RPC" \
             "DeleteArgs:$DELETE_ARGS" "NAME_MISMATCH_CODE:$MISMATCH" \
@@ -217,7 +227,7 @@ APP_READ="/rest/v1/$TABLE?select=$COLUMNS&$KIND_COL=eq.$KIND&order=$ORDER"
 PLACE_ORDER="$(tr ',' '\n' <<< "$PLACE_ORDER_COLS" | sed 's/$/.asc/' | paste -sd, -)"
 place_read() { echo "/rest/v1/$PLACE_TABLE?select=$PLACE_COLUMNS&$PLACE_OWNER=eq.$1&$PLACE_ACTIVE=eq.true&order=$PLACE_ORDER&limit=1"; }
 ok "read from the app: $TABLE?select=$COLUMNS, $KIND_COL = $KIND, ordered by $ORDER_COLS; the name under $NAME_KEY"
-ok "and to make one: $ONBOARD($ONBOARD_ARGS), $GIROS_RPC(), $GIRO_COL; $PLACE_TABLE by $PLACE_OWNER; $SET_ADDRESS($SET_ADDRESS_ARGS); $SET_PIN($SET_PIN_ARGS); $SET_LINE($SET_LINE_ARGS); $CLEAR_PIN($CLEAR_PIN_ARGS)"
+ok "and to make one: $ONBOARD($ONBOARD_ARGS), $GIROS_RPC(), $GIRO_COL; $PLACE_TABLE by $PLACE_OWNER; $SET_ADDRESS($SET_ADDRESS_ARGS); $SET_PIN($SET_PIN_ARGS); $SET_LINE($SET_LINE_ARGS); $CLEAR_PIN($CLEAR_PIN_ARGS); $SET_GOOGLE($SET_GOOGLE_ARGS)"
 ok "and her way out: $OWNERS_TABLE?select=$OWNER_COLUMNS where $OWNER_ROLE_COL = $OWNER_ROLE and $OWNER_ACTIVE_COL; $DELETE_RPC($DELETE_ARGS), refused $MISMATCH"
 ok "and her kitchen alone: $KDELETE_RPC($KDELETE_ARGS), refused $MISMATCH for a name and $NOT_HERS for a kitchen not hers alone"
 ok "and Itacate's way out sends the same, all $itacate_names names read out of $ITACATE_ACCOUNT_TS — every deletion below is Itacate's too"
@@ -413,6 +423,27 @@ def fields(status, path, want_json):
             print('%s reads back %r, sent %r' % (key, have, value)); return
     print('OK')
 
+def stamped(status, path, want_json, sent_at):
+    # `10.5-i-b-ii`: Google's point as sent, and its moment the database's — in the
+    # shape the app reads (`instantFrom`), within two minutes of the call.
+    import datetime, re
+    rows = load(path)
+    if status != '200' or not isinstance(rows, list) or len(rows) != 1:
+        print('the read back answered %s %s' % (status, json.dumps(rows)[:160])); return
+    want, got = json.loads(want_json), rows[0]
+    for key, value in want.items():
+        have = got.get(key)
+        same = round(have, 6) == round(value, 6) if isinstance(value, float) and isinstance(have, (int, float)) else have == value
+        if not same:
+            print('%s reads back %r, sent %r' % (key, have, value)); return
+    at = got.get('google_at')
+    if not isinstance(at, str) or not re.match(r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,6})?([+-]\d{2}:\d{2}|Z)$', at):
+        print('google_at reads back %r, not a moment in the shape the app reads' % (at,)); return
+    moment = datetime.datetime.fromisoformat(at.replace('Z', '+00:00')).timestamp()
+    if abs(moment - float(sent_at)) > 120:
+        print('google_at reads back %s, not the moment it was written' % at); return
+    print('OK %s' % at)
+
 globals()[sys.argv[1]](*sys.argv[2:])
 PY
 verdict() { python3 "$SCRATCH/kitchen.py" "$@"; }
@@ -536,6 +567,42 @@ else
   fi
 fi
 
+# `10.5-i-b-ii` — Google's point for her address (`0078`), by the app's door and
+# names, read back through the APP'S OWN place read (`PLACE_COLUMNS` carries the four
+# columns): stamped by the database; none on her shop's store; and cleared by a new
+# address — which is why the app writes it last.
+google_read() { # want-json -> "OK <moment>" or why not
+  local out; out="$(api GET "$(place_read "$KITCHEN")")"
+  body "$out" > "$SCRATCH/google.json"
+  verdict stamped "$(status "$out")" "$SCRATCH/google.json" "$1" "$SENT_AT"
+}
+SENT_AT="$(date +%s)"
+out="$(api POST "/rest/v1/rpc/$SET_GOOGLE" "$(by_names "$SET_GOOGLE_ARGS" "\"$PLACE_ID\"" '19.451332' '-99.160113' '"ChIJ-contrato-45"')")"
+if [[ "$(status "$out")" != 200 && "$(status "$out")" != 204 ]]; then
+  fail "her Google point, $SET_GOOGLE($SET_GOOGLE_ARGS), answered $(status "$out") $(body "$out" | head -c 200)"
+else
+  v1="$(google_read '{"google_lat":19.451332,"google_lng":-99.160113,"google_place_id":"ChIJ-contrato-45"}')"
+  SENT_AT="$(date +%s)"
+  api POST "/rest/v1/rpc/$SET_GOOGLE" "$(by_names "$SET_GOOGLE_ARGS" "\"$PLACE_ID\"" '19.451401' '-99.160002' 'null')" > /dev/null
+  v2="$(google_read '{"google_lat":19.451401,"google_lng":-99.160002,"google_place_id":null}')"
+  shop_out="$(api POST "/rest/v1/rpc/$SET_GOOGLE" "$(by_names "$SET_GOOGLE_ARGS" "\"$SHOP_STORE\"" '19.4' '-99.1' '"ChIJ-tienda"')")"
+  v3="$(read_back "/rest/v1/$PLACE_TABLE?select=google_lat,google_place_id,google_at&id=eq.$SHOP_STORE" '{"google_lat":null,"google_place_id":null,"google_at":null}')"
+  # ⚠️ The order the app follows: a new address first — it clears the copy — then the copy for it.
+  api POST "/rest/v1/rpc/$SET_ADDRESS" "$(by_names "$SET_ADDRESS_ARGS" "\"$PLACE_ID\"" '"Fresno"' '"47"' 'null' '"Cuauhtémoc"' '"06400"')" > /dev/null
+  v4="$(read_back "$(place_read "$KITCHEN")" '{"street_number":"47","google_lat":null,"google_lng":null,"google_place_id":null,"google_at":null}')"
+  SENT_AT="$(date +%s)"
+  api POST "/rest/v1/rpc/$SET_GOOGLE" "$(by_names "$SET_GOOGLE_ARGS" "\"$PLACE_ID\"" '19.451288' '-99.160071' '"ChIJ-contrato-47"')" > /dev/null
+  v5="$(google_read '{"street_number":"47","google_lat":19.451288,"google_lng":-99.160071,"google_place_id":"ChIJ-contrato-47"}')"
+  if [[ "$v1" != OK* ]]; then fail "her Google point: $v1"
+  elif [[ "$v2" != OK* ]]; then fail "her Google point with no ID: $v2"
+  elif [[ "$(status "$shop_out")" != 400 || "$(pick code "$(body "$shop_out")")" != TD013 ]]; then
+    fail "her Google point on her SHOP's store answered $(status "$shop_out") $(body "$shop_out" | head -c 160), not 400 TD013 — a shop is never drawn on Itacate's map"
+  elif [[ "$v3" != OK ]]; then fail "her SHOP's store got a Google point: $v3"
+  elif [[ "$v4" != OK ]]; then fail "a new address did not clear Google's point — written first, the app's copy would outlive the address it was for: $v4"
+  elif [[ "$v5" != OK* ]]; then fail "her Google point written after her new address: $v5"
+  else ok "her Google point goes through $SET_GOOGLE and reads back through the app's place read to six decimals with its ID, stamped by the database (${v1#OK }); with no ID, none; refused on her shop's store (TD013), which keeps none; a new address clears it, and written after the address it stays"; fi
+fi
+
 # --- 13. signed out, nothing ----------------------------------------------------
 out="$(TOKEN="" api GET "$APP_READ")"
 place_out="$(TOKEN="" api GET "$(place_read "$KITCHEN")")"
@@ -543,15 +610,16 @@ giros_out="$(TOKEN="" api POST "/rest/v1/rpc/$GIROS_RPC" '{}')"
 pin_out="$(TOKEN="" api POST "/rest/v1/rpc/$SET_PIN" "$(by_names "$SET_PIN_ARGS" "\"$PLACE_ID\"" '19.4' '-99.1' 'null')")"
 line_out="$(TOKEN="" api POST "/rest/v1/rpc/$SET_LINE" "$(by_names "$SET_LINE_ARGS" "\"$PLACE_ID\"" '"Otra"')")"
 clear_out="$(TOKEN="" api POST "/rest/v1/rpc/$CLEAR_PIN" "$(by_names "$CLEAR_PIN_ARGS" "\"$PLACE_ID\"")")"
+google_out="$(TOKEN="" api POST "/rest/v1/rpc/$SET_GOOGLE" "$(by_names "$SET_GOOGLE_ARGS" "\"$PLACE_ID\"" '19.4' '-99.1' 'null')")"
 kdel_out="$(TOKEN="" api POST "/rest/v1/rpc/$KDELETE_RPC" "$(by_names "$KDELETE_ARGS" "\"$SECOND\"" '"Antojitos, segunda cocina"')")"
 if grep -c '"id"' <<< "$(body "$out")" > /dev/null; then
   fail "signed out, the read returned businesses: $(body "$out" | head -c 200)"
 elif grep -c '"id"' <<< "$(body "$place_out")" > /dev/null; then
   fail "signed out, the place read returned her place: $(body "$place_out" | head -c 200)"
-elif [[ "$(status "$giros_out")" == 2* || "$(status "$pin_out")" == 2* || "$(status "$line_out")" == 2* || "$(status "$clear_out")" == 2* || "$(status "$kdel_out")" == 2* ]]; then
-  fail "signed out, the trades answered $(status "$giros_out"), the pin $(status "$pin_out"), the line $(status "$line_out"), the clearing $(status "$clear_out") and the kitchen's deletion $(status "$kdel_out") — nothing is reachable without an account"
+elif [[ "$(status "$giros_out")" == 2* || "$(status "$pin_out")" == 2* || "$(status "$line_out")" == 2* || "$(status "$clear_out")" == 2* || "$(status "$google_out")" == 2* || "$(status "$kdel_out")" == 2* ]]; then
+  fail "signed out, the trades answered $(status "$giros_out"), the pin $(status "$pin_out"), the line $(status "$line_out"), the clearing $(status "$clear_out"), Google's point $(status "$google_out") and the kitchen's deletion $(status "$kdel_out") — nothing is reachable without an account"
 else
-  ok "signed out: no business ($(status "$out")), no place ($(status "$place_out")), no trades ($(status "$giros_out")), no pin set ($(status "$pin_out")), no line set ($(status "$line_out")), no pin cleared ($(status "$clear_out")), no kitchen deleted ($(status "$kdel_out"))"
+  ok "signed out: no business ($(status "$out")), no place ($(status "$place_out")), no trades ($(status "$giros_out")), no pin set ($(status "$pin_out")), no line set ($(status "$line_out")), no pin cleared ($(status "$clear_out")), no Google point set ($(status "$google_out")), no kitchen deleted ($(status "$kdel_out"))"
 fi
 
 # =============================================================================
@@ -715,7 +783,8 @@ fi
 echo "all 21 assertion groups passed — Wera Cocina's kitchen read is one the database answers, it opens"
 echo "kitchens only and the first-made first, the name typed at sign-up reaches her membership, her"
 echo "kitchen is made, given its trade, its address and its pin on its own place — never on her shop —"
-echo "her line is saved without a pin and her pin cleared without her line (10.4h), one kitchen goes"
+echo "her line is saved without a pin and her pin cleared without her line (10.4h), Google's point for her"
+echo "address is kept by its one door, stamped by the database and cleared by a new address (10.5-i-b-ii), one kitchen goes"
 echo "alone after its name with her login and her other businesses kept, never her shop (10.5-iii-c),"
 echo "and her account goes only with every business she alone owns named, a shop of hers included —"
 echo "by the names Itacate's way out sends too (10.5-iii-b)."

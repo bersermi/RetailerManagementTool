@@ -27,6 +27,10 @@ import { ES } from '@/strings';
 // HER ADDRESS FIRST (`10.4h`, the owner's ruling of 2026-11-03): what is kept is
 // her address, her line of directions, and her own point only if she sets one; a
 // new street or number clears that point, so the map follows the new address.
+// ⚠️ AND SINCE `10.5-i-b-ii` (his ruling of 2026-11-04, night), while she has no
+// point of her own, Google's point for a new address — written LAST, because the
+// address before it clears the old copy (`0078`'s trigger). The rest of that row
+// is `test/punto-google.test.ts`'s.
 //
 // ⚠️ THE ROUND TRIPS THEMSELVES ARE THE CONTRACT CHECK'S
 // (`docs/checks/10.4b-iii-a-cocina-contract.sh`, groups 12–13) and the functions'
@@ -45,6 +49,8 @@ const MIGRATION = readFileSync(new URL('../../supabase/migrations/0075_her_addre
 const ADDRESS = { street: 'Durango', number: '220', colonia: 'Roma Norte', city: 'Cuauhtémoc', postalCode: '06700' };
 const PIN = { latitude: 19.41936, longitude: -99.16796 };
 const OTRO = { latitude: 19.41951, longitude: -99.16812 };
+/** Where Google placed a new address, as the small map drew it — her pick's, with its place's ID. */
+const DE_GOOGLE = { pin: { latitude: 19.4189012, longitude: -99.1702346 }, placeId: 'ChIJ-durango-222' };
 
 const place = (over: Partial<Place> = {}): Place => ({
   id: 'her-place',
@@ -52,6 +58,7 @@ const place = (over: Partial<Place> = {}): Place => ({
   address: ADDRESS,
   pin: null,
   directions: null,
+  google: null,
   ...over,
 });
 
@@ -139,6 +146,31 @@ describe('what *Guardar* writes, in order, and only what changed', () => {
     expect(kinds({ ...abierto, punto: puntoEn({ latitude: 19.4193604, longitude: -99.1679596 }, ADDRESS) })).toEqual([]);
   });
 
+  // ⚠️ `10.5-i-b-ii`: Google's point for a new address, as the small map drew it.
+  it('⚠️ a new address with no point of her own: Google’s point for it, LAST — after the address that clears the old copy', () => {
+    const sinPunto = place({ directions: 'Portón verde' });
+    const nueva = { ...ADDRESS, number: '222' };
+    const lista = escrituras(sinPunto, { ...desdeSuLugar(sinPunto), address: nueva, directions: 'Otra' }, DE_GOOGLE);
+    expect(lista.map((e) => e.kind)).toEqual(['direccion', 'indicaciones', 'google']);
+    expect(lista[2].args).toEqual({ p_location_id: 'her-place', p_lat: 19.418901, p_lng: -99.170235, p_place_id: 'ChIJ-durango-222' });
+    // A new number clears her own point, and then Google's is the one kept — after the clearing too.
+    expect(escrituras(stored, { ...abierto, address: nueva }, DE_GOOGLE).map((e) => e.kind)).toEqual(['direccion', 'sinPunto', 'google']);
+  });
+
+  it('never with her own point for the boxes, never with the same address, and never with no answer from Google', () => {
+    const nuevaColonia = { ...ADDRESS, colonia: 'Roma Sur' };
+    // Her point still belongs to the street and number: hers wins, nothing of Google's is kept.
+    expect(escrituras(stored, { ...abierto, address: nuevaColonia }, DE_GOOGLE).map((e) => e.kind)).toEqual(['direccion']);
+    const nueva = { ...ADDRESS, number: '222' };
+    expect(escrituras(stored, { address: nueva, directions: 'Portón verde', punto: puntoEn(OTRO, nueva) }, DE_GOOGLE).map((e) => e.kind)).toEqual(['direccion', 'punto']);
+    // The same address: no fresher copy is sent — that is the refresh's, a week on.
+    const sinPunto = place();
+    expect(escrituras(sinPunto, desdeSuLugar(sinPunto), DE_GOOGLE)).toEqual([]);
+    expect(escrituras(sinPunto, { ...desdeSuLugar(sinPunto), directions: 'Otra' }, DE_GOOGLE).map((e) => e.kind)).toEqual(['indicaciones']);
+    // Google had not answered as she pressed Guardar: her address alone, and her kitchen's screen asks.
+    expect(escrituras(sinPunto, { ...desdeSuLugar(sinPunto), address: nueva }, null).map((e) => e.kind)).toEqual(['direccion']);
+  });
+
   it('⚠️ sent one after the other, and the first failure stops the rest — an address not saved keeps her point', async () => {
     const sent: string[] = [];
     const step = (name: string, fails = false) => async () => {
@@ -150,13 +182,18 @@ describe('what *Guardar* writes, in order, and only what changed', () => {
       setPin: step('setPin', failing === 'setPin'),
       clearPin: step('clearPin', failing === 'clearPin'),
       setDirections: step('setDirections', failing === 'setDirections'),
+      setGooglePoint: step('setGooglePoint', failing === 'setGooglePoint'),
     });
-    const lista = escrituras(stored, { ...abierto, address: { ...ADDRESS, number: '1' }, directions: 'Otra' });
+    const lista = escrituras(stored, { ...abierto, address: { ...ADDRESS, number: '1' }, directions: 'Otra' }, DE_GOOGLE);
     await guardarSuDireccion(lista, calls(null));
-    expect(sent).toEqual(['setAddress', 'clearPin', 'setDirections']);
+    expect(sent).toEqual(['setAddress', 'clearPin', 'setDirections', 'setGooglePoint']);
     sent.length = 0;
     await expect(guardarSuDireccion(lista, calls('setAddress'))).rejects.toThrow(/Network request failed/);
     expect(sent).toEqual(['setAddress']);
+    // ⚠️ `10.5-i-b-ii`: Google's point never fails her save — nothing on screen says it exists.
+    sent.length = 0;
+    await expect(guardarSuDireccion(lista, calls('setGooglePoint'))).resolves.toBeUndefined();
+    expect(sent).toEqual(['setAddress', 'clearPin', 'setDirections', 'setGooglePoint']);
   });
 });
 
@@ -179,18 +216,22 @@ describe('the two doors `0075` added, as the app sends them', () => {
 
   it('*Cambiar dirección* writes what `escrituras` chose, and nothing when nothing changed', () => {
     const screen = code('app/(cocina)/direccion/index.tsx');
-    expect(screen).toMatch(/const lista = escrituras\(here, valor\);\s*if \(lista\.length === 0\) \{\s*router\.back\(\);\s*return null;\s*\}\s*const problem = await save\(lista\);/);
+    expect(screen).toMatch(/const lista = escrituras\(here, valor, google\);\s*if \(lista\.length === 0\) \{\s*router\.back\(\);\s*return null;\s*\}\s*const problem = await save\(lista\);/);
     expect(code('api/hooks.ts')).toMatch(/mutationFn: \(lista: readonly Escritura\[\]\) => guardarSuDireccion\(lista, direccionCalls\)/);
   });
 });
 
-describe('the small map: her own point, or where Google places her address — looked up live, never kept', () => {
+// ⚠️⚠️ `10.5-i-b-ii` REVERSED THIS BLOCK'S RULE (the owner's ruling of 2026-11-04,
+// night): until then the small map's point was looked up live and never kept. Now
+// the address screen hands it to her save as Google's 30-day copy, and her kitchen's
+// screen draws that copy — `test/punto-google.test.ts` holds the rest.
+describe('the small map: her own point, or where Google places her address — and what her save keeps of it', () => {
   it('asked only while she has no point of her own, on both screens that draw it', () => {
     expect(code('ui/PantallaDireccion.tsx')).toMatch(/const donde = useDondeEsta\(propio !== null \? null : valor\.address, elegido\);/);
     expect(code('ui/PantallaDireccion.tsx')).toMatch(/const punto = propio \?\? \(donde\.kind === 'punto' \? donde\.destino\.punto : null\);/);
-    expect(code('app/(cocina)/index.tsx')).toMatch(
-      /const donde = useDondeEsta\(here === undefined \|\| here === null \|\| here\.pin !== null \? null : here\.address, null\);/,
-    );
+    // Her kitchen's screen: the stored copy, asked again a week on (`useDondeEstaSuCocina`), never with her own pin.
+    expect(code('app/(cocina)/index.tsx')).toMatch(/const donde = useDondeEstaSuCocina\(here\);/);
+    expect(code('app/(cocina)/index.tsx')).toMatch(/punto=\{here\.pin \?\? \(donde\.kind === 'punto' \? donde\.destino\.punto : null\)\}/);
   });
 
   it('a pick asks nothing; her boxes ask once they rest, longer than the suggestions’ pause, with the full map’s question', () => {
@@ -203,13 +244,21 @@ describe('the small map: her own point, or where Google places her address — l
     expect(hook).toMatch(/export function useDondeEsta\([\s\S]*?enabled: pregunta !== null && CLAVE !== null,/);
   });
 
-  it('its point reaches the picture and the full map’s opening, and nothing that writes', () => {
+  it('⚠️ its point reaches the picture, the full map’s opening, and her save — as Google’s, never as her pin', () => {
+    const screen = code('ui/PantallaDireccion.tsx');
+    expect(screen).toMatch(/const google = propio === null && donde\.kind === 'punto' \? donde\.google : null;/);
+    expect(screen).toMatch(/setProblem\(await onGuardar\(google\)\);/);
+    // The two routes that save hand it to the pure layer as Google's point, and nothing else of Google's.
+    expect(code('app/(onboarding)/donde.tsx')).toMatch(/async function registrar\(google: GooglePoint \| null\)[\s\S]*?const draft = draftFrom\(borrador, google\);/);
+    expect(code('app/(cocina)/direccion/index.tsx')).toMatch(/async function guardar\(google: GooglePoint \| null\)[\s\S]*?const lista = escrituras\(here, valor, google\);/);
     for (const route of ['app/(onboarding)/donde.tsx', 'app/(cocina)/direccion/index.tsx']) {
-      expect(code(route), route).not.toMatch(/useDondeEsta|destino/);
+      expect(code(route), route).not.toMatch(/useDondeEsta|destino|puntoEn|setStorePinArgs/);
     }
     for (const route of ['app/(onboarding)/punto.tsx', 'app/(cocina)/direccion/punto.tsx', 'app/(cocina)/ubicacion.tsx']) {
       expect(code(route), route).toMatch(/abreEn=\{donde\.kind === 'punto' \? donde\.destino : null\}/);
     }
+    // *Ajustar punto* opens where her kitchen's small map draws her — the same copy.
+    expect(code('app/(cocina)/ubicacion.tsx')).toMatch(/const donde = useDondeEstaSuCocina\(here\);/);
   });
 });
 

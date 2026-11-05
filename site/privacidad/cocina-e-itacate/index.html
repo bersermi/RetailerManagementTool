@@ -21,7 +21,8 @@
   e <strong>Itacate</strong>, la app para vecinos.</p>
   <p><strong>Qué datos:</strong> en Wera Cocina, tu cuenta —tu nombre, tu correo, tu
   contraseña y, si entras con Google o con Apple, lo que ellos comparten—; tu cocina —su
-  nombre, su giro, su dirección, cómo encontrarte y, si lo pones, su punto exacto en el mapa—;
+  nombre, su giro, su dirección y el punto donde Google la ubica, que guardamos hasta 30 días,
+  cómo encontrarte y, si lo pones, su punto exacto en el mapa—;
   tu página en Itacate, si la llenas —una foto de portada, tu color, una frase, tu logo y tu
   enlace de Google Maps—, y lo que publicas: tus platillos y bolsas sorpresa, sus precios,
   cuántos hay, cuándo pueden pasar y, si le pones una, la foto de cada uno.
@@ -108,8 +109,10 @@ igual.</p>
   <li>Su dirección: calle, número, colonia, ciudad o alcaldía y código postal.</li>
   <li>Si lo escribes, cómo encontrarte, por ejemplo <em>Portón verde, junto a la
   farmacia</em>.</li>
-  <li>Si lo pones, su punto exacto en el mapa. Si no, no guardamos ningún punto: el mapa muestra
-  tu dirección.</li>
+  <li>Si lo pones, su punto exacto en el mapa. Si no, el punto donde Google ubica tu dirección y,
+  si elegiste una de sus sugerencias, el identificador que Google le da a ese lugar: los guardamos
+  hasta 30 días, como dice la <a href="#conservacion">sección 7</a>, y con ese punto se muestra tu
+  cocina en el mapa.</li>
   <li>Tu nombre como dueña o dueño de la cocina, y cuándo la registraste.</li>
 </ul>
 <p>Si tu cocina está en tu casa, su dirección y, si lo pones, su punto en el mapa son también tu
@@ -124,10 +127,14 @@ Android y en iPhone:</p>
   para sugerirte direcciones. Si eliges una, Google nos dice dónde está y sus partes —calle,
   número, colonia, ciudad o alcaldía y código postal—, y con ellas llenamos tu dirección, que
   puedes corregir antes de guardarla.</li>
-  <li><strong>Para mostrar tu cocina en el mapa pequeño</strong>, mientras no pongas tu propio
-  punto, le preguntamos a Google por tu dirección —calle y número, colonia, ciudad o alcaldía y
-  código postal—: cuando la escribes y cada vez que abres la pantalla de tu cocina. Si elegiste
-  una sugerencia, ya nos dijo dónde está. Google nos dice dónde la ubica, y solo la mostramos.</li>
+  <li><strong>Para mostrar tu cocina en el mapa</strong>, mientras no pongas tu propio punto, le
+  preguntamos a Google por tu dirección —calle y número, colonia, ciudad o alcaldía y código
+  postal— cuando la escribes; si elegiste una sugerencia, ya nos dijo dónde está. Guardamos el
+  punto donde Google la ubica y, si elegiste una sugerencia, el identificador de ese lugar.</li>
+  <li><strong>Cuando ese punto tiene más de 7 días</strong>, al abrir la app le volvemos a
+  preguntar a Google —por ese lugar o, si no hay identificador, por tu dirección— y guardamos su
+  respuesta en lugar de la anterior. Lo hace la app sola, mientras la usas, sin mostrarte
+  nada.</li>
   <li><strong>Al abrirse el mapa para ajustar el punto</strong>, el mismo lugar lleva el mapa a tu
   cocina.</li>
   <li><strong>Al tocar la tecla de buscar del teclado</strong>, le preguntamos a Google por lo que
@@ -136,12 +143,16 @@ Android y en iPhone:</p>
   el pin, para saber en qué calle está y avisarte si no es la tuya.</li>
 </ul>
 <p>Google recibe también la dirección IP del teléfono y trata lo que recibe según su propio
-aviso de privacidad, como dice la <a href="#compartir">sección 6</a>. Lo que responde solo
-muestra tu dirección en el mapa, mueve el mapa, llena tu dirección cuando eliges una sugerencia
-o te avisa si el pin parece estar en otra calle; no guardamos sus respuestas. Lo que guardamos
-es tu dirección, como la dejas en la app, cómo encontrarte si lo escribes y, solo si pones uno,
-el punto donde dejas el pin. Si después cambias la calle o el número, ese punto se quita y el
-mapa vuelve a mostrar tu dirección.</p>
+aviso de privacidad, como dice la <a href="#compartir">sección 6</a>. Lo que responde muestra tu
+dirección en el mapa, mueve el mapa, llena tu dirección cuando eliges una sugerencia o te avisa
+si el pin parece estar en otra calle. <strong>De sus respuestas solo guardamos el punto donde
+ubica tu dirección y el identificador del lugar que elegiste, hasta 30 días</strong>; nada más.
+Lo demás que guardamos es tuyo: tu dirección, como la dejas en la app, cómo encontrarte si lo
+escribes y, solo si pones uno, el punto donde dejas el pin. Mientras tengas tu propio punto, no
+le volvemos a preguntar a Google, y el punto suyo que hubiera se borra en un máximo de 30 días.
+Si después cambias tu dirección, el punto de Google se borra y guardamos el que dé para la nueva;
+si cambias la calle o el número, también se quita tu propio punto y el mapa vuelve a mostrar tu
+dirección.</p>
 
 <h3>De tu página en Itacate</h3>
 <p>Solo lo que pongas en <em>Tu página en Itacate</em>. Todo es opcional: lo que dejes vacío lo
@@ -216,7 +227,8 @@ abres. Al cerrar sesión se borra.</p>
       <li>tu página: su foto de portada, tu color, tu frase, tu logo y tu enlace de Google
       Maps, si los pusiste;</li>
       <li>el nombre de tu cocina, su giro, tu dirección y dónde queda en el mapa —tu propio punto,
-      si lo pusiste—, como te dice la app al guardarla;</li>
+      si lo pusiste, o el punto donde Google ubica tu dirección—, como te dice la app al
+      guardarla;</li>
       <li>lo que publicas mientras está en oferta, con la foto de cada platillo;</li>
       <li>y tu cocina durante los 14 días que siguen a cada publicación, aunque ya no tengas nada
       en oferta, con cuándo sueles publicar —por ejemplo, <em>entre semana, hacia las 17:00</em>— y
@@ -257,8 +269,9 @@ su servicio:</p>
 <p>Además:</p>
 <ul>
   <li><strong>Google</strong>, si eliges entrar con Google: Google nos confirma quién eres. Y en
-  los dos teléfonos, el mapa de Google, lo que escribes al buscar tu dirección, tu dirección para
-  mostrarla en el mapa y, si pones uno, el punto donde dejas el pin, como dice la
+  los dos teléfonos, el mapa de Google, lo que escribes al buscar tu dirección, tu dirección —o el
+  identificador del lugar que elegiste— para ubicarla en el mapa y, si pones uno, el punto donde
+  dejas el pin, como dice la
   <a href="#datos">sección 3</a>. Lo que Google hace con tus datos se
   rige por su propio aviso de privacidad, y el uso de Google Maps en la app, por los
   <a href="../../terminos/cocina-e-itacate/#google-maps">términos de uso</a>.</li>
@@ -275,8 +288,8 @@ su servicio:</p>
   <li><strong>Autoridades</strong>, cuando la ley nos obligue a entregarlos.</li>
 </ul>
 <p><strong>Lo que recibe Google del mapa y de la búsqueda es una transferencia:</strong> lo que
-escribes al buscar tu dirección, tu dirección para mostrarla en el mapa y el punto donde dejas el
-pin le llegan para que, como responsable
+escribes al buscar tu dirección, tu dirección o el identificador del lugar que elegiste, para
+ubicarla en el mapa, y el punto donde dejas el pin le llegan para que, como responsable
 de su propio servicio, los trate según su aviso. No requiere que nos des un consentimiento aparte, porque es precisa para
 darte el servicio que pides al registrar tu cocina en el mapa (artículo 36, fracción VII, de la
 Ley Federal de Protección de Datos Personales en Posesión de los Particulares).</p>
@@ -295,11 +308,16 @@ que requieran tu consentimiento.</p>
   dirigidas a tu correo.</li>
   <li><strong>Tu cocina, tu página y lo que publicas</strong> se guardan mientras exista tu cocina.
   <em>Retirar</em> quita una publicación de la oferta; no la borra.</li>
+  <li><strong>El punto donde Google ubica tu dirección</strong>, y el identificador del lugar que
+  elegiste, se guardan <strong>un máximo de 30 días</strong>: mientras usas la app, se renuevan una
+  vez por semana, y cada noche se borra el que tenga más de 29 días. También se borran en cuanto
+  cambias tu dirección.</li>
   <li><strong>Las fotos de tu página y de tus platillos</strong> se guardan mientras exista tu
   cocina. Si cambias o quitas una, deja de mostrarse, pero se queda guardada hasta que se elimine
   tu cocina; si quieres que la borremos antes, escríbenos a privacidad@tu-wera.com.</li>
   <li><strong>Si eres la única persona dueña de tu cocina</strong>, eliminar tu cuenta la elimina
-  completa: su dirección, su punto en el mapa si lo pusiste, su página y todo lo que publicó.
+  completa: su dirección, sus puntos en el mapa —el tuyo si lo pusiste, y el de Google—, su página
+  y todo lo que publicó.
   <strong>Sus fotos dejan de estar al alcance de nadie en ese momento, y las borramos a mano en
   un máximo de 30 días.</strong> Si también eres la única dueña de una tienda en Wera, la tienda
   también. Antes, la app te muestra cada una y te pide escribir su nombre.</li>

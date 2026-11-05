@@ -7,9 +7,11 @@
 //
 // ⚠️ THE POINT IS HER OWN, OR WHERE GOOGLE PLACES HER ADDRESS — drawn the same,
 // because the address is what is kept and the pin is only indicative (his words).
-// Google's point is looked up live by this phone and never kept
-// (`@/lib/useGoogle`'s `useDondeEsta`); hers is `0072`'s pin. The screen decides
-// which and says what to do (`Si el punto no es tu puerta, toca el mapa.`).
+// Google's point is the one the address screen is shown for the boxes as she types
+// (`@/lib/useGoogle`'s `useDondeEsta`), and on her kitchen's screen the copy of it
+// the database keeps for 30 days (`useDondeEstaSuCocina`, `10.5-i-b-ii`); hers is
+// `0072`'s pin. The screen decides which and says what to do (`Si el punto no es tu
+// puerta, toca el mapa.`).
 //
 // ⚠️ THE MAP ITSELF TAKES NO TOUCH: moving the pin is *Ajusta el punto*'s screen,
 // where the rules are (`@/ui/MapaPunto`). With `onAjustar` the whole picture is one

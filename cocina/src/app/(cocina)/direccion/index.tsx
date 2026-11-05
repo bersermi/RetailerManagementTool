@@ -2,7 +2,7 @@ import { router } from 'expo-router';
 
 import { escrituras } from '@/api/direccion';
 import { useKitchen, usePlace, useSaveDireccion } from '@/api/hooks';
-import { checkAddress } from '@/api/place';
+import { checkAddress, type GooglePoint } from '@/api/place';
 import { useSuDireccion } from '@/lib/borrador';
 import { ES } from '@/strings';
 import { PantallaDireccion } from '@/ui/PantallaDireccion';
@@ -16,8 +16,10 @@ import { PantallaDireccion } from '@/ui/PantallaDireccion';
 // `escrituras`): her address (`set_store_address`, the owner's four boxes, as the
 // sign-up checks them); her own point — set, or cleared when her street or number
 // changed (`clear_store_pin`), so the map follows the new address; her line alone
-// (`set_store_directions`) when no point was sent. The first failure stops the
-// rest and says why; nothing changed goes back without a write.
+// (`set_store_directions`) when no point was sent; ⚠️ and last, for a new address
+// and no point of her own, Google's point for it as the small map drew it
+// (`set_google_point`, `10.5-i-b-ii`). The first failure stops the rest and says
+// why — Google's point's never does; nothing changed goes back without a write.
 // ============================================================================
 export default function CambiarDireccion() {
   const kitchen = useKitchen();
@@ -25,12 +27,12 @@ export default function CambiarDireccion() {
   const { valor, cambiar, elegido, elegir } = useSuDireccion();
   const { save, busy } = useSaveDireccion();
 
-  async function guardar(): Promise<string | null> {
+  async function guardar(google: GooglePoint | null): Promise<string | null> {
     const here = place.data;
     if (here === undefined || here === null) return ES.api.errors.unknown;
     const issue = checkAddress(valor.address);
     if (issue !== null) return ES.address.issues[issue];
-    const lista = escrituras(here, valor);
+    const lista = escrituras(here, valor, google);
     if (lista.length === 0) {
       router.back();
       return null;
