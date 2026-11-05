@@ -111,7 +111,7 @@ first. Nothing checks these pages against the schema: this table is the only lin
 - **`10.5-iii-a` (Itacate's account, 2026-11-04)** rewrote section 10 and the lines that said Itacate
   had no accounts. **`10.5-iii-b` (its way out, the same day)** gave section 10 its *Eliminar mi
   cuenta*, Itacate its deletion page, the aviso's foot a link to each app's, and Wera's and Wera
-  Cocina's deletion pages the account's third app; **`10.5-iv` (Itacate showing kitchens)** adds the square it sends. ⚠️ **The Cocina aviso promises an email to
+  Cocina's deletion pages the account's third app; **`10.5-iv` (Itacate showing kitchens — its list, `10.5-iv-a`, then its map, `10.5-iv-b`)** adds what Itacate uses to show them; nothing of her location is sent (the owner's ruling of 2026-11-04, night). ⚠️ **The Cocina aviso promises an email to
   every account before Itacate shows a kitchen** (its section 4), as Wera's does.
 
 - **Apple sign-in on Android**, if it is ever built, needs Apple's web flow: say so under
