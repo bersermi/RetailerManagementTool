@@ -218,6 +218,25 @@ describe('her location never leaves the phone, and nothing of Google’s is kept
     expect(users).toEqual(['app/(vecino)/index.tsx']);
   });
 
+  // ⚠️ `10.5-iv-a-ii`: a kitchen's page and a dish's show how far she is — the list's
+  // number, handed over by `@/lib/DistanciasProvider` — and never learn where she is.
+  it('her two pages read each kitchen’s distance from the list — a number per kitchen — and nothing that knows where she is', () => {
+    const pages = ['app/(vecino)/cocina/[id].tsx', 'app/(vecino)/platillo/[cocina]/[oferta]/[linea].tsx'];
+    const readers = files.filter((f) => /from '@\/lib\/DistanciasProvider'/.test(f.text)).map((f) => f.name);
+    expect(readers.sort()).toEqual(['app/(vecino)/index.tsx', ...pages, 'app/_layout.tsx'].sort());
+    for (const page of pages) {
+      const text = code(page);
+      expect(text, page).toMatch(/useDistancia\(/);
+      expect(text, page).not.toMatch(/@\/lib\/(useUbicacion|ubicacion|useGoogle|google)'|expo-location|usePonerDistancias/);
+    }
+    const writers = files.filter((f) => /=\s*usePonerDistancias\(\)/.test(code(f.name))).map((f) => f.name);
+    expect(writers).toEqual(['app/(vecino)/index.tsx']);
+    const provider = code('lib/DistanciasProvider.tsx');
+    expect(provider).toMatch(/ReadonlyMap<string, number>/);
+    expect(provider).not.toMatch(/Punto|latitude|longitude|@\/lib\/(useUbicacion|ubicacion|useGoogle)'/);
+    expect(provider).not.toMatch(/localStorage|expo-sqlite|AsyncStorage|zustand/);
+  });
+
   it('never Google’s *Location Accuracy* prompt — her GPS is enough, and that consent is not Itacate’s to ask for', () => {
     const ubicacion = code('lib/useUbicacion.ts');
     const calls = ubicacion.match(/Location\.(getCurrentPositionAsync|watchPositionAsync)\(/g) ?? [];

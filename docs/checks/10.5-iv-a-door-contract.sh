@@ -32,6 +32,10 @@
 #   6. C and the shop do not come back: the door shows a kitchen that published in
 #      the last 14 days, and never a shop.
 #   7. Signed out, the door refuses.
+#   8. (`10.5-iv-a-ii`) The kitchens' trades — what a kitchen's page says under her
+#      name — through `kitchen_giros()`, by the name and the two keys `cocinas.ts`
+#      reads: a list a neighbour may call, A's trade in it with its name, and
+#      nothing signed out.
 #
 # ⚠️ WHAT IT DOES NOT ASSERT: who may write a kitchen's point, page or publications
 # (`supabase/tests/0072`, `0076`, `0078` and the Wera Cocina checks), the 14 and 29
@@ -81,6 +85,8 @@ OFFER_KEYS="$(fields_of "$COCINAS_TS" OfferRow '')"
 LINE_KEYS="$(fields_of "$COCINAS_TS" LineRow '')"
 SUMMARY_KEYS="$(fields_of "$COCINAS_TS" SummaryRow '')"
 REPEAT_KEYS="$(fields_of "$COCINAS_TS" RepeatRow '')"
+GIROS="$(const KITCHEN_GIROS "$COCINAS_TS")"
+GIRO_KEYS="$(fields_of "$COCINAS_TS" Giro '')"
 SOURCES="$(sed -n "s/^export const POINT_SOURCES = \[\(.*\)\] as const;.*/\1/p" "$COCINAS_TS" | tr -d "' " | head -1)"
 # Wera Cocina's names, for the fonda's side.
 ONBOARD="$(const ONBOARD_WORKSPACE "$KITCHEN_TS")"
@@ -105,7 +111,7 @@ NAME_KEY="$(const FULL_NAME_KEY "$CREDENTIALS_TS")"
 
 for pair in "ON_OFFER_NOW:$DOOR" "KitchenRow:$KITCHEN_KEYS" "AddressRow:$ADDRESS_KEYS" "PointRow:$POINT_KEYS" \
             "PageRow:$PAGE_KEYS" "OfferRow:$OFFER_KEYS" "LineRow:$LINE_KEYS" "SummaryRow:$SUMMARY_KEYS" \
-            "RepeatRow:$REPEAT_KEYS" "POINT_SOURCES:$SOURCES" \
+            "RepeatRow:$REPEAT_KEYS" "POINT_SOURCES:$SOURCES" "KITCHEN_GIROS:$GIROS" "Giro:$GIRO_KEYS" \
             "ONBOARD_WORKSPACE:$ONBOARD" "OnboardArgs:$ONBOARD_ARGS" "COCINA_KIND:$KIND" \
             "WORKSPACE_TABLE:$WORKSPACE_TABLE" "GIRO_COLUMN:$GIRO_COLUMN" "PLACE_TABLE:$PLACE_TABLE" \
             "PLACE_OWNER_COLUMN:$PLACE_OWNER" "SET_STORE_ADDRESS:$SET_ADDRESS" "SetStoreAddressArgs:$ADDRESS_ARGS" \
@@ -123,6 +129,7 @@ PIN_SOURCE="${SOURCES%%,*}"
 GOOGLE_SOURCE="${SOURCES#*,}"
 ok "read from Itacate: $DOOR(), a kitchen {$KITCHEN_KEYS}, its point under '$PIN_SOURCE' or '$GOOGLE_SOURCE'"
 ok "and inside it: address {$ADDRESS_KEYS}, point {$POINT_KEYS}, page {$PAGE_KEYS}, offer {$OFFER_KEYS}, line {$LINE_KEYS}, summary {$SUMMARY_KEYS}, repeat {$REPEAT_KEYS}"
+ok "and beside it, the trades' names for her page: $GIROS(), a trade {$GIRO_KEYS}"
 
 # --- the local stack -------------------------------------------------------
 STATUS="$(supabase status -o env 2>/dev/null)"
@@ -359,6 +366,19 @@ def absent(path, *ids):
     there = [i for i in ids if by_id(rows, i) is not None]
     print('OK' if not there else 'came back, and must not: %s' % ', '.join(there))
 
+def trades(path, giro_keys, code):
+    rows = load(path)
+    if not isinstance(rows, list) or not rows:
+        print('the trades came back %r, not a list of them' % rows); return
+    for r in rows:
+        why = missing(r, giro_keys, 'a trade')
+        if why: print(why); return
+    keys = giro_keys.split(',')
+    mine = [r for r in rows if r.get(keys[0]) == code]
+    if len(mine) != 1 or not isinstance(mine[0].get(keys[1]), str) or not mine[0][keys[1]].strip():
+        print("A's trade %r came back %r — once, with its name" % (code, mine)); return
+    print('OK')
+
 globals()[sys.argv[1]](*sys.argv[2:])
 PY
 verdict() { python3 "$SCRATCH/door.py" "$@"; }
@@ -387,11 +407,25 @@ else
   ok "signed out, the door refuses ($(status "$out"))"
 fi
 
+# --- 8. the trades' names, beside the door (`10.5-iv-a-ii`) -----------------------------------
+out="$(api POST "/rest/v1/rpc/$GIROS" '{}')"
+body "$out" > "$SCRATCH/giros.json"
+if [[ "$(status "$out")" != 200 ]]; then
+  fail "the trades' function answered a neighbour $(status "$out") $(body "$out" | head -c 200)"
+else
+  v="$(verdict trades "$SCRATCH/giros.json" "$GIRO_KEYS" giro-fonda)"
+  out="$(TOKEN="" api POST "/rest/v1/rpc/$GIROS" '{}')"
+  if [[ "$v" != OK ]]; then fail "$v"
+  elif [[ "$(status "$out")" == 2* ]]; then fail "signed out, the trades' function answered $(status "$out") — nothing is readable without an account"
+  else ok "a neighbour reads the trades' names through $GIROS() — every trade {$GIRO_KEYS}, A's among them, named — and signed out it refuses ($(status "$out"))"
+  fi
+fi
+
 echo
 if (( fails > 0 )); then
   echo "$fails assertion group(s) failed."
   exit 1
 fi
-echo "all 7 assertion groups passed — Itacate reads the one door by the names it answers: every key, at"
+echo "all 8 assertion groups passed — Itacate reads the one door by the names it answers: every key, at"
 echo "every level, as the list reads it; a quiet kitchen at Google's point; never a kitchen that never"
-echo "published, never a shop, and nothing signed out."
+echo "published, never a shop, and nothing signed out — and the trades' names its pages draw, the same way."

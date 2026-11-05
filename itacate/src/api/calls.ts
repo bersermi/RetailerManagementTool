@@ -1,7 +1,7 @@
 // ============================================================================
 // EVERY ROUND TRIP THIS APP MAKES TO THE DATABASE. Plan tasks `10.5-iii-b` (her
-// way out: what goes with her account, the deletion, Apple) and `10.5-iv-a-i` (the
-// door, and the kitchens' photos).
+// way out: what goes with her account, the deletion, Apple), `10.5-iv-a-i` (the
+// door, and the kitchens' photos) and `10.5-iv-a-ii` (the trades' names).
 //
 // ⚠️ THE IMPURE HALF OF `src/api/` (ADR-035 §2.11), as Wera's and Wera Cocina's
 // (`app/src/api/calls.ts`, `cocina/src/api/calls.ts`): the only module here that
@@ -29,7 +29,7 @@ import {
   type Deleted,
   type OwnerRow,
 } from '@/api/account';
-import { ON_OFFER_NOW, kitchensFrom, type Kitchen } from '@/api/cocinas';
+import { KITCHEN_GIROS, ON_OFFER_NOW, girosFrom, kitchensFrom, type Giro, type Kitchen } from '@/api/cocinas';
 import { photoHeaders, photoUrl, type PhotoSize } from '@/api/fotos';
 import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL, supabase } from '@/lib/supabase';
 
@@ -43,6 +43,17 @@ export async function onOfferNow(): Promise<Kitchen[]> {
   const { data, error } = await supabase.rpc(ON_OFFER_NOW);
   if (error) throw error;
   return kitchensFrom(data);
+}
+
+/**
+ * ⚠️ `10.5-iv-a-ii`: the kitchens' trades, in their order (`kitchen_giros()`, `0072`)
+ * — Wera Cocina's `kitchenGiros`. Only their names, for her page's line under her
+ * name: the catalogue, read by anyone signed in, never a business's rows.
+ */
+export async function kitchenGiros(): Promise<Giro[]> {
+  const { data, error } = await supabase.rpc(KITCHEN_GIROS);
+  if (error) throw error;
+  return girosFrom(data);
 }
 
 /**

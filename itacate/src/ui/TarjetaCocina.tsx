@@ -1,7 +1,8 @@
-import { Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
 import { distanciaTexto } from '@/lib/distancia';
 import { cuandoPublica, type Tarjeta } from '@/lib/lista';
+import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
 import { Circulo } from '@/ui/Circulo';
 
@@ -14,20 +15,32 @@ import { Circulo } from '@/ui/Circulo';
 //
 // ⚠️ SMALLER THAN A DISH'S CARD, ON PURPOSE (decided by `10.5-iv-a-i`): her circle,
 // her name, that line and the distance — no picture, so what can be picked up today
-// stands out. ⚠️ NOT A BUTTON YET: her page is `10.5-iv-a-ii`. ⚠️ NO CHECK CAN SEE
-// IT (ADR-035 §2.11): the phone is its instrument.
+// stands out. ⚠️ SINCE `10.5-iv-a-ii` IT OPENS HER PAGE (`onPress`, the list's), where
+// her pattern and *Lo que suele publicar* are. ⚠️ NO CHECK CAN SEE IT (ADR-035 §2.11):
+// the phone is its instrument.
 // ============================================================================
 
 /** How faded — enough to read, clearly not on offer. */
 const APAGADA = 0.6;
 
-export function TarjetaCocina({ tarjeta, ahora }: { tarjeta: Extract<Tarjeta, { kind: 'cocina' }>; ahora: Date }) {
+export function TarjetaCocina({
+  tarjeta,
+  ahora,
+  onPress,
+}: {
+  tarjeta: Extract<Tarjeta, { kind: 'cocina' }>;
+  ahora: Date;
+  onPress: () => void;
+}) {
   const { cocina, metros } = tarjeta;
   const linea = cuandoPublica(cocina.summary, ahora);
   return (
-    <View
-      style={{
-        opacity: APAGADA,
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={ES.cerca.abrirCocina(cocina.name)}
+      onPress={onPress}
+      style={({ pressed }) => ({
+        opacity: pressed ? APAGADA * 0.75 : APAGADA,
         flexDirection: 'row',
         alignItems: 'center',
         gap: SIZE.space,
@@ -36,7 +49,7 @@ export function TarjetaCocina({ tarjeta, ahora }: { tarjeta: Extract<Tarjeta, { 
         borderColor: PALETTE.linea,
         borderRadius: SIZE.space,
         backgroundColor: PALETTE.superficie,
-      }}
+      })}
     >
       <Circulo cocina={cocina} size={44} />
       <View style={{ flex: 1, gap: 2 }}>
@@ -48,6 +61,6 @@ export function TarjetaCocina({ tarjeta, ahora }: { tarjeta: Extract<Tarjeta, { 
       {metros !== null && (
         <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada }}>{distanciaTexto(metros)}</Text>
       )}
-    </View>
+    </Pressable>
   );
 }

@@ -17,10 +17,15 @@
 // screen without asking the door.
 //
 // ⚠️ NEAREST FIRST, EVERY KITCHEN THE DOOR SENDS (his ruling of 2026-11-04, night)
-// — the sort he chooses (relevance, availability, closeness: the plan's decisions
-// block) changes `antes` alone, sent as an update. A card whose distance is not
-// known yet — a kitchen with no point, while her phone asks Google for its address,
-// or after Google could not place it — goes last, never left out.
+// — the order he chooses (relevance, availability, closeness: a discussion of its
+// own since his word of 2026-11-05, plan `10.5-iv-a-iii`) changes `antes` alone,
+// sent as an update. A card whose distance is not known yet — a kitchen with no
+// point, while her phone asks Google for its address, or after Google could not
+// place it — goes last, never left out.
+//
+// ⚠️ SINCE `10.5-iv-a-ii` A CARD OPENS A PAGE — a dish's card the dish's, a quiet
+// kitchen's card hers — and the list hands those pages each kitchen's distance
+// (`distanciasDe`, at the foot), never where she is.
 // ============================================================================
 
 import type { Dish, Kitchen, Offer, Punto, Summary } from '@/api/cocinas';
@@ -173,30 +178,70 @@ export function diasTexto(weekdays: readonly number[]): string | null {
 }
 
 /**
- * When she last published, as she would say it: *Publicó hoy*, *Publicó ayer*,
- * *Publicó el martes* within the week, else *Publicó el 26 de octubre*. `lastDay`
- * is the door's, a calendar day in her kitchen's zone; `ahora` is read on this
- * phone, in the same city.
+ * Calendar days from `lastDay` to `ahora`'s day — 0 today, 1 yesterday, negative
+ * for a day still to come; `null` when it cannot be read. `lastDay` is the door's,
+ * a calendar day in her kitchen's zone; `ahora` is read on this phone, in the same
+ * city. ⚠️ A day she published FOR: the door counts her pickup day, so a publication
+ * made tonight for tomorrow morning is tomorrow's.
  */
-export function publicoTexto(lastDay: string, ahora: Date): string | null {
+export function diasAtras(lastDay: string, ahora: Date): number | null {
   const partes = /^(\d{4})-(\d{2})-(\d{2})$/.exec(lastDay);
   if (partes === null) return null;
   const dia = Date.UTC(Number(partes[1]), Number(partes[2]) - 1, Number(partes[3]));
   const hoy = Date.UTC(ahora.getFullYear(), ahora.getMonth(), ahora.getDate());
-  const atras = Math.round((hoy - dia) / 86_400_000);
+  return Math.round((hoy - dia) / 86_400_000);
+}
+
+/**
+ * When she last published, as she would say it: *Publicó hoy*, *Publicó ayer*,
+ * *Publicó el martes* within the week, else *Publicó el 26 de octubre*.
+ */
+export function publicoTexto(lastDay: string, ahora: Date): string | null {
+  const atras = diasAtras(lastDay, ahora);
+  if (atras === null) return null;
   if (atras <= 0) return ES.cerca.publicoHoy;
   if (atras === 1) return ES.cerca.publicoAyer;
-  const fecha = new Date(dia);
+  const fecha = new Date(`${lastDay}T00:00:00Z`);
   if (atras < 7) return ES.cerca.publicoEl(ES.cerca.elDia[(fecha.getUTCDay() + 6) % 7]);
   return ES.cerca.publicoFecha(fecha.getUTCDate(), ES.cerca.meses[fecha.getUTCMonth()]);
 }
 
-/** A quiet kitchen's line: the pattern once there is one, else when she last published. */
-export function cuandoPublica(resumen: Summary, ahora: Date): string | null {
+/**
+ * Her pattern in words — *Suele publicar entre semana, hacia las 17:00* — once 3 or
+ * more publications in four weeks show one, else `null`. A quiet kitchen's card and
+ * her page say it alike (`10.5-iv-a-ii`).
+ */
+export function patronDe(resumen: Summary): string | null {
   const total = resumen.weekdays.reduce((suma, n) => suma + n, 0);
   const dias = diasTexto(resumen.weekdays);
-  if (total >= PATRON_MINIMO && resumen.usualHour !== null && dias !== null) {
-    return ES.cerca.suele(dias, ES.cerca.hacia(resumen.usualHour));
-  }
-  return resumen.lastDay === null ? null : publicoTexto(resumen.lastDay, ahora);
+  if (total < PATRON_MINIMO || resumen.usualHour === null || dias === null) return null;
+  return ES.cerca.suele(dias, ES.cerca.hacia(resumen.usualHour));
+}
+
+/** A quiet kitchen's line: the pattern once there is one, else when she last published. */
+export function cuandoPublica(resumen: Summary, ahora: Date): string | null {
+  return patronDe(resumen) ?? (resumen.lastDay === null ? null : publicoTexto(resumen.lastDay, ahora));
+}
+
+// ----------------------------------------------------------------------------
+// What the list hands her two pages: how far each kitchen is (`10.5-iv-a-ii`)
+// ----------------------------------------------------------------------------
+
+/**
+ * Each kitchen's distance, as the list measured it — a number per kitchen, the only
+ * thing of where she is that leaves the list (`@/lib/DistanciasProvider`): her two
+ * pages show it, and work out nothing. A kitchen whose distance is not known is not
+ * in it.
+ */
+export function distanciasDe(tarjetas: readonly Tarjeta[]): ReadonlyMap<string, number> {
+  const mapa = new Map<string, number>();
+  for (const tarjeta of tarjetas) if (tarjeta.metros !== null) mapa.set(tarjeta.cocina.id, tarjeta.metros);
+  return mapa;
+}
+
+/** Whether two answers hold the same distances — so a page is not drawn again every minute for nothing. */
+export function mismasDistancias(a: ReadonlyMap<string, number>, b: ReadonlyMap<string, number>): boolean {
+  if (a.size !== b.size) return false;
+  for (const [id, metros] of a) if (b.get(id) !== metros) return false;
+  return true;
 }

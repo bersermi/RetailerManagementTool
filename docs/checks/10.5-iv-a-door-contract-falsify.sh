@@ -5,7 +5,7 @@
 # A contract check that has never been seen red is a check nobody has shown can
 # fail. Each fixture below copies `itacate/src/api/cocinas.ts`, breaks ONE claim in
 # the copy — a key at each level of the door's answer, the door's name, a point's
-# source — points the check at it, and requires red WITH THE SENTENCE that names
+# source, and since `10.5-iv-a-ii` the trades' function and its name's key — points the check at it, and requires red WITH THE SENTENCE that names
 # that claim: red for the wrong reason is a failure here too. The control, unedited,
 # must be green.
 #
@@ -98,10 +98,18 @@ run C11 red "B's point came back under source 'google', the app knows 'Google'" 
 echo "C12 a claim is gone from the file — the check must refuse, not pass"
 run C12 red "could not read RepeatRow" '/^export interface RepeatRow {/,/^}/d'
 
+echo "C13 the trades' function misspelt — a kitchen's page would never say what she is (10.5-iv-a-ii)"
+run C13 red "the trades' function answered a neighbour 404" \
+  "s/^export const KITCHEN_GIROS = 'kitchen_giros';/export const KITCHEN_GIROS = 'kitchens_giros';/"
+
+echo "C14 a trade's name under another key — her page's line would stay blank (10.5-iv-a-ii)"
+run C14 red "a trade carried no 'name'" \
+  '/^export interface Giro {/,/^}/s/^  readonly label: string;/  readonly name: string;/'
+
 echo
 echo "$pass passed, $fail failed."
-if (( pass + fail < 13 )); then
-  echo "FAIL: only $((pass + fail)) fixtures ran, expected 13."
+if (( pass + fail < 15 )); then
+  echo "FAIL: only $((pass + fail)) fixtures ran, expected 15."
   exit 1
 fi
 (( fail == 0 )) || exit 1

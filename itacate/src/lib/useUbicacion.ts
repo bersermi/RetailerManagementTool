@@ -32,7 +32,8 @@
 // ⚠️ THE WATCH STOPS IN THE BACKGROUND: `app.json` blocks background location on
 // Android and carries no *always* sentence on an iPhone, and the watch is removed
 // whenever the app leaves the front. NO CHECK CAN SEE ANY OF THIS (ADR-035 §2.11):
-// the phone is its instrument.
+// the phone is its instrument. (The clock the list reads, `useAhora`, is a module of
+// its own since `10.5-iv-a-ii`: the two pages read it and must not import this one.)
 // ============================================================================
 
 import * as Location from 'expo-location';
@@ -157,14 +158,4 @@ export function useDondeEstoy(): {
   }, [vuelta, enFrente]);
 
   return { donde, otraVez, usarUbicacion };
-}
-
-/** The time, read again every `ms` while the screen is up — a window that ends drops from the list on its own. */
-export function useAhora(ms: number): Date {
-  const [ahora, setAhora] = useState(() => new Date());
-  useEffect(() => {
-    const reloj = setInterval(() => setAhora(new Date()), ms);
-    return () => clearInterval(reloj);
-  }, [ms]);
-  return ahora;
 }

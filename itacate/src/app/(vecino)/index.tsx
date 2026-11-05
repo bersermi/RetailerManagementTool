@@ -1,14 +1,16 @@
 import { router } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, RefreshControl, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { apiErrorMessage } from '@/api/errors';
 import { useCocinas } from '@/api/hooks';
-import { tarjetasDe, type Tarjeta } from '@/lib/lista';
+import { SIN_DISTANCIAS, usePonerDistancias } from '@/lib/DistanciasProvider';
+import { distanciasDe, tarjetasDe, type Tarjeta } from '@/lib/lista';
 import { motivoDe, origenDe, puntoDeOrigen, type Codigo, type Origen } from '@/lib/ubicacion';
+import { useAhora } from '@/lib/useAhora';
 import { usePuntosBuscados } from '@/lib/useGoogle';
-import { useAhora, useDondeEstoy } from '@/lib/useUbicacion';
+import { useDondeEstoy } from '@/lib/useUbicacion';
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
 import { Banda } from '@/ui/Banda';
@@ -31,7 +33,11 @@ import { TarjetaPlatillo } from '@/ui/TarjetaPlatillo';
 //     door's point, else where her phone found its address (`@/lib/useGoogle`);
 //   - its cards, nearest first, made again as she walks and every minute, so a
 //     window that ends turns its kitchen quiet (`@/lib/lista`);
-//   - a pull asks the door and her phone again; so does a return to the front.
+//   - a pull asks the door and her phone again; so does a return to the front;
+//   - ⚠️ since `10.5-iv-a-ii` a card opens a page — a dish's card the dish's, a quiet
+//     kitchen's card hers — and the list hands both pages each kitchen's distance
+//     (`@/lib/DistanciasProvider`), a number and never where she is. It stays mounted
+//     under them, so as she walks the pages follow.
 // ⚠️ NO KITCHEN IS DRAWN ON A MAP: Google's points go only on Google's map, which
 // is `10.5-iv-b`. ⚠️ NO CHECK CAN SEE THIS SCREEN (ADR-035 §2.11): the phone is its
 // instrument.
@@ -55,6 +61,12 @@ export default function Cerca() {
     () => (desde === null || cocinas.data === undefined ? [] : tarjetasDe(cocinas.data, desde, buscados, ahora)),
     [cocinas.data, desde, buscados, ahora],
   );
+
+  // Each kitchen's distance, to her two pages — and none once the list leaves (her sign-out).
+  const ponerDistancias = usePonerDistancias();
+  const distancias = useMemo(() => distanciasDe(tarjetas), [tarjetas]);
+  useEffect(() => ponerDistancias(distancias), [ponerDistancias, distancias]);
+  useEffect(() => () => ponerDistancias(SIN_DISTANCIAS), [ponerDistancias]);
 
   async function refrescar() {
     setJalando(true);
@@ -112,7 +124,24 @@ export default function Cerca() {
         data={tarjetas}
         keyExtractor={(tarjeta) => tarjeta.key}
         renderItem={({ item }) =>
-          item.kind === 'platillo' ? <TarjetaPlatillo tarjeta={item} ahora={ahora} /> : <TarjetaCocina tarjeta={item} ahora={ahora} />
+          item.kind === 'platillo' ? (
+            <TarjetaPlatillo
+              tarjeta={item}
+              ahora={ahora}
+              onPress={() =>
+                router.push({
+                  pathname: '/platillo/[cocina]/[oferta]/[linea]',
+                  params: { cocina: item.cocina.id, oferta: item.oferta.id, linea: String(item.platillo.lineNo) },
+                })
+              }
+            />
+          ) : (
+            <TarjetaCocina
+              tarjeta={item}
+              ahora={ahora}
+              onPress={() => router.push({ pathname: '/cocina/[id]', params: { id: item.cocina.id } })}
+            />
+          )
         }
         ListHeaderComponent={<Desde origen={origen} onCambiar={() => setCodigo(null)} />}
         ListEmptyComponent={

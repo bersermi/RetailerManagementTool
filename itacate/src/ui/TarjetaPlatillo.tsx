@@ -1,14 +1,15 @@
-import { Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
 import { colorOf, defaultsFor } from '@/api/pagina';
 import { distanciaTexto } from '@/lib/distancia';
-import { precioTexto, quedanTexto, ventanaTexto, type Tarjeta } from '@/lib/lista';
+import { ventanaTexto, type Tarjeta } from '@/lib/lista';
 import { ES } from '@/strings';
 import { HUES } from '@/theme/colores';
 import { PALETTE, SIZE } from '@/theme/palette';
 import { Circulo } from '@/ui/Circulo';
 import { Dibujo } from '@/ui/Dibujo';
 import { Foto } from '@/ui/Foto';
+import { Precio, Quedan, Sorpresa } from '@/ui/Precio';
 
 // ============================================================================
 // ONE DISH ON OFFER, AS THE LIST SHOWS IT. Plan task `10.5-iv-a-i`, proposal B's
@@ -19,27 +20,39 @@ import { Foto } from '@/ui/Foto';
 // *Quedan 2* or *Último*, and the window.
 //
 // ⚠️ IT DECIDES NOTHING: every word and number is `@/lib/lista`'s, pure and pinned.
-// ⚠️ NOT A BUTTON YET: a dish's page is `10.5-iv-a-ii`. ⚠️ NO CHECK CAN SEE IT
-// (ADR-035 §2.11): the phone is its instrument.
+// ⚠️ SINCE `10.5-iv-a-ii` THE WHOLE CARD IS ONE BUTTON — it opens the dish's page;
+// where it goes is the list's (`onPress`). Its price and badges are `@/ui/Precio`'s,
+// drawn alike on both pages. ⚠️ NO CHECK CAN SEE IT (ADR-035 §2.11): the phone is
+// its instrument.
 // ============================================================================
 
 /** The picture's shape on the card — a wide strip, as the drawing's cards. */
 const FRANJA = 16 / 7;
 
-export function TarjetaPlatillo({ tarjeta, ahora }: { tarjeta: Extract<Tarjeta, { kind: 'platillo' }>; ahora: Date }) {
+export function TarjetaPlatillo({
+  tarjeta,
+  ahora,
+  onPress,
+}: {
+  tarjeta: Extract<Tarjeta, { kind: 'platillo' }>;
+  ahora: Date;
+  onPress: () => void;
+}) {
   const { cocina, oferta, platillo, metros } = tarjeta;
   const color = colorOf(cocina.page, cocina.giro);
-  const precio = precioTexto(platillo);
-  const quedan = quedanTexto(platillo);
   return (
-    <View
-      style={{
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={ES.cerca.abrirPlatillo(platillo.name, cocina.name)}
+      onPress={onPress}
+      style={({ pressed }) => ({
         borderWidth: 1,
         borderColor: PALETTE.linea,
         borderRadius: SIZE.space,
         overflow: 'hidden',
         backgroundColor: PALETTE.superficie,
-      }}
+        opacity: pressed ? 0.75 : 1,
+      })}
     >
       <View style={{ width: '100%', aspectRatio: FRANJA, overflow: 'hidden', backgroundColor: HUES[color] }}>
         <Dibujo dibujo={defaultsFor(cocina.giro).dibujo} color={color} modo="portada" />
@@ -69,70 +82,19 @@ export function TarjetaPlatillo({ tarjeta, ahora }: { tarjeta: Extract<Tarjeta, 
           <Text numberOfLines={2} style={{ flexShrink: 1, fontSize: SIZE.bodySize, fontWeight: '700', color: PALETTE.tinta }}>
             {platillo.name}
           </Text>
-          {platillo.surprise && (
-            <Text
-              style={{
-                fontSize: SIZE.smallSize - 2,
-                fontWeight: '700',
-                color: PALETTE.marca,
-                backgroundColor: PALETTE.banda,
-                paddingHorizontal: 6,
-                paddingVertical: 2,
-                borderRadius: 6,
-                overflow: 'hidden',
-              }}
-            >
-              {ES.cerca.sorpresa}
-            </Text>
-          )}
+          {platillo.surprise && <Sorpresa />}
           <View style={{ flex: 1 }} />
           {metros !== null && (
             <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada }}>{distanciaTexto(metros)}</Text>
           )}
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: SIZE.rowGap }}>
-          <Text style={{ fontSize: SIZE.bodySize + 1, fontWeight: '800', color: PALETTE.tinta }}>{precio.precio}</Text>
-          {precio.vale !== null && (
-            <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada, textDecorationLine: 'line-through' }}>
-              {precio.vale}
-            </Text>
-          )}
-          {precio.ahorro !== null && (
-            <Text
-              style={{
-                fontSize: SIZE.smallSize - 2,
-                fontWeight: '800',
-                color: PALETTE.superficie,
-                backgroundColor: HUES[color],
-                paddingHorizontal: 5,
-                paddingVertical: 2,
-                borderRadius: 5,
-                overflow: 'hidden',
-              }}
-            >
-              {precio.ahorro}
-            </Text>
-          )}
+          <Precio platillo={platillo} color={color} />
           <View style={{ flex: 1 }} />
-          {quedan !== null && (
-            <Text
-              style={{
-                fontSize: SIZE.smallSize - 1,
-                fontWeight: '600',
-                color: PALETTE.tinta,
-                backgroundColor: PALETTE.banda,
-                paddingHorizontal: 7,
-                paddingVertical: 3,
-                borderRadius: 6,
-                overflow: 'hidden',
-              }}
-            >
-              {quedan}
-            </Text>
-          )}
+          <Quedan platillo={platillo} />
         </View>
         <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada }}>{ventanaTexto(oferta, ahora)}</Text>
       </View>
-    </View>
+    </Pressable>
   );
 }

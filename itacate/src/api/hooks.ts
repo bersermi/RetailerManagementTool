@@ -1,6 +1,7 @@
 // ============================================================================
-// HOW A SCREEN REACHES THE DATABASE. Plan tasks `10.5-iii-b` (her way out) and
-// `10.5-iv-a-i` (the kitchens close to her, and their photos).
+// HOW A SCREEN REACHES THE DATABASE. Plan tasks `10.5-iii-b` (her way out),
+// `10.5-iv-a-i` (the kitchens close to her, and their photos) and `10.5-iv-a-ii`
+// (the trades' names, for a kitchen's page).
 //
 // ⚠️ A SCREEN NEVER CALLS `@/api/calls` ITSELF — Wera's R12, as in Wera Cocina
 // (`cocina/src/api/hooks.ts`, whose two deletion hooks these are, copied): a
@@ -21,8 +22,8 @@ import {
   type Business,
   type DeleteArgs,
 } from '@/api/account';
-import { accountOwners, deleteMyAccount, onOfferNow, photoRequest, revokeApple } from '@/api/calls';
-import { cocinasKey, type Kitchen } from '@/api/cocinas';
+import { accountOwners, deleteMyAccount, kitchenGiros, onOfferNow, photoRequest, revokeApple } from '@/api/calls';
+import { cocinasKey, girosKey, type Giro, type Kitchen } from '@/api/cocinas';
 import { FILE_OF, isPicturePath, type PhotoSize } from '@/api/fotos';
 import { releaseStep } from '@/auth/apple';
 import { useAuth } from '@/auth/AuthProvider';
@@ -41,6 +42,26 @@ export function useCocinas() {
     queryKey: cocinasKey(userId),
     queryFn: onOfferNow,
     enabled: ready && userId !== null,
+  });
+}
+
+/** An hour, Wera Cocina's: the trades change when the owner edits a row in the dashboard, not by the minute. */
+const GIROS_STALE_MS = 60 * 60_000;
+
+/**
+ * ⚠️ `10.5-iv-a-ii`: THE KITCHENS' TRADES' NAMES (`kitchen_giros()`, `0072`) — what a
+ * kitchen's page says under her name. Wera Cocina's `useKitchenGiros`, keyed on the
+ * login as every read here; in memory only. `undefined` until it answers, and her
+ * page then simply leaves the line out.
+ */
+export function useGiros() {
+  const { session, ready } = useAuth();
+  const userId = session?.user.id ?? null;
+  return useQuery<Giro[]>({
+    queryKey: girosKey(userId),
+    queryFn: kitchenGiros,
+    enabled: ready && userId !== null,
+    staleTime: GIROS_STALE_MS,
   });
 }
 
