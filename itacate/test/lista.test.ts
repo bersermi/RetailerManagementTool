@@ -1,10 +1,15 @@
+import { readFileSync } from 'node:fs';
+
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import type { Dish, Kitchen, Offer, Punto, Summary } from '@/api/cocinas';
 import { EMPTY_PAGE } from '@/api/pagina';
 import {
+  ORDENES,
+  ORDEN_INICIAL,
   PATRON_MINIMO,
   ahorroDe,
+  cuandoDe,
   cuandoPublica,
   diasAtras,
   diasTexto,
@@ -116,13 +121,13 @@ describe('the cards — one per dish on offer, one per quiet kitchen', () => {
   });
 });
 
-describe('nearest first — every kitchen the door sends', () => {
+describe('Más cerca — nearest first, every kitchen the door sends (the list’s order until `10.5-iv-a-iv`)', () => {
   it('by the distance from her, the door’s point else what her phone found', () => {
     const ahora = local(2026, 11, 5, 12);
     const lejos = cocina('k-lejos', 'A Lejos', NORTE_2, []);
     const cerca = cocina('k-cerca', 'Z Cerca', NORTE_1, []);
     const buscada = cocina('k-buscada', 'M Buscada', null, []);
-    const cards = tarjetasDe([lejos, buscada, cerca], AQUI, new Map([['k-buscada', AQUI]]), ahora);
+    const cards = tarjetasDe([lejos, buscada, cerca], AQUI, new Map([['k-buscada', AQUI]]), ahora, 'cerca');
     expect(cards.map((c) => c.cocina.id)).toEqual(['k-buscada', 'k-cerca', 'k-lejos']);
     expect(cards[0].metros).toBe(0);
     expect(cards[1].metros).toBeGreaterThan(1050);
@@ -136,6 +141,7 @@ describe('nearest first — every kitchen the door sends', () => {
       AQUI,
       new Map(),
       ahora,
+      'cerca',
     );
     expect(cards.map((c) => [c.cocina.id, c.metros === null])).toEqual([
       ['k-con', false],
@@ -152,8 +158,128 @@ describe('nearest first — every kitchen the door sends', () => {
       AQUI,
       new Map(),
       ahora,
+      'cerca',
     );
     expect(cards.map((c) => c.key)).toEqual(['cocina:k-a', 'platillo:o-temprano:1', 'platillo:o-temprano:2', 'platillo:o-tarde:1']);
+  });
+});
+
+// ----------------------------------------------------------------------------
+// ⚠️ THE OWNER'S ANSWERS OF 2026-11-05 (`10.5-iv-a-iv`, asked on `10.5-iv-a-iii`'s
+// page): the list opens on *Ahora*; *Ordenar* offers it, *Más cerca* and *Más
+// barato*, and nothing else. The 13:30 case is the page's first moment, its
+// kitchens at the page's distances.
+// ----------------------------------------------------------------------------
+
+/** A point `metros` north of `AQUI` — a degree of latitude is about 111,195 m. */
+const alNorte = (metros: number): Punto => ({ latitude: AQUI.latitude + metros / 111_195, longitude: AQUI.longitude });
+
+/** The page's Thursday at 13:30: two faded kitchens nearest, Lupita's lunch open now, two dishes for later. */
+function lasTrece() {
+  const dia = (h: number, mi = 0) => local(2026, 11, 5, h, mi);
+  return [
+    cocina('k-mari', 'Fonda Doña Mari', alNorte(300), []),
+    cocina('k-espiga', 'Panadería La Espiga', alNorte(400), []),
+    cocina('k-guero', 'Taquería El Güero', alNorte(650), [oferta('o-guero', dia(16), dia(18, 30), [plato(1, { priceCentavos: 4000 })])]),
+    cocina('k-lupita', 'Fonda Lupita', alNorte(900), [
+      oferta('o-lupita', dia(13), dia(15), [plato(1, { priceCentavos: 5500 }), plato(2, { priceCentavos: 4500 })]),
+    ]),
+    cocina('k-chela', 'Cocina Chela', alNorte(2400), [oferta('o-chela', dia(18), dia(19, 30), [plato(1, { priceCentavos: 7000, surprise: true })])]),
+  ];
+}
+
+describe('the orders she can pick — his answers 1 to 3 of 2026-11-05', () => {
+  it('Ahora, Más cerca and Más barato, in that order; the list opens on Ahora', () => {
+    expect([...ORDENES]).toEqual(['ahora', 'cerca', 'barato']);
+    expect(ORDEN_INICIAL).toBe('ahora');
+  });
+
+  it('their words, word for word', () => {
+    expect(ES.cerca.ordenar).toBe('Ordenar');
+    expect(ES.cerca.orden).toEqual({ ahora: 'Ahora', cerca: 'Más cerca', barato: 'Más barato' });
+    expect(ES.cerca.ordenarPor(ES.cerca.orden.barato)).toBe('Ordenar: Más barato');
+  });
+});
+
+describe('Ahora — what she can pick up now, then later today, then another day, then the quiet kitchens', () => {
+  it('at 13:30, Lupita’s lunch first and the faded kitchens last, where nearest first had them on top', () => {
+    const ahora = local(2026, 11, 5, 13, 30);
+    const ids = (orden?: 'ahora' | 'cerca') => tarjetasDe(lasTrece(), AQUI, new Map(), ahora, orden).map((c) => c.key);
+    expect(ids()).toEqual([
+      'platillo:o-lupita:1',
+      'platillo:o-lupita:2',
+      'platillo:o-guero:1',
+      'platillo:o-chela:1',
+      'cocina:k-mari',
+      'cocina:k-espiga',
+    ]);
+    expect(ids('cerca')).toEqual([
+      'cocina:k-mari',
+      'cocina:k-espiga',
+      'platillo:o-guero:1',
+      'platillo:o-lupita:1',
+      'platillo:o-lupita:2',
+      'platillo:o-chela:1',
+    ]);
+  });
+
+  it('a card says when it can be picked up: now, later today, another day, or nothing on offer', () => {
+    const ahora = local(2026, 11, 5, 22);
+    const manana = oferta('o-manana', local(2026, 11, 6, 11), local(2026, 11, 6, 12, 30), [plato(1)]);
+    const cards = tarjetasDe(
+      [cocina('k-quieta', 'Cocina cerca', alNorte(500), []), cocina('k-guera', 'Mariscos La Güera', alNorte(1100), [manana])],
+      AQUI,
+      new Map(),
+      ahora,
+    );
+    expect(cards.map((c) => [c.key, cuandoDe(c, ahora)])).toEqual([
+      ['platillo:o-manana:1', 2],
+      ['cocina:k-quieta', 3],
+    ]);
+    const lasTres = local(2026, 11, 5, 13, 30);
+    expect(tarjetasDe(lasTrece(), AQUI, new Map(), lasTres).map((c) => cuandoDe(c, lasTres))).toEqual([0, 0, 1, 1, 3, 3]);
+  });
+
+  it('a window that opens while she looks moves its card up, without asking the door', () => {
+    const lejos = cocina('k-lejos', 'Cocina lejos', alNorte(2000), [
+      oferta('o-lejos', local(2026, 11, 5, 17), local(2026, 11, 5, 19), [plato(1)]),
+    ]);
+    const mari = cocina('k-mari', 'Fonda Doña Mari', alNorte(300), [
+      oferta('o-mari', local(2026, 11, 5, 17, 30), local(2026, 11, 5, 18, 15), [plato(1)]),
+    ]);
+    const a = (h: number, mi: number) => tarjetasDe([mari, lejos], AQUI, new Map(), local(2026, 11, 5, h, mi)).map((c) => c.key);
+    expect(a(17, 29)).toEqual(['platillo:o-lejos:1', 'platillo:o-mari:1']);
+    expect(a(17, 30)).toEqual(['platillo:o-mari:1', 'platillo:o-lejos:1']);
+  });
+});
+
+describe('Más barato — the cheapest dish first, near or far; the quiet kitchens after', () => {
+  it('by price, nearest first between equal prices, and the faded kitchens last, nearest first', () => {
+    const ahora = local(2026, 11, 5, 13, 30);
+    const cocinas = [
+      ...lasTrece(),
+      cocina('k-igual', 'Cocina igual', alNorte(1500), [
+        oferta('o-igual', local(2026, 11, 5, 14), local(2026, 11, 5, 15), [plato(1, { priceCentavos: 4500 })]),
+      ]),
+    ];
+    expect(tarjetasDe(cocinas, AQUI, new Map(), ahora, 'barato').map((c) => c.key)).toEqual([
+      'platillo:o-guero:1',
+      'platillo:o-lupita:2',
+      'platillo:o-igual:1',
+      'platillo:o-lupita:1',
+      'platillo:o-chela:1',
+      'cocina:k-mari',
+      'cocina:k-espiga',
+    ]);
+  });
+});
+
+describe('the list screen orders by her pick', () => {
+  const pantalla = readFileSync(new URL('../src/app/(vecino)/index.tsx', import.meta.url), 'utf8');
+  it('opens on the initial order, hands her pick to the cards, and draws Ordenar', () => {
+    expect(pantalla).toContain('useState<Orden>(ORDEN_INICIAL)');
+    expect(pantalla).toMatch(/tarjetasDe\(cocinas\.data, desde, buscados, ahora, orden\)/);
+    expect(pantalla).toContain('<Ordenar orden={orden} onOrden={setOrden} />');
   });
 });
 

@@ -16,12 +16,20 @@
 // cards are made again as time passes (`ahora`), so a kitchen turns quiet on her
 // screen without asking the door.
 //
-// ⚠️ NEAREST FIRST, EVERY KITCHEN THE DOOR SENDS (his ruling of 2026-11-04, night)
-// — the order he chooses (relevance, availability, closeness: a discussion of its
-// own since his word of 2026-11-05, plan `10.5-iv-a-iii`) changes `antes` alone,
-// sent as an update. A card whose distance is not known yet — a kitchen with no
-// point, while her phone asks Google for its address, or after Google could not
-// place it — goes last, never left out.
+// ⚠️ THE ORDER, HIS ANSWERS OF 2026-11-05 (plan `10.5-iv-a-iv`, asked on
+// `10.5-iv-a-iii`'s page, https://claude.ai/artifact/M5kESDfKVSy3mFEyT3g7dy):
+//   - it opens on *Ahora* — what she can pick up now, then later today, then another
+//     day, then the quiet kitchens; nearest first inside each (his answer 1). On the
+//     page's five moments it is the one order that never puts a faded card above a
+//     dish, and puts lunch first at 13:30;
+//   - *Ordenar* lets her pick (his answer 2: *"there are many restaurants in the
+//     pilot neighborhood"*): *Más cerca* — nearest first, the quiet kitchens among the
+//     rest, the order this list had until then — or *Más barato*, the cheapest dish
+//     first. Nothing else orders it (his answer 3: every other order waits or never
+//     comes, and none may cost money). Her pick lives while the list does.
+// Every kitchen the door sends, in every order. A card whose distance is not known
+// yet — a kitchen with no point, while her phone asks Google for its address, or
+// after Google could not place it — goes last among its equals, never left out.
 //
 // ⚠️ SINCE `10.5-iv-a-ii` A CARD OPENS A PAGE — a dish's card the dish's, a quiet
 // kitchen's card hers — and the list hands those pages each kitchen's distance
@@ -31,7 +39,7 @@
 import type { Dish, Kitchen, Offer, Punto, Summary } from '@/api/cocinas';
 import { formatMXN } from '@/format/mxn';
 import { metrosEntre } from '@/lib/distancia';
-import { slotOf } from '@/lib/ventana';
+import { daysFrom, slotOf } from '@/lib/ventana';
 import { ES } from '@/strings';
 
 /** One card of the list. */
@@ -71,7 +79,27 @@ function clave(nombre: string): string {
   return nombre.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 }
 
-/** ⚠️ THE ORDER — nearest first; an unknown distance last; then the kitchen's name; then her own order. */
+// ----------------------------------------------------------------------------
+// The order — his answers of 2026-11-05
+// ----------------------------------------------------------------------------
+
+/** The orders *Ordenar* offers, in the order its buttons show them. */
+export const ORDENES = ['ahora', 'cerca', 'barato'] as const;
+export type Orden = (typeof ORDENES)[number];
+
+/** ⚠️ THE ORDER THE LIST OPENS ON — his answer 1. */
+export const ORDEN_INICIAL: Orden = 'ahora';
+
+/** When a card can be picked up: 0 now, 1 later today, 2 another day, 3 a quiet kitchen with nothing on offer. */
+export type Cuando = 0 | 1 | 2 | 3;
+
+export function cuandoDe(tarjeta: Tarjeta, ahora: Date): Cuando {
+  if (tarjeta.kind === 'cocina') return 3;
+  if (tarjeta.oferta.start.getTime() <= ahora.getTime()) return 0;
+  return daysFrom(ahora, tarjeta.oferta.start) === 0 ? 1 : 2;
+}
+
+/** *Más cerca* — nearest first; an unknown distance last; then the kitchen's name; then her own order. */
 export function antes(a: Tarjeta, b: Tarjeta): number {
   if (a.metros !== b.metros) {
     if (a.metros === null) return 1;
@@ -85,12 +113,33 @@ export function antes(a: Tarjeta, b: Tarjeta): number {
   return a.posicion - b.posicion;
 }
 
-/** Every card, in the list's order, measured from `desde`. */
+/** *Ahora* — now, later today, another day, the quiet kitchens; *Más cerca* inside each. */
+export function antesAhora(ahora: Date): (a: Tarjeta, b: Tarjeta) => number {
+  return (a, b) => cuandoDe(a, ahora) - cuandoDe(b, ahora) || antes(a, b);
+}
+
+/** *Más barato* — the cheapest dish first, near or far; the quiet kitchens after; *Más cerca* between equals. */
+export function antesBarato(a: Tarjeta, b: Tarjeta): number {
+  const pa = a.kind === 'platillo' ? a.platillo.priceCentavos : Number.POSITIVE_INFINITY;
+  const pb = b.kind === 'platillo' ? b.platillo.priceCentavos : Number.POSITIVE_INFINITY;
+  if (pa !== pb) return pa < pb ? -1 : 1;
+  return antes(a, b);
+}
+
+/** The comparison each order sorts by. */
+export function ordenDe(orden: Orden, ahora: Date): (a: Tarjeta, b: Tarjeta) => number {
+  if (orden === 'cerca') return antes;
+  if (orden === 'barato') return antesBarato;
+  return antesAhora(ahora);
+}
+
+/** Every card, in the order she picked — *Ahora* until she picks — measured from `desde`. */
 export function tarjetasDe(
   cocinas: readonly Kitchen[],
   desde: Punto | null,
   buscados: ReadonlyMap<string, Punto>,
   ahora: Date,
+  orden: Orden = ORDEN_INICIAL,
 ): Tarjeta[] {
   const tarjetas: Tarjeta[] = [];
   for (const cocina of cocinas) {
@@ -116,7 +165,7 @@ export function tarjetasDe(
       }
     }
   }
-  return tarjetas.sort(antes);
+  return tarjetas.sort(ordenDe(orden, ahora));
 }
 
 // ----------------------------------------------------------------------------

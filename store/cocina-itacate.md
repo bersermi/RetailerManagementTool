@@ -102,7 +102,7 @@ Versión de prueba de Itacate, la app de Wera para vecinos.
 ```
 Itacate es la app de Wera para vecinos.
 
-Esta es una versión de prueba, solo para quienes la están probando. Te muestra las cocinas cercanas que tienen algo publicado, de la más cercana a la más lejana, con lo que ofrecen, su precio y a qué hora pasar por ello. Tu ubicación se usa solo en tu teléfono; si no quieres darla, escribe tu código postal. La iremos llenando con actualizaciones.
+Esta es una versión de prueba, solo para quienes la están probando. Te muestra las cocinas cercanas que tienen algo publicado —primero lo que puedes recoger ahora, y de la más cercana a la más lejana—, con lo que ofrecen, su precio y a qué hora pasar por ello. Tu ubicación se usa solo en tu teléfono; si no quieres darla, escribe tu código postal. La iremos llenando con actualizaciones.
 
 No tiene anuncios y no vende datos.
 

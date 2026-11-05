@@ -137,6 +137,14 @@ export const ES = {
     /** `10.5-iv-a-ii`: what a screen reader says for a card, which now opens a page. */
     abrirPlatillo: (platillo: string, cocina: string) => `${platillo}, de ${cocina}`,
     abrirCocina: (cocina: string) => `${cocina}, sin nada en oferta ahora`,
+    /**
+     * `10.5-iv-a-iv` — *Ordenar*, her pick of the list's order (the owner's answer 2 of
+     * 2026-11-05). The list opens on *Ahora* (his answer 1).
+     */
+    ordenar: 'Ordenar',
+    orden: { ahora: 'Ahora', cerca: 'Más cerca', barato: 'Más barato' },
+    /** What a screen reader says for each of its buttons. */
+    ordenarPor: (orden: string) => `Ordenar: ${orden}`,
   },
 
   /**
