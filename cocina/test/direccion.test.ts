@@ -229,9 +229,10 @@ describe('the small map: her own point, or where Google places her address — a
   it('asked only while she has no point of her own, on both screens that draw it', () => {
     expect(code('ui/PantallaDireccion.tsx')).toMatch(/const donde = useDondeEsta\(propio !== null \? null : valor\.address, elegido\);/);
     expect(code('ui/PantallaDireccion.tsx')).toMatch(/const punto = propio \?\? \(donde\.kind === 'punto' \? donde\.destino\.punto : null\);/);
-    // Her kitchen's screen: the stored copy, asked again a week on (`useDondeEstaSuCocina`), never with her own pin.
-    expect(code('app/(cocina)/index.tsx')).toMatch(/const donde = useDondeEstaSuCocina\(here\);/);
-    expect(code('app/(cocina)/index.tsx')).toMatch(/punto=\{here\.pin \?\? \(donde\.kind === 'punto' \? donde\.destino\.punto : null\)\}/);
+    // Her kitchen's screen — *Mi cocina* since `10.5-v-c-i`: the stored copy, asked again a week on
+    // (`useDondeEstaSuCocina`), never with her own pin.
+    expect(code('app/(cocina)/(tabs)/mi-cocina.tsx')).toMatch(/const donde = useDondeEstaSuCocina\(here\);/);
+    expect(code('app/(cocina)/(tabs)/mi-cocina.tsx')).toMatch(/punto=\{here\.pin \?\? \(donde\.kind === 'punto' \? donde\.destino\.punto : null\)\}/);
   });
 
   it('a pick asks nothing; her boxes ask once they rest, longer than the suggestions’ pause, with the full map’s question', () => {

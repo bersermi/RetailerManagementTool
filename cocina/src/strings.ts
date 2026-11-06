@@ -468,6 +468,148 @@ export const ES = {
     retirarNo: 'No',
   },
 
+  /**
+   * ⚠️ `10.5-v-c-i`: THE TAB BAR — *Hoy · Apartados · Clientes · Mi cocina* (the owner's
+   * ruling of 2026-11-05, the family-shell page's call 4). *Apartados* arrives with
+   * reserving (`10.5b`), *Clientes* with the stamp card; their words wait here.
+   */
+  pestanas: {
+    hoy: 'Hoy',
+    apartados: 'Apartados',
+    clientes: 'Clientes',
+    miCocina: 'Mi cocina',
+  },
+
+  /**
+   * ⚠️ `10.5-v-c-i`: *HOY* AS A HUB (his directions of 2026-11-06, the family-shell page's
+   * round 6): the day's card — *Hoy en Itacate*, how many are on offer and until when, the
+   * time left, each dish on a line — then *Publicar una oferta* with *Repetir*, then the
+   * doors. Before reserving (`10.5b`) nothing is reserved, so the card counts what is on
+   * offer; *Quedan 4 de 8* is that row's.
+   */
+  hoy: {
+    enItacate: 'Hoy en Itacate',
+    /** *hasta las 19:00*; a window that ends another day names it: *hasta mañana a las 1:00*. */
+    hasta: (dia: string | null, hora: string) => (dia === null ? `hasta las ${hora}` : `hasta ${dia} a las ${hora}`),
+    porciones: (n: number) => (n === 1 ? '1 porción en oferta' : `${n} porciones en oferta`),
+    enOferta: (n: number) => `${n} en oferta`,
+    terminada: 'Terminada',
+    /** Under the card's lines when there are more than it draws. */
+    masRenglones: (n: number) => `y ${n} más`,
+    faltan: (horas: number, minutos: number) =>
+      horas === 0 ? `Faltan ${minutos} min` : minutos === 0 ? `Faltan ${horas} h` : `Faltan ${horas} h ${minutos} min`,
+    menosDeUnMinuto: 'Falta menos de un minuto',
+    empieza: (dia: string | null, hora: string) => (dia === null ? `Empieza a las ${hora}` : `Empieza ${dia} a las ${hora}`),
+    /** The card's door, and what a screen reader says it opens. */
+    verOfertas: 'Tus ofertas',
+    nada: 'Hoy todavía no has publicado',
+    ayer: (hora: string) => `Ayer publicaste a las ${hora}`,
+    antes: (dia: string, hora: string) => `Publicaste el ${dia} a las ${hora}`,
+    nunca: 'Tu primera oferta aparece aquí, y en Itacate para tus vecinos.',
+    terminado: 'Por hoy ya se terminó',
+    terminadoDetalle: 'Lo que publicaste hoy ya no está en Itacate.',
+    repetir: 'Repetir:',
+    /** A chip: what, how many, the price of one — *Comida corrida · 8 · $65*. */
+    chip: (que: string, cuantos: number, precio: string) => `${que} · ${cuantos} · ${precio}`,
+    /** What a screen reader says a chip does. */
+    chipAyuda: (que: string) => `Repetir ${que}`,
+    /** An offer of several dishes, named by its first: *Comida corrida y 2 más*. */
+    yMas: (primero: string, otros: number) => `${primero} y ${otros} más`,
+  },
+
+  /** `10.5-v-c-i`: a door on *Hoy*, with its number (the family-shell page's zone 4). */
+  puertas: {
+    pagina: 'Tu página',
+    /** ✕ on a door she may close. */
+    quitar: 'Quitar de Hoy',
+  },
+
+  /**
+   * `10.5-v-c-i`: *TU PÁGINA EN ITACATE*'S CHECKLIST — five things, the page's (`pageCard`):
+   * in *Mi cocina* under her page until all five are done, and their count on *Hoy*'s door.
+   */
+  pendientes: {
+    titulo: 'Tu página en Itacate',
+    cuenta: (hechos: number, de: number) => `${hechos} de ${de}`,
+    item: {
+      nombreGiro: 'Nombre y giro',
+      direccion: 'Tu dirección',
+      frase: 'Tu frase',
+      oferta: 'Tu primera oferta',
+      portada: 'Foto de portada',
+    },
+    /** The same five inside a sentence: *Falta tu foto de portada*. */
+    corto: {
+      nombreGiro: 'qué es tu cocina',
+      direccion: 'tu dirección',
+      frase: 'tu frase',
+      oferta: 'tu primera oferta',
+      portada: 'tu foto de portada',
+    },
+    falta: (que: string) => `Falta ${que}`,
+    faltan: (una: string, otra: string) => `Faltan ${una} y ${otra}`,
+    faltanVarias: (n: number) => `Faltan ${n} cosas`,
+    /** What a screen reader says of one done. */
+    hecho: (que: string) => `${que}: listo`,
+  },
+
+  /**
+   * `10.5-v-c-i`: *TUS OFERTAS*, A ROOM OF ITS OWN (his ruling of 2026-11-06): today's
+   * offers with *Ya se terminó*, *Publicar una oferta*, then *Anteriores* with *Repetir*.
+   * ⚠️ *Ya se terminó* is `withdraw_listing`, asked once inline as Wera asks (`8k`): from
+   * `10.5b` it keeps what neighbours reserved.
+   */
+  ofertas: {
+    titulo: 'Tus ofertas',
+    /** The room's first line while something is on offer: *Hoy en Itacate · hasta las 19:00*. */
+    enItacate: (hasta: string) => `Hoy en Itacate · ${hasta}`,
+    /** Back to the tab it was opened from. */
+    volver: 'Hoy',
+    hoy: 'Hoy',
+    anteriores: 'Anteriores',
+    estado: { oferta: 'En oferta', terminada: 'Terminada' },
+    yaSeTermino: 'Ya se terminó',
+    pregunta: '¿La quitas de Itacate?',
+    si: 'Sí, ya se terminó',
+    no: 'No',
+    /** On a past offer she already published again today, where *Repetir* would be. */
+    hoyTag: 'Hoy',
+    repetir: 'Repetir',
+    nota: 'Repetir la publica otra vez, con las horas de hoy, y la puedes deshacer.',
+    ninguna: 'Todavía no has publicado nada.',
+  },
+
+  /**
+   * `10.5-v-c-i`: *MI COCINA* — what she sets once (the family-shell page's `cMi`): her page
+   * and its checklist, where she hands food over, her trade, help and her account.
+   */
+  miCocina: {
+    titulo: 'Mi cocina',
+    giro: 'Qué es tu cocina',
+    ayuda: 'Ayuda',
+    whatsapp: 'Escríbenos por WhatsApp',
+    whatsappDetalle: 'Te contesta una persona',
+    /** What lands in the owner's chat — it names this app, as *¿Olvidaste tu contraseña?* does. */
+    ayudaMensaje: 'Hola, necesito ayuda con Wera Cocina.',
+    ayudaMensajeConCorreo: (email: string) => `Hola, necesito ayuda con Wera Cocina. Mi correo es ${email}`,
+    aviso: 'Aviso de privacidad',
+    cuenta: 'Tu cuenta',
+  },
+
+  /**
+   * `10.5-v-c-i`: THE TOAST AT THE FOOT — what just happened, and *Deshacer* for 8 seconds
+   * after publishing or *Repetir* (the owner's ruling of 2026-11-05, call 19).
+   */
+  nota: {
+    deshacer: 'Deshacer',
+    publicaste: (que: string) => `Publicaste ${que}`,
+    otraVez: (que: string, cuando: string) => `Publicaste otra vez ${que}: ${cuando}`,
+    quitaste: (que: string) => `Quitaste ${que} de Itacate`,
+    deshecha: 'Listo: ya no está en Itacate.',
+    noSeQuito: (porque: string) => `No se pudo quitar de Itacate. ${porque}`,
+    paginaCerrada: 'Tu página sigue en Mi cocina',
+  },
+
   /** Days and times as she says them. ⚠️ Wera's shapes: `Mañana · 9:45 a 10:00` (`slotShort`), `Lun 13`. */
   fechas: {
     hoy: 'Hoy',

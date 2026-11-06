@@ -393,6 +393,7 @@ describe('Repetir', () => {
       placeId: 'place-1',
       start: new Date(2026, 9, 30, 19, 30),
       end: new Date(2026, 9, 30, 20),
+      createdAt: new Date(2026, 9, 30, 19, 10),
       withdrawnAt: null,
       lines: [
         { name: 'Comida corrida', description: null, tags: ['pica'], priceCentavos: 6550, count: 4, surprise: false, usualCentavos: 9000, imagePath: 'k/comida' },
@@ -453,12 +454,33 @@ describe('the screens’ wiring, read as text', () => {
     expect(code('app/(cocina)/publicar.tsx')).toMatch(/await publish\(publishArgs\(attempt\.current, body\), fotosPorSubir\(lines\)\)/);
   });
 
-  it('her kitchen draws publishing first and her list; the list’s Repetir opens the form with the publication', () => {
-    const kitchen = code('app/(cocina)/index.tsx');
-    expect(kitchen).toMatch(/router\.push\('\/publicar'\)/);
-    expect(kitchen).toMatch(/<Publicaciones kitchenId=\{kitchen\.id\} \/>/);
-    expect(kitchen.indexOf('<Publicaciones')).toBeLessThan(kitchen.indexOf('ES.cocina.donde'));
-    expect(code('ui/Publicaciones.tsx')).toMatch(/router\.push\(\{ pathname: '\/publicar', params: \{ repetir: listing\.id \} \}\)/);
+  // ⚠️ `10.5-v-c-i`: her list left her kitchen's screen for *Tus ofertas*, and *Repetir* publishes in one
+  // tap when the form would have sent the same thing untouched — else it opens the form, as before.
+  it('Hoy and Tus ofertas open publishing; Repetir opens the form with the publication when one tap cannot', () => {
+    for (const screen of ['app/(cocina)/(tabs)/index.tsx', 'app/(cocina)/ofertas.tsx']) {
+      expect(code(screen), screen).toMatch(/router\.push\('\/publicar'\)/);
+    }
+    const repetir = code('lib/useRepetir.ts');
+    expect(repetir).toMatch(/if \(plan\.kind === 'formulario'\) \{\s*router\.push\(\{ pathname: '\/publicar', params: \{ repetir: listing\.id \} \}\);/);
     expect(code('app/(cocina)/publicar.tsx')).toMatch(/useLocalSearchParams<\{ repetir\?: string \}>\(\)/);
+  });
+
+  it('a one-tap Repetir is the same publication on a retry, as the form’s is', () => {
+    const repetir = code('lib/useRepetir.ts');
+    expect(repetir).toMatch(/const attempt = attemptFor\(intentos\.current\.get\(listing\.id\) \?\? null, plan\.body, newId\);/);
+    expect(repetir).toMatch(/await publish\(publishArgs\(attempt, plan\.body\)\)/);
+    expect(repetir).toMatch(/if \(kitchen === null \|\| busyId !== null\) return;/);
+  });
+
+  it('published, she goes back with Publicaste … and Deshacer, which takes that publication down', () => {
+    const screen = code('app/(cocina)/publicar.tsx');
+    const sent = screen.indexOf('await publish(publishArgs(attempt.current, body)');
+    const told = screen.indexOf('avisarPublicada(ES.nota.publicaste(nombreDe({ lines: body.p_lines })), kitchen.id, id)');
+    expect(sent).toBeGreaterThan(-1);
+    expect(told).toBeGreaterThan(sent);
+    expect(screen.indexOf('salir();', told)).toBeGreaterThan(told);
+    expect(screen).toMatch(/const id = attempt\.current\.id;/);
+    expect(code('lib/NotaProvider.tsx')).toMatch(/avisarPublicada: \(texto, kitchenId, listingId\) => mostrar\(texto, \(\) => quitar\(kitchenId, listingId\)\)/);
+    expect(code('api/hooks.ts')).toMatch(/mutationFn: \(input: \{ kitchenId: string; id: string \}\) => withdrawListing\(\{ p_id: input\.id \}\)/);
   });
 });

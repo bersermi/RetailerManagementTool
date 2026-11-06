@@ -269,10 +269,14 @@ describe('the refresh, as wired', () => {
   });
 
   it('her kitchen’s small map and *Ajustar punto* draw the copy; *Cambiar dirección* opens on it', () => {
-    for (const route of ['app/(cocina)/index.tsx', 'app/(cocina)/ubicacion.tsx']) {
+    for (const route of ['app/(cocina)/(tabs)/mi-cocina.tsx', 'app/(cocina)/ubicacion.tsx']) {
       expect(code(route), route).toMatch(/const donde = useDondeEstaSuCocina\(here\);/);
       expect(code(route), route).not.toMatch(/useDondeEsta\(/);
     }
+    // ⚠️ `10.5-v-c-i`: *Mi cocina* mounts only when she opens it, so the copy is asked again from the
+    // tabs' layout — always mounted, whichever tab every launch opens on — and the map reads that answer.
+    expect(code('app/(cocina)/(tabs)/_layout.tsx')).toMatch(/const place = usePlace\(kitchen\?\.id \?\? null\);\s*useDondeEstaSuCocina\(place\.data\);/);
+    expect(code('app/(cocina)/(tabs)/_layout.tsx')).toMatch(/export default function TabsDeCocina\(\) \{\s*useRefrescoDeSuPunto\(\);/);
     expect(code('app/(cocina)/direccion/_layout.tsx')).toMatch(/conocido=\{lugarGuardado\(place\.data\)\}/);
   });
 });

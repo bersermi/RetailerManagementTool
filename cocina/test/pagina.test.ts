@@ -272,11 +272,14 @@ describe('her initials, until she gives a logo', () => {
 });
 
 describe('the screens’ wiring, read as text', () => {
-  it('her kitchen opens the editor, from the picture and from the button', () => {
-    const kitchen = code('app/(cocina)/index.tsx');
+  // ⚠️ `10.5-v-c-i`: her page's head left *Hoy* for *Mi cocina* (his direction of 2026-11-06), first on it.
+  it('Mi cocina opens the editor, from the picture and from the button, her page first', () => {
+    const kitchen = code('app/(cocina)/(tabs)/mi-cocina.tsx');
     expect(kitchen.match(/router\.push\('\/pagina'\)/g)?.length).toBe(2);
-    expect(kitchen.indexOf('<Publicaciones')).toBeLessThan(kitchen.indexOf('<Portada'));
-    expect(kitchen.indexOf('<Portada')).toBeLessThan(kitchen.indexOf('ES.cocina.donde'));
+    expect(kitchen.indexOf('<Portada')).toBeGreaterThan(-1);
+    expect(kitchen.indexOf('<Portada')).toBeLessThan(kitchen.indexOf('<Pendientes'));
+    expect(kitchen.indexOf('<Pendientes')).toBeLessThan(kitchen.indexOf('ES.cocina.donde'));
+    expect(code('app/(cocina)/(tabs)/index.tsx')).not.toMatch(/<Portada/);
   });
 
   it('the editor checks the form before anything is sent, and saves through its hook', () => {

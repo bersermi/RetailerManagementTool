@@ -22,7 +22,9 @@ import {
 } from '@/api/listing';
 import { EMPTY_PAGE, colorOf, defaultsFor } from '@/api/pagina';
 import { elegirFoto, tomarFoto } from '@/lib/foto';
+import { nombreDe } from '@/lib/hoy';
 import { newId } from '@/lib/ids';
+import { useNota } from '@/lib/NotaProvider';
 import { checkVentana, firstVentana, type Ventana } from '@/lib/ventana';
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
@@ -65,6 +67,11 @@ import { TecladoListo } from '@/ui/TecladoListo';
 // and a retry sends the same photo — and the photos go up when she presses
 // *Publicar*, before the call that names them (`usePublish`). A dish with no
 // photo wears her kitchen's drawing on her page's colour.
+//
+// ⚠️ `10.5-v-c-i`: PUBLISHED, SHE IS BACK WHERE SHE CAME FROM — *Hoy* or *Tus ofertas* —
+// with *Publicaste …* and *Deshacer* for 8 seconds (the owner's ruling of 2026-11-05,
+// call 19). The toast lives at the root (`@/lib/NotaProvider`): this screen is gone by
+// the time she reads it, so the call behind *Deshacer* is not this screen's.
 // ============================================================================
 
 const PAD = 'publicar-numeros';
@@ -105,6 +112,7 @@ function salir() {
 function Form({ kitchen, placeId, source }: { kitchen: Kitchen; placeId: string; source: Listing | null }) {
   const insets = useSafeAreaInsets();
   const { publish, busy } = usePublish(kitchen.id);
+  const { avisarPublicada } = useNota();
   const page = usePage(kitchen.id);
   const fondo = { dibujo: defaultsFor(kitchen.giroPrincipal).dibujo, color: colorOf(page.data ?? EMPTY_PAGE, kitchen.giroPrincipal) };
   const [notas, setNotas] = useState<Record<string, string | null>>({});
@@ -145,9 +153,12 @@ function Form({ kitchen, placeId, source }: { kitchen: Kitchen; placeId: string;
     if (late !== null) return setProblem(ES.publicar.errores.ventana[late]);
     const body = publishBody(placeId, lines, ventana);
     attempt.current = attemptFor(attempt.current, body, newId);
+    const id = attempt.current.id;
     const answer = await publish(publishArgs(attempt.current, body), fotosPorSubir(lines));
     setProblem(answer);
-    if (answer === null) salir();
+    if (answer !== null) return;
+    avisarPublicada(ES.nota.publicaste(nombreDe({ lines: body.p_lines })), kitchen.id, id);
+    salir();
   }
 
   const section = { fontSize: SIZE.bodySize, fontWeight: '700', color: PALETTE.tinta, marginTop: SIZE.space } as const;

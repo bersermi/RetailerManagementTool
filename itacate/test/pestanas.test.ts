@@ -90,7 +90,8 @@ describe('the tab bar — Cerca · Apartados · Mis cocinas · Tú (the ruling o
     expect(bar).toMatch(/navigation\.emit\(\{ type: 'tabPress', target: route\.key, canPreventDefault: true \}\)/);
     expect(bar).toMatch(/if \(!enUso && !evento\.defaultPrevented\) navigation\.navigate/);
     // Never the colour alone: the tab in use also wears the pill and a heavier word.
-    expect(bar).toMatch(/backgroundColor: enUso \? PALETTE\.accionSuave : 'transparent'/);
+    // ⚠️ The bar's white, never `transparent`: Android squared every pill after the first switch.
+    expect(bar).toMatch(/backgroundColor: enUso \? PALETTE\.accionSuave : PALETTE\.superficie/);
     expect(bar).toMatch(/fontWeight: enUso \? '700' : '600'/);
     expect(bar).toMatch(/accessibilityState=\{\{ selected: enUso \}\}/);
     expect(bar).toMatch(/paddingBottom: insets\.bottom/);
@@ -127,8 +128,8 @@ describe('Nunito titles — Wera’s file, byte for byte (the ruling of 2026-11-
     expect(root).toMatch(/if \(!fontsReady && fontError === null\) return null;/);
   });
 
-  it('every title wears it — the band, a tab’s head and a sheet’s name — with no weight beside it', () => {
-    for (const path of ['ui/Banda.tsx', 'ui/Cabeza.tsx', 'ui/Hoja.tsx']) {
+  it('every title wears it — the band, a tab’s head, a sheet’s name and, since `10.5-v-c-i`, the two pages’ — with no weight beside it', () => {
+    for (const path of ['ui/Banda.tsx', 'ui/Cabeza.tsx', 'ui/Hoja.tsx', 'app/(vecino)/cocina/[id].tsx', 'app/(vecino)/platillo/[cocina]/[oferta]/[linea].tsx']) {
       const text = code(path);
       expect(text, path).toMatch(/\.\.\.TITULO/);
     }
