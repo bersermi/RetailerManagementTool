@@ -19,7 +19,7 @@
 // ============================================================================
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 
 import {
   OWNERS_KEY,
@@ -423,6 +423,44 @@ export function useWithdraw(kitchenId: string | null) {
   }
 
   return { withdraw, busyId: mutation.isPending ? (mutation.variables ?? null) : null };
+}
+
+/**
+ * ⚠️ `10.5-v-c-i`: *DESHACER* — an offer just published, taken down again
+ * (`withdraw_listing`, as *Ya se terminó*). The kitchen travels WITH the call, not with
+ * the hook: the toast that offers it lives at the root (`@/lib/NotaProvider`) and
+ * outlives the screen that published, so it cannot borrow that screen's hook.
+ * `quitar` answers `null`, or the sentence to show; the list is drawn withdrawn at once
+ * and read again either way.
+ */
+export function useQuitarPublicada(): (kitchenId: string, id: string) => Promise<string | null> {
+  const queries = useQueryClient();
+  const { session } = useAuth();
+  const userId = session?.user.id ?? null;
+  const mutation = useMutation({
+    mutationFn: (input: { kitchenId: string; id: string }) => withdrawListing({ p_id: input.id }),
+    onSuccess: (_none, input) => {
+      queries.setQueryData<Listing[]>(listingsKey(userId, input.kitchenId), (listings) =>
+        withWithdrawn(listings, input.id, new Date()),
+      );
+    },
+    onSettled: () => {
+      void queries.invalidateQueries({ queryKey: LISTINGS_KEY });
+    },
+  });
+
+  const { mutateAsync } = mutation;
+  return useCallback(
+    async (kitchenId: string, id: string): Promise<string | null> => {
+      try {
+        await mutateAsync({ kitchenId, id });
+        return null;
+      } catch (thrown) {
+        return apiErrorMessage(thrown);
+      }
+    },
+    [mutateAsync],
+  );
 }
 
 /**

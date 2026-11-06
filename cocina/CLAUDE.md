@@ -61,8 +61,8 @@ TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic i
   then one *Registrar mi cocina* — `onboard_workspace`, her trade, her address, and her own point with
   her line **only if she set one**, else her line alone (`set_store_directions`, `0075`) — before her
   kitchens are read again, because the guard moves her the moment that read has one. Only the first
-  write can fail the sign-up; **her kitchen's screen is the second door** for the rest, as Wera's
-  Ajustes is for a shop.
+  write can fail the sign-up; **her kitchen's screen is the second door** for the rest — *Mi cocina* since
+  `10.5-v-c-i`, its *Falta …* in red with the door — as Wera's Ajustes is for a shop.
 - **Her address first** (`10.4h`, the owner's ruling of 2026-11-03: *"The pin is only indicative"*).
   *¿Dónde está tu cocina?* (`@/ui/PantallaDireccion`, in the sign-up and behind *Cambiar dirección*)
   holds the search, her five boxes, a small map (`@/ui/MapaFijo`), her line and the button; ⚠️⚠️ **the
@@ -98,7 +98,7 @@ TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic i
   and one argument builder, and `docs/checks/10.4b-iii-a-cocina-contract.sh`'s group 12 asks a real PostgREST
   (stamped by the database, a shop's store refused, a new address clearing it).
 - **Her way out is Wera's deletion, cut to this app** (`src/api/account.ts`, `@/ui/Salidas`, `10.4b-iii-c`):
-  at the foot of the landing and of her kitchen, every business she alone owns named — her kitchens first,
+  at the foot of the landing and of *Mi cocina* (her kitchen's screen until `10.5-v-c-i`), every business she alone owns named — her kitchens first,
   a shop of hers in Wera too — and each name typed (`0073`), in one body, `{p_business_names}`. No team is
   read here, so nobody else is listed. Wera's words, held to Wera's file (`test/account.test.ts`), but where
   each business lives and the line pointing a shop to Wera's month download. ⚠️ **Apple is told through Wera's
@@ -131,9 +131,10 @@ TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic i
   (ADR-035 §2.11: `parseDecimal` in, `formatDecimal` out, integer centavos between) — this app's one workspace
   package — and is drawn by `src/format/mxn.ts`, a copy of Wera's that `test/mxn.test.ts` runs beside Wera's file.
   Nothing is queued: with no signal she is told so and the form keeps what she typed. Her list is read by the
-  open kitchen's id, newest first; *Repetir* is that list.
+  open kitchen's id, newest first — her last ten, from which *Hoy*'s card, *Tus ofertas* and *Repetir* are drawn
+  (`@/lib/hoy`, `10.5-v-c-i`).
 - **Her page in Itacate and her photos** (`10.5-ii`, proposal B, the owner's ruling of 2026-11-01): *Tu página en
-  Itacate* (`/pagina`, from her kitchen's screen) — the page's head live (`@/ui/Portada`), a cover, six colours, one
+  Itacate* (`/pagina`, from *Mi cocina*) — the page's head live (`@/ui/Portada`), a cover, six colours, one
   sentence, her logo, her Google Maps link — and a photo per dish on *Publicar* (`@/ui/Renglon`), *Repetir* sending the
   same path again. `@/api/pagina` is the table and its door (`set_kitchen_page`, ⚠️ **sent only what she changed** —
   `pagePatch` — so a field a later build adds is never erased by this one) and every default: her trade's colour and
@@ -287,13 +288,27 @@ and `10.5b`; the drawn reference is the family-shell page in his private notes' 
 follows it, as `itacate/CLAUDE.md`'s does:
 
 - **The tab bar is *Hoy · Apartados · Clientes · Mi cocina*** — four tabs at most, each with its word; the two ends never move; a tab appears only when
-  its feature ships; a new feature arrives first as a card on *Hoy*. Wera's JavaScript tabs, not native tabs.
+  its feature ships; a new feature arrives first as a card on *Hoy*. Wera's JavaScript tabs, not native tabs. ⚠️ **Built by `10.5-v-c-i`**, Itacate's
+  shell copied: the tabs are data (`@/navigation/pestanas`, *Apartados* naming `10.5b` and *Clientes* `10.9`), the bar is `@/ui/Pestanas` (the tab
+  in use: green, a heavier word and a pill of the green's tint — ⚠️ the other pills the bar's white, never `transparent`: Android squared every pill
+  after the first switch), and `(cocina)/(tabs)/` holds exactly the tabs in use. *Tus ofertas*, *Publicar*, her page's editor and her address's
+  screens are pushed over the tabs. ⚠️ **Google's point for her address is asked again from the tabs' layout**, always mounted — *Mi cocina*,
+  which draws the small map, mounts only when she opens it.
+- ***Hoy* is a hub** (his directions of 2026-11-06, `10.5-v-c-i`): the day's card (`@/ui/DiaDeHoy`), *Publicar una oferta* with her last day's
+  offers as one-tap *Repetir* chips (`@/lib/useRepetir` — the form opens instead whenever it would not send the same thing untouched), and the
+  doors (`@/ui/Puertas`: *Tu página · 4 de 5*, closed on this phone per kitchen, `@/lib/puerta`). Nothing on it is edited in place. What every
+  zone says is `@/lib/hoy`'s, pure, pinned by `test/hoy.test.ts` in Mexico City's zone. ⚠️ **An offer taken back by *Deshacer* was never
+  published**, for every rule there (`deshecha`: withdrawn within a minute of being published). *Tus ofertas* (`(cocina)/ofertas`) is today's
+  with *Ya se terminó*, then *Anteriores*, one row per offer. *Mi cocina* is what she sets once.
+- ***Deshacer*, 8 seconds, at the root** (`@/lib/NotaProvider`, `@/ui/Nota`): after publishing or *Repetir* the toast's *Deshacer* is
+  `withdraw_listing`, sent by the provider with the kitchen in the call (`useQuitarPublicada`) — the screen that published is gone by then.
 - **No word that makes the food sound left over** where a fonda or a neighbour reads (*lo que sobra*, *sobrante*,
   *restos*, *desperdicio*): *Publicar una oferta*, *Tu oferta de hoy*, *aprovechar*, *Por hoy ya se terminó*, *Se liberó*.
   `test/palabras.test.ts` refuses them in `src/strings.ts` and the aviso since `10.5-v-a` — Wera's *Merma* only in the one line
   that names it to a shop's owner.
   **No sentence saying there are no penalties**: a reservation is drawn as a handover — the hour, how she pays, the code.
-- **The look:** titles in Nunito ExtraBold (`expo-font`); Wera Cocina's green `#1C6B4B` for actions; Wera's terracotta `#A9501C` for
-  promotions only; state first, before anything tappable (ADR-035 §2.8); one staggered entrance per screen, transform and
-  opacity only (§2.11).
+- **The look:** titles in Nunito ExtraBold (`expo-font`; Wera's file byte for byte in `src/marca/letras/`, loaded before the first screen,
+  since `10.5-v-c-i`); Wera Cocina's green `#1C6B4B` for actions; Wera's terracotta `#A9501C` for
+  promotions only; state first, before anything tappable (ADR-035 §2.8); one staggered entrance per screen (`@/ui/Llega`, Itacate's), transform and
+  opacity only (§2.11) — `test/pestanas.test.ts` lets Reanimated into `@/ui/Llega` and `@/ui/Nota` alone.
 - **Money:** no screen stores or shows a bank account, a card or an amount paid — only how she will pay.

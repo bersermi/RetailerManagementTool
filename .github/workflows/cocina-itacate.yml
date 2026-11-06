@@ -66,6 +66,7 @@ on:
       - "store/cocina-itacate/render.sh"
       # ⚠️ `10.5-v-b`, ITACATE'S SHELL: its titles are Wera's Nunito and its `letra.ts`, and
       # *Tú*'s foot is Wera's rust cow — each copied byte for byte and held to Wera's file.
+      # ⚠️ `10.5-v-c-i`, WERA COCINA'S SHELL: the same font and `letra.ts`, so no line is new.
       - "app/src/marca/letras/**"
       - "app/src/theme/letra.ts"
       - "app/src/marca/vaca-oxido.png"

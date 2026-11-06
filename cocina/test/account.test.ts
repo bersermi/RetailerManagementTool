@@ -288,7 +288,8 @@ describe('the two screens a signed-in person stands on both have the way out', (
   it('where a kitchen is made, with no kitchen open — and her kitchen, open first', () => {
     expect(read('src/app/(onboarding)/registro.tsx')).toMatch(/<Salidas openKitchenId=\{null\} \/>/);
     // ⚠️ Keyed on the kitchen (`10.5-iii-c`): when one goes and her next-made opens, nothing typed is left.
-    expect(read('src/app/(cocina)/index.tsx')).toMatch(/<Salidas key=\{kitchen\.id\} openKitchenId=\{kitchen\.id\} \/>/);
+    // ⚠️ `10.5-v-c-i`: her kitchen's screen is *Mi cocina* now, a tab — one tap from anywhere (Apple's 5.1.1(v)).
+    expect(read('src/app/(cocina)/(tabs)/mi-cocina.tsx')).toMatch(/<Salidas key=\{kitchen\.id\} openKitchenId=\{kitchen\.id\} \/>/);
   });
 
   it('and the block reads what goes, asks each name, and sends what the rules build', () => {

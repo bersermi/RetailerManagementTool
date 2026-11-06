@@ -15,6 +15,7 @@ import { calleDe, cocinaDe, comoLlegarUrl, hoyDe, parametro, queYDondeDe, repeti
 import { useAhora } from '@/lib/useAhora';
 import { ES } from '@/strings';
 import { HUES } from '@/theme/colores';
+import { TITULO } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
 import { Atras } from '@/ui/Atras';
 import { Circulo } from '@/ui/Circulo';
@@ -30,7 +31,8 @@ import { RenglonPlatillo } from '@/ui/RenglonPlatillo';
 // list — a quiet kitchen's card — or from a dish's page.
 //
 // ⚠️ ITS HEAD IS WERA COCINA'S PREVIEW OF IT (`cocina/src/ui/Portada.tsx`, *Así te ven
-// tus vecinos*): her cover, her circle over its edge, her name and trade, her sentence
+// tus vecinos*): her cover, her circle over its edge, her name — in Nunito since
+// `10.5-v-c-i`, the page's title, as in Wera Cocina's — and trade, her sentence
 // and *Ver en Google Maps ›* in her colour — what she was shown is what a neighbour
 // sees. Then what only Itacate has: how far she is, where and *Cómo llegar*; *Hoy* —
 // what she has on offer now, each dish opening its page — else *Hoy no ha publicado*
@@ -103,7 +105,7 @@ export default function PaginaDeLaCocina() {
             <Circulo cocina={cocina} size={CIRCULO} />
           </View>
           <View style={{ flex: 1, paddingTop: SIZE.rowGap, gap: 2 }}>
-            <Text accessibilityRole="header" style={{ fontSize: SIZE.titleSize - 2, fontWeight: '800', color: PALETTE.tinta }}>
+            <Text accessibilityRole="header" style={{ fontSize: SIZE.titleSize - 2, ...TITULO, color: PALETTE.tinta }}>
               {cocina.name}
             </Text>
             {queYDonde !== null && <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada }}>{queYDonde}</Text>}

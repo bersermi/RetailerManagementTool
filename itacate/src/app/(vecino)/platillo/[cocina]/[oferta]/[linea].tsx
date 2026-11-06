@@ -13,6 +13,7 @@ import { alergiaDe, calleDe, comoLlegarUrl, etiquetasDe, lineaDe, parametro, pla
 import { useAhora } from '@/lib/useAhora';
 import { ES } from '@/strings';
 import { HUES } from '@/theme/colores';
+import { TITULO } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
 import { Atras } from '@/ui/Atras';
 import { Dibujo } from '@/ui/Dibujo';
@@ -91,7 +92,7 @@ export default function PaginaDelPlatillo() {
 
         <View style={{ gap: SIZE.rowGap / 2 }}>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: SIZE.rowGap }}>
-            <Text accessibilityRole="header" style={{ flexShrink: 1, fontSize: SIZE.titleSize, fontWeight: '800', color: PALETTE.tinta }}>
+            <Text accessibilityRole="header" style={{ flexShrink: 1, fontSize: SIZE.titleSize, ...TITULO, color: PALETTE.tinta }}>
               {platillo.name}
             </Text>
             {platillo.surprise && <Sorpresa />}

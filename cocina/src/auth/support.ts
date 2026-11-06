@@ -45,6 +45,16 @@ export function forgotPasswordUrl(number: string, email: string): string {
   return whatsappUrl(number, text);
 }
 
+/**
+ * `10.5-v-c-i`: *Escríbenos por WhatsApp*, in *Mi cocina* — a chat with the owner, a
+ * sentence already typed that names this app and her address, the one he can find her
+ * by, as *¿Olvidaste tu contraseña?* does. Itacate's is `itacate/src/lib/tu.ts`'s.
+ */
+export function ayudaUrl(number: string, email: string | null | undefined): string {
+  const suyo = (email ?? '').trim();
+  return whatsappUrl(number, suyo === '' ? ES.miCocina.ayudaMensaje : ES.miCocina.ayudaMensajeConCorreo(suyo));
+}
+
 /** A chat with `number`, `text` already typed in it. */
 export function whatsappUrl(number: string, text: string): string {
   return `https://wa.me/${number}?text=${encodeURIComponent(text)}`;

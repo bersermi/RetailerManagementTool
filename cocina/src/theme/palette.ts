@@ -20,6 +20,15 @@ export const PALETTE = {
   accionSuave: '#E6F0EA',
   error: '#A32218',
   marca: '#A9501C',
+  /**
+   * ⚠️ `10.5-v-c-i`, THIS APP'S OWN, NOT WERA'S: *Hoy*'s day card is the action's green
+   * (the family-shell page's green card), so its words are light on it — white for what
+   * matters, a pale green for the rest — and its time bar runs on a lighter green. The
+   * toast is the ink, with *Deshacer* in the same pale green.
+   */
+  sobreAccion: '#FFFFFF',
+  sobreAccionApagada: '#CDE3D6',
+  barraSobreAccion: '#3E8766',
 } as const;
 
 /** Wera's `normal` density, fixed. */

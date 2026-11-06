@@ -4,6 +4,7 @@ import { ratioOf, type Foto as Slot } from '@/api/fotos';
 import { defaultsFor, type ColorCode } from '@/api/pagina';
 import { ES } from '@/strings';
 import { HUES } from '@/theme/colores';
+import { TITULO } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
 import { Dibujo } from '@/ui/Dibujo';
 import { Foto } from '@/ui/Foto';
@@ -17,7 +18,9 @@ import { Iniciales } from '@/ui/Iniciales';
 // gave the link — the proposals page's kitchen card, cut to what she sets.
 //
 // ⚠️ TWO SCREENS DRAW IT (`R14`): the editor, live as she changes each part, and
-// her kitchen's screen, as the door to the editor. ⚠️ ITACATE'S PAGE IS NOT BUILT
+// *Mi cocina* (her kitchen's screen until `10.5-v-c-i`), as the door to the editor.
+// ⚠️ Her kitchen's name is the page's title, so since `10.5-v-c-i` it wears Nunito
+// (`@/theme/letra`) — and so does the head of Itacate's copy of this page. ⚠️ ITACATE'S PAGE IS NOT BUILT
 // YET (`10.5-iv`): this is the promise of its head, and the cover's 16:9 is what
 // `@/api/fotos` stores — the drawing's other parts (the distance, *Hoy*, the
 // rating) are Itacate's, and drawn there.
@@ -78,7 +81,7 @@ export function Portada({
             <Foto foto={logo} />
           </View>
           <View style={{ flex: 1, paddingTop: SIZE.rowGap / 2 }}>
-            <Text numberOfLines={2} style={{ fontSize: SIZE.bodySize + 1, fontWeight: '800', color: PALETTE.tinta }}>
+            <Text numberOfLines={2} style={{ fontSize: SIZE.bodySize + 1, ...TITULO, color: PALETTE.tinta }}>
               {nombre}
             </Text>
             {giroNombre !== null && (

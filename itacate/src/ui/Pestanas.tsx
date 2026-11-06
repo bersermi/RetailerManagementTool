@@ -61,7 +61,10 @@ export function Pestanas({ state, navigation }: BottomTabBarProps) {
                 borderRadius: 15,
                 alignItems: 'center',
                 justifyContent: 'center',
-                backgroundColor: enUso ? PALETTE.accionSuave : 'transparent',
+                // ⚠️ THE BAR'S OWN WHITE, NEVER `transparent` (`10.5-v-c-i`, measured on the emulator):
+                // Android drops a view's rounded corners when its background goes from transparent
+                // to a colour, so after the first tab switch every pill drew square.
+                backgroundColor: enUso ? PALETTE.accionSuave : PALETTE.superficie,
               }}
             >
               <MaterialCommunityIcons name={pestana.icono} size={SIZE.iconSize} color={color} />

@@ -1,0 +1,167 @@
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { router } from 'expo-router';
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
+
+import { useKitchen, useKitchenGiros, useListings, usePage, usePlace } from '@/api/hooks';
+import { giroLabel, type Kitchen } from '@/api/kitchen';
+import { addressComplete } from '@/api/place';
+import { chipDe, diaDe, estadoDe, faltaDeLaPagina, faltanDe, nombreDe, repetibles, PENDIENTES } from '@/lib/hoy';
+import { useNota } from '@/lib/NotaProvider';
+import { usePuertaCerrada } from '@/lib/puerta';
+import { useAhora } from '@/lib/useAhora';
+import { useRepetir } from '@/lib/useRepetir';
+import { ES } from '@/strings';
+import { PALETTE, SIZE } from '@/theme/palette';
+import { Banda } from '@/ui/Banda';
+import { BotonLleno } from '@/ui/BotonLleno';
+import { DiaDeHoy } from '@/ui/DiaDeHoy';
+import { LeyendoCocina } from '@/ui/LeyendoCocina';
+import { Llega } from '@/ui/Llega';
+import { Puertas, type PuertaDeHoy } from '@/ui/Puertas';
+
+// ============================================================================
+// *HOY* — A HUB. Plan task `10.5-v-c-i`, the owner's directions of 2026-11-06 (the
+// family-shell page's round 6): *"show the users everything in a dashborad/hub way,
+// for them to easily reach the main actions with some indicators such as remaining
+// items"*. Every launch opens here. Top to bottom, each zone a number and a door:
+//   1. THE DAY (`@/ui/DiaDeHoy`) — what is on offer, until when, the time left; the
+//      whole card opens *Tus ofertas*;
+//   2. *Lo que sigue* — the next handover, with *Entregar* — is reserving's (`10.5b`);
+//   3. THE ONE ACTION — *Publicar una oferta*, and her last day's offers as *Repetir*
+//      chips, one tap each, with *Deshacer* (`@/lib/useRepetir`);
+//   4. THE DOORS (`@/ui/Puertas`) — *Tu página · 3 de 5*, which she closes with its ✕
+//      (*Deshacer* in the toast); the services' cards join as each ships;
+//   5. her reminder's question — `10.5-v-c-ii`'s.
+// ⚠️ NOTHING ON *HOY* IS EDITED IN PLACE: correcting a count is in *Tus ofertas*.
+// *Así te ven los vecinos* left *Hoy* for *Mi cocina* (his direction).
+//
+// ⚠️ WHAT EACH ZONE SAYS IS `@/lib/hoy`'s, PURE, pinned by `test/hoy.test.ts`; the clock
+// is read again every half minute while the screen is up, so the bar shortens and an
+// ended window moves to *Terminada* on its own. ⚠️ `unknown` IS NOT `none`: her list not
+// read yet is a wheel, a failed read a sentence and *Intentar de nuevo*. The door waits
+// for every read it counts, so it never shows a count that changes under her thumb.
+// NO CHECK CAN SEE THIS SCREEN (ADR-035 §2.11): the phone is its instrument.
+// ============================================================================
+
+/** How often the clock is read again while *Hoy* is up. */
+const CADA_MEDIO_MINUTO = 30_000;
+
+export default function Hoy() {
+  const kitchen = useKitchen();
+  if (kitchen === null) return <LeyendoCocina titulo={ES.nombre} />;
+  // Keyed on the kitchen: when one goes and her next-made opens, its door is its own.
+  return <HoyDe key={kitchen.id} kitchen={kitchen} />;
+}
+
+function HoyDe({ kitchen }: { kitchen: Kitchen }) {
+  const giros = useKitchenGiros();
+  const place = usePlace(kitchen.id);
+  const page = usePage(kitchen.id);
+  const listings = useListings(kitchen.id);
+  const ahora = useAhora(CADA_MEDIO_MINUTO);
+  const [cerrada, setCerrada] = usePuertaCerrada(kitchen.id);
+  const { avisar } = useNota();
+  const { repetir, busyId } = useRepetir(kitchen);
+
+  const trade = giroLabel(giros.data, kitchen.giroPrincipal);
+  const quiet = { fontSize: SIZE.bodySize, color: PALETTE.tintaApagada } as const;
+
+  const chips = listings.data === undefined ? [] : repetibles(listings.data, ahora);
+
+  const puertas: PuertaDeHoy[] = [];
+  if (!cerrada && listings.data !== undefined && place.data !== undefined && page.data !== undefined) {
+    const faltan = faltanDe(
+      estadoDe({
+        giro: kitchen.giroPrincipal,
+        direccionCompleta: addressComplete(place.data),
+        frase: page.data.sentence,
+        portada: page.data.cover,
+        listings: listings.data,
+      }),
+    );
+    if (faltan.length > 0) {
+      puertas.push({
+        key: 'pagina',
+        icono: 'storefront-outline',
+        titulo: ES.puertas.pagina,
+        valor: ES.pendientes.cuenta(PENDIENTES.length - faltan.length, PENDIENTES.length),
+        detalle: faltaDeLaPagina(faltan),
+        onPress: () => router.navigate('/mi-cocina'),
+        onCerrar: () => {
+          setCerrada(true);
+          avisar(ES.nota.paginaCerrada, () => setCerrada(false));
+        },
+      });
+    }
+  }
+
+  return (
+    <View style={{ flex: 1, backgroundColor: PALETTE.fondo }}>
+      <Banda titulo={kitchen.displayName} antetitulo={trade ?? ES.cocina.antetitulo} />
+      <ScrollView contentContainerStyle={{ padding: SIZE.space * 1.5, paddingBottom: SIZE.space * 8, gap: SIZE.space * 1.5 }}>
+        <Llega i={0}>
+          {listings.data !== undefined ? (
+            <DiaDeHoy dia={diaDe(listings.data, ahora)} ahora={ahora} onPress={() => router.push('/ofertas')} />
+          ) : listings.isError ? (
+            <View style={{ gap: SIZE.rowGap }}>
+              <Text style={{ fontSize: SIZE.bodySize, color: PALETTE.tinta }}>{ES.publicaciones.sinLeer}</Text>
+              <BotonLleno label={ES.cocina.otraVez} busy={listings.isFetching} onPress={() => void listings.refetch()} />
+            </View>
+          ) : (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: SIZE.rowGap, minHeight: SIZE.tapTarget * 2 }}>
+              <ActivityIndicator color={PALETTE.accion} />
+              <Text style={quiet}>{ES.publicaciones.leyendo}</Text>
+            </View>
+          )}
+        </Llega>
+
+        <Llega i={1} style={{ gap: SIZE.rowGap + 2 }}>
+          <BotonLleno variante="principal" icon="plus" label={ES.publicar.abrir} onPress={() => router.push('/publicar')} />
+          {chips.length > 0 && (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: SIZE.rowGap, alignItems: 'center' }}>
+              <Text style={{ fontSize: SIZE.smallSize, fontWeight: '600', color: PALETTE.tintaApagada }}>{ES.hoy.repetir}</Text>
+              {chips.map((listing) => {
+                const busy = busyId === listing.id;
+                return (
+                  <Pressable
+                    key={listing.id}
+                    accessibilityRole="button"
+                    accessibilityLabel={ES.hoy.chipAyuda(nombreDe(listing))}
+                    accessibilityState={{ disabled: busyId !== null }}
+                    disabled={busyId !== null}
+                    onPress={() => void repetir(listing)}
+                    style={({ pressed }) => ({
+                      minHeight: SIZE.tapTarget - 4,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: 6,
+                      paddingHorizontal: SIZE.space,
+                      borderRadius: 999,
+                      borderWidth: 1,
+                      borderColor: PALETTE.accion,
+                      backgroundColor: pressed ? PALETTE.accionSuave : PALETTE.superficie,
+                      opacity: busyId !== null && !busy ? 0.6 : 1,
+                    })}
+                  >
+                    {busy ? (
+                      <ActivityIndicator color={PALETTE.accion} />
+                    ) : (
+                      <MaterialCommunityIcons name="repeat" size={16} color={PALETTE.accion} />
+                    )}
+                    <Text style={{ fontSize: SIZE.smallSize, fontWeight: '700', color: PALETTE.accion }}>{chipDe(listing)}</Text>
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+          )}
+        </Llega>
+
+        {puertas.length > 0 && (
+          <Llega i={2}>
+            <Puertas puertas={puertas} />
+          </Llega>
+        )}
+      </ScrollView>
+    </View>
+  );
+}

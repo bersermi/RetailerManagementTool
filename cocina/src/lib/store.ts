@@ -32,6 +32,16 @@ export function readKey(store: DeviceStore | undefined, key: string): string | n
   }
 }
 
+/** One key written, with every failure swallowed — `10.5-v-c-i`, *Hoy*'s closed door. */
+export function writeKey(store: DeviceStore | undefined, key: string, value: string): void {
+  if (store === undefined) return;
+  try {
+    store.setItem(key, value);
+  } catch {
+    // A full disk costs her the door coming back once; never a screen that fails.
+  }
+}
+
 /** One key removed, with every failure swallowed. */
 export function removeKey(store: DeviceStore | undefined, key: string): void {
   if (store === undefined) return;

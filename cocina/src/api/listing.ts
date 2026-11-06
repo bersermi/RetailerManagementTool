@@ -146,6 +146,12 @@ export interface Listing {
   readonly placeId: string;
   readonly start: Date;
   readonly end: Date;
+  /**
+   * When it was published — the database's clock (`created_at`), or the phone's for one
+   * drawn before the re-read answers. ⚠️ `10.5-v-c-i`: what tells *Deshacer* from *Ya se
+   * terminó* (`@/lib/hoy`'s `deshecha`) and her last day's offers for *Repetir*.
+   */
+  readonly createdAt: Date;
   readonly withdrawnAt: Date | null;
   readonly lines: readonly Line[];
 }
@@ -174,6 +180,7 @@ export function toListing(row: ListingRow): Listing {
     placeId: row.location_id,
     start: new Date(row.pickup_start),
     end: new Date(row.pickup_end),
+    createdAt: new Date(row.created_at),
     withdrawnAt: row.withdrawn_at === null ? null : new Date(row.withdrawn_at),
     lines: lines.map((line) => ({
       name: line.name,
@@ -198,7 +205,7 @@ export function listingsFrom(data: unknown): Listing[] {
   for (const row of data) {
     try {
       const listing = toListing(row as ListingRow);
-      if (Number.isNaN(listing.start.getTime()) || Number.isNaN(listing.end.getTime())) continue;
+      if ([listing.start, listing.end, listing.createdAt].some((at) => Number.isNaN(at.getTime()))) continue;
       listings.push(listing);
     } catch {
       // unreadable: left out
@@ -455,14 +462,16 @@ export function publishArgs(attempt: Attempt, body: PublishBody): PublishArgs {
 
 /**
  * The made publication, as her list holds it — drawn at once, before the re-read
- * answers. ⚠️ `publish_listing` returns the id it was sent, a retry included.
+ * answers. ⚠️ `publish_listing` returns the id it was sent, a retry included; when it
+ * was published is the phone's clock until the re-read brings the database's.
  */
-export function listingFrom(args: PublishArgs): Listing {
+export function listingFrom(args: PublishArgs, at: Date = new Date()): Listing {
   return {
     id: args.p_id,
     placeId: args.p_location_id,
     start: new Date(args.p_pickup_start),
     end: new Date(args.p_pickup_end),
+    createdAt: at,
     withdrawnAt: null,
     lines: args.p_lines.map((line) => ({
       name: line.name,
