@@ -276,11 +276,12 @@ describe('Más barato — the cheapest dish first, near or far; the quiet kitche
 });
 
 describe('the list screen orders by her pick', () => {
-  const pantalla = readFileSync(new URL('../src/app/(vecino)/index.tsx', import.meta.url), 'utf8');
+  const pantalla = readFileSync(new URL('../src/app/(vecino)/(tabs)/index.tsx', import.meta.url), 'utf8');
   it('opens on the initial order, hands her pick to the cards, and draws Ordenar', () => {
     expect(pantalla).toContain('useState<Orden>(ORDEN_INICIAL)');
     expect(pantalla).toMatch(/tarjetasDe\(cocinas\.data, desde, buscados, ahora, orden\)/);
     expect(pantalla).toContain('<Ordenar orden={orden} onOrden={setOrden} />');
+    // ⚠️ `10.5-v-b`: a button at the head of the list, its orders in a sheet (`test/pestanas.test.ts`).
   });
 });
 

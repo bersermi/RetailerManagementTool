@@ -20,6 +20,7 @@ import { BotonLleno } from '@/ui/BotonLleno';
 import { Campo } from '@/ui/Campo';
 import { Casilla } from '@/ui/Casilla';
 import { Formulario } from '@/ui/Formulario';
+import { Llega } from '@/ui/Llega';
 
 // ============================================================================
 // THE WAY IN. Plan task `10.5-iii-a`.
@@ -43,6 +44,8 @@ import { Formulario } from '@/ui/Formulario';
 // ⚠️ `10.5-v-a`: THE APP'S LINE FIRST, ON BOTH HALVES (`ES.lema`, the owner's
 // ruling of 2026-11-05) — where the app first greets her, until a first run
 // gives it a screen of its own.
+// ⚠️ `10.5-v-b`: ITS TITLE IN NUNITO (`@/ui/Banda`) AND ONE ENTRANCE (`@/ui/Llega`) —
+// the line, then everything under it, 40 ms later; swapping the halves moves nothing.
 // ⚠️ APPLE'S BUTTON IS APPLE'S: its words in the phone's language, its colours,
 // and on an iPhone only. It has no `disabled`, so `busy` stops touches around it.
 // ⚠️ *¿OLVIDASTE TU CONTRASEÑA?* IS WERA'S `5R-h`: it opens WhatsApp to the
@@ -118,178 +121,181 @@ export default function Entrar() {
           gap: SIZE.space,
         }}
       >
-        <Text style={{ fontSize: SIZE.bodySize, fontWeight: '600', color: PALETTE.tinta }}>{ES.lema}</Text>
-
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={ES.auth.google}
-          disabled={busy}
-          onPress={() => void attempt(() => signInWithGoogle())}
-          style={{
-            minHeight: SIZE.tapTarget,
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: SIZE.rowGap,
-            borderRadius: SIZE.space * 0.75,
-            borderWidth: 1,
-            borderColor: PALETTE.linea,
-            backgroundColor: PALETTE.superficie,
-            opacity: busy ? 0.6 : 1,
-          }}
-        >
-          <MaterialCommunityIcons name="google" size={SIZE.iconSize} color={PALETTE.tinta} />
-          <Text style={{ fontSize: SIZE.bodySize, fontWeight: '600', color: PALETTE.tinta }}>{ES.auth.google}</Text>
-        </Pressable>
-
-        {appleAvailable && (
-          <View pointerEvents={busy ? 'none' : 'auto'} style={{ opacity: busy ? 0.6 : 1 }}>
-            <AppleAuthenticationButton
-              buttonType={AppleAuthenticationButtonType.CONTINUE}
-              buttonStyle={AppleAuthenticationButtonStyle.BLACK}
-              cornerRadius={SIZE.space * 0.75}
-              onPress={() => void attempt(() => signInWithApple())}
-              style={{ width: '100%', height: SIZE.tapTarget }}
-            />
-          </View>
-        )}
-
-        <Pressable accessibilityRole="link" disabled={busy} onPress={openAviso} style={{ alignItems: 'center' }}>
-          <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada, textAlign: 'center' }}>
-            {ES.auth.avisoGoogleLead}
-            <Text style={{ textDecorationLine: 'underline', fontWeight: '600', color: PALETTE.tinta }}>
-              {ES.auth.aviso}
-            </Text>
-          </Text>
-        </Pressable>
-
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: SIZE.space, marginTop: SIZE.rowGap }}>
-          <View style={{ flex: 1, borderTopWidth: 1, borderTopColor: PALETTE.linea }} />
-          <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada }}>{ES.auth.orEmail}</Text>
-          <View style={{ flex: 1, borderTopWidth: 1, borderTopColor: PALETTE.linea }} />
-        </View>
-
-        {creating && (
-          <View style={{ flexDirection: 'row', gap: SIZE.space }}>
-            <Campo
-              grows
-              label={ES.auth.nameLabel}
-              value={firstName}
-              onChangeText={setFirstName}
-              autoCapitalize="words"
-              autoCorrect={false}
-              autoComplete="given-name"
-              returnKeyType="next"
-              submitBehavior="submit"
-              onSubmitEditing={() => surnameBox.current?.focus()}
-              editable={!busy}
-            />
-            <Campo
-              grows
-              ref={surnameBox}
-              label={ES.auth.surnameLabel}
-              value={lastName}
-              onChangeText={setLastName}
-              autoCapitalize="words"
-              autoCorrect={false}
-              autoComplete="family-name"
-              returnKeyType="next"
-              submitBehavior="submit"
-              onSubmitEditing={() => emailBox.current?.focus()}
-              editable={!busy}
-            />
-          </View>
-        )}
-
-        <Campo
-          ref={emailBox}
-          label={ES.auth.emailLabel}
-          value={email}
-          onChangeText={setEmail}
-          autoCapitalize="none"
-          autoCorrect={false}
-          autoComplete="email"
-          keyboardType="email-address"
-          returnKeyType="next"
-          submitBehavior="submit"
-          onSubmitEditing={() => passwordBox.current?.focus()}
-          editable={!busy}
-        />
-
-        <Campo
-          ref={passwordBox}
-          label={ES.auth.passwordLabel}
-          value={password}
-          onChangeText={setPassword}
-          autoCapitalize="none"
-          autoCorrect={false}
-          autoComplete={creating ? 'new-password' : 'current-password'}
-          secureTextEntry
-          mostrable
-          returnKeyType={creating ? 'done' : 'go'}
-          onSubmitEditing={passwordDone}
-          editable={!busy}
-        />
-
-        {creating && (
-          <Casilla
-            ticked={accepted}
-            onToggle={() => setAccepted(!accepted)}
-            label={`${ES.auth.avisoAcceptLead}${ES.auth.aviso}`}
+        <Llega i={0}>
+          <Text style={{ fontSize: SIZE.bodySize, fontWeight: '600', color: PALETTE.tinta }}>{ES.lema}</Text>
+        </Llega>
+        <Llega i={1} style={{ gap: SIZE.space }}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={ES.auth.google}
             disabled={busy}
+            onPress={() => void attempt(() => signInWithGoogle())}
+            style={{
+              minHeight: SIZE.tapTarget,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: SIZE.rowGap,
+              borderRadius: SIZE.space * 0.75,
+              borderWidth: 1,
+              borderColor: PALETTE.linea,
+              backgroundColor: PALETTE.superficie,
+              opacity: busy ? 0.6 : 1,
+            }}
           >
-            <Text style={{ fontSize: SIZE.bodySize, flexShrink: 1, color: PALETTE.tinta }}>
-              {ES.auth.avisoAcceptLead}
-              <Text accessibilityRole="link" onPress={openAviso} style={{ textDecorationLine: 'underline', fontWeight: '600' }}>
+            <MaterialCommunityIcons name="google" size={SIZE.iconSize} color={PALETTE.tinta} />
+            <Text style={{ fontSize: SIZE.bodySize, fontWeight: '600', color: PALETTE.tinta }}>{ES.auth.google}</Text>
+          </Pressable>
+
+          {appleAvailable && (
+            <View pointerEvents={busy ? 'none' : 'auto'} style={{ opacity: busy ? 0.6 : 1 }}>
+              <AppleAuthenticationButton
+                buttonType={AppleAuthenticationButtonType.CONTINUE}
+                buttonStyle={AppleAuthenticationButtonStyle.BLACK}
+                cornerRadius={SIZE.space * 0.75}
+                onPress={() => void attempt(() => signInWithApple())}
+                style={{ width: '100%', height: SIZE.tapTarget }}
+              />
+            </View>
+          )}
+
+          <Pressable accessibilityRole="link" disabled={busy} onPress={openAviso} style={{ alignItems: 'center' }}>
+            <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada, textAlign: 'center' }}>
+              {ES.auth.avisoGoogleLead}
+              <Text style={{ textDecorationLine: 'underline', fontWeight: '600', color: PALETTE.tinta }}>
                 {ES.auth.aviso}
               </Text>
             </Text>
-          </Casilla>
-        )}
+          </Pressable>
 
-        {problem !== null && (
-          <Text style={{ fontSize: SIZE.bodySize, fontWeight: '600', color: PALETTE.error }}>{problem}</Text>
-        )}
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: SIZE.space, marginTop: SIZE.rowGap }}>
+            <View style={{ flex: 1, borderTopWidth: 1, borderTopColor: PALETTE.linea }} />
+            <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada }}>{ES.auth.orEmail}</Text>
+            <View style={{ flex: 1, borderTopWidth: 1, borderTopColor: PALETTE.linea }} />
+          </View>
 
-        <BotonLleno
-          variante="principal"
-          label={creating ? ES.auth.signUp : ES.auth.signIn}
-          busy={busy}
-          onPress={() =>
-            void attempt(() =>
-              creating ? signUp(email, password, firstName, lastName, accepted) : signIn(email, password),
-            )
-          }
-        />
+          {creating && (
+            <View style={{ flexDirection: 'row', gap: SIZE.space }}>
+              <Campo
+                grows
+                label={ES.auth.nameLabel}
+                value={firstName}
+                onChangeText={setFirstName}
+                autoCapitalize="words"
+                autoCorrect={false}
+                autoComplete="given-name"
+                returnKeyType="next"
+                submitBehavior="submit"
+                onSubmitEditing={() => surnameBox.current?.focus()}
+                editable={!busy}
+              />
+              <Campo
+                grows
+                ref={surnameBox}
+                label={ES.auth.surnameLabel}
+                value={lastName}
+                onChangeText={setLastName}
+                autoCapitalize="words"
+                autoCorrect={false}
+                autoComplete="family-name"
+                returnKeyType="next"
+                submitBehavior="submit"
+                onSubmitEditing={() => emailBox.current?.focus()}
+                editable={!busy}
+              />
+            </View>
+          )}
 
-        {/* Under the button it rescues, and only where there is a password to have
-            forgotten. A failure to open says nothing, as the aviso's link. */}
-        {!creating && supportNumber !== null && (
+          <Campo
+            ref={emailBox}
+            label={ES.auth.emailLabel}
+            value={email}
+            onChangeText={setEmail}
+            autoCapitalize="none"
+            autoCorrect={false}
+            autoComplete="email"
+            keyboardType="email-address"
+            returnKeyType="next"
+            submitBehavior="submit"
+            onSubmitEditing={() => passwordBox.current?.focus()}
+            editable={!busy}
+          />
+
+          <Campo
+            ref={passwordBox}
+            label={ES.auth.passwordLabel}
+            value={password}
+            onChangeText={setPassword}
+            autoCapitalize="none"
+            autoCorrect={false}
+            autoComplete={creating ? 'new-password' : 'current-password'}
+            secureTextEntry
+            mostrable
+            returnKeyType={creating ? 'done' : 'go'}
+            onSubmitEditing={passwordDone}
+            editable={!busy}
+          />
+
+          {creating && (
+            <Casilla
+              ticked={accepted}
+              onToggle={() => setAccepted(!accepted)}
+              label={`${ES.auth.avisoAcceptLead}${ES.auth.aviso}`}
+              disabled={busy}
+            >
+              <Text style={{ fontSize: SIZE.bodySize, flexShrink: 1, color: PALETTE.tinta }}>
+                {ES.auth.avisoAcceptLead}
+                <Text accessibilityRole="link" onPress={openAviso} style={{ textDecorationLine: 'underline', fontWeight: '600' }}>
+                  {ES.auth.aviso}
+                </Text>
+              </Text>
+            </Casilla>
+          )}
+
+          {problem !== null && (
+            <Text style={{ fontSize: SIZE.bodySize, fontWeight: '600', color: PALETTE.error }}>{problem}</Text>
+          )}
+
+          <BotonLleno
+            variante="principal"
+            label={creating ? ES.auth.signUp : ES.auth.signIn}
+            busy={busy}
+            onPress={() =>
+              void attempt(() =>
+                creating ? signUp(email, password, firstName, lastName, accepted) : signIn(email, password),
+              )
+            }
+          />
+
+          {/* Under the button it rescues, and only where there is a password to have
+              forgotten. A failure to open says nothing, as the aviso's link. */}
+          {!creating && supportNumber !== null && (
+            <Pressable
+              accessibilityRole="button"
+              disabled={busy}
+              onPress={() => {
+                Linking.openURL(forgotPasswordUrl(supportNumber, email)).catch(() => {});
+              }}
+              style={{ minHeight: SIZE.tapTarget, alignItems: 'center', justifyContent: 'center', opacity: busy ? 0.6 : 1 }}
+            >
+              <Text style={{ fontSize: SIZE.bodySize, color: PALETTE.tintaApagada, textAlign: 'center' }}>
+                {ES.auth.forgotPassword}
+              </Text>
+            </Pressable>
+          )}
+
           <Pressable
             accessibilityRole="button"
             disabled={busy}
-            onPress={() => {
-              Linking.openURL(forgotPasswordUrl(supportNumber, email)).catch(() => {});
-            }}
+            onPress={switchHalf}
             style={{ minHeight: SIZE.tapTarget, alignItems: 'center', justifyContent: 'center', opacity: busy ? 0.6 : 1 }}
           >
             <Text style={{ fontSize: SIZE.bodySize, color: PALETTE.tintaApagada, textAlign: 'center' }}>
-              {ES.auth.forgotPassword}
+              {creating ? ES.auth.yaTengo : ES.auth.toSignUp}
+              {creating && <Text style={{ fontWeight: '700', color: PALETTE.accion }}>{ES.auth.entrar}</Text>}
             </Text>
           </Pressable>
-        )}
-
-        <Pressable
-          accessibilityRole="button"
-          disabled={busy}
-          onPress={switchHalf}
-          style={{ minHeight: SIZE.tapTarget, alignItems: 'center', justifyContent: 'center', opacity: busy ? 0.6 : 1 }}
-        >
-          <Text style={{ fontSize: SIZE.bodySize, color: PALETTE.tintaApagada, textAlign: 'center' }}>
-            {creating ? ES.auth.yaTengo : ES.auth.toSignUp}
-            {creating && <Text style={{ fontWeight: '700', color: PALETTE.accion }}>{ES.auth.entrar}</Text>}
-          </Text>
-        </Pressable>
+        </Llega>
       </Formulario>
     </View>
   );

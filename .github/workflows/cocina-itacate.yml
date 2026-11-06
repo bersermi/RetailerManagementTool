@@ -64,6 +64,11 @@ on:
       - "app/src/api/photos.ts"
       - "brand/giros.svg"
       - "store/cocina-itacate/render.sh"
+      # ⚠️ `10.5-v-b`, ITACATE'S SHELL: its titles are Wera's Nunito and its `letra.ts`, and
+      # *Tú*'s foot is Wera's rust cow — each copied byte for byte and held to Wera's file.
+      - "app/src/marca/letras/**"
+      - "app/src/theme/letra.ts"
+      - "app/src/marca/vaca-oxido.png"
       - "package.json"
       - "package-lock.json"
       - ".github/workflows/cocina-itacate.yml"

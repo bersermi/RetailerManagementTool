@@ -23,6 +23,14 @@ bash docs/checks/10.5-iv-a-door-contract.sh         # the same stack: the one do
 TZ=UTC npm --prefix itacate test          # CI's zone: the list's days and windows are local time, and the Mac is UTC−6
 ```
 
+A signed-in screen is seen only on a **debug build against the local database** (a session may not sign in on the live
+one): `npx expo prebuild -p android --no-install` in `itacate/` (gitignored, nothing tracked changes), the local proxy's
+`cert.pem` trusted in `android/app/src/main/res/` (`raw/` + `xml/network_security_config.xml` with cleartext allowed for
+Metro), `./gradlew :app:assembleDebug -PreactNativeArchitectures=arm64-v8a` (about four minutes on 2026-11-06), Metro
+from `itacate/` with the two local `EXPO_PUBLIC_SUPABASE_` values in the shell, and `debug_http_host` in the app's
+`shared_prefs`. It replaces the test build's copy on the emulator (another signature): reinstall that copy from
+`~/RetailerToolDev/wera-builds/` and `pm clear` it before watching an update arrive.
+
 ## Rules
 
 - **Its id is `mx.wera.vecino`** — iOS bundle, Android package and the sign-in scheme, one
@@ -52,15 +60,15 @@ TZ=UTC npm --prefix itacate test          # CI's zone: the list's days and windo
   kitchens' photos too are drawn from memory (`@/ui/Foto`'s `cachePolicy="memory"`), so a
   deleted kitchen's photos leave every neighbour's reach at once, as Wera Cocina's aviso promises.
 - **Her way out is Wera Cocina's, cut to this app** (`src/api/account.ts`, `@/ui/Salidas`, the owner's
-  ruling of 2026-11-04): on *Tu cuenta* (`(vecino)/cuenta`, since `10.5-iv-a-i`, reached from the list's
-  band — the foot of the one screen before), *Cerrar sesión* and *Eliminar mi cuenta*; a
+  ruling of 2026-11-04): on *Tú* (`(vecino)/(tabs)/tu`, the last tab, since `10.5-v-b` — before it *Tu
+  cuenta*, a screen pushed from the list's band), *Cerrar sesión* and *Eliminar mi cuenta*; a
   neighbour owns nothing and just confirms; a sole owner sees every kitchen (in Wera Cocina) and shop
   (in Wera) that goes with the account and types each name (`0073`), in one body, `{p_business_names}`.
   No business is open here, so they are named kitchens first, then shops. Wera's words, held to Wera's
   file (`test/account.test.ts`); each business's line is the twin's that is not its home. ⚠️ **Apple
   is told through Wera's one function**, its body's `client_id` this app's bundle id (`apple-revoke`
   build 3); only an iPhone shows the sheet, and **Itacate has no iPhone build**, so that half has
-  never run from it. ⚠️ ***Tu cuenta* is a `Formulario`** so a typed name stays above the keyboard.
+  never run from it. ⚠️ ***Tú* is a `Formulario`** so a typed name stays above the keyboard.
 - **A module in `src/api/` is a claim about the applied schema**, as in Wera and Wera Cocina:
   `db.yml` fires on `itacate/src/api/**` since `10.5-iii-a`. ⚠️ **Her way out's names
   (`src/api/account.ts`) are Wera Cocina's, one by one**: the first group of
@@ -107,6 +115,12 @@ TZ=UTC npm --prefix itacate test          # CI's zone: the list's days and windo
   (`@/lib/useUbicacion`: the last known location, then a fresh one, a watch every 50 m while the app is
   open — removed whenever it leaves the front — and the whole question again on a pull or a return; the
   permission asked once, only while never asked), and the list alone reads it (`test/donde.test.ts`).
+  ⚠️ **Since `10.5-v-b`, a postal code at her pick** (the owner's answer 5 of 2026-11-05): *Dónde buscar*
+  (`(vecino)/donde`, from *Tú* and *Cerca*'s *Cambiar*) sets `@/lib/DondeBuscarProvider` — her location, or
+  a code she typed, which then wins over her location until she picks *Mi ubicación* (`@/lib/ubicacion`'s
+  `origenDe`); **while she searches from a code her phone is not asked at all** (`useDondeEstoy(activo)`).
+  The pick is React state at the root, kept nowhere, the login's own; *Dónde buscar* and *Tú* never ask the
+  phone, and the two pages never read the pick (the same census).
   ⚠️ **The two pages show the list's distance and never learn where she is** (`10.5-iv-a-ii`): the list
   hands each kitchen's distance — a number — to `@/lib/DistanciasProvider` (React state at the root, as
   `AuthProvider` holds the session: ADR-035 §2.11 keeps Zustand for the cart), and empties it when it
@@ -123,14 +137,16 @@ TZ=UTC npm --prefix itacate test          # CI's zone: the list's days and windo
   and held in memory only. **Outside Wera Cocina's search zone** (`@/lib/zona`, held to Wera Cocina's
   constant): *Itacate aún no llega a tu zona*. Apple's form needs nothing; Play's declares *Approximate
   location* for the postal code (`store/cocina-itacate.md`); the aviso's section 10 says all of it.
-- **The list is proposal B's, as drawn** (`10.5-iv-a-i`, `(vecino)/index`, `@/lib/lista`): a card per dish on
+- **The list is proposal B's, as drawn** (`10.5-iv-a-i`, `(vecino)/(tabs)/index` — *Cerca*, since `10.5-v-b`, the
+  first tab — `@/lib/lista`): a card per dish on
   offer (`@/ui/TarjetaPlatillo` — its photo, else her trade's drawing on her colour; her circle; the price,
   the *vale* struck and the saving; *Quedan 2*, *Último*; the window; the distance) and a faded card per
   quiet kitchen (`@/ui/TarjetaCocina` — the owner's words of 2026-11-01, late, as `10.5-v-a` reworded them: *Suele
   tener ofertas entre semana, hacia las 17:00* once 3 publications in 4 weeks show a pattern, else *Publicó ayer*,
   *Publicó el martes*), held word for word by `test/lista.test.ts`. **The order is the owner's answers of 2026-11-05**
   (`10.5-iv-a-iv`, asked on `10.5-iv-a-iii`'s page): it opens on *Ahora* — now, later today, another day, the quiet
-  kitchens, nearest first inside each — and *Ordenar* (`@/ui/Ordenar`) offers *Más cerca* (nearest first, the order
+  kitchens, nearest first inside each — and *Ordenar* (`@/ui/Ordenar`; a button at the list's head opening a sheet
+  since `10.5-v-b`) offers *Más cerca* (nearest first, the order
   until then) and *Más barato*, and nothing else; every kitchen the door sends, an unknown distance last among its
   equals. The orders are `@/lib/lista`'s (`ORDENES`, `ORDEN_INICIAL`, `ordenDe`), her pick the list's state. A window
   that opens or ends while she looks moves its card without asking the door (the cards are made again
@@ -217,14 +233,18 @@ TZ=UTC npm --prefix itacate test          # CI's zone: the list's days and windo
   `invalid_client` to a deletion from an iPhone build, and the account is deleted regardless. One
   person has one Apple id across the team's apps, grouped or not.
 
-## Screens — the family shell (ruled 2026-11-05)
+## Screens — the family shell (ruled 2026-11-05, built by `10.5-v-b`)
 
 The owner ruled how the two apps are arranged and worded on 2026-11-05 (`docs/PLAN.md`, rows `10.5-v-a` to `10.5-v-d`
 and `10.5b`; the drawn reference is the family-shell page in his private notes' `diseno/`). Every screen built here
 follows it, as `cocina/CLAUDE.md`'s does:
 
 - **The tab bar is *Cerca · Apartados · Mis cocinas · Tú*** — four tabs at most, each with its word; the two ends never move; a tab appears only when
-  its feature ships; a new feature arrives first as a card on *Cerca*. Wera's JavaScript tabs, not native tabs.
+  its feature ships; a new feature arrives first as a card on *Cerca*. Wera's JavaScript tabs, not native tabs. ⚠️ **Built by `10.5-v-b`**:
+  the tabs are data (`@/navigation/pestanas` — the two middle ones name the rows that bring them, `10.5b` and `10.9`), the bar is drawn by
+  `@/ui/Pestanas` on `expo-router/js-tabs` (the tab in use: blue, a heavier word and a pill of the blue's tint), and `(vecino)/(tabs)/` holds
+  exactly the tabs in use — `test/pestanas.test.ts` refuses a screen there that is not one. A tab draws `@/ui/Cabeza` (no *Volver*: a tab is
+  never closed); a kitchen's page, a dish's and *Dónde buscar* are pushed over the tabs from the root's stack, with `@/ui/Banda`'s *Volver*.
 - **No word that makes the food sound left over** where a fonda or a neighbour reads (*lo que sobra*, *sobrante*,
   *restos*, *desperdicio*): *Publicar una oferta*, *Tu oferta de hoy*, *aprovechar*, *Por hoy ya se terminó*, *Se liberó*.
   `test/palabras.test.ts` refuses them in `src/strings.ts` since `10.5-v-a` — Wera's *Merma* only in the one line
@@ -232,5 +252,12 @@ follows it, as `cocina/CLAUDE.md`'s does:
   **No sentence saying there are no penalties**: a reservation is drawn as a handover — the hour, how she pays, the code.
 - **The look:** titles in Nunito ExtraBold (`expo-font`); Itacate's blue `#24476B` for actions; Wera's terracotta `#A9501C` for
   promotions only; state first, before anything tappable (ADR-035 §2.8); one staggered entrance per screen, transform and
-  opacity only (§2.11).
+  opacity only (§2.11). ⚠️ **Built by `10.5-v-b`:** `@/theme/letra` and `src/marca/letras/` are Wera's file and font byte for byte,
+  loaded by the root before the first screen (the phone's face if the load fails); `PALETTE.accion` is the blue, held to `app.json`'s
+  icon ground; the motion's numbers are `@/theme/movimiento`'s, drawn by `@/ui/Llega` (a screen's first blocks, once, on mount) and
+  `@/ui/Hoja` (a sheet's spring) — **the only two modules that import Reanimated**, their animated styles `opacity` and `transform`
+  alone (`test/pestanas.test.ts`). Reanimated's native half was in this app's first build (`libreanimated.so` and `libworklets.so`
+  read inside the test build's APK) and Expo's Babel preset adds its worklets plugin by itself; `10.5-v-b` is the first JavaScript to
+  use it in any of the three apps. ⚠️ **The two pages keep their look** (their head is Wera Cocina's preview, `cocina/src/ui/Portada.tsx`)
+  until Wera Cocina's shell (`10.5-v-c`) gives both apps' copies Nunito.
 - **Money:** no screen stores or shows a bank account, a card or an amount paid — only how she will pay.

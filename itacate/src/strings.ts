@@ -1,8 +1,8 @@
 // ============================================================================
 // EVERY WORD ITACATE SHOWS, IN ONE FILE (ADR-035 §2.11). Plan tasks `10.2a`
 // (the skeleton), `10.5-iii-a` (signing in), `10.5-iii-b` (her way out),
-// `10.5-iv-a-i` (the kitchens close to her) and `10.5-iv-a-ii` (a kitchen's page
-// and a dish's).
+// `10.5-iv-a-i` (the kitchens close to her), `10.5-iv-a-ii` (a kitchen's page
+// and a dish's) and `10.5-v-b` (the shell: the tab bar, *Tú*, *Dónde buscar*).
 //
 // ⚠️ WHERE A SCREEN HERE DOES WHAT ONE OF WERA'S DOES, ITS WORDS ARE WERA'S
 // (`app/src/strings.ts`, `ES.auth`), as Wera Cocina's are (`cocina/src/strings.ts`).
@@ -20,6 +20,19 @@ export const ES = {
    * family-shell page's call 10). Wera Cocina's is *Vende hasta el último plato*.
    */
   lema: 'La comida del día de tu colonia, a mejor precio',
+
+  /**
+   * ⚠️ `10.5-v-b`: THE TAB BAR — *Cerca · Apartados · Mis cocinas · Tú*, the owner's ruling
+   * of 2026-11-05 (the family-shell page's call 4). Only *Cerca* and *Tú* are drawn
+   * until reserving (`10.5b`) and the stamp card (`10.9`) bring the two in the middle
+   * (`@/navigation/pestanas`).
+   */
+  pestanas: {
+    cerca: 'Cerca',
+    apartados: 'Apartados',
+    misCocinas: 'Mis cocinas',
+    tu: 'Tú',
+  },
 
   auth: {
     emailLabel: 'Correo',
@@ -85,11 +98,12 @@ export const ES = {
    */
   cerca: {
     titulo: 'Cerca de ti',
-    tuCuenta: 'Tu cuenta',
     /** Under the title: where the distances are measured from. */
     desdeTuUbicacion: 'Según tu ubicación',
     desdeCodigo: (cp: string) => `Cerca del código postal ${cp}`,
     cambiarCodigo: 'Cambiar',
+    /** What a screen reader says for *Cambiar*, which opens *Dónde buscar* (`10.5-v-b`). */
+    cambiarDonde: 'Cambiar dónde buscar',
     buscandote: 'Buscando dónde estás…',
     cargando: 'Buscando cocinas…',
     vacio: 'Todavía ninguna cocina tiene algo publicado. Vuelve más tarde.',
@@ -152,8 +166,13 @@ export const ES = {
      */
     ordenar: 'Ordenar',
     orden: { ahora: 'Ahora', cerca: 'Más cerca', barato: 'Más barato' },
-    /** What a screen reader says for each of its buttons. */
+    /** The button at the head of the list, and what a screen reader says for it. */
     ordenarPor: (orden: string) => `Ordenar: ${orden}`,
+    /**
+     * ⚠️ `10.5-v-b`: *Ordenar* OPENS A SHEET, as the family-shell page draws it — each
+     * order with a line under it, the page's words.
+     */
+    ordenDetalle: { ahora: 'Lo que puedes recoger ya, primero', cerca: 'Por distancia', barato: 'Por precio' },
   },
 
   /**
@@ -233,14 +252,49 @@ export const ES = {
   },
 
   /**
-   * Her account, on a screen of its own since `10.5-iv-a-i` (the list replaced the
-   * one screen her way out stood at the foot of): who is signed in, and `@/ui/Salidas`.
+   * ⚠️ `10.5-v-b`: *TÚ*, THE LAST TAB — what she sets once, as the family-shell page
+   * draws it (the owner's ruling of 2026-11-05): her account, *Dónde buscar*, the aviso,
+   * help by WhatsApp, *Cerrar sesión* and *Eliminar mi cuenta*, and *Itacate, de Wera*.
+   * It replaced *Tu cuenta* (`10.5-iv-a-i`), a screen pushed from the list's band.
    */
-  cuenta: {
-    titulo: 'Tu cuenta',
-    volver: 'Volver',
-    quien: (who: string) => `Entraste como ${who}.`,
+  tu: {
+    titulo: 'Tú',
+    detalle: 'Tu cuenta',
+    /** How she signs in — the providers' names, and *tu correo* for an address and a password. */
+    entrasCon: (formas: readonly string[]) =>
+      formas.length <= 1
+        ? `Entras con ${formas[0] ?? ''}`
+        : `Entras con ${formas.slice(0, -1).join(', con ')} o con ${formas[formas.length - 1]}`,
+    forma: { google: 'Google', apple: 'Apple', correo: 'tu correo' },
+    dondeBuscar: 'Dónde buscar',
+    miUbicacion: 'Mi ubicación',
+    codigoPostal: (cp: string) => `Código postal ${cp}`,
+    aviso: 'Aviso de privacidad',
+    ayuda: 'Ayuda por WhatsApp',
+    /** What lands in the owner's chat — it names this app and, when there is one, her address. */
+    ayudaMensaje: 'Hola, necesito ayuda con Itacate.',
+    ayudaMensajeConCorreo: (email: string) => `Hola, necesito ayuda con Itacate. Mi correo es ${email}`,
+    deWera: 'Itacate, de Wera',
     version: 'Estás probando una versión temprana de Itacate: la iremos llenando con actualizaciones.',
+  },
+
+  /**
+   * ⚠️ `10.5-v-b`: *DÓNDE BUSCAR* — her location, or a postal code, at her pick (the
+   * owner's answer 5 of 2026-11-05). Its two lines say what the aviso's section 10 says.
+   */
+  donde: {
+    titulo: 'Dónde buscar',
+    volver: 'Volver',
+    miUbicacion: 'Mi ubicación',
+    miUbicacionDetalle: 'Itacate la usa solo mientras la tienes abierta. Nunca sale de tu teléfono.',
+    codigo: 'Un código postal',
+    codigoDetalle: 'Para ver las cocinas cerca de otra colonia',
+    codigoEnUso: (cp: string) => `Ahora buscas cerca del ${cp}`,
+  },
+
+  /** A sheet from the foot of the screen (`@/ui/Hoja`): what a screen reader says for the veil. */
+  hoja: {
+    cerrar: 'Cerrar',
   },
 
   /**

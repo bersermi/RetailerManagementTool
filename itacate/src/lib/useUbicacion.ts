@@ -67,7 +67,12 @@ function conPlazo<T>(promesa: Promise<T>, ms: number): Promise<T> {
   });
 }
 
-export function useDondeEstoy(): {
+/**
+ * Where her phone says she is. ⚠️ `activo` is false while she searches from a postal
+ * code she picked (`10.5-v-b`, `@/lib/DondeBuscarProvider`): then her phone is not asked
+ * at all — no fix, no watch — and picking *Mi ubicación* again asks it afresh.
+ */
+export function useDondeEstoy(activo = true): {
   readonly donde: DondeEstoy;
   readonly otraVez: () => void;
   readonly usarUbicacion: () => void;
@@ -109,6 +114,7 @@ export function useDondeEstoy(): {
 
   useEffect(() => {
     if (!enFrente) return;
+    if (!activo) return;
     let vivo = true;
     let reloj: Location.LocationSubscription | null = null;
     const aqui = (posicion: Location.LocationObject) => {
@@ -155,7 +161,7 @@ export function useDondeEstoy(): {
       vivo = false;
       reloj?.remove();
     };
-  }, [vuelta, enFrente]);
+  }, [vuelta, enFrente, activo]);
 
   return { donde, otraVez, usarUbicacion };
 }

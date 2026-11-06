@@ -1,3 +1,4 @@
+import { useFonts } from 'expo-font';
 import { Stack, router, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
@@ -6,18 +7,30 @@ import { QueryProvider } from '@/api/QueryProvider';
 import { AuthProvider, useAuth } from '@/auth/AuthProvider';
 import { groupOf, redirectFor } from '@/auth/guard';
 import { DistanciasProvider } from '@/lib/DistanciasProvider';
+import { DondeBuscarProvider } from '@/lib/DondeBuscarProvider';
+import { FUENTES } from '@/theme/letra';
 
 // ============================================================================
 // THE ROOT OF ITACATE. Plan tasks `10.2a` (one screen), `10.5-iii-a` (signing
-// in) and `10.5-iv-a-ii` (a kitchen's page and a dish's).
+// in), `10.5-iv-a-ii` (a kitchen's page and a dish's) and `10.5-v-b` (the shell).
 //
 // ⚠️ THE ORDER OF THE PROVIDERS IS WERA'S AND IT IS THE DESIGN (Wera Cocina's
 // root is `cocina/src/app/_layout.tsx`): the query layer is INSIDE the session,
 // because every read is scoped to whoever holds it. ⚠️ Since `10.5-iv-a-ii` the
 // screens sit inside `DistanciasProvider` too: the list hands it each kitchen's
 // distance and the two pages read it — a number per kitchen, never her location.
+// ⚠️ Since `10.5-v-b` inside `DondeBuscarProvider` as well — her pick, her location
+// or a postal code, set on *Tú* and read by *Cerca* — and the tabs are a group of the
+// stack, `(vecino)/(tabs)`, with the pages pushed over them.
 // ============================================================================
 export default function RootLayout() {
+  // ⚠️ `10.5-v-b`, WERA'S RULE (`app/src/app/_layout.tsx`, `8g`): THE TITLES' FACE IS
+  // LOADED BEFORE ANY SCREEN DRAWS, so no title paints in the system face and jumps —
+  // a file inside the update (`@/theme/letra`), a few milliseconds, offline too. ⚠️ A
+  // FAILED LOAD NEVER HOLDS THE APP: on an error the titles fall back to the phone's
+  // face and everything else draws.
+  const [fontsReady, fontError] = useFonts(FUENTES);
+  if (!fontsReady && fontError === null) return null;
   return (
     <AuthProvider>
       <QueryProvider>
@@ -25,7 +38,9 @@ export default function RootLayout() {
         {/* Dark icons, always: the app is light only, as Wera (`8g`). */}
         <StatusBar style="dark" />
         <DistanciasProvider>
-          <Stack screenOptions={{ headerShown: false }} />
+          <DondeBuscarProvider>
+            <Stack screenOptions={{ headerShown: false }} />
+          </DondeBuscarProvider>
         </DistanciasProvider>
       </QueryProvider>
     </AuthProvider>
