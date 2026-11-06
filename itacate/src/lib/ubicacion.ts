@@ -10,7 +10,9 @@
 //     *Ubicación exacta* off): her postal code, typed (2026-11-03) — the map joins it
 //     in `10.5-iv-b`;
 //   - outside Wera Cocina's search zone: *Itacate aún no llega a tu zona*
-//     (2026-11-04, night).
+//     (2026-11-04, night);
+//   - ⚠️ since `10.5-v-b`, a postal code at her pick, even with her location on
+//     (2026-11-05, answer 5) — and while she searches from one, her phone is not asked.
 // ⚠️ ONLY WHILE THE APP IS OPEN: `app.json` blocks background location on Android
 // and carries no *always* sentence on an iPhone (`10.2a`); this file decides from
 // what the foreground permission answered.
@@ -62,15 +64,17 @@ export type Origen =
   | { readonly kind: 'fuera' };
 
 /**
- * ⚠️ HER LOCATION FIRST, HER POSTAL CODE WHEN IT CANNOT BE USED: a precise location
- * inside the zone always wins — if she turns *Ubicación exacta* on after typing a
- * code, the list follows her again. Outside the zone a code she types inside it is
- * used; without one, *Itacate aún no llega a tu zona*.
+ * ⚠️ HER PICK FIRST (`10.5-v-b`, the owner's answer 5 of 2026-11-05: *"We can let the
+ * user pick the codigo postal or use her location"*): a postal code she picked is
+ * where the list is measured from, even with her location on, until she picks *Mi
+ * ubicación* again (`@/lib/DondeBuscarProvider`) — it reversed `10.5-iv-a-i`'s rule,
+ * under which a precise location always won. Without a code: her location inside the
+ * zone; outside it, *Itacate aún no llega a tu zona*; declined, approximate or not
+ * found, the box.
  */
 export function origenDe(donde: DondeEstoy, codigo: Codigo | null): Origen {
-  if (donde.kind === 'aqui' && enLaZona(donde.punto)) return { kind: 'aqui', punto: donde.punto };
   if (codigo !== null) return { kind: 'codigo', cp: codigo.cp, punto: codigo.punto };
-  if (donde.kind === 'aqui') return { kind: 'fuera' };
+  if (donde.kind === 'aqui') return enLaZona(donde.punto) ? { kind: 'aqui', punto: donde.punto } : { kind: 'fuera' };
   if (donde.kind === 'buscando') return { kind: 'buscando' };
   return { kind: 'pide-codigo', porque: donde.kind };
 }

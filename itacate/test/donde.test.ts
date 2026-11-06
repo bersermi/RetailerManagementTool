@@ -69,7 +69,7 @@ describe('*Usar mi ubicación* — her way back to her location (found on the em
     const ubicacion = code('lib/useUbicacion.ts');
     expect(ubicacion).toMatch(/if \(permiso === null\) return setDonde\(\{ kind: 'sin-ubicacion' \}\);/);
     expect(ubicacion).toMatch(/setPuedePreguntar\(permiso\.canAskAgain\);/);
-    const list = code('app/(vecino)/index.tsx');
+    const list = code('app/(vecino)/(tabs)/index.tsx');
     expect(list).toMatch(/origen\.kind === 'pide-codigo' && \(\s*<BotonLleno label=\{ES\.cerca\.usarUbicacion\}[^>]*onPress=\{usarUbicacion\}/);
   });
 });
@@ -77,9 +77,11 @@ describe('*Usar mi ubicación* — her way back to her location (found on the em
 describe('where the list is measured from', () => {
   const cp = { cp: '06400', punto: { latitude: 19.45, longitude: -99.16 } };
 
-  it('her location inside the zone, first — even after she typed a postal code', () => {
+  it('her location inside the zone — unless she picked a postal code, which wins even with it on (`10.5-v-b`)', () => {
     expect(origenDe({ kind: 'aqui', punto: ZOCALO }, null)).toEqual({ kind: 'aqui', punto: ZOCALO });
-    expect(origenDe({ kind: 'aqui', punto: ZOCALO }, cp)).toEqual({ kind: 'aqui', punto: ZOCALO });
+    // The owner's answer 5 of 2026-11-05: *"We can let the user pick the codigo postal or use her location"*.
+    expect(origenDe({ kind: 'aqui', punto: ZOCALO }, cp)).toEqual({ kind: 'codigo', ...cp });
+    expect(origenDe({ kind: 'buscando' }, cp)).toEqual({ kind: 'codigo', ...cp });
   });
 
   it('declined, approximate or not found: her postal code, and why it is asked', () => {
@@ -215,7 +217,29 @@ describe('her location never leaves the phone, and nothing of Google’s is kept
     const askers = files.filter((f) => /from 'expo-location'/.test(f.text)).map((f) => f.name);
     expect(askers).toEqual(['lib/useUbicacion.ts']);
     const users = files.filter((f) => /from '@\/lib\/useUbicacion'/.test(f.text)).map((f) => f.name);
-    expect(users).toEqual(['app/(vecino)/index.tsx']);
+    expect(users).toEqual(['app/(vecino)/(tabs)/index.tsx']);
+  });
+
+  // ⚠️ `10.5-v-b`: HER PICK — her location or a postal code — is set on *Tú* and read by
+  // the list; a postal code's centre is a point, so it is held as her location is: in
+  // memory, away from the pages, and while she searches from it her phone is not asked.
+  it('her pick of where to search: in memory only, set on *Dónde buscar* and the list, read by the list, never by the pages', () => {
+    const readers = files.filter((f) => /from '@\/lib\/DondeBuscarProvider'/.test(f.text)).map((f) => f.name);
+    expect(readers.sort()).toEqual(
+      ['app/(vecino)/(tabs)/index.tsx', 'app/(vecino)/(tabs)/tu.tsx', 'app/(vecino)/donde.tsx', 'app/_layout.tsx'].sort(),
+    );
+    const provider = code('lib/DondeBuscarProvider.tsx');
+    expect(provider).not.toMatch(/localStorage|expo-sqlite|AsyncStorage|zustand|@\/api\//);
+    // It belongs to the login that chose it.
+    expect(provider).toMatch(/const codigo = eleccion\.quien === quien \? eleccion\.codigo : null;/);
+    // *Dónde buscar* and *Tú* never ask the phone where she is.
+    for (const screen of ['app/(vecino)/donde.tsx', 'app/(vecino)/(tabs)/tu.tsx']) {
+      expect(code(screen), screen).not.toMatch(/@\/lib\/useUbicacion'|expo-location/);
+    }
+    const list = code('app/(vecino)/(tabs)/index.tsx');
+    expect(list).toMatch(/const \{ donde, otraVez, usarUbicacion \} = useDondeEstoy\(codigo === null\);/);
+    expect(list).toMatch(/onLugar=\{elegirCodigo\}/);
+    expect(code('lib/useUbicacion.ts')).toMatch(/if \(!activo\) return;/);
   });
 
   // ⚠️ `10.5-iv-a-ii`: a kitchen's page and a dish's show how far she is — the list's
@@ -223,14 +247,14 @@ describe('her location never leaves the phone, and nothing of Google’s is kept
   it('her two pages read each kitchen’s distance from the list — a number per kitchen — and nothing that knows where she is', () => {
     const pages = ['app/(vecino)/cocina/[id].tsx', 'app/(vecino)/platillo/[cocina]/[oferta]/[linea].tsx'];
     const readers = files.filter((f) => /from '@\/lib\/DistanciasProvider'/.test(f.text)).map((f) => f.name);
-    expect(readers.sort()).toEqual(['app/(vecino)/index.tsx', ...pages, 'app/_layout.tsx'].sort());
+    expect(readers.sort()).toEqual(['app/(vecino)/(tabs)/index.tsx', ...pages, 'app/_layout.tsx'].sort());
     for (const page of pages) {
       const text = code(page);
       expect(text, page).toMatch(/useDistancia\(/);
-      expect(text, page).not.toMatch(/@\/lib\/(useUbicacion|ubicacion|useGoogle|google)'|expo-location|usePonerDistancias/);
+      expect(text, page).not.toMatch(/@\/lib\/(useUbicacion|ubicacion|useGoogle|google|DondeBuscarProvider)'|expo-location|usePonerDistancias/);
     }
     const writers = files.filter((f) => /=\s*usePonerDistancias\(\)/.test(code(f.name))).map((f) => f.name);
-    expect(writers).toEqual(['app/(vecino)/index.tsx']);
+    expect(writers).toEqual(['app/(vecino)/(tabs)/index.tsx']);
     const provider = code('lib/DistanciasProvider.tsx');
     expect(provider).toMatch(/ReadonlyMap<string, number>/);
     expect(provider).not.toMatch(/Punto|latitude|longitude|@\/lib\/(useUbicacion|ubicacion|useGoogle)'/);
@@ -252,6 +276,7 @@ describe('her location never leaves the phone, and nothing of Google’s is kept
     const ubicacion = code('lib/useUbicacion.ts');
     expect(ubicacion).not.toMatch(/Background|startLocationUpdatesAsync|Geofencing|TaskManager/);
     expect(ubicacion).toMatch(/if \(!enFrente\) return;/);
+    expect(ubicacion).toMatch(/\}, \[vuelta, enFrente, activo\]\);/);
     const app = JSON.parse(readFileSync(new URL('../app.json', import.meta.url), 'utf8')).expo;
     expect(app.android.blockedPermissions).toEqual(
       expect.arrayContaining(['android.permission.ACCESS_BACKGROUND_LOCATION', 'android.permission.FOREGROUND_SERVICE_LOCATION']),

@@ -312,22 +312,22 @@ describe('the words: Wera’s, word for word', () => {
 });
 
 // ⚠️ `10.5-iv-a-i`: THE LIST OF KITCHENS REPLACED THE ONE SCREEN her way out stood at
-// the foot of, so it moved to *Tu cuenta*, a screen of its own reached from the
-// list's band — still one tap from where she lands (Apple's 5.1.1(v)).
-describe('her way out, on *Tu cuenta*, one tap from the list she lands on', () => {
-  it('at its foot, in a form that keeps the box being typed in above the keyboard', () => {
-    const screen = code('src/app/(vecino)/cuenta.tsx');
+// the foot of, so it moved to *Tu cuenta*, a screen pushed from the list's band; since
+// `10.5-v-b` it is on *Tú*, the last tab — one tap from anywhere (Apple's 5.1.1(v)).
+describe('her way out, on *Tú*, the last tab, one tap from anywhere', () => {
+  it('under her account and the doors, in a form that keeps the box being typed in above the keyboard', () => {
+    const screen = code('src/app/(vecino)/(tabs)/tu.tsx');
     expect(screen).toMatch(/<Salidas \/>/);
     expect(screen).toMatch(/<Formulario[\s\S]*<Salidas \/>[\s\S]*<\/Formulario>/);
     // *Cerrar sesión* is the block's: one sign-out on the screen, not two.
     expect(screen).not.toMatch(/signOut/);
-    // And a way back to the list — an iPhone has no back button.
-    expect(screen).toMatch(/volver=\{\{ label: ES\.cuenta\.volver, onPress: \(\) => router\.back\(\) \}\}/);
   });
 
-  it('the list opens it from its band, and draws no second way out of its own', () => {
-    const list = code('src/app/(vecino)/index.tsx');
-    expect(list).toMatch(/accion=\{\{ label: ES\.cerca\.tuCuenta, icon: '[a-z-]+', onPress: \(\) => router\.push\('\/cuenta'\) \}\}/);
+  it('*Tú* is a tab that never moves — the last — and the list draws no second way out of its own', () => {
+    expect(readFileSync(new URL('../src/navigation/pestanas.ts', import.meta.url), 'utf8')).toMatch(
+      /\{ ruta: 'tu', label: ES\.pestanas\.tu, icono: '[a-z-]+', llega: null \},\s*\];/,
+    );
+    const list = code('src/app/(vecino)/(tabs)/index.tsx');
     expect(list).not.toMatch(/Salidas|signOut/);
   });
 
