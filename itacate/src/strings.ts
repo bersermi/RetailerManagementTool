@@ -14,6 +14,12 @@
 
 export const ES = {
   nombre: 'Itacate',
+  /**
+   * ⚠️ `10.5-v-a`: THE APP'S LINE, where it first greets her — under the band of
+   * the way in — and in its store text (the owner's ruling of 2026-11-05, the
+   * family-shell page's call 10). Wera Cocina's is *Vende hasta el último plato*.
+   */
+  lema: 'La comida del día de tu colonia, a mejor precio',
 
   auth: {
     emailLabel: 'Correo',
@@ -71,8 +77,11 @@ export const ES = {
    * on, which replaced the skeleton's map. Proposal B's list (the owner's ruling of
    * 2026-11-01, https://claude.ai/artifact/EaiMkYqn2skPXn7MiKeULu): a card per dish
    * on offer, and a faded card per quiet kitchen saying when it usually publishes —
-   * his ruling of 2026-11-01, late, word for word: *Suele publicar entre semana,
-   * hacia las 17:00*, else *Publicó ayer* or *Publicó el martes*.
+   * his ruling of 2026-11-01, late: *Suele publicar entre semana, hacia las
+   * 17:00*, else *Publicó ayer* or *Publicó el martes* — since `10.5-v-a` (his
+   * ruling of 2026-11-05) *Suele tener ofertas …*: *publicar* is the fonda's verb,
+   * not the neighbour's, and no word here makes the food sound left over
+   * (`test/palabras.test.ts`).
    */
   cerca: {
     titulo: 'Cerca de ti',
@@ -114,7 +123,7 @@ export const ES = {
     /** The saving, on her colour — the drawing's *−50%*, with a true minus sign. */
     ahorro: (pct: number) => `−${pct}%`,
     /** A quiet kitchen's card: the pattern once 3 or more publications in 4 weeks show one. */
-    suele: (dias: string, hora: string) => `Suele publicar ${dias}, ${hora}`,
+    suele: (dias: string, hora: string) => `Suele tener ofertas ${dias}, ${hora}`,
     hacia: (hora: number) => (hora === 1 ? 'hacia la 1:00' : `hacia las ${hora}:00`),
     todosLosDias: 'todos los días',
     casiTodosLosDias: 'casi todos los días',
@@ -136,7 +145,7 @@ export const ES = {
     publicoFecha: (dia: number, mes: string) => `Publicó el ${dia} de ${mes}`,
     /** `10.5-iv-a-ii`: what a screen reader says for a card, which now opens a page. */
     abrirPlatillo: (platillo: string, cocina: string) => `${platillo}, de ${cocina}`,
-    abrirCocina: (cocina: string) => `${cocina}, sin nada en oferta ahora`,
+    abrirCocina: (cocina: string) => `${cocina}, sin ofertas ahora`,
     /**
      * `10.5-iv-a-iv` — *Ordenar*, her pick of the list's order (the owner's answer 2 of
      * 2026-11-05). The list opens on *Ahora* (his answer 1).
@@ -153,7 +162,9 @@ export const ES = {
    * her colonia, her sentence, where she is and *Cómo llegar*, and under *Hoy* what she
    * has on offer now; and his ruling of 2026-11-01, late: else *Hoy no ha publicado*
    * with her pattern, and *Lo que suele publicar* — her repeated dishes over four
-   * weeks, how often and the usual price. *Ver en Google Maps* is Wera Cocina's words,
+   * weeks, how often and the usual price; since `10.5-v-a` (his ruling of
+   * 2026-11-05) *Lo que suele ofrecer*, and *Por hoy ya se terminó* once today's
+   * offers ended. *Ver en Google Maps* is Wera Cocina's words,
    * held to its file. Every other word here is this row's own.
    */
   pagina: {
@@ -162,8 +173,8 @@ export const ES = {
     /** Nothing on offer, and she has not published for today. */
     hoyNoHaPublicado: 'Hoy no ha publicado',
     /** Nothing on offer, though she did publish for today: it ended, or she took it down. */
-    nadaPorHoy: 'Ya no tiene nada por hoy',
-    loQueSuele: 'Lo que suele publicar',
+    nadaPorHoy: 'Por hoy ya se terminó',
+    loQueSuele: 'Lo que suele ofrecer',
     /** How often, over the door's four weeks — two or more, by the door's rule. */
     veces: (n: number) => (n === 1 ? '1 vez en las últimas 4 semanas' : `${n} veces en las últimas 4 semanas`),
     /** And the price she usually gives it, when the door has one. */

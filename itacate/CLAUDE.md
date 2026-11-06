@@ -126,9 +126,9 @@ TZ=UTC npm --prefix itacate test          # CI's zone: the list's days and windo
 - **The list is proposal B's, as drawn** (`10.5-iv-a-i`, `(vecino)/index`, `@/lib/lista`): a card per dish on
   offer (`@/ui/TarjetaPlatillo` — its photo, else her trade's drawing on her colour; her circle; the price,
   the *vale* struck and the saving; *Quedan 2*, *Último*; the window; the distance) and a faded card per
-  quiet kitchen (`@/ui/TarjetaCocina` — the owner's words of 2026-11-01, late: *Suele publicar entre
-  semana, hacia las 17:00* once 3 publications in 4 weeks show a pattern, else *Publicó ayer*, *Publicó el
-  martes*), held word for word by `test/lista.test.ts`. **The order is the owner's answers of 2026-11-05**
+  quiet kitchen (`@/ui/TarjetaCocina` — the owner's words of 2026-11-01, late, as `10.5-v-a` reworded them: *Suele
+  tener ofertas entre semana, hacia las 17:00* once 3 publications in 4 weeks show a pattern, else *Publicó ayer*,
+  *Publicó el martes*), held word for word by `test/lista.test.ts`. **The order is the owner's answers of 2026-11-05**
   (`10.5-iv-a-iv`, asked on `10.5-iv-a-iii`'s page): it opens on *Ahora* — now, later today, another day, the quiet
   kitchens, nearest first inside each — and *Ordenar* (`@/ui/Ordenar`) offers *Más cerca* (nearest first, the order
   until then) and *Más barato*, and nothing else; every kitchen the door sends, an unknown distance last among its
@@ -144,8 +144,9 @@ TZ=UTC npm --prefix itacate test          # CI's zone: the list's days and windo
   reads is *Este platillo ya no está en oferta* without asking the door. **Her page's head is Wera Cocina's
   preview of it** (`cocina/src/ui/Portada.tsx`: cover, circle over its edge, name, trade, sentence, *Ver en
   Google Maps ›* in her colour) — what she was shown is what a neighbour sees — then how far she is, where
-  and *Cómo llegar*, *Hoy* (else *Hoy no ha publicado* and her pattern; *Ya no tiene nada por hoy* once she
-  published for today and it ended — his words would be false then) and *Lo que suele publicar*. ⚠️ **Both
+  and *Cómo llegar*, *Hoy* (else *Hoy no ha publicado* and her pattern; *Por hoy ya se terminó* once she
+  published for today and it ended — his words would be false then) and *Lo que suele ofrecer* (the words since
+  `10.5-v-a`, held by `test/paginas.test.ts` and `test/palabras.test.ts`). ⚠️ **Both
   links open Google Maps and send nothing of hers**: *Cómo llegar* is Google's Maps URLs (no key, nothing
   billed), to her own pin, else her address as she wrote it — never Google's 30-day copy — with no origin;
   *Ver en Google Maps* opens her link only when `mapsLinkOk` (the database's rule, Wera Cocina's copy)
@@ -226,6 +227,8 @@ follows it, as `cocina/CLAUDE.md`'s does:
   its feature ships; a new feature arrives first as a card on *Cerca*. Wera's JavaScript tabs, not native tabs.
 - **No word that makes the food sound left over** where a fonda or a neighbour reads (*lo que sobra*, *sobrante*,
   *restos*, *desperdicio*): *Publicar una oferta*, *Tu oferta de hoy*, *aprovechar*, *Por hoy ya se terminó*, *Se liberó*.
+  `test/palabras.test.ts` refuses them in `src/strings.ts` since `10.5-v-a` — Wera's *Merma* only in the one line
+  that names it to a shop's owner.
   **No sentence saying there are no penalties**: a reservation is drawn as a handover — the hour, how she pays, the code.
 - **The look:** titles in Nunito ExtraBold (`expo-font`); Itacate's blue `#24476B` for actions; Wera's terracotta `#A9501C` for
   promotions only; state first, before anything tappable (ADR-035 §2.8); one staggered entrance per screen, transform and

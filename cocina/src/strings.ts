@@ -12,6 +12,13 @@
 
 export const ES = {
   nombre: 'Wera Cocina',
+  /**
+   * ⚠️ `10.5-v-a`: THE APP'S LINE, where it first greets her — under the band of
+   * the way in — and in its store text (the owner's ruling of 2026-11-05, the
+   * family-shell page's call 10). *Itacate*'s is *La comida del día de tu colonia,
+   * a mejor precio*.
+   */
+  lema: 'Vende hasta el último plato',
 
   auth: {
     emailLabel: 'Correo',
@@ -374,10 +381,13 @@ export const ES = {
    * or more lines, each a dish or, with one switch, a surprise bag, whose
    * description asks *¿Qué suele llevar?* and which may say what it is usually
    * worth; then when neighbours may come. Hints are muted ink, never values.
+   * ⚠️ `10.5-v-a` (the owner's ruling of 2026-11-05): no word that makes the food
+   * sound left over — the button is *Publicar una oferta* and the screen *Tu
+   * oferta de hoy* (`test/palabras.test.ts`).
    */
   publicar: {
-    abrir: 'Publicar lo que te sobra',
-    titulo: 'Publicar lo que te sobra',
+    abrir: 'Publicar una oferta',
+    titulo: 'Tu oferta de hoy',
     repetida: 'Repetir',
     volver: 'Volver',
     que: '¿Qué ofreces?',

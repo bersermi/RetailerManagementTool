@@ -290,6 +290,8 @@ follows it, as `itacate/CLAUDE.md`'s does:
   its feature ships; a new feature arrives first as a card on *Hoy*. Wera's JavaScript tabs, not native tabs.
 - **No word that makes the food sound left over** where a fonda or a neighbour reads (*lo que sobra*, *sobrante*,
   *restos*, *desperdicio*): *Publicar una oferta*, *Tu oferta de hoy*, *aprovechar*, *Por hoy ya se terminó*, *Se liberó*.
+  `test/palabras.test.ts` refuses them in `src/strings.ts` and the aviso since `10.5-v-a` — Wera's *Merma* only in the one line
+  that names it to a shop's owner.
   **No sentence saying there are no penalties**: a reservation is drawn as a handover — the hour, how she pays, the code.
 - **The look:** titles in Nunito ExtraBold (`expo-font`); Wera Cocina's green `#1C6B4B` for actions; Wera's terracotta `#A9501C` for
   promotions only; state first, before anything tappable (ADR-035 §2.8); one staggered entrance per screen, transform and

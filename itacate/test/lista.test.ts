@@ -29,8 +29,9 @@ import { ES } from '@/strings';
 //
 // ⚠️ THE OWNER'S WORDS ARE ASSERTED WORD FOR WORD, NOT READ BACK FROM `ES`: his
 // ruling of 2026-11-01, late, wrote the quiet kitchen's line — *Suele publicar entre
-// semana, hacia las 17:00*, otherwise *Publicó ayer* or *Publicó el martes* — and a
-// sentence compared with itself would pass whatever it said.
+// semana, hacia las 17:00*, otherwise *Publicó ayer* or *Publicó el martes* — and his of
+// 2026-11-05 made it *Suele tener ofertas …* (`10.5-v-a`); a sentence compared with
+// itself would pass whatever it said.
 //
 // ⚠️ EVERY DAY HERE IS A LOCAL DAY: the zone is pinned to Mexico City's, as Wera
 // Cocina's window tests pin it, and the first case asserts the pin took; every local
@@ -321,7 +322,7 @@ describe('what a quiet kitchen’s card says — his words of 2026-11-01, late',
   it('three publications in four weeks make a pattern', () => {
     expect(PATRON_MINIMO).toBe(3);
     const ahora = local(2026, 11, 5, 12);
-    expect(cuandoPublica(resumen([1, 1, 1, 1, 1, 0, 0], 17, '2026-11-04'), ahora)).toBe('Suele publicar entre semana, hacia las 17:00');
+    expect(cuandoPublica(resumen([1, 1, 1, 1, 1, 0, 0], 17, '2026-11-04'), ahora)).toBe('Suele tener ofertas entre semana, hacia las 17:00');
     expect(cuandoPublica(resumen([0, 1, 0, 1, 0, 0, 0], 17, '2026-11-03'), ahora)).toBe('Publicó el martes');
   });
 
@@ -359,7 +360,7 @@ describe('what a quiet kitchen’s card says — his words of 2026-11-01, late',
     expect(ES.cerca.hacia(1)).toBe('hacia la 1:00');
     expect(ES.cerca.hacia(13)).toBe('hacia las 13:00');
     expect(cuandoPublica(resumen([0, 0, 0, 0, 0, 2, 1], 13, '2026-11-01'), local(2026, 11, 5))).toBe(
-      'Suele publicar los fines de semana, hacia las 13:00',
+      'Suele tener ofertas los fines de semana, hacia las 13:00',
     );
   });
 
@@ -369,7 +370,7 @@ describe('what a quiet kitchen’s card says — his words of 2026-11-01, late',
 
   // `10.5-iv-a-ii`: her page says the pattern alone, and counts the days itself.
   it('the pattern on its own — the card’s first choice, and her page’s line', () => {
-    expect(patronDe(resumen([1, 1, 1, 1, 1, 0, 0], 17, '2026-11-04'))).toBe('Suele publicar entre semana, hacia las 17:00');
+    expect(patronDe(resumen([1, 1, 1, 1, 1, 0, 0], 17, '2026-11-04'))).toBe('Suele tener ofertas entre semana, hacia las 17:00');
     expect(patronDe(resumen([0, 1, 0, 1, 0, 0, 0], 17, '2026-11-03'))).toBeNull();
     expect(patronDe(resumen([1, 1, 1, 0, 0, 0, 0], null, '2026-11-03'))).toBeNull();
   });

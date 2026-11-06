@@ -28,6 +28,13 @@ times"* (Play Console Help, answer 10787469, read 2026-10-31).
 ⚠️ A block marked `<!-- max:N -->` has a limit of N characters. After editing one, run
 `python3 store/limits.py`.
 
+⚠️ **Since `10.5-v-a` (2026-11-06) no word here makes the food sound left over** (the owner's ruling of
+2026-11-05): both full descriptions open on the app's line — *Vende hasta el último plato.* and *La
+comida del día de tu colonia, a mejor precio.* — Wera Cocina's says *ofrece tu comida del día a mejor
+precio*, the reviewers' note names the button *Publicar una oferta*, and version 5's release notes say
+*tus ofertas del día*. Play still shows the old text until the owner pastes both descriptions
+(*Main store listing → Full description*, each app) and section 4's *App access* note.
+
 ---
 
 ## 1. Create app
@@ -67,7 +74,9 @@ Versión de prueba de la app de Wera para fondas y cocinas.
 
 <!-- max:4000 -->
 ```
-Wera Cocina es la app de Wera para fondas y cocinas: publica lo que te sobró del día para que los vecinos pasen por ello.
+Vende hasta el último plato.
+
+Wera Cocina es la app de Wera para fondas y cocinas: ofrece tu comida del día a mejor precio para que los vecinos pasen por ella.
 
 Esta es una versión de prueba, solo para quienes la están probando. Por ahora puedes crear tu cuenta, registrar tu cocina con su dirección —y, si quieres, su punto exacto en el mapa— y publicar platillos o bolsas sorpresa, con el horario en que pueden pasar. Lo que publicas lo ven los vecinos en Itacate, la app de Wera para vecinos, que también está en prueba.
 
@@ -100,6 +109,8 @@ Versión de prueba de Itacate, la app de Wera para vecinos.
 
 <!-- max:4000 -->
 ```
+La comida del día de tu colonia, a mejor precio.
+
 Itacate es la app de Wera para vecinos.
 
 Esta es una versión de prueba, solo para quienes la están probando. Te muestra las cocinas cercanas que tienen algo publicado —primero lo que puedes recoger ahora, y de la más cercana a la más lejana—, con lo que ofrecen, su precio y a qué hora pasar por ello. Tu ubicación se usa solo en tu teléfono; si no quieres darla, escribe tu código postal. La iremos llenando con actualizaciones.
@@ -182,7 +193,7 @@ times, reusable"* and *"provided in English"* (answer 15748846, read 2026-10-31)
 
 <!-- max:500 -->
 ```
-On the first screen tap "¿Ya tienes cuenta? Entrar" (under the "Crear cuenta" button), then sign in with the email and password. No second factor. The account owns a demo kitchen, so the app opens on it; "Publicar lo que te sobra" publishes dishes. Nothing a kitchen publishes is shown to anyone yet. The app is in Spanish.
+On the first screen tap "¿Ya tienes cuenta? Entrar" (under the "Crear cuenta" button), then sign in with the email and password. No second factor. The account owns a demo kitchen, so the app opens on it; "Publicar una oferta" publishes dishes. Nothing a kitchen publishes is shown to anyone yet. The app is in Spanish.
 ```
 
 ⚠️ **Keep the demo account and its kitchen.** Deleting either, or changing the password without
@@ -412,7 +423,7 @@ Play Console → **Wera Cocina** → *Closed testing* → its track → **Create
 
 <!-- max:500 -->
 ```
-Ya puedes crear tu cuenta, registrar tu cocina con su dirección y publicar lo que te sobra: platillos o bolsas sorpresa, con el horario en que pueden pasar por ellos. El mapa y la búsqueda de direcciones ahora son de Google. Los vecinos todavía no ven lo que publicas.
+Ya puedes crear tu cuenta, registrar tu cocina con su dirección y publicar tus ofertas del día: platillos o bolsas sorpresa, con el horario en que pueden pasar por ellos. El mapa y la búsqueda de direcciones ahora son de Google. Los vecinos todavía no ven lo que publicas.
 ```
 
 **The map key needs nothing new.** Play re-signs version 5 with the same app signing key as
