@@ -11,7 +11,8 @@
 //     has nothing on offer now — *"its card saying when it usually publishes —
 //     Suele publicar entre semana, hacia las 17:00 once 3 or more publications in
 //     4 weeks show a pattern, otherwise Publicó ayer or Publicó el martes"* (his
-//     ruling of 2026-11-01, late, word for word).
+//     ruling of 2026-11-01, late, word for word) — since `10.5-v-a`, *Suele tener
+//     ofertas …* (his ruling of 2026-11-05: no word that makes the food sound left over).
 // A publication whose window ended while she looked is no longer on offer: the
 // cards are made again as time passes (`ahora`), so a kitchen turns quiet on her
 // screen without asking the door.
@@ -256,7 +257,7 @@ export function publicoTexto(lastDay: string, ahora: Date): string | null {
 }
 
 /**
- * Her pattern in words — *Suele publicar entre semana, hacia las 17:00* — once 3 or
+ * Her pattern in words — *Suele tener ofertas entre semana, hacia las 17:00* — once 3 or
  * more publications in four weeks show one, else `null`. A quiet kitchen's card and
  * her page say it alike (`10.5-iv-a-ii`).
  */

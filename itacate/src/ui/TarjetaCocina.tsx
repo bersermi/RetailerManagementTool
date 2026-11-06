@@ -10,13 +10,14 @@ import { Circulo } from '@/ui/Circulo';
 // A QUIET KITCHEN, AS THE LIST SHOWS IT — faded. Plan task `10.5-iv-a-i`, the owner's
 // ruling of 2026-11-01, late: a kitchen that published in the last 14 days and has
 // nothing on offer now stays on the list *"as a faded pin, its card saying when it
-// usually publishes"* — *Suele publicar entre semana, hacia las 17:00*, else
+// usually publishes"* — *Suele tener ofertas entre semana, hacia las 17:00* (his
+// words were *Suele publicar …* until `10.5-v-a`), else
 // *Publicó ayer* or *Publicó el martes* (`@/lib/lista`'s `cuandoPublica`).
 //
 // ⚠️ SMALLER THAN A DISH'S CARD, ON PURPOSE (decided by `10.5-iv-a-i`): her circle,
 // her name, that line and the distance — no picture, so what can be picked up today
 // stands out. ⚠️ SINCE `10.5-iv-a-ii` IT OPENS HER PAGE (`onPress`, the list's), where
-// her pattern and *Lo que suele publicar* are. ⚠️ NO CHECK CAN SEE IT (ADR-035 §2.11):
+// her pattern and *Lo que suele ofrecer* are. ⚠️ NO CHECK CAN SEE IT (ADR-035 §2.11):
 // the phone is its instrument.
 // ============================================================================
 

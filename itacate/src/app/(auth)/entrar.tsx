@@ -40,6 +40,9 @@ import { Formulario } from '@/ui/Formulario';
 // cuenta* with an account, *"Ese correo ya tiene una cuenta. Entra con tu
 // contraseña"*, which tells her what to do. A link swaps the halves.
 //
+// ⚠️ `10.5-v-a`: THE APP'S LINE FIRST, ON BOTH HALVES (`ES.lema`, the owner's
+// ruling of 2026-11-05) — where the app first greets her, until a first run
+// gives it a screen of its own.
 // ⚠️ APPLE'S BUTTON IS APPLE'S: its words in the phone's language, its colours,
 // and on an iPhone only. It has no `disabled`, so `busy` stops touches around it.
 // ⚠️ *¿OLVIDASTE TU CONTRASEÑA?* IS WERA'S `5R-h`: it opens WhatsApp to the
@@ -115,6 +118,8 @@ export default function Entrar() {
           gap: SIZE.space,
         }}
       >
+        <Text style={{ fontSize: SIZE.bodySize, fontWeight: '600', color: PALETTE.tinta }}>{ES.lema}</Text>
+
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={ES.auth.google}

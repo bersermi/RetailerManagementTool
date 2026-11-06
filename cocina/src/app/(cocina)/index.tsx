@@ -31,7 +31,7 @@ import { Salidas } from '@/ui/Salidas';
 //     (the guard moves her the moment it knows — `@/auth/guard`);
 //   - the read FAILED (no signal at launch): a sentence and *Intentar de
 //     nuevo*, never *Registra tu cocina* — `unknown` is not `none`;
-//   - her kitchen: *Publicar lo que te sobra* and her list (`@/ui/Publicaciones`)
+//   - her kitchen: *Publicar una oferta* and her list (`@/ui/Publicaciones`)
 //     first — what she opens the app for every day — then where she hands food
 //     over: her address, the small map under it and her line of directions.
 //

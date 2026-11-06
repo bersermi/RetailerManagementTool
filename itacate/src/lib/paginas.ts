@@ -6,7 +6,7 @@
 //   - HER PAGE: her cover, her colour, her circle, her name with her trade and her
 //     colonia, her sentence, *Ver en Google Maps* with her link (his Google ruling of
 //     2026-11-01), where she is and *Cómo llegar*; under *Hoy* what she has on offer
-//     now — else *Hoy no ha publicado* with her pattern — and *Lo que suele publicar*,
+//     now — else *Hoy no ha publicado* with her pattern — and *Lo que suele ofrecer*,
 //     her repeated dishes over four weeks, how often and the usual price (his ruling of
 //     2026-11-01, late);
 //   - A DISH'S PAGE: its photo, the kitchen's row, its name, what it has, the tags,
@@ -81,7 +81,7 @@ export function platilloDe(
 }
 
 // ----------------------------------------------------------------------------
-// Her page: *Hoy*, and *Lo que suele publicar*
+// Her page: *Hoy*, and *Lo que suele ofrecer*
 // ----------------------------------------------------------------------------
 
 /** *Hoy*: what she has on offer now, the earliest window first — or why there is nothing, with her pattern. */
@@ -91,10 +91,10 @@ export type Hoy =
 
 /**
  * ⚠️ HIS WORDS, *Hoy no ha publicado*, ARE TRUE ONLY BEFORE SHE PUBLISHES FOR TODAY: a
- * kitchen whose comida corrida ended at 15:00 did publish, so after it she reads *Ya no
- * tiene nada por hoy* — with her pattern when there is one, never *Publicó hoy* under
- * it. Before: *Hoy no ha publicado*, then her pattern, else when she last did — *Publicó
- * ayer* — as her card in the list says it.
+ * kitchen whose comida corrida ended at 15:00 did publish, so after it she reads *Por hoy
+ * ya se terminó* (*Ya no tiene nada por hoy* until `10.5-v-a`) — with her pattern
+ * when there is one, never *Publicó hoy* under it. Before: *Hoy no ha publicado*, then
+ * her pattern, else when she last did — *Publicó ayer* — as her card in the list says it.
  */
 export function hoyDe(cocina: Kitchen, ahora: Date): Hoy {
   const ofertas = vigentes(cocina, ahora);
@@ -119,7 +119,7 @@ export interface Repetido {
 }
 
 /**
- * *Lo que suele publicar*: the dishes the door counts in two or more of her
+ * *Lo que suele ofrecer*: the dishes the door counts in two or more of her
  * publications over four weeks, most often first — its order kept — with the price
  * she usually gives each (the door's most common one, `0078`).
  */

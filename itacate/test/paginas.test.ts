@@ -23,8 +23,9 @@ import {
 // A KITCHEN'S PAGE AND A DISH'S. Plan task `10.5-iv-a-ii`.
 //
 // ⚠️ THE RULED WORDS ARE ASSERTED WORD FOR WORD, NOT READ BACK FROM `ES` — *Hoy no ha
-// publicado* and *Lo que suele publicar* (his ruling of 2026-11-01, late), the allergy
-// line (the proposals page, ruled 2026-11-01): a sentence compared with itself would
+// publicado* (his ruling of 2026-11-01, late), *Lo que suele ofrecer* and *Por hoy ya se
+// terminó* (his of 2026-11-05, `10.5-v-a`: *Lo que suele publicar* and *Ya no tiene nada
+// por hoy* before), the allergy line (the proposals page, ruled 2026-11-01): a sentence compared with itself would
 // pass whatever it said. What Wera Cocina also says — the tags, *Ver en Google Maps* —
 // is held to its file by `test/gemelos.test.ts`.
 //
@@ -145,13 +146,13 @@ describe('*Hoy*, on her page', () => {
     if (hoy.kind === 'oferta') expect(hoy.ofertas.map((o) => o.id)).toEqual(['o-1', 'o-2']);
   });
 
-  it('⚠️ his words: Hoy no ha publicado, then her pattern — Suele publicar entre semana, hacia las 17:00', () => {
+  it('⚠️ his words: Hoy no ha publicado, then her pattern — Suele tener ofertas entre semana, hacia las 17:00', () => {
     const ahora = local(2026, 11, 5, 13, 30); // a Thursday
     const resumen: Summary = { weekdays: [2, 1, 1, 1, 1, 0, 0], usualHour: 17, lastDay: '2026-11-04', repeats: [] };
     expect(hoyDe(cocina({ summary: resumen }), ahora)).toEqual({
       kind: 'quieta',
       titulo: 'Hoy no ha publicado',
-      linea: 'Suele publicar entre semana, hacia las 17:00',
+      linea: 'Suele tener ofertas entre semana, hacia las 17:00',
     });
   });
 
@@ -164,31 +165,31 @@ describe('*Hoy*, on her page', () => {
     expect(hoyDe(cocina(), ahora)).toEqual({ kind: 'quieta', titulo: 'Hoy no ha publicado', linea: null });
   });
 
-  it('⚠️ she did publish for today and it is over: Ya no tiene nada por hoy — never Hoy no ha publicado, never Publicó hoy', () => {
+  it('⚠️ she did publish for today and it is over: Por hoy ya se terminó — never Hoy no ha publicado, never Publicó hoy', () => {
     const ahora = local(2026, 11, 5, 16);
     const acabada = oferta('o-0', local(2026, 11, 5, 13), local(2026, 11, 5, 15), [plato(1)]);
     const sinPatron: Summary = { ...SIN_RESUMEN, weekdays: [0, 0, 0, 1, 0, 0, 0], usualHour: 13, lastDay: '2026-11-05' };
     expect(hoyDe(cocina({ offers: [acabada], summary: sinPatron }), ahora)).toEqual({
       kind: 'quieta',
-      titulo: 'Ya no tiene nada por hoy',
+      titulo: 'Por hoy ya se terminó',
       linea: null,
     });
     const conPatron: Summary = { weekdays: [1, 1, 1, 1, 1, 0, 0], usualHour: 13, lastDay: '2026-11-05', repeats: [] };
     expect(hoyDe(cocina({ summary: conPatron }), ahora)).toEqual({
       kind: 'quieta',
-      titulo: 'Ya no tiene nada por hoy',
-      linea: 'Suele publicar entre semana, hacia las 13:00',
+      titulo: 'Por hoy ya se terminó',
+      linea: 'Suele tener ofertas entre semana, hacia las 13:00',
     });
   });
 
   it('a publication for tomorrow she took down is not "Hoy no ha publicado" either', () => {
     const ahora = local(2026, 11, 5, 21);
     const manana: Summary = { ...SIN_RESUMEN, weekdays: [0, 0, 0, 0, 1, 0, 0], usualHour: 9, lastDay: '2026-11-06' };
-    expect(hoyDe(cocina({ summary: manana }), ahora)).toEqual({ kind: 'quieta', titulo: 'Ya no tiene nada por hoy', linea: null });
+    expect(hoyDe(cocina({ summary: manana }), ahora)).toEqual({ kind: 'quieta', titulo: 'Por hoy ya se terminó', linea: null });
   });
 });
 
-describe('*Lo que suele publicar*', () => {
+describe('*Lo que suele ofrecer*', () => {
   it('⚠️ each dish she repeats, how often over four weeks and the price she usually gives it, in the door’s order', () => {
     const resumen: Summary = {
       ...SIN_RESUMEN,

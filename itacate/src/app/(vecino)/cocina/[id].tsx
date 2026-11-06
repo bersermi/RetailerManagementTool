@@ -34,7 +34,7 @@ import { RenglonPlatillo } from '@/ui/RenglonPlatillo';
 // and *Ver en Google Maps ›* in her colour — what she was shown is what a neighbour
 // sees. Then what only Itacate has: how far she is, where and *Cómo llegar*; *Hoy* —
 // what she has on offer now, each dish opening its page — else *Hoy no ha publicado*
-// and her pattern; and *Lo que suele publicar*. Every word is `@/lib/paginas`'.
+// and her pattern; and *Lo que suele ofrecer*. Every word is `@/lib/paginas`'.
 //
 // ⚠️ NOTHING NEW IS ASKED OF THE DATABASE: the kitchen is the list's, found by her id in
 // the door's answer (in memory); a pull asks the door again, as the list's does. Her
