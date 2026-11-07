@@ -87,8 +87,13 @@ export function orderTerm(term: string): { readonly column: string; readonly asc
 /** The lines inside each publication, ascending: her order (`line_no`, `0072`). */
 export const LINE_ORDER = 'line_no';
 
-/** Her last ten publications: what *Repetir* starts from, and today's among them. */
-export const LISTING_LIMIT = 10;
+/**
+ * Her last 60 publications: what *Repetir* starts from, and today's among them — and,
+ * since `10.5-v-c-ii`, four weeks at two a day, which her reminder's two weeks
+ * (`@/lib/recordatorio`) and the four-week summary of her page as neighbours see it
+ * (`@/lib/comoLaVen`) are worked out from. Ten, until then.
+ */
+export const LISTING_LIMIT = 60;
 
 /** The prefix every list is cached under — what a write invalidates. */
 export const LISTINGS_KEY = ['cocina', 'publicaciones'] as const;

@@ -129,7 +129,7 @@ describe('Nunito titles — Wera’s file, byte for byte (the ruling of 2026-11-
   });
 
   it('every title wears it — the band, a tab’s head, a sheet’s name and, since `10.5-v-c-i`, the two pages’ — with no weight beside it', () => {
-    for (const path of ['ui/Banda.tsx', 'ui/Cabeza.tsx', 'ui/Hoja.tsx', 'app/(vecino)/cocina/[id].tsx', 'app/(vecino)/platillo/[cocina]/[oferta]/[linea].tsx']) {
+    for (const path of ['ui/Banda.tsx', 'ui/Cabeza.tsx', 'ui/Hoja.tsx', 'ui/PaginaDeCocina.tsx', 'ui/PaginaDePlatillo.tsx']) {
       const text = code(path);
       expect(text, path).toMatch(/\.\.\.TITULO/);
     }

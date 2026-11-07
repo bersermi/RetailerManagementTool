@@ -1,6 +1,7 @@
 import { Tabs } from 'expo-router/js-tabs';
 
 import { useKitchen, usePlace } from '@/api/hooks';
+import { RecordatorioProvider } from '@/lib/RecordatorioProvider';
 import { useDondeEstaSuCocina } from '@/lib/useGoogle';
 import { EN_USO } from '@/navigation/pestanas';
 import { Pestanas } from '@/ui/Pestanas';
@@ -22,15 +23,24 @@ import { Pestanas } from '@/ui/Pestanas';
 // every launch opened on; that screen is *Mi cocina* now, which mounts only when she
 // opens it — so the refresh moved to what is always mounted, and *Mi cocina*'s small map
 // reads the same answer (one query, one request).
+//
+// ⚠️ `10.5-v-c-ii`: HER REMINDER LIVES HERE TOO (`@/lib/RecordatorioProvider`) — *Hoy* asks
+// its question and *Mi cocina* keeps its row, both tabs mounted at once, so her answer, the
+// one sheet both open, what her phone schedules and a tap that opens *Publicar* are held
+// above the two. When the tabs leave — she signed out, her kitchen was deleted — her
+// reminders are cancelled with them.
 // ============================================================================
 export default function TabsDeCocina() {
   useRefrescoDeSuPunto();
+  const kitchen = useKitchen();
   return (
-    <Tabs screenOptions={{ headerShown: false }} tabBar={(props) => <Pestanas {...props} />}>
-      {EN_USO.map((pestana) => (
-        <Tabs.Screen key={pestana.ruta} name={pestana.ruta} options={{ title: pestana.label }} />
-      ))}
-    </Tabs>
+    <RecordatorioProvider kitchenId={kitchen?.id ?? null}>
+      <Tabs screenOptions={{ headerShown: false }} tabBar={(props) => <Pestanas {...props} />}>
+        {EN_USO.map((pestana) => (
+          <Tabs.Screen key={pestana.ruta} name={pestana.ruta} options={{ title: pestana.label }} />
+        ))}
+      </Tabs>
+    </RecordatorioProvider>
   );
 }
 

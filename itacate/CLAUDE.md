@@ -168,6 +168,15 @@ from `itacate/` with the two local `EXPO_PUBLIC_SUPABASE_` values in the shell, 
   *Ver en Google Maps* opens her link only when `mapsLinkOk` (the database's rule, Wera Cocina's copy)
   takes it. The reserving is `10.5b`'s: no button, no line about paying. The price, *Quedan* and *Sorpresa*
   are `@/ui/Precio`'s, drawn alike on the list and both pages.
+  ⚠️⚠️ **Since `10.5-v-c-ii` what each page draws is a component — `@/ui/PaginaDeCocina`, `@/ui/PaginaDePlatillo` —
+  handed the kitchen, her trade's name, the distance in words and the clock by its route**, which alone reads (the door,
+  `useDistancia`); `@/ui/FilaCocina` takes the distance in words too. **Wera Cocina copies both, with every part they
+  draw with** (`@/ui/Atras`, `Circulo`, `Enlace`, `FilaCocina`, `PaginaVacia`, `Precio`, `RenglonPlatillo`, `@/lib/paginas`,
+  the door's types, the list's rules for a card's words, `ES.pagina`, `ES.platillo` and those words of `ES.cerca`) into
+  `cocina/src/vecinos/`, for *Así la ven* and *Ver como la ven* — and `cocina/test/vecinos.test.ts` holds each copy to
+  THESE files: **a change to either page here is copied there in the same PR**, or Wera Cocina's suite is red. Seen on the
+  emulator against the local shop the day they moved (2026-11-07): the list, a dish's page, her page from its row, and a
+  dish from her page.
 - **Google, from her phone, for her alone, kept nowhere** (`@/lib/google`, pure; `@/lib/useGoogle`, the
   requests): Geocoding for a kitchen the door sends with no point — her address, asked once while the app
   is open, the answer in TanStack's memory (Service Specific Terms §6.3.2) — and for her postal code, never

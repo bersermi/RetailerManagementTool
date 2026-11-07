@@ -24,7 +24,9 @@ import { OfertaDeHoy } from '@/ui/OfertaDeHoy';
 // ofering. Perhaps we can make it a module of its own"*), as the family-shell page draws
 // it (`cOfertas`): pushed over the tabs from *Hoy*'s day card, *‹ Hoy* to go back.
 //   - HOY — today's offers (`@/lib/hoy`'s `deHoy`), each with *Ya se terminó* while it is
-//     on offer (`@/ui/OfertaDeHoy`); − and + with `10.5b`, *Así la ven* with `10.5-v-c-ii`;
+//     on offer (`@/ui/OfertaDeHoy`), and *Así la ven* beside it (`10.5-v-c-ii`): an offer of one
+//     dish opens that dish's page in Itacate, one of several her page, where each is listed;
+//     − and + with `10.5b`;
 //   - *PUBLICAR UNA OFERTA*, again, at the foot of today's;
 //   - ANTERIORES — one row per offer she made before today, its newest, the newest first,
 //     each with *Repetir* (one tap, with *Deshacer*) or *Hoy* when she already published it
@@ -56,6 +58,15 @@ export default function TusOfertas() {
     const answer = await withdraw(listing.id);
     if (answer === null) avisar(ES.nota.quitaste(nombreDe(listing)));
     else setProblema({ id: listing.id, text: answer });
+  }
+
+  // One dish: its page as a neighbour opens it. Several: her page, where each is listed.
+  function asiLaVen(listing: Listing) {
+    if (listing.lines.length === 1) {
+      router.push({ pathname: '/asi-la-ven/[oferta]/[linea]', params: { oferta: listing.id, linea: '1' } });
+    } else {
+      router.push('/como-la-ven');
+    }
   }
 
   const banda = (
@@ -112,6 +123,7 @@ export default function TusOfertas() {
                 busy={busyId === listing.id}
                 problema={problema !== null && problema.id === listing.id ? problema.text : null}
                 onTerminar={() => void terminar(listing)}
+                onAsiLaVen={() => asiLaVen(listing)}
               />
             ))}
           </Llega>

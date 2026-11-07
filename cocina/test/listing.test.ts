@@ -103,7 +103,7 @@ describe('her list, as the app asks for it', () => {
     ]);
     expect(orderTerm('line_no.asc')).toEqual({ column: 'line_no', ascending: true });
     expect(LINE_ORDER).toBe('line_no');
-    expect(LISTING_LIMIT).toBe(10);
+    expect(LISTING_LIMIT).toBe(60);
   });
 
   it('and the read sends exactly those: filtered on the kitchen, in that order, the lines in hers', () => {

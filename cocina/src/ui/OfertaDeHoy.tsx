@@ -1,3 +1,4 @@
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 
@@ -9,8 +10,9 @@ import { PALETTE, SIZE } from '@/theme/palette';
 // ============================================================================
 // ONE OF TODAY'S OFFERS, IN *TUS OFERTAS* (the family-shell page's `offerCard`). Plan
 // task `10.5-v-c-i`: *En oferta* or *Terminada*, its hours, each dish with its figures,
-// and — while it is on offer — *Ya se terminó*. − and + arrive with reserving (`10.5b`),
-// *Así la ven* with `10.5-v-c-ii`.
+// and — while it is on offer — *Ya se terminó* and, since `10.5-v-c-ii`, *Así la ven*
+// beside it (the family-shell page's `offerCard`): the offer as a neighbour opens it in
+// Itacate. − and + arrive with reserving (`10.5b`).
 //
 // ⚠️ *YA SE TERMINÓ* IS ASKED ONCE INLINE, WERA'S WAY (`desperdicio.tsx`'s
 // *¿Cancelarla?*, `8k`): the question, *No* in green and *Sí, ya se terminó* in red —
@@ -25,12 +27,15 @@ export function OfertaDeHoy({
   busy,
   problema,
   onTerminar,
+  onAsiLaVen,
 }: {
   listing: Listing;
   ahora: Date;
   busy: boolean;
   problema: string | null;
   onTerminar: () => void;
+  /** *Así la ven* — its page in Itacate. */
+  onAsiLaVen: () => void;
 }) {
   const [preguntando, setPreguntando] = useState(false);
   const enOferta = listingState(listing, ahora) === 'oferta';
@@ -95,22 +100,45 @@ export function OfertaDeHoy({
             </Pressable>
           </View>
         ) : (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={ES.ofertas.yaSeTermino}
-            onPress={() => setPreguntando(true)}
-            style={{
-              minHeight: SIZE.tapTarget,
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderRadius: SIZE.space / 2,
-              borderWidth: 1,
-              borderColor: PALETTE.linea,
-              backgroundColor: PALETTE.superficie,
-            }}
-          >
-            <Text style={{ fontSize: SIZE.bodySize, fontWeight: '600', color: PALETTE.error }}>{ES.ofertas.yaSeTermino}</Text>
-          </Pressable>
+          <View style={{ flexDirection: 'row', gap: SIZE.rowGap }}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={ES.ofertas.yaSeTermino}
+              onPress={() => setPreguntando(true)}
+              style={{
+                flex: 1,
+                minHeight: SIZE.tapTarget,
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: SIZE.space / 2,
+                borderWidth: 1,
+                borderColor: PALETTE.linea,
+                backgroundColor: PALETTE.superficie,
+              }}
+            >
+              <Text style={{ fontSize: SIZE.bodySize, fontWeight: '600', color: PALETTE.error }}>{ES.ofertas.yaSeTermino}</Text>
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={ES.vista.asiLaVen}
+              onPress={onAsiLaVen}
+              style={{
+                flex: 1,
+                minHeight: SIZE.tapTarget,
+                flexDirection: 'row',
+                gap: 6,
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: SIZE.space / 2,
+                borderWidth: 1,
+                borderColor: PALETTE.linea,
+                backgroundColor: PALETTE.superficie,
+              }}
+            >
+              <MaterialCommunityIcons name="eye-outline" size={18} color={PALETTE.accion} />
+              <Text style={{ fontSize: SIZE.bodySize, fontWeight: '600', color: PALETTE.accion }}>{ES.vista.asiLaVen}</Text>
+            </Pressable>
+          </View>
         ))}
       {problema !== null && <Text style={{ fontSize: SIZE.bodySize, fontWeight: '600', color: PALETTE.error }}>{problema}</Text>}
     </View>
