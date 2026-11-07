@@ -38,6 +38,9 @@ const VACA = require('@/marca/vaca-crema.png') as number;
 //
 // ⚠️ ONE PICTURE, TWO COLOURS: the cream cow is one colour on nothing, so the green one
 // is the same file tinted — no new picture in the update.
+// ⚠️ AND THEY ARE DRAWN AT ONCE (`fadeDuration={0}`): Android's `Image` fades every picture in over
+// 300 ms by default, so on the test build the cow faded in as the splash faded out and blinked pale —
+// recorded 2026-11-07, twice; a screen with no transition did not change it.
 // ⚠️ THE TWO PICTURES MUST BE IN BEFORE ANYTHING MOVES — on Wera's emulator the square
 // grew empty while they loaded — so nothing starts, and the splash is not let go
 // (`onCargada`), until both are drawn. ⚠️ AND ON ANDROID NOT UNTIL THE SPLASH HAS FADED
@@ -164,10 +167,10 @@ export function Apertura({
           ]}
         />
         <Animated.View style={[vaca, verde]}>
-          <Image source={VACA} onLoad={contar} onError={contar} style={{ width: COW_BOX, height: COW_BOX, tintColor: PALETTE.accion }} accessibilityIgnoresInvertColors />
+          <Image source={VACA} fadeDuration={0} onLoad={contar} onError={contar} style={{ width: COW_BOX, height: COW_BOX, tintColor: PALETTE.accion }} accessibilityIgnoresInvertColors />
         </Animated.View>
         <Animated.View style={[vaca, blanca]}>
-          <Image source={VACA} onLoad={contar} onError={contar} style={{ width: COW_BOX, height: COW_BOX }} accessibilityIgnoresInvertColors />
+          <Image source={VACA} fadeDuration={0} onLoad={contar} onError={contar} style={{ width: COW_BOX, height: COW_BOX }} accessibilityIgnoresInvertColors />
         </Animated.View>
       </Animated.View>
 
