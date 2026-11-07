@@ -1662,8 +1662,10 @@ the key is in, it signs nobody in. Do those first and tell a session; it checks 
 **Tell a session the words *"Google approved"*** when it writes to you — it knows the rest, from the
 plan's `5R-e` row.
 
-1. **Apple: what waited goes to the store versions — one command, yours** (a session's permission
-   check refuses an update to the store channel). From a clean `main`, in a terminal:
+1. ✅ **Sent by you on 6 November, evening** (`0b53a0d`, both stores — iPhone group `6872e4aa`, Android
+   `357313b0`). Each store version takes it on its second open. Kept for the record: what waited
+   went to the store versions in one command, yours (a session's permission check refuses an update to
+   the store channel). From a clean `main`, in a terminal:
 
    ```
    bash docs/runbooks/ship-an-update.sh production "Wera: lo que esperaba la aprobación de Apple — tu tienda sola y precios sin señal (5R-e)"
