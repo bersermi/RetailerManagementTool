@@ -1657,24 +1657,34 @@ the key is in, it signs nobody in. Do those first and tell a session; it checks 
 
 ## When the stores approve Wera
 
-Both were sent for review on 21 October: Apple usually answers in a day or two, Google in a few
-hours to seven days. Each writes to your email. **Tell a session the words *"Apple approved"* or
-*"Google approved"*** — it knows the rest, from the plan's `5R-e` row:
+✅ **Apple approved: *Wera: tu tienda* is on the App Store in Mexico since 5 November** (your word of
+6 November; Apple's own record read the same day: version 1.0.0, under your name). Google is next:
+**Tell a session the words *"Google approved"*** when it writes to you — it knows the rest, from the
+plan's `5R-e` row.
 
-1. **Apple: what is waiting goes to the iPhone store version** — one command: *Conoce Wera*,
-   *Crear Nuevo Proveedor* and the pause of *Te lo compro* — and two changes nobody sees until an
-   account has a shop and a kitchen: Wera opening shops only, and *Eliminar mi cuenta* naming every
-   business. Android's store version got the first three as they went out — *Conoce Wera* on
-   22 October, because an update carries everything before it — and the last two on 29 October,
-   by your command.
+1. **Apple: what waited goes to the store versions — one command, yours** (a session's permission
+   check refuses an update to the store channel). From a clean `main`, in a terminal:
+
+   ```
+   bash docs/runbooks/ship-an-update.sh production "Wera: lo que esperaba la aprobación de Apple — tu tienda sola y precios sin señal (5R-e)"
+   ```
+
+   It brings the iPhone's store version up to date — *Conoce Wera*, *Crear Nuevo Proveedor*, the
+   pause of *Te lo compro*, Wera opening shops only, *Eliminar mi cuenta* naming every business —
+   and gives **both** store versions two changes that no store version has yet: every screen
+   reading only the shop open in it, and setting a price without signal. Nobody notices either
+   unless an account has a shop and a kitchen, or sets a price offline. A session dry-ran it on
+   6 November: both stores' builds take it. Then open the store Wera, close it completely and
+   open it again. (Android's store version got the first five as they went out, the last on
+   29 October.)
 2. **Google:** the twelfth tester joined on 24 October, so *Apply for production* opens on
    **7 November** (*The dates*, above).
-3. **If Apple refuses something**, paste its words to a session.
+3. **If a store refuses something**, paste its words to a session.
 
 **Still yours from 21 October, none of them blocking the review:**
 
 - **Sign in with Apple, for real** — the five minutes in *Turning on Entrar con Apple*, step 6.
-  Apple's reviewer will try it; better that you see it work first.
+  The app is public now, so anyone can try it; better that you see it work first.
 - **The notice email** of that section's step 4, to every account that is not yours.
 - **Google sign-in for everybody** — *Putting tu-wera.com up*, step 7, if you have not.
 - **The pilot Android's new install** (*What is on your phone*).
