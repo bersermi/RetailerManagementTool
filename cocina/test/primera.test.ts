@@ -129,8 +129,10 @@ describe('the splash lets go where she will see the screen', () => {
     expect(code('ui/Apertura.tsx')).toMatch(/useEffect\(\(\) => \{\s*if \(listo\) onCargada\(\);/);
   });
 
-  it('and the opening appears with no transition, so its first frame is the splash’s own', () => {
-    expect(code('app/_layout.tsx')).toMatch(/<Stack\.Screen name="\(auth\)\/hola" options=\{\{ animation: 'none' \}\} \/>/);
+  it('and the cow is drawn at once — Android’s Image would fade it in over 300 ms, under the fading splash', () => {
+    const apertura = code('ui/Apertura.tsx');
+    expect((apertura.match(/<Image source=\{VACA\} fadeDuration=\{0\}/g) ?? []).length).toBe(2);
+    expect((apertura.match(/<Image /g) ?? []).length).toBe(2);
   });
 
   it('is Wera’s, below its header', () => {
