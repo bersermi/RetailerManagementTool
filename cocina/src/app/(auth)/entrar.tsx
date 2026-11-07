@@ -4,6 +4,7 @@ import {
   AppleAuthenticationButtonStyle,
   AppleAuthenticationButtonType,
 } from 'expo-apple-authentication';
+import { router, useLocalSearchParams } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { useRef, useState } from 'react';
 import { Keyboard, Linking, Pressable, Text, TextInput, View } from 'react-native';
@@ -43,7 +44,12 @@ import { Formulario } from '@/ui/Formulario';
 //
 // ⚠️ `10.5-v-a`: THE APP'S LINE FIRST, ON BOTH HALVES (`ES.lema`, the owner's
 // ruling of 2026-11-05) — where the app first greets her, until the first run
-// of `10.5-v-d` gives it a screen of its own.
+// of `10.5-v-d` gave it a screen of its own.
+// ⚠️ `10.5-v-d`: REACHED FROM THE OPENING (`(auth)/hola`), ON THE HALF SHE PICKED THERE —
+// *Crear cuenta* on its own, *Ya tengo cuenta* with `cuenta=tengo` on *Entrar*; the
+// link still swaps them — with *Volver* back to it. Where the line was, one sentence:
+// the account is the same in Wera, Wera Cocina and Itacate (the family-shell page's
+// *Tu cuenta*).
 // ⚠️ APPLE'S BUTTON IS APPLE'S: its words in the phone's language, its colours,
 // and on an iPhone only. It has no `disabled`, so `busy` stops touches around it.
 // ⚠️ *¿OLVIDASTE TU CONTRASEÑA?* IS WERA'S `5R-h` (plan `10.4b-iv-b`): it opens
@@ -57,13 +63,14 @@ import { Formulario } from '@/ui/Formulario';
 export default function Entrar() {
   const insets = useSafeAreaInsets();
   const { signIn, signUp, signInWithGoogle, appleAvailable, signInWithApple } = useAuth();
+  const { cuenta } = useLocalSearchParams<{ cuenta?: string }>();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   // The name's two boxes keep what was typed across a switch of halves.
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
-  const [creating, setCreating] = useState(true);
+  const [creating, setCreating] = useState(cuenta !== 'tengo');
   // Unticked until she ticks it.
   const [accepted, setAccepted] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -110,7 +117,11 @@ export default function Entrar() {
 
   return (
     <View style={{ flex: 1, backgroundColor: PALETTE.fondo }}>
-      <Banda titulo={creating ? ES.auth.titleSignUp : ES.auth.titleSignIn} antetitulo={ES.nombre} />
+      <Banda
+        titulo={creating ? ES.auth.titleSignUp : ES.auth.titleSignIn}
+        antetitulo={ES.nombre}
+        volver={router.canGoBack() ? { label: ES.hola.volver, onPress: () => !busy && router.back() } : null}
+      />
       <Formulario
         contentContainerStyle={{
           paddingHorizontal: SIZE.space * 2,
@@ -119,7 +130,7 @@ export default function Entrar() {
           gap: SIZE.space,
         }}
       >
-        <Text style={{ fontSize: SIZE.bodySize, fontWeight: '600', color: PALETTE.tinta }}>{ES.lema}</Text>
+        <Text style={{ fontSize: SIZE.bodySize, color: PALETTE.tintaApagada }}>{ES.hola.misma}</Text>
 
         <Pressable
           accessibilityRole="button"

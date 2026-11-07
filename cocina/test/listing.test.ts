@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -73,6 +73,7 @@ const strip = (text: string) => text.replace(/^\s*\/\/.*$/gm, '').replace(/\/\*[
 const code = (path: string) => strip(readFileSync(join(SRC, path), 'utf8'));
 const MIGRATION = readFileSync(join(ROOT, '../supabase/migrations/0072_a_kitchen_publishes.sql'), 'utf8');
 const LATEST = readFileSync(join(ROOT, '../supabase/migrations/0076_a_kitchens_own_page.sql'), 'utf8');
+const MIGRATIONS = join(ROOT, '../supabase/migrations');
 const PUBLISH_BODY = LATEST.slice(
   LATEST.indexOf('create or replace function public.publish_listing('),
   LATEST.indexOf('comment on function public.publish_listing('),
@@ -83,6 +84,7 @@ const line = (patch: Partial<LineDraft> = {}): LineDraft => ({
   name: 'Comida corrida',
   price: '65',
   count: '4',
+  usual: '120',
   ...patch,
 });
 
@@ -146,6 +148,16 @@ describe('the database’s rules, as `0072` and `0076` write them', () => {
     for (const key of sent) expect(read, key).toContain(key);
   });
 
+  // ⚠️ `10.5-v-d`: the rule is the phone's. A build in the field publishes without a vale, and
+  // must go on doing so (the field rule), so no migration may make the column required.
+  it('`10.5-v-d`: the vale stays optional in the table — the phone requires it, the database never', () => {
+    expect(MIGRATION).toMatch(/usual_price\s+numeric\(12,2\),/);
+    for (const file of readdirSync(MIGRATIONS)) {
+      const text = readFileSync(join(MIGRATIONS, file), 'utf8');
+      expect(text, file).not.toMatch(/usual_price\s+numeric\(\d+,\s*\d+\)\s+not\s+null|alter\s+column\s+usual_price\s+set\s+not\s+null/i);
+    }
+  });
+
   it('`10.5-ii`: a dish’s photo is `0076`’s key, `image_path`, a picture in her own folder', () => {
     expect(PUBLISH_BODY).toContain(`v_line ? 'image_path'`);
     expect(PUBLISH_BODY).toContain('public.picture_in_folder(v_photo, v_loc.workspace_id)');
@@ -198,17 +210,27 @@ describe('what is wrong with a line, in the order she fills it', () => {
     expect(checkLine(line({ price: '' }))).toBe('price');
     expect(checkLine(line({ price: '0' }))).toBe('priceShape');
     expect(checkLine(line({ price: '100000' }))).toBe('priceShape');
-    expect(checkLine(line({ price: '99999.99' }))).toBeNull();
+    expect(checkLine(line({ price: '99999.98', usual: '99999.99' }))).toBeNull();
     expect(checkLine(line({ count: '' }))).toBe('count');
     expect(checkLine(line({ count: '0' }))).toBe('countShape');
+    expect(checkLine(line({ usual: '' }))).toBe('usual');
   });
 
-  it('a bag’s vale is optional, and above the price when given; a dish’s is never read', () => {
-    expect(checkLine(line({ surprise: true, price: '45', usual: '' }))).toBeNull();
-    expect(checkLine(line({ surprise: true, price: '45', usual: '90' }))).toBeNull();
-    expect(checkLine(line({ surprise: true, price: '45', usual: '45' }))).toBe('usualLow');
-    expect(checkLine(line({ surprise: true, price: '45', usual: 'mucho' }))).toBe('usualShape');
-    expect(checkLine(line({ surprise: false, price: '45', usual: 'mucho' }))).toBeNull();
+  // ⚠️ `10.5-v-d`, the owner's ruling of 2026-11-06: *"Lo que vale normalmente must be filled in"* —
+  // for a dish and a bag alike. Until then a bag's was optional and a dish's never read.
+  it('the vale is required on every line, a dish’s and a bag’s alike, and above the price', () => {
+    for (const surprise of [false, true]) {
+      expect(checkLine(line({ surprise, price: '45', usual: '' }))).toBe('usual');
+      expect(checkLine(line({ surprise, price: '45', usual: ' $ ' }))).toBe('usual');
+      expect(checkLine(line({ surprise, price: '45', usual: '90' }))).toBeNull();
+      expect(checkLine(line({ surprise, price: '45', usual: '45' }))).toBe('usualLow');
+      expect(checkLine(line({ surprise, price: '45', usual: 'mucho' }))).toBe('usualShape');
+      expect(checkLine(line({ surprise, price: '45', usual: '100000' }))).toBe('usualShape');
+    }
+    // Asked after how many there are — the order she fills the line in.
+    expect(checkLine(line({ count: '', usual: '' }))).toBe('count');
+    const lines = [line({ usual: '' })];
+    expect(issueSentence(checkLines(lines)!, lines)).toBe('Platillo 1: escribe lo que vale normalmente, para que tus vecinos vean cuánto ahorran.');
   });
 
   it('the form: at least one line, at most ten, and a line’s problem names its line', () => {
@@ -233,7 +255,7 @@ describe('what the database is sent', () => {
       unit_price: '65.00',
       quantity: 4,
       surprise: false,
-      usual_price: null,
+      usual_price: '120.00',
       image_path: null,
     });
   });
@@ -251,11 +273,12 @@ describe('what the database is sent', () => {
     expect(fotosPorSubir(lines)).toEqual([nueva]);
   });
 
-  it('a bag with its vale; a dish never sends one, even with one typed before the switch', () => {
+  it('`10.5-v-d`: every line sends its vale — a dish’s too, cleaned as a price is', () => {
     expect(lineBody(line({ surprise: true, price: '45', usual: '90' }))).toMatchObject({ surprise: true, unit_price: '45.00', usual_price: '90.00' });
-    expect(lineBody(line({ surprise: true, price: '45', usual: '' })).usual_price).toBeNull();
-    expect(lineBody(line({ surprise: false, price: '45', usual: '90' })).usual_price).toBeNull();
+    expect(lineBody(line({ surprise: false, price: '45', usual: '$1,200' }))).toMatchObject({ surprise: false, usual_price: '1200.00' });
     expect(lineBody(line({ description: '   ' })).description).toBeNull();
+    // A line nobody checked is never sent without it.
+    expect(() => lineBody(line({ usual: '' }))).toThrow(/a vale was not checked/);
   });
 
   it('the window as two instants, at her kitchen’s place', () => {
@@ -386,7 +409,7 @@ describe('Repetir', () => {
     else process.env.TZ = before;
   });
 
-  it('opens her lines as she published them, each under a new handle, the vale only on a bag', () => {
+  it('opens her lines as she published them, each under a new handle, each with its vale', () => {
     expect(new Date(2026, 9, 31, 12).getTimezoneOffset()).toBe(360);
     const past: Listing = {
       id: 'l-1',
@@ -403,7 +426,7 @@ describe('Repetir', () => {
     let n = 0;
     const draft = repeatDraft(past, new Date(2026, 9, 31, 19), () => `key-${(n += 1)}`);
     expect(draft.lines).toEqual([
-      { key: 'key-1', surprise: false, name: 'Comida corrida', description: '', tags: ['pica'], price: '65.50', count: '4', usual: '', foto: { kind: 'guardada', path: 'k/comida' } },
+      { key: 'key-1', surprise: false, name: 'Comida corrida', description: '', tags: ['pica'], price: '65.50', count: '4', usual: '90', foto: { kind: 'guardada', path: 'k/comida' } },
       { key: 'key-2', surprise: true, name: 'Bolsa de pan', description: '6 piezas', tags: [], price: '45', count: '5', usual: '90', foto: { kind: 'ninguna' } },
     ]);
     // ⚠️ `10.5-ii`: yesterday's photo is sent again, as it was — never uploaded twice.
@@ -435,7 +458,8 @@ describe('the screens’ wiring, read as text', () => {
   it('publishes at her kitchen’s own place — the place read by the kitchen’s id', () => {
     const screen = code('app/(cocina)/publicar.tsx');
     expect(screen).toMatch(/usePlace\(kitchen\?\.id \?\? null\)/);
-    expect(screen).toMatch(/placeId=\{place\.data\.id\}/);
+    expect(screen).toMatch(/<Form kitchen=\{kitchen\} place=\{place\.data\} /);
+    expect(screen).toMatch(/const placeId = place\.id;/);
   });
 
   it('her list is read again after every press, landed or not', () => {
@@ -462,7 +486,7 @@ describe('the screens’ wiring, read as text', () => {
     }
     const repetir = code('lib/useRepetir.ts');
     expect(repetir).toMatch(/if \(plan\.kind === 'formulario'\) \{\s*router\.push\(\{ pathname: '\/publicar', params: \{ repetir: listing\.id \} \}\);/);
-    expect(code('app/(cocina)/publicar.tsx')).toMatch(/useLocalSearchParams<\{ repetir\?: string \}>\(\)/);
+    expect(code('app/(cocina)/publicar.tsx')).toMatch(/useLocalSearchParams<\{ repetir\?: string; primera\?: string \}>\(\)/);
   });
 
   it('a one-tap Repetir is the same publication on a retry, as the form’s is', () => {

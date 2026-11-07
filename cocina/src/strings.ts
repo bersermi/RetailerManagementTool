@@ -20,6 +20,20 @@ export const ES = {
    */
   lema: 'Vende hasta el último plato',
 
+  /**
+   * ⚠️ `10.5-v-d`: THE FIRST SCREEN (`(auth)/hola`), the family-shell page's first run — the
+   * cow's opening, the app's name and its line, and the two ways into an account. *Crear
+   * cuenta* is Wera's word (`auth.signUp`); *Ya tengo cuenta* opens the way in on *Entrar*.
+   * `misma` sits where the way in showed the line until this row: the account is one
+   * login across Wera, Wera Cocina and Itacate.
+   */
+  hola: {
+    crear: 'Crear cuenta',
+    tengo: 'Ya tengo cuenta',
+    misma: 'Tu cuenta es la misma en Wera, Wera Cocina e Itacate.',
+    volver: 'Volver',
+  },
+
   auth: {
     emailLabel: 'Correo',
     passwordLabel: 'Contraseña',
@@ -83,7 +97,8 @@ export const ES = {
   registro: {
     antetitulo: 'Wera Cocina',
     titulo: 'Registra tu cocina',
-    paso: (n: number) => `Paso ${n} de 2`,
+    /** ⚠️ `10.5-v-d`: three steps — her kitchen, her address, then *¿Qué ofreces hoy?* (the first run). */
+    paso: (n: number) => `Paso ${n} de 3`,
     quien: (who: string) => `Entraste como ${who}.`,
     nombre: 'Nombre de tu cocina',
     /** A hint in muted ink, never a value: she types her own. */
@@ -401,7 +416,11 @@ export const ES = {
     descripcionEjemplo: { platillo: 'Sopa, arroz y guisado del día', bolsa: '6 piezas de pan dulce' },
     precio: 'Precio de cada uno',
     cuantos: 'Cuántos hay',
-    vale: 'Lo que vale normalmente (opcional)',
+    /** ⚠️ `10.5-v-d`: required on every line (the owner's ruling of 2026-11-06), so no *(opcional)*. */
+    vale: 'Lo que vale normalmente',
+    /** The drawing's two hints — muted ink in the boxes, and the card's figures until she types hers. */
+    precioEjemplo: '60',
+    valeEjemplo: '120',
     etiquetas: 'Avisa si pica o si lleva (opcional)',
     etiqueta: {
       pica: 'Pica',
@@ -417,6 +436,8 @@ export const ES = {
     sinFoto: 'Sin foto, va el dibujo de tu cocina.',
     otro: 'Otro platillo',
     cuando: '¿Cuándo pueden pasar?',
+    /** `10.5-v-d`: over the card at the form's foot — Itacate's own card, filling in as she types. */
+    asiLaVeran: 'Así la verán en Itacate',
     desde: 'Desde',
     hasta: 'Hasta',
     /** The steppers' two buttons, for a screen reader: `Desde: más temprano`. */
@@ -436,6 +457,7 @@ export const ES = {
         priceShape: 'el precio no se ve bien. Escríbelo así: 65 o 65.50.',
         count: 'escribe cuántos hay.',
         countShape: 'cuántos hay es un número del 1 al 999.',
+        usual: 'escribe lo que vale normalmente, para que tus vecinos vean cuánto ahorran.',
         usualShape: 'lo que vale normalmente no se ve bien. Escríbelo así: 120.',
         usualLow: 'lo que vale normalmente tiene que ser más que el precio.',
       },
@@ -673,6 +695,24 @@ export const ES = {
     noSeVe: 'Tus vecinos verán tu página en Itacate en cuanto publiques una oferta.',
   },
 
+  /**
+   * ⚠️ `10.5-v-d`: THE FIRST RUN'S LAST TWO SCREENS (the family-shell page, ruled 2026-11-05):
+   * her kitchen made, *¿Qué ofreces hoy?* — her first offer, or *Después* — then her page as
+   * her neighbours see it, and *Ir a Hoy*. `yaEsta` is said only while the door would send
+   * her kitchen (`@/lib/comoLaVen`'s `seVeEnItacate`); before a first offer it is not true,
+   * so the page is introduced as what they will see.
+   */
+  primera: {
+    titulo: '¿Qué ofreces hoy?',
+    texto: 'Publica tu primera oferta y tus vecinos cerca la verán en Itacate. Toma menos de un minuto.',
+    publicar: 'Publicar mi primera oferta',
+    despues: 'Después',
+    yaEsta: 'Tu cocina ya está en Itacate',
+    asiTeVen: 'Así te ven tus vecinos:',
+    asiTeVeran: 'Así te verán tus vecinos',
+    irAHoy: 'Ir a Hoy',
+  },
+
   /** Days and times as she says them. ⚠️ Wera's shapes: `Mañana · 9:45 a 10:00` (`slotShort`), `Lun 13`. */
   fechas: {
     hoy: 'Hoy',
@@ -721,6 +761,8 @@ export const ES = {
 export const VECINOS = {
   cerca: {
     sorpresa: 'Sorpresa',
+    /** `10.5-v-d`: the list's card, for a screen reader — *Comida corrida, de Fonda Doña Mari*. */
+    abrirPlatillo: (platillo: string, cocina: string) => `${platillo}, de ${cocina}`,
     /** How many are left, before reservations exist (`10.5b`): what she published. */
     quedan: (n: number) => `Quedan ${n}`,
     ultimo: 'Último',

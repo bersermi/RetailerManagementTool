@@ -18,8 +18,17 @@
 //
 // ⚠️ PROPOSAL B, HIS CHOICE OF 2026-10-29 (*"B, and yes to the directions line"*):
 // each line is a dish or, with one switch, a surprise bag — the description asks
-// *¿Qué suele llevar?* and she may add what it is usually worth, the *vale*. A
-// dish shows the drawing's fields, and no *vale* is sent for one.
+// *¿Qué suele llevar?* for a bag.
+//
+// ⚠️⚠️ `10.5-v-d`: THE *VALE* IS REQUIRED, ON EVERY LINE — a dish's and a bag's alike (the
+// owner's ruling of 2026-11-06: *"Lo que vale normalmente must be filled in"*), so every
+// card in Itacate shows the usual price struck through and the saving, and its line *a
+// mejor precio* is true of every offer published from this update on. Until then a dish
+// never carried one. ⚠️ THE DATABASE DOES NOT REQUIRE IT and must not: `usual_price`
+// stays nullable (`0072`), so a build in the field still publishes without it (the field
+// rule). The phone is where the rule lives; `publish_listing` only refuses one not above
+// the price. So *Repetir* of an offer published before the rule opens the form (`@/lib/
+// hoy`'s `planDeRepetir` checks with `checkLines`) and asks for it once.
 //
 // ⚠️ MONEY IS INTEGER CENTAVOS, FROM `packages/money` (ADR-035 §2.11): a typed
 // price is read by `parseDecimal`, never `Number()`, and sent as the decimal
@@ -264,7 +273,7 @@ export interface LineDraft {
   readonly tags: readonly Tag[];
   readonly price: string;
   readonly count: string;
-  /** What it is usually worth — read only for a surprise bag. */
+  /** What it is usually worth — the *vale*, required on every line since `10.5-v-d`. */
   readonly usual: string;
   /** `10.5-ii`: its photo — none, one already saved (*Repetir*), or one just taken. */
   readonly foto: Foto;
@@ -318,6 +327,7 @@ export type LineIssue =
   | 'priceShape'
   | 'count'
   | 'countShape'
+  | 'usual'
   | 'usualShape'
   | 'usualLow';
 
@@ -331,11 +341,10 @@ export function checkLine(line: LineDraft): LineIssue | null {
   if (price === null || price <= 0 || price >= PRICE_CEILING_CENTAVOS) return 'priceShape';
   if (line.count.trim() === '') return 'count';
   if (parseCount(line.count) === null) return 'countShape';
-  if (line.surprise && cleanPesos(line.usual) !== '') {
-    const usual = parsePesos(line.usual);
-    if (usual === null || usual >= PRICE_CEILING_CENTAVOS) return 'usualShape';
-    if (usual <= price) return 'usualLow';
-  }
+  if (cleanPesos(line.usual) === '') return 'usual';
+  const usual = parsePesos(line.usual);
+  if (usual === null || usual >= PRICE_CEILING_CENTAVOS) return 'usualShape';
+  if (usual <= price) return 'usualLow';
   return null;
 }
 
@@ -417,7 +426,7 @@ function required<T>(value: T | null, what: string): T {
 /** A checked line as the database is sent it: trimmed, money as two-decimal text, tags in the fixed order. */
 export function lineBody(line: LineDraft): LineBody {
   const description = line.description.trim();
-  const usual = line.surprise && cleanPesos(line.usual) !== '' ? required(parsePesos(line.usual), 'a vale') : null;
+  const usual = required(parsePesos(line.usual), 'a vale');
   return {
     name: line.name.trim(),
     description: description === '' ? null : description,
@@ -425,7 +434,7 @@ export function lineBody(line: LineDraft): LineBody {
     unit_price: formatDecimal(required(parsePesos(line.price), 'a price'), SCALE.money),
     quantity: required(parseCount(line.count), 'a count'),
     surprise: line.surprise,
-    usual_price: usual === null ? null : formatDecimal(usual, SCALE.money),
+    usual_price: formatDecimal(usual, SCALE.money),
     image_path: pathOf(line.foto),
   };
 }
@@ -546,7 +555,8 @@ export function repeatDraft(
       tags: line.tags,
       price: pesosText(line.priceCentavos),
       count: String(line.count),
-      usual: line.surprise && line.usualCentavos !== null ? pesosText(line.usualCentavos) : '',
+      // ⚠️ `10.5-v-d`: a dish's too. One published before the rule has none, and the form asks.
+      usual: line.usualCentavos !== null ? pesosText(line.usualCentavos) : '',
       foto: guardada(line.imagePath),
     })),
     ventana: repeatVentana(listing.start, listing.end, now),

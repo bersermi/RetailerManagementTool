@@ -77,6 +77,14 @@ on:
       # run it on its pull request, not first on `main`. Every migration, then, not only the
       # two above; Itacate's pages are `itacate/**`, already here.
       - "supabase/migrations/**"
+      # ⚠️ `10.5-v-d`, WERA COCINA'S FIRST RUN: its opening is Wera's (`8g`) in Cocina's green —
+      # Wera's cream cow byte for byte, Wera's splash hold below its header, Wera's steps — and
+      # it starts on the splash's frame, read off the mark (`brand/wera-mark.svg`) and the
+      # script that draws this app's splash and icon (`store/cocina-itacate/render.sh`, above).
+      - "app/src/marca/vaca-crema.png"
+      - "app/src/lib/splash.ts"
+      - "app/src/theme/apertura.ts"
+      - "brand/wera-mark.svg"
       - "package.json"
       - "package-lock.json"
       - ".github/workflows/cocina-itacate.yml"

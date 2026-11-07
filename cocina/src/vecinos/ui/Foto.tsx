@@ -1,4 +1,6 @@
-import { guardada, isPicturePath, type PhotoSize } from '@/api/fotos';
+import { createContext, useContext } from 'react';
+
+import { guardada, isPicturePath, type Foto as Slot, type PhotoSize } from '@/api/fotos';
 import { Foto as SuFoto } from '@/ui/Foto';
 
 // ============================================================================
@@ -10,9 +12,18 @@ import { Foto as SuFoto } from '@/ui/Foto';
 // are hers, on her phone, kept on its disk as her page's editor keeps them — after the
 // same folder check, so the copied pages draw what Itacate's draw. Like Itacate's, it
 // draws nothing until there is a picture, over the slot's default.
+//
+// ⚠️ `10.5-v-d`: A PHOTO SHE HAS JUST TAKEN IS NOT IN THE BUCKET YET — it goes up when she
+// presses *Publicar* (`@/api/hooks`' `usePublish`). So the card at the foot of *Tu oferta
+// de hoy* hands this part her new photos by their paths (`RecienTomadas`), and a path
+// found there is drawn from the phone's own file, as her form's photo slot draws it.
 // ============================================================================
 
+/** The photos taken on the form and not yet sent, by the path each will be saved under. */
+export const RecienTomadas = createContext<ReadonlyMap<string, Slot>>(new Map());
+
 export function Foto({ path, cocinaId, size = 'chica' }: { path: string | null; cocinaId: string; size?: PhotoSize }) {
+  const recien = useContext(RecienTomadas);
   if (path === null || !isPicturePath(path, cocinaId)) return null;
-  return <SuFoto foto={guardada(path)} size={size} />;
+  return <SuFoto foto={recien.get(path) ?? guardada(path)} size={size} />;
 }

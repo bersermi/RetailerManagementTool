@@ -3,9 +3,15 @@
 //
 // ⚠️ PROPOSAL B, AS HE CHOSE IT (2026-10-29): a dish or, with one switch, a
 // surprise bag. The switch changes the hints — *Comida corrida* becomes *Bolsa
-// de pan* — and the description's label becomes *¿Qué suele llevar?*; only a
-// bag asks what it is usually worth. A fonda who publishes dishes sees the
-// drawing's fields: a name, a line of description, the price, how many, tags.
+// de pan* — and the description's label becomes *¿Qué suele llevar?*. A fonda who
+// publishes dishes sees the drawing's fields: a name, a line of description, the
+// price, how many, what it is usually worth, tags.
+//
+// ⚠️ `10.5-v-d`: *LO QUE VALE NORMALMENTE* ON EVERY LINE, REQUIRED (the owner's ruling
+// of 2026-11-06) — until then a bag's alone, and optional. It sits under the price,
+// so the two figures the saving is made of are read together; the price boxes carry
+// the drawing's hints (*60*, *120*), which the card at the form's foot shows until she
+// types her own.
 //
 // ⚠️ EVERY CHANGE IS HANDED UP AS A FUNCTION OF THE LINE AS IT IS (`onChange`),
 // so two taps on two tags between renders both land — the form holds the lines
@@ -158,6 +164,7 @@ export function Renglon({
           label={ES.publicar.precio}
           value={line.price}
           onChangeText={(price) => onChange(() => ({ price }))}
+          placeholder={ES.publicar.precioEjemplo}
           keyboardType="decimal-pad"
           inputAccessoryViewID={padId}
           editable={editable}
@@ -173,16 +180,15 @@ export function Renglon({
           editable={editable}
         />
       </View>
-      {line.surprise && (
-        <Campo
-          label={ES.publicar.vale}
-          value={line.usual}
-          onChangeText={(usual) => onChange(() => ({ usual }))}
-          keyboardType="decimal-pad"
-          inputAccessoryViewID={padId}
-          editable={editable}
-        />
-      )}
+      <Campo
+        label={ES.publicar.vale}
+        value={line.usual}
+        onChangeText={(usual) => onChange(() => ({ usual }))}
+        placeholder={ES.publicar.valeEjemplo}
+        keyboardType="decimal-pad"
+        inputAccessoryViewID={padId}
+        editable={editable}
+      />
 
       <Text style={{ fontSize: SIZE.smallSize, fontWeight: '600', color: PALETTE.tintaApagada }}>{ES.publicar.etiquetas}</Text>
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: SIZE.rowGap }}>

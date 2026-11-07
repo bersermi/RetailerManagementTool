@@ -12,6 +12,13 @@
 // session yet" is the bug where a signed-in person is shown *Entrar* every
 // morning, and on "no answer yet" the one where a fonda with a kitchen is shown
 // the screen that makes one.
+//
+// ⚠️ `10.5-v-d`, THE FIRST RUN (the family-shell page, ruled 2026-11-05): a stranger is
+// sent to the opening (`/hola`, Wera's `8g` rule), never straight to the form; and a
+// login whose kitchen appears WHILE SHE IS IN THE SIGN-UP has just made it — *Registrar
+// mi cocina* — so she goes on to *¿Qué ofreces hoy?* (`/que-ofreces`, her kitchen's room),
+// not to *Hoy*. Nobody else is ever in the sign-up with a kitchen: the guard keeps a
+// login with one out of it, and a cold start is never there.
 // ============================================================================
 
 import type { Membership } from '@/api/kitchen';
@@ -20,7 +27,7 @@ import type { Membership } from '@/api/kitchen';
 export type RouteGroup = 'auth' | 'onboarding' | 'cocina' | null;
 
 /** Where the app is told to go, or `null` for "stay where you are". */
-export type Redirect = '/entrar' | '/registro' | '/' | null;
+export type Redirect = '/hola' | '/registro' | '/que-ofreces' | '/' | null;
 
 export interface GuardState {
   /** Has the stored session been looked for yet? False on every cold start. */
@@ -40,10 +47,11 @@ export interface GuardState {
  */
 export function redirectFor({ ready, hasSession, membership, group }: GuardState): Redirect {
   if (!ready) return null;
-  if (!hasSession) return group === 'auth' ? null : '/entrar';
+  if (!hasSession) return group === 'auth' ? null : '/hola';
   if (membership === 'unknown') return null;
   if (membership === 'none') return group === 'onboarding' ? null : '/registro';
-  return group === 'auth' || group === 'onboarding' ? '/' : null;
+  if (group === 'onboarding') return '/que-ofreces';
+  return group === 'auth' ? '/' : null;
 }
 
 /** The group a set of Expo Router segments is in — the first segment, nothing else. */

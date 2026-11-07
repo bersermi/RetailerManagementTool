@@ -277,6 +277,15 @@ describe('one tap publishes only what the form would have sent untouched', () =>
     expect(planDeRepetir(larga, 'place-1', ahora(), ids())).toEqual({ kind: 'formulario' });
     expect(planDeRepetir(ayerDe(), null, ahora(), ids())).toEqual({ kind: 'formulario' });
   });
+
+  // ⚠️ `10.5-v-d`: *Lo que vale normalmente* is required since the owner's ruling of 2026-11-06, and an
+  // offer published before it has none — so its chip opens the form, which asks for it once.
+  it('an offer published before the vale was required: the form, its box empty', () => {
+    const sinVale = oferta('sin-vale', { start: nov(5, 17), end: nov(5, 19), lines: [{ ...linea('Comida corrida'), usualCentavos: null }] });
+    expect(planDeRepetir(sinVale, 'place-1', ahora(), ids())).toEqual({ kind: 'formulario' });
+    const plan = planDeRepetir(ayerDe(), 'place-1', ahora(), ids());
+    expect(plan.kind === 'publicar' && plan.body.p_lines.map((l) => l.usual_price)).toEqual(['120.00']);
+  });
 });
 
 describe('Tu página en Itacate — its checklist, five things', () => {

@@ -27,10 +27,11 @@ describe('nobody is moved before the answers are in', () => {
 });
 
 describe('signed out', () => {
-  it('goes to the way in, from anywhere else', () => {
-    expect(at(true, false, 'unknown', 'cocina')).toBe('/entrar');
-    expect(at(true, false, 'unknown', 'onboarding')).toBe('/entrar');
-    expect(at(true, false, 'member', null)).toBe('/entrar');
+  // ⚠️ `10.5-v-d`: to the opening (`/hola`), which opens the way in on the half she picks.
+  it('goes to the opening, from anywhere else — and is left alone in the way in', () => {
+    expect(at(true, false, 'unknown', 'cocina')).toBe('/hola');
+    expect(at(true, false, 'unknown', 'onboarding')).toBe('/hola');
+    expect(at(true, false, 'member', null)).toBe('/hola');
     expect(at(true, false, 'unknown', 'auth')).toBeNull();
   });
 });
@@ -45,11 +46,15 @@ describe('signed in with no kitchen — a new fonda, or a shop’s owner with he
 });
 
 describe('signed in with a kitchen', () => {
-  it('leaves the way in and the landing for her kitchen, and is left alone there', () => {
+  it('leaves the way in for her kitchen, and is left alone there', () => {
     expect(at(true, true, 'member', 'auth')).toBe('/');
-    expect(at(true, true, 'member', 'onboarding')).toBe('/');
     expect(at(true, true, 'member', 'cocina')).toBeNull();
     expect(at(true, true, 'member', null)).toBeNull();
+  });
+
+  // ⚠️ `10.5-v-d`, the first run: only *Registrar mi cocina* has her in the sign-up with a kitchen.
+  it('made in the sign-up a moment ago: on to *¿Qué ofreces hoy?*, never straight to *Hoy*', () => {
+    expect(at(true, true, 'member', 'onboarding')).toBe('/que-ofreces');
   });
 });
 

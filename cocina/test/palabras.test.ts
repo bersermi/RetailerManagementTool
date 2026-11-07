@@ -76,11 +76,16 @@ describe('the ruled words, word for word', () => {
     expect(ES.publicar.titulo).toBe('Tu oferta de hoy');
   });
 
-  it('the app’s line is Vende hasta el último plato, and the way in shows it first', () => {
+  // ⚠️ `10.5-v-d`: the first run gave the line its screen — the opening, under the app's name.
+  it('the app’s line is Vende hasta el último plato, on the opening under the app’s name', () => {
     expect(ES.lema).toBe('Vende hasta el último plato');
+    const opening = code('app/(auth)/hola.tsx');
+    expect(opening).toMatch(/\{ES\.lema\}/);
+    expect(opening.indexOf('{ES.nombre}')).toBeLessThan(opening.indexOf('{ES.lema}'));
+    // And where the way in showed it, first, the one account across the three apps.
     const screen = code('app/(auth)/entrar.tsx');
-    expect(screen).toMatch(/\{ES\.lema\}/);
-    // First: above the providers' buttons.
-    expect(screen.indexOf('{ES.lema}')).toBeLessThan(screen.indexOf('ES.auth.google'));
+    expect(screen).not.toMatch(/\{ES\.lema\}/);
+    expect(screen.indexOf('{ES.hola.misma}')).toBeGreaterThan(-1);
+    expect(screen.indexOf('{ES.hola.misma}')).toBeLessThan(screen.indexOf('ES.auth.google'));
   });
 });

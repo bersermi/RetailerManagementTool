@@ -46,7 +46,8 @@ TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic i
   `test/support.test.ts` runs Wera's `app/src/auth/support.ts` beside its copy, which is why
   `cocina-itacate.yml` fires on them). Two differences, decided: **no persisted cache** (nothing
   here works offline yet), so a read's key carries the login instead (`kitchensKey`); and the way in
-  **opens on *Crear cuenta***, because no doors come before it (`src/app/(auth)/entrar.tsx`).
+  **opens on *Crear cuenta***, because no doors came before it (`src/app/(auth)/entrar.tsx`) — since `10.5-v-d` the
+  opening's two buttons (`(auth)/hola`) open it on the half she picked, *Ya tengo cuenta* with `cuenta=tengo`.
 - **A module in `src/api/` is a claim about the applied schema**, as in Wera: `db.yml` fires on
   `cocina/src/api/**` and runs `docs/checks/10.4b-iii-a-cocina-contract.sh` and its falsifier, which
   read the names out of `src/api/kitchen.ts`, `src/api/place.ts` and `src/api/account.ts` — and, in its own
@@ -130,7 +131,15 @@ TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic i
   check reads the keys out of `LineBody` and asks for each value back. ⚠️ **Money goes through `packages/money`**
   (ADR-035 §2.11: `parseDecimal` in, `formatDecimal` out, integer centavos between) — this app's one workspace
   package — and is drawn by `src/format/mxn.ts`, a copy of Wera's that `test/mxn.test.ts` runs beside Wera's file.
-  Nothing is queued: with no signal she is told so and the form keeps what she typed. Her list is read by the
+  Nothing is queued: with no signal she is told so and the form keeps what she typed.
+  ⚠️⚠️ **Since `10.5-v-d` *Lo que vale normalmente* is required on every line, a dish's too** (the owner's ruling of
+  2026-11-06), so every card in Itacate shows the saving: `checkLine`'s `usual`, sent by `lineBody` for every line, carried
+  by *Repetir*. **The database never requires it** — `usual_price` stays nullable for the builds in the field (the field
+  rule; `test/listing.test.ts` refuses a migration that makes it `not null`) — so an offer published before the rule has
+  none, and its one-tap *Repetir* opens the form, which asks for it once. **At the form's foot, *Así la verán en Itacate***:
+  Itacate's list card (`@/vecinos/ui/TarjetaPlatillo`, a copy held by `test/vecinos.test.ts`), one per line, made from what
+  she typed (`@/lib/vistaPrevia`) — the drawing's hints (*Comida corrida*, *60*, *120*) until she writes her own, which the
+  boxes carry as their placeholders too; her new photos drawn from the phone (`RecienTomadas`, the photo adapter's). Her list is read by the
   open kitchen's id, newest first — her last 60 since `10.5-v-c-ii` (ten until then: four weeks at two a day, for her reminder and her page as neighbours see it), from which *Hoy*'s card, *Tus ofertas* and *Repetir* are drawn
   (`@/lib/hoy`, `10.5-v-c-i`).
 - **Her page in Itacate and her photos** (`10.5-ii`, proposal B, the owner's ruling of 2026-11-01): *Tu página en
@@ -317,6 +326,17 @@ The owner ruled how the two apps are arranged and worded on 2026-11-05 (`docs/PL
 and `10.5b`; the drawn reference is the family-shell page in his private notes' `diseno/`). Every screen built here
 follows it, as `itacate/CLAUDE.md`'s does:
 
+- **The first run** (`10.5-v-d`, the family-shell page's): a stranger is sent to the opening (`(auth)/hola`, `@/auth/guard`),
+  Wera's `8g` opening in Cocina's green (`@/ui/Apertura`, `@/theme/apertura` — starts on the splash's own frame, ends on the
+  icon's picture, both read off `store/cocina-itacate/render.sh` and `app.json` by `test/primera.test.ts`; once per phone,
+  `OPENING_KEY`; on Android after the splash's 400 ms fade, measured on the emulator). Wera's cream cow, byte for byte,
+  drawn green by tint. ⚠️ **The splash is held from the root's module** (`@/lib/splash`, Wera's) until the opening's
+  pictures are in, or `Gate` has nowhere to send her. Then *Crear cuenta* / *Ya tengo cuenta*, her account, *Paso 1 de 3*
+  (name and trade), *Paso 2 de 3* (her address), and — ⚠️ **the guard sends a kitchen made in the sign-up to
+  `/que-ofreces`, never straight to *Hoy*** — *Paso 3 de 3*, *¿Qué ofreces hoy?*: *Publicar mi primera oferta* (the one
+  form, `primera`) or *Después*, both ending on `/ya-estas`, her page as Itacate draws it (titled *Tu cocina ya está en
+  Itacate* only while the door would send her), then *Ir a Hoy*. Android's back on the last two leaves for *Hoy*; nothing
+  of the first run is kept on the phone, so a restart opens *Hoy*.
 - **The tab bar is *Hoy · Apartados · Clientes · Mi cocina*** — four tabs at most, each with its word; the two ends never move; a tab appears only when
   its feature ships; a new feature arrives first as a card on *Hoy*. Wera's JavaScript tabs, not native tabs. ⚠️ **Built by `10.5-v-c-i`**, Itacate's
   shell copied: the tabs are data (`@/navigation/pestanas`, *Apartados* naming `10.5b` and *Clientes* `10.9`), the bar is `@/ui/Pestanas` (the tab
@@ -341,5 +361,6 @@ follows it, as `itacate/CLAUDE.md`'s does:
 - **The look:** titles in Nunito ExtraBold (`expo-font`; Wera's file byte for byte in `src/marca/letras/`, loaded before the first screen,
   since `10.5-v-c-i`); Wera Cocina's green `#1C6B4B` for actions; Wera's terracotta `#A9501C` for
   promotions only; state first, before anything tappable (ADR-035 §2.8); one staggered entrance per screen (`@/ui/Llega`, Itacate's), transform and
-  opacity only (§2.11) — `test/pestanas.test.ts` lets Reanimated into `@/ui/Llega` and `@/ui/Nota` alone.
+  opacity only (§2.11) — `test/pestanas.test.ts` lets Reanimated into `@/ui/Llega`, `@/ui/Nota` and, since `10.5-v-d`,
+  the opening's `@/ui/Apertura` alone.
 - **Money:** no screen stores or shows a bank account, a card or an amount paid — only how she will pay.

@@ -265,8 +265,9 @@ describe('the small map: her own point, or where Google places her address — a
 
 describe('the words — the proposal he chose, and the few it did not draw', () => {
   it('two steps, her address on the second', () => {
-    expect(ES.registro.paso(1)).toBe('Paso 1 de 2');
-    expect(ES.registro.paso(2)).toBe('Paso 2 de 2');
+    // ⚠️ `10.5-v-d`: three since the first run — *¿Qué ofreces hoy?* is the third.
+    expect(ES.registro.paso(1)).toBe('Paso 1 de 3');
+    expect(ES.registro.paso(2)).toBe('Paso 2 de 3');
     expect(ES.registro.siguiente).toBe('Siguiente: tu dirección');
     expect(ES.direccion.titulo).toBe('¿Dónde está tu cocina?');
     expect(ES.direccion.registrar).toBe('Registrar mi cocina');

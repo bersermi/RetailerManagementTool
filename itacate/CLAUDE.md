@@ -176,7 +176,9 @@ from `itacate/` with the two local `EXPO_PUBLIC_SUPABASE_` values in the shell, 
   `cocina/src/vecinos/`, for *Así la ven* and *Ver como la ven* — and `cocina/test/vecinos.test.ts` holds each copy to
   THESE files: **a change to either page here is copied there in the same PR**, or Wera Cocina's suite is red. Seen on the
   emulator against the local shop the day they moved (2026-11-07): the list, a dish's page, her page from its row, and a
-  dish from her page.
+  dish from her page. ⚠️ **Since `10.5-v-d` the list's dish card is copied too** — `@/ui/TarjetaPlatillo`, taking its
+  kitchen, offer and dish one by one and the distance in words (the list passes `distanciaTexto`), drawn at the foot of
+  Wera Cocina's *Tu oferta de hoy* as she types: the same rule, a change here is copied there in the same PR.
 - **Google, from her phone, for her alone, kept nowhere** (`@/lib/google`, pure; `@/lib/useGoogle`, the
   requests): Geocoding for a kitchen the door sends with no point — her address, asked once while the app
   is open, the answer in TanStack's memory (Service Specific Terms §6.3.2) — and for her postal code, never

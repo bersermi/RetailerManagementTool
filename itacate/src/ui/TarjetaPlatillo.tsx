@@ -1,8 +1,8 @@
 import { Pressable, Text, View } from 'react-native';
 
+import type { Dish, Kitchen, Offer } from '@/api/cocinas';
 import { colorOf, defaultsFor } from '@/api/pagina';
-import { distanciaTexto } from '@/lib/distancia';
-import { ventanaTexto, type Tarjeta } from '@/lib/lista';
+import { ventanaTexto } from '@/lib/lista';
 import { ES } from '@/strings';
 import { HUES } from '@/theme/colores';
 import { PALETTE, SIZE } from '@/theme/palette';
@@ -24,21 +24,31 @@ import { Precio, Quedan, Sorpresa } from '@/ui/Precio';
 // where it goes is the list's (`onPress`). Its price and badges are `@/ui/Precio`'s,
 // drawn alike on both pages. ⚠️ NO CHECK CAN SEE IT (ADR-035 §2.11): the phone is
 // its instrument.
+// ⚠️ SINCE `10.5-v-d` WERA COCINA DRAWS IT TOO — at the foot of *Tu oferta de hoy*, the
+// card filling in as she types — as a copy of this file (`cocina/src/vecinos/ui/
+// TarjetaPlatillo.tsx`, held code for code by its `test/vecinos.test.ts`). So it takes
+// its kitchen, offer and dish one by one and the distance already in words, as
+// `@/ui/FilaCocina` does: a fonda's preview has no neighbour to measure from.
 // ============================================================================
 
 /** The picture's shape on the card — a wide strip, as the drawing's cards. */
 const FRANJA = 16 / 7;
 
 export function TarjetaPlatillo({
-  tarjeta,
+  cocina,
+  oferta,
+  platillo,
+  distancia,
   ahora,
   onPress,
 }: {
-  tarjeta: Extract<Tarjeta, { kind: 'platillo' }>;
+  cocina: Kitchen;
+  oferta: Offer;
+  platillo: Dish;
+  distancia: string | null;
   ahora: Date;
   onPress: () => void;
 }) {
-  const { cocina, oferta, platillo, metros } = tarjeta;
   const color = colorOf(cocina.page, cocina.giro);
   return (
     <Pressable
@@ -84,9 +94,7 @@ export function TarjetaPlatillo({
           </Text>
           {platillo.surprise && <Sorpresa />}
           <View style={{ flex: 1 }} />
-          {metros !== null && (
-            <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada }}>{distanciaTexto(metros)}</Text>
-          )}
+          {distancia !== null && <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada }}>{distancia}</Text>}
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: SIZE.rowGap }}>
           <Precio platillo={platillo} color={color} />

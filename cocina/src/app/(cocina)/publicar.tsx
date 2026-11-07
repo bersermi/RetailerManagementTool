@@ -21,11 +21,13 @@ import {
   type Listing,
 } from '@/api/listing';
 import { EMPTY_PAGE, colorOf, defaultsFor } from '@/api/pagina';
+import type { Place } from '@/api/place';
 import { elegirFoto, tomarFoto } from '@/lib/foto';
 import { nombreDe } from '@/lib/hoy';
 import { newId } from '@/lib/ids';
 import { useNota } from '@/lib/NotaProvider';
 import { checkVentana, firstVentana, type Ventana } from '@/lib/ventana';
+import { previaDe, recienTomadas } from '@/lib/vistaPrevia';
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
 import { Banda } from '@/ui/Banda';
@@ -34,6 +36,8 @@ import { Formulario } from '@/ui/Formulario';
 import { Horario } from '@/ui/Horario';
 import { Renglon } from '@/ui/Renglon';
 import { TecladoListo } from '@/ui/TecladoListo';
+import { RecienTomadas } from '@/vecinos/ui/Foto';
+import { TarjetaPlatillo } from '@/vecinos/ui/TarjetaPlatillo';
 
 // ============================================================================
 // SHE PUBLISHES WHAT IS LEFT OF THE DAY. Plan task `10.4b-iv-a` — slice 1's last
@@ -72,12 +76,20 @@ import { TecladoListo } from '@/ui/TecladoListo';
 // with *Publicaste …* and *Deshacer* for 8 seconds (the owner's ruling of 2026-11-05,
 // call 19). The toast lives at the root (`@/lib/NotaProvider`): this screen is gone by
 // the time she reads it, so the call behind *Deshacer* is not this screen's.
+//
+// ⚠️ `10.5-v-d`: AT ITS FOOT, *ASÍ LA VERÁN EN ITACATE* — Itacate's own list card, one per
+// line, filling in as she types (`@/lib/vistaPrevia`, the family-shell page's form). It
+// opens nothing and measures no distance: she is in her kitchen. A photo she has just
+// taken is drawn from the phone (`RecienTomadas`), since it goes up only on *Publicar*.
+// ⚠️ AND IT IS THE FIRST RUN'S LAST STEP when opened from *¿Qué ofreces hoy?* (`primera`):
+// published, she goes on to her page as neighbours see it (`/ya-estas`), the first run's
+// screens dismissed under it, never back to *Hoy* or to the question.
 // ============================================================================
 
 const PAD = 'publicar-numeros';
 
 export default function Publicar() {
-  const { repetir } = useLocalSearchParams<{ repetir?: string }>();
+  const { repetir, primera } = useLocalSearchParams<{ repetir?: string; primera?: string }>();
   const kitchen = useKitchen();
   const place = usePlace(kitchen?.id ?? null);
   const listings = useListings(kitchen?.id ?? null);
@@ -100,7 +112,7 @@ export default function Publicar() {
       </View>
     );
   }
-  return <Form kitchen={kitchen} placeId={place.data.id} source={source} />;
+  return <Form kitchen={kitchen} place={place.data} source={source} primera={primera !== undefined} />;
 }
 
 /** Back to her kitchen — the screen under this one, or the kitchen itself when opened alone. */
@@ -109,7 +121,8 @@ function salir() {
   else router.replace('/');
 }
 
-function Form({ kitchen, placeId, source }: { kitchen: Kitchen; placeId: string; source: Listing | null }) {
+function Form({ kitchen, place, source, primera }: { kitchen: Kitchen; place: Place; source: Listing | null; primera: boolean }) {
+  const placeId = place.id;
   const insets = useSafeAreaInsets();
   const { publish, busy } = usePublish(kitchen.id);
   const { avisarPublicada } = useNota();
@@ -158,10 +171,14 @@ function Form({ kitchen, placeId, source }: { kitchen: Kitchen; placeId: string;
     setProblem(answer);
     if (answer !== null) return;
     avisarPublicada(ES.nota.publicaste(nombreDe({ lines: body.p_lines })), kitchen.id, id);
-    salir();
+    if (!primera) return salir();
+    router.dismissAll();
+    router.replace('/ya-estas');
   }
 
   const section = { fontSize: SIZE.bodySize, fontWeight: '700', color: PALETTE.tinta, marginTop: SIZE.space } as const;
+  const ahora = new Date();
+  const previa = previaDe({ kitchen, place, page: page.data ?? EMPTY_PAGE, lines, ventana, now: ahora });
 
   return (
     <View style={{ flex: 1, backgroundColor: PALETTE.fondo }}>
@@ -203,6 +220,24 @@ function Form({ kitchen, placeId, source }: { kitchen: Kitchen; placeId: string;
 
         <Text style={section}>{ES.publicar.cuando}</Text>
         <Horario ventana={ventana} onChange={(move) => setVentana(move)} disabled={busy} />
+
+        <Text style={section}>{ES.publicar.asiLaVeran}</Text>
+        <RecienTomadas.Provider value={recienTomadas(lines)}>
+          {/* A preview: nothing on it opens. */}
+          <View pointerEvents="none" style={{ gap: SIZE.space }}>
+            {previa.platillos.map((platillo, i) => (
+              <TarjetaPlatillo
+                key={lines[i].key}
+                cocina={previa.cocina}
+                oferta={previa.oferta}
+                platillo={platillo}
+                distancia={null}
+                ahora={ahora}
+                onPress={() => {}}
+              />
+            ))}
+          </View>
+        </RecienTomadas.Provider>
 
         {problem !== null && (
           <Text style={{ fontSize: SIZE.bodySize, fontWeight: '600', color: PALETTE.error }}>{problem}</Text>

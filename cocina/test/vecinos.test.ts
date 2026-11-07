@@ -91,6 +91,8 @@ const ENTERAS: Readonly<Record<string, string>> = {
   'vecinos/ui/PaginaVacia.tsx': 'ui/PaginaVacia.tsx',
   'vecinos/ui/Precio.tsx': 'ui/Precio.tsx',
   'vecinos/ui/RenglonPlatillo.tsx': 'ui/RenglonPlatillo.tsx',
+  // `10.5-v-d`: the list's card, at the foot of *Tu oferta de hoy*.
+  'vecinos/ui/TarjetaPlatillo.tsx': 'ui/TarjetaPlatillo.tsx',
   'vecinos/ui/PaginaDeCocina.tsx': 'ui/PaginaDeCocina.tsx',
   'vecinos/ui/PaginaDePlatillo.tsx': 'ui/PaginaDePlatillo.tsx',
 };
@@ -270,8 +272,14 @@ describe('the photo — not a copy, and why', () => {
 
   it('draws only a picture in her own folder, as Itacate’s hook asks — through Wera Cocina’s own part', () => {
     expect(adaptada).toMatch(/if \(path === null \|\| !isPicturePath\(path, cocinaId\)\) return null;/);
-    expect(adaptada).toMatch(/<SuFoto foto=\{guardada\(path\)\} size=\{size\} \/>/);
+    expect(adaptada).toMatch(/<SuFoto foto=\{recien\.get\(path\) \?\? guardada\(path\)\} size=\{size\} \/>/);
     expect(adaptada).toMatch(/import \{ Foto as SuFoto \} from '@\/ui\/Foto';/);
+  });
+
+  it('`10.5-v-d`: and a photo just taken on the form, before it is sent, from the phone’s own file', () => {
+    expect(adaptada).toMatch(/export const RecienTomadas = createContext<ReadonlyMap<string, Slot>>\(new Map\(\)\);/);
+    // Asked before the folder check, so a hook is never skipped.
+    expect(adaptada.indexOf('useContext(RecienTomadas)')).toBeLessThan(adaptada.indexOf('if (path === null'));
   });
 });
 

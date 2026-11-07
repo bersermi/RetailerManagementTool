@@ -163,13 +163,16 @@ describe('one staggered entrance per screen, and the toast — transform and opa
     expect(fold(read('ui/Llega.tsx'))).toBe(fold(readFileSync(join(ROOT, 'itacate/src/ui/Llega.tsx'), 'utf8')));
   });
 
-  it('Reanimated is drawn by the two motion parts alone, and their styles touch opacity and transform only', () => {
+  // ⚠️ `10.5-v-d`: a third, the opening (`@/ui/Apertura`) — the cow turning into the icon, Wera's `8g`.
+  it('Reanimated is drawn by the three motion parts alone, and their styles touch opacity and transform only', () => {
     const animators = files.filter((f) => /from 'react-native-reanimated'/.test(f.text)).map((f) => f.name);
-    expect(animators.sort()).toEqual(['ui/Llega.tsx', 'ui/Nota.tsx']);
+    expect(animators.sort()).toEqual(['ui/Apertura.tsx', 'ui/Llega.tsx', 'ui/Nota.tsx']);
     const estilos = animators.flatMap((name) => [...code(name).matchAll(/useAnimatedStyle\(\(\) => \(\{([\s\S]*?)\}\)\)/g)].map((m) => m[1]));
-    expect(estilos.length).toBe(2);
+    expect(estilos.length).toBe(8);
+    // A transform's own members — a move, a size, a turn — are the transform.
+    const DEL_TRANSFORM = new Set(['translateY', 'translateX', 'scale', 'rotate']);
     for (const estilo of estilos) {
-      const claves = [...estilo.matchAll(/(?:^|[{,]\s*)([a-zA-Z]+):/g)].map((m) => m[1]).filter((k) => k !== 'translateY');
+      const claves = [...estilo.matchAll(/(?:^|[{,]\s*)([a-zA-Z]+):/g)].map((m) => m[1]).filter((k) => !DEL_TRANSFORM.has(k));
       expect(claves.every((clave) => clave === 'opacity' || clave === 'transform'), estilo).toBe(true);
     }
     // And nothing else animates: no core `Animated`, no layout animation.
@@ -184,6 +187,16 @@ describe('one staggered entrance per screen, and the toast — transform and opa
       expect(text, path).toMatch(/useEffect\(\(\) => \{[\s\S]*?\}, \[\]\);/);
       expect(text, path).toMatch(/reduceMotion: ReduceMotion\.System/);
     }
+  });
+
+  it('`10.5-v-d`: the opening starts once its pictures are in, from an effect, and a phone set to reduce motion sees its end', () => {
+    const text = code('ui/Apertura.tsx');
+    expect(text).toMatch(/useEffect\(\(\) => \{\s*if \(!listo \|\| !plays\) return;[\s\S]*?\}, \[listo, plays\]\);/);
+    expect(text).toMatch(/const SISTEMA = ReduceMotion\.System;/);
+    // Every timing and every delay carries it.
+    expect((text.match(/reduceMotion: SISTEMA/g) ?? []).length).toBe(7);
+    expect((text.match(/withDelay\(/g) ?? []).length).toBe(5);
+    expect((text.match(/\),\s*SISTEMA,\s*\);/g) ?? []).length).toBe(5);
   });
 
   it('every screen of the shell arrives — the two tabs and Tus ofertas', () => {

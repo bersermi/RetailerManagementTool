@@ -1,5 +1,5 @@
 import { useFonts } from 'expo-font';
-import { Stack, router, useSegments } from 'expo-router';
+import { Stack, router, usePathname, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { View } from 'react-native';
@@ -9,6 +9,7 @@ import { useMembership } from '@/api/hooks';
 import { AuthProvider, useAuth } from '@/auth/AuthProvider';
 import { groupOf, redirectFor } from '@/auth/guard';
 import { NotaProvider } from '@/lib/NotaProvider';
+import { holdSplash, releaseSplash } from '@/lib/splash';
 import { FUENTES } from '@/theme/letra';
 
 // ============================================================================
@@ -22,7 +23,12 @@ import { FUENTES } from '@/theme/letra';
 // every route — publishing ends on *Volver*, so the screen that published is gone
 // when *Publicaste …* shows — and her kitchen's tabs are a group of the stack,
 // `(cocina)/(tabs)`, with *Tus ofertas*, *Publicar* and her page pushed over them.
+// ⚠️ `10.5-v-d`: THE NATIVE SPLASH IS HELD FROM HERE (`@/lib/splash`, Wera's `8g`) until the
+// screen behind it is the one she will see — the opening lets it go once its cow is in,
+// `Gate` everywhere else — so a stranger never sees *Hoy* for a frame, nor an empty square.
 // ============================================================================
+holdSplash();
+
 export default function RootLayout() {
   // ⚠️ `10.5-v-c-i`, WERA'S RULE (`app/src/app/_layout.tsx`, `8g`; Itacate's since
   // `10.5-v-b`): THE TITLES' FACE IS LOADED BEFORE ANY SCREEN DRAWS, so no title paints
@@ -58,11 +64,18 @@ function Gate() {
   const { session, ready } = useAuth();
   const membership = useMembership();
   const segments = useSegments();
+  const pathname = usePathname();
 
   useEffect(() => {
     const to = redirectFor({ ready, hasSession: session !== null, membership, group: groupOf(segments) });
-    if (to !== null) router.replace(to);
-  }, [ready, session, membership, segments]);
+    if (to !== null) {
+      router.replace(to);
+      return;
+    }
+    // Nowhere to send her, so the screen behind the splash is hers — but the opening's,
+    // which lets go once the cow's pictures are in.
+    if (ready && pathname !== '/hola') releaseSplash();
+  }, [ready, session, membership, segments, pathname]);
 
   return null;
 }
