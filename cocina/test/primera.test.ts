@@ -129,6 +129,10 @@ describe('the splash lets go where she will see the screen', () => {
     expect(code('ui/Apertura.tsx')).toMatch(/useEffect\(\(\) => \{\s*if \(listo\) onCargada\(\);/);
   });
 
+  it('and the opening appears with no transition, so its first frame is the splash’s own', () => {
+    expect(code('app/_layout.tsx')).toMatch(/<Stack\.Screen name="\(auth\)\/hola" options=\{\{ animation: 'none' \}\} \/>/);
+  });
+
   it('is Wera’s, below its header', () => {
     const fold = (text: string) => text.replace(/^\s*\/\/.*$/gm, '').replace(/\s+/g, ' ').trim();
     expect(fold(read('cocina/src/lib/splash.ts'))).toBe(fold(read('app/src/lib/splash.ts')));

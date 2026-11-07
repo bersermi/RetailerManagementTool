@@ -45,7 +45,13 @@ export default function RootLayout() {
         <StatusBar style="dark" />
         <View style={{ flex: 1 }}>
           <NotaProvider>
-            <Stack screenOptions={{ headerShown: false }} />
+            <Stack screenOptions={{ headerShown: false }}>
+              {/* ⚠️ `10.5-v-d`: THE OPENING APPEARS WITH NO TRANSITION. The guard REPLACES the first route
+                  with it, and Android fades a replaced screen in — on the test build, whose pictures load at
+                  once, the splash let go during that fade and the cow blinked pale (recorded 2026-11-07). Its
+                  first frame must be the splash's own, so nothing may fade it in. */}
+              <Stack.Screen name="(auth)/hola" options={{ animation: 'none' }} />
+            </Stack>
           </NotaProvider>
         </View>
       </QueryProvider>
