@@ -139,8 +139,8 @@ describe('Nunito titles — Wera’s file, byte for byte (the ruling of 2026-11-
 
   it('and Itacate’s copy of her page’s head wears it too, with the dish’s page (`10.5-v-b`’s decision (d))', () => {
     const itacate = (path: string) => readFileSync(join(ROOT, 'itacate/src', path), 'utf8');
-    expect(itacate('app/(vecino)/cocina/[id].tsx')).toMatch(/accessibilityRole="header" style=\{\{ fontSize: SIZE\.titleSize - 2, \.\.\.TITULO, color: PALETTE\.tinta \}\}/);
-    expect(itacate('app/(vecino)/platillo/[cocina]/[oferta]/[linea].tsx')).toMatch(
+    expect(itacate('ui/PaginaDeCocina.tsx')).toMatch(/accessibilityRole="header" style=\{\{ fontSize: SIZE\.titleSize - 2, \.\.\.TITULO, color: PALETTE\.tinta \}\}/);
+    expect(itacate('ui/PaginaDePlatillo.tsx')).toMatch(
       /accessibilityRole="header" style=\{\{ flexShrink: 1, fontSize: SIZE\.titleSize, \.\.\.TITULO, color: PALETTE\.tinta \}\}/,
     );
   });

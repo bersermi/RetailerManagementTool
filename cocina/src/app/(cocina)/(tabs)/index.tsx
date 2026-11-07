@@ -7,6 +7,8 @@ import { giroLabel, type Kitchen } from '@/api/kitchen';
 import { addressComplete } from '@/api/place';
 import { chipDe, diaDe, estadoDe, faltaDeLaPagina, faltanDe, nombreDe, repetibles, PENDIENTES } from '@/lib/hoy';
 import { useNota } from '@/lib/NotaProvider';
+import { useRecordatorio } from '@/lib/RecordatorioProvider';
+import { preguntar } from '@/lib/recordatorio';
 import { usePuertaCerrada } from '@/lib/puerta';
 import { useAhora } from '@/lib/useAhora';
 import { useRepetir } from '@/lib/useRepetir';
@@ -17,6 +19,7 @@ import { BotonLleno } from '@/ui/BotonLleno';
 import { DiaDeHoy } from '@/ui/DiaDeHoy';
 import { LeyendoCocina } from '@/ui/LeyendoCocina';
 import { Llega } from '@/ui/Llega';
+import { PreguntaRecordatorio } from '@/ui/PreguntaRecordatorio';
 import { Puertas, type PuertaDeHoy } from '@/ui/Puertas';
 
 // ============================================================================
@@ -31,7 +34,9 @@ import { Puertas, type PuertaDeHoy } from '@/ui/Puertas';
 //      chips, one tap each, with *Deshacer* (`@/lib/useRepetir`);
 //   4. THE DOORS (`@/ui/Puertas`) — *Tu página · 3 de 5*, which she closes with its ✕
 //      (*Deshacer* in the toast); the services' cards join as each ships;
-//   5. her reminder's question — `10.5-v-c-ii`'s.
+//   5. HER REMINDER'S QUESTION, ONCE (`@/ui/PreguntaRecordatorio`, `10.5-v-c-ii`) — after
+//      her third offer, while the rule finds her hour and her days; either answer and it
+//      is gone from this phone, the reminder kept in *Mi cocina*.
 // ⚠️ NOTHING ON *HOY* IS EDITED IN PLACE: correcting a count is in *Tus ofertas*.
 // *Así te ven los vecinos* left *Hoy* for *Mi cocina* (his direction).
 //
@@ -62,6 +67,7 @@ function HoyDe({ kitchen }: { kitchen: Kitchen }) {
   const [cerrada, setCerrada] = usePuertaCerrada(kitchen.id);
   const { avisar } = useNota();
   const { repetir, busyId } = useRepetir(kitchen);
+  const recordatorio = useRecordatorio();
 
   const trade = giroLabel(giros.data, kitchen.giroPrincipal);
   const quiet = { fontSize: SIZE.bodySize, color: PALETTE.tintaApagada } as const;
@@ -159,6 +165,18 @@ function HoyDe({ kitchen }: { kitchen: Kitchen }) {
         {puertas.length > 0 && (
           <Llega i={2}>
             <Puertas puertas={puertas} />
+          </Llega>
+        )}
+
+        {recordatorio.propuesta !== null && preguntar(recordatorio.guardado, recordatorio.propuesta) && (
+          <Llega i={3}>
+            <PreguntaRecordatorio
+              propuesta={recordatorio.propuesta}
+              ocupado={recordatorio.ocupado}
+              onSi={recordatorio.si}
+              onOtraHora={recordatorio.abrirHoja}
+              onNo={recordatorio.noGracias}
+            />
           </Llega>
         )}
       </ScrollView>

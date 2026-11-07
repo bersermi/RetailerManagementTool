@@ -131,7 +131,7 @@ TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic i
   (ADR-035 §2.11: `parseDecimal` in, `formatDecimal` out, integer centavos between) — this app's one workspace
   package — and is drawn by `src/format/mxn.ts`, a copy of Wera's that `test/mxn.test.ts` runs beside Wera's file.
   Nothing is queued: with no signal she is told so and the form keeps what she typed. Her list is read by the
-  open kitchen's id, newest first — her last ten, from which *Hoy*'s card, *Tus ofertas* and *Repetir* are drawn
+  open kitchen's id, newest first — her last 60 since `10.5-v-c-ii` (ten until then: four weeks at two a day, for her reminder and her page as neighbours see it), from which *Hoy*'s card, *Tus ofertas* and *Repetir* are drawn
   (`@/lib/hoy`, `10.5-v-c-i`).
 - **Her page in Itacate and her photos** (`10.5-ii`, proposal B, the owner's ruling of 2026-11-01): *Tu página en
   Itacate* (`/pagina`, from *Mi cocina*) — the page's head live (`@/ui/Portada`), a cover, six colours, one
@@ -150,6 +150,36 @@ TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic i
   are PNGs (no app has SVG), drawn by `render.sh giros` — never the script's default run, which re-draws the icon and
   the launch screen, both native. ⚠️ **A deleted kitchen's photos stay in the bucket** until
   `docs/runbooks/delete-orphan-photos.sh` deletes them — the aviso promises within 30 days.
+- **Her reminder** (`10.5-v-c-ii`, the owner's ruling of 2026-11-05 — the family-shell page's call 21 — and its drawing of round
+  6): the middle of the moments she published over her last two weeks, rounded down to the half hour, on the weekdays she published
+  on two different dates; asked once on *Hoy*, under the doors, after her third offer and only while the rule finds an hour and a day
+  (`@/lib/recordatorio`, pure, pinned by `test/recordatorio.test.ts` in Mexico City's zone); then *Recordatorio diario* in *Mi
+  cocina* and its sheet (`@/ui/HojaRecordatorio`, React Native's `Modal` — no Reanimated). ⚠️ **A notification her own phone
+  schedules, every week on each of her days** (`expo-notifications`, in every build since `10.2a`): `@/lib/avisos` is the one module
+  that imports it — no push token is ever asked for — and `@/lib/RecordatorioProvider`, in the tabs' layout, holds her answer for both
+  tabs, makes the phone hold exactly her reminders on every launch and return to the front, cancels them when the tabs leave (signed
+  out, kitchen deleted) and opens *Publicar* on a tap. Her answer is kept on the phone per kitchen, beside *Hoy*'s closed door; the
+  aviso says so (section 3, since this row). ⚠️ **Android 12 and later deliver it late, up to an hour, never early**: without the
+  exact-alarm permission (not in any build, and the person must grant it in Settings) `expo-notifications` schedules an inexact alarm
+  (`window=+1h` in `dumpsys alarm`) — measured on the emulator, 31 s and 3 min 21 s after the hour. ⚠️ Expo's weekly weekday counts
+  from **Sunday** (1) and this app from Monday; an iPhone reports a notification's moment in **seconds**, Android in milliseconds
+  (`milisegundosDe`). **To see it on the emulator**: the debug build against the local shop, a fortnight of publications back-dated
+  as `supabase_admin` (the session's fixture of 2026-11-07), `adb root` and `adb shell date -u MMDDhhmmYYYY.ss` to move the clock
+  (`settings put global auto_time 1` after) — ⚠️ `am force-stop` cancels the app's alarms (scheduled again on the next open), `kill -9`
+  as root does not.
+- ***Así la ven* and *Ver como la ven*** (`10.5-v-c-ii`): Itacate's dish page and kitchen page, one and the same screen, inside Wera
+  Cocina — on each of today's offers in *Tus ofertas* (an offer of one dish opens its page, of several her page) and beside *Editar
+  tu página* in *Mi cocina*; `/asi-la-ven/[oferta]/[linea]` and `/como-la-ven`, under `@/ui/BarraVista` (dark, *Cerrar*, the phone's
+  clock turned light). ⚠️ **`src/vecinos/` is Itacate's code**: `itacate/src/ui/PaginaDeCocina.tsx`, `PaginaDePlatillo.tsx` and the
+  parts they draw with, `lib/paginas.ts`, the door's types and the list's rules — `test/vecinos.test.ts` holds each to its twin, code
+  for code below the imports, and the words (`VECINOS` in `src/strings.ts`) value for value; only `vecinos/ui/Foto.tsx` is an adapter to
+  this app's `@/ui/Foto`. A change to Itacate's two pages is copied here in the same PR. The one difference a fonda sees: *Cómo llegar
+  ›* in this app's green (`test/pestanas.test.ts` refuses Itacate's blue here). ⚠️ **Fed from her own rows, never the door** (ADR-035
+  §2.7: a second reader of the one read across businesses needs a ruling): `@/lib/comoLaVen` makes the door's answer for her kitchen —
+  on offer, her point, and the four-week summary — and `test/comoLaVen.test.ts` reads every rule it repeats out of whichever migration
+  defines `on_offer_now` and `normalize_name` last, so `cocina-itacate.yml` fires on every migration. Seen on the emulator 2026-11-07:
+  her page's *Lo que suele ofrecer* matched the local door's answer line for line. As the page drew a preview: no way back over the
+  picture, nothing that opens, no distance, and a line under the bar while the door would not send her.
 - ⚠️ **The map has no key in a build made on this Mac** (`MAPS_KEY_PLACEHOLDER`, and the key is locked
   to the store and `preview` signatures). Measured 2026-10-30 on the emulator: such a map delivers
   taps but **never moves its camera and draws no marker**, so the zoom, the flights to a search's
@@ -299,7 +329,8 @@ follows it, as `itacate/CLAUDE.md`'s does:
   doors (`@/ui/Puertas`: *Tu página · 4 de 5*, closed on this phone per kitchen, `@/lib/puerta`). Nothing on it is edited in place. What every
   zone says is `@/lib/hoy`'s, pure, pinned by `test/hoy.test.ts` in Mexico City's zone. ⚠️ **An offer taken back by *Deshacer* was never
   published**, for every rule there (`deshecha`: withdrawn within a minute of being published). *Tus ofertas* (`(cocina)/ofertas`) is today's
-  with *Ya se terminó*, then *Anteriores*, one row per offer. *Mi cocina* is what she sets once.
+  with *Ya se terminó* and *Así la ven*, then *Anteriores*, one row per offer. *Mi cocina* is what she sets once — since `10.5-v-c-ii` with
+  *Ver como la ven* and *Recordatorio diario*. Her reminder's question is *Hoy*'s fifth zone, once (`@/ui/PreguntaRecordatorio`).
 - ***Deshacer*, 8 seconds, at the root** (`@/lib/NotaProvider`, `@/ui/Nota`): after publishing or *Repetir* the toast's *Deshacer* is
   `withdraw_listing`, sent by the provider with the kitchen in the call (`useQuitarPublicada`) — the screen that published is gone by then.
 - **No word that makes the food sound left over** where a fonda or a neighbour reads (*lo que sobra*, *sobrante*,

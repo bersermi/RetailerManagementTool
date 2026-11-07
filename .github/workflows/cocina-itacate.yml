@@ -70,6 +70,13 @@ on:
       - "app/src/marca/letras/**"
       - "app/src/theme/letra.ts"
       - "app/src/marca/vaca-oxido.png"
+      # ⚠️ `10.5-v-c-ii`, *ASÍ LA VEN* AND *VER COMO LA VEN*: Wera Cocina draws Itacate's two
+      # pages from her own rows, working out again the door's rules (`on_offer_now`) and
+      # `normalize_name` — and its suite reads them out of WHICHEVER MIGRATION DEFINES EACH
+      # LAST (`cocina/test/comoLaVen.test.ts`), so a new migration that redefines either must
+      # run it on its pull request, not first on `main`. Every migration, then, not only the
+      # two above; Itacate's pages are `itacate/**`, already here.
+      - "supabase/migrations/**"
       - "package.json"
       - "package-lock.json"
       - ".github/workflows/cocina-itacate.yml"

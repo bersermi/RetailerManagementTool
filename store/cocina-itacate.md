@@ -24,6 +24,12 @@ notifications — section 4's *Data safety* changes FIRST, with the privacy page
 version ships.** An over-the-air update passes no Google review, so nothing else will remind
 anyone. Google: *"Your Data safety form responses must remain accurate and complete at all
 times"* (Play Console Help, answer 10787469, read 2026-10-31).
+⚠️ **Checked for `10.5-v-c-ii` (2026-11-07): Wera Cocina's daily reminder changes no answer here.** Her
+own phone schedules it, from her own publications already on the phone, and keeps the hour and the days
+on the phone: nothing is collected or shared, no push token is asked for, no server sends it — so
+*Data safety* (section 4) and Apple's privacy answers stay as they are; the privacy page says it (its
+section 3). What will change them is a notification SENT to a phone — the fonda's per reservation
+(`10.5b`): the device's push token, kept and used by us, with Expo named as a processor.
 
 ⚠️ A block marked `<!-- max:N -->` has a limit of N characters. After editing one, run
 `python3 store/limits.py`.

@@ -253,6 +253,11 @@ describe('her location never leaves the phone, and nothing of Google’s is kept
       expect(text, page).toMatch(/useDistancia\(/);
       expect(text, page).not.toMatch(/@\/lib\/(useUbicacion|ubicacion|useGoogle|google|DondeBuscarProvider)'|expo-location|usePonerDistancias/);
     }
+    // ⚠️ `10.5-v-c-ii`: what the two pages draw is two components, handed the distance in
+    // words — they read no distance, no location, nothing (Wera Cocina draws the same two).
+    for (const part of ['ui/PaginaDeCocina.tsx', 'ui/PaginaDePlatillo.tsx', 'ui/FilaCocina.tsx']) {
+      expect(code(part), part).not.toMatch(/@\/lib\/(useUbicacion|ubicacion|useGoogle|google|DondeBuscarProvider|DistanciasProvider|distancia)'|expo-location|@\/api\/hooks'/);
+    }
     const writers = files.filter((f) => /=\s*usePonerDistancias\(\)/.test(code(f.name))).map((f) => f.name);
     expect(writers).toEqual(['app/(vecino)/(tabs)/index.tsx']);
     const provider = code('lib/DistanciasProvider.tsx');

@@ -12,6 +12,8 @@ import { useAuth } from '@/auth/AuthProvider';
 import { AVISO_URL } from '@/auth/aviso';
 import { ayudaUrl } from '@/auth/support';
 import { estadoDe, faltanDe } from '@/lib/hoy';
+import { useRecordatorio } from '@/lib/RecordatorioProvider';
+import { cuandoTexto } from '@/lib/recordatorio';
 import { SUPPORT_WHATSAPP } from '@/lib/supportWhatsapp';
 import { useDondeEstaSuCocina } from '@/lib/useGoogle';
 import { ES } from '@/strings';
@@ -34,7 +36,9 @@ import { Salidas } from '@/ui/Salidas';
 // 2026-11-05 and his directions of 2026-11-06 (the family-shell page's `cMi`): her page
 // as neighbours see its head (*Así te ven los vecinos* left *Hoy* for here) with *Editar
 // tu página*, its checklist under it until all five are done, where she hands food over,
-// her trade, help and her account. *Ver como la ven* and her reminder are `10.5-v-c-ii`'s.
+// her trade, help and her account. Since `10.5-v-c-ii`: *Ver como la ven* beside *Editar tu
+// página* — her page as Itacate draws it (`/como-la-ven`) — and *Recordatorio diario* under her
+// trade once she has one to set (`@/lib/RecordatorioProvider`), which opens its sheet.
 //
 // ⚠️ WHERE SHE HANDS FOOD OVER IS HER KITCHEN'S SCREEN'S, AS BUILT (`10.4h`, which he
 // looked at on his iPhone on 2026-11-05: *"work very good"*): her address, the small map
@@ -74,6 +78,16 @@ function MiCocinaDe({ kitchen }: { kitchen: Kitchen }) {
   // ⚠️ Her kitchen's copy of Google's point — the same answer the tabs' layout keeps fresh.
   const donde = useDondeEstaSuCocina(here);
   const numero = SUPPORT_WHATSAPP;
+  const recordatorio = useRecordatorio();
+  // Her reminder's row: once she answered on this phone, or once the rule has one for her.
+  const filaRecordatorio =
+    recordatorio.guardado === null && recordatorio.propuesta === null
+      ? null
+      : recordatorio.guardado === null || !recordatorio.guardado.encendido
+        ? ES.recordatorio.apagado
+        : recordatorio.permiso === false
+          ? ES.recordatorio.sinPermiso
+          : cuandoTexto(recordatorio.guardado);
 
   const trade = giroLabel(giros.data, kitchen.giroPrincipal);
   const line = here === undefined ? null : addressLine(here);
@@ -126,7 +140,14 @@ function MiCocinaDe({ kitchen }: { kitchen: Kitchen }) {
                   logo={guardada(page.data.logo)}
                 />
               </Pressable>
-              <BotonLleno icon="pencil-outline" label={ES.cocina.editarPagina} onPress={() => router.push('/pagina')} />
+              <View style={{ flexDirection: 'row', gap: SIZE.rowGap }}>
+                <View style={{ flex: 1 }}>
+                  <BotonLleno icon="eye-outline" label={ES.vista.verComoLaVen} onPress={() => router.push('/como-la-ven')} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <BotonLleno icon="pencil-outline" label={ES.cocina.editarPagina} onPress={() => router.push('/pagina')} />
+                </View>
+              </View>
             </>
           )}
         </Llega>
@@ -189,6 +210,14 @@ function MiCocinaDe({ kitchen }: { kitchen: Kitchen }) {
               falta={missingGiro}
               onPress={() => router.push('/giro')}
             />
+            {filaRecordatorio !== null && (
+              <Fila
+                icono="bell-outline"
+                titulo={ES.recordatorio.titulo}
+                detalle={filaRecordatorio}
+                onPress={recordatorio.abrirHoja}
+              />
+            )}
           </Grupo>
         </Llega>
 

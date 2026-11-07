@@ -610,6 +610,69 @@ export const ES = {
     paginaCerrada: 'Tu página sigue en Mi cocina',
   },
 
+  /**
+   * ⚠️ `10.5-v-c-ii`: HER REMINDER — asked once on *Hoy*, under the doors, after her third
+   * offer; kept in *Mi cocina* (the owner's ruling of 2026-11-05, call 21, and the
+   * family-shell page's round 6). A notification her own phone schedules, every week on
+   * each of her days; nothing of it leaves the phone. The rules are `@/lib/recordatorio`'s.
+   */
+  recordatorio: {
+    /** The question on *Hoy* — *¿Te recordamos a las 16:00, de lunes a sábado?* — and its line. */
+    pregunta: (hora: string, dias: string) => `¿Te recordamos a las ${hora}, ${dias}?`,
+    costumbre: (hora: string) => `Sueles publicar hacia las ${hora}.`,
+    si: 'Sí, recuérdame',
+    otraHora: 'Otra hora',
+    noGracias: 'No, gracias',
+    /** *Mi cocina*'s row, and the sheet's title. */
+    titulo: 'Recordatorio diario',
+    cuando: (hora: string, dias: string) => `A las ${hora}, ${dias}`,
+    apagado: 'Apagado',
+    /** On, but her phone no longer lets Wera Cocina show it. */
+    sinPermiso: 'Apagado en los ajustes de tu teléfono',
+    /** The sheet *Otra hora* and the row open. */
+    hojaCostumbre: (hora: string, dias: string) => `Sueles publicar hacia las ${hora}, ${dias}.`,
+    hojaDias: (dias: string) => `Te avisamos ${dias}.`,
+    hojaPregunta: '¿A qué hora te avisamos?',
+    horaAyuda: (hora: string) => `A las ${hora}`,
+    asiSeVera: 'Así se verá:',
+    encender: 'Encender recordatorio',
+    guardar: 'Guardar',
+    apagar: 'Apagarlo',
+    cerrar: 'Cerrar',
+    /** The notification itself, as the family-shell page wrote it. */
+    avisoTitulo: '¿Qué ofreces hoy?',
+    avisoTexto: 'Publica tu oferta en un minuto.',
+    /** Android's name for the notifications' channel, in the phone's settings. */
+    canal: 'Recordatorio diario',
+    /** Its toasts. */
+    teRecordaremos: (hora: string, dias: string) => `Te recordaremos a las ${hora}, ${dias}`,
+    puedesEncenderlo: 'Puedes encenderlo en Mi cocina',
+    apagadoNota: 'Recordatorio apagado',
+    permiso: 'Para recordarte, permite las notificaciones de Wera Cocina en los ajustes de tu teléfono.',
+    /** Her days, Monday first. */
+    todosLosDias: 'todos los días',
+    deA: (desde: string, hasta: string) => `de ${desde} a ${hasta}`,
+    dia: ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo'],
+    losDias: ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábados', 'domingos'],
+    los: (dias: readonly string[]) =>
+      dias.length === 1 ? `los ${dias[0]}` : `los ${dias.slice(0, -1).join(', ')} y ${dias[dias.length - 1]}`,
+  },
+
+  /**
+   * ⚠️ `10.5-v-c-ii`: *ASÍ LA VEN* AND *VER COMO LA VEN* — Itacate's dish page and kitchen
+   * page inside Wera Cocina, under a dark bar that says so and closes them (the
+   * family-shell page's `prevBar`). Their own words are Itacate's (`VECINOS`, below).
+   */
+  vista: {
+    platillo: 'Así la ven tus vecinos en Itacate',
+    pagina: 'Tu página, como la ven tus vecinos',
+    cerrar: 'Cerrar',
+    asiLaVen: 'Así la ven',
+    verComoLaVen: 'Ver como la ven',
+    /** Under the bar while the door would not send her: nothing on offer, nothing in 14 days. */
+    noSeVe: 'Tus vecinos verán tu página en Itacate en cuanto publiques una oferta.',
+  },
+
   /** Days and times as she says them. ⚠️ Wera's shapes: `Mañana · 9:45 a 10:00` (`slotShort`), `Lun 13`. */
   fechas: {
     hoy: 'Hoy',
@@ -645,5 +708,86 @@ export const ES = {
       revisar: 'Algo de lo que escribiste no se pudo guardar así. Revísalo e intenta de nuevo.',
       unknown: 'Algo salió mal. Intenta de nuevo.',
     },
+  },
+} as const;
+
+/**
+ * ⚠️ `10.5-v-c-ii`: ITACATE'S WORDS FOR ITS TWO PAGES, COPIED — what *Así la ven* and *Ver
+ * como la ven* draw inside Wera Cocina (`@/vecinos/`), so a fonda reads what a neighbour
+ * reads. `pagina` and `platillo` are Itacate's whole sections, `cerca` the words of a card
+ * those pages use; `test/vecinos.test.ts` holds every one to `itacate/src/strings.ts`, word
+ * for word. The copies import it as `ES`, Itacate's name. Wera Cocina's own words are `ES`.
+ */
+export const VECINOS = {
+  cerca: {
+    sorpresa: 'Sorpresa',
+    /** How many are left, before reservations exist (`10.5b`): what she published. */
+    quedan: (n: number) => `Quedan ${n}`,
+    ultimo: 'Último',
+    /** The saving, on her colour — the drawing's *−50%*, with a true minus sign. */
+    ahorro: (pct: number) => `−${pct}%`,
+    /** A quiet kitchen's card: the pattern once 3 or more publications in 4 weeks show one. */
+    suele: (dias: string, hora: string) => `Suele tener ofertas ${dias}, ${hora}`,
+    hacia: (hora: number) => (hora === 1 ? 'hacia la 1:00' : `hacia las ${hora}:00`),
+    todosLosDias: 'todos los días',
+    casiTodosLosDias: 'casi todos los días',
+    entreSemana: 'entre semana',
+    finesDeSemana: 'los fines de semana',
+    /** Monday first — the door's `weekdays`, ISO's order. Plural, as in *los lunes y jueves*. */
+    losDias: ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábados', 'domingos'],
+    los: (dias: readonly string[]) =>
+      dias.length === 1 ? `los ${dias[0]}` : `los ${dias.slice(0, -1).join(', ')} y ${dias[dias.length - 1]}`,
+    /** Otherwise, when she last did. Monday first; singular, as in *Publicó el martes*. */
+    elDia: ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo'],
+    meses: [
+      'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+      'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre',
+    ],
+    publicoHoy: 'Publicó hoy',
+    publicoAyer: 'Publicó ayer',
+    publicoEl: (dia: string) => `Publicó el ${dia}`,
+    publicoFecha: (dia: number, mes: string) => `Publicó el ${dia} de ${mes}`,
+  },
+
+  pagina: {
+    volver: 'Volver',
+    hoy: 'Hoy',
+    /** Nothing on offer, and she has not published for today. */
+    hoyNoHaPublicado: 'Hoy no ha publicado',
+    /** Nothing on offer, though she did publish for today: it ended, or she took it down. */
+    nadaPorHoy: 'Por hoy ya se terminó',
+    loQueSuele: 'Lo que suele ofrecer',
+    /** How often, over the door's four weeks — two or more, by the door's rule. */
+    veces: (n: number) => (n === 1 ? '1 vez en las últimas 4 semanas' : `${n} veces en las últimas 4 semanas`),
+    /** And the price she usually gives it, when the door has one. */
+    vecesYPrecio: (veces: string, precio: string) => `${veces} · normalmente a ${precio}`,
+    /** ⚠️ Wera Cocina's words for her link, in her preview (`cocina/src/strings.ts`, `ES.pagina.verEnMaps`). */
+    verEnMaps: 'Ver en Google Maps ›',
+    comoLlegar: 'Cómo llegar ›',
+    /** What a screen reader says for the two links, which open Google Maps. */
+    comoLlegarAyuda: 'Cómo llegar, en Google Maps',
+    verEnMapsAyuda: 'Ver en Google Maps',
+    /** The door no longer sends her: she has not published in 14 days, or the kitchen was deleted. */
+    yaNoEsta: 'Esta cocina ya no está en Itacate.',
+    cargando: 'Buscando la cocina…',
+  },
+
+  platillo: {
+    /** For a surprise bag — the proposals page's fixed sentence, as every app it read has one. */
+    alergia: 'Es sorpresa: si tienes alergia, pregunta antes o elige otro',
+    /** ⚠️ Wera Cocina's six words for the tags (`cocina/src/strings.ts`, `ES.publicar.etiqueta`), held to its file. */
+    etiqueta: {
+      pica: 'Pica',
+      cerdo: 'Cerdo',
+      mariscos: 'Mariscos',
+      cacahuate: 'Cacahuate',
+      lacteos: 'Lácteos',
+      gluten: 'Gluten',
+    },
+    /** Its window ended, or she took it down, while the page was open. */
+    terminado: 'Este platillo ya no está en oferta.',
+    /** The kitchen's row, for a screen reader: it opens her page. */
+    verCocina: (cocina: string) => `Ver la página de ${cocina}`,
+    cargando: 'Buscando el platillo…',
   },
 } as const;

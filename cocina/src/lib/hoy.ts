@@ -13,7 +13,7 @@
 //     the newest first (`anteriores`);
 //   - HER PAGE'S CHECKLIST — five things, the door's count on *Hoy* (`pendientesDe`).
 //
-// ⚠️ NOTHING NEW IS READ: her last ten publications (`@/api/listing`'s list), her
+// ⚠️ NOTHING NEW IS READ: her last publications (`@/api/listing`'s list, 60 since `10.5-v-c-ii`), her
 // place, her page and her trade, which the app already holds. `test/hoy.test.ts`
 // pins every rule against a calendar in Mexico City's zone.
 //
