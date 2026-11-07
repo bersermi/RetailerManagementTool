@@ -41,6 +41,11 @@ const VACA = require('@/marca/vaca-crema.png') as number;
 // ⚠️ AND THEY ARE DRAWN AT ONCE (`fadeDuration={0}`): Android's `Image` fades every picture in over
 // 300 ms by default, so on the test build the cow faded in as the splash faded out and blinked pale —
 // recorded 2026-11-07, twice; a screen with no transition did not change it.
+// ⚠️⚠️ AND SOMETHING ON SCREEN CHANGES EVERY FRAME WHILE THE SPLASH LEAVES (`latido`, one invisible point):
+// on Android expo-splash-screen holds the screen's drawing while the splash is kept, and lets it draw on
+// the next change after `hideAsync` — with the cow drawn at once and the steps waiting, nothing changed
+// for 600 ms, and on the test build the splash left late, over the square and the nod (recorded
+// 2026-11-07). Its opacity moves between 0.01 and 0.02 on the cream: never seen, but a change.
 // ⚠️ THE TWO PICTURES MUST BE IN BEFORE ANYTHING MOVES — on Wera's emulator the square
 // grew empty while they loaded — so nothing starts, and the splash is not let go
 // (`onCargada`), until both are drawn. ⚠️ AND ON ANDROID NOT UNTIL THE SPLASH HAS FADED
@@ -80,6 +85,7 @@ export function Apertura({
   const cabeceo = useSharedValue(0);
   const sube = useSharedValue(plays ? 0 : 1);
   const llegan = useSharedValue(plays ? 0 : 1);
+  const latido = useSharedValue(0);
 
   // Settled a third of the way down, at the seal's size.
   const restY = insets.top + height * 0.24;
@@ -88,8 +94,11 @@ export function Apertura({
   const step = SIZE.space + SIZE.rowGap;
 
   useEffect(() => {
-    if (listo) onCargada();
-  }, [listo, onCargada]);
+    if (!listo) return;
+    onCargada();
+    // Every frame until the first step — whatever the phone's motion setting: it is never seen.
+    latido.value = withTiming(1, { duration: ESPERA + OPENING.squareFrom, easing: Easing.linear, reduceMotion: ReduceMotion.Never });
+  }, [listo, onCargada, latido]);
 
   // Once, when both pictures are in.
   useEffect(() => {
@@ -137,6 +146,7 @@ export function Apertura({
     opacity: interpolate(cuadro.value, [0, 0.4], [0, 1], Extrapolation.CLAMP),
     transform: [{ scale: 0.2 + 0.8 * cuadro.value }],
   }));
+  const pulso = useAnimatedStyle(() => ({ opacity: 0.01 + 0.01 * latido.value }));
   const verde = useAnimatedStyle(() => ({ opacity: 1 - crema.value }));
   const blanca = useAnimatedStyle(() => ({ opacity: crema.value }));
   const arriba = useAnimatedStyle(() => ({
@@ -153,6 +163,11 @@ export function Apertura({
 
   return (
     <View style={{ flex: 1, backgroundColor: PALETTE.fondo }}>
+      <Animated.View
+        pointerEvents="none"
+        accessible={false}
+        style={[{ position: 'absolute', left: 0, top: 0, width: 1, height: 1, backgroundColor: PALETTE.tinta }, pulso]}
+      />
       <Animated.View
         accessible={false}
         style={[

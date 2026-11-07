@@ -78,7 +78,8 @@ describe('the opening starts where Wera Cocina’s splash leaves her', () => {
     expect(esperaDe('android')).toBe(SPLASH_FADE_MS);
     expect(esperaDe('ios')).toBe(0);
     const apertura = code('ui/Apertura.tsx');
-    expect((apertura.match(/ESPERA \+ OPENING\.\w+From/g) ?? []).length).toBe(5);
+    // The five steps, each after the fade — and the invisible point's beat, which lasts until the first.
+    expect((apertura.match(/ESPERA \+ OPENING\.\w+From,\s*with(Timing|Sequence)\(/g) ?? []).length).toBe(5);
     // The opening she sees, from the first move to the buttons, is still under two seconds.
     expect(openingLength() - OPENING.squareFrom).toBeLessThan(2_000);
   });
@@ -126,7 +127,14 @@ describe('the splash lets go where she will see the screen', () => {
     expect(root).toMatch(/^holdSplash\(\);$/m);
     expect(root).toMatch(/if \(ready && pathname !== '\/hola'\) releaseSplash\(\);/);
     expect(code('app/(auth)/hola.tsx')).toMatch(/onCargada=\{releaseSplash\}/);
-    expect(code('ui/Apertura.tsx')).toMatch(/useEffect\(\(\) => \{\s*if \(listo\) onCargada\(\);/);
+    expect(code('ui/Apertura.tsx')).toMatch(/useEffect\(\(\) => \{\s*if \(!listo\) return;\s*onCargada\(\);/);
+  });
+
+  it('and while the splash leaves, one invisible point changes every frame, so Android lets the screen draw at once', () => {
+    const apertura = code('ui/Apertura.tsx');
+    expect(apertura).toMatch(/latido\.value = withTiming\(1, \{ duration: ESPERA \+ OPENING\.squareFrom, easing: Easing\.linear, reduceMotion: ReduceMotion\.Never \}\);/);
+    expect(apertura).toMatch(/const pulso = useAnimatedStyle\(\(\) => \(\{ opacity: 0\.01 \+ 0\.01 \* latido\.value \}\)\);/);
+    expect(apertura).toMatch(/width: 1, height: 1/);
   });
 
   it('and the cow is drawn at once — Android’s Image would fade it in over 300 ms, under the fading splash', () => {

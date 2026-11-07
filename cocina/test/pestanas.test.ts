@@ -168,7 +168,7 @@ describe('one staggered entrance per screen, and the toast — transform and opa
     const animators = files.filter((f) => /from 'react-native-reanimated'/.test(f.text)).map((f) => f.name);
     expect(animators.sort()).toEqual(['ui/Apertura.tsx', 'ui/Llega.tsx', 'ui/Nota.tsx']);
     const estilos = animators.flatMap((name) => [...code(name).matchAll(/useAnimatedStyle\(\(\) => \(\{([\s\S]*?)\}\)\)/g)].map((m) => m[1]));
-    expect(estilos.length).toBe(8);
+    expect(estilos.length).toBe(9);
     // A transform's own members — a move, a size, a turn — are the transform.
     const DEL_TRANSFORM = new Set(['translateY', 'translateX', 'scale', 'rotate']);
     for (const estilo of estilos) {
