@@ -51,3 +51,16 @@ export function removeKey(store: DeviceStore | undefined, key: string): void {
     // Nothing to do, and nothing the person holding the phone could do either.
   }
 }
+
+/**
+ * Is this the first time — and if so, it no longer will be. `10.5-v-d`, the opening
+ * (Wera's `firstTime`, `app/src/offline/ensenar.ts`). ⚠️ IT WRITES AS IT ANSWERS, so two
+ * callers in one moment cannot both play it; and a phone that cannot write says no —
+ * an opening that would play on every launch is worse than none.
+ */
+export function firstTime(store: DeviceStore | undefined, key: string): boolean {
+  if (store === undefined) return false;
+  if (readKey(store, key) !== null) return false;
+  writeKey(store, key, '1');
+  return readKey(store, key) !== null;
+}

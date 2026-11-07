@@ -5,6 +5,7 @@ import { ActivityIndicator, FlatList, Pressable, RefreshControl, Text, View } fr
 import { apiErrorMessage } from '@/api/errors';
 import { useCocinas } from '@/api/hooks';
 import { SIN_DISTANCIAS, usePonerDistancias } from '@/lib/DistanciasProvider';
+import { distanciaTexto } from '@/lib/distancia';
 import { useDondeBuscar } from '@/lib/DondeBuscarProvider';
 import { ORDEN_INICIAL, distanciasDe, tarjetasDe, type Orden, type Tarjeta } from '@/lib/lista';
 import { motivoDe, origenDe, puntoDeOrigen, type Origen } from '@/lib/ubicacion';
@@ -142,7 +143,10 @@ export default function Cerca() {
           <Llega i={index}>
             {item.kind === 'platillo' ? (
               <TarjetaPlatillo
-                tarjeta={item}
+                cocina={item.cocina}
+                oferta={item.oferta}
+                platillo={item.platillo}
+                distancia={item.metros === null ? null : distanciaTexto(item.metros)}
                 ahora={ahora}
                 onPress={() =>
                   router.push({
