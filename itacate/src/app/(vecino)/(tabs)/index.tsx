@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { apiErrorMessage } from '@/api/errors';
 import { useCocinas } from '@/api/hooks';
+import { useAuth } from '@/auth/AuthProvider';
 import { SIN_DISTANCIAS, usePonerDistancias } from '@/lib/DistanciasProvider';
 import { distanciaTexto } from '@/lib/distancia';
 import { useDondeBuscar } from '@/lib/DondeBuscarProvider';
@@ -93,8 +94,12 @@ const CABEZA_ANTES = 112;
 const NINGUNA: ReadonlySet<string> = new Set();
 
 export default function Cerca() {
+  const { session } = useAuth();
   const { codigo, elegirCodigo } = useDondeBuscar();
-  const { donde, otraVez, usarUbicacion } = useDondeEstoy(codigo === null);
+  // ⚠️ NEVER ASKED BEFORE SHE SIGNS IN (found on the emulator, 2026-11-08): signed out,
+  // this tab mounts for a frame before the guard moves her to the way in, and her phone
+  // asked for her location over *Crear cuenta*. Signed in, she is asked here, on *Cerca*.
+  const { donde, otraVez, usarUbicacion } = useDondeEstoy(codigo === null && session !== null);
   const cocinas = useCocinas();
   const buscados = usePuntosBuscados(cocinas.data);
   const ahora = useAhora(CADA_MINUTO);

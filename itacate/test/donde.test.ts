@@ -237,7 +237,9 @@ describe('her location never leaves the phone, and nothing of Google’s is kept
       expect(code(screen), screen).not.toMatch(/@\/lib\/useUbicacion'|expo-location/);
     }
     const list = code('app/(vecino)/(tabs)/index.tsx');
-    expect(list).toMatch(/const \{ donde, otraVez, usarUbicacion \} = useDondeEstoy\(codigo === null\);/);
+    // ⚠️ Since `10.5-iv-b-i`: never while she is signed out — the tab mounts for a frame before the guard moves her.
+    expect(list).toMatch(/const \{ donde, otraVez, usarUbicacion \} = useDondeEstoy\(codigo === null && session !== null\);/);
+    expect(list).toMatch(/const \{ session \} = useAuth\(\);/);
     // Since `10.5-iv-b-i` the box sits in the sheet over the map: a code placed is her pick, and the sheet comes half-way.
     expect(list).toMatch(/onLugar=\{enCodigo\}/);
     expect(list).toMatch(/function enCodigo\(nuevo: Codigo\) \{\s*Keyboard\.dismiss\(\);\s*elegirCodigo\(nuevo\);/);
