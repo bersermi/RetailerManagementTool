@@ -592,7 +592,7 @@ Program and Play Console — both opened 1 October), `5R-b` (cloud builds and fi
 | Date | What | If it is missed |
 |---|---|---|
 | **13 October** | ✅ **Done 13 October** — you booted the sealed emulator; Wera opened **still signed in** after about 21½ days untouched. No further reading is scheduled; that emulator is free to use or delete | — |
-| **7 November** | **Apply for production on Google Play** — *Dashboard → Apply for production*; twelve testers have been in since 24 October. The form asks how the test went (`store/google-play.md`, section 7); Google answers in about a week | Production waits; the closed test simply runs on |
+| **8 November** | **Apply for production on Google Play** — *Dashboard → Apply for production*; twelve testers have been in since 24 October. Moved from 7 November on your word that evening, while you were away. The form asks how the test went (`store/google-play.md`, section 7); Google answers in about a week | Production waits; the closed test simply runs on |
 | **30 April 2027** | **Delete the pilot's measurements** on the live database — the aviso promises it. If the pilot runs longer, change the date on the pages and tell the users first | The aviso says something false about people's data |
 
 All three are in the plan's ⏳ DATES OWED block, which turns the checks red once one passes unticked. The 4 October rebuild is gone: your paid account signed the 9 October build for a year.
