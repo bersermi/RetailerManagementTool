@@ -272,8 +272,9 @@ TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic i
   runtime** — `fingerprint.config.js` drops the Android key, masks the iPhone's (its presence is native, its value
   not) and both copies in `extra`, and ignores the file; `test/runtime.test.ts` computes the runtime with and
   without them. A new value read from the environment into the config joins that file and that test, or the
-  runtime this Mac computes stops matching EAS's. ⚠️ **Their twins in `itacate/` are as they were before
-  `10.4g-i`** — Itacate keeps Apple's map on iOS until its own map (`10.5-iv`); each header says so.
+  runtime this Mac computes stops matching EAS's. ⚠️ **Their twins in `itacate/` carry both keys in the map's
+  options too since `10.5-iv-b-i`** (Itacate's own map), with one difference: Itacate's `fingerprint.config.js` REMOVES the
+  iPhone key rather than masking it, because Itacate's Android runtime had to stay its field build's.
 - **Ship an update only through the runbook, which computes the runtime the way the build does** —
   `bash docs/runbooks/ship-an-update.sh preview "…" --app cocina`, run on `main` after a green merge
   (`10.4b-iii-a`); its rehearsal in `app.yml` holds the `--app cocina` cases. Never a bare

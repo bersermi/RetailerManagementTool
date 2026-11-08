@@ -2,6 +2,7 @@ import { useFonts } from 'expo-font';
 import { Stack, router, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { QueryProvider } from '@/api/QueryProvider';
 import { AuthProvider, useAuth } from '@/auth/AuthProvider';
@@ -31,19 +32,24 @@ export default function RootLayout() {
   // face and everything else draws.
   const [fontsReady, fontError] = useFonts(FUENTES);
   if (!fontsReady && fontError === null) return null;
+  // ⚠️ `10.5-iv-b-i`: THE GESTURES' ROOT, for the list that slides over the map
+  // (`@/ui/HojaDeLista`) — `react-native-gesture-handler` is in every Itacate build since
+  // `10.2a`, and a gesture outside this root is never heard.
   return (
-    <AuthProvider>
-      <QueryProvider>
-        <Gate />
-        {/* Dark icons, always: the app is light only, as Wera (`8g`). */}
-        <StatusBar style="dark" />
-        <DistanciasProvider>
-          <DondeBuscarProvider>
-            <Stack screenOptions={{ headerShown: false }} />
-          </DondeBuscarProvider>
-        </DistanciasProvider>
-      </QueryProvider>
-    </AuthProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <AuthProvider>
+        <QueryProvider>
+          <Gate />
+          {/* Dark icons, always: the app is light only, as Wera (`8g`). */}
+          <StatusBar style="dark" />
+          <DistanciasProvider>
+            <DondeBuscarProvider>
+              <Stack screenOptions={{ headerShown: false }} />
+            </DondeBuscarProvider>
+          </DistanciasProvider>
+        </QueryProvider>
+      </AuthProvider>
+    </GestureHandlerRootView>
   );
 }
 

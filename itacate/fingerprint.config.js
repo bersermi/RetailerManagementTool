@@ -1,15 +1,22 @@
 // ============================================================================
-// WHICH BUILDS AN OVER-THE-AIR UPDATE MAY REACH. Plan tasks `10.2a` and
-// `10.5-iv-a-i`. ⚠️ Its twin, `cocina/fingerprint.config.js`, moved ahead in `10.4g-i`:
-// it MASKS the iPhone map key, whose presence in the map's options is native — Itacate
-// carries no iPhone key in the map's options until its own map (`10.5-iv-b`); change
-// both then.
+// WHICH BUILDS AN OVER-THE-AIR UPDATE MAY REACH. Plan tasks `10.2a`, `10.5-iv-a-i`
+// and `10.5-iv-b-i`.
 //
 // The same rules as `app/fingerprint.config.js` (Wera's, measured 2026-10-10:
 // version numbers, masked-view's manifest a local Android build rewrites inside
 // `node_modules`, Kotlin's `.kotlin/` files), plus the values `app.config.ts`
 // takes from EAS's environment:
 //   - the Android map key, removed from the map's options before it is hashed;
+//   - ⚠️⚠️ SINCE `10.5-iv-b-i`, THE IPHONE MAP KEY AND THE IPHONE'S ICON, REMOVED from
+//     what is hashed for BOTH platforms — the config is hashed as one text, the same
+//     for Android and the iPhone (`@expo/fingerprint` 0.20.12, `sourcer/Expo.js`), and
+//     neither touches Android's build: so Android's runtime is the one Itacate's test
+//     build in the field carries, and Itacate's map reaches it as an update. Unlike
+//     Wera Cocina's twin, which MASKS the iPhone key (its runtime moved anyway, in
+//     `10.4g-i`), the key is removed: masked, it would still be new text in Android's
+//     hash. The iPhone loses nothing: its icon's FILE is hashed for the iPhone alone
+//     (`collectIosIcons`), and the key is in every build from its first — no iPhone build
+//     of Itacate existed before the key's presence (`test/runtime.test.ts` holds it there);
 //   - ⚠️ `extra.google` — both keys, read by her phone's questions to Google since
 //     `10.5-iv-a-i` — REMOVED WHOLE, not masked as Wera Cocina's are: `extra` is
 //     JavaScript's business (Expo writes it into every update), and with it gone the
@@ -28,7 +35,7 @@
 // ============================================================================
 const { SourceSkips } = require('@expo/fingerprint');
 
-/** The config with the keys taken out; anything else passes untouched. */
+/** The config with the keys and the iPhone's icon path taken out; anything else passes untouched. */
 function withoutMapsKey(source, chunk) {
   if (source.type !== 'contents' || source.id !== 'expoConfig' || typeof chunk !== 'string') {
     return chunk;
@@ -42,7 +49,11 @@ function withoutMapsKey(source, chunk) {
   for (const plugin of config.plugins ?? []) {
     if (Array.isArray(plugin) && plugin[0] === 'react-native-maps' && plugin[1]) {
       delete plugin[1].androidGoogleMapsApiKey;
+      delete plugin[1].iosGoogleMapsApiKey;
     }
+  }
+  if (config.ios && config.ios.icon) {
+    delete config.ios.icon;
   }
   if (config.extra && config.extra.google) {
     delete config.extra.google;

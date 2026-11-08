@@ -21,6 +21,7 @@ bash docs/checks/10.4b-iii-a-cocina-contract.sh     # against a local `supabase 
 bash docs/checks/5R-k-apple-revoke-contract.sh      # the same stack: the function that tells Apple, served, with this app's body among the three
 bash docs/checks/10.5-iv-a-door-contract.sh         # the same stack: the one door, every key the list reads, asked as a neighbour
 TZ=UTC npm --prefix itacate test          # CI's zone: the list's days and windows are local time, and the Mac is UTC−6
+bash store/cocina-itacate/render.sh itacate-icono   # the iPhone's icon, the cow on the blue — and nothing else (native on the iPhone)
 ```
 
 A signed-in screen is seen only on a **debug build against the local database** (a session may not sign in on the live
@@ -150,8 +151,8 @@ from `itacate/` with the two local `EXPO_PUBLIC_SUPABASE_` values in the shell, 
   until then) and *Más barato*, and nothing else; every kitchen the door sends, an unknown distance last among its
   equals. The orders are `@/lib/lista`'s (`ORDENES`, `ORDEN_INICIAL`, `ordenDe`), her pick the list's state. A window
   that opens or ends while she looks moves its card without asking the door (the cards are made again
-  every minute). ⚠️ **No kitchen is drawn on a map**: Google's points go only on Google's map, which is
-  `10.5-iv-b`'s. Since `10.5-iv-a-ii` a card opens a page — the next bullet.
+  every minute). Since `10.5-iv-b-i` the list slides over the map — the bullet *The map*, below. Since
+  `10.5-iv-a-ii` a card opens a page — the next bullet.
 - **A kitchen's page and a dish's are proposal B's, as drawn** (`10.5-iv-a-ii`; `(vecino)/cocina/[id]`,
   `(vecino)/platillo/[cocina]/[oferta]/[linea]`, every word and link `@/lib/paginas`', pinned by
   `test/paginas.test.ts`). A dish's card opens its page; a quiet kitchen's card, hers; a dish's page opens
@@ -179,6 +180,29 @@ from `itacate/` with the two local `EXPO_PUBLIC_SUPABASE_` values in the shell, 
   dish from her page. ⚠️ **Since `10.5-v-d` the list's dish card is copied too** — `@/ui/TarjetaPlatillo`, taking its
   kitchen, offer and dish one by one and the distance in words (the list passes `distanciaTexto`), drawn at the foot of
   Wera Cocina's *Tu oferta de hoy* as she types: the same rule, a change here is copied there in the same PR.
+- **The map, with the list sliding over it** (`10.5-iv-b-i`; the owner's answer 4 of 2026-11-05, *C*, as the family-shell
+  page draws *Cerca*). *Cerca* is two layers: **Google's map, the whole screen** (`@/ui/MapaDeCocinas`) — every kitchen the
+  door sends as a pin in her colour with her trade's drawing, faded when quiet, wherever she moves it (his ruling of
+  2026-11-04, night); pins nearer on her screen than a pin is wide as one grey circle with how many it holds, until she zooms
+  in (his of 2026-11-03), a tap coming closer — or, for kitchens on one spot, showing them all — and her dot at the list's
+  point, her location or her postal code's centre (his answer 5) — and **the sheet** (`@/ui/HojaDeLista`): the head that was
+  *Cerca*'s head, then the list, at three heights, opening half-way; the handle and the head move it (a tap: half-way, or full
+  from half-way), the list scrolls inside it at every height and keeps its pull. Every rule is `@/lib/mapa`'s, pure, pinned
+  by `test/mapa.test.ts`. ⚠️⚠️ **Google's map on both phones** (`PROVIDER_GOOGLE`; Google's points only on Google's map,
+  3.2.3(e)). ⚠️ **Her dot is Itacate's marker**, never Google's *My Location* layer (`showsUserLocation={false}`): the map is
+  handed the point and never asks the phone. ⚠️ **Google's logo stays in sight**: the map's padding puts its foot at the
+  sheet's top (`paddingDelMapa`), and nothing of ours sits at the map's foot. ⚠️ **It flies to her only when where she
+  searches from changes** (`claveDeOrigen`), never as she walks. A pin she taps puts that kitchen's cards first, under *En el
+  mapa*, with *Quitar*. Declined or outside the zone: the map over the city beside the postal code's box in the sheet, which
+  rises full as she types. **Nothing is cut off by distance** — the 1.5 and 3 km limits wait for Google's reply
+  (`10.5-iv-b-iii`). ⚠️ **To see it**: a build made on this Mac draws an inert Android map (no key: no marker, no camera),
+  but **an iPhone Simulator debug build with the organization's iPhone key in the shell draws Google's map with every pin**
+  — the key is locked to `mx.wera.vecino`, which the Simulator sends (`10.5-iv-b-i`): `npx expo prebuild -p ios --clean`,
+  `RCT_USE_PREBUILT_RNCORE=0 RCT_USE_RN_DEP=0 pod install`, `xcodebuild … -sdk iphonesimulator`, Metro with the local
+  proxy's `https://localhost:54443` (`simctl keychain … add-root-cert` its `cert.pem` — this app refuses an `http` URL), and a
+  local neighbour's session written into the app's `Documents/SQLite/ExpoSQLiteStorage` (`sb-localhost-auth-token`). The
+  generated `ios/` then holds the key: `prebuild --clean` again without it afterwards. The Simulator takes no taps while the
+  Mac's screen is locked; the Android emulator takes `adb` swipes for the sheet.
 - **Google, from her phone, for her alone, kept nowhere** (`@/lib/google`, pure; `@/lib/useGoogle`, the
   requests): Geocoding for a kitchen the door sends with no point — her address, asked once while the app
   is open, the answer in TanStack's memory (Service Specific Terms §6.3.2) — and for her postal code, never
@@ -206,15 +230,18 @@ from `itacate/` with the two local `EXPO_PUBLIC_SUPABASE_` values in the shell, 
 - **Three values come from EAS's environment, never the repository:** the Android map key
   (`GOOGLE_MAPS_ANDROID_API_KEY`), the iPhone key (`GOOGLE_MAPS_IOS_API_KEY`, since `10.5-iv-a-i`) and
   Firebase's `google-services.json` (file variable `GOOGLE_SERVICES_JSON`, copied in by
-  `eas-pre-install.sh`, which refuses an Android store build without the file or the Android key). The
-  Android key goes into `react-native-maps`' options, and **both keys into `extra.google`**
-  (`10.5-iv-a-i`), where her phone's questions to Google read their own (`@/lib/useGoogle`). ⚠️ **The
-  iPhone key is NOT in the map's options**: there its presence compiles Google's map into an iPhone
-  build, a native change that is `10.5-iv-b`'s. **None enters the runtime** — `fingerprint.config.js`
-  drops the Android key from the map's options and **the whole of `extra.google`** (removed, not
-  masked as Wera Cocina's are, so the config hashes as it did before), and ignores the file;
-  `test/runtime.test.ts` computes the runtime with and without them, and pins Android's to the one
-  Itacate's test build in the field carries (`4de35b0b…`, build `2b638d21`). A new value read from the
+  `eas-pre-install.sh`, which refuses an Android store build without the file or the Android key, and
+  since `10.5-iv-b-i` an iPhone store build without the iPhone key). **Both keys go into
+  `react-native-maps`' options** (the iPhone's since `10.5-iv-b-i`: its presence — the placeholder at worst
+  — compiles Google's map into every iPhone build, as Google's points require) **and into `extra.google`**
+  (`10.5-iv-a-i`), where her phone's questions to Google read their own (`@/lib/useGoogle`). **None enters
+  the runtime** — `fingerprint.config.js` removes both keys from the map's options, the iPhone's icon path
+  (`ios.icon`, whose FILE is still hashed, for the iPhone alone) and **the whole of `extra.google`**
+  (removed, not masked as Wera Cocina's are: the config is hashed as one text for both platforms, and a
+  masked key would still be new text in Android's hash), and ignores the file; `test/runtime.test.ts`
+  computes the runtime with and without them, and pins Android's to the one Itacate's test build in the
+  field carries (`4de35b0b…`, build `2b638d21`) — **measured unchanged with the iPhone's key and icon in the
+  config (`10.5-iv-b-i`), so the map reached that build as an update.** A new value read from the
   environment into the config joins that file and that test, and the update runbook's list.
 - **Ship an update only through the runbook, which computes the runtime the way the build does** —
   `bash docs/runbooks/ship-an-update.sh preview "…" --app itacate`, run on `main` after a green merge
@@ -222,7 +249,8 @@ from `itacate/` with the two local `EXPO_PUBLIC_SUPABASE_` values in the shell, 
   `--app itacate` cases. Never a bare
   `eas update`. ⚠️ **Its only test build is Android's `preview` APK** (`2b638d21`, from `10.2b`; EAS
   keeps it to 2026-11-11, installed copies keep working) — no iPhone test build exists, and the first
-  needs the owner at Terminal.app for its signing profile (`5R-b-iii`'s finding). The bundle reads
+  needs the owner at Terminal.app for its signing profile (`5R-b-iii`'s finding): it is `10.5-iv-b-ii`'s,
+  the map's iPhone half. The iPhone store build of `10.2b` (`e3100436`) was never installed anywhere. The bundle reads
   five values — the database's two and the support number, which this project holds in `preview`, and
   in `production` once his command has run again (`10.5-iii-b`), and since `10.5-iv-a-i` Google's two
   keys through `extra`, the organization's variables in both environments; a new `EXPO_PUBLIC_` value, or
@@ -231,8 +259,12 @@ from `itacate/` with the two local `EXPO_PUBLIC_SUPABASE_` values in the shell, 
 - **`ios/` and `android/` are generated by `expo prebuild` and gitignored. No workflow compiles
   this app**: `cocina-itacate.yml` is a typecheck and the suite. A device build is the evidence
   for anything native.
-- **The icons are provisional**: Wera's mark files (`../app/assets/images/`) on this app's own
-  Android ground. A real icon is the owner's call before the public release.
+- **The icon is the cow on Itacate's blue** (the owner's ruling of 2026-11-05, the family-shell page's call 6), on both phones:
+  Android 8 and later draw it from Wera's mark files (`../app/assets/images/`) on `adaptiveIcon.backgroundColor`, and
+  ⚠️ **the iPhone from `ios.icon` — `assets/images/icon.png`, since `10.5-iv-b-i`**, drawn by `render.sh itacate-icono`,
+  1024 with no alpha channel (`test/icon.test.ts`). **The top-level `icon` stays Wera's file**: it is also Android's
+  launcher icon below Android 8, and changing it would move Android's runtime. The launch screen is still Wera's
+  cow on cream.
 - **Its EAS project is `@wera-app/itacate`** (`261e153c-a9db-408e-a10e-f21c09c732b0`), made by the owner on 2026-10-27
   (`eas init`, plan `10.2b`); its builds listen for updates at `updates.url` in `app.json`. The
   map key and `google-services.json` are the organization's variables on expo.dev (*Sensitive*,
@@ -266,9 +298,10 @@ follows it, as `cocina/CLAUDE.md`'s does:
   promotions only; state first, before anything tappable (ADR-035 §2.8); one staggered entrance per screen, transform and
   opacity only (§2.11). ⚠️ **Built by `10.5-v-b`:** `@/theme/letra` and `src/marca/letras/` are Wera's file and font byte for byte,
   loaded by the root before the first screen (the phone's face if the load fails); `PALETTE.accion` is the blue, held to `app.json`'s
-  icon ground; the motion's numbers are `@/theme/movimiento`'s, drawn by `@/ui/Llega` (a screen's first blocks, once, on mount) and
-  `@/ui/Hoja` (a sheet's spring) — **the only two modules that import Reanimated**, their animated styles `opacity` and `transform`
-  alone (`test/pestanas.test.ts`). Reanimated's native half was in this app's first build (`libreanimated.so` and `libworklets.so`
+  icon ground; the motion's numbers are `@/theme/movimiento`'s, drawn by `@/ui/Llega` (a screen's first blocks, once, on mount),
+  `@/ui/Hoja` (a sheet's spring) and, since `10.5-iv-b-i`, `@/ui/HojaDeLista` (the list sliding over the map) — **the only three
+  modules that import Reanimated**, their animated styles `opacity` and `transform` alone (`test/pestanas.test.ts`); the
+  last is also the one module with a gesture (`react-native-gesture-handler`, its root in `app/_layout.tsx`). Reanimated's native half was in this app's first build (`libreanimated.so` and `libworklets.so`
   read inside the test build's APK) and Expo's Babel preset adds its worklets plugin by itself; `10.5-v-b` is the first JavaScript to
   use it in any of the three apps. ⚠️ **The two pages keep their look** (their head is Wera Cocina's preview, `cocina/src/ui/Portada.tsx`)
   until Wera Cocina's shell (`10.5-v-c`) gives both apps' copies Nunito.

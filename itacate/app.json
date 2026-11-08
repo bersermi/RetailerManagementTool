@@ -16,6 +16,7 @@
     "userInterfaceStyle": "light",
     "ios": {
       "bundleIdentifier": "mx.wera.vecino",
+      "icon": "./assets/images/icon.png",
       "usesAppleSignIn": true,
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false

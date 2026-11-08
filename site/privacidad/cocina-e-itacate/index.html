@@ -203,12 +203,12 @@ acuerdo, porque los vecinos la verán.</p>
   <li><strong>Para buscar actualizaciones</strong>, la app consulta a Expo, el servicio que se
   las entrega: le envía la dirección IP del teléfono, si es Android o iPhone, la versión de la
   app y un identificador al azar de esa instalación, que no lleva tu nombre.</li>
-  <li><strong>Para dibujar el mapa</strong> de Wera Cocina, en Android y en iPhone, el teléfono le
-  pide las imágenes del mapa a Google, que recibe la dirección IP del teléfono y la zona del mapa
-  que estás viendo. El mapa de Google también le envía datos técnicos del teléfono y de cómo usas
+  <li><strong>Para dibujar el mapa</strong> de Wera Cocina y el de Itacate, en Android y en iPhone,
+  el teléfono le pide las imágenes del mapa a Google, que recibe la dirección IP del teléfono y la
+  zona del mapa que estás viendo. El mapa de Google también le envía datos técnicos del teléfono y de cómo usas
   el mapa —como el modelo y la versión del teléfono, un identificador al azar, cómo lo mueves y, si
   falla, el reporte del error—, para mantener y mejorar sus servicios. Google los trata según su
-  propio aviso de privacidad. Itacate, por ahora, no muestra un mapa.</li>
+  propio aviso de privacidad.</li>
   <li><strong>Tu recordatorio, en Wera Cocina</strong>, solo si lo pides: para proponerte una hora y
   unos días, la app mira, en tu teléfono, a qué hora y qué días publicaste en las últimas dos
   semanas, y el aviso lo programa tu propio teléfono, que te lo muestra a esa hora. La hora y los
@@ -230,8 +230,8 @@ abres. Al cerrar sesión se borra.</p>
   <li><strong>Wera</strong>, que opera el servicio, para dártelo, atender tus solicitudes y
   cuidar su seguridad.</li>
   <li><strong>Los vecinos que entran a Itacate con su cuenta.</strong> Itacate, la app para
-  vecinos, les muestra las cocinas que tienen algo publicado, primero lo que se puede recoger ahora
-  y de la más cercana a la más lejana, y qué tan lejos les queda cada una —la distancia la calcula su propio teléfono—. De tu cocina
+  vecinos, les muestra las cocinas que tienen algo publicado, en un mapa y en una lista —primero lo
+  que se puede recoger ahora y de la más cercana a la más lejana—, y qué tan lejos les queda cada una —la distancia la calcula su propio teléfono—. De tu cocina
   pueden ver:
     <ul>
       <li>tu página: su foto de portada, tu color, tu frase, tu logo y tu enlace de Google
@@ -417,17 +417,23 @@ notificaciones que vendrán— son los de la <a href="#datos">sección 3</a>.</p
 <h3>Tu ubicación, y lo que tu teléfono le pregunta a Google</h3>
 <ul>
   <li><strong>Tu ubicación se usa solo en tu teléfono.</strong> Si se la permites, Itacate la usa
-  para ordenar las cocinas por cercanía y decirte a qué distancia está cada
-  una. No nos llega, no la guardamos y no se la enviamos a nadie: la app le pide al servidor todas
+  para ordenar las cocinas por cercanía, decirte a qué distancia está cada una y poner tu punto en
+  el mapa. No nos llega, no la guardamos y no se la enviamos a nadie: la app le pide al servidor todas
   las cocinas con algo publicado, sin decirle dónde estás, y tu teléfono hace las cuentas. Mientras
   tienes la app abierta, vuelve a ordenarlas si caminas; con la app cerrada, o en segundo plano,
   Itacate no pide tu ubicación.</li>
   <li><strong>Tu código postal, si lo escribes.</strong> Si no le permites a Itacate tu ubicación,
   o tu teléfono solo le deja ver la aproximada, puedes escribir tu código postal; y también si
   prefieres buscar desde otro lugar, en <em>Tú → Dónde buscar</em>. Tu teléfono le pregunta a Google
-  dónde está, y las distancias se miden desde ahí; mientras buscas desde un código postal, Itacate
-  no pide tu ubicación. Google recibe esos cinco números; nosotros no los recibimos, y tu teléfono
+  dónde está, y las distancias se miden desde ahí, donde también se centra el mapa; mientras
+  buscas desde un código postal, Itacate no pide tu ubicación. Google recibe esos cinco números; nosotros no los recibimos, y tu teléfono
   los olvida al cerrar la app.</li>
+  <li><strong>El mapa.</strong> Itacate te muestra las cocinas en un mapa de Google, en Android y
+  en iPhone. Tu punto —donde estás, o el centro de tu código postal— lo dibuja tu propio teléfono:
+  Google no recibe ese punto. Para dibujar el mapa, tu teléfono le pide a Google las imágenes de la
+  zona que estás viendo, y al abrirse esa zona es la que te rodea, o la de tu código postal: Google
+  recibe esa zona del mapa y la dirección IP del teléfono, como con cualquier mapa, y los datos
+  técnicos que dice la <a href="#datos">sección 3</a>. Nosotros no los recibimos.</li>
   <li><strong>La dirección de una cocina sin punto en el mapa.</strong> Para decirte qué tan lejos
   te queda una cocina que no tiene su punto, tu teléfono le pregunta a Google dónde está la
   dirección de esa cocina. Google recibe la dirección de la cocina, no la tuya. La respuesta se
@@ -440,8 +446,9 @@ notificaciones que vendrán— son los de la <a href="#datos">sección 3</a>.</p
   Google Maps que la cocina nos dio. Itacate no le envía nada tuyo: es Google Maps el que, si se lo
   permites, usa tu ubicación para llevarte, según su propio aviso de privacidad.</li>
 </ul>
-<p><strong>Lo que recibe Google es una transferencia:</strong> tu código postal, si lo escribes, y
-la dirección de una cocina que tu teléfono busca, junto con la dirección IP del teléfono, le llegan
+<p><strong>Lo que recibe Google es una transferencia:</strong> tu código postal, si lo escribes, la
+dirección de una cocina que tu teléfono busca y la zona del mapa que estás viendo, junto con la
+dirección IP del teléfono, le llegan
 para que, como responsable de su propio servicio, los trate según su aviso. No requiere que nos des
 un consentimiento aparte, porque es precisa para darte el servicio que pides al buscar las cocinas
 cercanas (artículo 36, fracción VII, de la Ley Federal de Protección de Datos Personales en
@@ -450,7 +457,7 @@ Posesión de los Particulares). El uso de las funciones de Google Maps en Itacat
 
 <h3>Para qué, y quién los ve</h3>
 <p>Los usamos para crear tu cuenta, identificarte y mantener abierta tu sesión; mostrarte las
-cocinas cercanas; darte una contraseña nueva cuando la pides; cuidar la seguridad de las cuentas y
+cocinas cercanas, en el mapa y en la lista; darte una contraseña nueva cuando la pides; cuidar la seguridad de las cuentas y
 del servicio, y atender tus solicitudes y cumplir con la ley. Estas finalidades son necesarias para darte el servicio, y por eso
 no requieren un consentimiento aparte. No usamos tus datos para nada más, como dice la
 <a href="#finalidades">sección 5</a>.</p>

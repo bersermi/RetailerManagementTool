@@ -1,9 +1,8 @@
 #!/bin/sh
 # ============================================================================
 # RUNS ON EAS ONLY, BEFORE ANYTHING INSTALLS (`eas-build-pre-install` in
-# package.json). Plan tasks `10.2a` and `10.4g-i`. ⚠️ Its twin in `itacate/`
-# refuses no iPhone build: Itacate carries no iPhone key yet — change both when
-# it does (`10.5-iv`).
+# package.json). Plan tasks `10.2a` and `10.4g-i`. Its twin in `itacate/` is the
+# same since `10.5-iv-b-i`, when Itacate's iPhone took Google's map too.
 #
 # 1. Copies the Firebase file EAS holds (`GOOGLE_SERVICES_JSON`, a file
 #    variable) next to `app.config.ts`, which tells prebuild to use it.

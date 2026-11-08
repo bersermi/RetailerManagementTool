@@ -1,16 +1,17 @@
 #!/bin/sh
 # ============================================================================
 # RUNS ON EAS ONLY, BEFORE ANYTHING INSTALLS (`eas-build-pre-install` in
-# package.json). Plan task `10.2a`. ⚠️ Its twin in `cocina/` moved ahead in
-# `10.4g-i`: it also refuses an iPhone store build without the iPhone map key,
-# which Itacate does not carry yet — change both when it does (`10.5-iv`).
+# package.json). Plan tasks `10.2a` and `10.5-iv-b-i` — since then the same as its
+# twin in `cocina/` (`10.4g-i`): Google's map on both phones.
 #
 # 1. Copies the Firebase file EAS holds (`GOOGLE_SERVICES_JSON`, a file
 #    variable) next to `app.config.ts`, which tells prebuild to use it.
-# 2. Refuses an Android STORE build without it or without the map key. A store
-#    build is installed by people and kept for months; a key it was made
-#    without cannot be added over the air, only by a new build through review.
-#    A `preview` build is let through, with an empty map and no push.
+# 2. Refuses an Android STORE build without it or without the Android map key,
+#    and an iPhone STORE build without the iPhone map key (`10.5-iv-b-i`: Google's
+#    map on both phones). A store build is installed by people and kept for
+#    months; a key it was made without cannot be added over the air, only by a
+#    new build through review. A `preview` build is let through, with an empty
+#    map, no postal code and no push.
 # ============================================================================
 set -eu
 
@@ -28,6 +29,14 @@ if [ "${EAS_BUILD_PROFILE:-}" = "production" ] && [ "${EAS_BUILD_PLATFORM:-}" = 
   if [ -z "${GOOGLE_MAPS_ANDROID_API_KEY:-}" ]; then
     echo "REFUSED: an Android store build without GOOGLE_MAPS_ANDROID_API_KEY — every map would be empty." >&2
     echo "Set it in EAS's production environment (plan 10.2b)." >&2
+    exit 1
+  fi
+fi
+
+if [ "${EAS_BUILD_PROFILE:-}" = "production" ] && [ "${EAS_BUILD_PLATFORM:-}" = "ios" ]; then
+  if [ -z "${GOOGLE_MAPS_IOS_API_KEY:-}" ]; then
+    echo "REFUSED: an iPhone store build without GOOGLE_MAPS_IOS_API_KEY — its map would be empty and its postal code off." >&2
+    echo "Set it in EAS's production environment (the handbook's Google's search for Wera Cocina)." >&2
     exit 1
   fi
 fi

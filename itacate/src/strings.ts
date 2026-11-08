@@ -176,6 +176,27 @@ export const ES = {
   },
 
   /**
+   * ⚠️ `10.5-iv-b-i`: THE MAP, WITH THE LIST SLIDING OVER IT — the owner's answer 4 of
+   * 2026-11-05 (C), as the family-shell page draws *Cerca*: the handle's two words, a
+   * pin she taps (*En el mapa*, *Quitar*), and what a screen reader says on the map.
+   */
+  mapa: {
+    subir: 'Subir la lista',
+    bajar: 'Bajar la lista',
+    enElMapa: 'En el mapa',
+    quitar: 'Quitar',
+    /** The round button over the map that brings it back to where she searches from. */
+    volverATi: 'Volver a donde estás',
+    volverAlCodigo: (cp: string) => `Volver al código postal ${cp}`,
+    /** Her dot — her location, or her postal code's centre where her dot would be (his answer 5). */
+    estasAqui: 'Estás aquí',
+    tuCodigo: (cp: string) => `Código postal ${cp}`,
+    /** A pin, and a circle of kitchens that overlap until she zooms in (his ruling of 2026-11-03). */
+    pin: (cocina: string, enOferta: boolean) => (enOferta ? cocina : `${cocina}, sin ofertas ahora`),
+    grupo: (n: number) => `${n} cocinas aquí. Toca para acercar el mapa.`,
+  },
+
+  /**
    * ⚠️ `10.5-iv-a-ii`: A KITCHEN'S OWN PAGE — proposal B as the proposals page drew it
    * (the owner's ruling of 2026-11-01): her cover, her circle, her name, her trade and
    * her colonia, her sentence, where she is and *Cómo llegar*, and under *Hoy* what she

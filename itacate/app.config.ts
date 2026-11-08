@@ -9,8 +9,8 @@ import type { ConfigContext, ExpoConfig } from 'expo/config';
 //
 //   GOOGLE_MAPS_ANDROID_API_KEY — the map on Android, and, since `10.5-iv-a-i`,
 //                                 Google's Geocoding from an Android phone
-//   GOOGLE_MAPS_IOS_API_KEY     — Google's Geocoding from an iPhone (`10.5-iv-a-i`);
-//                                 NOT the iPhone's map yet
+//   GOOGLE_MAPS_IOS_API_KEY     — Google's Geocoding from an iPhone (`10.5-iv-a-i`),
+//                                 and since `10.5-iv-b-i` the iPhone's map
 //   google-services.json        — push on Android (Firebase)
 //
 // All three live in EAS's environment (the wera-app organization's variables, set by
@@ -26,9 +26,12 @@ import type { ConfigContext, ExpoConfig } from 'expo/config';
 // where her phone's questions to Google read its own (`@/lib/useGoogle`) — the same
 // values, never a second variable for either. Expo writes `extra` into every update
 // it publishes, so the update runbook refuses to publish without both
-// (`test/support.test.ts`). ⚠️ THE IPHONE KEY IS NOT IN THE MAP'S OPTIONS: its
-// presence there compiles Google's map into an iPhone build — a native change, and
-// Itacate's map is `10.5-iv-b`'s, with its first iPhone build. Change both then.
+// (`test/support.test.ts`). ⚠️⚠️ SINCE `10.5-iv-b-i` THE IPHONE KEY IS IN THE MAP'S
+// OPTIONS TOO, as in Wera Cocina since `10.4g-i`: its presence there compiles Google's
+// map into an iPhone build — Google's points may be drawn on Google's map alone (its
+// terms, 3.2.3(e)), so Itacate's iPhone draws Google's, never Apple's. It is always
+// present (the placeholder at worst), so every iPhone build from here on carries
+// Google's map; no iPhone build of Itacate existed before it (`test/runtime.test.ts`).
 //
 // ⚠️ WITHOUT A KEY, A PLACEHOLDER — NOT NOTHING. Measured 2026-10-27 on the
 // emulator: with no key in the manifest the map throws *API key not found* as it
@@ -37,8 +40,8 @@ import type { ConfigContext, ExpoConfig } from 'expo/config';
 // keys (a local one) opens and asks Google nothing (`@/lib/google`'s `claveDe`
 // refuses the placeholder).
 //
-// ⚠️ NONE IS PART OF THE RUNTIME. `fingerprint.config.js` drops the Android key from
-// the map's options and the whole of `extra.google`, and ignores the Firebase file,
+// ⚠️ NONE IS PART OF THE RUNTIME. `fingerprint.config.js` drops both keys from the
+// map's options and the whole of `extra.google`, and ignores the Firebase file,
 // so this Mac, CI and EAS compute the same runtime with or without them — and the
 // runtime is the one Itacate's test build in the field carries, so the update
 // reaches it (measured by `10.5-iv-a-i` on both platforms). Without that, the hash
@@ -70,7 +73,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     extra: { ...config.extra, google: { android: mapsKey, ios: iosKey } },
     plugins: [
       ...(config.plugins ?? []),
-      ['react-native-maps', { androidGoogleMapsApiKey: mapsKey }],
+      ['react-native-maps', { androidGoogleMapsApiKey: mapsKey, iosGoogleMapsApiKey: iosKey }],
     ],
   };
 };

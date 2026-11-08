@@ -1,16 +1,23 @@
 import { execFileSync } from 'node:child_process';
-import { existsSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { createFingerprintAsync } from '@expo/fingerprint';
 import { afterAll, describe, expect, it } from 'vitest';
 
 // ============================================================================
 // THE RUNTIME DOES NOT DEPEND ON THE SECRETS — AND IS THE ONE ITACATE'S TEST BUILD
-// IN THE FIELD CARRIES. Plan tasks `10.2a` and `10.5-iv-a-i`.
-// ⚠️ Its twin in `cocina/test/` also holds the iPhone key IN THE MAP'S OPTIONS,
-// where its presence compiles Google's map into an iPhone build: Itacate carries it
-// only in `extra.google` until its own map (`10.5-iv-b`) — change both then.
+// IN THE FIELD CARRIES. Plan tasks `10.2a`, `10.5-iv-a-i` and `10.5-iv-b-i`.
+//
+// ⚠️⚠️ SINCE `10.5-iv-b-i` THE IPHONE KEY IS IN THE MAP'S OPTIONS — ALWAYS, THE
+// PLACEHOLDER AT WORST — and the iPhone has an icon of its own (`ios.icon`, the cow on
+// Itacate's blue): its presence compiles Google's map into every iPhone build, which
+// Google's terms require of Google's points (3.2.3(e)). Neither touches Android's build,
+// and `fingerprint.config.js` takes both out of the config before it is hashed, so
+// Android's runtime stays the field build's and the map reaches it as an update. The
+// iPhone's icon FILE is still hashed, for the iPhone alone — read below off the
+// fingerprint's own list of sources.
 //
 // EAS has the two keys and google-services.json; this Mac and CI do not. The
 // runtime an update is published to is computed on this Mac, and the one a build
@@ -73,11 +80,12 @@ describe('the runtime ignores the two keys and google-services.json', () => {
     if (!hadFirebase) rmSync(FIREBASE, { force: true });
   });
 
-  it('without them: the placeholder for each key, no iPhone key in the map’s options, no Firebase file', () => {
+  it('without them: the placeholder for each key — the iPhone’s in the map’s options too — and no Firebase file', () => {
     if (hadFirebase) return; // a real file is here; the comparison below still runs
     const cfg = config(false);
     expect(mapsOptions(cfg)?.androidGoogleMapsApiKey).toBe('sin-clave');
-    expect(mapsOptions(cfg)?.iosGoogleMapsApiKey).toBeUndefined();
+    // ⚠️ Present even without the key: Google's map is compiled into EVERY iPhone build.
+    expect(mapsOptions(cfg)?.iosGoogleMapsApiKey).toBe('sin-clave');
     expect(cfg.extra?.google).toEqual({ android: 'sin-clave', ios: 'sin-clave' });
     expect(cfg.android?.googleServicesFile).toBeUndefined();
   }, 120_000);
@@ -89,11 +97,31 @@ describe('the runtime ignores the two keys and google-services.json', () => {
     if (!hadFirebase) writeFileSync(FIREBASE, JSON.stringify({ project_info: { project_id: 'prueba' } }));
     const cfg = config(true);
     expect(mapsOptions(cfg)?.androidGoogleMapsApiKey).toBe(STAND_IN_KEY);
-    expect(mapsOptions(cfg)?.iosGoogleMapsApiKey).toBeUndefined();
+    expect(mapsOptions(cfg)?.iosGoogleMapsApiKey).toBe(STAND_IN_IOS_KEY);
     expect(cfg.extra?.google).toEqual({ android: STAND_IN_KEY, ios: STAND_IN_IOS_KEY });
     expect(cfg.android?.googleServicesFile).toBe('./google-services.json');
 
     expect(runtime('ios', true)).toBe(without.ios);
     expect(runtime('android', true)).toBe(without.android);
   }, 240_000);
+});
+
+describe('the iPhone’s icon is its own, and hashed for the iPhone alone (`10.5-iv-b-i`)', () => {
+  it('is `ios.icon`, and the top-level icon — Android’s below 8 — stays Wera’s', () => {
+    const app = JSON.parse(readFileSync(join(ROOT, 'app.json'), 'utf8')).expo;
+    expect(app.ios.icon).toBe('./assets/images/icon.png');
+    expect(app.icon).toBe('../app/assets/images/icon.png');
+  });
+
+  // ⚠️ Its key and its path are taken out of the config's text before hashing — that the
+  // Android runtime above is still the field build's, with both in the config, is the proof
+  // (the fingerprint's debug listing shows the text BEFORE `fileHookTransform`).
+  it('the iPhone’s runtime reads the icon’s file, Android’s does not', async () => {
+    const files = async (platform: 'ios' | 'android') => {
+      const print = await createFingerprintAsync(ROOT, { platforms: [platform], debug: true });
+      return (print.sources as { filePath?: string }[]).map((source) => source.filePath).filter(Boolean);
+    };
+    expect(await files('ios')).toContain('assets/images/icon.png');
+    expect(await files('android')).not.toContain('assets/images/icon.png');
+  }, 120_000);
 });

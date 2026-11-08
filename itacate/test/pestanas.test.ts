@@ -156,11 +156,11 @@ describe('one staggered entrance per screen, transform and opacity only (ADR-035
     expect(razon).toBeLessThan(0.95);
   });
 
-  it('Reanimated is drawn by the two motion parts alone, and their styles touch opacity and transform only', () => {
+  it('Reanimated is drawn by the motion parts alone — and, since `10.5-iv-b-i`, the list sliding over the map — their styles opacity and transform only', () => {
     const animators = files.filter((f) => /from 'react-native-reanimated'/.test(f.text)).map((f) => f.name);
-    expect(animators.sort()).toEqual(['ui/Hoja.tsx', 'ui/Llega.tsx']);
+    expect(animators.sort()).toEqual(['ui/Hoja.tsx', 'ui/HojaDeLista.tsx', 'ui/Llega.tsx']);
     const estilos = animators.flatMap((name) => [...code(name).matchAll(/useAnimatedStyle\(\(\) => \(\{([\s\S]*?)\}\)\)/g)].map((m) => m[1]));
-    expect(estilos.length).toBe(3);
+    expect(estilos.length).toBe(4);
     for (const estilo of estilos) {
       const claves = [...estilo.matchAll(/(?:^|[{,]\s*)([a-zA-Z]+):/g)].map((m) => m[1]).filter((k) => k !== 'translateY');
       expect(claves.every((clave) => clave === 'opacity' || clave === 'transform'), estilo).toBe(true);
@@ -260,10 +260,13 @@ describe('*Ordenar* — a button at the list’s head, and a sheet (the family-s
     expect(ordenar).toMatch(/onOrden\(cual\);\s*setAbierta\(false\);/);
   });
 
-  it('sits in the head of the list — the sheet the map will slide under — and Cambiar opens Dónde buscar', () => {
+  it('sits in the head of the list — the sheet that slides over the map — and Cambiar opens Dónde buscar', () => {
     const list = code('app/(vecino)/(tabs)/index.tsx');
-    expect(list).toMatch(/derecha=\{tarjetas\.length > 1 \? <Ordenar orden=\{orden\} onOrden=\{setOrden\} \/> : null\}/);
-    expect(list).toMatch(/<Desde origen=\{origen\} onCambiar=\{\(\) => router\.push\('\/donde'\)\} \/>/);
+    expect(list).toMatch(/derecha=\{hayLista && tarjetas\.length > 1 \? <Ordenar orden=\{orden\} onOrden=\{setOrden\} \/> : null\}/);
+    expect(list).toMatch(/\{hayLista && <Desde origen=\{origen\} onCambiar=\{\(\) => router\.push\('\/donde'\)\} \/>\}/);
+    // ⚠️ `10.5-iv-b-i`: the head is the sheet's — under its handle, with no room for the phone's clock.
+    expect(list).toMatch(/<Cabeza\s+titulo=\{ES\.cerca\.titulo\}\s+enHoja/);
+    expect(list).toMatch(/<HojaDeLista[\s\S]*cabeza=\{\s*<Cabeza/);
     // The list no longer opens *Tu cuenta* and draws no way out of its own: *Tú* does.
     expect(list).not.toMatch(/\/cuenta|Salidas|signOut/);
   });

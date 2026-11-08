@@ -143,10 +143,9 @@ describe('every value the bundle reads, the update runbook refuses to ship witho
     expect(config).toMatch(/extra: \{ \.\.\.config\.extra, google: \{ android: mapsKey, ios: iosKey \} \}/);
     expect(config).toMatch(/const mapsKey = process\.env\[MAPS_KEY_ENV\] \|\| MAPS_KEY_PLACEHOLDER;/);
     expect(config).toMatch(/const iosKey = process\.env\[IOS_MAPS_KEY_ENV\] \|\| MAPS_KEY_PLACEHOLDER;/);
-    // ⚠️ The iPhone key is NOT in the map's options: there its presence compiles Google's
-    // map into an iPhone build, a native change that is `10.5-iv-b`'s.
-    expect(config).toMatch(/\['react-native-maps', \{ androidGoogleMapsApiKey: mapsKey \}\]/);
-    expect(config).not.toMatch(/iosGoogleMapsApiKey/);
+    // ⚠️ Since `10.5-iv-b-i` the iPhone key is in the map's options too: its presence
+    // compiles Google's map into an iPhone build, as in Wera Cocina since `10.4g-i`.
+    expect(config).toMatch(/\['react-native-maps', \{ androidGoogleMapsApiKey: mapsKey, iosGoogleMapsApiKey: iosKey \}\]/);
     // Her phone's questions to Google read them where Expo puts the config, and only there.
     const readers = sources().filter((path) => /expoConfig\?\.extra/.test(readFileSync(path, 'utf8')));
     expect(readers.map((path) => path.slice(SRC.length + 1))).toEqual(['lib/useGoogle.ts']);
