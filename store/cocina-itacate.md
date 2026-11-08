@@ -358,8 +358,19 @@ the update check, Google's SDKs and Firebase send on their own.
 *Developer communications* on the email, as Wera Cocina's: the aviso promises an email before any
 change to which data is used, or for what (its section 11). ⚠️ **Since the owner's ruling of
 2026-11-04, night, nothing of her location reaches the door** — no square, as `10.5` once planned —
-so her location is not declared at all, and the postal code is the one location type. `10.5-iv-b`
-(Google's map in Itacate) reads this section again.
+so her location is not declared at all, and the postal code is the one location type.
+✅ **Read again by `10.5-iv-b-i` (Google's map in Itacate, 2026-11-08): nothing changes.** The map
+is the Maps SDK this section already declares (version 3, the skeleton, drew one). Google's
+*Prepare for Google Play's data disclosure requirements* for the Maps SDK for Android (last updated
+2026-11-03, read 2026-11-08) lists request metadata, crash data, the IP address, its pseudonymous
+id and map interaction events — **no location of any kind**; the app draws her dot itself and
+never turns on Google's *My Location* layer (`showsUserLocation={false}`, held by
+`itacate/test/mapa.test.ts`). The map's tiles show Google the zone she looks at, with the IP
+address — the aviso says so (section 10, *El mapa*); Google's page does not count it as location.
+⚠️ **For Itacate's App Store record (`10.5b`)**: its first iPhone build carries GoogleMaps 9.4.0,
+whose privacy manifest is the one behind Wera Cocina's Apple answers (section 7 — crash data,
+device id, other data, performance data, product interaction; no location), so Itacate's take
+the same Google rows.
 
 ⚠️ **What stands behind the technical answers, in both apps**: Expo's update check
 (`expo-updates` sends `EAS-Client-ID`, as for Wera); Google's *Prepare for Google Play's data

@@ -13,17 +13,20 @@ import { PALETTE, SIZE } from '@/theme/palette';
 //
 // ⚠️ STATE FIRST, BEFORE ANYTHING TAPPABLE (ADR-035 §2.8): the line under the name says
 // where she stands — where the list is measured from, whose account this is — and the
-// screen's actions come after it. On *Cerca* it is the head of the sheet the map will
-// slide under (`10.5-iv-b`, the owner's C): until the map, the sheet fills the screen.
+// screen's actions come after it. ⚠️ On *Cerca* it is the head of the sheet that slides
+// over the map (`10.5-iv-b-i`, the owner's C) — `enHoja`: under the sheet's handle, so
+// with no room for the phone's clock above it.
 // ============================================================================
 
 export function Cabeza({
   titulo,
   derecha = null,
+  enHoja = false,
   children = null,
 }: {
   titulo: string;
   derecha?: ReactNode;
+  enHoja?: boolean;
   children?: ReactNode;
 }) {
   const insets = useSafeAreaInsets();
@@ -31,7 +34,7 @@ export function Cabeza({
     <View
       style={{
         backgroundColor: PALETTE.fondo,
-        paddingTop: insets.top + SIZE.space,
+        paddingTop: enHoja ? SIZE.rowGap / 2 : insets.top + SIZE.space,
         paddingBottom: SIZE.space,
         paddingHorizontal: SIZE.space * 1.5,
         borderBottomWidth: 1,

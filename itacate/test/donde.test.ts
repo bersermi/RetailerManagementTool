@@ -238,7 +238,9 @@ describe('her location never leaves the phone, and nothing of Google’s is kept
     }
     const list = code('app/(vecino)/(tabs)/index.tsx');
     expect(list).toMatch(/const \{ donde, otraVez, usarUbicacion \} = useDondeEstoy\(codigo === null\);/);
-    expect(list).toMatch(/onLugar=\{elegirCodigo\}/);
+    // Since `10.5-iv-b-i` the box sits in the sheet over the map: a code placed is her pick, and the sheet comes half-way.
+    expect(list).toMatch(/onLugar=\{enCodigo\}/);
+    expect(list).toMatch(/function enCodigo\(nuevo: Codigo\) \{\s*Keyboard\.dismiss\(\);\s*elegirCodigo\(nuevo\);/);
     expect(code('lib/useUbicacion.ts')).toMatch(/if \(!activo\) return;/);
   });
 

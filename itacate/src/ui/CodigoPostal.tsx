@@ -19,7 +19,16 @@ import { Campo } from '@/ui/Campo';
 // point that comes back lives in the list's memory until she changes it or the app
 // closes — never on the phone's disk, never sent to the database.
 // ============================================================================
-export function CodigoPostal({ motivo, onLugar }: { motivo: string | null; onLugar: (codigo: Codigo) => void }) {
+export function CodigoPostal({
+  motivo,
+  onLugar,
+  onFocus,
+}: {
+  motivo: string | null;
+  onLugar: (codigo: Codigo) => void;
+  /** Since `10.5-iv-b-i`: on *Cerca* the box sits in the sheet over the map, which rises full as she types. */
+  onFocus?: () => void;
+}) {
   const [escrito, setEscrito] = useState('');
   const [problema, setProblema] = useState<string | null>(null);
   const { buscar, buscando } = useCodigoPostal();
@@ -48,6 +57,7 @@ export function CodigoPostal({ motivo, onLugar }: { motivo: string | null; onLug
         maxLength={5}
         returnKeyType="search"
         onSubmitEditing={() => void enviar()}
+        onFocus={onFocus}
       />
       {problema !== null && <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.error }}>{problema}</Text>}
       <BotonLleno label={ES.cerca.buscar} icon="magnify" variante="principal" busy={buscando} onPress={() => void enviar()} />
