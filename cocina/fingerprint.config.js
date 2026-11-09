@@ -1,7 +1,7 @@
 // ============================================================================
 // WHICH BUILDS AN OVER-THE-AIR UPDATE MAY REACH. Plan tasks `10.2a` and `10.4g-i`.
-// ⚠️ Its twin, `itacate/fingerprint.config.js`, is as it was before `10.4g-i`:
-// Itacate carries no iPhone key yet — change both when it does (`10.5-iv`).
+// ⚠️ Its twin, `itacate/fingerprint.config.js`, carries the iPhone key too since
+// `10.5-iv-b-i`, but REMOVES it where this file masks it — its header says why.
 //
 // The same rules as `app/fingerprint.config.js` (Wera's, measured 2026-10-10:
 // version numbers, masked-view's manifest a local Android build rewrites inside

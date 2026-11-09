@@ -367,10 +367,12 @@ id and map interaction events — **no location of any kind**; the app draws her
 never turns on Google's *My Location* layer (`showsUserLocation={false}`, held by
 `itacate/test/mapa.test.ts`). The map's tiles show Google the zone she looks at, with the IP
 address — the aviso says so (section 10, *El mapa*); Google's page does not count it as location.
-⚠️ **For Itacate's App Store record (`10.5b`)**: its first iPhone build carries GoogleMaps 9.4.0,
-whose privacy manifest is the one behind Wera Cocina's Apple answers (section 7 — crash data,
-device id, other data, performance data, product interaction; no location), so Itacate's take
-the same Google rows.
+⚠️ **For Itacate's App Store record (`10.5b`)**: its first iPhone build (EAS `282cfb7d`, read inside
+2026-11-09, `10.5-iv-b-ii`) carries GoogleMaps 9.4.0 and the same two Google manifests behind Wera
+Cocina's Apple answers (section 7): between them crash data, performance data and product interaction,
+not linked; a user id and other data, linked; a device id, linked in one and not the other; all for
+analytics, no tracking, no location. Its other fourteen manifests declare no data. So Itacate's answers
+take the same Google rows.
 
 ⚠️ **What stands behind the technical answers, in both apps**: Expo's update check
 (`expo-updates` sends `EAS-Client-ID`, as for Wera); Google's *Prepare for Google Play's data

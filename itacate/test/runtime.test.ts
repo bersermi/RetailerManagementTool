@@ -7,8 +7,9 @@ import { createFingerprintAsync } from '@expo/fingerprint';
 import { afterAll, describe, expect, it } from 'vitest';
 
 // ============================================================================
-// THE RUNTIME DOES NOT DEPEND ON THE SECRETS — AND IS THE ONE ITACATE'S TEST BUILD
-// IN THE FIELD CARRIES. Plan tasks `10.2a`, `10.5-iv-a-i` and `10.5-iv-b-i`.
+// THE RUNTIME DOES NOT DEPEND ON THE SECRETS — AND IS THE ONE ITACATE'S TEST BUILDS
+// IN THE FIELD CARRY, ON BOTH PHONES. Plan tasks `10.2a`, `10.5-iv-a-i`,
+// `10.5-iv-b-i` and `10.5-iv-b-ii`.
 //
 // ⚠️⚠️ SINCE `10.5-iv-b-i` THE IPHONE KEY IS IN THE MAP'S OPTIONS — ALWAYS, THE
 // PLACEHOLDER AT WORST — and the iPhone has an icon of its own (`ios.icon`, the cow on
@@ -32,12 +33,13 @@ import { afterAll, describe, expect, it } from 'vitest';
 // as `googleServicesFile`. Equal hashes over a config the stand-ins never reached
 // would prove nothing.
 //
-// ⚠️ AND PINNED TO THE FIELD (`10.5-iv-a-i`): the Android runtime must be the one
-// Itacate's only test build carries (`2b638d21`, plan `10.2b`; the update of
-// `10.5-iii-b` went to it) — a change that moves it strands every update until a
-// new build, as `docs/checks/wera-runtime.sh` holds Wera's. No iPhone build exists,
-// so the iPhone's runtime is held equal with and without the keys only. A new build
-// moves the pin, in the PR that makes it.
+// ⚠️ AND PINNED TO THE FIELD: each platform's runtime must be the one Itacate's test
+// build on that platform carries — Android's `2b638d21` (plan `10.2b`; pinned by
+// `10.5-iv-a-i`) and the iPhone's `282cfb7d`, its first (`10.5-iv-b-ii`) — because a
+// change that moves either strands every update to that platform until a new build,
+// and `ship-an-update.sh` then leaves it out without failing, as
+// `docs/checks/wera-runtime.sh` holds Wera's. A new build moves its pin, in the PR
+// that makes it.
 // ============================================================================
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
@@ -47,6 +49,13 @@ const STAND_IN_IOS_KEY = 'clave-de-prueba-10-5-iv-a-i';
 
 /** The runtime of build `2b638d21`, Itacate's Android test build — read off the update that reached it (`10.5-iii-b`). */
 const RUNTIME_DE_SU_BUILD_ANDROID = '4de35b0b452e9511322b8cd61b27f70508aa8d3d';
+
+/**
+ * The runtime of build `282cfb7d`, Itacate's first iPhone test build (1.0.0 build 2, from
+ * `785299b`) — read inside it (`EXUpdates.bundle/fingerprint`) and asked of EAS by
+ * `ship-an-update.sh --check`, 2026-11-09 (`10.5-iv-b-ii`).
+ */
+const RUNTIME_DE_SU_BUILD_IOS = 'a46650e4f82ec3cc449c889691c14027409f6f7f';
 
 function npx(args: string[], withSecrets: boolean): string {
   const env = { ...process.env };
@@ -90,9 +99,10 @@ describe('the runtime ignores the two keys and google-services.json', () => {
     expect(cfg.android?.googleServicesFile).toBeUndefined();
   }, 120_000);
 
-  it('the same runtime with stand-ins for all three, on both platforms — Android’s the field build’s', () => {
+  it('the same runtime with stand-ins for all three, on both platforms — each the field build’s', () => {
     const without = { ios: runtime('ios', false), android: runtime('android', false) };
     expect(without.android).toBe(RUNTIME_DE_SU_BUILD_ANDROID);
+    expect(without.ios).toBe(RUNTIME_DE_SU_BUILD_IOS);
 
     if (!hadFirebase) writeFileSync(FIREBASE, JSON.stringify({ project_info: { project_id: 'prueba' } }));
     const cfg = config(true);
