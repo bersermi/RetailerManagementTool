@@ -598,10 +598,12 @@ Program and Play Console — both opened 1 October), `5R-b` (cloud builds and fi
 | Date | What | If it is missed |
 |---|---|---|
 | **13 October** | ✅ **Done 13 October** — you booted the sealed emulator; Wera opened **still signed in** after about 21½ days untouched. No further reading is scheduled; that emulator is free to use or delete | — |
-| **8 November** | **Apply for production on Google Play** — *Dashboard → Apply for production*; twelve testers have been in since 24 October. Moved from 7 November on your word that evening, while you were away. The form asks how the test went (`store/google-play.md`, section 7); Google answers in about a week | Production waits; the closed test simply runs on |
+| **8 November** | ✅ **Done 9 November** — you applied for production on Google Play, a day late. The answers drafted with you are in `store/google-play.md`, section 7 | — |
+| **16 November** | **Google's answer** on Wera's production access — an email, usually within seven days. Tell a session *"Google approved"*, or paste Google's words. Nothing yet? Tell the session that too, and it moves the date a week | Wera stays off Play's public listing; nothing breaks |
+| **4 December** | **Delete the photos of businesses that no longer exist** — a session lists them (*Photos of a shop or a kitchen that no longer exists*); if it names one, you run the deletion. Then every 30 days | Both privacy pages promise it within 30 days |
 | **30 April 2027** | **Delete the pilot's measurements** on the live database — the aviso promises it. If the pilot runs longer, change the date on the pages and tell the users first | The aviso says something false about people's data |
 
-All three are in the plan's ⏳ DATES OWED block, which turns the checks red once one passes unticked. The 4 October rebuild is gone: your paid account signed the 9 October build for a year.
+Every one of them is in the plan's ⏳ DATES OWED block, which turns the checks red once one passes unticked. The 4 October rebuild is gone: your paid account signed the 9 October build for a year.
 
 ---
 
@@ -674,6 +676,40 @@ End every session the same way, so I can read it in twenty seconds:
   - the next task, and whether it is gated
 If the question is about what a shopkeeper actually does, walk me through the
 situations before showing me a design.
+```
+
+### The Standing Prompt — for a review of where we stand
+
+Use it instead of the main prompt when you want to see everything open outside the code before
+the next task: what is yours to do, what Apple or Google owes, what a calendar owes — store
+submissions, updates, consoles, keys, emails. The session takes no task and changes no code; it
+reads the world, asks you what only a console shows, and leaves the plan and this handbook true.
+
+```
+Today is a review of where we stand, not a task: take no row from the plan and change no
+code. Start with `bash docs/checks/plan-handover.sh`, then check nothing was left behind:
+an unmerged PR, a migration merged and never deployed, an update published and never
+installed.
+
+Make ONE list of everything open outside the code — what is mine to do, what Apple or
+Google owes, what a calendar owes — from the plan's ⛔ DECISIONS OWED and ⏳ DATES OWED, the
+newest status entries' "Waiting on him" lines, every row that waits on my hands, and the
+handbook's sections that are mine. Group it by app (Wera, Wera Cocina, Itacate), then what
+they share (the database, the site, Google Cloud, Apple, Supabase).
+
+Before calling an item open or done, read the thing that runs: EAS's builds and updates for
+each app, `5R-f-schema-deployed.sh`, `5R-k-function-deployed.sh`, `5R-d-ii-site-live.sh`.
+What only a console shows (Play Console, App Store Connect, Google Cloud), ask me, one
+console at a time, and record my answer as mine. I have just done a round of these, so
+ask what I did before telling me what is left.
+
+For each item say: done (and what showed it), mine (and how long it takes), waiting on
+someone else (and since when), or no longer needed (and why). Put the list on one page I
+can read on my phone, what blocks the most first.
+
+Then bring the plan and the handbook into line with what we found, in one PR, and tell me
+which claims you fixed. End with what is mine now, in order, with one recommendation, and
+the next task and whether it is gated.
 ```
 
 ### The Review Prompt — for your design review (`8g`)
@@ -1710,8 +1746,11 @@ plan's `5R-e` row.
    6 November: both stores' builds take it. Then open the store Wera, close it completely and
    open it again. (Android's store version got the first five as they went out, the last on
    29 October.)
-2. **Google:** the twelfth tester joined on 24 October, so *Apply for production* opens on
-   **7 November** (*The dates*, above).
+2. **Google:** ✅ **you applied for production on 9 November.** Google answers by email, usually
+   within seven days (*The dates*, above). If it approves, tell a session *"Google approved"*: the
+   release to everyone is yours in Play Console, Mexico only, and the session walks you through it.
+   If it asks for more testing, paste its words; the answers you sent are drafted in
+   `store/google-play.md`, section 7.
 3. **If a store refuses something**, paste its words to a session.
 
 **Still yours from 21 October, none of them blocking the review:**

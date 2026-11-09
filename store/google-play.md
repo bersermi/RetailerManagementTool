@@ -260,8 +260,67 @@ Then *Next → Save → Send for review*.
 
 ## 7. When the 14 days are over — the questions Google asks
 
-Applying for production opens a form about the test. Keep notes during the 14 days so these are
-quick to answer: was it easy to find testers; did they use every part of the app; did they use
-it the way a shop would; what did they tell you and how did you collect it; what did you change
-because of it; and how did you decide it was ready. Google's review of that form usually takes
-seven days or less.
+**Applied 2026-11-09** (the owner's word). *Dashboard → Apply for production* opens a form of three
+pages — the closed test, the app, production readiness — with two answers picked from a list and six
+written, **each written answer 300 characters or less** (his word; Google's help page,
+support.google.com/googleplay/android-developer/answer/14151465, gives no limit). A page saves only
+on **Next**; *Discard* or leaving it loses its answers. Google answers by email, *"usually … seven
+days or less"*.
+
+These are the answers drafted with him, from the plan's record of the test: the feedback of 22 and
+23 October (`8g`) and the six updates sent to the Android store version from 22 October to
+6 November (`5R-e`). ⚠️ **Three carry facts only he holds** — who the testers are, how their feedback
+reached him, and whether Play's pre-launch report shows a crash — so what he sent may differ there.
+If Google refuses, ask him what he sent before answering from this page.
+
+**How easy was it to recruit testers** — his pick from the list. For the record: all 12 addresses
+within two days (12–14 October), the twelfth opted in on 24 October.
+
+**Engagement during the closed test**
+
+<!-- max:300 -->
+```
+12 testers opted in by 24 Oct and stayed in: shop owners, cashiers, friends and family in Mexico, invited by email and WhatsApp. They made a shop, added products and suppliers, recorded sales, purchases and write-offs, and took the guided tour. We sent 6 updates during the test.
+```
+
+**Feedback, and how it was collected**
+
+<!-- max:300 -->
+```
+Sent to me by WhatsApp. They couldn't see the password at sign-up; the keyboard covered boxes on newer Android; the quantity box cut long units (12 manojo read 2 manojo); adding a supplier was confusing; the tour was too fast; new shops didn't know they could add products later.
+```
+
+**Intended audience**
+
+<!-- max:300 -->
+```
+Owners and cashiers of small independent shops in Mexico: corner stores (abarrotes), greengrocers and similar. Adults who speak Spanish, often with weak mobile signal at the counter. Published in Mexico only.
+```
+
+**How the app provides value**
+
+<!-- max:300 -->
+```
+Wera records each sale, supplier purchase and write-off in a few taps, on the phone the shop already has. It keeps stock and prices up to date, shows what sells and what is lost, and works without signal, syncing once back online. Staff share one shop, each with a role.
+```
+
+**Installs expected in the first year** — the lowest range (0–10K): Mexico only, and a pilot.
+
+**Changes made because of the closed test**
+
+<!-- max:300 -->
+```
+All fixed and sent as updates during the test: a show-password button; forms scroll the box above the keyboard, with a key to close it; the quantity box shows the whole number; a Crear Nuevo Proveedor button with a duplicate warning; a slower tour; a hint on adding products; prices set offline.
+```
+
+**How it was decided the app is ready**
+
+<!-- max:300 -->
+```
+Every issue testers raised was fixed and delivered during the test. The same app has been live on the Mexican App Store since 5 Nov, after Apple's review. Every change passes more than 2,300 automated tests before release, and the pre-launch report shows no crashes.
+```
+
+The last clause only if Play's pre-launch report shows no crash; without it the answer ends at
+*"before release."* (222). *"More than 2,300"* is the CI run that merged pull request 530 (2,361 tests). *"6 updates"* are the
+plan's `production --only android` groups `2e6bd55a`, `0ea14047`, `189728be`, `b98c9319`, `338f6217`
+and `357313b0`.
