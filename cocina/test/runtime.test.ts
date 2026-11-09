@@ -7,8 +7,8 @@ import { afterAll, describe, expect, it } from 'vitest';
 
 // ============================================================================
 // THE RUNTIME DOES NOT DEPEND ON THE SECRETS. Plan tasks `10.2a` and `10.4g-i`.
-// ⚠️ Its twin in `itacate/test/` holds two secrets: Itacate carries no iPhone key
-// yet (`itacate/app.config.ts`) — change both when it does.
+// ⚠️ Its twin in `itacate/test/` holds the same three since `10.5-iv-b-i`, and also
+// pins each platform's runtime to Itacate's test build in the field (`10.5-iv-b-ii`).
 //
 // EAS has the two map keys and google-services.json; this Mac and CI do not. The
 // runtime an update is published to is computed on this Mac, and the one a

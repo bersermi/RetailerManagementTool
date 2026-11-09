@@ -55,7 +55,8 @@ import { ES as COCINA } from '../../cocina/src/strings';
 // of these names to Wera Cocina's, whose requests it asks a real PostgREST) and
 // `docs/checks/5R-k-apple-revoke-contract.sh`, which read them out of
 // `src/api/account.ts`. What no check can see: Apple's sheet on an iPhone, and
-// Apple accepting the trade — Itacate has no iPhone build yet.
+// Apple accepting the trade — not yet seen from Itacate's first iPhone build
+// (`282cfb7d`, `10.5-iv-b-ii`; the handbook's *Itacate's way out*, A).
 // ============================================================================
 
 const here = (path: string) => new URL(`../${path}`, import.meta.url);

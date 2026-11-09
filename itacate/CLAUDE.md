@@ -68,8 +68,9 @@ from `itacate/` with the two local `EXPO_PUBLIC_SUPABASE_` values in the shell, 
   No business is open here, so they are named kitchens first, then shops. Wera's words, held to Wera's
   file (`test/account.test.ts`); each business's line is the twin's that is not its home. ⚠️ **Apple
   is told through Wera's one function**, its body's `client_id` this app's bundle id (`apple-revoke`
-  build 3); only an iPhone shows the sheet, and **Itacate has no iPhone build**, so that half has
-  never run from it. ⚠️ ***Tú* is a `Formulario`** so a typed name stays above the keyboard.
+  build 3); only an iPhone shows the sheet, and **no account made with Apple has been seen deleted
+  from Itacate's first iPhone build** (`282cfb7d`, `10.5-iv-b-ii`) — the handbook's *Itacate's way
+  out*, A, is that proof. ⚠️ ***Tú* is a `Formulario`** so a typed name stays above the keyboard.
 - **A module in `src/api/` is a claim about the applied schema**, as in Wera and Wera Cocina:
   `db.yml` fires on `itacate/src/api/**` since `10.5-iii-a`. ⚠️ **Her way out's names
   (`src/api/account.ts`) are Wera Cocina's, one by one**: the first group of
