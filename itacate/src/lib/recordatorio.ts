@@ -4,11 +4,15 @@
 // page, stage 2: *"The neighbour, 15 minutes before her hour: scheduled by her own phone
 // when she reserves. Nothing leaves it."*).
 //
-// ⚠️ ONE PER RESERVATION STILL TO COLLECT, whose moment has not passed: a plate she gave
-// back, collected, or that the kitchen cancelled holds none — her phone is told again each
-// time her reservations are read (`@/lib/avisos`, `@/lib/Recordatorios`), so a handover on
-// the kitchen's phone takes hers away at the next read. An hour less than 15 minutes away
-// has no reminder: she has just chosen it.
+// ⚠️ ONE PER RESERVATION STILL TO COLLECT whose hour has not come: a plate she gave back,
+// collected, or that the kitchen cancelled holds none — her phone is told again each time her
+// reservations are read (`@/lib/avisos`, `@/lib/Recordatorios`), so a handover on the kitchen's
+// phone takes hers away at the next read (⚠️ and only then: with her app closed nothing tells her
+// phone, so a plate collected early keeps its reminder). ⚠️ A RESERVATION KEEPS ITS REMINDER UNTIL
+// HER HOUR, even after the reminder's own moment: Android delivers it late, and a reading in between
+// must not cancel one it has not shown yet (found by the review of `10.5b-iii-b`) — `@/lib/avisos`
+// schedules only what is new and still ahead (`porVenir`), so an hour less than 15 minutes away,
+// just chosen, gets none.
 // ⚠️ ITS MOMENT IS HER HOUR AS THE DATABASE KEPT IT (`pickup_at`), an instant — never a time
 // of day, so a reservation for tomorrow reminds her tomorrow.
 // ⚠️ NOTHING LEAVES THE PHONE: no push token is asked for, and no server sends it.
@@ -36,10 +40,10 @@ export interface Disparo {
   readonly texto: string;
 }
 
-/** The reminders her phone should hold now: one per reservation still to collect, 15 minutes before her hour. */
+/** The reminders her phone should hold now: one per reservation still to collect whose hour has not come, 15 minutes before it. */
 export function disparosDe(apartados: readonly Apartado[], ahora: Date): Disparo[] {
   return apartados
-    .filter((a) => a.estado === 'apartado' && a.hora.getTime() - ANTES_MS > ahora.getTime())
+    .filter((a) => a.estado === 'apartado' && a.hora.getTime() > ahora.getTime())
     .sort((a, b) => a.hora.getTime() - b.hora.getTime())
     .map((a) => ({
       id: `${PREFIJO}${a.id}`,
@@ -49,7 +53,7 @@ export function disparosDe(apartados: readonly Apartado[], ahora: Date): Disparo
     }));
 }
 
-/** Only what is still ahead when the phone is told — a moment that passed while it waited is dropped. */
+/** Of those, what may still be scheduled: its moment ahead when the phone is told. One already held is never cancelled for it. */
 export function porVenir(disparos: readonly Disparo[], ahora: number): Disparo[] {
   return disparos.filter((d) => d.cuando.getTime() > ahora);
 }

@@ -20,9 +20,14 @@ import { ES } from '@/strings';
 // can turn it on (Wera Cocina's rule). ⚠️ NEVER "ONLY WHILE UNDETERMINED": on Android 13 and later
 // `expo-notifications` 57.0.17 answers `denied` for a permission never asked (notifications not
 // enabled reads as denied, in its source) — such a check never asked at all, found on the emulator.
-// ⚠️ EVERY REMINDER IS SCHEDULED UNDER `PREFIJO`, and scheduling cancels those first, so what
-// the phone holds is always exactly her reservations still to collect, however often it is
-// told (each time her reservations are read, `@/lib/Recordatorios`). Signing out cancels them.
+// ⚠️ EVERY REMINDER IS SCHEDULED UNDER `PREFIJO` AND KEPT BY ITS ID: each time her reservations
+// are read (`@/lib/Recordatorios`) the phone cancels those no reservation still wants and schedules
+// those it does not hold yet — ⚠️ never "cancel all, schedule again": Android delivers late, and a
+// reading between a reminder's moment and its delivery would cancel one it had not shown (found by
+// the review of `10.5b-iii-b`). Each is scheduled in a try of its own: one refused (an iPhone refuses
+// a moment just past) never costs the rest. Signing out cancels them all.
+// ⚠️ SHOWN WHILE ITACATE IS OPEN TOO (`mostrarRecordatorios`, from `@/lib/Recordatorios`): without a
+// handler a reminder that comes due in the front is dropped; only ours are shown.
 // ⚠️ ANDROID 12 AND LATER DELIVER IT LATE, NEVER EARLY: without the exact-alarm permission (in
 // no build) `expo-notifications` 57.0.17 falls back to `setAndAllowWhileIdle` (read in its
 // source), an inexact alarm whose window the system may stretch to an hour — Wera Cocina's
@@ -95,29 +100,66 @@ export function quitarApartados(): Promise<void> {
 }
 
 /**
- * Her phone holds exactly these reminders — the old ones cancelled first. Without her
- * permission nothing is scheduled (and nothing asked): they wait for her yes.
+ * Her phone holds a reminder for each of these, by id: those no longer wanted cancelled,
+ * the new ones still ahead scheduled, the rest left as they are. Without her permission
+ * nothing is scheduled (and nothing asked): they wait for her yes.
  */
 export function programarApartados(disparos: readonly Disparo[]): Promise<void> {
   ultimos = disparos;
   return enOrden(async () => {
+    let tiene: string[];
     try {
       if (!(await Notifications.getPermissionsAsync()).granted) return;
-      await quitarAhora();
-      const pendientes = porVenir(disparos, Date.now());
-      if (pendientes.length === 0) return;
+      tiene = await nuestros();
+    } catch (falla) {
+      console.warn(`[recordatorio] the phone could not be read: ${String(falla)}`);
+      return;
+    }
+    const quiere = new Set(disparos.map((d) => d.id));
+    for (const id of tiene) {
+      if (quiere.has(id)) continue;
+      try {
+        await Notifications.cancelScheduledNotificationAsync(id);
+      } catch {
+        // The next read tells the phone again.
+      }
+    }
+    const nuevos = porVenir(
+      disparos.filter((d) => !tiene.includes(d.id)),
+      Date.now(),
+    );
+    if (nuevos.length === 0) return;
+    try {
       await asegurarCanal();
-      for (const disparo of pendientes) {
+    } catch {
+      // Android only; a reminder on the default channel still comes.
+    }
+    for (const disparo of nuevos) {
+      try {
         await Notifications.scheduleNotificationAsync({
           identifier: disparo.id,
           content: { title: disparo.titulo, body: disparo.texto, data: { ruta: rutaDelToque(disparo.id) } },
           trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: disparo.cuando, channelId: CANAL },
         });
+      } catch (falla) {
+        console.warn(`[recordatorio] the phone did not schedule ${disparo.id}: ${String(falla)}`);
       }
-    } catch (falla) {
-      console.warn(`[recordatorio] the phone did not schedule it: ${String(falla)}`);
     }
   });
+}
+
+/**
+ * While Itacate is in the front, a reminder of hers that comes due is shown as anywhere else —
+ * without a handler it would be dropped. Anything else is shown nowhere. Returns what undoes it.
+ */
+export function mostrarRecordatorios(): () => void {
+  Notifications.setNotificationHandler({
+    handleNotification: async (notificacion) => {
+      const nuestra = rutaDelToque(notificacion.request.identifier) !== null;
+      return { shouldShowBanner: nuestra, shouldShowList: nuestra, shouldPlaySound: nuestra, shouldSetBadge: false };
+    },
+  });
+  return () => Notifications.setNotificationHandler(null);
 }
 
 /**

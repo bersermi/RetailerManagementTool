@@ -1,5 +1,5 @@
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Pressable, Text, TextInput, View } from 'react-native';
 
 import { NOTA_MAXIMA, etiquetasDeLaBanda, etiquetasPara, type Apartado, type EtiquetaDeCocina } from '@/api/apartados';
@@ -17,7 +17,10 @@ import { BotonLleno } from '@/ui/BotonLleno';
 //
 // ⚠️ ONE TAP RATES: the stars are sent the moment she taps them (`rate_kitchen`), so a rating
 // is never lost to a screen she leaves; her tags and her note go with them again on *Listo*
-// (each call sets all three). A change of stars drops the tags of the other band.
+// (each call sets all three). A change of stars drops the tags of the other band. ⚠️ ONE SEND AT A
+// TIME, IN THE ORDER TAPPED: five then two sent at once could reach the database out of order and
+// keep five while the screen says two — and only the last send's answer is said (the review of
+// `10.5b-iii-b`).
 // ⚠️ HER TERMS WERE ACCEPTED WITH HER YES, before her first reservation (`@/ui/HojaApartar`):
 // no rating can come before it, so no step is added here.
 // ⚠️ IT IS NOT A SHEET: it sits on *Apartados* (`(vecino)/(tabs)/apartados`), inside a form that
@@ -32,15 +35,18 @@ export function Calificar({ apartado, onListo }: { apartado: Apartado; onListo: 
   const [nota, setNota] = useState('');
   const [falla, setFalla] = useState<string | null>(null);
   const [gracias, setGracias] = useState(false);
+  /** The sends, one after another; and which was the last one asked for. */
+  const cola = useRef<Promise<unknown>>(Promise.resolve());
+  const ultimo = useRef(0);
 
-  async function enviar(n: number, tags: readonly EtiquetaDeCocina[], texto: string): Promise<boolean> {
-    const resultado = await calificar(apartado.id, { estrellas: n, etiquetas: tags, nota: texto });
-    if (resultado.ok) {
-      setFalla(null);
-      return true;
-    }
-    setFalla(ES.apartar.fallas[resultado.falla]);
-    return false;
+  function enviar(n: number, tags: readonly EtiquetaDeCocina[], texto: string): Promise<boolean> {
+    const turno = ++ultimo.current;
+    const paso = cola.current.then(() => calificar(apartado.id, { estrellas: n, etiquetas: tags, nota: texto }));
+    cola.current = paso;
+    return paso.then((resultado) => {
+      if (turno === ultimo.current) setFalla(resultado.ok ? null : ES.apartar.fallas[resultado.falla]);
+      return resultado.ok;
+    });
   }
 
   function tocarEstrella(n: number) {

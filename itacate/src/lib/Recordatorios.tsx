@@ -2,7 +2,7 @@ import { router } from 'expo-router';
 import { useEffect } from 'react';
 
 import { useApartados } from '@/api/hooks';
-import { alTocarUnRecordatorio, programarApartados, quitarApartados } from '@/lib/avisos';
+import { alTocarUnRecordatorio, mostrarRecordatorios, programarApartados, quitarApartados } from '@/lib/avisos';
 import { disparosDe } from '@/lib/recordatorio';
 
 // ============================================================================
@@ -15,7 +15,7 @@ import { disparosDe } from '@/lib/recordatorio';
 //     she gave back, collected, or the kitchen handed over loses its reminder at that read;
 //   - NONE ONCE SHE IS GONE: when the tabs leave — she signed out, or deleted her account —
 //     every reminder of hers is cancelled;
-//   - A TAP opens *Apartados*.
+//   - A TAP opens *Apartados*; one that comes due while Itacate is open is shown too.
 // ⚠️ `dataUpdatedAt`, NOT `data`: an answer equal to the last keeps its reference, and a
 // permission turned on in Settings meanwhile must still be acted on at the next read.
 // NO CHECK CAN SEE ANY OF IT (ADR-035 §2.11): the phone is the instrument.
@@ -39,6 +39,8 @@ export function Recordatorios() {
   );
 
   useEffect(() => alTocarUnRecordatorio((ruta) => router.navigate(ruta as '/apartados')), []);
+
+  useEffect(() => mostrarRecordatorios(), []);
 
   return null;
 }

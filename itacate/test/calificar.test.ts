@@ -176,6 +176,9 @@ describe('her stars about the kitchen — `rate_kitchen`, by `0080`’s names an
   it('the screen: one tap sends the stars, *Listo* sends them again with her tags and note, on *Apartados*, in a form', () => {
     const calificar = code('ui/Calificar.tsx');
     expect(calificar).toMatch(/function tocarEstrella\(n: number\) \{[\s\S]*?void enviar\(n, tags, nota\);/);
+    // One send at a time, in the order tapped, and only the last one's answer said.
+    expect(calificar).toMatch(/const paso = cola\.current\.then\(\(\) => calificar\(/);
+    expect(calificar).toMatch(/if \(turno === ultimo\.current\) setFalla\(/);
     expect(calificar).toMatch(/if \(await enviar\(estrellas, etiquetas, nota\)\) setGracias\(true\);/);
     expect(calificar).toMatch(/maxLength=\{NOTA_MAXIMA\}/);
     expect(calificar).toMatch(/etiquetasPara\(estrellas\)\.map/);
@@ -302,10 +305,15 @@ describe('her reminder, 15 minutes before her hour — scheduled by her own phon
     expect(disparos[0].texto).toBe('Fonda Doña Lupe · Tu código: 347');
   });
 
-  it('an hour less than 15 minutes away has none, and a moment that passed while it waited is dropped', () => {
-    expect(disparosDe([pendiente('a', '2026-11-10T19:15:00Z')], ahora)).toEqual([]);
-    expect(disparosDe([pendiente('a', '2026-11-10T19:16:00Z')], ahora)).toHaveLength(1);
-    const [d] = disparosDe([pendiente('a', '2026-11-10T19:30:00Z')], ahora);
+  it('kept until her hour — Android delivers late — but a new one is scheduled only while its moment is ahead', () => {
+    // ⚠️ Her hour 10 minutes away: still wanted (one already held must not be cancelled by this read)…
+    const [cerca] = disparosDe([pendiente('a', '2026-11-10T19:10:00Z')], ahora);
+    expect(cerca.id).toBe(`${PREFIJO}a`);
+    // …but never scheduled anew: its moment has passed.
+    expect(porVenir([cerca], ahora.getTime())).toEqual([]);
+    // Her hour come: not wanted any more.
+    expect(disparosDe([pendiente('a', '2026-11-10T19:00:00Z')], ahora)).toEqual([]);
+    const [d] = disparosDe([pendiente('b', '2026-11-10T19:30:00Z')], ahora);
     expect(porVenir([d], d.cuando.getTime() - 1)).toEqual([d]);
     expect(porVenir([d], d.cuando.getTime())).toEqual([]);
   });
@@ -331,8 +339,14 @@ describe('her reminder, 15 minutes before her hour — scheduled by her own phon
     expect(avisos).toMatch(/if \(ahora\.granted\) return true;\s*if \(!ahora\.canAskAgain\) return false;\s*const respuesta = await Notifications\.requestPermissionsAsync\(\);/);
     expect(avisos).not.toMatch(/PermissionStatus\.UNDETERMINED/);
     expect(avisos).toMatch(/type: Notifications\.SchedulableTriggerInputTypes\.DATE, date: disparo\.cuando, channelId: CANAL/);
-    // Without her permission nothing is scheduled, and what the phone holds is cancelled before it is told again.
-    expect(avisos).toMatch(/if \(!\(await Notifications\.getPermissionsAsync\(\)\)\.granted\) return;\s*await quitarAhora\(\);/);
+    // Without her permission nothing is scheduled. ⚠️ By id, never "cancel all, schedule again": a reading
+    // between a reminder's moment and Android's late delivery must not cancel it (the review of 10.5b-iii-b).
+    expect(avisos).toMatch(/if \(!\(await Notifications\.getPermissionsAsync\(\)\)\.granted\) return;\s*tiene = await nuestros\(\);/);
+    expect(avisos).toMatch(/for \(const id of tiene\) \{\s*if \(quiere\.has\(id\)\) continue;/);
+    expect(avisos).toMatch(/disparos\.filter\(\(d\) => !tiene\.includes\(d\.id\)\)/);
+    // Shown while Itacate is open too — its own reminders only.
+    expect(avisos).toMatch(/const nuestra = rutaDelToque\(notificacion\.request\.identifier\) !== null;/);
+    expect(code('lib/Recordatorios.tsx')).toMatch(/useEffect\(\(\) => mostrarRecordatorios\(\), \[\]\);/);
   });
 
   it('kept in step with her reservations from the tabs, cancelled when they leave, and asked after her first reservation', () => {

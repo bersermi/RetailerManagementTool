@@ -224,8 +224,14 @@ from `itacate/` with the two local `EXPO_PUBLIC_SUPABASE_` values in the shell, 
   (`@/ui/HojaApartar`: *Aviso de privacidad* and *Términos de uso* above *Acepto y sigo*), before her first reservation and so
   before any rating; her yes keeps its moment (`0080`) — whether that is the record he wants is his question (the plan's
   decisions block). **Her reminder, 15 minutes before her hour** (`@/lib/recordatorio`, pure; `@/lib/avisos`, the one module that
-  imports `expo-notifications`; `@/lib/Recordatorios`, mounted with the tabs): her phone holds exactly one per reservation still to
-  collect, told again at each read of her reservations and cancelled when the tabs leave; a tap opens *Apartados*. Asked after a
+  imports `expo-notifications`; `@/lib/Recordatorios`, mounted with the tabs): her phone holds one per reservation still to
+  collect whose hour has not come, ⚠️ **kept by id** — at each read of her reservations those no longer wanted are cancelled and
+  the new ones still ahead scheduled, never "cancel all, schedule again", which would cancel one Android has not delivered yet
+  (the review of `10.5b-iii-b`); all cancelled when the tabs leave; shown while Itacate is open too (`mostrarRecordatorios`, ours
+  only); a tap opens *Apartados*. ⚠️ **What it cannot know:** a plate the kitchen hands over while her app is closed keeps its
+  reminder until her next read — nothing reaches her phone (no push to neighbours). ⚠️ **Its words — the kitchen, her hour, her
+  code — are held by her phone's scheduler** until it shows or is cancelled: the one thing of a read this app leaves on the disk,
+  by the design's ruling (the aviso says so before Itacate reaches people, `10.5b-vi`). Asked after a
   reservation goes through, while the phone still lets Itacate ask — ⚠️ **never "only while undetermined"**: on Android 13 and
   later `expo-notifications` 57.0.17 reports a permission never asked as `denied`, and such a check never asked (found on the
   emulator). ⚠️ **Android 12 and later deliver it late, never early**: an inexact alarm, its window three quarters of the time
