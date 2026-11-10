@@ -65,3 +65,13 @@ export function ayudaUrl(number: string, email: string | null | undefined): stri
   const suyo = (email ?? '').trim();
   return whatsappUrl(number, suyo === '' ? ES.tu.ayudaMensaje : ES.tu.ayudaMensajeConCorreo(suyo));
 }
+
+/**
+ * ⚠️ `10.5b-iii-a`: *¿Algo no cuadra? Escríbenos* — her way to a person about her score
+ * (the final design of 2026-11-10; LFPDPPP Art. 26): a chat with the owner, a sentence
+ * already typed that names this app, her score and her address, as *Ayuda* does.
+ */
+export function algoNoCuadraUrl(number: string, email: string | null | undefined): string {
+  const suyo = (email ?? '').trim();
+  return whatsappUrl(number, suyo === '' ? ES.tu.algoNoCuadraMensaje : ES.tu.algoNoCuadraMensajeConCorreo(suyo));
+}

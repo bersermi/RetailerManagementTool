@@ -65,10 +65,10 @@ const ANA: Punto = { latitude: 19.4526, longitude: -99.1596 };
 const ESPIGA: Punto = { latitude: 19.4535, longitude: -99.155 };
 
 function plato(lineNo: number): Dish {
-  return { lineNo, name: `Plato ${lineNo}`, description: null, tags: [], priceCentavos: 5500, count: 3, surprise: false, usualCentavos: 9000, photo: null };
+  return { lineNo, name: `Plato ${lineNo}`, description: null, tags: [], priceCentavos: 5500, count: 3, surprise: false, usualCentavos: 9000, photo: null, llevar: true, aqui: false };
 }
 function oferta(id: string, desde: Date, hasta: Date): Offer {
-  return { id, start: desde, end: hasta, dishes: [plato(1)] };
+  return { id, start: desde, end: hasta, dishes: [plato(1)], desechableCentavos: null };
 }
 function cocina(id: string, point: Punto | null, offers: Offer[], giro: string | null = 'giro-fonda'): Kitchen {
   return {
@@ -81,6 +81,9 @@ function cocina(id: string, point: Punto | null, offers: Offer[], giro: string |
     page: EMPTY_PAGE,
     offers,
     summary: { weekdays: [0, 0, 0, 0, 0, 0, 0], usualHour: null, lastDay: null, repeats: [] },
+    pagos: ['efectivo'],
+    comeres: ['llevar'],
+    minScore: null,
   };
 }
 function pin(id: string, punto: Punto, enOferta = true): Pin {
@@ -309,9 +312,9 @@ describe('the wiring — Google’s map on both phones, and nothing of hers to G
     expect(mapa).toMatch(/key=\{`\$\{marca\.key\}:\$\{elegidas\.has\(marca\.pin\.id\) \? 'e' : 'n'\}`\}/);
   });
 
-  it('the gestures’ root wraps the app, and only the sheet listens to a drag', () => {
+  it('the gestures’ root wraps the app, and only the sheet — and, since `10.5b-iii-a`, *Ya lo tengo*’s swipe — listen to a drag', () => {
     expect(code('app/_layout.tsx')).toMatch(/<GestureHandlerRootView style=\{\{ flex: 1 \}\}>/);
     const gestos = files.filter((f) => /from 'react-native-gesture-handler'/.test(f.text)).map((f) => f.name);
-    expect(gestos.sort()).toEqual(['app/_layout.tsx', 'ui/HojaDeLista.tsx']);
+    expect(gestos.sort()).toEqual(['app/_layout.tsx', 'ui/Deslizar.tsx', 'ui/HojaDeLista.tsx']);
   });
 });

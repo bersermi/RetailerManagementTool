@@ -831,5 +831,15 @@ export const VECINOS = {
     /** The kitchen's row, for a screen reader: it opens her page. */
     verCocina: (cocina: string) => `Ver la página de ${cocina}`,
     cargando: 'Buscando el platillo…',
+    /**
+     * ⚠️ `10.5b-iii-a`: WHAT RESERVING NEEDS SHE KNOW BEFORE SHE TAPS, as the family-shell page
+     * draws the dish (stage 2): under the window, that she picks her hour; how it is eaten
+     * (calls 26, 27); how she pays at the kitchen (call 12).
+     */
+    apartaYPasa: 'Apártalo y pasa a la hora que elijas',
+    comer: { ambas: 'Aquí o para llevar', llevar: 'Para llevar', aqui: 'Solo para comer aquí' },
+    comerDetalle: { ambas: 'Tú eliges al apartar', llevar: 'La cocina te la empaca', aqui: 'Te la sirven en la cocina' },
+    pagasEnLaCocina: 'Pagas en la cocina',
+    pago: { efectivo: 'Efectivo', tarjeta: 'Tarjeta', transferencia: 'Transferencia' },
   },
 } as const;

@@ -99,6 +99,11 @@ on:
       - "itacate/src/api/**"
       - "docs/checks/10.5-iv-a-door-contract.sh"
       - "docs/checks/10.5-iv-a-door-contract-falsify.sh"
+      # ⚠️ `10.5b-iii-a`, ITACATE RESERVES: `itacate/src/api/apartados.ts` (above) names `0079`'s
+      # four functions and `0080`'s two of hers — every argument and every key read, the states
+      # drawn and the refusals turned into sentences. Its own job, `itacate-reserving`, below.
+      - "docs/checks/10.5b-iii-a-reserving-contract.sh"
+      - "docs/checks/10.5b-iii-a-reserving-contract-falsify.sh"
       # ⚠️⚠️ AND THE ROSTER'S, as of plan task 5b-ii-a. `app/src/api/members.ts`
       # is a second claim about the applied schema — two column lists — and it
       # carries something `workspace.ts` does not: a claim about a POLICY. The
@@ -2381,6 +2386,37 @@ jobs:
 
       - name: Contract — can the door check still fail (its own fixtures; the runner counts them)
         run: bash docs/checks/10.5-iv-a-door-contract-falsify.sh
+
+      - name: Stop
+        if: always()
+        run: supabase stop --no-backup
+
+  itacate-reserving:
+    name: what a neighbour reserves, gives back and collects, against Itacate's own names
+    runs-on: ubuntu-latest
+    # ⚠️ The falsifier runs the whole check thirteen times, two sign-ups each, and GoTrue allows 30
+    # in five minutes: a run that spends them waits out the window (`signup`'s retries).
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: 2.114.0
+
+      - name: Start Postgres, GoTrue and PostgREST
+        run: supabase start -x realtime,storage-api,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
+
+      - name: Apply migrations from scratch
+        run: supabase db reset
+
+      - name: Contract — does itacate/src/api/apartados.ts reserve, cancel, collect and read her standing by the names 0079 and 0080 answer (plan 10.5b-iii-a)
+        run: bash docs/checks/10.5b-iii-a-reserving-contract.sh
+
+      - name: Contract — can the reserving check still fail (its own fixtures; the runner counts them)
+        run: bash docs/checks/10.5b-iii-a-reserving-contract-falsify.sh
 
       - name: Stop
         if: always()

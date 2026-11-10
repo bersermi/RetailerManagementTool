@@ -1,7 +1,7 @@
 // ============================================================================
 // HOW A SCREEN REACHES THE DATABASE. Plan tasks `10.5-iii-b` (her way out),
-// `10.5-iv-a-i` (the kitchens close to her, and their photos) and `10.5-iv-a-ii`
-// (the trades' names, for a kitchen's page).
+// `10.5-iv-a-i` (the kitchens close to her, and their photos), `10.5-iv-a-ii`
+// (the trades' names, for a kitchen's page) and `10.5b-iii-a` (her reservations).
 //
 // ⚠️ A SCREEN NEVER CALLS `@/api/calls` ITSELF — Wera's R12, as in Wera Cocina
 // (`cocina/src/api/hooks.ts`, whose two deletion hooks these are, copied): a
@@ -22,8 +22,33 @@ import {
   type Business,
   type DeleteArgs,
 } from '@/api/account';
-import { accountOwners, deleteMyAccount, kitchenGiros, onOfferNow, photoRequest, revokeApple } from '@/api/calls';
-import { cocinasKey, girosKey, type Giro, type Kitchen } from '@/api/cocinas';
+import {
+  APARTADOS_KEY,
+  POSICION_KEY,
+  apartadosKey,
+  fallaDe,
+  posicionKey,
+  type Apartado,
+  type Eleccion,
+  type Falla,
+  type Posicion,
+} from '@/api/apartados';
+import {
+  accountOwners,
+  cancelMyReservation,
+  confirmMyPickup,
+  deleteMyAccount,
+  giveMyYes,
+  kitchenGiros,
+  myReservations,
+  myStanding,
+  onOfferNow,
+  photoRequest,
+  reservePlate,
+  revokeApple,
+} from '@/api/calls';
+import { COCINAS_KEY, cocinasKey, girosKey, type Giro, type Kitchen } from '@/api/cocinas';
+import { hayPendientes } from '@/lib/apartados';
 import { FILE_OF, isPicturePath, type PhotoSize } from '@/api/fotos';
 import { releaseStep } from '@/auth/apple';
 import { useAuth } from '@/auth/AuthProvider';
@@ -156,4 +181,134 @@ export function useDeleteMyAccount() {
   }
 
   return { remove, busy: mutation.isPending || leaving };
+}
+
+// ----------------------------------------------------------------------------
+// Her reservations — `10.5b-iii-a`
+// ----------------------------------------------------------------------------
+
+/** While a reservation is still to collect, the tab reads hers again this often: a handover, or a window that ends. */
+const PENDIENTE_CADA_MS = 60_000;
+
+/**
+ * ⚠️ `10.5b-iii-a`: HERS — every reservation still to collect and her last 30 days
+ * (`my_reservations`, `0079`). Keyed on the login, in memory only. Read again every
+ * minute while one is pending — the fonda's *Entregar*, or a window that ends, changes it
+ * from the other phone — and when the app comes back to the front.
+ */
+export function useApartados() {
+  const { session, ready } = useAuth();
+  const userId = session?.user.id ?? null;
+  return useQuery<Apartado[]>({
+    queryKey: apartadosKey(userId),
+    queryFn: myReservations,
+    enabled: ready && userId !== null,
+    refetchInterval: (query) => (hayPendientes(query.state.data) ? PENDIENTE_CADA_MS : false),
+  });
+}
+
+/**
+ * ⚠️ `10.5b-iii-a`: HER STANDING (`my_standing`, `0080`) — her yes, her score, each label's
+ * count, how many she may hold. Keyed on the login, in memory only.
+ */
+export function usePosicion() {
+  const { session, ready } = useAuth();
+  const userId = session?.user.id ?? null;
+  return useQuery<Posicion>({
+    queryKey: posicionKey(userId),
+    queryFn: myStanding,
+    enabled: ready && userId !== null,
+  });
+}
+
+/**
+ * After any write of hers, what it moved is read again: her reservations, her standing,
+ * and the door — a plate she takes or gives back moves the kitchen's *Quedan*.
+ */
+function useLeerOtraVez() {
+  const queries = useQueryClient();
+  return () =>
+    Promise.all([
+      queries.invalidateQueries({ queryKey: APARTADOS_KEY }),
+      queries.invalidateQueries({ queryKey: POSICION_KEY }),
+      queries.invalidateQueries({ queryKey: COCINAS_KEY }),
+    ]).then(() => undefined);
+}
+
+/** What a write answers a screen: done, or why not — a key of `ES.apartar.fallas`. */
+export type Resultado<T> = { readonly ok: true; readonly valor: T } | { readonly ok: false; readonly falla: Falla };
+
+/**
+ * ⚠️ `10.5b-iii-a`: RESERVING — one plate, at her hour, by her method (`reserve_plate`).
+ * The choice carries the phone's id, so a second tap after a lost answer is the same
+ * reservation. Whatever the answer, what it moved is read again — a refusal too, since
+ * it can mean the list or her standing was stale (`TD015`, `TD016`).
+ */
+export function useApartar() {
+  const leerOtraVez = useLeerOtraVez();
+  const mutation = useMutation({ mutationFn: (eleccion: Eleccion) => reservePlate(eleccion) });
+  async function apartar(eleccion: Eleccion): Promise<Resultado<{ readonly id: string; readonly codigo: string }>> {
+    try {
+      const valor = await mutation.mutateAsync(eleccion);
+      return { ok: true, valor };
+    } catch (thrown) {
+      return { ok: false, falla: fallaDe(thrown) };
+    } finally {
+      void leerOtraVez();
+    }
+  }
+  return { apartar, busy: mutation.isPending };
+}
+
+/**
+ * ⚠️ `10.5b-iii-a`: HER EXPRESS YES, once, before her first reservation (`give_my_yes`,
+ * `0080`). Her standing is read again, so the sheet moves on to her hour.
+ */
+export function useDarMiSi() {
+  const queries = useQueryClient();
+  const mutation = useMutation({ mutationFn: giveMyYes });
+  async function darSi(): Promise<Resultado<null>> {
+    try {
+      await mutation.mutateAsync();
+      await queries.invalidateQueries({ queryKey: POSICION_KEY });
+      return { ok: true, valor: null };
+    } catch (thrown) {
+      return { ok: false, falla: fallaDe(thrown) };
+    }
+  }
+  return { darSi, busy: mutation.isPending };
+}
+
+/** ⚠️ `10.5b-iii-a`: *Cancelar* or *No voy a poder ir* — the plate goes back to the kitchen's offer (`0079`). */
+export function useCancelarApartado() {
+  const leerOtraVez = useLeerOtraVez();
+  const mutation = useMutation({ mutationFn: (id: string) => cancelMyReservation(id) });
+  async function cancelar(id: string): Promise<Resultado<null>> {
+    try {
+      await mutation.mutateAsync(id);
+      return { ok: true, valor: null };
+    } catch (thrown) {
+      return { ok: false, falla: fallaDe(thrown) };
+    } finally {
+      void leerOtraVez();
+    }
+  }
+  return { cancelar, busy: mutation.isPending };
+}
+
+/** ⚠️ `10.5b-iii-a`: *Ya lo tengo* — her side of *Recogí* (`confirm_my_pickup`, `0079`). */
+export function useYaLoTengo() {
+  const leerOtraVez = useLeerOtraVez();
+  const mutation = useMutation({ mutationFn: (id: string) => confirmMyPickup(id) });
+  async function confirmar(id: string): Promise<Resultado<null>> {
+    try {
+      await mutation.mutateAsync(id);
+      return { ok: true, valor: null };
+    } catch (thrown) {
+      return { ok: false, falla: fallaDe(thrown) };
+    } finally {
+      void leerOtraVez();
+    }
+  }
+  return { confirmar, busy: mutation.isPending };
 }

@@ -104,6 +104,11 @@ const EN_PARTE: Readonly<Record<string, { readonly de: string; readonly bloques:
     bloques: [
       'export const POINT_SOURCES =',
       'export type PointSource =',
+      // `10.5b-iii-a`: how a neighbour pays, and how a plate is eaten (`0079`).
+      'export const PAGOS =',
+      'export type Pago =',
+      'export const COMERES =',
+      'export type Comer =',
       'export interface Punto {',
       'export interface Point extends Punto {',
       'export interface Address {',

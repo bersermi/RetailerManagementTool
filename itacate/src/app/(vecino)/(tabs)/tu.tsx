@@ -2,12 +2,16 @@ import { router } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { Image, Linking, StyleSheet, Text, View } from 'react-native';
 
+import { ETIQUETAS } from '@/api/apartados';
+import { usePosicion } from '@/api/hooks';
 import { useAuth } from '@/auth/AuthProvider';
 import { AVISO_URL } from '@/auth/aviso';
+import { porcentajeDe } from '@/lib/apartar';
 import { useDondeBuscar } from '@/lib/DondeBuscarProvider';
 import { SUPPORT_WHATSAPP } from '@/lib/supportWhatsapp';
-import { ayudaUrl, cuentaDe } from '@/lib/tu';
+import { algoNoCuadraUrl, ayudaUrl, cuentaDe } from '@/lib/tu';
 import { ES } from '@/strings';
+import { TITULO } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
 import { Cabeza } from '@/ui/Cabeza';
 import { Fila } from '@/ui/Fila';
@@ -27,8 +31,14 @@ import { Salidas } from '@/ui/Salidas';
 // then the doors. ⚠️ HER WAY OUT IS UNCHANGED (`@/ui/Salidas`, Wera Cocina's block):
 // a sole owner types each business's name, so the screen is a `Formulario` that keeps
 // the box above the keyboard. *Ayuda por WhatsApp* is drawn only on a build that
-// carries the owner's number, as *¿Olvidaste tu contraseña?* is. NO CHECK CAN SEE
-// THIS SCREEN (§2.11): the phone is its instrument.
+// carries the owner's number, as *¿Olvidaste tu contraseña?* is.
+//
+// ⚠️ SINCE `10.5b-iii-a`, HER SCORE COMES FIRST once she has given her yes (the final
+// design of 2026-11-10): *Tu calificación como vecina*, *👍 92%* from her third thumb or
+// *Nueva en Itacate* before it, each of the five labels' count, never which kitchen or
+// when, and *¿Algo no cuadra? Escríbenos* — her way to a person (LFPDPPP Art. 26), on a
+// build that carries the owner's number. NO CHECK CAN SEE THIS SCREEN (§2.11): the phone
+// is its instrument.
 // ============================================================================
 
 /** The cow, Wera's mark, in its rust — `app/src/marca/vaca-oxido.png`, byte for byte. */
@@ -39,6 +49,8 @@ export default function Tu() {
   const cuenta = cuentaDe(session?.user);
   const { codigo } = useDondeBuscar();
   const numero = SUPPORT_WHATSAPP;
+  const posicion = usePosicion().data;
+  const pct = posicion === undefined ? null : porcentajeDe(posicion.calificacion);
 
   return (
     <Formulario style={styles.pantalla} contentContainerStyle={styles.contenido}>
@@ -46,6 +58,39 @@ export default function Tu() {
         <Text style={styles.detalle}>{ES.tu.detalle}</Text>
       </Cabeza>
       <View style={styles.cuerpo}>
+        {posicion !== undefined && posicion.siDesde !== null && (
+          <Llega i={0} style={styles.calificacion}>
+            <View style={styles.tarjeta}>
+              <Text style={styles.detalle}>{ES.tu.calificacion}</Text>
+              <Text style={styles.porcentaje}>{pct === null ? ES.tu.nueva : ES.tu.porcentaje(pct)}</Text>
+              <Text style={styles.detalle}>
+                {pct === null || posicion.calificacion === null ? ES.tu.nuevaDetalle : ES.tu.deCalificaciones(posicion.calificacion.total)}
+              </Text>
+            </View>
+            {pct !== null && (
+              <View style={styles.tarjeta}>
+                {ETIQUETAS.map((etiqueta) => (
+                  <View key={etiqueta} style={styles.etiqueta}>
+                    <Text style={styles.etiquetaNombre}>{ES.tu.etiqueta[etiqueta]}</Text>
+                    <Text style={styles.etiquetaCuenta}>{posicion.etiquetas[etiqueta]}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+            <Text style={styles.nota}>{ES.tu.nunca}</Text>
+            {numero !== null && (
+              <Grupo>
+                <Fila
+                  icono="whatsapp"
+                  titulo={ES.tu.algoNoCuadra}
+                  onPress={() => {
+                    Linking.openURL(algoNoCuadraUrl(numero, session?.user.email)).catch(() => {});
+                  }}
+                />
+              </Grupo>
+            )}
+          </Llega>
+        )}
         <Llega i={0}>
           <Grupo>
             {cuenta.titulo !== null && <Fila icono="account-outline" titulo={cuenta.titulo} detalle={cuenta.detalle} />}
@@ -92,6 +137,20 @@ const styles = StyleSheet.create({
   pantalla: { flex: 1, backgroundColor: PALETTE.fondo },
   contenido: { flexGrow: 1 },
   detalle: { fontSize: SIZE.smallSize, color: PALETTE.tintaApagada },
+  calificacion: { gap: SIZE.space },
+  tarjeta: {
+    gap: SIZE.rowGap / 2,
+    padding: SIZE.space,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: PALETTE.linea,
+    backgroundColor: PALETTE.superficie,
+  },
+  porcentaje: { fontSize: 30, ...TITULO, color: PALETTE.tinta },
+  etiqueta: { flexDirection: 'row', justifyContent: 'space-between', gap: SIZE.rowGap, paddingVertical: 2 },
+  etiquetaNombre: { fontSize: SIZE.smallSize, color: PALETTE.tinta },
+  etiquetaCuenta: { fontSize: SIZE.smallSize, fontWeight: '700', color: PALETTE.tinta },
+  nota: { fontSize: SIZE.smallSize, lineHeight: 19, color: PALETTE.tintaApagada },
   cuerpo: { padding: SIZE.space * 1.5, paddingBottom: SIZE.space * 3, gap: SIZE.space * 1.5 },
   pie: { alignItems: 'center', gap: SIZE.rowGap, paddingTop: SIZE.rowGap },
   firma: { flexDirection: 'row', alignItems: 'center', gap: SIZE.rowGap },

@@ -11,8 +11,10 @@
 //     2026-11-01, late);
 //   - A DISH'S PAGE: its photo, the kitchen's row, its name, what it has, the tags,
 //     *Es sorpresa: si tienes alergia, pregunta antes o elige otro* for a bag, the
-//     price and the *vale*, the window, *Quedan N*, where and *Cómo llegar*. The
-//     reserving is `10.5b`'s, so no button and no line about paying yet.
+//     price and the *vale*, the window, *Quedan N*, where and *Cómo llegar* — and since
+//     `10.5b-iii-a` (she reserves), that she picks her hour, how it is eaten and how she
+//     pays at the kitchen (`comerTexto`, `pagosTexto`), the family-shell page's stage 2.
+//     Its button is not the page's: its route hands the page its foot.
 //
 // ⚠️ NOTHING NEW FROM THE DATABASE: the door already sends every part (`0078`), and
 // both pages read the list's answer (`@/api/hooks`' `useCocinas`, in memory) by the
@@ -158,6 +160,22 @@ export function etiquetasDe(platillo: Dish): readonly string[] {
 /** The allergy line, for a surprise bag only — the proposals page's sentence. */
 export function alergiaDe(platillo: Dish): string | null {
   return platillo.surprise ? ES.platillo.alergia : null;
+}
+
+/**
+ * How it is eaten, as the family-shell page draws the dish (`10.5b-iii-a`, calls 26, 27):
+ * both ways — *Aquí o para llevar*, *Tú eliges al apartar*; one — *Para llevar*, *La cocina
+ * te la empaca*, or *Solo para comer aquí*, *Te la sirven en la cocina*. Whether it wears a
+ * bag or a plate.
+ */
+export function comerTexto(platillo: Dish): { readonly titulo: string; readonly detalle: string; readonly plato: boolean } {
+  const cual = platillo.llevar && platillo.aqui ? 'ambas' : platillo.aqui ? 'aqui' : 'llevar';
+  return { titulo: ES.platillo.comer[cual], detalle: ES.platillo.comerDetalle[cual], plato: cual !== 'llevar' };
+}
+
+/** How she pays at the kitchen — *Efectivo · Tarjeta* — cash always, first (`0079`, call 12). */
+export function pagosTexto(cocina: Kitchen): string {
+  return cocina.pagos.map((pago) => ES.platillo.pago[pago]).join(' · ');
 }
 
 // ----------------------------------------------------------------------------

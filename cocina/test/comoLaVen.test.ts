@@ -9,6 +9,7 @@ import type { Line, Listing } from '@/api/listing';
 import { EMPTY_PAGE } from '@/api/pagina';
 import type { Place } from '@/api/place';
 import {
+  SIN_AJUSTES,
   DIAS_A_LA_VISTA,
   DIAS_DEL_PUNTO_DE_GOOGLE,
   DIAS_DEL_RESUMEN,
@@ -142,6 +143,24 @@ describe('the door’s rules, read out of the migration that defines it last', (
     expect(DIAS_DEL_RESUMEN).toBe(28);
     expect(VECES_PARA_REPETIR).toBe(2);
     expect(REPETIDOS_MAXIMOS).toBe(5);
+  });
+
+  it('`10.5b-iii-a`: until she can set them, her settings are the door’s own defaults — cash, para llevar, no desechable, everyone', () => {
+    const { body } = ultimaQueDefine('on_offer_now');
+    for (const fragment of [
+      'coalesce(kp.accepts_card, false) as accepts_card',
+      'coalesce(kp.accepts_transfer, false) as accepts_transfer',
+      'coalesce(kp.para_llevar, true) as para_llevar',
+      'coalesce(kp.para_aqui, false) as para_aqui',
+      "'payment', to_jsonb(array['efectivo']",
+      "'min_score', k.min_score",
+    ]) {
+      expect(body, fragment).toContain(fragment);
+    }
+    expect(SIN_AJUSTES).toEqual({ pagos: ['efectivo'], comeres: ['llevar'], minScore: null, llevar: true, aqui: false, desechableCentavos: null });
+    // And nothing in this app reads them yet: `10.5b-iv` brings her settings, and with them the preview's.
+    const fuentes = ['api/pagina.ts', 'api/listing.ts', 'api/kitchen.ts'].map((f) => readFileSync(join(fileURLToPath(new URL('../src', import.meta.url)), f), 'utf8'));
+    for (const fuente of fuentes) expect(fuente).not.toMatch(/accepts_card|para_llevar|container_price|min_score/);
   });
 
   it('`normalize_name` is lower case, trimmed, every run of spaces one — as the database’s', () => {

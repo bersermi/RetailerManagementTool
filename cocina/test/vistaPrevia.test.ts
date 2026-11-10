@@ -38,6 +38,9 @@ describe('until she types, the drawing’s hints — the same her boxes show', (
       surprise: false,
       usualCentavos: 12000,
       photo: null,
+      // `10.5b-iii-a`: the door's defaults until she can set her ways (`10.5b-iv`).
+      llevar: true,
+      aqui: false,
     });
     expect(precioTexto(platillo)).toEqual({ precio: '$60', vale: '$120', ahorro: '−50%' });
     expect(quedanTexto(platillo)).toBeNull();
@@ -95,7 +98,7 @@ describe('the card’s kitchen and offer', () => {
     const ventana = { start: new Date('2026-11-07T23:00:00Z'), end: new Date('2026-11-08T01:00:00Z') };
     const previa = previaDe({ kitchen, place: null, page: EMPTY_PAGE, lines: [line(), line({ key: 'k2', surprise: true })], ventana, now: new Date('2026-11-07T22:00:00Z') });
     expect(previa.cocina).toMatchObject({ id: kitchen.id, name: 'Fonda Doña Mari', giro: 'giro-fonda', offers: [] });
-    expect(previa.oferta).toEqual({ id: OFERTA_PREVIA, start: ventana.start, end: ventana.end, dishes: previa.platillos });
+    expect(previa.oferta).toEqual({ id: OFERTA_PREVIA, start: ventana.start, end: ventana.end, dishes: previa.platillos, desechableCentavos: null });
     expect(previa.platillos.map((p) => p.lineNo)).toEqual([1, 2]);
   });
 });
