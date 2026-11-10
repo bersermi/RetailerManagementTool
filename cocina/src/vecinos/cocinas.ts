@@ -25,6 +25,13 @@ export type Pago = (typeof PAGOS)[number];
 export const COMERES = ['llevar', 'aqui'] as const;
 export type Comer = (typeof COMERES)[number];
 
+/**
+ * The good tags a neighbour may tap after four or five stars (`0080`'s closed list) — the
+ * only ones the door sends, her three most given, and the only ones a kitchen's page shows.
+ */
+export const ETIQUETAS_BUENAS = ['lista_a_tiempo', 'buena_porcion', 'muy_rica', 'me_atendieron_bien'] as const;
+export type EtiquetaBuena = (typeof ETIQUETAS_BUENAS)[number];
+
 /** A place on the map. */
 export interface Punto {
   readonly latitude: number;
@@ -110,4 +117,15 @@ export interface Kitchen {
   readonly comeres: readonly Comer[];
   /** Who may reserve here by score — more than this per cent — or `null`, everyone. */
   readonly minScore: number | null;
+  /** The neighbours' stars, from five ratings — `null` until then (*Todavía sin calificaciones*). */
+  readonly estrellas: Estrellas | null;
+}
+
+/** A kitchen's stars, as the cards and her page draw them. */
+export interface Estrellas {
+  /** The average to one decimal, as the door wrote it: *4.8*. */
+  readonly promedio: string;
+  readonly cuantas: number;
+  /** Her most given good tags, the most given first. */
+  readonly etiquetas: readonly EtiquetaBuena[];
 }

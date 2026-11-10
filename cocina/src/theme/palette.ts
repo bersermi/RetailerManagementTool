@@ -21,6 +21,12 @@ export const PALETTE = {
   error: '#A32218',
   marca: '#A9501C',
   /**
+   * ⚠️ `10.5b-iii-b`: A KITCHEN'S STARS, the family-shell page's amber (`.stars button.on`), and
+   * a star not given (`.stars button`). Itacate's, and Wera Cocina's for its copies of the pages.
+   */
+  estrella: '#D99A1E',
+  estrellaApagada: '#C9BFAE',
+  /**
    * ⚠️ `10.5-v-c-i`, THIS APP'S OWN, NOT WERA'S: *Hoy*'s day card is the action's green
    * (the family-shell page's green card), so its words are light on it — white for what
    * matters, a pale green for the rest — and its time bar runs on a lighter green. The

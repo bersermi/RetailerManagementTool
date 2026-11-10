@@ -196,6 +196,10 @@ TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic i
   how it hands plates over, who may reserve and each offer's *desechable*; this app does not read her settings until `10.5b-iv`
   gives her the screens to set them, so `@/lib/comoLaVen` shows the door's own defaults (`SIN_AJUSTES`: cash, *para llevar*, no
   *desechable*, everyone) — what the door sends for every kitchen today — held to the door's `coalesce`s by `test/comoLaVen.test.ts`.
+  ⚠️ **Since `10.5b-iii-b` the copies draw a kitchen's stars and *Cómo pagas aquí*** (her page: *★ 4.6 (5 calificaciones)* and her
+  good tags, else *Todavía sin calificaciones*; a card and a dish's row: *★ 4.6*), in Itacate's amber — this palette carries
+  `estrella` and `estrellaApagada` for them. `SIN_AJUSTES` has no stars: the door counts them from five ratings, the day after, and no
+  kitchen has one yet; `10.5b-iv`, which reads her own (`my_kitchen_ratings`), brings them to her preview with her settings.
 - ⚠️ **The map has no key in a build made on this Mac** (`MAPS_KEY_PLACEHOLDER`, and the key is locked
   to the store and `preview` signatures). Measured 2026-10-30 on the emulator: such a map delivers
   taps but **never moves its camera and draws no marker**, so the zoom, the flights to a search's

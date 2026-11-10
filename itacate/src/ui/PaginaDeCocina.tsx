@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { Dish, Kitchen, Offer } from '@/api/cocinas';
 import { ratioOf } from '@/api/fotos';
 import { colorOf, defaultsFor } from '@/api/pagina';
-import { calleDe, comoLlegarUrl, hoyDe, queYDondeDe, repetidosDe, verEnMapsUrl } from '@/lib/paginas';
+import { calificacionDe, calleDe, comoLlegarUrl, hoyDe, pagosDe, queYDondeDe, repetidosDe, verEnMapsUrl } from '@/lib/paginas';
 import { ES } from '@/strings';
 import { HUES } from '@/theme/colores';
 import { TITULO } from '@/theme/letra';
@@ -33,7 +33,10 @@ import { RenglonPlatillo } from '@/ui/RenglonPlatillo';
 // and *Ver en Google Maps ›* in her colour. Then what only Itacate has: how far she is,
 // where and *Cómo llegar*; *Hoy* — what she has on offer now, each dish opening its
 // page — else *Hoy no ha publicado* and her pattern; and *Lo que suele ofrecer*. Every
-// word is `@/lib/paginas`'.
+// word is `@/lib/paginas`'. ⚠️ SINCE `10.5b-iii-b` her stars under her name — *★ 4.8 (23
+// calificaciones)* and her most given good tags, else *Todavía sin calificaciones* — and
+// *Cómo pagas aquí* with a chip per way she takes payment, after her sentence (the
+// family-shell page's call 20).
 //
 // ⚠️ IT READS NOTHING: the kitchen, her trade's name, the distance and the clock are its
 // route's to hand it, so it never learns where the neighbour is (`test/donde.test.ts`).
@@ -87,6 +90,8 @@ export function PaginaDeCocina({
   const llegar = comoLlegarUrl(cocina);
   const hoy = hoyDe(cocina, ahora);
   const repetidos = repetidosDe(cocina.summary);
+  const calificacion = calificacionDe(cocina);
+  const pagos = pagosDe(cocina);
   const titulo = { fontSize: SIZE.smallSize, fontWeight: '800', letterSpacing: 1, textTransform: 'uppercase', color: HUES[color] } as const;
 
   return (
@@ -116,12 +121,44 @@ export function PaginaDeCocina({
             {distancia !== null && (
               <Text style={{ fontSize: SIZE.smallSize, fontWeight: '600', color: PALETTE.tinta }}>{distancia}</Text>
             )}
+            {calificacion.kind === 'estrellas' ? (
+              <View accessible accessibilityLabel={calificacion.ayuda} style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                <MaterialCommunityIcons name="star" size={SIZE.bodySize} color={PALETTE.estrella} />
+                <Text style={{ fontSize: SIZE.smallSize, fontWeight: '700', color: PALETTE.tinta }}>{calificacion.promedio}</Text>
+                <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada }}>{calificacion.cuantas}</Text>
+              </View>
+            ) : (
+              <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada }}>{calificacion.texto}</Text>
+            )}
+            {calificacion.kind === 'estrellas' && calificacion.etiquetas.length > 0 && (
+              <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada }}>{calificacion.etiquetas.join(' · ')}</Text>
+            )}
           </View>
         </View>
         {cocina.page.sentence !== null && (
           <Text style={{ fontSize: SIZE.bodySize, lineHeight: 22, color: PALETTE.tinta }}>{cocina.page.sentence}</Text>
         )}
         {mapas !== null && <Enlace texto={ES.pagina.verEnMaps} ayuda={ES.pagina.verEnMapsAyuda} url={mapas} color={HUES[color]} />}
+        <View style={{ gap: SIZE.rowGap / 2, paddingTop: SIZE.rowGap / 2 }}>
+          <Text style={{ fontSize: SIZE.smallSize, fontWeight: '700', color: PALETTE.tintaApagada }}>{ES.pagina.comoPagas}</Text>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: SIZE.rowGap }}>
+            {pagos.map(({ pago, texto }) => (
+              <View
+                key={pago}
+                style={{
+                  paddingHorizontal: SIZE.space,
+                  paddingVertical: SIZE.rowGap / 2,
+                  borderRadius: 999,
+                  borderWidth: 1,
+                  borderColor: PALETTE.linea,
+                  backgroundColor: PALETTE.superficie,
+                }}
+              >
+                <Text style={{ fontSize: SIZE.smallSize, fontWeight: '600', color: PALETTE.tinta }}>{texto}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
       </View>
 
       {(calle !== null || cocina.directions !== null || llegar !== null) && (

@@ -1,3 +1,4 @@
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { Pressable, Text, View } from 'react-native';
 
 import type { Dish, Kitchen, Offer } from '@/vecinos/cocinas';
@@ -74,6 +75,16 @@ export function TarjetaPlatillo({
           <Text numberOfLines={1} style={{ flex: 1, fontSize: SIZE.smallSize + 1, fontWeight: '700', color: PALETTE.superficie }}>
             {cocina.name}
           </Text>
+          {cocina.estrellas !== null && (
+            <View
+              accessible
+              accessibilityLabel={ES.pagina.estrellasAyuda(cocina.estrellas.promedio, cocina.estrellas.cuantas)}
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}
+            >
+              <MaterialCommunityIcons name="star" size={SIZE.smallSize + 2} color={PALETTE.estrella} />
+              <Text style={{ fontSize: SIZE.smallSize + 1, fontWeight: '700', color: PALETTE.superficie }}>{cocina.estrellas.promedio}</Text>
+            </View>
+          )}
         </View>
       </View>
       <View style={{ paddingHorizontal: SIZE.space, paddingTop: SIZE.rowGap, paddingBottom: SIZE.space, gap: SIZE.rowGap / 2 }}>

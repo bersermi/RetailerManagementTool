@@ -94,6 +94,7 @@ function cocina(id: string, name: string, point: Punto | null, offers: Offer[], 
     pagos: ['efectivo'],
     comeres: ['llevar'],
     minScore: null,
+    estrellas: null,
   };
 }
 

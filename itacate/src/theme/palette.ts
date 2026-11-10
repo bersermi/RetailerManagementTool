@@ -28,6 +28,12 @@ export const PALETTE = {
   accionSuave: '#E3EAF2',
   error: '#A32218',
   marca: '#A9501C',
+  /**
+   * ⚠️ `10.5b-iii-b`: A KITCHEN'S STARS, the family-shell page's amber (`.stars button.on`), and
+   * a star not given (`.stars button`). Itacate's, and Wera Cocina's for its copies of the pages.
+   */
+  estrella: '#D99A1E',
+  estrellaApagada: '#C9BFAE',
 } as const;
 
 /** Wera's `normal` density, fixed. */

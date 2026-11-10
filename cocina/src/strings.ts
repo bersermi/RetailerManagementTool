@@ -768,6 +768,9 @@ export const VECINOS = {
     ultimo: 'Último',
     /** The saving, on her colour — the drawing's *−50%*, with a true minus sign. */
     ahorro: (pct: number) => `−${pct}%`,
+    /** `10.5b-iii-b`: her stars on a card and a dish's kitchen row, from five ratings. */
+    estrellas: (promedio: string) => `★ ${promedio}`,
+    conEstrellas: (distancia: string, estrellas: string) => `${distancia} · ${estrellas}`,
     /** A quiet kitchen's card: the pattern once 3 or more publications in 4 weeks show one. */
     suele: (dias: string, hora: string) => `Suele tener ofertas ${dias}, ${hora}`,
     hacia: (hora: number) => (hora === 1 ? 'hacia la 1:00' : `hacia las ${hora}:00`),
@@ -812,6 +815,18 @@ export const VECINOS = {
     /** The door no longer sends her: she has not published in 14 days, or the kitchen was deleted. */
     yaNoEsta: 'Esta cocina ya no está en Itacate.',
     cargando: 'Buscando la cocina…',
+    /** `10.5b-iii-b`: her stars, from five ratings — else *Todavía sin calificaciones*. */
+    calificaciones: (n: number) => (n === 1 ? '(1 calificación)' : `(${n} calificaciones)`),
+    sinCalificaciones: 'Todavía sin calificaciones',
+    estrellasAyuda: (promedio: string, n: number) => `${promedio} de 5 estrellas, ${n} calificaciones`,
+    etiqueta: {
+      lista_a_tiempo: 'Lista a tiempo',
+      buena_porcion: 'Buena porción',
+      muy_rica: 'Muy rica',
+      me_atendieron_bien: 'Me atendieron bien',
+    },
+    /** `10.5b-iii-b`: how she takes payment, as chips — each chip `platillo.pago`'s. */
+    comoPagas: 'Cómo pagas aquí',
   },
 
   platillo: {

@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { Dish, Kitchen, Offer } from '@/vecinos/cocinas';
 import { ratioOf } from '@/api/fotos';
 import { colorOf, defaultsFor } from '@/api/pagina';
-import { calleDe, comoLlegarUrl, hoyDe, queYDondeDe, repetidosDe, verEnMapsUrl } from '@/vecinos/paginas';
+import { calificacionDe, calleDe, comoLlegarUrl, hoyDe, pagosDe, queYDondeDe, repetidosDe, verEnMapsUrl } from '@/vecinos/paginas';
 import { VECINOS as ES } from '@/strings';
 import { HUES } from '@/theme/colores';
 import { TITULO } from '@/theme/letra';
@@ -74,6 +74,8 @@ export function PaginaDeCocina({
   const llegar = comoLlegarUrl(cocina);
   const hoy = hoyDe(cocina, ahora);
   const repetidos = repetidosDe(cocina.summary);
+  const calificacion = calificacionDe(cocina);
+  const pagos = pagosDe(cocina);
   const titulo = { fontSize: SIZE.smallSize, fontWeight: '800', letterSpacing: 1, textTransform: 'uppercase', color: HUES[color] } as const;
 
   return (
@@ -103,12 +105,44 @@ export function PaginaDeCocina({
             {distancia !== null && (
               <Text style={{ fontSize: SIZE.smallSize, fontWeight: '600', color: PALETTE.tinta }}>{distancia}</Text>
             )}
+            {calificacion.kind === 'estrellas' ? (
+              <View accessible accessibilityLabel={calificacion.ayuda} style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                <MaterialCommunityIcons name="star" size={SIZE.bodySize} color={PALETTE.estrella} />
+                <Text style={{ fontSize: SIZE.smallSize, fontWeight: '700', color: PALETTE.tinta }}>{calificacion.promedio}</Text>
+                <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada }}>{calificacion.cuantas}</Text>
+              </View>
+            ) : (
+              <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada }}>{calificacion.texto}</Text>
+            )}
+            {calificacion.kind === 'estrellas' && calificacion.etiquetas.length > 0 && (
+              <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada }}>{calificacion.etiquetas.join(' · ')}</Text>
+            )}
           </View>
         </View>
         {cocina.page.sentence !== null && (
           <Text style={{ fontSize: SIZE.bodySize, lineHeight: 22, color: PALETTE.tinta }}>{cocina.page.sentence}</Text>
         )}
         {mapas !== null && <Enlace texto={ES.pagina.verEnMaps} ayuda={ES.pagina.verEnMapsAyuda} url={mapas} color={HUES[color]} />}
+        <View style={{ gap: SIZE.rowGap / 2, paddingTop: SIZE.rowGap / 2 }}>
+          <Text style={{ fontSize: SIZE.smallSize, fontWeight: '700', color: PALETTE.tintaApagada }}>{ES.pagina.comoPagas}</Text>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: SIZE.rowGap }}>
+            {pagos.map(({ pago, texto }) => (
+              <View
+                key={pago}
+                style={{
+                  paddingHorizontal: SIZE.space,
+                  paddingVertical: SIZE.rowGap / 2,
+                  borderRadius: 999,
+                  borderWidth: 1,
+                  borderColor: PALETTE.linea,
+                  backgroundColor: PALETTE.superficie,
+                }}
+              >
+                <Text style={{ fontSize: SIZE.smallSize, fontWeight: '600', color: PALETTE.tinta }}>{texto}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
       </View>
 
       {(calle !== null || cocina.directions !== null || llegar !== null) && (

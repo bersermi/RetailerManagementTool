@@ -4,7 +4,7 @@
 #
 # A contract check that has never been seen red is a check nobody has shown can fail. Each
 # fixture below copies `itacate/src/api/apartados.ts`, breaks ONE claim in the copy — a
-# function's name, an argument's, a key at each level of the two answers, a state, a
+# function's name, an argument's, a key at each level of the answers, a state, a tag, a
 # refusal's code — points the check at it, and requires red WITH THE SENTENCE that names
 # that claim: red for the wrong reason is a failure here too. The control, unedited, must
 # be green.
@@ -98,10 +98,31 @@ run C11 red "give_my_yes_now() answered 404" \
 echo "C12 a claim is gone from the file — the check must refuse, not pass"
 run C12 red "could not read ScoreRow" '/^export interface ScoreRow {/,/^}/d'
 
+# `10.5b-iii-b`: her stars about the kitchen.
+echo "C13 rating misspelt — no neighbour could ever rate a kitchen"
+run C13 red "rate_kitchens() answered 404" \
+  "s/^export const RATE_KITCHEN = 'rate_kitchen';/export const RATE_KITCHEN = 'rate_kitchens';/"
+
+echo "C14 her stars sent under another name — PostgREST finds no function by these arguments"
+run C14 red "answered 404 — no function by these arguments' names" \
+  '/^export interface RateArgs {/,/^}/s/^  readonly p_stars: number;/  readonly p_estrellas: number;/'
+
+echo "C15 her stars on her reservation read under another key — Anteriores would never show them"
+run C15 red "her stars on her reservation carried no 'estrellas'" \
+  '/^export interface MyRatingRow {/,/^}/s/^  readonly stars: number;/  readonly estrellas: number;/'
+
+echo "C16 a tag after one to three stars misspelt — the database refuses what the phone offers"
+run C16 red "two stars and 'tuvo_que_esperar' answered 400" \
+  "s/^export const ETIQUETAS_MALAS = \['tuve_que_esperar',/export const ETIQUETAS_MALAS = ['tuvo_que_esperar',/"
+
+echo "C17 the refusal after the day read under another code — she would read the wrong sentence"
+run C17 red "the app reads 'TD098'" \
+  "s/^  TD022: 'yaNoSeCalifica',/  TD098: 'yaNoSeCalifica',/"
+
 echo
 echo "$pass passed, $fail failed."
-if (( pass + fail < 13 )); then
-  echo "FAIL: only $((pass + fail)) fixtures ran, expected 13."
+if (( pass + fail < 18 )); then
+  echo "FAIL: only $((pass + fail)) fixtures ran, expected 18."
   exit 1
 fi
 (( fail == 0 )) || exit 1

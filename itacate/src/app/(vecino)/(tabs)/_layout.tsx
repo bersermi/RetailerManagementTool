@@ -1,5 +1,6 @@
 import { Tabs } from 'expo-router/js-tabs';
 
+import { Recordatorios } from '@/lib/Recordatorios';
 import { EN_USO } from '@/navigation/pestanas';
 import { Pestanas } from '@/ui/Pestanas';
 
@@ -14,13 +15,18 @@ import { Pestanas } from '@/ui/Pestanas';
 //
 // ⚠️ A TAB STAYS MOUNTED WHEN SHE LEAVES IT (Wera's measured trap): *Cerca* keeps its
 // list — and the distances it hands the two pages — while she is on *Tú*.
+// ⚠️ SINCE `10.5b-iii-b` HER REMINDERS LIVE HERE (`@/lib/Recordatorios`, which draws nothing):
+// told again at each read of her reservations, and cancelled when the tabs leave.
 // ============================================================================
 export default function TabsDeItacate() {
   return (
-    <Tabs screenOptions={{ headerShown: false }} tabBar={(props) => <Pestanas {...props} />}>
-      {EN_USO.map((pestana) => (
-        <Tabs.Screen key={pestana.ruta} name={pestana.ruta} options={{ title: pestana.label }} />
-      ))}
-    </Tabs>
+    <>
+      <Recordatorios />
+      <Tabs screenOptions={{ headerShown: false }} tabBar={(props) => <Pestanas {...props} />}>
+        {EN_USO.map((pestana) => (
+          <Tabs.Screen key={pestana.ruta} name={pestana.ruta} options={{ title: pestana.label }} />
+        ))}
+      </Tabs>
+    </>
   );
 }

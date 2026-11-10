@@ -1,9 +1,9 @@
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
 
-import type { Apartado } from '@/api/apartados';
+import { porCalificar, type Apartado } from '@/api/apartados';
 import { apiErrorMessage } from '@/api/errors';
 import { useApartados, useCancelarApartado, useCocinas, useYaLoTengo } from '@/api/hooks';
 import { anteriorTexto, pasaTexto, platoTexto, porConfirmarTexto, puedeCancelar, razonTexto, seccionesDe } from '@/lib/apartados';
@@ -13,7 +13,9 @@ import { PALETTE, SIZE } from '@/theme/palette';
 import { BoletoApartado } from '@/ui/BoletoApartado';
 import { BotonLleno } from '@/ui/BotonLleno';
 import { Cabeza } from '@/ui/Cabeza';
+import { Calificar, Estrellas } from '@/ui/Calificar';
 import { Deslizar } from '@/ui/Deslizar';
+import { Formulario } from '@/ui/Formulario';
 import { Grupo } from '@/ui/Grupo';
 import { Hoja } from '@/ui/Hoja';
 import { Llega } from '@/ui/Llega';
@@ -32,7 +34,12 @@ import { Llega } from '@/ui/Llega';
 // (`useApartados`), and on a pull. ⚠️ A PLATE THAT *SE LIBERÓ* LESS THAN A DAY AGO keeps
 // its swipe (`porConfirmar`): the kitchen may have handed it over without typing her code,
 // and her *Ya lo tengo* is taken until a day after the window (`0079`) — found by the review
-// of `10.5b-iii-a`, before it shipped. NO CHECK CAN SEE THIS SCREEN (ADR-035 §2.11).
+// of `10.5b-iii-a`, before it shipped.
+// ⚠️ SINCE `10.5b-iii-b` (AFTER THE PLATE) HER STARS ABOUT THE KITCHEN (`@/ui/Calificar`): under
+// *Ya lo tienes* the moment she swipes, and on a past plate she collected until the day after
+// its window (`rate_until`) — *Calificar* opens them under its row; once given, her stars stay on
+// the row. The screen is a `Formulario`, so her note stays above the keyboard. NO CHECK CAN SEE
+// THIS SCREEN (ADR-035 §2.11).
 // ============================================================================
 
 /** The clock this screen reads — *faltan 25 min*, and *Cancelar* turning into *No voy a poder ir*. */
@@ -46,6 +53,8 @@ export default function Apartados() {
   const { confirmar } = useYaLoTengo();
   const [confirmando, setConfirmando] = useState<string | null>(null);
   const [recogido, setRecogido] = useState<Apartado | null>(null);
+  /** A past plate she opened *Calificar* on. */
+  const [calificando, setCalificando] = useState<string | null>(null);
   const [cambio, setCambio] = useState<Apartado | null>(null);
   const [falla, setFalla] = useState<string | null>(null);
 
@@ -53,6 +62,7 @@ export default function Apartados() {
   useFocusEffect(
     useCallback(() => () => {
       setRecogido(null);
+      setCalificando(null);
       setFalla(null);
     }, []),
   );
@@ -88,7 +98,7 @@ export default function Apartados() {
       <Cabeza titulo={ES.apartados.titulo}>
         <Text style={styles.detalle}>{ES.apartados.detalle}</Text>
       </Cabeza>
-      <ScrollView
+      <Formulario
         contentContainerStyle={styles.cuerpo}
         refreshControl={
           <RefreshControl refreshing={apartados.isRefetching} onRefresh={() => void apartados.refetch()} tintColor={PALETTE.accion} />
@@ -112,6 +122,7 @@ export default function Apartados() {
                 <MaterialCommunityIcons name="check-circle" size={40} color={PALETTE.accion} />
                 <Text style={styles.recogidoTitulo}>{ES.apartados.yaLoTienes}</Text>
                 <Text style={styles.nota}>{`${recogido.cocina.nombre} · ${platoTexto(recogido)}`}</Text>
+                <Calificar key={recogido.id} apartado={recogido} onListo={() => setRecogido(null)} />
               </Llega>
             )}
 
@@ -181,6 +192,27 @@ export default function Apartados() {
                       <Text style={styles.filaTitulo}>{apartado.cocina.nombre}</Text>
                       <Text style={styles.filaDetalle}>{platoTexto(apartado)}</Text>
                       <Text style={styles.filaDetalle}>{anteriorTexto(apartado, ahora)}</Text>
+                      {/* ⚠️ Open until *Listo*: her one tap is saved at once, and the read that follows must not close it. */}
+                      {calificando === apartado.id ? (
+                        <View style={styles.calificando}>
+                          <Calificar key={apartado.id} apartado={apartado} onListo={() => setCalificando(null)} />
+                        </View>
+                      ) : apartado.miCalificacion !== null ? (
+                        <View style={styles.tuCalificacion}>
+                          <Text style={styles.filaDetalle}>{ES.apartados.calificar.tuCalificacion}</Text>
+                          <Estrellas n={apartado.miCalificacion.estrellas} size={16} />
+                        </View>
+                      ) : porCalificar(apartado, ahora) && recogido?.id !== apartado.id ? (
+                        <Pressable
+                          accessibilityRole="button"
+                          accessibilityLabel={ES.apartados.calificar.titulo(apartado.cocina.nombre)}
+                          onPress={() => setCalificando(apartado.id)}
+                          hitSlop={SIZE.rowGap}
+                          style={({ pressed }) => [styles.calificar, { opacity: pressed ? 0.6 : 1 }]}
+                        >
+                          <Text style={styles.calificarTexto}>{ES.apartados.calificar.calificar}</Text>
+                        </Pressable>
+                      ) : null}
                     </View>
                   ))}
                 </Grupo>
@@ -188,7 +220,7 @@ export default function Apartados() {
             )}
           </>
         )}
-      </ScrollView>
+      </Formulario>
 
       <Hoja visible={cambio !== null} titulo={hoja.titulo} onCerrar={() => setCambio(null)}>
         <Text style={styles.hojaTexto}>{hoja.texto}</Text>
@@ -238,4 +270,8 @@ const styles = StyleSheet.create({
   filaTitulo: { fontSize: SIZE.bodySize - 1, fontWeight: '600', color: PALETTE.tinta },
   filaDetalle: { fontSize: SIZE.smallSize, lineHeight: 19, color: PALETTE.tintaApagada },
   hojaTexto: { fontSize: SIZE.bodySize, lineHeight: 22, color: PALETTE.tinta },
+  tuCalificacion: { flexDirection: 'row', alignItems: 'center', gap: SIZE.rowGap, paddingTop: 2 },
+  calificando: { paddingTop: SIZE.space },
+  calificar: { alignSelf: 'flex-start', minHeight: SIZE.tapTarget - SIZE.rowGap, justifyContent: 'center' },
+  calificarTexto: { fontSize: SIZE.bodySize - 1, fontWeight: '700', color: PALETTE.accion },
 });

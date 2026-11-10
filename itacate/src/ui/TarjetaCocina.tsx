@@ -2,6 +2,7 @@ import { Pressable, Text, View } from 'react-native';
 
 import { distanciaTexto } from '@/lib/distancia';
 import { cuandoPublica, type Tarjeta } from '@/lib/lista';
+import { distanciaYEstrellas } from '@/lib/paginas';
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
 import { Circulo } from '@/ui/Circulo';
@@ -35,6 +36,8 @@ export function TarjetaCocina({
 }) {
   const { cocina, metros } = tarjeta;
   const linea = cuandoPublica(cocina.summary, ahora);
+  // ⚠️ `10.5b-iii-b`: her stars beside the distance, from five ratings (*350 m · ★ 4.8*).
+  const derecha = distanciaYEstrellas(metros === null ? null : distanciaTexto(metros), cocina.estrellas);
   return (
     <Pressable
       accessibilityRole="button"
@@ -59,9 +62,7 @@ export function TarjetaCocina({
         </Text>
         {linea !== null && <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada }}>{linea}</Text>}
       </View>
-      {metros !== null && (
-        <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada }}>{distanciaTexto(metros)}</Text>
-      )}
+      {derecha !== null && <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada }}>{derecha}</Text>}
     </Pressable>
   );
 }

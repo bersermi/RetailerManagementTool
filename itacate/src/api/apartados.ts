@@ -1,7 +1,8 @@
 // ============================================================================
 // HER RESERVATIONS, AS A CONTRACT WITH POSTGRES. Plan task `10.5b-iii-a` (she
 // reserves and collects), on `0079`'s four functions (`10.5b-i`) and `0080`'s two of
-// hers that reserving needs (`10.5b-ii-b`) — ADR-035 §2.7, *What is hers*: every one is
+// hers that reserving needs (`10.5b-ii-b`) — and since `10.5b-iii-b` (after the plate)
+// `0080`'s third, her stars about the kitchen. ADR-035 §2.7, *What is hers*: every one is
 // keyed on her own id, and none is a door into anyone else's rows.
 //
 //   reserve_plate          one plate of one dish, at her hour, by her method
@@ -10,6 +11,7 @@
 //   confirm_my_pickup      *Ya lo tengo*
 //   give_my_yes            her express yes, once, before her first reservation
 //   my_standing            her yes, her score, each label's count, how many she may hold
+//   rate_kitchen           her stars about the kitchen after a pickup, its tags, a note for Wera
 //
 // ⚠️ THE ANSWERS ARE CONTRACTS THAT GROW ONLY BY KEYS, as the door's (`@/api/cocinas`):
 // the interfaces below name the keys THIS APP reads, by the database's names, one per
@@ -32,7 +34,19 @@
 
 import { SCALE, parseDecimal } from '@tienda/money';
 
-import { COMERES, PAGOS, addressOf, centavosOf, desechableOf, instantOf, type Address, type Comer, type Pago } from '@/api/cocinas';
+import {
+  COMERES,
+  ETIQUETAS_BUENAS,
+  PAGOS,
+  addressOf,
+  centavosOf,
+  desechableOf,
+  instantOf,
+  type Address,
+  type Comer,
+  type EtiquetaBuena,
+  type Pago,
+} from '@/api/cocinas';
 import { toPage, type Page } from '@/api/pagina';
 
 /** `0079`: one plate, at her hour, by her method. Answers `{id, code}`. */
@@ -47,6 +61,8 @@ export const CONFIRM_MY_PICKUP = 'confirm_my_pickup';
 export const GIVE_MY_YES = 'give_my_yes';
 /** `0080`: her own standing. */
 export const MY_STANDING = 'my_standing';
+/** `0080`: her stars about the kitchen, after a pickup (`10.5b-iii-b`). */
+export const RATE_KITCHEN = 'rate_kitchen';
 
 /** Her reservations, cached in memory under the login, as every read here. */
 export const APARTADOS_KEY = ['itacate', 'apartados'] as const;
@@ -105,6 +121,32 @@ export function reservationIdArgs(id: string): ReservationIdArgs {
   return { p_id: id };
 }
 
+/** `rate_kitchen`'s arguments, by their names. ⚠️ EACH CALL SETS ALL THREE: a blank note is none. */
+export interface RateArgs {
+  readonly p_reservation_id: string;
+  readonly p_stars: number;
+  readonly p_tags: readonly EtiquetaDeCocina[];
+  readonly p_note: string | null;
+}
+
+/** Her stars as she gave them on the phone. */
+export interface Calificacion {
+  readonly estrellas: number;
+  readonly etiquetas: readonly EtiquetaDeCocina[];
+  /** What she tells Wera — never a kitchen. */
+  readonly nota: string;
+}
+
+export function rateArgs(id: string, calificacion: Calificacion): RateArgs {
+  const nota = calificacion.nota.trim();
+  return {
+    p_reservation_id: id,
+    p_stars: calificacion.estrellas,
+    p_tags: etiquetasDeLaBanda(calificacion.estrellas, calificacion.etiquetas),
+    p_note: nota === '' ? null : nota.slice(0, NOTA_MAXIMA),
+  };
+}
+
 // ----------------------------------------------------------------------------
 // What comes back, by the database's names — ⚠️ the contract check reads each field
 // ----------------------------------------------------------------------------
@@ -127,6 +169,10 @@ export interface ReservationRow {
   readonly eat: string;
   /** `0080`: why the kitchen cancelled, when it did. */
   readonly cancel_reason: string | null;
+  /** `0080`: until when she may rate it — a plate she collected, until the day after its window; else `null`. */
+  readonly rate_until: string | null;
+  /** `0080`: her own stars about it, when she gave them. */
+  readonly my_rating: MyRatingRow | null;
   readonly kitchen: ReservationKitchenRow | null;
   readonly lines: readonly ReservationLineRow[] | null;
 }
@@ -166,6 +212,18 @@ export interface ReservationLineRow {
   readonly container_price: string | null;
 }
 
+/** Her stars about the kitchen of one reservation, as she gave them — never her note, which only Wera reads. */
+export interface MyRatingRow {
+  readonly stars: number;
+  readonly tags: readonly string[];
+}
+
+/** `rate_kitchen`'s answer. */
+export interface RatedRow {
+  readonly stars: number;
+  readonly tags: readonly string[];
+}
+
 /** `my_standing`'s answer. */
 export interface StandingRow {
   /** When she gave her express yes, or `null` — Itacate asks before her first reservation. */
@@ -197,6 +255,31 @@ export type Razon = (typeof RAZONES)[number];
 /** The fonda's five labels (`0080`), in the order *Tú* lists them — the final design's. */
 export const ETIQUETAS = ['a_tiempo', 'amable', 'tarde', 'no_se_presento', 'pago'] as const;
 export type Etiqueta = (typeof ETIQUETAS)[number];
+
+/**
+ * ⚠️ HER TAGS ABOUT THE KITCHEN (`0080`'s closed list, `kitchen_rating_tags_fit_the_stars`),
+ * each only after the stars it fits: the good four after four or five (`ETIQUETAS_BUENAS`,
+ * `@/api/cocinas`', which the door sends too), the other four after one to three — the
+ * owner's answer of 2026-11-10, the mirror of the good four.
+ */
+export const ETIQUETAS_MALAS = ['tuve_que_esperar', 'porcion_chica', 'no_me_gusto', 'me_atendieron_mal'] as const;
+export type EtiquetaDeCocina = EtiquetaBuena | (typeof ETIQUETAS_MALAS)[number];
+
+/** From how many stars the good tags are offered — `0080`'s `stars >= 4`. */
+export const BUENAS_DESDE = 4;
+/** Her note, at most this long — `0080`'s `kitchen_rating_note_shape`. */
+export const NOTA_MAXIMA = 500;
+
+/** The tags she may tap after these stars. */
+export function etiquetasPara(estrellas: number): readonly EtiquetaDeCocina[] {
+  if (!Number.isInteger(estrellas) || estrellas < 1 || estrellas > 5) return [];
+  return estrellas >= BUENAS_DESDE ? ETIQUETAS_BUENAS : ETIQUETAS_MALAS;
+}
+
+/** Of what she tapped, only those of the stars' band, in the list's order — a change of stars drops the other band's. */
+export function etiquetasDeLaBanda(estrellas: number, etiquetas: readonly string[]): EtiquetaDeCocina[] {
+  return etiquetasPara(estrellas).filter((etiqueta) => etiquetas.includes(etiqueta));
+}
 
 // ----------------------------------------------------------------------------
 // As this app holds them
@@ -236,6 +319,10 @@ export interface Apartado {
   readonly pago: Pago;
   readonly comer: Comer;
   readonly razon: Razon | null;
+  /** Until when she may rate it, or `null` — the database's moment (`rate_until`). */
+  readonly calificarHasta: Date | null;
+  /** Her stars, when she gave them. */
+  readonly miCalificacion: { readonly estrellas: number; readonly etiquetas: readonly EtiquetaDeCocina[] } | null;
   readonly cocina: CocinaDelApartado;
   readonly platos: readonly Plato[];
   /** What she pays: every plate and its *desechable*. */
@@ -291,6 +378,24 @@ function platoOf(value: unknown): Plato {
   };
 }
 
+/** A moment the database may send as `null`; one it cannot read is `null` too — nothing offered on a guess. */
+function momentoOrNull(value: unknown): Date | null {
+  if (value === null || value === undefined) return null;
+  try {
+    return instantOf(value);
+  } catch {
+    return null;
+  }
+}
+
+/** Her own stars on a reservation, or `null` — stars outside one to five are none. */
+function miCalificacionOf(value: unknown): Apartado['miCalificacion'] {
+  const r = object(value);
+  if (r === null || typeof r.stars !== 'number' || !Number.isInteger(r.stars) || r.stars < 1 || r.stars > 5) return null;
+  const tags = list(r.tags).filter((t): t is string => typeof t === 'string');
+  return { estrellas: r.stars, etiquetas: etiquetasDeLaBanda(r.stars, tags) };
+}
+
 /** One reservation; throws when it cannot be read. */
 export function apartadoOf(value: unknown): Apartado {
   const r = object(value);
@@ -313,6 +418,8 @@ export function apartadoOf(value: unknown): Apartado {
     pago: r.payment,
     comer: r.eat,
     razon: isOneOf(RAZONES, r.cancel_reason) ? r.cancel_reason : null,
+    calificarHasta: momentoOrNull(r.rate_until),
+    miCalificacion: miCalificacionOf(r.my_rating),
     cocina: {
       id: text(k.id),
       nombre: text(k.name),
@@ -341,6 +448,28 @@ export function apartadosFrom(data: unknown): Apartado[] {
     }
   }
   return apartados;
+}
+
+/** `rate_kitchen`'s answer: the stars it kept. Throws when it cannot be read. */
+export function calificadoFrom(data: unknown): { readonly estrellas: number } {
+  const r = object(data);
+  if (r === null || typeof r.stars !== 'number' || !Number.isInteger(r.stars) || r.stars < 1 || r.stars > 5) {
+    throw new TypeError('no rating came back');
+  }
+  return { estrellas: r.stars };
+}
+
+/**
+ * Whether she may still rate it now: a plate she collected, not rated yet, before the
+ * database's `rate_until` (the day after its window). Once rated it shows her stars.
+ */
+export function porCalificar(apartado: Apartado, ahora: Date): boolean {
+  return (
+    apartado.estado === 'recogido' &&
+    apartado.miCalificacion === null &&
+    apartado.calificarHasta !== null &&
+    ahora.getTime() <= apartado.calificarHasta.getTime()
+  );
 }
 
 /** `reserve_plate`'s answer: the code she says at the counter. Throws when it cannot be read. */
@@ -391,6 +520,7 @@ export type Falla =
   | 'sinSi'
   | 'cambio'
   | 'yaNoPendiente'
+  | 'yaNoSeCalifica'
   | 'sesion'
   | 'sinSenal'
   | 'otra';
@@ -409,6 +539,8 @@ export const POR_CODIGO: Readonly<Record<string, Falla>> = {
   TD020: 'calificacion',
   // She has not yet given her express yes.
   TD021: 'sinSi',
+  // Nothing to rate there now: not collected, or the day after its window is over.
+  TD022: 'yaNoSeCalifica',
   // An hour that is no longer one she may pick, or a method or way the kitchen no longer offers.
   '22023': 'cambio',
   // The session is gone.

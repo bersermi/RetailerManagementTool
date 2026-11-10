@@ -136,6 +136,12 @@ export const ES = {
     ultimo: 'Último',
     /** The saving, on her colour — the drawing's *−50%*, with a true minus sign. */
     ahorro: (pct: number) => `−${pct}%`,
+    /**
+     * ⚠️ `10.5b-iii-b`: HER STARS ON A CARD AND ON A DISH'S KITCHEN ROW (the owner's answer 10 of
+     * 2026-11-05: *the stars go on the card*; the family-shell page's *350 m · ★ 4.8*), from five ratings.
+     */
+    estrellas: (promedio: string) => `★ ${promedio}`,
+    conEstrellas: (distancia: string, estrellas: string) => `${distancia} · ${estrellas}`,
     /** A quiet kitchen's card: the pattern once 3 or more publications in 4 weeks show one. */
     suele: (dias: string, hora: string) => `Suele tener ofertas ${dias}, ${hora}`,
     hacia: (hora: number) => (hora === 1 ? 'hacia la 1:00' : `hacia las ${hora}:00`),
@@ -228,6 +234,23 @@ export const ES = {
     /** The door no longer sends her: she has not published in 14 days, or the kitchen was deleted. */
     yaNoEsta: 'Esta cocina ya no está en Itacate.',
     cargando: 'Buscando la cocina…',
+    /**
+     * ⚠️ `10.5b-iii-b`: HER STARS, FROM FIVE RATINGS (the family-shell page's call 20, ruled
+     * 2026-11-05: *★ 4.8 (23)*, else *Todavía sin calificaciones*) — counted the day after (`0080`).
+     */
+    calificaciones: (n: number) => (n === 1 ? '(1 calificación)' : `(${n} calificaciones)`),
+    sinCalificaciones: 'Todavía sin calificaciones',
+    /** What a screen reader says for her stars. */
+    estrellasAyuda: (promedio: string, n: number) => `${promedio} de 5 estrellas, ${n} calificaciones`,
+    /** Her three most given good tags (`0080`: good ones only), as the neighbours tap them. */
+    etiqueta: {
+      lista_a_tiempo: 'Lista a tiempo',
+      buena_porcion: 'Buena porción',
+      muy_rica: 'Muy rica',
+      me_atendieron_bien: 'Me atendieron bien',
+    },
+    /** ⚠️ `10.5b-iii-b`: how she takes payment, as chips (call 20) — each chip `ES.platillo.pago`'s. */
+    comoPagas: 'Cómo pagas aquí',
   },
 
   /**
@@ -306,6 +329,8 @@ export const ES = {
     listo: '¡Listo, ya lo apartaste!',
     tuCodigo: 'Tu código',
     verTuApartado: 'Ver tu apartado',
+    /** ⚠️ `10.5b-iii-b`: under her code, once her phone lets Itacate remind her (`@/lib/avisos`). */
+    teAvisamos: 'Te avisamos 15 minutos antes de tu hora.',
     /** Her reservations or her standing could not be read: the foot says why and asks again. */
     reintentar: 'Intentar de nuevo',
     /** ⚠️ `0080`: her express yes, once, before her first reservation — the final design's words. */
@@ -317,6 +342,12 @@ export const ES = {
         'Las cocinas donde apartas ven tu nombre y tu porcentaje. Algunas apartan solo a quien tiene cierto porcentaje. Tú lo ves en Tú, sin saber quién te calificó.',
       asiTeVeran: 'Así te verán hoy',
       aviso: 'Aviso de privacidad',
+      /**
+       * ⚠️ `10.5b-iii-b`: THE TERMS, ACCEPTED WITH HER YES — before her first reservation, so
+       * before her first rating (a rating follows a pickup, and a pickup a reservation): Google
+       * asks that the terms be accepted before anyone rates. Her yes keeps its moment (`0080`).
+       */
+      terminos: 'Términos de uso',
       acepto: 'Acepto y sigo',
     },
     /** Why it did not go through — `@/api/apartados`' `Falla`, each with what she can do. */
@@ -328,6 +359,8 @@ export const ES = {
       sinSi: 'Antes de tu primer apartado, acepta cómo funciona.',
       cambio: 'Algo cambió en esta oferta. Revisa tu hora y cómo pagas, e intenta de nuevo.',
       yaNoPendiente: 'Este apartado ya no está pendiente.',
+      /** `TD022`: not collected, or the day after its window is over. */
+      yaNoSeCalifica: 'Este apartado ya no se puede calificar.',
       sesion: 'Tu sesión se cerró. Entra de nuevo.',
       sinSenal: 'Sin conexión a internet. Intenta de nuevo en un momento.',
       otra: 'Algo salió mal. Intenta de nuevo.',
@@ -393,6 +426,36 @@ export const ES = {
     },
     yaLoTienes: 'Ya lo tienes. ¡Buen provecho!',
     /**
+     * ⚠️ `10.5b-iii-b`: HER STARS ABOUT THE KITCHEN, after *Ya lo tengo* (`10.5b-ii`'s final design,
+     * the page's *After Ya lo tengo*): one tap of the stars, then the tags of their band and a note
+     * only Wera reads. From *Anteriores* too, until the day after the window (`rate_until`).
+     */
+    calificar: {
+      pregunta: '¿Qué tal estuvo?',
+      /** What a screen reader says for each star. */
+      estrella: (n: number) => (n === 1 ? '1 estrella' : `${n} estrellas`),
+      nota: 'Cuéntale algo a Wera (opcional)',
+      notaAyuda: 'Solo lo lee Wera, no la cocina.',
+      listo: 'Listo',
+      gracias: 'Gracias. La cocina lo verá junto con las demás calificaciones.',
+      /** On a past reservation she may still rate. */
+      calificar: 'Calificar',
+      titulo: (cocina: string) => `¿Qué tal estuvo ${cocina}?`,
+      /** Her stars, once given, on the past reservation. */
+      tuCalificacion: 'Tu calificación',
+      /** Her tags: the good four after four or five stars, the other four after one to three (`0080`). */
+      etiqueta: {
+        lista_a_tiempo: 'Lista a tiempo',
+        buena_porcion: 'Buena porción',
+        muy_rica: 'Muy rica',
+        me_atendieron_bien: 'Me atendieron bien',
+        tuve_que_esperar: 'Tuve que esperar',
+        porcion_chica: 'Porción chica',
+        no_me_gusto: 'No me gustó',
+        me_atendieron_mal: 'Me atendieron mal',
+      },
+    },
+    /**
      * ⚠️ A PLATE WHOSE WINDOW ENDED WITH NO HANDOVER — *se liberó* — that she may still say she
      * has: `confirm_my_pickup` takes her *Ya lo tengo* until a day after the window (`0079`), and
      * it keeps the clock's *No se presentó* off her score when the kitchen forgot *Entregar*.
@@ -413,6 +476,18 @@ export const ES = {
       liberado: 'Se liberó',
       cancelado_cocina: 'La cocina lo canceló',
     },
+  },
+
+  /**
+   * ⚠️ `10.5b-iii-b`: HER REMINDER, 15 MINUTES BEFORE HER HOUR — scheduled by her own phone
+   * when her reservations are read (`@/lib/avisos`), nothing sent by any server (the family-shell
+   * page, stage 2: *"scheduled by her own phone when she reserves. Nothing leaves it."*).
+   */
+  recordatorio: {
+    /** The channel her phone's settings name (Android). */
+    canal: 'Tus apartados',
+    titulo: (aLas: string) => `Tu comida estará lista ${aLas}`,
+    texto: (cocina: string, codigo: string) => `${cocina} · Tu código: ${codigo}`,
   },
 
   /**
@@ -537,6 +612,13 @@ export const ES = {
     errors: {
       /** `0073`'s refusal: a business the screen did not show. */
       listChanged: 'La lista de tus negocios cambió. Revísala y escribe otra vez cada nombre.',
+      /**
+       * ⚠️ `10.5b-iii-b`: `0079`'s `TD014` — a fonda who uses Itacate too, while a neighbour holds a
+       * plate at a kitchen that would go with her account (ruled 2026-11-10: refused until each is
+       * handed over or its window ends).
+       */
+      reservaPendiente:
+        'Alguien tiene un apartado por recoger en tu cocina. Podrás eliminar tu cuenta cuando se lo entregues o cuando termine su horario.',
     },
   },
 

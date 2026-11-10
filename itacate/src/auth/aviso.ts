@@ -19,3 +19,11 @@
 
 /** The page every link in this app opens. */
 export const AVISO_URL = 'https://tu-wera.com/privacidad/cocina-e-itacate/';
+
+/**
+ * ⚠️ `10.5b-iii-b`: THE TERMS OF USE, which she accepts with her express yes before her first
+ * reservation — so before her first rating (Google asks that the terms be accepted before
+ * anyone rates). The page is `site/terminos/cocina-e-itacate/index.html`; its paragraph on
+ * ratings is `10.5b-vi`'s, before Itacate reaches people.
+ */
+export const TERMINOS_URL = 'https://tu-wera.com/terminos/cocina-e-itacate/';

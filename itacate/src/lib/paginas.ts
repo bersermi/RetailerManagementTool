@@ -15,6 +15,11 @@
 //     `10.5b-iii-a` (she reserves), that she picks her hour, how it is eaten and how she
 //     pays at the kitchen (`comerTexto`, `pagosTexto`), the family-shell page's stage 2.
 //     Its button is not the page's: its route hands the page its foot.
+//   - SINCE `10.5b-iii-b` (AFTER THE PLATE), HER STARS — on her page *★ 4.8 (23
+//     calificaciones)* and her most given good tags, else *Todavía sin calificaciones*; on a
+//     card and a dish's kitchen row *350 m · ★ 4.8* — and her page's payment chips (the
+//     family-shell page's call 20, and the owner's answer 10 of 2026-11-05: *the stars go on
+//     the card*). The door counts them from five, the day after (`0080`).
 //
 // ⚠️ NOTHING NEW FROM THE DATABASE: the door already sends every part (`0078`), and
 // both pages read the list's answer (`@/api/hooks`' `useCocinas`, in memory) by the
@@ -31,7 +36,7 @@
 // (`@/api/pagina`'s `mapsLinkOk`, the database's rule).
 // ============================================================================
 
-import type { Address, Dish, Kitchen, Offer, Summary } from '@/api/cocinas';
+import type { Address, Dish, Estrellas, Kitchen, Offer, Pago, Summary } from '@/api/cocinas';
 import { mapsLinkOk, type Page } from '@/api/pagina';
 import { formatMXN } from '@/format/mxn';
 import { preguntaDeSuDireccion } from '@/lib/google';
@@ -176,6 +181,44 @@ export function comerTexto(platillo: Dish): { readonly titulo: string; readonly 
 /** How she pays at the kitchen — *Efectivo · Tarjeta* — cash always, first (`0079`, call 12). */
 export function pagosTexto(cocina: Kitchen): string {
   return cocina.pagos.map((pago) => ES.platillo.pago[pago]).join(' · ');
+}
+
+/** Her payment chips on her page: cash always, first, then what she says she takes. */
+export function pagosDe(cocina: Kitchen): readonly { readonly pago: Pago; readonly texto: string }[] {
+  return cocina.pagos.map((pago) => ({ pago, texto: ES.platillo.pago[pago] }));
+}
+
+// ----------------------------------------------------------------------------
+// Her stars — from five ratings, counted the day after (`0080`)
+// ----------------------------------------------------------------------------
+
+/** *★ 4.8* on a card, or `null` before five ratings. */
+export function estrellasTexto(estrellas: Estrellas | null): string | null {
+  return estrellas === null ? null : ES.cerca.estrellas(estrellas.promedio);
+}
+
+/** Under a kitchen's name on a card or a dish's row: *350 m · ★ 4.8*, either alone, or `null`. */
+export function distanciaYEstrellas(distancia: string | null, estrellas: Estrellas | null): string | null {
+  const texto = estrellasTexto(estrellas);
+  if (distancia === null) return texto;
+  return texto === null ? distancia : ES.cerca.conEstrellas(distancia, texto);
+}
+
+/** Her page's rating line: the average, how many, her good tags in words — or that she has none yet. */
+export type Calificacion =
+  | { readonly kind: 'estrellas'; readonly promedio: string; readonly cuantas: string; readonly ayuda: string; readonly etiquetas: readonly string[] }
+  | { readonly kind: 'sin'; readonly texto: string };
+
+export function calificacionDe(cocina: Kitchen): Calificacion {
+  const { estrellas } = cocina;
+  if (estrellas === null) return { kind: 'sin', texto: ES.pagina.sinCalificaciones };
+  return {
+    kind: 'estrellas',
+    promedio: estrellas.promedio,
+    cuantas: ES.pagina.calificaciones(estrellas.cuantas),
+    ayuda: ES.pagina.estrellasAyuda(estrellas.promedio, estrellas.cuantas),
+    etiquetas: estrellas.etiquetas.map((etiqueta) => ES.pagina.etiqueta[etiqueta]),
+  };
 }
 
 // ----------------------------------------------------------------------------

@@ -6,12 +6,14 @@ import { Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-na
 import type { Posicion } from '@/api/apartados';
 import type { Comer, Dish, Kitchen, Offer, Pago } from '@/api/cocinas';
 import { useApartados, useApartar, useDarMiSi } from '@/api/hooks';
-import { AVISO_URL } from '@/auth/aviso';
+import { AVISO_URL, TERMINOS_URL } from '@/auth/aviso';
 import { formatMXN } from '@/format/mxn';
 import { pasaTexto } from '@/lib/apartados';
 import { comeresDe, horasDe, horaVigente, inicialDe, porcentajeDe, totalDe } from '@/lib/apartar';
+import { pedirPermiso } from '@/lib/avisos';
 import { nuevoId } from '@/lib/ids';
 import { ventanaTexto } from '@/lib/lista';
+import { ANTES_MS } from '@/lib/recordatorio';
 import { clockOf } from '@/lib/ventana';
 import { ES } from '@/strings';
 import { TITULO } from '@/theme/letra';
@@ -36,8 +38,11 @@ import { Opcion } from '@/ui/Opcion';
 // the next (`horaVigente`) — keeping the id, so a tap sent again after a lost answer is
 // still the one reservation; ⚠️ AND SO HER CODE'S HOUR IS THE DATABASE'S: once her
 // reservations are read again it is the one kept under that id, with its day (*Pasa mañana
-// a la 1:00*) — never only the chip she tapped (found by the review of `10.5b-iii-a`). NO
-// CHECK CAN SEE THIS SCREEN (ADR-035 §2.11): the phone is its instrument.
+// a la 1:00*) — never only the chip she tapped (found by the review of `10.5b-iii-a`).
+// ⚠️ SINCE `10.5b-iii-b`: her yes accepts the terms of use too (both links above it), and once
+// a reservation goes through her phone is asked — while it still lets Itacate ask — to let it
+// remind her 15 minutes before her hour (`@/lib/avisos`), said under her code when it will. NO CHECK CAN SEE THIS
+// SCREEN (ADR-035 §2.11): the phone is its instrument.
 // ============================================================================
 
 /** The sheet's body scrolls past this share of the screen — a long window has many hours. */
@@ -77,6 +82,7 @@ export function HojaApartar({
   const [falla, setFalla] = useState<string | null>(null);
   const [siDado, setSiDado] = useState(false);
   const [listo, setListo] = useState<{ readonly id: string; readonly codigo: string; readonly hora: Date } | null>(null);
+  const [teAvisamos, setTeAvisamos] = useState(false);
 
   // Each opening starts afresh: the first hour, *para llevar* when it can be, cash, a new id.
   useEffect(() => {
@@ -88,6 +94,7 @@ export function HojaApartar({
     setPagosAbiertos(false);
     setFalla(null);
     setListo(null);
+    setTeAvisamos(false);
     setId(nuevoId());
     // Only when it opens.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -123,8 +130,14 @@ export function HojaApartar({
   async function confirmar() {
     if (horaElegida === null || busy) return;
     const resultado = await apartar({ id, ofertaId: oferta.id, lineNo: platillo.lineNo, hora: horaElegida, pago, comer });
-    if (resultado.ok) setListo({ id: resultado.valor.id, codigo: resultado.valor.codigo, hora: horaElegida });
-    else setFalla(ES.apartar.fallas[resultado.falla]);
+    if (resultado.ok) {
+      setListo({ id: resultado.valor.id, codigo: resultado.valor.codigo, hora: horaElegida });
+      // Her reminder: her phone is asked, now that what it is for is on the screen.
+      const recordar = horaElegida.getTime() - ANTES_MS > Date.now();
+      void pedirPermiso().then((si) => setTeAvisamos(si && recordar));
+    } else {
+      setFalla(ES.apartar.fallas[resultado.falla]);
+    }
   }
 
   return (
@@ -138,16 +151,24 @@ export function HojaApartar({
               <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada }}>{ES.apartar.antes.asiTeVeran}</Text>
               <Etiqueta texto={posicion === undefined ? ES.tu.nueva : comoTeVen(posicion)} />
             </View>
-            <Pressable
-              accessibilityRole="link"
-              accessibilityLabel={ES.apartar.antes.aviso}
-              onPress={() => {
-                WebBrowser.openBrowserAsync(AVISO_URL).catch(() => {});
-              }}
-              style={({ pressed }) => ({ minHeight: SIZE.tapTarget - SIZE.rowGap, justifyContent: 'center', alignSelf: 'flex-start', opacity: pressed ? 0.6 : 1 })}
-            >
-              <Text style={{ fontSize: SIZE.bodySize - 1, fontWeight: '700', color: PALETTE.accion }}>{ES.apartar.antes.aviso}</Text>
-            </Pressable>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', columnGap: SIZE.space * 1.5 }}>
+              {[
+                { texto: ES.apartar.antes.aviso, url: AVISO_URL },
+                { texto: ES.apartar.antes.terminos, url: TERMINOS_URL },
+              ].map((enlace) => (
+                <Pressable
+                  key={enlace.url}
+                  accessibilityRole="link"
+                  accessibilityLabel={enlace.texto}
+                  onPress={() => {
+                    WebBrowser.openBrowserAsync(enlace.url).catch(() => {});
+                  }}
+                  style={({ pressed }) => ({ minHeight: SIZE.tapTarget - SIZE.rowGap, justifyContent: 'center', opacity: pressed ? 0.6 : 1 })}
+                >
+                  <Text style={{ fontSize: SIZE.bodySize - 1, fontWeight: '700', color: PALETTE.accion }}>{enlace.texto}</Text>
+                </Pressable>
+              ))}
+            </View>
             {falla !== null && <Falla texto={falla} />}
             <BotonLleno label={ES.apartar.antes.acepto} variante="principal" busy={dandoSi} onPress={() => void aceptar()} />
           </>
@@ -299,6 +320,9 @@ export function HojaApartar({
             <Text style={{ fontSize: SIZE.bodySize, fontWeight: '700', color: PALETTE.tinta }}>
               {pasaTexto(horaDelListo ?? listo.hora, ahora)}
             </Text>
+            {teAvisamos && (
+              <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada, textAlign: 'center' }}>{ES.apartar.teAvisamos}</Text>
+            )}
             <View style={{ alignSelf: 'stretch' }}>
               <BotonLleno label={ES.apartar.verTuApartado} variante="principal" onPress={onVerApartado} />
             </View>
