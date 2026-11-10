@@ -65,6 +65,12 @@ listings do not say *inventario*; the home page of tu-wera.com still does.
 
 ✅ **10 November, evening: you have an Android phone.** It replaces the test Android here as the second phone: the next session that needs it installs Itacate's and Wera Cocina's Android test builds on it with you (both files are kept on this Mac), Wera can come from Play's closed test, and the first push (`10.5b-v`) is measured on your two phones. Nothing to do with it yet.
 
+⏳ **10 November, afternoon: Wera Cocina hands over, sent over the air** (*Wera Cocina: Apartados, entregar con el código y calificar a
+quien apartó (10.5b-iv-a)*) to Wera Cocina's test builds — **your iPhone's included**, with nothing to reinstall. On the iPhone: open Wera
+Cocina, wait ten seconds, **close it completely** and open it again — the update runs from the second open; if it still looks as before, once
+more. **First sign it arrived:** the tab bar reads ***Hoy · Apartados · Mi cocina***. **What to look at:** *What only you can judge* → *Wera
+Cocina → handing over* (two accounts: one publishes in Wera Cocina, the other reserves in Itacate).
+
 ⏳ **10 November, later: Itacate after the plate, sent over the air** (*Itacate: tus estrellas después del plato, tu recordatorio y cómo pagas
 en cada cocina (10.5b-iii-b)*) to Itacate's test builds — **your iPhone's included**, with nothing to reinstall — and to Wera Cocina's (*Wera
 Cocina: Así la ven dice cómo pagan y sus calificaciones*). On the iPhone: open Itacate, wait ten seconds, **close it completely** and open it
