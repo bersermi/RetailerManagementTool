@@ -60,12 +60,15 @@ function enOferta(listing: Listing, now: Date): boolean {
 
 /**
  * ⚠️ `10.5b-iii-a`: what the door sends of a kitchen whose settings are its defaults (`0079`'s
- * `coalesce`s, `0080`'s NULL) — every kitchen until `10.5b-iv` lets her set them.
+ * `coalesce`s, `0080`'s NULL) — every kitchen until `10.5b-iv` lets her set them. ⚠️ And since
+ * `10.5b-iii-b` no stars: the door sends them from five ratings counted the day after, and no
+ * kitchen has one yet; `10.5b-iv` reads her own (`my_kitchen_ratings`) for her preview.
  */
 export const SIN_AJUSTES = {
   pagos: ['efectivo'],
   comeres: ['llevar'],
   minScore: null,
+  estrellas: null,
   llevar: true,
   aqui: false,
   desechableCentavos: null,
@@ -216,5 +219,6 @@ export function cocinaComoLaVen(input: {
     pagos: SIN_AJUSTES.pagos,
     comeres: SIN_AJUSTES.comeres,
     minScore: SIN_AJUSTES.minScore,
+    estrellas: SIN_AJUSTES.estrellas,
   };
 }

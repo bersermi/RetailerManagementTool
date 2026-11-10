@@ -154,10 +154,20 @@ describe('the door’s rules, read out of the migration that defines it last', (
       'coalesce(kp.para_aqui, false) as para_aqui',
       "'payment', to_jsonb(array['efectivo']",
       "'min_score', k.min_score",
+      // `10.5b-iii-b`: her stars only from five ratings — none for every kitchen today.
+      "'stars', (select case when count(*) >= 5 then jsonb_build_object(",
     ]) {
       expect(body, fragment).toContain(fragment);
     }
-    expect(SIN_AJUSTES).toEqual({ pagos: ['efectivo'], comeres: ['llevar'], minScore: null, llevar: true, aqui: false, desechableCentavos: null });
+    expect(SIN_AJUSTES).toEqual({
+      pagos: ['efectivo'],
+      comeres: ['llevar'],
+      minScore: null,
+      estrellas: null,
+      llevar: true,
+      aqui: false,
+      desechableCentavos: null,
+    });
     // And nothing in this app reads them yet: `10.5b-iv` brings her settings, and with them the preview's.
     const fuentes = ['api/pagina.ts', 'api/listing.ts', 'api/kitchen.ts'].map((f) => readFileSync(join(fileURLToPath(new URL('../src', import.meta.url)), f), 'utf8'));
     for (const fuente of fuentes) expect(fuente).not.toMatch(/accepts_card|para_llevar|container_price|min_score/);

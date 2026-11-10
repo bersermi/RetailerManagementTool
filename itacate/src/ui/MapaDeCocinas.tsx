@@ -41,6 +41,14 @@ import { PALETTE, SIZE } from '@/theme/palette';
 // SIGHT: the map's padding puts its foot at the sheet's top (`paddingDelMapa`), and
 // nothing of ours is drawn at its foot.
 //
+// ⚠️ THE PADDING IS HANDED OVER ONLY ONCE GOOGLE'S MAP IS READY (`10.5b-iii-b`): until
+// `onMapReady` the map keeps the padding it mounted with. `react-native-maps` 1.27.2's
+// `applyBaseMapPadding` calls Google's `map.setPadding` with no null check, so a padding that
+// changed after the view was laid out but before the map existed was a red screen — seen twice
+// on the emulator by `10.5b-iii-a` (after a restart, after a sign-in), when the sheet moved
+// before Google answered. At mount the view has no size yet, so the library keeps that first
+// padding and applies it itself once the map is ready.
+//
 // ⚠️ A CUSTOM MARKER IS A PICTURE GOOGLE TAKES OF A VIEW: it is redrawn while
 // `tracksViewChanges` is on, which costs every frame, so each marker turns it off once
 // its picture has loaded (`useQuieto`) — and a marker whose look changes (tapped,
@@ -87,6 +95,8 @@ export function MapaDeCocinas({
   const [longitudeDelta, setLongitudeDelta] = useState<number | null>(null);
   const tocoMarcador = useRef(0);
   const [primera] = useState(() => camaraDe(desde));
+  // The padding it mounted with, the one object handed to the map until it is ready.
+  const [primerPadding] = useState(padding);
 
   const marcas = useMemo(() => agrupar(pines, longitudeDelta, ancho, elegidas), [pines, longitudeDelta, ancho, elegidas]);
 
@@ -131,7 +141,7 @@ export function MapaDeCocinas({
         provider={PROVIDER_GOOGLE}
         mapType="standard"
         initialCamera={primera}
-        mapPadding={padding}
+        mapPadding={listo ? padding : primerPadding}
         onMapReady={() => setListo(true)}
         onRegionChangeComplete={(region) => setLongitudeDelta(region.longitudeDelta)}
         onPress={() => {

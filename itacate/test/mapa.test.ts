@@ -84,6 +84,7 @@ function cocina(id: string, point: Punto | null, offers: Offer[], giro: string |
     pagos: ['efectivo'],
     comeres: ['llevar'],
     minScore: null,
+    estrellas: null,
   };
 }
 function pin(id: string, punto: Punto, enOferta = true): Pin {
@@ -300,7 +301,11 @@ describe('the wiring — Google’s map on both phones, and nothing of hers to G
     expect(readFileSync(join(SRC, '../../cocina/src/ui/MapaPunto.tsx'), 'utf8')).toMatch(
       /export const SIN_NEGOCIOS = \[\{ featureType: 'poi', stylers: \[\{ visibility: 'off' \}\] \}\];/,
     );
-    expect(mapa).toMatch(/mapPadding=\{padding\}/);
+    // ⚠️ `10.5b-iii-b`: the sheet's padding only once Google's map is ready — before it, the one it
+    // mounted with (`react-native-maps` 1.27.2 calls `map.setPadding` with no null check).
+    expect(mapa).toMatch(/const \[primerPadding\] = useState\(padding\);/);
+    expect(mapa).toMatch(/mapPadding=\{listo \? padding : primerPadding\}/);
+    expect(mapa).toMatch(/onMapReady=\{\(\) => setListo\(true\)\}/);
     expect(code('app/(vecino)/(tabs)/index.tsx')).toMatch(/paddingDelMapa\(nivel, posiciones, alto, insets\.top\)/);
     // The one button over the map sits at its top; nothing of ours is placed at its foot.
     expect(mapa).toMatch(/position: 'absolute',\s*top: padding\.top \+ SIZE\.space,/);

@@ -1,3 +1,4 @@
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { Pressable, Text, View } from 'react-native';
 
 import type { Dish, Kitchen, Offer } from '@/api/cocinas';
@@ -29,6 +30,8 @@ import { Precio, Quedan, Sorpresa } from '@/ui/Precio';
 // TarjetaPlatillo.tsx`, held code for code by its `test/vecinos.test.ts`). So it takes
 // its kitchen, offer and dish one by one and the distance already in words, as
 // `@/ui/FilaCocina` does: a fonda's preview has no neighbour to measure from.
+// ⚠️ SINCE `10.5b-iii-b` HER STARS, from five ratings, at the right of her name over the
+// photo's foot — the owner's answer 10 of 2026-11-05: *the stars go on the card*.
 // ============================================================================
 
 /** The picture's shape on the card — a wide strip, as the drawing's cards. */
@@ -85,6 +88,16 @@ export function TarjetaPlatillo({
           <Text numberOfLines={1} style={{ flex: 1, fontSize: SIZE.smallSize + 1, fontWeight: '700', color: PALETTE.superficie }}>
             {cocina.name}
           </Text>
+          {cocina.estrellas !== null && (
+            <View
+              accessible
+              accessibilityLabel={ES.pagina.estrellasAyuda(cocina.estrellas.promedio, cocina.estrellas.cuantas)}
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}
+            >
+              <MaterialCommunityIcons name="star" size={SIZE.smallSize + 2} color={PALETTE.estrella} />
+              <Text style={{ fontSize: SIZE.smallSize + 1, fontWeight: '700', color: PALETTE.superficie }}>{cocina.estrellas.promedio}</Text>
+            </View>
+          )}
         </View>
       </View>
       <View style={{ paddingHorizontal: SIZE.space, paddingTop: SIZE.rowGap, paddingBottom: SIZE.space, gap: SIZE.rowGap / 2 }}>

@@ -39,7 +39,9 @@
 // reserve there by score (`min_score`), each offer's *desechable* (`container_price`)
 // and each line's two ways (`para_llevar`, `para_aqui`). Since `0079` a line's
 // `quantity` is what is LEFT once neighbours reserve, and a line with nothing left is
-// not sent.
+// not sent. ⚠️ SINCE `10.5b-iii-b` (AFTER THE PLATE) ALSO `0080`'s `stars` — the
+// neighbours' stars about each kitchen, from five ratings, counted the day after, with
+// her three most given good tags — which the cards and both pages draw.
 // ============================================================================
 
 import { SCALE, parseDecimal } from '@tienda/money';
@@ -78,6 +80,16 @@ export interface KitchenRow {
   readonly eat: readonly string[] | null;
   /** `0080`: who may reserve here by score — 75, 80 or 85 per cent — or `null`, everyone. */
   readonly min_score: number | null;
+  /** `0080`: the neighbours' stars, from five ratings — else `null`. */
+  readonly stars: StarsRow | null;
+}
+
+/** `0080`: her stars, counted the day after, and her three most given good tags. */
+export interface StarsRow {
+  /** The average to one decimal, as text: `"4.8"`. */
+  readonly average: string;
+  readonly count: number;
+  readonly tags: readonly string[] | null;
 }
 
 /** Her address, as she gave it in Wera Cocina's five boxes. */
@@ -158,6 +170,13 @@ export type Pago = (typeof PAGOS)[number];
 /** How a plate is eaten (`0079`): taken away first, or at her kitchen. */
 export const COMERES = ['llevar', 'aqui'] as const;
 export type Comer = (typeof COMERES)[number];
+
+/**
+ * The good tags a neighbour may tap after four or five stars (`0080`'s closed list) — the
+ * only ones the door sends, her three most given, and the only ones a kitchen's page shows.
+ */
+export const ETIQUETAS_BUENAS = ['lista_a_tiempo', 'buena_porcion', 'muy_rica', 'me_atendieron_bien'] as const;
+export type EtiquetaBuena = (typeof ETIQUETAS_BUENAS)[number];
 
 /** The fixed list of tags, as codes (`listing_line_tags_known`, `0072`) — Wera Cocina's `TAGS`. */
 export const TAGS = ['pica', 'cerdo', 'mariscos', 'cacahuate', 'lacteos', 'gluten'] as const;
@@ -252,6 +271,17 @@ export interface Kitchen {
   readonly comeres: readonly Comer[];
   /** Who may reserve here by score — more than this per cent — or `null`, everyone. */
   readonly minScore: number | null;
+  /** The neighbours' stars, from five ratings — `null` until then (*Todavía sin calificaciones*). */
+  readonly estrellas: Estrellas | null;
+}
+
+/** A kitchen's stars, as the cards and her page draw them. */
+export interface Estrellas {
+  /** The average to one decimal, as the door wrote it: *4.8*. */
+  readonly promedio: string;
+  readonly cuantas: number;
+  /** Her most given good tags, the most given first. */
+  readonly etiquetas: readonly EtiquetaBuena[];
 }
 
 // ----------------------------------------------------------------------------
@@ -388,6 +418,22 @@ export function comeresOf(value: unknown): Comer[] {
   return comeres.length > 0 ? comeres : ['llevar'];
 }
 
+/**
+ * Her stars as the door sends them, or `null` — fewer than five ratings, or an average it
+ * cannot read (one to five, one decimal). Only the good tags it knows are kept.
+ */
+export function estrellasOf(value: unknown): Estrellas | null {
+  const s = object(value);
+  if (s === null) return null;
+  const promedio = text(s.average);
+  const valor = Number(promedio);
+  if (!/^[1-5](\.[0-9])?$/.test(promedio) || valor < 1 || valor > 5) return null;
+  if (typeof s.count !== 'number' || !Number.isInteger(s.count) || s.count < 1) return null;
+  const dichas = list(s.tags);
+  const etiquetas = dichas.filter((t): t is EtiquetaBuena => (ETIQUETAS_BUENAS as readonly unknown[]).includes(t));
+  return { promedio, cuantas: s.count, etiquetas: [...new Set(etiquetas)] };
+}
+
 /** Who may reserve by score — a whole per cent, else everyone (`null`). */
 export function minScoreOf(value: unknown): number | null {
   return typeof value === 'number' && Number.isInteger(value) && value > 0 && value < 100 ? value : null;
@@ -452,6 +498,7 @@ export function toKitchen(row: KitchenRow): Kitchen {
     pagos: pagosOf(k.payment),
     comeres: comeresOf(k.eat),
     minScore: minScoreOf(k.min_score),
+    estrellas: estrellasOf(k.stars),
   };
 }
 

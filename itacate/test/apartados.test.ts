@@ -15,6 +15,7 @@ import {
   MY_STANDING,
   POR_CODIGO,
   POSICION_KEY,
+  RATE_KITCHEN,
   RAZONES,
   RESERVE_PLATE,
   apartadoOf,
@@ -126,16 +127,16 @@ function fila(over: Record<string, unknown> = {}): Record<string, unknown> {
 
 const uno = (over: Record<string, unknown> = {}): Apartado => apartadoOf(fila(over));
 
-describe('the six functions, by their names — every one in the migrations’ text', () => {
-  it('`0079`’s four and `0080`’s two', () => {
+describe('the seven functions, by their names — every one in the migrations’ text', () => {
+  it('`0079`’s four and `0080`’s three', () => {
     expect([RESERVE_PLATE, MY_RESERVATIONS, CANCEL_MY_RESERVATION, CONFIRM_MY_PICKUP]).toEqual([
       'reserve_plate',
       'my_reservations',
       'cancel_my_reservation',
       'confirm_my_pickup',
     ]);
-    expect([GIVE_MY_YES, MY_STANDING]).toEqual(['give_my_yes', 'my_standing']);
-    for (const nombre of [RESERVE_PLATE, MY_RESERVATIONS, CANCEL_MY_RESERVATION, CONFIRM_MY_PICKUP, GIVE_MY_YES, MY_STANDING]) {
+    expect([GIVE_MY_YES, MY_STANDING, RATE_KITCHEN]).toEqual(['give_my_yes', 'my_standing', 'rate_kitchen']);
+    for (const nombre of [RESERVE_PLATE, MY_RESERVATIONS, CANCEL_MY_RESERVATION, CONFIRM_MY_PICKUP, GIVE_MY_YES, MY_STANDING, RATE_KITCHEN]) {
       expect(definicion(nombre).length, nombre).toBeGreaterThan(0);
     }
   });
@@ -151,7 +152,7 @@ describe('the six functions, by their names — every one in the migrations’ t
 
   it('every key read is one the functions write, quoted', () => {
     const lista = definicion(MY_RESERVATIONS);
-    for (const iface of ['ReservationRow', 'ReservationKitchenRow', 'ReservationAddressRow', 'ReservationPageRow', 'ReservationLineRow']) {
+    for (const iface of ['ReservationRow', 'ReservationKitchenRow', 'ReservationAddressRow', 'ReservationPageRow', 'ReservationLineRow', 'MyRatingRow']) {
       const nombres = campos(iface);
       expect(nombres.length, iface).toBeGreaterThan(0);
       for (const nombre of nombres) expect(lista, `${iface}.${nombre}`).toContain(`'${nombre}'`);
@@ -177,7 +178,9 @@ describe('the six functions, by their names — every one in the migrations’ t
     for (const code of ['TD015', 'TD016', 'TD017', 'TD020', 'TD021', '22023', '42501']) expect(reserva, code).toContain(`errcode = '${code}'`);
     expect(definicion(CANCEL_MY_RESERVATION)).toContain("errcode = 'TD018'");
     expect(definicion(CONFIRM_MY_PICKUP)).toContain("errcode = 'TD018'");
-    expect(Object.keys(POR_CODIGO).sort()).toEqual(['22023', '42501', 'PGRST301', 'TD015', 'TD016', 'TD017', 'TD018', 'TD020', 'TD021']);
+    // `10.5b-iii-b`: her stars refused once there is nothing to rate.
+    expect(definicion(RATE_KITCHEN)).toContain("errcode = 'TD022'");
+    expect(Object.keys(POR_CODIGO).sort()).toEqual(['22023', '42501', 'PGRST301', 'TD015', 'TD016', 'TD017', 'TD018', 'TD020', 'TD021', 'TD022']);
   });
 
   it('the calls send these names, through the arguments’ builders', () => {

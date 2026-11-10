@@ -42,6 +42,13 @@ import { ES } from '@/strings';
 /** The RPC `0053` creates and `0073` re-creates. */
 export const DELETE_MY_ACCOUNT = 'delete_my_account';
 
+/**
+ * ⚠️ `10.5b-iii-b`: `0079`'s refusal — a neighbour still holds a plate at a kitchen that would
+ * go with this account (a fonda who uses Itacate too). Checked before the names, so a wrong
+ * name never hides it; refused until each is handed over or its window ends.
+ */
+export const PLATE_PENDING_CODE = 'TD014';
+
 /** `0073`'s refusal: a business she alone owns has no name among those typed. */
 export const NAME_MISMATCH_CODE = 'TD007';
 
@@ -218,12 +225,12 @@ export function deletedFrom(data: unknown): Deleted {
  * LIST CHANGED: the button enables only once every box matches its business,
  * so the server refusing means it found a business the screen did not show — a
  * kitchen made in Wera Cocina a minute ago, a partner who left — and the hook
- * reads the list again.
+ * reads the list again. ⚠️ `TD014` (`10.5b-iii-b`) says why it waits: a plate to hand over.
  */
 export function deleteErrorMessage(error: unknown): string {
-  if (typeof error === 'object' && error !== null && (error as { code?: unknown }).code === NAME_MISMATCH_CODE) {
-    return ES.account.errors.listChanged;
-  }
+  const code = typeof error === 'object' && error !== null ? (error as { code?: unknown }).code : undefined;
+  if (code === NAME_MISMATCH_CODE) return ES.account.errors.listChanged;
+  if (code === PLATE_PENDING_CODE) return ES.account.errors.reservaPendiente;
   return apiErrorMessage(error);
 }
 

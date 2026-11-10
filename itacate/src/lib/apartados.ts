@@ -175,5 +175,6 @@ export function cocinaDe(apartado: Apartado, puerta: Kitchen | undefined): Kitch
     pagos: ['efectivo'],
     comeres: ['llevar'],
     minScore: null,
+    estrellas: null,
   };
 }

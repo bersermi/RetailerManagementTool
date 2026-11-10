@@ -8,7 +8,7 @@
 // Itacate's parts and words live under `@/vecinos/` and `VECINOS` here.
 // ============================================================================
 
-import type { Address, Dish, Kitchen, Offer, Summary } from '@/vecinos/cocinas';
+import type { Address, Dish, Estrellas, Kitchen, Offer, Pago, Summary } from '@/vecinos/cocinas';
 import { mapsLinkOk, type Page } from '@/api/pagina';
 import { formatMXN } from '@/format/mxn';
 import { preguntaDeSuDireccion } from '@/vecinos/google';
@@ -153,6 +153,44 @@ export function comerTexto(platillo: Dish): { readonly titulo: string; readonly 
 /** How she pays at the kitchen — *Efectivo · Tarjeta* — cash always, first (`0079`, call 12). */
 export function pagosTexto(cocina: Kitchen): string {
   return cocina.pagos.map((pago) => ES.platillo.pago[pago]).join(' · ');
+}
+
+/** Her payment chips on her page: cash always, first, then what she says she takes. */
+export function pagosDe(cocina: Kitchen): readonly { readonly pago: Pago; readonly texto: string }[] {
+  return cocina.pagos.map((pago) => ({ pago, texto: ES.platillo.pago[pago] }));
+}
+
+// ----------------------------------------------------------------------------
+// Her stars — from five ratings, counted the day after (`0080`)
+// ----------------------------------------------------------------------------
+
+/** *★ 4.8* on a card, or `null` before five ratings. */
+export function estrellasTexto(estrellas: Estrellas | null): string | null {
+  return estrellas === null ? null : ES.cerca.estrellas(estrellas.promedio);
+}
+
+/** Under a kitchen's name on a card or a dish's row: *350 m · ★ 4.8*, either alone, or `null`. */
+export function distanciaYEstrellas(distancia: string | null, estrellas: Estrellas | null): string | null {
+  const texto = estrellasTexto(estrellas);
+  if (distancia === null) return texto;
+  return texto === null ? distancia : ES.cerca.conEstrellas(distancia, texto);
+}
+
+/** Her page's rating line: the average, how many, her good tags in words — or that she has none yet. */
+export type Calificacion =
+  | { readonly kind: 'estrellas'; readonly promedio: string; readonly cuantas: string; readonly ayuda: string; readonly etiquetas: readonly string[] }
+  | { readonly kind: 'sin'; readonly texto: string };
+
+export function calificacionDe(cocina: Kitchen): Calificacion {
+  const { estrellas } = cocina;
+  if (estrellas === null) return { kind: 'sin', texto: ES.pagina.sinCalificaciones };
+  return {
+    kind: 'estrellas',
+    promedio: estrellas.promedio,
+    cuantas: ES.pagina.calificaciones(estrellas.cuantas),
+    ayuda: ES.pagina.estrellasAyuda(estrellas.promedio, estrellas.cuantas),
+    etiquetas: estrellas.etiquetas.map((etiqueta) => ES.pagina.etiqueta[etiqueta]),
+  };
 }
 
 // ----------------------------------------------------------------------------

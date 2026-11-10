@@ -1,7 +1,8 @@
 // ============================================================================
 // HOW A SCREEN REACHES THE DATABASE. Plan tasks `10.5-iii-b` (her way out),
 // `10.5-iv-a-i` (the kitchens close to her, and their photos), `10.5-iv-a-ii`
-// (the trades' names, for a kitchen's page) and `10.5b-iii-a` (her reservations).
+// (the trades' names, for a kitchen's page), `10.5b-iii-a` (her reservations) and
+// `10.5b-iii-b` (her stars about a kitchen).
 //
 // ⚠️ A SCREEN NEVER CALLS `@/api/calls` ITSELF — Wera's R12, as in Wera Cocina
 // (`cocina/src/api/hooks.ts`, whose two deletion hooks these are, copied): a
@@ -29,6 +30,7 @@ import {
   fallaDe,
   posicionKey,
   type Apartado,
+  type Calificacion,
   type Eleccion,
   type Falla,
   type Posicion,
@@ -44,6 +46,7 @@ import {
   myStanding,
   onOfferNow,
   photoRequest,
+  rateKitchen,
   reservePlate,
   revokeApple,
 } from '@/api/calls';
@@ -325,4 +328,29 @@ export function useYaLoTengo() {
     }
   }
   return { confirmar, busy: mutation.isPending };
+}
+
+/**
+ * ⚠️ `10.5b-iii-b`: HER STARS ABOUT THE KITCHEN (`rate_kitchen`, `0080`) — one tap of the
+ * stars is sent at once, so a rating is never lost to a closed screen; her tags and her
+ * note are sent with them again when she taps *Listo* (each call sets all three). Her
+ * reservations are read again, so *Anteriores* shows her stars. Nothing else moves: a
+ * kitchen's stars are counted the day after.
+ */
+export function useCalificar() {
+  const queries = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: ({ id, calificacion }: { id: string; calificacion: Calificacion }) => rateKitchen(id, calificacion),
+  });
+  async function calificar(id: string, calificacion: Calificacion): Promise<Resultado<null>> {
+    try {
+      await mutation.mutateAsync({ id, calificacion });
+      return { ok: true, valor: null };
+    } catch (thrown) {
+      return { ok: false, falla: fallaDe(thrown) };
+    } finally {
+      void queries.invalidateQueries({ queryKey: APARTADOS_KEY });
+    }
+  }
+  return { calificar, busy: mutation.isPending };
 }

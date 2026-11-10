@@ -20,7 +20,7 @@ bash docs/runbooks/set-itacate-sign-in.sh --check   # the two settings outside t
 bash docs/checks/10.4b-iii-a-cocina-contract.sh     # against a local `supabase start`: her way out's names held to Wera Cocina's, which the database answers
 bash docs/checks/5R-k-apple-revoke-contract.sh      # the same stack: the function that tells Apple, served, with this app's body among the three
 bash docs/checks/10.5-iv-a-door-contract.sh         # the same stack: the one door, every key the list reads, asked as a neighbour
-bash docs/checks/10.5b-iii-a-reserving-contract.sh  # the same stack: reserving, giving back, collecting and her standing, by apartados.ts's names
+bash docs/checks/10.5b-iii-a-reserving-contract.sh  # the same stack: reserving, giving back, collecting, her stars and her standing, by apartados.ts's names
 TZ=UTC npm --prefix itacate test          # CI's zone: the list's days and windows are local time, and the Mac is UTC−6
 bash store/cocina-itacate/render.sh itacate-icono   # the iPhone's icon, the cow on the blue — and nothing else (native on the iPhone)
 ```
@@ -90,9 +90,12 @@ from `itacate/` with the two local `EXPO_PUBLIC_SUPABASE_` values in the shell, 
   ⚠️ **Since `0079` (`10.5b-i`) a line's `quantity` is what is LEFT** once neighbours reserve — what this app
   has always drawn as *Quedan N* — and a line with nothing left is not sent, because `countOf` refuses 0; the
   door also sends each line's `para_llevar` and `para_aqui`, each offer's `container_price` and each kitchen's
-  `payment` and `eat`, which this app reads since `10.5b-iii-a` (with `0080`'s `min_score` and `stars`). ⚠️ **Reserving's
+  `payment` and `eat`, which this app reads since `10.5b-iii-a` (with `0080`'s `min_score`) — and since `10.5b-iii-b` `0080`'s
+  `stars` (from five ratings, good tags only: `estrellasOf`; its keys held to the door's text by `test/calificar.test.ts`, the
+  door check asking for the key itself). ⚠️ **Reserving's
   claim is `src/api/apartados.ts`** (`10.5b-iii-a`): `0079`'s `reserve_plate`, `my_reservations`, `cancel_my_reservation`,
-  `confirm_my_pickup` and `0080`'s `give_my_yes`, `my_standing` (`supabase/README.md`'s rows) — every argument and key read,
+  `confirm_my_pickup` and `0080`'s `give_my_yes`, `my_standing` — and since `10.5b-iii-b` `rate_kitchen` (`supabase/README.md`'s
+  rows) — every argument and key read,
   the states drawn, the refusals turned into sentences — asked as a neighbour against a real PostgREST by
   `docs/checks/10.5b-iii-a-reserving-contract.sh` (its own job in `db.yml`, `itacate-reserving`; its falsifier breaks the file).
 - **Sign-in leans on two settings outside this repository**, both made by the owner's one command,
@@ -178,8 +181,11 @@ from `itacate/` with the two local `EXPO_PUBLIC_SUPABASE_` values in the shell, 
   billed), to her own pin, else her address as she wrote it — never Google's 30-day copy — with no origin;
   *Ver en Google Maps* opens her link only when `mapsLinkOk` (the database's rule, Wera Cocina's copy)
   takes it. The price, *Quedan* and *Sorpresa* are `@/ui/Precio`'s, drawn alike on the list and both pages.
-  ⚠️ **Since `10.5b-iii-a` a dish's page reserves** — the next bullet; a kitchen's page shows no payment and no stars
-  until `10.5b-iii-b`.
+  ⚠️ **Since `10.5b-iii-a` a dish's page reserves** — the next bullet. ⚠️ **Since `10.5b-iii-b` the stars** (the door's, from
+  five ratings) — on a dish's card and a quiet kitchen's beside her name or distance, on a dish's kitchen row (*350 m · ★ 4.8*),
+  and on her page *★ 4.8 (23 calificaciones)* with her most given good tags, else *Todavía sin calificaciones* — and her page's
+  *Cómo pagas aquí* with a chip per way she takes payment (`@/lib/paginas`' `calificacionDe`, `distanciaYEstrellas`, `pagosDe`;
+  the stars in the palette's amber, `PALETTE.estrella`).
   ⚠️⚠️ **Since `10.5-v-c-ii` what each page draws is a component — `@/ui/PaginaDeCocina`, `@/ui/PaginaDePlatillo` —
   handed the kitchen, her trade's name, the distance in words and the clock by its route**, which alone reads (the door,
   `useDistancia`); `@/ui/FilaCocina` takes the distance in words too. **Wera Cocina copies both, with every part they
@@ -207,6 +213,31 @@ from `itacate/` with the two local `EXPO_PUBLIC_SUPABASE_` values in the shell, 
   on the kitchen's phone changes her limit. *Ya lo tengo* is a swipe (`@/ui/Deslizar`, `@/lib/deslizar`): how far is Wera's
   slide that sells (`app/src/cart/commit.ts`'s `COMMIT_AT`, read by `test/apartados.test.ts`). *Tú* shows her score from her
   third thumb, rounded down. Both reads are keyed on the login and held in memory only, as every read here.
+- **After the plate** (`10.5b-iii-b`; `10.5b-ii`'s final design, *After Ya lo tengo*). **Her stars about the kitchen**
+  (`@/ui/Calificar`): under *Ya lo tienes* the moment she swipes, and *Calificar* on a past plate she collected until the day
+  after its window (`rate_until`, `porCalificar`); one tap of the stars is SENT AT ONCE (a rating is never lost to a screen she
+  leaves), then the tags of their band — the good four after four or five, the other four after one to three (`etiquetasPara`) —
+  and a note only Wera reads, sent again on *Listo* (each `rate_kitchen` call sets all three). ⚠️ **A row she opened stays open
+  until *Listo***: her tap is saved and her list read again, and the row must not turn into her stars at once (found on the
+  emulator). It is not a sheet: *Apartados* is a `Formulario`, so the note stays above the keyboard. Once given, her stars stay on
+  the row; the phone never changes them (the database would, until the day after). **The terms of use are accepted with her yes**
+  (`@/ui/HojaApartar`: *Aviso de privacidad* and *Términos de uso* above *Acepto y sigo*), before her first reservation and so
+  before any rating; her yes keeps its moment (`0080`) — whether that is the record he wants is his question (the plan's
+  decisions block). **Her reminder, 15 minutes before her hour** (`@/lib/recordatorio`, pure; `@/lib/avisos`, the one module that
+  imports `expo-notifications`; `@/lib/Recordatorios`, mounted with the tabs): her phone holds one per reservation still to
+  collect whose hour has not come, ⚠️ **kept by id** — at each read of her reservations those no longer wanted are cancelled and
+  the new ones still ahead scheduled, never "cancel all, schedule again", which would cancel one Android has not delivered yet
+  (the review of `10.5b-iii-b`); all cancelled when the tabs leave; shown while Itacate is open too (`mostrarRecordatorios`, ours
+  only); a tap opens *Apartados*. ⚠️ **What it cannot know:** a plate the kitchen hands over while her app is closed keeps its
+  reminder until her next read — nothing reaches her phone (no push to neighbours). ⚠️ **Its words — the kitchen, her hour, her
+  code — are held by her phone's scheduler** until it shows or is cancelled: the one thing of a read this app leaves on the disk,
+  by the design's ruling (the aviso says so before Itacate reaches people, `10.5b-vi`). Asked after a
+  reservation goes through, while the phone still lets Itacate ask — ⚠️ **never "only while undetermined"**: on Android 13 and
+  later `expo-notifications` 57.0.17 reports a permission never asked as `denied`, and such a check never asked (found on the
+  emulator). ⚠️ **Android 12 and later deliver it late, never early**: an inexact alarm, its window three quarters of the time
+  until it, up to an hour (`dumpsys alarm` on the emulator: 9:45, 10:00 and 10:15 with windows of 5, 16 and 28 minutes); the
+  exact-alarm permission is native (`10.8`). **`TD014` has its sentence** on *Eliminar mi cuenta* (`deleteErrorMessage`): a plate
+  still to hand over at a kitchen that would go with her account.
 - **The map, with the list sliding over it** (`10.5-iv-b-i`; the owner's answer 4 of 2026-11-05, *C*, as the family-shell
   page draws *Cerca*). *Cerca* is two layers: **Google's map, the whole screen** (`@/ui/MapaDeCocinas`) — every kitchen the
   door sends as a pin in her colour with her trade's drawing, faded when quiet, wherever she moves it (his ruling of
@@ -221,7 +252,10 @@ from `itacate/` with the two local `EXPO_PUBLIC_SUPABASE_` values in the shell, 
   sheet's top (`paddingDelMapa`), and nothing of ours sits at the map's foot. ⚠️ **It flies to her only when where she
   searches from changes** (`claveDeOrigen`), never as she walks. A pin she taps puts that kitchen's cards first, under *En el
   mapa*, with *Quitar*. Declined or outside the zone: the map over the city beside the postal code's box in the sheet, which
-  rises full as she types. **Nothing is cut off by distance** — the 1.5 and 3 km limits wait for Google's reply
+  rises full as she types. ⚠️ **The padding reaches the map only once it is ready** (`10.5b-iii-b`): until `onMapReady` it
+  keeps the padding it mounted with, since `react-native-maps` 1.27.2's `applyBaseMapPadding` calls Google's `map.setPadding`
+  with no null check — a red screen twice on the emulator when the sheet moved before Google answered (`10.5b-iii-a`).
+  **Nothing is cut off by distance** — the 1.5 and 3 km limits wait for Google's reply
   (`10.5-iv-b-iii`). ⚠️ **To see it**: a build made on this Mac draws an inert Android map (no key: no marker, no camera),
   but **an iPhone Simulator debug build with the organization's iPhone key in the shell draws Google's map with every pin**
   — the key is locked to `mx.wera.vecino`, which the Simulator sends (`10.5-iv-b-i`): `npx expo prebuild -p ios --clean`,

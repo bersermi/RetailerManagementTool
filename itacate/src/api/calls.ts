@@ -3,7 +3,7 @@
 // way out: what goes with her account, the deletion, Apple), `10.5-iv-a-i` (the
 // door, and the kitchens' photos), `10.5-iv-a-ii` (the trades' names) and
 // `10.5b-iii-a` (her reservations: reserving, cancelling, *Ya lo tengo*, her yes and
-// her standing).
+// her standing) and `10.5b-iii-b` (her stars about the kitchen).
 //
 // ⚠️ THE IMPURE HALF OF `src/api/` (ADR-035 §2.11), as Wera's and Wera Cocina's
 // (`app/src/api/calls.ts`, `cocina/src/api/calls.ts`): the only module here that
@@ -37,13 +37,17 @@ import {
   GIVE_MY_YES,
   MY_RESERVATIONS,
   MY_STANDING,
+  RATE_KITCHEN,
   RESERVE_PLATE,
   apartadosFrom,
+  calificadoFrom,
   posicionFrom,
+  rateArgs,
   reservadoFrom,
   reservationIdArgs,
   reserveArgs,
   type Apartado,
+  type Calificacion,
   type Eleccion,
   type Posicion,
 } from '@/api/apartados';
@@ -171,4 +175,14 @@ export async function myStanding(): Promise<Posicion> {
   const { data, error } = await supabase.rpc(MY_STANDING);
   if (error) throw error;
   return posicionFrom(data);
+}
+
+/**
+ * Her stars about the kitchen of a plate she collected (`0080`), with the tags of their
+ * band and a note only Wera reads. Each call sets all three.
+ */
+export async function rateKitchen(id: string, calificacion: Calificacion): Promise<{ readonly estrellas: number }> {
+  const { data, error } = await supabase.rpc(RATE_KITCHEN, rateArgs(id, calificacion));
+  if (error) throw error;
+  return calificadoFrom(data);
 }

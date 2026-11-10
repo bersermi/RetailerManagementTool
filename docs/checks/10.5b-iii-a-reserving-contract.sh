@@ -4,7 +4,8 @@
 # screens draw?
 #
 # WHY THIS EXISTS. `itacate/src/api/apartados.ts` is Itacate's claim about `0079`'s four
-# functions and `0080`'s two of hers (ADR-035 §2.7, *What is hers*): six function names,
+# functions and `0080`'s three of hers (ADR-035 §2.7, *What is hers*) — the third, her stars
+# about the kitchen (`rate_kitchen`), since `10.5b-iii-b`: seven function names,
 # every argument's name, every key it reads at every level of two jsonb answers, the
 # states it draws, and the refusal codes it turns into sentences. PostgREST matches a
 # function BY ITS ARGUMENTS' NAMES, so a misspelt `p_` name is a 404; a misspelt key is a
@@ -35,12 +36,19 @@
 #      standing then lets her hold three.
 #  10. *Ya lo tengo* on a cancelled one is refused with the code the app reads as
 #      *yaNoPendiente*.
-#  11. Someone else — the fonda — reads none of hers, and signed out nothing is answered.
+#  11. (`10.5b-iii-b`) She rates the plate she collected by the app's names — five stars and the
+#      first good tag, a note — and her reservation then carries her stars, never her note; five
+#      stars changed to two with the first of the other four tags is taken; a cancelled plate is
+#      refused with the code the app reads as *yaNoSeCalifica*. The tags are read out of the app:
+#      the good four from `cocinas.ts` (the door sends them too), the other four from `apartados.ts`.
+#  12. Someone else — the fonda — reads none of hers, and signed out nothing is answered.
 #
 # ⚠️ WHAT IT DOES NOT ASSERT: the database's own rules (`supabase/tests/0079_…` and
 # `0080_…`: who may reserve by score, trust that grows past one pickup, the clock's *No se
 # presentó*), or what the screens do with an answer (`itacate/test/apartados.test.ts`,
-# `apartar.test.ts`). `TD015`, `TD017` and `TD020` are held to the migrations' text by
+# `apartar.test.ts`, `calificar.test.ts`) — nor a kitchen's stars on the door, which come from five
+# ratings counted the day after: `calificar.test.ts` holds the keys to the door's text, and
+# `supabase/tests/0080_…` counts them. `TD015`, `TD017` and `TD020` are held to the migrations' text by
 # that suite; this check meets the three a neighbour meets first.
 #
 # ⚠️ NO `mapfile`, NO `declare -A`: macOS ships bash 3.2 and this runs on the owner's Mac
@@ -88,6 +96,13 @@ CANCEL="$(const CANCEL_MY_RESERVATION "$APARTADOS_TS")"
 CONFIRM="$(const CONFIRM_MY_PICKUP "$APARTADOS_TS")"
 YES="$(const GIVE_MY_YES "$APARTADOS_TS")"
 STANDING="$(const MY_STANDING "$APARTADOS_TS")"
+RATE="$(const RATE_KITCHEN "$APARTADOS_TS")"
+RATE_ARGS="$(fields_of "$APARTADOS_TS" RateArgs 'p_')"
+RATED_KEYS="$(fields_of "$APARTADOS_TS" RatedRow '')"
+MY_RATING_KEYS="$(fields_of "$APARTADOS_TS" MyRatingRow '')"
+GOOD_TAGS="$(list_of ETIQUETAS_BUENAS "$COCINAS_TS")"
+BAD_TAGS="$(list_of ETIQUETAS_MALAS "$APARTADOS_TS")"
+NO_RATING_CODE="$(code_of yaNoSeCalifica)"
 RESERVE_ARGS="$(fields_of "$APARTADOS_TS" ReserveArgs 'p_')"
 ID_ARGS="$(fields_of "$APARTADOS_TS" ReservationIdArgs 'p_')"
 RESERVED_KEYS="$(fields_of "$APARTADOS_TS" ReservedRow '')"
@@ -130,7 +145,9 @@ for pair in "RESERVE_PLATE:$RESERVE" "MY_RESERVATIONS:$MINE" "CANCEL_MY_RESERVAT
             "COCINA_KIND:$KIND" "PLACE_TABLE:$PLACE_TABLE" "PLACE_OWNER_COLUMN:$PLACE_OWNER" \
             "SET_STORE_ADDRESS:$SET_ADDRESS" "SetStoreAddressArgs:$ADDRESS_ARGS" "PUBLISH_LISTING:$PUBLISH" \
             "PublishArgs:$PUBLISH_ARGS" "LineBody:$LINE_BODY" "SET_KITCHEN_PAGE:$SET_PAGE" "SetPageArgs:$PAGE_ARGS" \
-            "FULL_NAME_KEY:$NAME_KEY"; do
+            "FULL_NAME_KEY:$NAME_KEY" "RATE_KITCHEN:$RATE" "RateArgs:$RATE_ARGS" "RatedRow:$RATED_KEYS" \
+            "MyRatingRow:$MY_RATING_KEYS" "ETIQUETAS_BUENAS:$GOOD_TAGS" "ETIQUETAS_MALAS:$BAD_TAGS" \
+            "the code for yaNoSeCalifica:$NO_RATING_CODE"; do
   if [[ -z "${pair#*:}" ]]; then
     echo "FAIL: could not read ${pair%%:*} out of the apps' source"
     echo "      This check asserts the app's own claim. Without it there is nothing to"
@@ -144,6 +161,7 @@ TO_GO="$(nth "$WAYS" 1)"; HERE="$(nth "$WAYS" 2)"
 ok "read from Itacate: $RESERVE($RESERVE_ARGS) -> {$RESERVED_KEYS}, $MINE(), $CANCEL($ID_ARGS), $CONFIRM($ID_ARGS), $YES(), $STANDING()"
 ok "and the answers: a reservation {$ROW_KEYS}, its kitchen {$KITCHEN_KEYS}, address {$ADDRESS_KEYS}, page {$PAGE_KEYS}, line {$LINE_KEYS}; her standing {$STANDING_KEYS}, score {$SCORE_KEYS}"
 ok "and the states it draws ($STATES), the codes it reads ($NO_YES_CODE sinSi, $LIMIT_CODE limite, $NOT_PENDING_CODE yaNoPendiente), how she pays ($PAYMENTS) and eats ($WAYS)"
+ok "and her stars: $RATE($RATE_ARGS) -> {$RATED_KEYS}, on her reservation {$MY_RATING_KEYS}; tags ($GOOD_TAGS) after four or five, ($BAD_TAGS) after one to three; $NO_RATING_CODE yaNoSeCalifica"
 
 # --- the local stack -------------------------------------------------------
 STATUS="$(supabase status -o env 2>/dev/null)"
@@ -329,6 +347,29 @@ def left(path, kid, offer, want):
     got = o['lines'][0].get('quantity')
     print('OK' if got == want else 'the door sends %r left, %r was reserved of two' % (got, want))
 
+def rated(path, keys, stars, tag):
+    r = load(path)
+    why = missing(r, keys, "rate_kitchen's answer")
+    if why: print(why); return
+    if r.get('stars') != int(stars) or r.get('tags') != [tag]:
+        print('rating answered %r, she gave %s stars and %r' % (r, stars, tag)); return
+    print('OK')
+
+def her_stars(path, rid, keys, stars, tag):
+    rows = load(path)
+    r = next((x for x in rows if isinstance(x, dict) and x.get('id') == rid), None)
+    if r is None:
+        print('the plate she rated is not in her list'); return
+    why = missing(r.get('my_rating'), keys, 'her stars on her reservation')
+    if why: print(why); return
+    if 'note' in r['my_rating']:
+        print('her reservation sent her note back — only Wera reads it: %r' % r['my_rating']); return
+    if r['my_rating'].get('stars') != int(stars) or r['my_rating'].get('tags') != [tag]:
+        print('her reservation carried %r, she gave %s stars and %r' % (r['my_rating'], stars, tag)); return
+    if not r.get('rate_until'):
+        print('her collected plate came back with no rate_until — the app would never offer Calificar'); return
+    print('OK')
+
 def empty(path):
     rows = load(path)
     print('OK' if rows == [] else 'someone else read %r' % rows)
@@ -438,7 +479,26 @@ s="$(ask "$SCRATCH/confirm1.json" POST "/rest/v1/rpc/$CONFIRM" "$(by_names "$ID_
 v="$(verdict refused "$SCRATCH/confirm1.json" "$NOT_PENDING_CODE")"
 [[ "$v" == OK ]] && ok "*Ya lo tengo* on one she cancelled is refused with $NOT_PENDING_CODE — what the app reads as *yaNoPendiente* ($s)" || fail "*Ya lo tengo* on a cancelled one: $v"
 
-# --- 11. nobody else's, and nothing signed out ------------------------------------------
+# --- 11. her stars about the kitchen (`10.5b-iii-b`) ---------------------------------------
+rate_body() { by_names "$RATE_ARGS" "\"$1\"" "$2" "[\"$3\"]" "$4"; }
+s="$(ask "$SCRATCH/rate4.json" POST "/rest/v1/rpc/$RATE" "$(rate_body "$R4" 5 "$(nth "$GOOD_TAGS" 1)" '"Muy rico, gracias."')")"
+v="$(verdict rated "$SCRATCH/rate4.json" "$RATED_KEYS" 5 "$(nth "$GOOD_TAGS" 1)")"
+ask "$SCRATCH/mine5.json" POST "/rest/v1/rpc/$MINE" '{}' > /dev/null
+w="$(verdict her_stars "$SCRATCH/mine5.json" "$R4" "$MY_RATING_KEYS" 5 "$(nth "$GOOD_TAGS" 1)")"
+s2="$(ask "$SCRATCH/rate4b.json" POST "/rest/v1/rpc/$RATE" "$(rate_body "$R4" 2 "$(nth "$BAD_TAGS" 1)" null)")"
+v2="$(verdict rated "$SCRATCH/rate4b.json" "$RATED_KEYS" 2 "$(nth "$BAD_TAGS" 1)")"
+s3="$(ask "$SCRATCH/rate1.json" POST "/rest/v1/rpc/$RATE" "$(rate_body "$R1" 4 "$(nth "$GOOD_TAGS" 1)" null)")"
+v3="$(verdict refused "$SCRATCH/rate1.json" "$NO_RATING_CODE")"
+if [[ "$s" == 404 ]]; then fail "$RATE() answered 404 — no function by these arguments' names ($RATE_ARGS)"
+elif [[ "$s" != 200 ]]; then fail "$RATE() answered $s $(head -c 200 "$SCRATCH/rate4.json")"
+elif [[ "$v" != OK ]]; then fail "$v"
+elif [[ "$w" != OK ]]; then fail "$w"
+elif [[ "$s2" != 200 || "$v2" != OK ]]; then fail "two stars and '$(nth "$BAD_TAGS" 1)' answered $s2 — $v2 $(head -c 200 "$SCRATCH/rate4b.json")"
+elif [[ "$v3" != OK ]]; then fail "rating one she cancelled: $v3"
+else ok "she rates through $RATE() the plate she collected — five stars, '$(nth "$GOOD_TAGS" 1)', a note — and her reservation carries her stars, never her note; two stars with '$(nth "$BAD_TAGS" 1)' is taken; a cancelled plate is refused with $NO_RATING_CODE (*yaNoSeCalifica*)"
+fi
+
+# --- 12. nobody else's, and nothing signed out ------------------------------------------
 TOKEN="$FONDA"
 s="$(ask "$SCRATCH/fonda-mine.json" POST "/rest/v1/rpc/$MINE" '{}')"
 v="$(verdict empty "$SCRATCH/fonda-mine.json")"
@@ -453,6 +513,6 @@ if (( fails > 0 )); then
   echo "$fails assertion group(s) failed."
   exit 1
 fi
-echo "all 11 assertion groups passed — Itacate reserves, gives back, collects and reads her standing by the"
-echo "names the database answers: every argument and key, the states its screens draw, the codes it turns into"
-echo "sentences, a desechable only on a plate taken away, and nothing of hers to anyone else."
+echo "all 12 assertion groups passed — Itacate reserves, gives back, collects, rates and reads her standing by"
+echo "the names the database answers: every argument and key, the states its screens draw, the codes it turns into"
+echo "sentences, a desechable only on a plate taken away, her stars without her note, and nothing of hers to anyone else."

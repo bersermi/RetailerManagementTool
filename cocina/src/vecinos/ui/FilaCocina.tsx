@@ -2,6 +2,7 @@ import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { Pressable, Text, View } from 'react-native';
 
 import type { Kitchen } from '@/vecinos/cocinas';
+import { distanciaYEstrellas } from '@/vecinos/paginas';
 import { VECINOS as ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
 import { Circulo } from '@/vecinos/ui/Circulo';
@@ -17,6 +18,7 @@ import { Circulo } from '@/vecinos/ui/Circulo';
 // ============================================================================
 
 export function FilaCocina({ cocina, distancia, onPress }: { cocina: Kitchen; distancia: string | null; onPress: () => void }) {
+  const debajo = distanciaYEstrellas(distancia, cocina.estrellas);
   return (
     <Pressable
       accessibilityRole="button"
@@ -35,7 +37,7 @@ export function FilaCocina({ cocina, distancia, onPress }: { cocina: Kitchen; di
         <Text numberOfLines={1} style={{ fontSize: SIZE.bodySize - 1, fontWeight: '700', color: PALETTE.tinta }}>
           {cocina.name}
         </Text>
-        {distancia !== null && <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada }}>{distancia}</Text>}
+        {debajo !== null && <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada }}>{debajo}</Text>}
       </View>
       <MaterialCommunityIcons name="chevron-right" size={SIZE.iconSize} color={PALETTE.tintaApagada} />
     </Pressable>
