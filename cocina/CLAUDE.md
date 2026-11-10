@@ -191,7 +191,11 @@ TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic i
   picture, nothing that opens, no distance, and a line under the bar while the door would not send her.
   ⚠️ **Since `0079` (`10.5b-i`) the door sends what is LEFT of each line, and leaves out a line with nothing left**; `@/lib/comoLaVen`
   still shows what she offers. They agree until a neighbour reserves; `10.5b-iv`, which reads her reservations, brings the preview
-  to what is left.
+  to what is left. ⚠️ **Since `10.5b-iii-a` the dish page says how it is eaten and how she pays, and takes a foot (`pie`) that
+  only Itacate's route fills** — the preview draws none, so no *Apartar* here. The door now also sends how a kitchen takes payment,
+  how it hands plates over, who may reserve and each offer's *desechable*; this app does not read her settings until `10.5b-iv`
+  gives her the screens to set them, so `@/lib/comoLaVen` shows the door's own defaults (`SIN_AJUSTES`: cash, *para llevar*, no
+  *desechable*, everyone) — what the door sends for every kitchen today — held to the door's `coalesce`s by `test/comoLaVen.test.ts`.
 - ⚠️ **The map has no key in a build made on this Mac** (`MAPS_KEY_PLACEHOLDER`, and the key is locked
   to the store and `preview` signatures). Measured 2026-10-30 on the emulator: such a map delivers
   taps but **never moves its camera and draws no marker**, so the zoom, the flights to a search's
