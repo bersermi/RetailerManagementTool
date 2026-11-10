@@ -330,14 +330,20 @@ select public.chk('5.6 with no pin of hers, Google''s point while fresh; with a 
   public._kitchen('vecina', :'k2')->'point' = '{"lat": 19.421100, "lng": -99.158800, "source": "google"}'::jsonb
   and public._kitchen('vecina', :'k4')->'point' = 'null'::jsonb,
   (public._kitchen('vecina', :'k2')->'point')::text || ' | ' || (public._kitchen('vecina', :'k4')->'point')::text);
+-- ⚠️ Since `0079` (plan `10.5b-i`) each line also carries how it may be eaten — a kitchen
+-- with no page is para llevar only — and each offer its desechable; nothing is reserved
+-- here, so what is left is what was offered.
 select public.chk('5.7 what is on offer now, line by line in her order, money and quantities as decimal strings; nothing past, nothing withdrawn',
   jsonb_array_length(public._kitchen('vecina', :'k1')->'on_offer') = 1
   and public._kitchen('vecina', :'k1')->'on_offer'->0->>'id' = :l_now
+  and public._kitchen('vecina', :'k1')->'on_offer'->0->'container_price' = 'null'::jsonb
   and public._kitchen('vecina', :'k1')->'on_offer'->0->'lines' = '[
         {"line_no": 1, "name": "Comida corrida", "description": null, "tags": ["pica"], "unit_price": "65.00",
-         "quantity": "4.000", "surprise": false, "usual_price": null, "image_path": null},
+         "quantity": "4.000", "surprise": false, "usual_price": null, "image_path": null,
+         "para_llevar": true, "para_aqui": false},
         {"line_no": 2, "name": "Bolsa de pan", "description": null, "tags": [], "unit_price": "45.00",
-         "quantity": "2.000", "surprise": true, "usual_price": "90.00", "image_path": null}]'::jsonb
+         "quantity": "2.000", "surprise": true, "usual_price": "90.00", "image_path": null,
+         "para_llevar": true, "para_aqui": false}]'::jsonb
   and public._kitchen('vecina', :'k2')->'on_offer' = '[]'::jsonb
   and public._kitchen('vecina', :'k4')->'on_offer' = '[]'::jsonb,
   (public._kitchen('vecina', :'k1')->'on_offer')::text);

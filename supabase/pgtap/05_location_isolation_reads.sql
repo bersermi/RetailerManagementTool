@@ -156,6 +156,26 @@ select gen_random_uuid(), x.id, x.workspace_id, x.location_id, 1, 'Comida corrid
   from public.listing x
  where x.workspace_id = (select ws_id from loc_actor where tag = 'owner');
 
+-- ⚠️ AND `reservation` WITH ITS `reservation_line` (`0079`, plan `10.5b-i`), behind
+-- the same wall and as empty in the seed: one reservation of one plate at EACH
+-- store, on that store's publication, two codes for the one business and day.
+insert into public.reservation
+  (id, workspace_id, location_id, listing_id, buyer_id, code, pickup_at, pickup_day,
+   held_until, payment, eat)
+select gen_random_uuid(), x.workspace_id, x.location_id, x.id, gen_random_uuid(),
+       100 + row_number() over (order by x.location_id),
+       x.pickup_start, (x.pickup_start at time zone 'America/Mexico_City')::date,
+       x.pickup_end, 'efectivo', 'llevar'
+  from public.listing x
+ where x.workspace_id = (select ws_id from loc_actor where tag = 'owner');
+
+insert into public.reservation_line
+  (reservation_id, line_no, workspace_id, location_id, listing_line_id, quantity, unit_price)
+select r.id, 1, r.workspace_id, r.location_id, ll.id, 1, ll.unit_price
+  from public.reservation r
+  join public.listing_line ll on ll.listing_id = r.listing_id and ll.line_no = 1
+ where r.workspace_id = (select ws_id from loc_actor where tag = 'owner');
+
 -- ---------------------------------------------------------------------------
 -- Which tables carry the store wall, asked of the catalog and never listed here
 --

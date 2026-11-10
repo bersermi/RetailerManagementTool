@@ -40,7 +40,11 @@
 #     and the command to run again, because deleting the account deletes them.
 #     Ask the person to confirm that, then run what it printed;
 #   - a name matches none of them (`delete_my_account` checks every one before
-#     it changes anything — the same check the apps' typed names pass).
+#     it changes anything — the same check the apps' typed names pass);
+#   - a neighbour holds a plate still to hand over at a kitchen that goes with
+#     the account (`TD014`, `0079` — the owner's ruling of 2026-11-10): run it again
+#     once the kitchen has handed it over or that day's pickup window has ended.
+#     A neighbour's own reservations never stop it: they are given back.
 #
 # ⚠️ TO DELETE ONE KITCHEN AND KEEP THE ACCOUNT, this is the wrong script:
 # `docs/runbooks/delete-a-kitchen.sh` (`10.5-iii-c`) — it can never delete a login.

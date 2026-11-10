@@ -38,7 +38,10 @@
 #     do not matter; accents do (`normalize_name`);
 #   - two of her kitchens are called that — this script tells kitchens apart by
 #     name only, so it deletes neither; she can delete hers in the app, where
-#     *Eliminar esta cocina* is on the kitchen it opens.
+#     *Eliminar esta cocina* is on the kitchen it opens;
+#   - a neighbour holds a plate there still to hand over (`TD014`, `0079` — the
+#     owner's ruling of 2026-11-10): run it again once it is handed over or that
+#     day's pickup window has ended.
 #
 # ⚠️ ITS PHOTOS leave everyone's reach at once and are deleted by hand within 30
 # days — `docs/runbooks/delete-orphan-photos.sh` finds them, as it finds those of

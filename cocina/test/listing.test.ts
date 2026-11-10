@@ -62,9 +62,11 @@ import { ES } from '@/strings';
 // `src/api/listing.ts`. Here: the values, the rules the form checks before
 // anything is sent — held to the migrations' TEXT, where the database's own rule
 // is written, so the two cannot drift apart unseen — and the wiring. ⚠️ Since
-// `0076` (plan `10.5-i-a`) `publish_listing`'s body is `0076`'s: re-created with
-// its signature unchanged and a photo per line, every limit `0072`'s character for
-// character; the table's tag check and the two names stay `0072`'s.
+// `0076` (plan `10.5-i-a`) `publish_listing` is re-created with its signature
+// unchanged — a photo per line in `0076`, how each dish may be eaten and the
+// desechable in `0079` (plan `10.5b-i`) — every limit `0072`'s character for
+// character; the table's tag check and the two names stay `0072`'s. ⚠️ So its body
+// is read out of the migration that defines it LAST, the one the database runs.
 // ============================================================================
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
@@ -74,9 +76,17 @@ const code = (path: string) => strip(readFileSync(join(SRC, path), 'utf8'));
 const MIGRATION = readFileSync(join(ROOT, '../supabase/migrations/0072_a_kitchen_publishes.sql'), 'utf8');
 const LATEST = readFileSync(join(ROOT, '../supabase/migrations/0076_a_kitchens_own_page.sql'), 'utf8');
 const MIGRATIONS = join(ROOT, '../supabase/migrations');
-const PUBLISH_BODY = LATEST.slice(
-  LATEST.indexOf('create or replace function public.publish_listing('),
-  LATEST.indexOf('comment on function public.publish_listing('),
+/** The text of the last migration that defines `publish_listing` — the body the database runs. */
+const PUBLISHER = (() => {
+  const files = readdirSync(MIGRATIONS).filter((f) => f.endsWith('.sql')).sort();
+  const hits = files.filter((f) =>
+    /create (or replace )?function public\.publish_listing\(/.test(readFileSync(join(MIGRATIONS, f), 'utf8')),
+  );
+  return readFileSync(join(MIGRATIONS, hits[hits.length - 1]), 'utf8');
+})();
+const PUBLISH_BODY = PUBLISHER.slice(
+  PUBLISHER.search(/create (or replace )?function public\.publish_listing\(/),
+  PUBLISHER.indexOf('comment on function public.publish_listing('),
 );
 
 const line = (patch: Partial<LineDraft> = {}): LineDraft => ({

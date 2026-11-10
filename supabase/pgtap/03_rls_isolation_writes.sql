@@ -371,6 +371,32 @@ insert into public.kitchen_page (workspace_id, sentence, updated_by)
 select a.ws_id, 'Comida casera pgtap-3.2b-' || a.tag, a.user_id
 from iso_actor a;
 
+-- ⚠️ AND `reservation` WITH ITS `reservation_line`, ADDED 2026-11-10 WITH `0079`
+-- (plan `10.5b-i`) — the EIGHTH and NINTH tenant tables the seed leaves empty, and
+-- the same answer: one reservation of one plate per workspace, on that workspace's
+-- publication above, written as postgres. Both are read at the member's own
+-- kitchens (`location_id in my_locations()`), as `listing` is. Who reserved is a
+-- made-up id: the column is granted to nobody, and nothing here reads it.
+create temp table iso_reservation_before as
+select (select count(*)::int from public.reservation)
+     + (select count(*)::int from public.reservation_line) as n;
+
+insert into public.reservation
+  (id, workspace_id, location_id, listing_id, buyer_id, code, pickup_at, pickup_day,
+   held_until, payment, eat)
+select gen_random_uuid(), x.workspace_id, x.location_id, x.id, gen_random_uuid(), 318,
+       x.pickup_start, (x.pickup_start at time zone 'America/Mexico_City')::date,
+       x.pickup_end, 'efectivo', 'llevar'
+  from public.listing x
+ where x.workspace_id in (select ws_id from iso_actor);
+
+insert into public.reservation_line
+  (reservation_id, line_no, workspace_id, location_id, listing_line_id, quantity, unit_price)
+select r.id, 1, r.workspace_id, r.location_id, ll.id, 1, ll.unit_price
+  from public.reservation r
+  join public.listing_line ll on ll.listing_id = r.listing_id and ll.line_no = 1
+ where r.workspace_id in (select ws_id from iso_actor);
+
 -- ---------------------------------------------------------------------------
 -- Classification — 02's, plus the two columns a WRITE suite needs
 --
@@ -719,14 +745,14 @@ end;
 $$;
 
 -- ---------------------------------------------------------------------------
--- The plan is COMPUTED from what was measured, never hardcoded: 24 fixed tests,
+-- The plan is COMPUTED from what was measured, never hardcoded: 25 fixed tests,
 -- one per grant-wall pair, one per cross-tenant measurement and one per control,
 -- one per move, one per append-only probe. A table or a grant added by a future
 -- migration is measured and asserted the day it lands. F1 and F5 are what stop
 -- that arithmetic from being satisfied by measuring nothing.
 -- ---------------------------------------------------------------------------
 select plan(
-  24
+  25
   + (select count(*)::int from iso_grant)
   + (select count(*)::int from iso_cross)
   + (select count(*)::int from iso_own)
@@ -852,6 +878,10 @@ select is((select n from iso_listing_before), 0,
 -- F10f. THE SAME, FOR THE TABLE `0076` ADDED.
 select is((select n from iso_kitchen_page_before), 0,
   'F10f kitchen_page was empty in the seed; this suite supplied its own rows');
+
+-- F10g. THE SAME, FOR THE TWO TABLES `0079` ADDED.
+select is((select n from iso_reservation_before), 0,
+  'F10g reservation and reservation_line were empty in the seed; this suite supplied their rows');
 
 -- F11. NO MEASUREMENT ANYWHERE CAME BACK `unclassified`. THIS IS THE ONE THAT
 -- GUARDS THE OTHER SIXTEEN. Two of the three refusals share sqlstate 42501 and

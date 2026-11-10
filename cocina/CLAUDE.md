@@ -189,6 +189,9 @@ TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic i
   defines `on_offer_now` and `normalize_name` last, so `cocina-itacate.yml` fires on every migration. Seen on the emulator 2026-11-07:
   her page's *Lo que suele ofrecer* matched the local door's answer line for line. As the page drew a preview: no way back over the
   picture, nothing that opens, no distance, and a line under the bar while the door would not send her.
+  ⚠️ **Since `0079` (`10.5b-i`) the door sends what is LEFT of each line, and leaves out a line with nothing left**; `@/lib/comoLaVen`
+  still shows what she offers. They agree until a neighbour reserves; `10.5b-iv`, which reads her reservations, brings the preview
+  to what is left.
 - ⚠️ **The map has no key in a build made on this Mac** (`MAPS_KEY_PLACEHOLDER`, and the key is locked
   to the store and `preview` signatures). Measured 2026-10-30 on the emulator: such a map delivers
   taps but **never moves its camera and draws no marker**, so the zoom, the flights to a search's
