@@ -86,6 +86,11 @@ from `itacate/` with the two local `EXPO_PUBLIC_SUPABASE_` values in the shell, 
   ⚠️ **Since `10.5-iv-a-ii` the same file names `kitchen_giros()` and its two keys** (Wera Cocina's
   names, held to `cocina/src/api/kitchen.ts` by `test/gemelos.test.ts`), and the same check asks for them
   as a neighbour and refuses them signed out (its group 8; its falsifier's C13 and C14).
+  ⚠️ **Since `0079` (`10.5b-i`) a line's `quantity` is what is LEFT** once neighbours reserve — what this app
+  has always drawn as *Quedan N* — and a line with nothing left is not sent, because `countOf` refuses 0; the
+  door also sends each line's `para_llevar` and `para_aqui`, each offer's `container_price` and each kitchen's
+  `payment` and `eat`, which this app reads from `10.5b-iii`. Reserving's own functions (`reserve_plate`,
+  `my_reservations`, `cancel_my_reservation`, `confirm_my_pickup`) are `supabase/README.md`'s `0079` row.
 - **Sign-in leans on two settings outside this repository**, both made by the owner's one command,
   `bash docs/runbooks/set-itacate-sign-in.sh` (a session's write to either is refused), and read
   back by `--check`: the three values its bundle reads in this EAS project's `preview` and, since

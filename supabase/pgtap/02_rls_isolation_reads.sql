@@ -232,6 +232,32 @@ insert into public.kitchen_page (workspace_id, sentence, updated_by)
 select a.ws_id, 'Comida casera pgtap-3.2a-' || a.tag, a.user_id
 from iso_actor a;
 
+-- ⚠️ AND `reservation` WITH ITS `reservation_line`, ADDED 2026-11-10 WITH `0079`
+-- (plan `10.5b-i`) — the EIGHTH and NINTH tenant tables the seed leaves empty, and
+-- the same answer: one reservation of one plate per workspace, on that workspace's
+-- publication above, written as postgres. Both are read at the member's own
+-- kitchens (`location_id in my_locations()`), as `listing` is. Who reserved is a
+-- made-up id: the column is granted to nobody, and nothing here reads it.
+create temp table iso_reservation_before as
+select (select count(*)::int from public.reservation)
+     + (select count(*)::int from public.reservation_line) as n;
+
+insert into public.reservation
+  (id, workspace_id, location_id, listing_id, buyer_id, code, pickup_at, pickup_day,
+   held_until, payment, eat)
+select gen_random_uuid(), x.workspace_id, x.location_id, x.id, gen_random_uuid(), 318,
+       x.pickup_start, (x.pickup_start at time zone 'America/Mexico_City')::date,
+       x.pickup_end, 'efectivo', 'llevar'
+  from public.listing x
+ where x.workspace_id in (select ws_id from iso_actor);
+
+insert into public.reservation_line
+  (reservation_id, line_no, workspace_id, location_id, listing_line_id, quantity, unit_price)
+select r.id, 1, r.workspace_id, r.location_id, ll.id, 1, ll.unit_price
+  from public.reservation r
+  join public.listing_line ll on ll.listing_id = r.listing_id and ll.line_no = 1
+ where r.workspace_id in (select ws_id from iso_actor);
+
 -- ---------------------------------------------------------------------------
 -- Classification, stated so that a new table cannot slip through unmeasured
 --
@@ -374,13 +400,13 @@ end;
 $$;
 
 -- ---------------------------------------------------------------------------
--- The plan is COMPUTED from what was measured, never hardcoded: 15 fixed tests,
+-- The plan is COMPUTED from what was measured, never hardcoded: 16 fixed tests,
 -- 4 per tenant table, 1 per table in `public` for the anon pass. A tenant table
 -- added by a future migration is measured and asserted the day it lands. F1 is
 -- what stops that arithmetic from being satisfied by measuring nothing.
 -- ---------------------------------------------------------------------------
 select plan(
-  15
+  16
   + 4 * (select count(*)::int from iso_read)
   + (select count(*)::int from iso_anon)
 );
@@ -491,6 +517,11 @@ select is((select n from iso_listing_before), 0,
 -- F15. THE SEVENTH EMPTY TENANT TABLE, F11's argument for `0076`'s `kitchen_page`.
 select is((select n from iso_kitchen_page_before), 0,
   'F15 kitchen_page was empty in the seed; this suite supplied its own rows');
+
+-- F16. THE EIGHTH AND NINTH EMPTY TENANT TABLES, F11's argument for `0079`'s
+-- `reservation` and `reservation_line`.
+select is((select n from iso_reservation_before), 0,
+  'F16 reservation and reservation_line were empty in the seed; this suite supplied their rows');
 
 -- ---------------------------------------------------------------------------
 -- Per tenant table, both directions

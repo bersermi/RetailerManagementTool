@@ -77,6 +77,10 @@ signed_in (proname) as (values
   -- the one door, and the point each kitchen is drawn at (`0078`, plan `10.5-i-b-i`):
   -- every kitchen a neighbour may see; Google's point written by her kitchen's owner
   ('on_offer_now'), ('set_google_point'),
+  -- reserving and collecting (`0079`, plan `10.5b-i`): the neighbour's four, keyed
+  -- on her own id, and the kitchen's two — handing over, and − and +
+  ('reserve_plate'), ('my_reservations'), ('cancel_my_reservation'), ('confirm_my_pickup'),
+  ('hand_over_reservation'), ('set_listing_quantity'),
   -- what a policy, a check or a computed column runs as the caller
   ('catalog_image_path'), ('has_role'), ('merma_path_ok'), ('my_locations'),
   ('my_role'), ('my_workspaces'), ('normalize_name'), ('photo_folder_ok'),
