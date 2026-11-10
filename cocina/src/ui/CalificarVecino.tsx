@@ -21,8 +21,9 @@ import { BotonLleno } from '@/ui/BotonLleno';
 // the thumb is SENT THE MOMENT SHE TAPS IT, so a fonda who turns to the next neighbour has
 // rated; her labels go on *Listo*, sent again with the thumb (`rate_neighbour` sets both
 // each call, and keeps the first moment). Itacate's stars work the same way (`10.5b-iii-b`).
-// ⚠️ ONE SEND AT A TIME (`ocupado`): a second thumb sent before the first came back could
-// arrive first, and the database would keep the older.
+// ⚠️ `10.5b-iv-b`: EVERY TAP IS QUEUED, NEVER AWAITED (`@/api/cola`): with signal or without,
+// the panel moves at once; a second thumb before the first went replaces it, so nothing
+// arrives out of order; and the database's refusal comes back as `rechazo`.
 // ⚠️ THE TERMS, ONCE, BEFORE HER FIRST THUMB (the final design) — `@/ui/AntesDeCalificar`.
 // ⚠️ A THUMB MAY BE CHANGED FOR 24 HOURS, never the clock's: past that it is drawn, not
 // offered. NO CHECK CAN SEE THIS PANEL (ADR-035 §2.11): the phone is its instrument.
@@ -32,7 +33,7 @@ export function CalificarVecino({
   nombre,
   inicial,
   ahora,
-  ocupado,
+  rechazo,
   onCalificar,
   onListo,
   onDespues,
@@ -42,9 +43,10 @@ export function CalificarVecino({
   /** The thumb already on the order, or `null`. */
   inicial: Pulgar | null;
   ahora: Date;
-  /** A thumb about this order is on its way. */
-  ocupado: boolean;
-  onCalificar: (pulgar: PulgarNuevo) => Promise<Falla | null>;
+  /** Why the database refused her last thumb on this order (`@/api/cola`), or `null`. */
+  rechazo: Falla | null;
+  /** Queues her thumb — synchronous: it is on the phone when this returns. */
+  onCalificar: (pulgar: PulgarNuevo) => void;
   /** Her thumb is saved and she is done. */
   onListo: () => void;
   /** She leaves it for later — *Calificar* stays on the order. `null`: no way out but *Listo*. */
@@ -54,7 +56,6 @@ export function CalificarVecino({
   const [arriba, setArriba] = useState<boolean | null>(inicial?.arriba ?? null);
   const [etiquetas, setEtiquetas] = useState<readonly Etiqueta[]>(inicial?.etiquetas ?? []);
   const [enviado, setEnviado] = useState<string | null>(inicial === null ? null : firma(inicial.arriba, inicial.etiquetas));
-  const [falla, setFalla] = useState<Falla | null>(null);
 
   const cambiable = inicial === null || (!inicial.reloj && inicial.cambiarHasta !== null && ahora.getTime() < inicial.cambiarHasta.getTime());
 
@@ -73,33 +74,26 @@ export function CalificarVecino({
 
   if (!terminos.aceptados) return <AntesDeCalificar onAcepto={terminos.aceptar} onDespues={onDespues} />;
 
-  async function enviar(nuevoArriba: boolean, nuevas: readonly Etiqueta[]): Promise<boolean> {
+  function enviar(nuevoArriba: boolean, nuevas: readonly Etiqueta[]) {
     const lado = etiquetasDelLado(nuevoArriba, nuevas);
-    setFalla(null);
-    const respuesta = await onCalificar({ arriba: nuevoArriba, etiquetas: lado });
-    if (respuesta !== null) {
-      setFalla(respuesta);
-      return false;
-    }
+    onCalificar({ arriba: nuevoArriba, etiquetas: lado });
     setEnviado(firma(nuevoArriba, lado));
-    return true;
   }
 
   function tocarPulgar(nuevo: boolean) {
-    if (ocupado) return;
     const quedan = etiquetasDelLado(nuevo, etiquetas);
     setArriba(nuevo);
     setEtiquetas(quedan);
-    if (enviado !== firma(nuevo, quedan)) void enviar(nuevo, quedan);
+    if (enviado !== firma(nuevo, quedan)) enviar(nuevo, quedan);
   }
 
   function tocarEtiqueta(etiqueta: Etiqueta) {
     setEtiquetas((antes) => (antes.includes(etiqueta) ? antes.filter((e) => e !== etiqueta) : [...antes, etiqueta]));
   }
 
-  async function listo() {
+  function listo() {
     if (arriba === null) return;
-    if (enviado !== firma(arriba, etiquetasDelLado(arriba, etiquetas)) && !(await enviar(arriba, etiquetas))) return;
+    if (enviado !== firma(arriba, etiquetasDelLado(arriba, etiquetas))) enviar(arriba, etiquetas);
     onListo();
   }
 
@@ -113,8 +107,8 @@ export function CalificarVecino({
           {ES.pulgar.cambiarHasta(cuandoTexto(inicial.cambiarHasta, ahora))}
         </Text>
       )}
-      {falla !== null && <Text style={{ fontSize: SIZE.smallSize, lineHeight: 18, color: PALETTE.error, textAlign: 'center' }}>{ES.apartados.fallas[falla]}</Text>}
-      {arriba !== null && <BotonLleno variante="principal" label={ES.pulgar.listo} busy={ocupado} onPress={() => void listo()} />}
+      {rechazo !== null && <Text style={{ fontSize: SIZE.smallSize, lineHeight: 18, color: PALETTE.error, textAlign: 'center' }}>{ES.apartados.fallas[rechazo]}</Text>}
+      {arriba !== null && <BotonLleno variante="principal" label={ES.pulgar.listo} onPress={listo} />}
       {onDespues !== null && <BotonLleno variante="discreto" label={ES.pulgar.despues} onPress={onDespues} />}
     </View>
   );

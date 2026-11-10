@@ -7,6 +7,8 @@
 # the order, a function's name, an argument's, a key at each level of the answers, a label, a
 # refusal's code — points the check at it, and requires red WITH THE SENTENCE that names that
 # claim: red for the wrong reason is a failure here too. The control, unedited, must be green.
+# ⚠️ Since `10.5b-iv-b` the fixtures C21–C24 break a copy of `cocina/src/api/cola.ts` instead —
+# her queue's claims about which refusals are the database's last word.
 #
 # Run:  supabase start && supabase db reset && bash docs/checks/10.5b-iv-a-handover-contract-falsify.sh
 # Exit: 0 every fixture behaved; 1 otherwise.
@@ -15,23 +17,26 @@ set -uo pipefail
 
 CHECK="docs/checks/10.5b-iv-a-handover-contract.sh"
 APARTADOS="cocina/src/api/apartados.ts"
-[[ -r "$CHECK" && -r "$APARTADOS" ]] || { echo "FAIL: run this from the repository root"; exit 1; }
+COLA="cocina/src/api/cola.ts"
+[[ -r "$CHECK" && -r "$APARTADOS" && -r "$COLA" ]] || { echo "FAIL: run this from the repository root"; exit 1; }
 
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 pass=0
 fail=0
 
-run() { # name want phrase sed-program
-  local name="$1" want="$2" phrase="$3" program="$4"
+run() { # name want phrase sed-program [file to break: apartados (default) or cola]
+  local name="$1" want="$2" phrase="$3" program="$4" which="${5:-apartados}"
+  local original="$APARTADOS"; [[ "$which" == cola ]] && original="$COLA"
   local copy="$TMP/$name.ts"
-  sed "$program" "$APARTADOS" > "$copy"
-  if [[ "$program" != "" ]] && cmp -s "$copy" "$APARTADOS"; then
+  sed "$program" "$original" > "$copy"
+  if [[ "$program" != "" ]] && cmp -s "$copy" "$original"; then
     echo "  ✗ $name — THE MUTATION CHANGED NOTHING: a fixture that edits nothing tests the control twice."
     fail=$((fail+1)); return
   fi
   local out rc
-  out="$(bash "$CHECK" "$copy" 2>&1)"; rc=$?
+  if [[ "$which" == cola ]]; then out="$(bash "$CHECK" "$APARTADOS" "$copy" 2>&1)"; rc=$?
+  else out="$(bash "$CHECK" "$copy" 2>&1)"; rc=$?; fi
   local got=red; (( rc == 0 )) && got=green
   if [[ "$got" != "$want" ]]; then
     echo "  ✗ $name — expected $want, got $got"
@@ -130,10 +135,27 @@ echo "C20 the session's refusal read under another code — she would read the w
 run C20 red "the app reads '42502'" \
   "s/^  '42501': 'sesion',/  '42502': 'sesion',/"
 
+# `10.5b-iv-b`: her queue's claims (`cocina/src/api/cola.ts`).
+echo "C21 her queue takes 'permission denied' as final — a phone whose sign-in lapsed would drop her handover"
+run C21 red "a call with no session ('permission denied for function hand_over_reservation') matches what her queue takes as final" \
+  "s#^export const NO_ES_DE_SU_COCINA = /reservation is not at one of your kitchens/;#export const NO_ES_DE_SU_COCINA = /permission denied|reservation is not at one of your kitchens/;#" cola
+
+echo "C22 her queue's pattern for the functions' own 42501 misspelt — a handover that is not hers waits for ever"
+run C22 red "is not what her queue takes as final" \
+  "s#^export const NO_ES_DE_SU_COCINA = /reservation is not at one of your kitchens/;#export const NO_ES_DE_SU_COCINA = /reservation is not in one of your kitchens/;#" cola
+
+echo "C23 a broken token not among her sign-in's codes — her queue would take it as a refusal"
+run C23 red "which her queue does not wait on as her sign-in's" \
+  "s/^export const CODIGOS_DE_SESION: readonly string\[\] = \['PGRST301', /export const CODIGOS_DE_SESION: readonly string[] = [/" cola
+
+echo "C24 her queue draws another code as cambio — the database's refusal would wait instead"
+run C24 red "her queue draws 22024 as cambio" \
+  "s/^  '22023': 'cambio',/  '22024': 'cambio',/" cola
+
 echo
 echo "$pass passed, $fail failed."
-if (( pass + fail < 21 )); then
-  echo "FAIL: only $((pass + fail)) fixtures ran, expected 21."
+if (( pass + fail < 25 )); then
+  echo "FAIL: only $((pass + fail)) fixtures ran, expected 25."
   exit 1
 fi
 (( fail == 0 )) || exit 1

@@ -91,6 +91,10 @@ on:
       # ⚠️ `10.5b-iii-b`, AFTER THE PLATE: her yes accepts the terms of use too, and Itacate's suite
       # holds the link it opens to the page in `site/` (`itacate/test/calificar.test.ts`).
       - "site/terminos/cocina-e-itacate/index.html"
+      # ⚠️ `10.5b-iv-b`, THE HANDOVER WITH NO SIGNAL: Wera Cocina's signal is Wera's measured
+      # machine, copied (`cocina/src/api/connectivity.ts`), and its suite holds the copy to Wera's
+      # file code for code (`cocina/test/senal.test.ts`).
+      - "app/src/api/connectivity.ts"
       - "package.json"
       - "package-lock.json"
       - ".github/workflows/cocina-itacate.yml"

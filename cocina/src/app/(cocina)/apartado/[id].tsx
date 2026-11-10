@@ -3,7 +3,7 @@ import { useRef, useState } from 'react';
 import { ActivityIndicator, Linking, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import type { Falla } from '@/api/apartados';
+import { entregaEsperando } from '@/api/cola';
 import { useApartados, useCalificarVecino, useEntregar, useKitchen } from '@/api/hooks';
 import { whatsappUrl } from '@/auth/support';
 import { formatMXN } from '@/format/mxn';
@@ -51,6 +51,9 @@ import { Accion, Calificacion, Marca } from '@/ui/TarjetaOrden';
 //   rated *No se presentó*  *Sí pasó* still corrects it (`hand_over_reservation` clears it)
 // ⚠️ THE KITCHEN'S CANCEL HAS ITS PLACE HERE, DRAWN ONLY WHEN ITS SWITCH IS ON — and it is off
 // (`cancel_reservation_as_kitchen` refuses `TD023` for everyone), so nothing is drawn.
+// ⚠️ `10.5b-iv-b`: *Sí pasó*, *No se presentó* and her thumb are QUEUED and drawn at once
+// (`@/api/cola`); while her handover waits on the phone the order says so, and a refusal that
+// comes back is drawn here (`rechazoDe`).
 // NO CHECK CAN SEE THIS SCREEN (ADR-035 §2.11): the phone is its instrument.
 // ============================================================================
 
@@ -62,11 +65,10 @@ export default function ApartadoAbierto() {
   const kitchen = useKitchen();
   const apartados = useApartados(kitchen?.id ?? null);
   const ahora = useAhora(CADA_MEDIO_MINUTO);
-  const { entregar, busyId: entregando } = useEntregar(kitchen?.id ?? null);
-  const { calificar, busyId: calificando } = useCalificarVecino(kitchen?.id ?? null);
+  const { entregar } = useEntregar(kitchen?.id ?? null);
+  const { calificar } = useCalificarVecino(kitchen?.id ?? null);
   const terminos = useTerminos();
   const { avisar } = useNota();
-  const [falla, setFalla] = useState<Falla | null>(null);
   const [pidiendoTerminos, setPidiendoTerminos] = useState(false);
   // ⚠️ The name as last read: once rated, the database stops sending it (as ruled), and the panel
   // she is filling must not change its question under her thumb (found on the emulator).
@@ -81,7 +83,9 @@ export default function ApartadoAbierto() {
       <View style={{ flex: 1, backgroundColor: PALETTE.fondo }}>
         {banda}
         <View style={{ padding: SIZE.space * 2, gap: SIZE.space }}>
-          {apartados.isError ? (
+          {apartados.sinSenal ? (
+            <Text style={{ fontSize: SIZE.bodySize, color: PALETTE.tinta }}>{ES.cola.sinDatos}</Text>
+          ) : apartados.isError ? (
             <>
               <Text style={{ fontSize: SIZE.bodySize, color: PALETTE.tinta }}>{ES.apartados.sinLeer}</Text>
               <BotonLleno label={ES.cocina.otraVez} busy={apartados.isFetching} onPress={() => void apartados.refetch()} />
@@ -115,19 +119,17 @@ export default function ApartadoAbierto() {
   const pronto = prontoTexto(orden, ahora);
   const porEntregar = POR_ENTREGAR.includes(marca);
   const aviso = siNoLoCalificasTexto(orden, ahora);
+  const falla = apartados.rechazoDe(orden.id);
+  const esperando = entregaEsperando(apartados.porEnviar, orden.id);
+  // Her thumb's panel — which draws a refusal of its own.
+  const panel = marca === 'porCalificar' || (marca === 'entregado' && orden.pulgar !== null);
 
-  async function siPaso() {
-    if (orden === null) return;
-    setFalla(null);
-    const respuesta = await entregar(orden.id);
-    if (respuesta !== null) setFalla(respuesta);
+  function siPaso() {
+    if (orden !== null) entregar(orden.id);
   }
 
-  async function noSePresento() {
-    if (orden === null) return;
-    setFalla(null);
-    const respuesta = await calificar(orden.id, 'noSePresento');
-    if (respuesta !== null) setFalla(respuesta);
+  function noSePresento() {
+    if (orden !== null) calificar(orden.id, 'noSePresento');
   }
 
   const filaHora = (etiqueta: string, valor: string) => (
@@ -185,18 +187,19 @@ export default function ApartadoAbierto() {
             {orden.entregaEn !== null
               ? filaHora(ES.apartado.entregado, clockOf(orden.entregaEn))
               : filaHora(ES.apartado.seLibera, clockOf(orden.guardadaHasta))}
+            {esperando && <Text style={{ fontSize: SIZE.smallSize, lineHeight: 18, color: PALETTE.tintaApagada }}>{ES.entregar.guardadaAqui}</Text>}
           </View>
         </Llega>
 
         <Llega i={2} style={{ gap: SIZE.space }}>
           {porEntregar && <Accion label={ES.apartados.entregar} tipo="ir" onPress={() => router.push('/entregar')} />}
 
-          {(marca === 'porCalificar' || (marca === 'entregado' && orden.pulgar !== null)) && (
+          {panel && (
             <CalificarVecino
               nombre={orden.vecino?.nombre ?? nombreVisto.current}
               inicial={orden.pulgar}
               ahora={ahora}
-              ocupado={calificando === orden.id}
+              rechazo={falla}
               onCalificar={(pulgar) => calificar(orden.id, pulgar)}
               onListo={() => avisar(ES.pulgar.calificaste(orden.vecino?.nombre ?? nombreVisto.current))}
               onDespues={marca === 'porCalificar' ? volver : null}
@@ -212,7 +215,7 @@ export default function ApartadoAbierto() {
               onAcepto={() => {
                 terminos.aceptar();
                 setPidiendoTerminos(false);
-                void noSePresento();
+                noSePresento();
               }}
               onDespues={() => setPidiendoTerminos(false)}
             />
@@ -224,19 +227,18 @@ export default function ApartadoAbierto() {
                   <Accion
                     label={ES.apartados.noSePresento}
                     tipo="calificar"
-                    ocupado={calificando === orden.id || entregando === orden.id}
-                    onPress={() => (terminos.aceptados ? void noSePresento() : setPidiendoTerminos(true))}
+                    onPress={() => (terminos.aceptados ? noSePresento() : setPidiendoTerminos(true))}
                   />
                 </View>
               )}
               <View style={{ flex: 1 }}>
-                {/* Either write waits for the other: both at once would draw a wrong mark until the re-read. */}
-                <Accion label={ES.apartados.siPaso} tipo="bien" ocupado={entregando === orden.id || calificando === orden.id} onPress={() => void siPaso()} />
+                {/* Both are queued in the order she taps them, and drawn at once (`@/api/cola`). */}
+                <Accion label={ES.apartados.siPaso} tipo="bien" onPress={siPaso} />
               </View>
             </View>
           )}
           {aviso !== null && <Text style={{ fontSize: SIZE.smallSize, lineHeight: 18, color: PALETTE.tintaApagada }}>{aviso}</Text>}
-          {falla !== null && <Text style={{ fontSize: SIZE.smallSize, lineHeight: 18, color: PALETTE.error }}>{ES.apartados.fallas[falla]}</Text>}
+          {falla !== null && !panel && <Text style={{ fontSize: SIZE.smallSize, lineHeight: 18, color: PALETTE.error }}>{ES.apartados.fallas[falla]}</Text>}
 
           {SUPPORT_WHATSAPP !== null && (
             <BotonLleno

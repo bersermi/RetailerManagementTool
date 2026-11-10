@@ -5,6 +5,7 @@ import { ActivityIndicator, Linking, ScrollView, Text, View } from 'react-native
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import type { Falla } from '@/api/apartados';
+import { entregaEsperando } from '@/api/cola';
 import { useApartados, useCalificarVecino, useEntregar, useKitchen } from '@/api/hooks';
 import { whatsappUrl } from '@/auth/support';
 import {
@@ -13,6 +14,7 @@ import {
   cobrasteTexto,
   cobroLargoTexto,
   coloresDe,
+  cuandoTexto,
   marcaDe,
   marcaTexto,
   nombreTexto,
@@ -34,6 +36,7 @@ import { Banda } from '@/ui/Banda';
 import { BotonLleno } from '@/ui/BotonLleno';
 import { CalificarVecino } from '@/ui/CalificarVecino';
 import { Llega } from '@/ui/Llega';
+import { SinSenal } from '@/ui/SinSenal';
 import { Casillas, Teclado } from '@/ui/Teclado';
 import { Calificacion, Marca } from '@/ui/TarjetaOrden';
 
@@ -59,8 +62,12 @@ import { Calificacion, Marca } from '@/ui/TarjetaOrden';
 // ⚠️ *ENTREGAR* IS ALWAYS RECORDED (ruled 2026-11-10): a cancelled order, or one whose window
 // ended, is handed over all the same, and the screen says so first. One already handed over
 // says when, and offers her thumb if it still waits for one.
-// ⚠️ ONLINE ONLY IN THIS ROW: with no signal the handover says so and keeps the code typed —
-// the queue that sends it later, and today's orders kept on the phone, are `10.5b-iv-b`'s.
+// ⚠️⚠️ `10.5b-iv-b`: IT WORKS WITH NO SIGNAL. Her orders are the phone's copy (`@/api/persist`) and
+// the screen says when it was read (`@/ui/SinSenal`); *Ya cobré y lo entregué* and her thumb are QUEUED
+// and drawn at once (`@/api/cola`) — never a wait at the counter, with signal or without — and
+// *Entregado* says *Guardada en este teléfono…* while the handover waits. With no signal a code not on
+// the phone may be a reservation made since: *Ese código no está en tus apartados de las 13:05. Sin
+// señal no llegan los nuevos.* A refusal that comes back later is drawn on the order (`rechazoDe`).
 // NO CHECK CAN SEE THIS SCREEN (ADR-035 §2.11): the phone is its instrument.
 // ============================================================================
 
@@ -71,19 +78,16 @@ export default function Entregar() {
   const kitchen = useKitchen();
   const apartados = useApartados(kitchen?.id ?? null);
   const ahora = useAhora(CADA_MEDIO_MINUTO);
-  const { entregar, busyId } = useEntregar(kitchen?.id ?? null);
-  const { calificar, busyId: calificandoId } = useCalificarVecino(kitchen?.id ?? null);
+  const { entregar } = useEntregar(kitchen?.id ?? null);
+  const { calificar } = useCalificarVecino(kitchen?.id ?? null);
   const { avisar } = useNota();
   const [codigo, setCodigo] = useState('');
   // The order handed over on THIS screen.
   const [entregadaAqui, setEntregadaAqui] = useState<string | null>(null);
-  // The order a handover was last sent for — its reply may be lost while the database wrote it.
-  const [intento, setIntento] = useState<string | null>(null);
   // The order whose thumb is being given here, held until she leaves it.
   const [panelPara, setPanelPara] = useState<string | null>(null);
   // Each neighbour's name as last read, so the panel keeps it once the database stops sending it.
   const nombres = useRef(new Map<string, Orden['vecino']>());
-  const [falla, setFalla] = useState<Falla | null>(null);
 
   const volver = () => (router.canGoBack() ? router.back() : router.replace('/apartados'));
   const quiet = { fontSize: SIZE.bodySize, color: PALETTE.tintaApagada } as const;
@@ -95,7 +99,9 @@ export default function Entregar() {
       <View style={{ flex: 1, backgroundColor: PALETTE.fondo }}>
         {banda}
         <View style={{ padding: SIZE.space * 2, gap: SIZE.space }}>
-          {apartados.isError ? (
+          {apartados.sinSenal ? (
+            <Text style={{ fontSize: SIZE.bodySize, color: PALETTE.tinta }}>{ES.cola.sinDatos}</Text>
+          ) : apartados.isError ? (
             <>
               <Text style={{ fontSize: SIZE.bodySize, color: PALETTE.tinta }}>{ES.apartados.sinLeer}</Text>
               <BotonLleno label={ES.cocina.otraVez} busy={apartados.isFetching} onPress={() => void apartados.refetch()} />
@@ -116,14 +122,12 @@ export default function Entregar() {
   const orden = buscarCodigo(ordenes, codigo, ahora);
   const mal = codigo.length === DIGITOS && orden === null;
   const vecino = orden === null ? null : (orden.vecino ?? nombres.current.get(orden.id) ?? null);
-  // ⚠️ A REPLY LOST AFTER THE DATABASE WROTE IT (the review of `10.5b-iv-a`): the re-read finds it handed
-  // over — that is this screen's handover, with no error beside it and her thumb offered.
-  const recuperada = orden !== null && intento === orden.id && orden.entregadaEn !== null;
-  const aqui = orden !== null && (entregadaAqui === orden.id || recuperada);
-  const calificando = orden !== null && (panelPara === orden.id || recuperada) && vecino !== null;
+  const aqui = orden !== null && entregadaAqui === orden.id;
+  const calificando = orden !== null && panelPara === orden.id && vecino !== null;
+  const noEsta =
+    apartados.sinSenal && apartados.leidoEn !== null ? ES.entregar.noEstaSinSenal(cuandoTexto(apartados.leidoEn, ahora)) : ES.entregar.noEsta;
 
   function tecla(t: string) {
-    setFalla(null);
     const siguiente = teclear(codigo.length === DIGITOS && t !== 'borrar' ? '' : codigo, t);
     setCodigo(siguiente);
     // A code typed for an order already handed over and not rated opens her thumb.
@@ -133,17 +137,13 @@ export default function Entregar() {
 
   function otroCodigo() {
     setCodigo('');
-    setFalla(null);
     setEntregadaAqui(null);
     setPanelPara(null);
-    setIntento(null);
   }
 
-  async function entregarla(o: Orden) {
-    setFalla(null);
-    setIntento(o.id);
-    const respuesta = await entregar(o.id);
-    if (respuesta !== null) return setFalla(respuesta);
+  // ⚠️ `10.5b-iv-b`: on the phone before the next frame, drawn as handed over at once (`@/api/cola`).
+  function entregarla(o: Orden) {
+    entregar(o.id);
     setEntregadaAqui(o.id);
     setPanelPara(o.id);
   }
@@ -152,12 +152,13 @@ export default function Entregar() {
     <View style={{ flex: 1, backgroundColor: PALETTE.fondo }}>
       {banda}
       <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: SIZE.space * 1.5, paddingBottom: SIZE.space * 3 + insets.bottom, gap: SIZE.space * 1.25 }}>
+        <SinSenal sinSenal={apartados.sinSenal} leidoEn={apartados.leidoEn} porEnviar={apartados.porEnviar} ahora={ahora} cola={false} />
         {orden === null ? (
           <Llega i={0} style={{ gap: SIZE.space * 1.25 }}>
             <Text style={{ ...TITULO, fontSize: 20, textAlign: 'center', color: PALETTE.tinta }}>{ES.entregar.escribe}</Text>
             <Casillas codigo={codigo} mal={mal} />
             <Text style={{ fontSize: SIZE.smallSize + 0.4, lineHeight: 19, textAlign: 'center', color: mal ? PALETTE.error : PALETTE.tintaApagada }}>
-              {mal ? ES.entregar.noEsta : ES.entregar.teLoDice}
+              {mal ? noEsta : ES.entregar.teLoDice}
             </Text>
             <Teclado onTecla={tecla} />
           </Llega>
@@ -168,16 +169,16 @@ export default function Entregar() {
               vecino={vecino}
               ahora={ahora}
               entregadaAqui={aqui}
-              ocupado={busyId === orden.id}
-              falla={recuperada ? null : falla}
-              onEntregar={() => void entregarla(orden)}
+              esperando={entregaEsperando(apartados.porEnviar, orden.id)}
+              falla={apartados.rechazoDe(orden.id)}
+              onEntregar={() => entregarla(orden)}
             />
             {calificando && vecino !== null && (
               <CalificarVecino
                 nombre={vecino.nombre}
                 inicial={orden.pulgar}
                 ahora={ahora}
-                ocupado={calificandoId === orden.id}
+                rechazo={apartados.rechazoDe(orden.id)}
                 onCalificar={(pulgar) => calificar(orden.id, pulgar)}
                 onListo={() => {
                   avisar(ES.pulgar.calificaste(vecino.nombre));
@@ -213,7 +214,7 @@ function Encontrada({
   vecino,
   ahora,
   entregadaAqui,
-  ocupado,
+  esperando,
   falla,
   onEntregar,
 }: {
@@ -221,7 +222,9 @@ function Encontrada({
   vecino: Orden['vecino'];
   ahora: Date;
   entregadaAqui: boolean;
-  ocupado: boolean;
+  /** Her handover of it is still on the phone (`@/api/cola`). */
+  esperando: boolean;
+  /** The database refused a send about it, or `null`. */
   falla: Falla | null;
   onEntregar: () => void;
 }) {
@@ -240,6 +243,12 @@ function Encontrada({
         <View style={{ gap: 4, padding: SIZE.space, borderRadius: SIZE.space - 2, borderWidth: 1, borderColor: PALETTE.linea, backgroundColor: PALETTE.superficie }}>
           <Text style={{ fontSize: 18, fontWeight: '600', color: PALETTE.tinta }}>{queTexto(orden)}</Text>
           {cobraste !== null && <Text style={{ fontSize: SIZE.bodySize, color: PALETTE.tinta }}>{cobraste}</Text>}
+          {esperando && (
+            <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 6 }}>
+              <MaterialCommunityIcons name="cloud-upload-outline" size={16} color={PALETTE.tintaApagada} style={{ marginTop: 2 }} />
+              <Text style={{ flex: 1, fontSize: SIZE.smallSize, lineHeight: 18, color: PALETTE.tintaApagada }}>{ES.entregar.guardadaAqui}</Text>
+            </View>
+          )}
           {vecino !== null && (
             <>
               <View style={{ height: 1, backgroundColor: PALETTE.linea, marginVertical: 4 }} />
@@ -293,13 +302,7 @@ function Encontrada({
             </Text>
             {orden.comer === 'aqui' && <Text style={{ fontSize: SIZE.smallSize, lineHeight: 18, color: PALETTE.tintaApagada }}>{ES.entregar.cobraleAqui}</Text>}
           </View>
-          <BotonLleno
-            variante="principal"
-            icon="check"
-            label={orden.comer === 'aqui' ? ES.entregar.yaLaServi : ES.entregar.yaCobre}
-            busy={ocupado}
-            onPress={onEntregar}
-          />
+          <BotonLleno variante="principal" icon="check" label={orden.comer === 'aqui' ? ES.entregar.yaLaServi : ES.entregar.yaCobre} onPress={onEntregar} />
         </>
       )}
       {falla !== null && <Text style={{ fontSize: SIZE.smallSize, lineHeight: 18, color: PALETTE.error }}>{ES.apartados.fallas[falla]}</Text>}

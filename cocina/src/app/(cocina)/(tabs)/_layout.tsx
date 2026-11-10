@@ -1,6 +1,6 @@
 import { Tabs } from 'expo-router/js-tabs';
 
-import { useApartados, useKitchen, usePlace } from '@/api/hooks';
+import { useApartadosAlDia, useKitchen, usePlace } from '@/api/hooks';
 import { ordenesDe, porCalificar } from '@/lib/apartados';
 import { RecordatorioProvider } from '@/lib/RecordatorioProvider';
 import { useAhora } from '@/lib/useAhora';
@@ -28,6 +28,11 @@ import { Pestanas } from '@/ui/Pestanas';
 //
 // ⚠️ `10.5b-iv-a`: *APARTADOS* IS A TAB, AND ITS COUNT IS READ HERE (`useCuentas`): what waits for
 // her thumb, handed to the bar.
+// ⚠️⚠️ `10.5b-iv-b`: AND HER RESERVATIONS KEEP TIME HERE, AND ONLY HERE (`useApartadosAlDia`): read
+// every minute while something can change, both lists again when the day turns, who reserved each
+// again when today's orders change. Every other screen reads the same queries and asks nothing again:
+// a `refetch()` cancels a read in flight and sends a new one, so from every screen each would go out
+// once per screen (`@/api/hooks`).
 //
 // ⚠️ `10.5-v-c-ii`: HER REMINDER LIVES HERE TOO (`@/lib/RecordatorioProvider`) — *Hoy* asks
 // its question and *Mi cocina* keeps its row, both tabs mounted at once, so her answer, the
@@ -56,7 +61,7 @@ export default function TabsDeCocina() {
  * reads — one request — and with the clock, so a window's end adds to it on its own.
  */
 function useCuentas(kitchenId: string | null): { readonly apartados: number } {
-  const apartados = useApartados(kitchenId);
+  const apartados = useApartadosAlDia(kitchenId);
   const ahora = useAhora(60_000);
   const datos = apartados.data;
   return { apartados: datos === undefined ? 0 : porCalificar(ordenesDe(datos.reservas, datos.vecinos, ahora), ahora) };
