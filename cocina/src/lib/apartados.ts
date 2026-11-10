@@ -20,6 +20,7 @@
 // ============================================================================
 
 import {
+  DIA_PARA_CALIFICAR_MS,
   diaTexto,
   estadoDe,
   tomado,
@@ -30,7 +31,7 @@ import {
   type Vecino,
 } from '@/api/apartados';
 import { formatMXN } from '@/format/mxn';
-import { clockOf, dayOf } from '@/lib/ventana';
+import { clockOf, dayOf, momentOf } from '@/lib/ventana';
 import { ES } from '@/strings';
 import { PALETTE } from '@/theme/palette';
 
@@ -48,15 +49,25 @@ export interface Orden extends Reserva {
   readonly entregaEn: Date | null;
 }
 
-/** The orders, each with its state now and what the database says of its neighbour. */
+/**
+ * The orders, each with its state now and what the database says of its neighbour. ⚠️ THE DAY AFTER
+ * THE WINDOW IS THE CLOCK'S, HERE TOO (`reservation_neighbours`, `0080`), so a line read hours ago
+ * never outlives it (the review of `10.5b-iv-a`): from 24 hours after the window her name is gone,
+ * and a plate that *se liberó* with no thumb carries the clock's *No se presentó*.
+ */
 export function ordenesDe(reservas: readonly Reserva[], vecinos: Readonly<Record<string, SobreElVecino>>, now: Date): Orden[] {
   return reservas.map((r) => {
     const sobre = vecinos[r.id];
+    const estado = estadoDe(r, now);
+    const vence = new Date(r.guardadaHasta.getTime() + DIA_PARA_CALIFICAR_MS);
+    const cerrada = now.getTime() >= vence.getTime();
+    const reloj: Pulgar | null =
+      estado === 'liberado' && cerrada ? { arriba: false, etiquetas: ['no_se_presento'], dadoEn: vence, cambiarHasta: null, reloj: true } : null;
     return {
       ...r,
-      estado: estadoDe(r, now),
-      vecino: sobre?.vecino ?? null,
-      pulgar: sobre?.pulgar ?? null,
+      estado,
+      vecino: cerrada ? null : (sobre?.vecino ?? null),
+      pulgar: sobre?.pulgar ?? reloj,
       calificarHasta: sobre?.calificarHasta ?? null,
       entregaEn: r.entregadaEn ?? r.recogidaEn,
     };
@@ -95,7 +106,17 @@ function abierta(orden: Orden, now: Date): boolean {
   return orden.pulgar === null && orden.calificarHasta !== null && now.getTime() <= orden.calificarHasta.getTime();
 }
 
+/**
+ * ⚠️ SHE SWIPED *YA LO TENGO* BEFORE THE COUNTER RECORDED IT (`confirm_my_pickup` takes it while the plate
+ * is held): to her kitchen the plate is still to hand over until its window ends — what to charge and
+ * *Entregar* stay (the review of `10.5b-iv-a`). The database counts it collected either way.
+ */
+function marcadaSoloPorElla(orden: Orden, now: Date): boolean {
+  return orden.estado === 'recogido' && orden.entregadaEn === null && now.getTime() < orden.guardadaHasta.getTime();
+}
+
 export function marcaDe(orden: Orden, now: Date): Marca {
+  if (marcadaSoloPorElla(orden, now)) return orden.hora.getTime() - now.getTime() <= PRONTO_MS ? 'pronto' : 'porEntregar';
   switch (orden.estado) {
     case 'apartado':
       return orden.hora.getTime() - now.getTime() <= PRONTO_MS ? 'pronto' : 'porEntregar';
@@ -231,7 +252,14 @@ export const DIGITOS = 3;
 export function buscarCodigo(ordenes: readonly Orden[], codigo: string, now: Date): Orden | null {
   if (codigo.length !== DIGITOS) return null;
   const hoy = diaTexto(now);
-  return ordenes.find((o) => o.dia === hoy && o.codigo === codigo) ?? null;
+  // ⚠️ TODAY'S, OR ONE STILL TO HAND OVER ON ANOTHER DAY (the review of `10.5b-iv-a`): a window that crosses
+  // midnight puts an order said at 23:55 on tomorrow's day, and one at 00:10 on yesterday's. Codes are
+  // unique per day only, so the nearest to now wins.
+  const candidatas = ordenes.filter(
+    (o) => o.codigo === codigo && (o.dia === hoy || POR_ENTREGAR.includes(marcaDe(o, now))),
+  );
+  candidatas.sort((a, b) => Math.abs(a.hora.getTime() - now.getTime()) - Math.abs(b.hora.getTime() - now.getTime()));
+  return candidatas[0] ?? null;
 }
 
 /** A key the keypad pressed, applied to what is typed: a digit while there is room, or *Borrar*. */
@@ -306,12 +334,12 @@ export function cuandoTexto(at: Date, now: Date): string {
 
 /** After the handover, on its screen: *Cobraste $65 en efectivo · 14:31*, or *La serviste a las 14:31*. */
 export function cobrasteTexto(orden: Orden): string | null {
-  if (orden.entregaEn === null) return null;
-  const hora = clockOf(orden.entregaEn);
+  if (orden.entregadaEn === null) return null;
+  const hora = clockOf(orden.entregadaEn);
   return orden.comer === 'aqui' ? ES.entregar.laServiste(hora) : ES.entregar.cobraste[orden.pago](formatMXN(orden.cobroCentavos), hora);
 }
 
-/** A card's line under what to prepare, once it is over or waits for her thumb. */
+/** A card's line under what to prepare: how and what to charge while it is to hand over; else what became of it. */
 export function estadoTexto(orden: Orden, now: Date): string {
   const marca = marcaDe(orden, now);
   if ((marca === 'porCalificar' || marca === 'entregado') && orden.entregaEn !== null) {
@@ -320,7 +348,31 @@ export function estadoTexto(orden: Orden, now: Date): string {
   if (marca === 'seLibero' || marca === 'liberado' || marca === 'noSePresento') {
     return ES.apartados.noPaso(dayOf(orden.hora, now), clockOf(orden.hora));
   }
+  if (marca === 'cancelo' || marca === 'noVa' || marca === 'canceladoCocina') {
+    return ES.apartados.fila([dayOf(orden.hora, now), clockOf(orden.hora)]);
+  }
   return tarjetaTexto(orden);
+}
+
+/** Her hour on a card: *14:30* today; *Mañana 13:00* another day — a window across midnight, or tomorrow's offer. */
+export function horaTexto(hora: Date, now: Date): string {
+  return diaTexto(hora) === diaTexto(now) ? clockOf(hora) : momentOf(hora, now);
+}
+
+/** *Pasa a las 14:30*, or *Pasa mañana a las 13:00*. */
+export function pasaTexto(hora: Date, now: Date): string {
+  return diaTexto(hora) === diaTexto(now) ? ES.apartado.pasa(clockOf(hora)) : ES.apartado.pasaDia(dayOf(hora, now).toLowerCase(), clockOf(hora));
+}
+
+/**
+ * What the order came to, on its own screen: *Cobra $65 en efectivo* while it is to hand over;
+ * *Cobraste $65 en efectivo · 14:31* once the counter handed it over; else *Total $65 · efectivo* —
+ * never *Cobra* under an order that is over (the review of `10.5b-iv-a`).
+ */
+export function montoTexto(orden: Orden, now: Date): string {
+  if (POR_ENTREGAR.includes(marcaDe(orden, now))) return cobroCortoTexto(orden);
+  if (orden.entregadaEn !== null) return cobrasteTexto(orden) ?? cobroCortoTexto(orden);
+  return ES.apartado.total(formatMXN(orden.cobroCentavos), ES.loQueSigue.pago[orden.pago]);
 }
 
 /** Under a plate that *se liberó*: until when the clock waits for her thumb. `null` when it no longer does. */
@@ -376,4 +428,31 @@ export function sinNoSePresento(vecinos: Readonly<Record<string, SobreElVecino>>
   const sobre = vecinos[id];
   if (sobre === undefined || sobre.pulgar === null || !sobre.pulgar.etiquetas.includes('no_se_presento')) return { ...vecinos };
   return { ...vecinos, [id]: { ...sobre, pulgar: null } };
+}
+
+/**
+ * ⚠️ WHETHER TODAY'S ORDERS CAN CHANGE WITHOUT HER — and so whether they are read every minute
+ * (`useApartados`): an offer of hers not taken back and not over (a neighbour may reserve, even
+ * before its window opens), or an order still pending (she may cancel). Neither, and nothing
+ * arrives until she publishes again, which reads them again itself.
+ */
+export function vivo(
+  listings: readonly { readonly end: Date; readonly withdrawnAt: Date | null }[] | undefined,
+  reservasDeHoy: readonly Reserva[] | undefined,
+  now: Date,
+): boolean {
+  const ofertaViva = (listings ?? []).some((l) => l.withdrawnAt === null && l.end.getTime() > now.getTime());
+  const pendiente = (reservasDeHoy ?? []).some((r) => estadoDe(r, now) === 'apartado');
+  return ofertaViva || pendiente;
+}
+
+/**
+ * Today's orders as one value — each id and its state — so who reserved each is read again exactly
+ * when one arrives, is handed over, is cancelled or its window ends (`useApartados`' `vecinos`).
+ */
+export function firmaDeHoy(reservas: readonly Reserva[], now: Date): string {
+  return reservas
+    .map((r) => `${r.id}:${estadoDe(r, now)}`)
+    .sort()
+    .join(',');
 }

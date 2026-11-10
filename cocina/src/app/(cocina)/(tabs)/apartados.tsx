@@ -133,7 +133,12 @@ function ApartadosDe({ kitchen }: { kitchen: Kitchen }) {
         <Llega i={0}>
           <Segmento<Mitad>
             valor={mitad}
-            onCambio={setMitad}
+            onCambio={(nueva) => {
+              setMitad(nueva);
+              // ⚠️ The days before today are read every 30 minutes; opening them asks again, so a plate
+              // she confirmed meanwhile never waits here for a *No se presentó* (the review of `10.5b-iv-a`).
+              if (nueva === 'historial') void apartados.refetch();
+            }}
             mitades={[
               { valor: 'hoy', label: ES.apartados.hoy },
               { valor: 'historial', label: ES.apartados.historial, cuenta: esperan, cuentaAyuda: ES.apartados.cuentaAyuda(esperan) },

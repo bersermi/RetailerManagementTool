@@ -20,7 +20,8 @@
 #      publishes one dish, three plates. A neighbour gives her yes and reserves one, cash, to go.
 #   3. The fonda reads her kitchen's reservations by the app's read — its columns, the filter,
 #      the day bound, the order and the embed's order — and every key comes back at every level,
-#      as the neighbour chose, money as numbers, and never who reserved.
+#      as the neighbour chose, money as numbers, and never who reserved. The history's form of the
+#      read (the days before today: `lt`, the newest first) is taken too, and holds none of today's.
 #   4. `reservation_neighbours` by the app's argument: every key; the neighbour's short name cut
 #      as the app expects; no score yet (*Nueva en Itacate*); no thumb; nothing to rate yet.
 #   5. *Ya cobré y lo entregué* — `hand_over_reservation` by the app's names, with her phone's
@@ -87,6 +88,7 @@ COLUMNS="$(const RESERVATION_COLUMNS "$APARTADOS_TS")"
 OWNER_COLUMN="$(const RESERVATION_OWNER_COLUMN "$APARTADOS_TS")"
 DAY_COLUMN="$(const RESERVATION_DAY_COLUMN "$APARTADOS_TS")"
 ORDER="$(const RESERVATION_ORDER "$APARTADOS_TS")"
+HISTORY_ORDER="$(const RESERVATION_HISTORY_ORDER "$APARTADOS_TS")"
 LINES_TABLE="$(const RESERVATION_LINES_TABLE "$APARTADOS_TS")"
 LINE_ORDER="$(const RESERVATION_LINE_ORDER "$APARTADOS_TS")"
 NEIGHBOURS="$(const RESERVATION_NEIGHBOURS "$APARTADOS_TS")"
@@ -130,7 +132,7 @@ PAGE_ARGS="$(fields_of "$PAGINA_TS" SetPageArgs 'p_')"
 NAME_KEY="$(const FULL_NAME_KEY "$CREDENTIALS_TS")"
 
 for pair in "RESERVATION_TABLE:$TABLE" "RESERVATION_COLUMNS:$COLUMNS" "RESERVATION_OWNER_COLUMN:$OWNER_COLUMN" \
-            "RESERVATION_DAY_COLUMN:$DAY_COLUMN" "RESERVATION_ORDER:$ORDER" "RESERVATION_LINES_TABLE:$LINES_TABLE" \
+            "RESERVATION_DAY_COLUMN:$DAY_COLUMN" "RESERVATION_ORDER:$ORDER" "RESERVATION_HISTORY_ORDER:$HISTORY_ORDER" "RESERVATION_LINES_TABLE:$LINES_TABLE" \
             "RESERVATION_LINE_ORDER:$LINE_ORDER" "RESERVATION_NEIGHBOURS:$NEIGHBOURS" "HAND_OVER_RESERVATION:$HAND_OVER" \
             "RATE_NEIGHBOUR:$RATE" "NeighboursArgs:$NEIGHBOURS_ARGS" "HandOverArgs:$HAND_OVER_ARGS" "RateNeighbourArgs:$RATE_ARGS" \
             "ReservationRow:$ROW_KEYS" "ReservationLineRow:$LINE_KEYS" "ReservationDishRow:$DISH_KEYS" \
@@ -381,9 +383,18 @@ read_as_fonda() { TOKEN="$FONDA"; ask "$1" GET "$READ"; }
 # --- 3. her kitchen's reservations ---------------------------------------------------------
 s="$(read_as_fonda "$SCRATCH/read1.json")"
 v="$(verdict read "$SCRATCH/read1.json" "$R1" "$ROW_KEYS" "$LINE_KEYS" "$DISH_KEYS" "$CASH" "$TO_GO" 5 no)"
+# The history's form, as `myReservations(kitchenId, desde, antes)` sends it: before her day — none of that
+# day's. ⚠️ Her day is the order's own `pickup_day` (the kitchen's zone), never this machine's date: CI runs
+# in UTC, a day ahead of Mexico City's every evening.
+HER_DAY="$(python3 -c 'import json,sys; r=json.load(open(sys.argv[1])); print(next((x["pickup_day"] for x in r if x.get("id")==sys.argv[2]), ""))' "$SCRATCH/read1.json" "$R1" 2>/dev/null)"
+READ_BEFORE="/rest/v1/$TABLE?select=$COLUMNS&$OWNER_COLUMN=eq.$A&$DAY_COLUMN=gte.$SINCE&$DAY_COLUMN=lt.$HER_DAY&order=$HISTORY_ORDER&$LINES_TABLE.order=$LINE_ORDER.asc"
+TOKEN="$FONDA"; s2="$(ask "$SCRATCH/read-before.json" GET "$READ_BEFORE")"
+before="$(python3 -c 'import json,sys; r=json.load(open(sys.argv[1])); print("OK" if isinstance(r,list) and not any(x.get("id")==sys.argv[2] for x in r) else "the history form carried today'"'"'s %r" % r)' "$SCRATCH/read-before.json" "$R1" 2>&1)"
 if [[ "$s" != 200 ]]; then fail "her kitchen's read answered $s $(head -c 240 "$SCRATCH/read1.json")"
-elif [[ "$v" == OK ]]; then ok "the fonda reads her kitchen's reservations by the app's read: every key at every level, as the neighbour chose, the \$5 desechable on a plate to go, never who reserved"
-else fail "$v"; fi
+elif [[ "$v" != OK ]]; then fail "$v"
+elif [[ "$s2" != 200 || "$before" != OK ]]; then fail "the history's form answered $s2 — $before $(head -c 160 "$SCRATCH/read-before.json")"
+else ok "the fonda reads her kitchen's reservations by the app's read: every key at every level, as the neighbour chose, the \$5 desechable on a plate to go, never who reserved — and the history's form holds none of today's"
+fi
 
 # --- 4. who reserved it ----------------------------------------------------------------
 TOKEN="$FONDA"

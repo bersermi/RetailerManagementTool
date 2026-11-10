@@ -681,7 +681,7 @@ export const ES = {
     fallas: {
       sesion: 'No se pudo guardar: este apartado ya no es de tu cocina, o tu sesión se cerró. Entra de nuevo.',
       cambio: 'Este apartado cambió. Revísalo e intenta de nuevo.',
-      yaNoSeCalifica: 'Ya no se puede calificar: pasaron 24 horas desde que terminó su horario.',
+      yaNoSeCalifica: 'Ya no se puede calificar este apartado.',
       sinSenal: 'Sin conexión a internet. Intenta de nuevo en un momento.',
       otra: 'Algo salió mal. Intenta de nuevo.',
     },
@@ -691,10 +691,14 @@ export const ES = {
   apartado: {
     volver: 'Apartados',
     pasa: (hora: string) => `Pasa a las ${hora}`,
+    /** Her hour on another day — a window that crosses midnight, or tomorrow's offer: *Pasa mañana a las 13:00*. */
+    pasaDia: (dia: string, hora: string) => `Pasa ${dia} a las ${hora}`,
+    /** What an order that was not handed over came to: *Total $65 · efectivo*. */
+    total: (monto: string, pago: string) => `Total ${monto} · ${pago}`,
     comerLargo: { llevar: 'Para llevar · empácala', aqui: 'Para comer aquí · sírvela' },
     conDesechable: (monto: string) => `Con desechable · ${monto}`,
-    vecina: 'Vecina',
-    calificaciones: (n: number) => (n === 1 ? '1 calificación de las cocinas' : `${n} calificaciones de las cocinas`),
+    vecina: 'Quién lo apartó',
+    calificaciones: (n: number) => (n === 1 ? '1 calificación' : `${n} calificaciones`),
     aparto: 'Apartó',
     pasaFila: 'Pasa',
     seLibera: 'Se libera si no pasa',
@@ -737,6 +741,8 @@ export const ES = {
     laServiste: (hora: string) => `La serviste a las ${hora}`,
     /** ⚠️ *Entregar* is always recorded (ruled 2026-11-10): she is told, never stopped. */
     cancelado: 'Este apartado se canceló. Si se lo das, queda como entregado.',
+    /** ⚠️ She swiped *Ya lo tengo* in Itacate before the counter recorded it: what to charge stays, and the button. */
+    yaLoMarco: 'En Itacate ya marcó que lo recogió. Si todavía no se lo das, cóbrale y entrégaselo.',
     terminado: 'Su horario ya terminó. Si se lo das, queda como entregado.',
     leyendo: 'Leyendo tus apartados de hoy…',
   },
@@ -746,7 +752,7 @@ export const ES = {
    * tap is enough, his labels after it, *Después* to leave it for later.
    */
   pulgar: {
-    pregunta: (nombre: string | null) => (nombre === null ? '¿Cómo te fue con la vecina?' : `¿Cómo te fue con ${nombre}?`),
+    pregunta: (nombre: string | null) => (nombre === null ? '¿Cómo te fue?' : `¿Cómo te fue con ${nombre}?`),
     arribaAyuda: 'Bien',
     abajoAyuda: 'Mal',
     etiquetas: {
@@ -762,7 +768,7 @@ export const ES = {
     cambiarHasta: (cuando: string) => `Puedes cambiarla hasta ${cuando}.`,
     /** The clock's, never a person's. */
     reloj: 'Nadie lo calificó en 24 horas: cuenta como No se presentó.',
-    calificaste: (nombre: string | null) => (nombre === null ? 'Calificaste a la vecina' : `Calificaste a ${nombre}`),
+    calificaste: (nombre: string | null) => (nombre === null ? 'Calificación guardada' : `Calificaste a ${nombre}`),
   },
 
   /**
@@ -771,8 +777,8 @@ export const ES = {
    */
   terminos: {
     titulo: 'Antes de tu primera calificación',
-    texto: 'Después de entregar puedes calificar a la vecina con 👍 o 👎. Tu calificación cuenta en su porcentaje, que ven las cocinas donde aparta.',
-    nunca: 'Ella ve su porcentaje, nunca qué cocina la calificó. Califica solo lo que pasó.',
+    texto: 'Después de entregar puedes calificar a quien apartó con 👍 o 👎. Tu calificación cuenta en su porcentaje, que ven las cocinas donde aparta.',
+    nunca: 'Esa persona ve su porcentaje, nunca qué cocina la calificó. Califica solo lo que pasó.',
     terminos: 'Términos de uso',
     aviso: 'Aviso de privacidad',
     acepto: 'Acepto y sigo',

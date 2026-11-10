@@ -5,6 +5,7 @@ import {
   calificacionTexto,
   coloresDe,
   estadoTexto,
+  horaTexto,
   marcaDe,
   marcaTexto,
   nombreTexto,
@@ -14,7 +15,6 @@ import {
   ESPERAN_PULGAR,
   type Orden,
 } from '@/lib/apartados';
-import { clockOf } from '@/lib/ventana';
 import { ES } from '@/strings';
 import { TITULO } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
@@ -70,7 +70,7 @@ export function TarjetaOrden({
           {porEntregar ? (
             <View style={{ alignItems: 'flex-end', gap: 3 }}>
               <Text style={{ fontSize: SIZE.bodySize, fontWeight: '700', fontVariant: ['tabular-nums'], color: pronto === null ? PALETTE.tinta : PALETTE.marca }}>
-                {clockOf(orden.hora)}
+                {horaTexto(orden.hora, ahora)}
               </Text>
               {pronto !== null && <Text style={{ fontSize: 12, fontWeight: '700', color: PALETTE.marca }}>{pronto}</Text>}
             </View>

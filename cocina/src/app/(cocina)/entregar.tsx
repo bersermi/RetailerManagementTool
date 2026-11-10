@@ -17,6 +17,7 @@ import {
   marcaTexto,
   nombreTexto,
   ordenesDe,
+  pasaTexto,
   queTexto,
   teclear,
   DIGITOS,
@@ -76,6 +77,8 @@ export default function Entregar() {
   const [codigo, setCodigo] = useState('');
   // The order handed over on THIS screen.
   const [entregadaAqui, setEntregadaAqui] = useState<string | null>(null);
+  // The order a handover was last sent for — its reply may be lost while the database wrote it.
+  const [intento, setIntento] = useState<string | null>(null);
   // The order whose thumb is being given here, held until she leaves it.
   const [panelPara, setPanelPara] = useState<string | null>(null);
   // Each neighbour's name as last read, so the panel keeps it once the database stops sending it.
@@ -113,7 +116,11 @@ export default function Entregar() {
   const orden = buscarCodigo(ordenes, codigo, ahora);
   const mal = codigo.length === DIGITOS && orden === null;
   const vecino = orden === null ? null : (orden.vecino ?? nombres.current.get(orden.id) ?? null);
-  const calificando = orden !== null && panelPara === orden.id && vecino !== null;
+  // ⚠️ A REPLY LOST AFTER THE DATABASE WROTE IT (the review of `10.5b-iv-a`): the re-read finds it handed
+  // over — that is this screen's handover, with no error beside it and her thumb offered.
+  const recuperada = orden !== null && intento === orden.id && orden.entregadaEn !== null;
+  const aqui = orden !== null && (entregadaAqui === orden.id || recuperada);
+  const calificando = orden !== null && (panelPara === orden.id || recuperada) && vecino !== null;
 
   function tecla(t: string) {
     setFalla(null);
@@ -129,10 +136,12 @@ export default function Entregar() {
     setFalla(null);
     setEntregadaAqui(null);
     setPanelPara(null);
+    setIntento(null);
   }
 
   async function entregarla(o: Orden) {
     setFalla(null);
+    setIntento(o.id);
     const respuesta = await entregar(o.id);
     if (respuesta !== null) return setFalla(respuesta);
     setEntregadaAqui(o.id);
@@ -158,9 +167,9 @@ export default function Entregar() {
               orden={orden}
               vecino={vecino}
               ahora={ahora}
-              entregadaAqui={entregadaAqui === orden.id}
+              entregadaAqui={aqui}
               ocupado={busyId === orden.id}
-              falla={falla}
+              falla={recuperada ? null : falla}
               onEntregar={() => void entregarla(orden)}
             />
             {calificando && vecino !== null && (
@@ -177,7 +186,7 @@ export default function Entregar() {
                 onDespues={volver}
               />
             )}
-            {orden.estado === 'recogido' && !calificando && <BotonLleno variante="principal" label={ES.pulgar.listo} onPress={volver} />}
+            {orden.entregadaEn !== null && !calificando && <BotonLleno variante="principal" label={ES.pulgar.listo} onPress={volver} />}
             {SUPPORT_WHATSAPP !== null && (
               <BotonLleno
                 variante="discreto"
@@ -216,7 +225,9 @@ function Encontrada({
   falla: Falla | null;
   onEntregar: () => void;
 }) {
-  const recogida = orden.estado === 'recogido';
+  // ⚠️ HANDED OVER BY THE COUNTER, not "collected": a neighbour who swiped *Ya lo tengo* first still has
+  // to be charged and handed her plate (the review of `10.5b-iv-a`).
+  const recogida = orden.entregadaEn !== null;
   const colores = coloresDe(marcaDe(orden, ahora));
   if (recogida && entregadaAqui) {
     const cobraste = cobrasteTexto(orden);
@@ -243,18 +254,20 @@ function Encontrada({
     );
   }
   const aviso =
-    recogida && orden.entregaEn !== null
-      ? ES.entregar.yaSeEntrego(clockOf(orden.entregaEn))
-      : orden.estado === 'cancelado' || orden.estado === 'no_va' || orden.estado === 'cancelado_cocina'
-        ? ES.entregar.cancelado
-        : orden.estado === 'liberado'
-          ? ES.entregar.terminado
-          : null;
+    recogida && orden.entregadaEn !== null
+      ? ES.entregar.yaSeEntrego(clockOf(orden.entregadaEn))
+      : orden.recogidaEn !== null
+        ? ES.entregar.yaLoMarco
+        : orden.estado === 'cancelado' || orden.estado === 'no_va' || orden.estado === 'cancelado_cocina'
+          ? ES.entregar.cancelado
+          : orden.estado === 'liberado'
+            ? ES.entregar.terminado
+            : null;
   return (
     <View style={{ gap: SIZE.space }}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: SIZE.rowGap }}>
         <Text style={{ ...TITULO, fontSize: 30, fontVariant: ['tabular-nums'], color: PALETTE.tinta }}>{ES.entregar.codigo(orden.codigo)}</Text>
-        {orden.estado === 'apartado' ? (
+        {orden.estado === 'apartado' || (orden.estado === 'recogido' && !recogida) ? (
           <Marca texto={ES.entregar.esDeHoy} fondo={PALETTE.accionSuave} tinta={PALETTE.accion} />
         ) : (
           <Marca texto={marcaTexto(orden, ahora)} fondo={colores.fondo} tinta={colores.tinta} />
@@ -262,7 +275,7 @@ function Encontrada({
       </View>
       <View style={{ gap: 2 }}>
         <Text style={{ fontSize: 18, fontWeight: '600', color: PALETTE.tinta }}>{queTexto(orden)}</Text>
-        <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada }}>{ES.apartado.pasa(clockOf(orden.hora))}</Text>
+        <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada }}>{pasaTexto(orden.hora, ahora)}</Text>
       </View>
       {aviso !== null && <Text style={{ fontSize: SIZE.bodySize - 1, lineHeight: 21, fontWeight: '600', color: PALETTE.marca }}>{aviso}</Text>}
       {!recogida && (

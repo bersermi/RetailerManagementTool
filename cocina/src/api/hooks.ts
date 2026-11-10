@@ -19,7 +19,7 @@
 // that landed would look stuck for as long as that read takes (Wera, `8g`).
 // ============================================================================
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useState } from 'react';
 
 import {
@@ -34,8 +34,10 @@ import {
 } from '@/api/account';
 import {
   APARTADOS_KEY,
+  HISTORIAL_FRESCO_MS,
   apartadosKey,
   desdeDia,
+  diaTexto,
   fallaDe,
   handOverArgs,
   noSePresentoArgs,
@@ -103,7 +105,8 @@ import { PLACES_KEY, placeKey, type SetGooglePointArgs, type SetStorePinArgs } f
 import { makeKitchen, withKitchen, type Draft } from '@/api/registro';
 import { useAuth } from '@/auth/AuthProvider';
 import { releaseStep } from '@/auth/apple';
-import { conEntrega, sinNoSePresento } from '@/lib/apartados';
+import { conEntrega, firmaDeHoy, sinNoSePresento, vivo } from '@/lib/apartados';
+import { useAhora } from '@/lib/useAhora';
 
 /** Her kitchens, keyed on the login (`kitchensKey`). */
 export function useMyKitchens() {
@@ -604,32 +607,74 @@ export interface Apartados {
 }
 
 /**
- * ⚠️ READ AGAIN EVERY MINUTE WHILE THE APP IS IN FRONT: nothing tells her phone a neighbour
- * reserved (the fonda's notification is `10.5b-v`'s), so the list is how she learns it. TanStack
- * stops the interval while the app is in the background (`@/api/QueryProvider`'s `focusManager`).
+ * ⚠️ TODAY'S ORDERS ARE READ AGAIN EVERY MINUTE WHILE SOMETHING CAN CHANGE (`vivo`) AND THE APP IS IN
+ * FRONT: nothing tells her phone a neighbour reserved (the fonda's notification is `10.5b-v`'s), so the
+ * list is how she learns it. TanStack stops the interval while the app is in the background
+ * (`@/api/QueryProvider`'s `focusManager`).
  */
 export const APARTADOS_CADA_MS = 60_000;
 
+/** What a screen reads of her reservations: one query's shape, three reads underneath. */
+export interface LecturaDeApartados {
+  readonly data: Apartados | undefined;
+  readonly isError: boolean;
+  readonly isFetching: boolean;
+  readonly isRefetching: boolean;
+  readonly refetch: () => Promise<unknown>;
+}
+
 /**
- * `10.5b-iv-a`: her kitchen's reservations of the last 30 days and later, and
- * `reservation_neighbours`' line on each — read together, so an order never shows with
- * another moment's line about who reserved it. Keyed on the login and the kitchen.
+ * `10.5b-iv-a`: her kitchen's reservations and `reservation_neighbours`' line on each, as THREE reads
+ * (`HISTORIAL_FRESCO_MS`'s reason — her data is paid by her): TODAY's and later's (`hoy`) every minute
+ * while `vivo`; the 30 days before today (`antes`) when the app opens and every 30 minutes; who reserved
+ * each (`vecinos`) whenever today's orders change (`firmaDeHoy` is in its key), the last answer kept on
+ * screen meanwhile. All keyed on the login, the kitchen and the day; a write invalidates the three.
  */
-export function useApartados(kitchenId: string | null) {
+export function useApartados(kitchenId: string | null): LecturaDeApartados {
   const { session, ready } = useAuth();
   const userId = session?.user.id ?? null;
-  return useQuery({
-    queryKey: apartadosKey(userId, kitchenId),
-    queryFn: async (): Promise<Apartados> => {
-      const [reservas, vecinos] = await Promise.all([
-        myReservations(kitchenId as string, desdeDia(new Date())),
-        reservationNeighbours(kitchenId as string),
-      ]);
-      return { reservas, vecinos };
-    },
-    enabled: ready && userId !== null && kitchenId !== null,
-    refetchInterval: APARTADOS_CADA_MS,
+  const ahora = useAhora(APARTADOS_CADA_MS);
+  const dia = diaTexto(ahora);
+  const enabled = ready && userId !== null && kitchenId !== null;
+  const listings = useListings(kitchenId);
+  const hoy = useQuery({
+    queryKey: apartadosKey(userId, kitchenId, 'hoy', dia),
+    queryFn: () => myReservations(kitchenId as string, dia),
+    enabled,
+    refetchInterval: (query) => (vivo(listings.data, query.state.data, new Date()) ? APARTADOS_CADA_MS : false),
   });
+  const antes = useQuery({
+    queryKey: apartadosKey(userId, kitchenId, 'antes', dia),
+    queryFn: () => myReservations(kitchenId as string, desdeDia(ahora), dia),
+    enabled,
+    staleTime: HISTORIAL_FRESCO_MS,
+  });
+  const firma = hoy.data === undefined ? null : firmaDeHoy(hoy.data, ahora);
+  const vecinos = useQuery({
+    queryKey: apartadosKey(userId, kitchenId, 'vecinos', firma ?? ''),
+    queryFn: () => reservationNeighbours(kitchenId as string),
+    enabled: enabled && firma !== null,
+    placeholderData: keepPreviousData,
+    staleTime: HISTORIAL_FRESCO_MS,
+  });
+  const data =
+    hoy.data === undefined || antes.data === undefined || vecinos.data === undefined
+      ? undefined
+      : { reservas: [...antes.data, ...hoy.data], vecinos: vecinos.data };
+  const { refetch: refetchHoy } = hoy;
+  const { refetch: refetchAntes } = antes;
+  const { refetch: refetchVecinos } = vecinos;
+  const refetch = useCallback(
+    () => Promise.all([refetchHoy(), refetchAntes(), refetchVecinos()]),
+    [refetchHoy, refetchAntes, refetchVecinos],
+  );
+  return {
+    data,
+    isError: hoy.isError || antes.isError || vecinos.isError,
+    isFetching: hoy.isFetching || antes.isFetching || vecinos.isFetching,
+    isRefetching: hoy.isRefetching || antes.isRefetching,
+    refetch,
+  };
 }
 
 /**
@@ -647,13 +692,13 @@ export function useEntregar(kitchenId: string | null) {
   const mutation = useMutation({
     mutationFn: (input: { id: string; at: Date }) => handOverReservation(handOverArgs(input.id, input.at)),
     onSuccess: (_none, input) => {
-      queries.setQueryData<Apartados>(apartadosKey(userId, kitchenId), (datos) =>
-        datos === undefined
-          ? undefined
-          : {
-              reservas: conEntrega(datos.reservas, input.id, input.at) ?? datos.reservas,
-              vecinos: sinNoSePresento(datos.vecinos, input.id),
-            },
+      for (const lectura of ['hoy', 'antes']) {
+        queries.setQueriesData<readonly Reserva[]>({ queryKey: apartadosKey(userId, kitchenId, lectura) }, (reservas) =>
+          conEntrega(reservas, input.id, input.at),
+        );
+      }
+      queries.setQueriesData<Readonly<Record<string, SobreElVecino>>>({ queryKey: apartadosKey(userId, kitchenId, 'vecinos') }, (vecinos) =>
+        vecinos === undefined ? undefined : sinNoSePresento(vecinos, input.id),
       );
     },
     onSettled: () => {
@@ -692,13 +737,10 @@ export function useCalificarVecino(kitchenId: string | null) {
       return rateNeighbour(input.pulgar === 'noSePresento' ? noSePresentoArgs(input.id, at) : rateNeighbourArgs(input.id, input.pulgar, at));
     },
     onSuccess: (pulgar: Pulgar, input) => {
-      queries.setQueryData<Apartados>(apartadosKey(userId, kitchenId), (datos) => {
-        if (datos === undefined) return undefined;
-        const antes = datos.vecinos[input.id];
-        return {
-          ...datos,
-          vecinos: { ...datos.vecinos, [input.id]: { vecino: antes?.vecino ?? null, pulgar, calificarHasta: null } },
-        };
+      queries.setQueriesData<Readonly<Record<string, SobreElVecino>>>({ queryKey: apartadosKey(userId, kitchenId, 'vecinos') }, (vecinos) => {
+        if (vecinos === undefined) return undefined;
+        const antes = vecinos[input.id];
+        return { ...vecinos, [input.id]: { vecino: antes?.vecino ?? null, pulgar, calificarHasta: null } };
       });
     },
     onSettled: () => {

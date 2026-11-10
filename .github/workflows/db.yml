@@ -2437,14 +2437,14 @@ jobs:
   # A misspelt column is a 400 and the tab shows no order; a misspelt argument a 404 and *Ya
   # cobré y lo entregué* does nothing; a misspelt key of a jsonb answer a 200 with the name or the
   # thumb missing. Its own job for `itacate-reserving`'s reason: the falsifier runs the whole
-  # check seventeen times, two sign-ups each.
+  # check twenty-one times, two sign-ups each.
   # ===========================================================================
   cocina-handover:
     name: what a fonda hands over and how she rates the neighbour, against Wera Cocina's own names
     runs-on: ubuntu-latest
-    # ⚠️ Seventeen runs of two sign-ups each, and GoTrue allows 30 in five minutes: a run that
+    # ⚠️ Twenty-one runs of two sign-ups each, and GoTrue allows 30 in five minutes: a run that
     # spends them waits out the window (`signup`'s retries).
-    timeout-minutes: 25
+    timeout-minutes: 30
 
     steps:
       - uses: actions/checkout@v4

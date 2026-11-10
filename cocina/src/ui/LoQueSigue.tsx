@@ -2,8 +2,7 @@ import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { Pressable, Text, View } from 'react-native';
 
 import { formatMXN } from '@/format/mxn';
-import { prontoTexto, queTexto, type Orden } from '@/lib/apartados';
-import { clockOf } from '@/lib/ventana';
+import { horaTexto, prontoTexto, queTexto, type Orden } from '@/lib/apartados';
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
 import { Accion } from '@/ui/TarjetaOrden';
@@ -44,7 +43,7 @@ export function LoQueSigue({
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: SIZE.space }}>
         <View style={{ alignItems: 'flex-start', minWidth: 52 }}>
           <Text style={{ fontSize: SIZE.bodySize, fontWeight: '700', fontVariant: ['tabular-nums'], color: pronto === null ? PALETTE.tinta : PALETTE.marca }}>
-            {clockOf(siguiente.hora)}
+            {horaTexto(siguiente.hora, ahora)}
           </Text>
           {pronto !== null && <Text style={{ fontSize: 11.5, fontWeight: '700', color: PALETTE.marca }}>{pronto}</Text>}
         </View>

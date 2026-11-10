@@ -9,13 +9,15 @@ import { whatsappUrl } from '@/auth/support';
 import { formatMXN } from '@/format/mxn';
 import {
   calificacionTexto,
-  cobroCortoTexto,
   coloresDe,
   estadoTexto,
+  horaTexto,
   marcaDe,
+  montoTexto,
   marcaTexto,
   nombreTexto,
   ordenesDe,
+  pasaTexto,
   prontoTexto,
   queTexto,
   siNoLoCalificasTexto,
@@ -147,8 +149,8 @@ export default function ApartadoAbierto() {
           <Text style={{ fontSize: SIZE.bodySize, fontWeight: '700', color: pronto === null ? PALETTE.tinta : PALETTE.marca }}>
             {porEntregar
               ? pronto === null
-                ? ES.apartado.pasa(clockOf(orden.hora))
-                : ES.apartados.junto(ES.apartado.pasa(clockOf(orden.hora)), pronto)
+                ? pasaTexto(orden.hora, ahora)
+                : ES.apartados.junto(pasaTexto(orden.hora, ahora), pronto)
               : estadoTexto(orden, ahora)}
           </Text>
         </Llega>
@@ -161,7 +163,7 @@ export default function ApartadoAbierto() {
               <Text style={{ fontSize: SIZE.bodySize, color: PALETTE.tinta }}>{ES.apartado.conDesechable(formatMXN(orden.desechablesCentavos))}</Text>
             )}
             <View style={{ height: 1, backgroundColor: PALETTE.linea, marginVertical: 4 }} />
-            <Text style={{ fontSize: 18, fontWeight: '700', color: PALETTE.tinta }}>{cobroCortoTexto(orden)}</Text>
+            <Text style={{ fontSize: 18, fontWeight: '700', color: PALETTE.tinta }}>{montoTexto(orden, ahora)}</Text>
           </View>
 
           {orden.vecino !== null && (
@@ -179,7 +181,7 @@ export default function ApartadoAbierto() {
 
           <View style={{ gap: 6, paddingHorizontal: SIZE.space, paddingVertical: SIZE.rowGap + 2, borderRadius: SIZE.space - 2, borderWidth: 1, borderColor: PALETTE.linea, backgroundColor: PALETTE.superficie }}>
             {filaHora(ES.apartado.aparto, clockOf(orden.creadaEn))}
-            {filaHora(ES.apartado.pasaFila, clockOf(orden.hora))}
+            {filaHora(ES.apartado.pasaFila, horaTexto(orden.hora, ahora))}
             {orden.entregaEn !== null
               ? filaHora(ES.apartado.entregado, clockOf(orden.entregaEn))
               : filaHora(ES.apartado.seLibera, clockOf(orden.guardadaHasta))}
@@ -222,13 +224,14 @@ export default function ApartadoAbierto() {
                   <Accion
                     label={ES.apartados.noSePresento}
                     tipo="calificar"
-                    ocupado={calificando === orden.id}
+                    ocupado={calificando === orden.id || entregando === orden.id}
                     onPress={() => (terminos.aceptados ? void noSePresento() : setPidiendoTerminos(true))}
                   />
                 </View>
               )}
               <View style={{ flex: 1 }}>
-                <Accion label={ES.apartados.siPaso} tipo="bien" ocupado={entregando === orden.id} onPress={() => void siPaso()} />
+                {/* Either write waits for the other: both at once would draw a wrong mark until the re-read. */}
+                <Accion label={ES.apartados.siPaso} tipo="bien" ocupado={entregando === orden.id || calificando === orden.id} onPress={() => void siPaso()} />
               </View>
             </View>
           )}

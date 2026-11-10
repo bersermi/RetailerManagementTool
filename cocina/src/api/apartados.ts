@@ -65,6 +65,13 @@ export const RESERVATION_DAY_COLUMN = 'pickup_day';
 /** Her hour first, the soonest first — PostgREST's own spelling, `column.direction`. */
 export const RESERVATION_ORDER = 'pickup_at.asc,id.asc';
 
+/**
+ * ⚠️ THE HISTORY'S ORDER IS THE NEWEST FIRST: PostgREST answers at most 1,000 rows (`max_rows`), and a
+ * cut must drop the oldest days, never yesterday's orders waiting for her thumb (the review of
+ * `10.5b-iv-a`). Today's read keeps her hour first.
+ */
+export const RESERVATION_HISTORY_ORDER = 'pickup_at.desc,id.desc';
+
 /** The lines inside each reservation, in their order. */
 export const RESERVATION_LINE_ORDER = 'line_no';
 
@@ -73,6 +80,15 @@ export const RESERVATION_LINE_ORDER = 'line_no';
  * order never shows without the line about who reserved it.
  */
 export const HISTORIAL_DIAS = 30;
+
+/**
+ * ⚠️ HER PHONE'S DATA IS PAID BY HER (measured on the local stack, 2026-11-10: about 810 bytes an
+ * order, its row and its line about the neighbour). So the read is split: TODAY's and later's
+ * orders every minute while something can change (`@/lib/apartados`' `vivo`); the 30 days
+ * before today when the app opens and every 30 minutes; who reserved each when today's orders
+ * change. One read of 30 days every minute was over 100 MB a day for a fonda of ten orders a day.
+ */
+export const HISTORIAL_FRESCO_MS = 30 * 60_000;
 
 /** `0080`: the neighbour on each order, and its thumb. */
 export const RESERVATION_NEIGHBOURS = 'reservation_neighbours';
@@ -84,9 +100,12 @@ export const RATE_NEIGHBOUR = 'rate_neighbour';
 /** The prefix every read of her reservations is cached under — what a write invalidates. */
 export const APARTADOS_KEY = ['cocina', 'apartados'] as const;
 
-/** Cached under the login and the kitchen, Cocina's rule (`listingsKey`). */
-export function apartadosKey(userId: string | null, kitchenId: string | null): readonly unknown[] {
-  return [...APARTADOS_KEY, userId ?? '', kitchenId ?? ''];
+/**
+ * Cached under the login and the kitchen, Cocina's rule (`listingsKey`), then which read —
+ * `hoy`, `antes` or `vecinos` — and what it is keyed on (the day; today's orders' states).
+ */
+export function apartadosKey(userId: string | null, kitchenId: string | null, ...partes: readonly string[]): readonly unknown[] {
+  return [...APARTADOS_KEY, userId ?? '', kitchenId ?? '', ...partes];
 }
 
 /** The first day the read asks for: 30 days before the phone's today, as `YYYY-MM-DD`. */
@@ -278,6 +297,13 @@ export interface Momentos {
 
 /** One hour before her hour: a cancel inside it is *No voy a poder ir* (`no_va`). */
 export const HORA_ANTES_MS = 60 * 60_000;
+
+/**
+ * 24 hours after the window: until then a first thumb may be given and the neighbour's name is shown;
+ * from then, a plate that *se liberó* unrated counts as *No se presentó* — the clock's (`0080`'s
+ * `reservation_neighbours`, `held_until + interval '24 hours'`).
+ */
+export const DIA_PARA_CALIFICAR_MS = 24 * 60 * 60_000;
 
 /**
  * ⚠️ `reservation_state` (`0080`), clause for clause: a handover or her *Ya lo tengo* wins;

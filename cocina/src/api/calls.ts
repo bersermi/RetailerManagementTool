@@ -42,6 +42,7 @@ import {
   RATE_NEIGHBOUR,
   RESERVATION_COLUMNS,
   RESERVATION_DAY_COLUMN,
+  RESERVATION_HISTORY_ORDER,
   RESERVATION_LINES_TABLE,
   RESERVATION_LINE_ORDER,
   RESERVATION_NEIGHBOURS,
@@ -246,17 +247,19 @@ export async function myListings(kitchenId: string): Promise<Listing[]> {
 
 /**
  * ⚠️ `10.5b-iv-a`: HER KITCHEN'S RESERVATIONS FROM `desde` ON (`YYYY-MM-DD`, the day she
- * collects), her hour first, each with its lines and their dishes. FILTERED ON THE KITCHEN,
+ * collects) — and before `antes`, for the history — her hour first, each with its lines and their dishes. FILTERED ON THE KITCHEN,
  * as her list is: the walls show a login every kitchen she belongs to. ⚠️ THE LINES' ORDER
  * IS THE EMBED'S OWN (`referencedTable`), as `myListings`' is.
  */
-export async function myReservations(kitchenId: string, desde: string): Promise<Reserva[]> {
+export async function myReservations(kitchenId: string, desde: string, antes: string | null = null): Promise<Reserva[]> {
   let query = supabase
     .from(RESERVATION_TABLE)
     .select(RESERVATION_COLUMNS)
     .eq(RESERVATION_OWNER_COLUMN, kitchenId)
     .gte(RESERVATION_DAY_COLUMN, desde);
-  for (const { column, ascending } of RESERVATION_ORDER.split(',').map(orderTerm)) query = query.order(column, { ascending });
+  if (antes !== null) query = query.lt(RESERVATION_DAY_COLUMN, antes);
+  const order = antes === null ? RESERVATION_ORDER : RESERVATION_HISTORY_ORDER;
+  for (const { column, ascending } of order.split(',').map(orderTerm)) query = query.order(column, { ascending });
   const { data, error } = await query.order(RESERVATION_LINE_ORDER, { referencedTable: RESERVATION_LINES_TABLE });
   if (error) throw error;
   return reservasFrom(data);

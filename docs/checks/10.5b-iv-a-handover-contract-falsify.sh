@@ -113,10 +113,27 @@ run C15 red "the app reads 'TD099'" \
 echo "C16 a claim is gone from the file — the check must refuse, not pass"
 run C16 red "could not read ThumbRow" '/^export interface ThumbRow {/,/^}/d'
 
+# The review of `10.5b-iv-a`: claims the first fixtures never broke.
+echo "C17 the history's order misspelt — PostgREST refuses it, and Historial never shows"
+run C17 red "the history's form answered 400" \
+  "s/^export const RESERVATION_HISTORY_ORDER = 'pickup_at.desc,id.desc';/export const RESERVATION_HISTORY_ORDER = 'pickup.desc,id.desc';/"
+
+echo "C18 the kitchen's column misspelt — the read is refused, and the tab never shows an order"
+run C18 red "her kitchen's read answered 400" \
+  "s/^export const RESERVATION_OWNER_COLUMN = 'workspace_id';/export const RESERVATION_OWNER_COLUMN = 'kitchen_id';/"
+
+echo "C19 a thumb-down label misspelt — the database refuses what the phone offers"
+run C19 red "a thumb down with 'tardes' answered 400" \
+  "s/^export const ETIQUETAS_ABAJO = \['tarde',/export const ETIQUETAS_ABAJO = ['tardes',/"
+
+echo "C20 the session's refusal read under another code — she would read the wrong sentence"
+run C20 red "the app reads '42502'" \
+  "s/^  '42501': 'sesion',/  '42502': 'sesion',/"
+
 echo
 echo "$pass passed, $fail failed."
-if (( pass + fail < 17 )); then
-  echo "FAIL: only $((pass + fail)) fixtures ran, expected 17."
+if (( pass + fail < 21 )); then
+  echo "FAIL: only $((pass + fail)) fixtures ran, expected 21."
   exit 1
 fi
 (( fail == 0 )) || exit 1
