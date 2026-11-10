@@ -63,6 +63,13 @@ listings do not say *inventario*; the home page of tu-wera.com still does.
 
 ## What is on your phone
 
+⏳ **10 November, night: Wera Cocina's counter with no signal, sent over the air** (*Wera Cocina: entregar y calificar sin señal
+(10.5b-iv-b)*) to Wera Cocina's test builds — **your iPhone's included**, with nothing to reinstall. On the iPhone: open Wera Cocina, wait ten
+seconds, **close it completely** and open it again — the update runs from the second open; if it still looks as before, once more. **First
+sign it arrived:** with airplane mode on, *Hoy* opens with ***Sin señal. Lo que ves se leyó a las …*** at the top. **What to look at:** *What
+only you can judge* → *Wera Cocina → with no signal*. Seen first on a test Android with that same file, opened signed out: downloaded, then
+running (its own update record). Nothing changes in Wera or Itacate.
+
 ✅ **10 November, evening: you have an Android phone.** It replaces the test Android here as the second phone: the next session that needs it installs Itacate's and Wera Cocina's Android test builds on it with you (both files are kept on this Mac), Wera can come from Play's closed test, and the first push (`10.5b-v`) is measured on your two phones. Nothing to do with it yet.
 
 ⏳ **10 November, afternoon: Wera Cocina hands over, sent over the air** (*Wera Cocina: Apartados, entregar con el código y calificar a
