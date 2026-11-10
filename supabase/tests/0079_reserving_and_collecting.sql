@@ -107,6 +107,7 @@ $$;
 \set vecina  '''0079aaaa-0000-4000-8000-000000000005'''
 \set vecina2 '''0079aaaa-0000-4000-8000-000000000006'''
 \set vecina3 '''0079aaaa-0000-4000-8000-000000000007'''
+\set antes   '''0079aaaa-0000-4000-8000-000000000008'''
 \set lm      '''0079bbbb-0000-4000-8000-000000000001'''
 \set lm2     '''0079bbbb-0000-4000-8000-000000000002'''
 \set lo      '''0079bbbb-0000-4000-8000-000000000003'''
@@ -114,6 +115,7 @@ $$;
 \set le      '''0079bbbb-0000-4000-8000-000000000005'''
 \set lt      '''0079bbbb-0000-4000-8000-000000000006'''
 \set lbad    '''0079bbbb-0000-4000-8000-000000000007'''
+\set lpast   '''0079bbbb-0000-4000-8000-000000000008'''
 \set r1      '''0079cccc-0000-4000-8000-000000000001'''
 \set r2      '''0079cccc-0000-4000-8000-000000000002'''
 \set r3      '''0079cccc-0000-4000-8000-000000000003'''
@@ -133,7 +135,8 @@ insert into auth.users (id, email, raw_user_meta_data) values
   (:tendera, 'tendera.0079@example.mx', jsonb_build_object('full_name', 'Tendera 0079')),
   (:vecina,  'vecina.0079@example.mx',  jsonb_build_object('full_name', 'Vecina 0079')),
   (:vecina2, 'vecina2.0079@example.mx', jsonb_build_object('full_name', 'Vecina Dos 0079')),
-  (:vecina3, 'vecina3.0079@example.mx', jsonb_build_object('full_name', 'Vecina Tres 0079'));
+  (:vecina3, 'vecina3.0079@example.mx', jsonb_build_object('full_name', 'Vecina Tres 0079')),
+  (:antes,   'antes.0079@example.mx',   jsonb_build_object('full_name', 'Antes 0079'));
 
 -- Mari's kitchen, made as Wera Cocina makes it, and a cook assigned to it.
 select set_config('request.jwt.claims', format('{"sub":"%s","role":"authenticated"}', :mari), true);
@@ -159,6 +162,30 @@ select onboard_workspace('Abarrotes Tendera 0079') as ws_t \gset
 reset role;
 select id as loc_t from public.location where workspace_id = :'ws_t' \gset
 
+-- ⚠️ SINCE `0080` (plan `10.5b-ii-b`) a neighbour reserves only after her express yes,
+-- and holds one until her first pickup, then three. So each of the three gives her yes
+-- and has one plate collected forty days ago, at a kitchen of its own whose one offer
+-- was made then — outside her 30 days and the door's 14 — which leaves every count
+-- below as it was written. Written as postgres: nobody publishes or reserves in the past.
+insert into servicio.neighbour_yes (user_id) values (:vecina), (:vecina2), (:vecina3);
+select set_config('request.jwt.claims', format('{"sub":"%s","role":"authenticated"}', :antes), true);
+set local role authenticated;
+select onboard_workspace(p_display_name => 'Fonda de Antes 0079', p_kind => 'cocina') as ws_a \gset
+reset role;
+select id as loc_a from public.location where workspace_id = :'ws_a' \gset
+insert into public.listing (id, workspace_id, location_id, pickup_start, pickup_end, created_by, created_at)
+values (:lpast, :'ws_a', :'loc_a', now() - interval '40 days', now() - interval '40 days' + interval '3 hours',
+        :antes, now() - interval '40 days');
+insert into public.reservation
+  (id, workspace_id, location_id, listing_id, buyer_id, code, pickup_at, pickup_day, held_until,
+   payment, eat, created_at, handed_over_at, handed_over_by)
+select gen_random_uuid(), :'ws_a', :'loc_a', :lpast, v.buyer, v.code,
+       now() - interval '40 days' + interval '1 hour',
+       ((now() - interval '40 days' + interval '1 hour') at time zone 'America/Mexico_City')::date,
+       now() - interval '40 days' + interval '3 hours', 'efectivo', 'llevar',
+       now() - interval '40 days', now() - interval '40 days' + interval '1 hour', :antes
+  from (values (:vecina::uuid, 101), (:vecina2::uuid, 102), (:vecina3::uuid, 103)) v(buyer, code);
+
 -- ---- 1. the shape -------------------------------------------------------------
 select public.chk('1.1 two tables, each behind row-level security with one select policy, and no write right for anyone signed in or out',
   (select bool_and(c.relrowsecurity) from pg_class c
@@ -179,7 +206,7 @@ select public.chk('1.2 ⚠️ who reserved is granted to nobody: every other col
   and has_table_privilege('authenticated', 'public.reservation_line', 'SELECT')
   and (select count(*) from information_schema.column_privileges
         where table_schema = 'public' and table_name = 'reservation' and grantee = 'authenticated'
-          and privilege_type = 'SELECT') = 16);
+          and privilege_type = 'SELECT') = 18);  -- 16 in 0079; 0080 granted cancelled_by and cancel_reason
 select public.chk('1.3 the six doors: a signed-in person may call each, nobody signed out',
   (select bool_and(has_function_privilege('authenticated', f, 'execute') and not has_function_privilege('anon', f, 'execute'))
      from unnest(array['public.reserve_plate(uuid, uuid, integer, timestamptz, text, text)',
@@ -187,7 +214,8 @@ select public.chk('1.3 the six doors: a signed-in person may call each, nobody s
                        'public.confirm_my_pickup(uuid)', 'public.hand_over_reservation(uuid, timestamptz)',
                        'public.set_listing_quantity(uuid, integer, numeric)']::regprocedure[]) f));
 select public.chk('1.4 the two definitions are granted to nobody who signs in',
-  not has_function_privilege('authenticated', 'public.reservation_state(timestamptz, timestamptz, timestamptz, timestamptz, timestamptz)', 'execute')
+  -- 0080 re-created it with a sixth argument, defaulted: who cancelled, for the kitchen's cancel.
+  not has_function_privilege('authenticated', 'public.reservation_state(timestamptz, timestamptz, timestamptz, timestamptz, timestamptz, uuid)', 'execute')
   and not has_function_privilege('authenticated', 'public.listing_line_taken(uuid)', 'execute')
   and not has_function_privilege('anon', 'public.listing_line_taken(uuid)', 'execute'));
 select public.chk('1.5 the states, read from the moments: recogido, cancelado, no_va, liberado, apartado',
