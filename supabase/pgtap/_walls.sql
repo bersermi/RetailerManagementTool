@@ -81,6 +81,11 @@ signed_in (proname) as (values
   -- on her own id, and the kitchen's two — handing over, and − and +
   ('reserve_plate'), ('my_reservations'), ('cancel_my_reservation'), ('confirm_my_pickup'),
   ('hand_over_reservation'), ('set_listing_quantity'),
+  -- names, scores and stars (`0080`, plan `10.5b-ii-b`): the kitchen's four — what it
+  -- sees of each neighbour on its orders, its thumb, its own stars, and its cancel
+  -- (refused for everyone while switched off) — and her three, keyed on her own id
+  ('reservation_neighbours'), ('rate_neighbour'), ('my_kitchen_ratings'),
+  ('cancel_reservation_as_kitchen'), ('give_my_yes'), ('my_standing'), ('rate_kitchen'),
   -- what a policy, a check or a computed column runs as the caller
   ('catalog_image_path'), ('has_role'), ('merma_path_ok'), ('my_locations'),
   ('my_role'), ('my_workspaces'), ('normalize_name'), ('photo_folder_ok'),

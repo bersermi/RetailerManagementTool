@@ -748,14 +748,18 @@ update auth.users
 -- red in the file whose subject is the read that does it properly.
 -- ⚠️ SIX SINCE 0053 (5R-c): `delete_my_account` copies the login's name onto the
 -- former member's row in the moment before the login is deleted.
-select chk('5.3 exactly SIX functions call auth_full_name, and they are these six',
+-- ⚠️ SEVEN SINCE 0080 (`10.5b-ii-b`): `neighbour_name` cuts *Ana R.* from it for the
+-- kitchen she reserved at — the owner's ruling of 2026-11-10, ADR-035 §2.7's
+-- amendment under the name guarantee. Granted to nobody; only
+-- `reservation_neighbours` calls it, while the order waits for its thumb.
+select chk('5.3 exactly SEVEN functions call auth_full_name, and they are these seven',
            (select coalesce(array_agg(proname::text order by proname), '{}')
               from pg_proc
              where pronamespace = 'public'::regnamespace
                and proname <> 'auth_full_name'
                and prosrc ~ 'auth_full_name')
-           = array['approve_request', 'delete_my_account', 'onboard_workspace', 'pending_access_requests',
-                   'redeem_invite', 'request_access']::text[],
+           = array['approve_request', 'delete_my_account', 'neighbour_name', 'onboard_workspace',
+                   'pending_access_requests', 'redeem_invite', 'request_access']::text[],
            coalesce((select string_agg(proname, ', ' order by proname)
                        from pg_proc
                       where pronamespace = 'public'::regnamespace
