@@ -22,7 +22,7 @@ import type { Kitchen as SuCocina } from '@/api/kitchen';
 import { parseCount, parsePesos, type LineDraft } from '@/api/listing';
 import type { Page } from '@/api/pagina';
 import type { Place } from '@/api/place';
-import { cocinaComoLaVen } from '@/lib/comoLaVen';
+import { SIN_AJUSTES, cocinaComoLaVen } from '@/lib/comoLaVen';
 import type { Ventana } from '@/lib/ventana';
 import { ES } from '@/strings';
 import type { Dish, Kitchen, Offer } from '@/vecinos/cocinas';
@@ -64,6 +64,8 @@ export function platilloPrevio(line: LineDraft, i: number): Dish {
     surprise: line.surprise,
     usualCentavos: usual,
     photo: pathOf(line.foto),
+    llevar: SIN_AJUSTES.llevar,
+    aqui: SIN_AJUSTES.aqui,
   };
 }
 
@@ -87,7 +89,7 @@ export function previaDe(input: {
   return {
     // Her name, trade, colour and logo — nothing else of it is drawn by the card.
     cocina: cocinaComoLaVen({ kitchen, place, page, listings: [], now }),
-    oferta: { id: OFERTA_PREVIA, start: ventana.start, end: ventana.end, dishes: platillos },
+    oferta: { id: OFERTA_PREVIA, start: ventana.start, end: ventana.end, dishes: platillos, desechableCentavos: SIN_AJUSTES.desechableCentavos },
     platillos,
   };
 }

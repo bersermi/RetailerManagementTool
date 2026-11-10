@@ -25,6 +25,13 @@
 // day. A kitchen that publishes more than that sees a summary of her newest 60.
 // ⚠️ LOCAL TIME IS HER KITCHEN'S: the phone is in her kitchen, as for every window here
 // (`@/lib/ventana`); the door reads her kitchen's zone.
+// ⚠️ SINCE `10.5b-iii-a` THE DOOR ALSO SENDS HOW SHE TAKES PAYMENT, THE WAYS SHE HANDS PLATES
+// OVER, WHO MAY RESERVE, EACH OFFER'S *DESECHABLE* AND EACH LINE'S WAYS (`0079`, `0080`), and
+// Itacate's dish page draws the first two. This app does not read her settings until
+// `10.5b-iv` gives her the screens to set them, so the preview shows THE DOOR'S OWN DEFAULTS
+// (`SIN_AJUSTES`: cash only, *para llevar* only, no *desechable*, everyone may reserve) —
+// what the door sends for every kitchen today, since nothing can change them yet;
+// `test/comoLaVen.test.ts` holds them to the door's `coalesce`s.
 // ============================================================================
 
 import type { Kitchen as SuCocina } from '@/api/kitchen';
@@ -51,6 +58,19 @@ function enOferta(listing: Listing, now: Date): boolean {
   return listing.withdrawnAt === null && listing.end.getTime() > now.getTime();
 }
 
+/**
+ * ⚠️ `10.5b-iii-a`: what the door sends of a kitchen whose settings are its defaults (`0079`'s
+ * `coalesce`s, `0080`'s NULL) — every kitchen until `10.5b-iv` lets her set them.
+ */
+export const SIN_AJUSTES = {
+  pagos: ['efectivo'],
+  comeres: ['llevar'],
+  minScore: null,
+  llevar: true,
+  aqui: false,
+  desechableCentavos: null,
+} as const;
+
 /** One of her lines as a dish — numbered as `publish_listing` numbers them, 1 to 10 in her order. */
 function platilloDe(line: Line, i: number): Dish {
   return {
@@ -63,6 +83,8 @@ function platilloDe(line: Line, i: number): Dish {
     surprise: line.surprise,
     usualCentavos: line.usualCentavos,
     photo: line.imagePath,
+    llevar: SIN_AJUSTES.llevar,
+    aqui: SIN_AJUSTES.aqui,
   };
 }
 
@@ -71,7 +93,13 @@ export function ofertasDe(listings: readonly Listing[], now: Date): Offer[] {
   return listings
     .filter((listing) => enOferta(listing, now))
     .sort((a, b) => a.start.getTime() - b.start.getTime() || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
-    .map((listing) => ({ id: listing.id, start: listing.start, end: listing.end, dishes: listing.lines.map(platilloDe) }));
+    .map((listing) => ({
+      id: listing.id,
+      start: listing.start,
+      end: listing.end,
+      dishes: listing.lines.map(platilloDe),
+      desechableCentavos: SIN_AJUSTES.desechableCentavos,
+    }));
 }
 
 /** Her point as the door sends it: her own pin wins; else Google's copy while under 29 days old; else none. */
@@ -185,5 +213,8 @@ export function cocinaComoLaVen(input: {
     page,
     offers: ofertasDe(listings, now),
     summary: resumenDe(listings, now),
+    pagos: SIN_AJUSTES.pagos,
+    comeres: SIN_AJUSTES.comeres,
+    minScore: SIN_AJUSTES.minScore,
   };
 }

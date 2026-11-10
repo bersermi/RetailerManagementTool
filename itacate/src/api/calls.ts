@@ -1,7 +1,9 @@
 // ============================================================================
 // EVERY ROUND TRIP THIS APP MAKES TO THE DATABASE. Plan tasks `10.5-iii-b` (her
 // way out: what goes with her account, the deletion, Apple), `10.5-iv-a-i` (the
-// door, and the kitchens' photos) and `10.5-iv-a-ii` (the trades' names).
+// door, and the kitchens' photos), `10.5-iv-a-ii` (the trades' names) and
+// `10.5b-iii-a` (her reservations: reserving, cancelling, *Ya lo tengo*, her yes and
+// her standing).
 //
 // ⚠️ THE IMPURE HALF OF `src/api/` (ADR-035 §2.11), as Wera's and Wera Cocina's
 // (`app/src/api/calls.ts`, `cocina/src/api/calls.ts`): the only module here that
@@ -29,6 +31,22 @@ import {
   type Deleted,
   type OwnerRow,
 } from '@/api/account';
+import {
+  CANCEL_MY_RESERVATION,
+  CONFIRM_MY_PICKUP,
+  GIVE_MY_YES,
+  MY_RESERVATIONS,
+  MY_STANDING,
+  RESERVE_PLATE,
+  apartadosFrom,
+  posicionFrom,
+  reservadoFrom,
+  reservationIdArgs,
+  reserveArgs,
+  type Apartado,
+  type Eleccion,
+  type Posicion,
+} from '@/api/apartados';
 import { KITCHEN_GIROS, ON_OFFER_NOW, girosFrom, kitchensFrom, type Giro, type Kitchen } from '@/api/cocinas';
 import { photoHeaders, photoUrl, type PhotoSize } from '@/api/fotos';
 import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL, supabase } from '@/lib/supabase';
@@ -108,4 +126,49 @@ export async function revokeApple(code: string): Promise<void> {
     timeout: APPLE_REVOKE_TIMEOUT_MS,
   });
   if (error) throw error;
+}
+
+/**
+ * ⚠️ `10.5b-iii-a`: ONE PLATE, AT HER HOUR, BY HER METHOD (`0079`'s `reserve_plate`,
+ * `0080`'s refusals). The id is the phone's: a retry of the same choice answers the
+ * reservation already made, never a second one.
+ */
+export async function reservePlate(eleccion: Eleccion): Promise<{ readonly id: string; readonly codigo: string }> {
+  const { data, error } = await supabase.rpc(RESERVE_PLATE, reserveArgs(eleccion));
+  if (error) throw error;
+  return reservadoFrom(data);
+}
+
+/** Hers: every reservation still to collect and her last 30 days (`0079`, `0080`). */
+export async function myReservations(): Promise<Apartado[]> {
+  const { data, error } = await supabase.rpc(MY_RESERVATIONS);
+  if (error) throw error;
+  return apartadosFrom(data);
+}
+
+/** Gives her plate back — the state it left, `cancelado` or `no_va` (`0079`). */
+export async function cancelMyReservation(id: string): Promise<string> {
+  const { data, error } = await supabase.rpc(CANCEL_MY_RESERVATION, reservationIdArgs(id));
+  if (error) throw error;
+  return typeof data === 'string' ? data : '';
+}
+
+/** *Ya lo tengo* (`0079`). */
+export async function confirmMyPickup(id: string): Promise<string> {
+  const { data, error } = await supabase.rpc(CONFIRM_MY_PICKUP, reservationIdArgs(id));
+  if (error) throw error;
+  return typeof data === 'string' ? data : '';
+}
+
+/** Her express yes, once (`0080`); a second call answers the first moment. */
+export async function giveMyYes(): Promise<void> {
+  const { error } = await supabase.rpc(GIVE_MY_YES);
+  if (error) throw error;
+}
+
+/** Her own standing (`0080`): her yes, her score, each label's count, how many she may hold. */
+export async function myStanding(): Promise<Posicion> {
+  const { data, error } = await supabase.rpc(MY_STANDING);
+  if (error) throw error;
+  return posicionFrom(data);
 }

@@ -68,12 +68,14 @@ function plato(lineNo: number, over: Partial<Dish> = {}): Dish {
     surprise: false,
     usualCentavos: null,
     photo: null,
+    llevar: true,
+    aqui: false,
     ...over,
   };
 }
 
 function oferta(id: string, start: Date, end: Date, dishes: Dish[]): Offer {
-  return { id, start, end, dishes };
+  return { id, start, end, dishes, desechableCentavos: null };
 }
 
 const SIN_RESUMEN: Summary = { weekdays: [0, 0, 0, 0, 0, 0, 0], usualHour: null, lastDay: null, repeats: [] };
@@ -89,6 +91,9 @@ function cocina(id: string, name: string, point: Punto | null, offers: Offer[], 
     page: EMPTY_PAGE,
     offers,
     summary,
+    pagos: ['efectivo'],
+    comeres: ['llevar'],
+    minScore: null,
   };
 }
 

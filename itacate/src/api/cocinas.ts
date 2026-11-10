@@ -32,6 +32,14 @@
 // `@/api/calls`' `onOfferNow`, the hook `@/api/hooks`' `useCocinas`. Since
 // `10.5-iv-a-ii`, beside it, the kitchens' trades' names (`kitchen_giros()`, at the
 // foot), which a kitchen's page draws under her name.
+//
+// ⚠️ SINCE `10.5b-iii-a` (SHE RESERVES) IT READS WHAT RESERVING NEEDS, `0079`'s and
+// `0080`'s keys: how each kitchen takes payment (`payment` — cash always, a card or a
+// transfer when she says so) and the ways she hands plates over (`eat`), who may
+// reserve there by score (`min_score`), each offer's *desechable* (`container_price`)
+// and each line's two ways (`para_llevar`, `para_aqui`). Since `0079` a line's
+// `quantity` is what is LEFT once neighbours reserve, and a line with nothing left is
+// not sent.
 // ============================================================================
 
 import { SCALE, parseDecimal } from '@tienda/money';
@@ -64,6 +72,12 @@ export interface KitchenRow {
   readonly page: PageRow | null;
   readonly on_offer: readonly OfferRow[] | null;
   readonly summary: SummaryRow | null;
+  /** `0079`: how she takes payment — `efectivo` always, `tarjeta` and `transferencia` when she says so. */
+  readonly payment: readonly string[] | null;
+  /** `0079`: the ways she hands plates over — `llevar`, `aqui`, at least one. */
+  readonly eat: readonly string[] | null;
+  /** `0080`: who may reserve here by score — 75, 80 or 85 per cent — or `null`, everyone. */
+  readonly min_score: number | null;
 }
 
 /** Her address, as she gave it in Wera Cocina's five boxes. */
@@ -97,6 +111,8 @@ export interface OfferRow {
   readonly pickup_start: string;
   readonly pickup_end: string;
   readonly lines: readonly LineRow[] | null;
+  /** `0079`: the *desechable* as she stated it when she published, or `null` — no charge. */
+  readonly container_price: string | null;
 }
 
 /** One dish or surprise bag of it. */
@@ -110,6 +126,10 @@ export interface LineRow {
   readonly surprise: boolean;
   readonly usual_price: string | null;
   readonly image_path: string | null;
+  /** `0079`: this dish can be taken away. A surprise bag always can, and only that. */
+  readonly para_llevar: boolean;
+  /** `0079`: this dish can be eaten at her kitchen. */
+  readonly para_aqui: boolean;
 }
 
 /** What she usually publishes, over four weeks, in her kitchen's own zone — never the raw history. */
@@ -130,6 +150,14 @@ export interface RepeatRow {
 /** Whose point the door sends (`0078`): her own pin, or Google's copy for her address. */
 export const POINT_SOURCES = ['pin', 'google'] as const;
 export type PointSource = (typeof POINT_SOURCES)[number];
+
+/** How a neighbour may pay (`0079`): cash always, first; a card or a transfer when the kitchen takes them. */
+export const PAGOS = ['efectivo', 'tarjeta', 'transferencia'] as const;
+export type Pago = (typeof PAGOS)[number];
+
+/** How a plate is eaten (`0079`): taken away first, or at her kitchen. */
+export const COMERES = ['llevar', 'aqui'] as const;
+export type Comer = (typeof COMERES)[number];
 
 /** The fixed list of tags, as codes (`listing_line_tags_known`, `0072`) — Wera Cocina's `TAGS`. */
 export const TAGS = ['pica', 'cerdo', 'mariscos', 'cacahuate', 'lacteos', 'gluten'] as const;
@@ -172,6 +200,10 @@ export interface Dish {
   readonly usualCentavos: number | null;
   /** Its photo's path in the bucket, or `null` — her trade's drawing. */
   readonly photo: string | null;
+  /** It can be taken away (`para_llevar`). */
+  readonly llevar: boolean;
+  /** It can be eaten at her kitchen (`para_aqui`). */
+  readonly aqui: boolean;
 }
 
 /** A publication on offer. */
@@ -180,6 +212,8 @@ export interface Offer {
   readonly start: Date;
   readonly end: Date;
   readonly dishes: readonly Dish[];
+  /** The *desechable* in centavos, added when she takes it away — `null`, no charge. */
+  readonly desechableCentavos: number | null;
 }
 
 /** A dish she repeats. */
@@ -212,6 +246,12 @@ export interface Kitchen {
   /** What she has on offer, the earliest window first. */
   readonly offers: readonly Offer[];
   readonly summary: Summary;
+  /** How she takes payment, cash first and always there. */
+  readonly pagos: readonly Pago[];
+  /** The ways she hands plates over, *para llevar* first — at least one. */
+  readonly comeres: readonly Comer[];
+  /** Who may reserve here by score — more than this per cent — or `null`, everyone. */
+  readonly minScore: number | null;
 }
 
 // ----------------------------------------------------------------------------
@@ -269,7 +309,7 @@ export function pointOf(value: unknown): Point | null {
   return { latitude, longitude, source: p.source === 'pin' ? 'pin' : 'google' };
 }
 
-function addressOf(value: unknown): Address {
+export function addressOf(value: unknown): Address {
   const a = object(value) ?? {};
   return {
     street: text(a.street),
@@ -297,7 +337,20 @@ function dishOf(value: unknown): Dish {
     surprise: l.surprise === true,
     usualCentavos: usual,
     photo: orNull(l.image_path),
+    // `0079`: a line the door sends always carries both; an older door's had neither — to go.
+    llevar: l.para_llevar !== false,
+    aqui: l.para_aqui === true,
   };
+}
+
+/** The *desechable*'s price, or `null` — none, or one it cannot read (a charge never invented). */
+export function desechableOf(value: unknown): number | null {
+  if (typeof value !== 'string') return null;
+  try {
+    return centavosOf(value);
+  } catch {
+    return null;
+  }
 }
 
 /** One publication with the lines it can read, or `null` when none is left. */
@@ -318,7 +371,26 @@ function offerOf(value: unknown): Offer | null {
     start: instantOf(o.pickup_start),
     end: instantOf(o.pickup_end),
     dishes: dishes.sort((a, b) => a.lineNo - b.lineNo),
+    desechableCentavos: desechableOf(o.container_price),
   };
+}
+
+/** How she takes payment: cash always, first, then what the door says she takes, in `PAGOS`' order. */
+export function pagosOf(value: unknown): Pago[] {
+  const dichos = list(value);
+  return PAGOS.filter((pago) => pago === 'efectivo' || dichos.includes(pago));
+}
+
+/** The ways she hands plates over, in `COMERES`' order — none read is *para llevar*, the door's own default. */
+export function comeresOf(value: unknown): Comer[] {
+  const dichos = list(value);
+  const comeres = COMERES.filter((comer) => dichos.includes(comer));
+  return comeres.length > 0 ? comeres : ['llevar'];
+}
+
+/** Who may reserve by score — a whole per cent, else everyone (`null`). */
+export function minScoreOf(value: unknown): number | null {
+  return typeof value === 'number' && Number.isInteger(value) && value > 0 && value < 100 ? value : null;
 }
 
 function summaryOf(value: unknown): Summary {
@@ -377,6 +449,9 @@ export function toKitchen(row: KitchenRow): Kitchen {
     page: toPage(object(k.page) ?? null),
     offers,
     summary: summaryOf(k.summary),
+    pagos: pagosOf(k.payment),
+    comeres: comeresOf(k.eat),
+    minScore: minScoreOf(k.min_score),
   };
 }
 

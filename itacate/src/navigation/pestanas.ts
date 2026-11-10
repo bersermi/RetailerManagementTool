@@ -32,8 +32,8 @@ export interface Pestana {
 export const PESTANAS: readonly Pestana[] = [
   // A pin: the kitchens close to her — the map's pin when the map comes (`10.5-iv-b`).
   { ruta: 'index', label: ES.pestanas.cerca, icono: 'map-marker-outline', llega: null },
-  // A ticket: what she reserved, with its code — reserving is `10.5b`'s.
-  { ruta: 'apartados', label: ES.pestanas.apartados, icono: 'ticket-confirmation-outline', llega: '10.5b' },
+  // A ticket: what she reserved, with its code — since reserving shipped (`10.5b-iii-a`).
+  { ruta: 'apartados', label: ES.pestanas.apartados, icono: 'ticket-confirmation-outline', llega: null },
   // A heart: the kitchens she follows, with the stamp card (the services, `10.9`).
   { ruta: 'mis-cocinas', label: ES.pestanas.misCocinas, icono: 'heart-outline', llega: '10.9' },
   // A person: her account, where to search, the aviso, help and her way out.

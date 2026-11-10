@@ -17,6 +17,14 @@ import type { Page } from '@/api/pagina';
 export const POINT_SOURCES = ['pin', 'google'] as const;
 export type PointSource = (typeof POINT_SOURCES)[number];
 
+/** How a neighbour may pay (`0079`): cash always, first; a card or a transfer when the kitchen takes them. */
+export const PAGOS = ['efectivo', 'tarjeta', 'transferencia'] as const;
+export type Pago = (typeof PAGOS)[number];
+
+/** How a plate is eaten (`0079`): taken away first, or at her kitchen. */
+export const COMERES = ['llevar', 'aqui'] as const;
+export type Comer = (typeof COMERES)[number];
+
 /** A place on the map. */
 export interface Punto {
   readonly latitude: number;
@@ -50,6 +58,10 @@ export interface Dish {
   readonly usualCentavos: number | null;
   /** Its photo's path in the bucket, or `null` — her trade's drawing. */
   readonly photo: string | null;
+  /** It can be taken away (`para_llevar`). */
+  readonly llevar: boolean;
+  /** It can be eaten at her kitchen (`para_aqui`). */
+  readonly aqui: boolean;
 }
 
 /** A publication on offer. */
@@ -58,6 +70,8 @@ export interface Offer {
   readonly start: Date;
   readonly end: Date;
   readonly dishes: readonly Dish[];
+  /** The *desechable* in centavos, added when she takes it away — `null`, no charge. */
+  readonly desechableCentavos: number | null;
 }
 
 /** A dish she repeats. */
@@ -90,4 +104,10 @@ export interface Kitchen {
   /** What she has on offer, the earliest window first. */
   readonly offers: readonly Offer[];
   readonly summary: Summary;
+  /** How she takes payment, cash first and always there. */
+  readonly pagos: readonly Pago[];
+  /** The ways she hands plates over, *para llevar* first — at least one. */
+  readonly comeres: readonly Comer[];
+  /** Who may reserve here by score — more than this per cent — or `null`, everyone. */
+  readonly minScore: number | null;
 }

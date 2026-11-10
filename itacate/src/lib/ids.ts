@@ -23,3 +23,13 @@ export async function newNoncePair(): Promise<{ readonly raw: string; readonly h
   const hashed = await Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, raw);
   return { raw, hashed };
 }
+
+/**
+ * ⚠️ `10.5b-iii-a`: A RESERVATION'S ID, MADE BY THE PHONE (`0079`): made when she opens the
+ * sheet, kept for a retry of the same choice — a lost answer sent again is that
+ * reservation, never a second — and made again when she changes her hour, how she eats it
+ * or how she pays.
+ */
+export function nuevoId(): string {
+  return Crypto.randomUUID();
+}

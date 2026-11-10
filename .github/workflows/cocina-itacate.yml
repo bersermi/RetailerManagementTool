@@ -85,6 +85,9 @@ on:
       - "app/src/lib/splash.ts"
       - "app/src/theme/apertura.ts"
       - "brand/wera-mark.svg"
+      # ⚠️ `10.5b-iii-a`, ITACATE RESERVES: *Ya lo tengo* is a swipe, and how far is far enough is
+      # Wera's answer for the slide that sells (`COMMIT_AT`) — Itacate's suite reads it there.
+      - "app/src/cart/commit.ts"
       - "package.json"
       - "package-lock.json"
       - ".github/workflows/cocina-itacate.yml"

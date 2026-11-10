@@ -2,7 +2,8 @@
 // EVERY WORD ITACATE SHOWS, IN ONE FILE (ADR-035 §2.11). Plan tasks `10.2a`
 // (the skeleton), `10.5-iii-a` (signing in), `10.5-iii-b` (her way out),
 // `10.5-iv-a-i` (the kitchens close to her), `10.5-iv-a-ii` (a kitchen's page
-// and a dish's) and `10.5-v-b` (the shell: the tab bar, *Tú*, *Dónde buscar*).
+// and a dish's), `10.5-v-b` (the shell: the tab bar, *Tú*, *Dónde buscar*) and
+// `10.5b-iii-a` (she reserves and collects: *Apartar*, *Apartados*, her yes, her score).
 //
 // ⚠️ WHERE A SCREEN HERE DOES WHAT ONE OF WERA'S DOES, ITS WORDS ARE WERA'S
 // (`app/src/strings.ts`, `ES.auth`), as Wera Cocina's are (`cocina/src/strings.ts`).
@@ -23,9 +24,8 @@ export const ES = {
 
   /**
    * ⚠️ `10.5-v-b`: THE TAB BAR — *Cerca · Apartados · Mis cocinas · Tú*, the owner's ruling
-   * of 2026-11-05 (the family-shell page's call 4). Only *Cerca* and *Tú* are drawn
-   * until reserving (`10.5b`) and the stamp card (`10.9`) bring the two in the middle
-   * (`@/navigation/pestanas`).
+   * of 2026-11-05 (the family-shell page's call 4). *Apartados* is drawn since reserving
+   * (`10.5b-iii-a`); *Mis cocinas* waits for the stamp card (`10.9`) (`@/navigation/pestanas`).
    */
   pestanas: {
     cerca: 'Cerca',
@@ -253,6 +253,166 @@ export const ES = {
     /** The kitchen's row, for a screen reader: it opens her page. */
     verCocina: (cocina: string) => `Ver la página de ${cocina}`,
     cargando: 'Buscando el platillo…',
+    /**
+     * ⚠️ `10.5b-iii-a`: WHAT RESERVING NEEDS SHE KNOW BEFORE SHE TAPS, as the family-shell page
+     * draws the dish (stage 2): under the window, that she picks her hour; how it is eaten
+     * (calls 26, 27); how she pays at the kitchen (call 12).
+     */
+    apartaYPasa: 'Apártalo y pasa a la hora que elijas',
+    comer: { ambas: 'Aquí o para llevar', llevar: 'Para llevar', aqui: 'Solo para comer aquí' },
+    comerDetalle: { ambas: 'Tú eliges al apartar', llevar: 'La cocina te la empaca', aqui: 'Te la sirven en la cocina' },
+    pagasEnLaCocina: 'Pagas en la cocina',
+    pago: { efectivo: 'Efectivo', tarjeta: 'Tarjeta', transferencia: 'Transferencia' },
+  },
+
+  /**
+   * ⚠️ `10.5b-iii-a`: *APARTAR* — the dish's foot and the sheet, slice 3's design as the
+   * owner ruled it on 2026-11-05 (the family-shell page, stage 2: her hour in quarter hours,
+   * how she eats it when both are open, how she pays beside the button, the total before she
+   * reserves) and `10.5b-ii`'s final design of 2026-11-10 (*Antes de tu primer apartado*, her
+   * name and score on the sheet, a kitchen above her score). No sentence speaks of penalties:
+   * a reservation is drawn as a handover — her hour, how she pays, her code.
+   */
+  apartar: {
+    boton: (precio: string) => `Apartar · ${precio}`,
+    yaLoApartaste: 'Ya lo apartaste · ver tu código',
+    limite: (n: number) => (n === 1 ? 'Ya tienes un apartado' : `Ya tienes ${n} apartados`),
+    verTusApartados: 'Ver tus apartados',
+    sinHoras: 'Ya no da tiempo de apartarlo',
+    enMostrador: 'Puedes pasar a comprarla en mostrador.',
+    calificacion: (minimo: number, suyo: number) => `Esta cocina aparta a quien tiene más de ${minimo}% de 👍. Tú tienes ${suyo}%.`,
+    calificacionDetalle: 'Puedes pasar a comprarla en mostrador, o apartar en otra cocina.',
+    verTuCalificacion: 'Ver tu calificación',
+    /** The sheet. */
+    titulo: (platillo: string) => `Apartar ${platillo}`,
+    comoComes: '¿Para llevar o para comer aquí?',
+    forma: { llevar: 'Para llevar', aqui: 'Para comer aquí' },
+    aQueHora: '¿A qué hora pasas?',
+    notaLlevar: 'La cocina tendrá tu comida lista y empacada a esa hora.',
+    notaAqui: 'La cocina te la sirve a esa hora, para comer ahí.',
+    comoPagas: 'Cómo pagas',
+    /** What a screen reader says for the chip beside the button, which opens the methods. */
+    elegirPago: (pago: string) => `Cómo pagas: ${pago}. Toca para cambiarlo`,
+    pagoDetalle: {
+      efectivo: 'En la cocina, al recoger',
+      tarjeta: 'En la terminal de la cocina',
+      transferencia: 'Al llegar, a la cuenta que te dé la cocina',
+    },
+    total: 'Total',
+    conDesechable: (platillo: string, desechable: string) => `${platillo} + ${desechable} del desechable`,
+    pie: 'Pagas directo a la cocina. Puedes cancelar hasta una hora antes de tu hora.',
+    tuNombre: 'La cocina verá tu nombre y tu calificación.',
+    /** Done, on the sheet: her code, and the way to it. */
+    listo: '¡Listo, ya lo apartaste!',
+    tuCodigo: 'Tu código',
+    verTuApartado: 'Ver tu apartado',
+    /** Her reservations or her standing could not be read: the foot says why and asks again. */
+    reintentar: 'Intentar de nuevo',
+    /** ⚠️ `0080`: her express yes, once, before her first reservation — the final design's words. */
+    antes: {
+      titulo: 'Antes de tu primer apartado',
+      comoFunciona:
+        'Apartas sin pagar por adelantado. Para que eso funcione, las cocinas te califican con 👍 o 👎 cuando pasas por tu comida, o si no pasas.',
+      queVen:
+        'Las cocinas donde apartas ven tu nombre y tu porcentaje. Algunas apartan solo a quien tiene cierto porcentaje. Tú lo ves en Tú, sin saber quién te calificó.',
+      asiTeVeran: 'Así te verán hoy',
+      aviso: 'Aviso de privacidad',
+      acepto: 'Acepto y sigo',
+    },
+    /** Why it did not go through — `@/api/apartados`' `Falla`, each with what she can do. */
+    fallas: {
+      yaNoHay: 'Ya no queda de este platillo, o la oferta terminó.',
+      limite: 'Ya tienes los apartados que puedes tener por ahora.',
+      tuCocina: 'Esta es tu propia cocina: aquí no puedes apartar.',
+      calificacion: 'Esta cocina aparta solo a quien tiene cierto porcentaje de 👍.',
+      sinSi: 'Antes de tu primer apartado, acepta cómo funciona.',
+      cambio: 'Algo cambió en esta oferta. Revisa tu hora y cómo pagas, e intenta de nuevo.',
+      yaNoPendiente: 'Este apartado ya no está pendiente.',
+      sesion: 'Tu sesión se cerró. Entra de nuevo.',
+      sinSenal: 'Sin conexión a internet. Intenta de nuevo en un momento.',
+      otra: 'Algo salió mal. Intenta de nuevo.',
+    },
+  },
+
+  /**
+   * ⚠️ `10.5b-iii-a`: *APARTADOS*, THE SECOND TAB — her code, her hour, what to pay and how, the
+   * address with *Cómo llegar*, *Ya lo tengo* as a swipe, and *¿Cambio de planes?* (the family-shell
+   * page, stage 2, call 15: *Cancelar* until an hour before her hour, then *No voy a poder ir*).
+   * *Se liberó* is the ruled word for a plate nobody came for (`10.5-v-a`).
+   */
+  apartados: {
+    titulo: 'Apartados',
+    detalle: 'Lo que apartaste',
+    cargando: 'Buscando tus apartados…',
+    vacio: 'Aparta un platillo y aquí verás tu código',
+    vacioDetalle: 'Lo dices en la cocina, pagas y listo.',
+    verCocinas: 'Ver cocinas cerca',
+    /** *Comida corrida · 1 · para llevar*. */
+    plato: (nombre: string, cantidad: number, comer: string) => `${nombre} · ${cantidad} · ${comer}`,
+    comer: { llevar: 'para llevar', aqui: 'para comer aquí' },
+    tuCodigo: 'Tu código',
+    dilo: { llevar: 'Dilo o enséñalo al recoger.', aqui: 'Dilo o enséñalo al llegar.' },
+    /** Her hour: *a las 17:45*, *a la 1:00*. */
+    aLas: (hora: string) => (hora.startsWith('1:') ? `a la ${hora}` : `a las ${hora}`),
+    /** Until when: *hasta las 16:00*, *hasta la 1:30*. */
+    hasta: (hora: string) => (hora.startsWith('1:') ? `hasta la ${hora}` : `hasta las ${hora}`),
+    pasa: (cuando: string) => `Pasa ${cuando}`,
+    manana: (aLas: string) => `mañana ${aLas}`,
+    elDia: (dia: string, aLas: string) => `el ${dia} ${aLas}`,
+    faltanMin: (min: number) => `faltan ${min} min`,
+    faltanHoras: (horas: number, min: number) => (min === 0 ? `faltan ${horas} h` : `faltan ${horas} h ${min} min`),
+    yaEstaLista: 'ya está lista',
+    notaLlevar: (hasta: string) => `Tu comida estará lista y empacada a esa hora. La cocina la guarda ${hasta}.`,
+    notaAqui: (hasta: string) => `Te la sirven al llegar, para comer ahí. La cocina la guarda ${hasta}.`,
+    paga: {
+      efectivoLlevar: (total: string) => `Paga ${total} en efectivo al recoger. Si puedes, lleva el importe exacto.`,
+      efectivoAqui: (total: string) => `Paga ${total} en efectivo en la cocina. Si puedes, lleva el importe exacto.`,
+      tarjeta: (total: string) => `Paga ${total} con tarjeta en la cocina.`,
+      transferencia: (total: string) => `Transfiere ${total} al llegar: la cocina te da sus datos.`,
+    },
+    concepto: 'En el concepto pon',
+    conceptoValor: (codigo: string) => `Itacate ${codigo}`,
+    transferenciaNota: 'La cocina te entrega cuando ve tu pago en su banco.',
+    desliza: { llevar: 'Desliza cuando ya lo tengas', aqui: 'Desliza cuando te la sirvan' },
+    /** What a screen reader hears on the swipe, and the one action it may take instead. */
+    deslizaAyuda: 'Ya lo tengo. Desliza a la derecha, o usa la acción para confirmar.',
+    yaLoTengo: 'Ya lo tengo',
+    cancelarHasta: (hasta: string) => `¿Cambio de planes? Cancelar, ${hasta}`,
+    noVoy: 'No voy a poder ir',
+    hojaCancelar: {
+      titulo: '¿Cancelar tu apartado?',
+      texto: 'Lo liberamos para que otro vecino lo aproveche.',
+      si: 'Sí, cancelarlo',
+      no: 'No, lo mantengo',
+    },
+    hojaNoVoy: {
+      titulo: '¿No vas a poder ir?',
+      texto: 'Lo liberamos para que otro vecino lo aproveche.',
+      si: 'Sí, liberarlo',
+      no: 'Sí voy a ir',
+    },
+    yaLoTienes: 'Ya lo tienes. ¡Buen provecho!',
+    /**
+     * ⚠️ A PLATE WHOSE WINDOW ENDED WITH NO HANDOVER — *se liberó* — that she may still say she
+     * has: `confirm_my_pickup` takes her *Ya lo tengo* until a day after the window (`0079`), and
+     * it keeps the clock's *No se presentó* off her score when the kitchen forgot *Entregar*.
+     */
+    porConfirmar: {
+      titulo: '¿Ya lo tienes?',
+      texto: (hasta: string) => `La cocina lo guardó ${hasta}. Si ya lo tienes, confírmalo.`,
+    },
+    /** ⚠️ `0080`: the kitchen's cancel is built and switched off — read correctly the day it turns on. */
+    laCocinaCancelo: 'La cocina canceló tu apartado',
+    razon: { se_acabo: 'Se les acabó.', cerramos: 'Tuvieron que cerrar.', otro: '' },
+    anteriores: 'Anteriores',
+    estado: {
+      apartado: 'Apartado',
+      recogido: 'Entregado',
+      cancelado: 'Lo cancelaste',
+      no_va: 'Lo liberaste',
+      liberado: 'Se liberó',
+      cancelado_cocina: 'La cocina lo canceló',
+    },
   },
 
   /**
@@ -297,6 +457,27 @@ export const ES = {
     ayudaMensajeConCorreo: (email: string) => `Hola, necesito ayuda con Itacate. Mi correo es ${email}`,
     deWera: 'Itacate, de Wera',
     version: 'Estás probando una versión temprana de Itacate: la iremos llenando con actualizaciones.',
+    /**
+     * ⚠️ `10.5b-iii-a`: HER SCORE, the final design of 2026-11-10 — the share of thumbs up among
+     * her last 20 from any kitchen, from her third, each label's count, never which kitchen or
+     * when; *¿Algo no cuadra? Escríbenos* is her way to a person (LFPDPPP Art. 26).
+     */
+    calificacion: 'Tu calificación como vecina',
+    porcentaje: (pct: number) => `👍 ${pct}%`,
+    deCalificaciones: (n: number) => `de ${n} calificaciones de las cocinas donde apartaste`,
+    nueva: 'Nueva en Itacate',
+    nuevaDetalle: 'Tu porcentaje aparece desde tu tercera calificación.',
+    etiqueta: {
+      a_tiempo: 'Llegó a tiempo',
+      amable: 'Persona amable',
+      tarde: 'Se presentó tarde',
+      no_se_presento: 'No se presentó',
+      pago: 'Problemas con el pago',
+    },
+    nunca: 'Las cocinas ven tu porcentaje cuando apartas. Nunca ves qué cocina te calificó ni cuándo.',
+    algoNoCuadra: '¿Algo no cuadra? Escríbenos',
+    algoNoCuadraMensaje: 'Hola, tengo una duda sobre mi calificación en Itacate.',
+    algoNoCuadraMensajeConCorreo: (email: string) => `Hola, tengo una duda sobre mi calificación en Itacate. Mi correo es ${email}`,
   },
 
   /**

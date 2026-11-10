@@ -139,6 +139,22 @@ export function alergiaDe(platillo: Dish): string | null {
   return platillo.surprise ? ES.platillo.alergia : null;
 }
 
+/**
+ * How it is eaten, as the family-shell page draws the dish (`10.5b-iii-a`, calls 26, 27):
+ * both ways — *Aquí o para llevar*, *Tú eliges al apartar*; one — *Para llevar*, *La cocina
+ * te la empaca*, or *Solo para comer aquí*, *Te la sirven en la cocina*. Whether it wears a
+ * bag or a plate.
+ */
+export function comerTexto(platillo: Dish): { readonly titulo: string; readonly detalle: string; readonly plato: boolean } {
+  const cual = platillo.llevar && platillo.aqui ? 'ambas' : platillo.aqui ? 'aqui' : 'llevar';
+  return { titulo: ES.platillo.comer[cual], detalle: ES.platillo.comerDetalle[cual], plato: cual !== 'llevar' };
+}
+
+/** How she pays at the kitchen — *Efectivo · Tarjeta* — cash always, first (`0079`, call 12). */
+export function pagosTexto(cocina: Kitchen): string {
+  return cocina.pagos.map((pago) => ES.platillo.pago[pago]).join(' · ');
+}
+
 // ----------------------------------------------------------------------------
 // The two links, both to Google Maps
 // ----------------------------------------------------------------------------

@@ -10,15 +10,21 @@ import {
   ON_OFFER_NOW,
   POINT_SOURCES,
   TAGS,
+  COMERES,
+  PAGOS,
   aMilisegundos,
   centavosOf,
   cocinasKey,
+  comeresOf,
   countOf,
+  desechableOf,
   giroLabel,
   girosFrom,
   girosKey,
   instantOf,
   kitchensFrom,
+  minScoreOf,
+  pagosOf,
   pointOf,
 } from '@/api/cocinas';
 
@@ -38,6 +44,20 @@ const SRC = fileURLToPath(new URL('../src', import.meta.url));
 const MIGRATIONS = fileURLToPath(new URL('../../supabase/migrations', import.meta.url));
 const read = (path: string) => readFileSync(join(SRC, path), 'utf8');
 
+/**
+ * The door as the database answers it now: its text in whichever migration defines it
+ * LAST (`0078`, re-created by `0079` and `0080`) — a later one takes this test with it.
+ */
+function laPuerta(): { readonly archivo: string; readonly texto: string } {
+  const archivos = readdirSync(MIGRATIONS).filter((n) => /^\d{4}_.*\.sql$/.test(n)).sort();
+  for (const archivo of [...archivos].reverse()) {
+    const sql = readFileSync(join(MIGRATIONS, archivo), 'utf8');
+    const at = sql.search(/create (or replace )?function public\.on_offer_now\(\)/);
+    if (at >= 0) return { archivo, texto: sql.slice(at, sql.indexOf('$$;', at)) };
+  }
+  throw new Error('no migration defines on_offer_now');
+}
+
 const KITCHEN = 'b1d0c0de-0000-4000-8000-000000000001';
 const PHOTO = `${KITCHEN}/c0ffee00-0000-4000-8000-0000000000aa`;
 
@@ -56,13 +76,17 @@ function cocina(over: Record<string, unknown> = {}): Record<string, unknown> {
         id: 'a0000000-0000-4000-8000-000000000001',
         pickup_start: '2026-11-05T23:30:00.123456+00:00',
         pickup_end: '2026-11-06T00:15:00+00:00',
+        container_price: '5.00',
         lines: [
-          { line_no: 2, name: 'Bolsa de guisados', description: null, tags: [], unit_price: '50.00', quantity: '3.000', surprise: true, usual_price: '110.00', image_path: null },
-          { line_no: 1, name: 'Comida corrida', description: 'Sopa, arroz y guisado', tags: ['gluten', 'pica'], unit_price: '60.00', quantity: '2.000', surprise: false, usual_price: '120.00', image_path: PHOTO },
+          { line_no: 2, name: 'Bolsa de guisados', description: null, tags: [], unit_price: '50.00', quantity: '3.000', surprise: true, usual_price: '110.00', image_path: null, para_llevar: true, para_aqui: false },
+          { line_no: 1, name: 'Comida corrida', description: 'Sopa, arroz y guisado', tags: ['gluten', 'pica'], unit_price: '60.00', quantity: '2.000', surprise: false, usual_price: '120.00', image_path: PHOTO, para_llevar: true, para_aqui: true },
         ],
       },
     ],
     summary: { weekdays: [2, 1, 2, 1, 2, 0, 0], usual_hour: 17, last_day: '2026-11-04', repeats: [{ name: 'Comida corrida', times: 6, usual_price: '60.00' }] },
+    payment: ['efectivo', 'transferencia'],
+    eat: ['llevar', 'aqui'],
+    min_score: 80,
     ...over,
   };
 }
@@ -79,10 +103,11 @@ describe('the door, by its name', () => {
 
   // The first line of the contract: every key this file reads is written, quoted, in
   // the door's own text — the real answer is the contract check's.
+  // ⚠️ Since `10.5b-iii-a`, the door as it is defined LAST — `0080`'s, with `0079`'s keys.
   it('reads only keys the door writes', () => {
     const file = read('api/cocinas.ts');
-    const sql = readFileSync(join(MIGRATIONS, readdirSync(MIGRATIONS).find((n) => n.startsWith('0078_')) as string), 'utf8');
-    const door = sql.slice(sql.indexOf('create function public.on_offer_now()'));
+    const door = laPuerta().texto;
+    expect(laPuerta().archivo >= '0080').toBe(true);
     const names = ['KitchenRow', 'AddressRow', 'PointRow', 'PageRow', 'OfferRow', 'LineRow', 'SummaryRow', 'RepeatRow'].flatMap((iface) => {
       const body = new RegExp(`export interface ${iface} \\{([\\s\\S]*?)\\n\\}`).exec(file)?.[1] ?? '';
       const fields = [...body.matchAll(/^\s+readonly ([a-z_]+)\??:/gm)].map((m) => m[1]);
@@ -135,8 +160,17 @@ describe('a kitchen, read whole', () => {
       surprise: false,
       usualCentavos: 12000,
       photo: PHOTO,
+      llevar: true,
+      aqui: true,
     });
-    expect(offer.dishes[1]).toMatchObject({ surprise: true, priceCentavos: 5000, usualCentavos: 11000, count: 3, photo: null, description: null });
+    expect(offer.dishes[1]).toMatchObject({ surprise: true, priceCentavos: 5000, usualCentavos: 11000, count: 3, photo: null, description: null, llevar: true, aqui: false });
+    expect(offer.desechableCentavos).toBe(500);
+  });
+
+  it('`10.5b-iii-a`: how she takes payment, the ways she hands plates over, who may reserve', () => {
+    expect(k.pagos).toEqual(['efectivo', 'transferencia']);
+    expect(k.comeres).toEqual(['llevar', 'aqui']);
+    expect(k.minScore).toBe(80);
   });
 
   it('what she usually publishes', () => {
@@ -229,6 +263,59 @@ describe('what cannot be read is left out — never the list', () => {
   it('a colour this build does not know is her trade’s default, not an error', () => {
     expect(kitchensFrom([cocina({ page: { color: 'turquesa' } })])[0].page.color).toBeNull();
     expect(kitchensFrom([cocina({ page: null })])[0].page).toEqual({ sentence: null, color: null, cover: null, logo: null, mapsLink: null });
+  });
+});
+
+describe('`10.5b-iii-a`: what reserving reads of the door (`0079`, `0080`)', () => {
+  it('the codes are the database’s — cash, card, transfer; to go, here', () => {
+    const sql = readFileSync(join(MIGRATIONS, readdirSync(MIGRATIONS).find((n) => n.startsWith('0079_')) as string), 'utf8');
+    expect([...PAGOS]).toEqual(['efectivo', 'tarjeta', 'transferencia']);
+    expect(sql).toContain("p_payment not in ('efectivo', 'tarjeta', 'transferencia')");
+    expect([...COMERES]).toEqual(['llevar', 'aqui']);
+    expect(sql).toContain("p_eat = 'llevar'");
+    expect(sql).toContain("p_eat = 'aqui'");
+  });
+
+  it('cash is always taken, and first, whatever the door says', () => {
+    expect(pagosOf(['tarjeta'])).toEqual(['efectivo', 'tarjeta']);
+    expect(pagosOf(['transferencia', 'tarjeta', 'efectivo'])).toEqual(['efectivo', 'tarjeta', 'transferencia']);
+    expect(pagosOf(['bitcoin'])).toEqual(['efectivo']);
+    expect(pagosOf(null)).toEqual(['efectivo']);
+  });
+
+  it('the ways, para llevar first; none read is para llevar, the door’s own default', () => {
+    expect(comeresOf(['aqui', 'llevar'])).toEqual(['llevar', 'aqui']);
+    expect(comeresOf(['aqui'])).toEqual(['aqui']);
+    expect(comeresOf([])).toEqual(['llevar']);
+    expect(comeresOf(undefined)).toEqual(['llevar']);
+  });
+
+  it('who may reserve: a whole per cent, else everyone', () => {
+    expect(minScoreOf(85)).toBe(85);
+    expect(minScoreOf(null)).toBeNull();
+    expect(minScoreOf('80')).toBeNull();
+    expect(minScoreOf(80.5)).toBeNull();
+    expect(minScoreOf(0)).toBeNull();
+  });
+
+  it('the desechable: centavos, or none — a charge it cannot read is never invented', () => {
+    expect(desechableOf('5.00')).toBe(500);
+    expect(desechableOf(null)).toBeNull();
+    expect(desechableOf(5)).toBeNull();
+    expect(desechableOf('0.00')).toBeNull();
+  });
+
+  it('a line from a door before `0079` is to go only', () => {
+    const viejo = cocina({
+      on_offer: [{ id: 'p-1', pickup_start: '2026-11-05T23:30:00+00:00', pickup_end: '2026-11-06T00:15:00+00:00', lines: [{ line_no: 1, name: 'Sopa', unit_price: '60.00', quantity: '1.000' }] }],
+      payment: undefined,
+      eat: undefined,
+      min_score: undefined,
+    });
+    const [k] = kitchensFrom([viejo]);
+    expect(k.offers[0].dishes[0]).toMatchObject({ llevar: true, aqui: false });
+    expect(k.offers[0].desechableCentavos).toBeNull();
+    expect([k.pagos, k.comeres, k.minScore]).toEqual([['efectivo'], ['llevar'], null]);
   });
 });
 

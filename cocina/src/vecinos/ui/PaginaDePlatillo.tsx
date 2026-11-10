@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { Dish, Kitchen, Offer } from '@/vecinos/cocinas';
 import { colorOf, defaultsFor } from '@/api/pagina';
 import { ventanaTexto } from '@/vecinos/lista';
-import { alergiaDe, calleDe, comoLlegarUrl, etiquetasDe } from '@/vecinos/paginas';
+import { alergiaDe, calleDe, comerTexto, comoLlegarUrl, etiquetasDe, pagosTexto } from '@/vecinos/paginas';
 import { VECINOS as ES } from '@/strings';
 import { HUES } from '@/theme/colores';
 import { TITULO } from '@/theme/letra';
@@ -41,6 +41,7 @@ export function PaginaDePlatillo({
   ahora,
   onCocina,
   atras = true,
+  pie = null,
 }: {
   cocina: Kitchen;
   oferta: Offer;
@@ -51,6 +52,8 @@ export function PaginaDePlatillo({
   onCocina: () => void;
   /** The way back over the photo — none where a bar above the page closes it. */
   atras?: boolean;
+  /** What stands under the page, fixed at the screen's foot — Itacate's *Apartar*. */
+  pie?: ReactNode;
 }) {
   const insets = useSafeAreaInsets();
   const color = colorOf(cocina.page, cocina.giro);
@@ -58,94 +61,107 @@ export function PaginaDePlatillo({
   const alergia = alergiaDe(platillo);
   const calle = calleDe(cocina.address);
   const llegar = comoLlegarUrl(cocina);
+  const comer = comerTexto(platillo);
 
   return (
-    <ScrollView
-      style={{ flex: 1, backgroundColor: PALETTE.fondo }}
-      contentContainerStyle={{ paddingTop: insets.top, paddingBottom: insets.bottom + SIZE.space * 3 }}
-    >
-      <View style={{ width: '100%', aspectRatio: FOTO, overflow: 'hidden', backgroundColor: HUES[color] }}>
-        <Dibujo dibujo={defaultsFor(cocina.giro).dibujo} color={color} modo="portada" />
-        <Foto path={platillo.photo} cocinaId={cocina.id} size="grande" />
-        {atras && <Atras />}
-      </View>
-
-      <View style={{ paddingHorizontal: MARGEN, paddingTop: SIZE.rowGap, gap: SIZE.space }}>
-        <FilaCocina cocina={cocina} distancia={distancia} onPress={onCocina} />
-
-        <View style={{ gap: SIZE.rowGap / 2 }}>
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: SIZE.rowGap }}>
-            <Text accessibilityRole="header" style={{ flexShrink: 1, fontSize: SIZE.titleSize, ...TITULO, color: PALETTE.tinta }}>
-              {platillo.name}
-            </Text>
-            {platillo.surprise && <Sorpresa />}
-          </View>
-          {platillo.description !== null && (
-            <Text style={{ fontSize: SIZE.bodySize, lineHeight: 22, color: PALETTE.tinta }}>{platillo.description}</Text>
-          )}
+    <View style={{ flex: 1, backgroundColor: PALETTE.fondo }}>
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{ paddingTop: insets.top, paddingBottom: (pie === null ? insets.bottom : 0) + SIZE.space * 3 }}
+      >
+        <View style={{ width: '100%', aspectRatio: FOTO, overflow: 'hidden', backgroundColor: HUES[color] }}>
+          <Dibujo dibujo={defaultsFor(cocina.giro).dibujo} color={color} modo="portada" />
+          <Foto path={platillo.photo} cocinaId={cocina.id} size="grande" />
+          {atras && <Atras />}
         </View>
 
-        {etiquetas.length > 0 && (
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: SIZE.rowGap / 2 }}>
-            {etiquetas.map((etiqueta) => (
-              <Text
-                key={etiqueta}
-                style={{
-                  fontSize: SIZE.smallSize,
-                  color: PALETTE.tinta,
-                  borderWidth: 1,
-                  borderColor: PALETTE.linea,
-                  backgroundColor: PALETTE.superficie,
-                  borderRadius: 999,
-                  paddingHorizontal: 10,
-                  paddingVertical: 3,
-                  overflow: 'hidden',
-                }}
-              >
-                {etiqueta}
-              </Text>
-            ))}
-          </View>
-        )}
+        <View style={{ paddingHorizontal: MARGEN, paddingTop: SIZE.rowGap, gap: SIZE.space }}>
+          <FilaCocina cocina={cocina} distancia={distancia} onPress={onCocina} />
 
-        {alergia !== null && (
-          <Text
-            style={{
-              fontSize: SIZE.smallSize,
-              lineHeight: 19,
-              color: PALETTE.tinta,
-              backgroundColor: PALETTE.banda,
-              borderRadius: SIZE.rowGap,
-              paddingHorizontal: SIZE.space - 2,
-              paddingVertical: SIZE.rowGap,
-              overflow: 'hidden',
-            }}
-          >
-            {alergia}
-          </Text>
-        )}
-
-        <Precio platillo={platillo} color={color} grande />
-
-        <View style={{ borderTopWidth: 1, borderTopColor: PALETTE.linea, paddingTop: SIZE.space, gap: SIZE.rowGap }}>
-          <Renglon icono="clock-outline">
+          <View style={{ gap: SIZE.rowGap / 2 }}>
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: SIZE.rowGap }}>
-              <Text style={{ fontSize: SIZE.bodySize, color: PALETTE.tinta }}>{ventanaTexto(oferta, ahora)}</Text>
-              <Quedan platillo={platillo} />
+              <Text accessibilityRole="header" style={{ flexShrink: 1, fontSize: SIZE.titleSize, ...TITULO, color: PALETTE.tinta }}>
+                {platillo.name}
+              </Text>
+              {platillo.surprise && <Sorpresa />}
             </View>
-          </Renglon>
-          {(calle !== null || cocina.directions !== null) && (
-            <Renglon icono="map-marker-outline">
-              {calle !== null && <Text style={{ fontSize: SIZE.bodySize, color: PALETTE.tinta }}>{calle}</Text>}
-              {cocina.directions !== null && (
-                <Text style={{ fontSize: SIZE.smallSize, lineHeight: 20, color: PALETTE.tintaApagada }}>{cocina.directions}</Text>
-              )}
-            </Renglon>
+            {platillo.description !== null && (
+              <Text style={{ fontSize: SIZE.bodySize, lineHeight: 22, color: PALETTE.tinta }}>{platillo.description}</Text>
+            )}
+          </View>
+
+          {etiquetas.length > 0 && (
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: SIZE.rowGap / 2 }}>
+              {etiquetas.map((etiqueta) => (
+                <Text
+                  key={etiqueta}
+                  style={{
+                    fontSize: SIZE.smallSize,
+                    color: PALETTE.tinta,
+                    borderWidth: 1,
+                    borderColor: PALETTE.linea,
+                    backgroundColor: PALETTE.superficie,
+                    borderRadius: 999,
+                    paddingHorizontal: 10,
+                    paddingVertical: 3,
+                    overflow: 'hidden',
+                  }}
+                >
+                  {etiqueta}
+                </Text>
+              ))}
+            </View>
           )}
-          {llegar !== null && <Enlace texto={ES.pagina.comoLlegar} ayuda={ES.pagina.comoLlegarAyuda} url={llegar} />}
+
+          {alergia !== null && (
+            <Text
+              style={{
+                fontSize: SIZE.smallSize,
+                lineHeight: 19,
+                color: PALETTE.tinta,
+                backgroundColor: PALETTE.banda,
+                borderRadius: SIZE.rowGap,
+                paddingHorizontal: SIZE.space - 2,
+                paddingVertical: SIZE.rowGap,
+                overflow: 'hidden',
+              }}
+            >
+              {alergia}
+            </Text>
+          )}
+
+          <Precio platillo={platillo} color={color} grande />
+
+          <View style={{ borderTopWidth: 1, borderTopColor: PALETTE.linea, paddingTop: SIZE.space, gap: SIZE.rowGap }}>
+            <Renglon icono="clock-outline">
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: SIZE.rowGap }}>
+                <Text style={{ fontSize: SIZE.bodySize, color: PALETTE.tinta }}>{ventanaTexto(oferta, ahora)}</Text>
+                <Quedan platillo={platillo} />
+              </View>
+              <Text style={{ fontSize: SIZE.smallSize, lineHeight: 20, color: PALETTE.tintaApagada }}>{ES.platillo.apartaYPasa}</Text>
+            </Renglon>
+            <Renglon icono={comer.plato ? 'silverware-fork-knife' : 'shopping-outline'}>
+              <Text style={{ fontSize: SIZE.bodySize, color: PALETTE.tinta }}>{comer.titulo}</Text>
+              <Text style={{ fontSize: SIZE.smallSize, lineHeight: 20, color: PALETTE.tintaApagada }}>{comer.detalle}</Text>
+            </Renglon>
+            <Renglon icono="cash">
+              <Text style={{ fontSize: SIZE.bodySize, color: PALETTE.tinta }}>{ES.platillo.pagasEnLaCocina}</Text>
+              <Text style={{ fontSize: SIZE.smallSize, lineHeight: 20, color: PALETTE.tintaApagada }}>{pagosTexto(cocina)}</Text>
+            </Renglon>
+            {(calle !== null || cocina.directions !== null) && (
+              <Renglon icono="map-marker-outline">
+                {calle !== null && <Text style={{ fontSize: SIZE.bodySize, color: PALETTE.tinta }}>{calle}</Text>}
+                {cocina.directions !== null && (
+                  <Text style={{ fontSize: SIZE.smallSize, lineHeight: 20, color: PALETTE.tintaApagada }}>{cocina.directions}</Text>
+                )}
+              </Renglon>
+            )}
+            {llegar !== null && <Enlace texto={ES.pagina.comoLlegar} ayuda={ES.pagina.comoLlegarAyuda} url={llegar} />}
+          </View>
         </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
+      {pie}
+    </View>
   );
 }
 

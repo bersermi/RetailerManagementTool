@@ -20,6 +20,7 @@ bash docs/runbooks/set-itacate-sign-in.sh --check   # the two settings outside t
 bash docs/checks/10.4b-iii-a-cocina-contract.sh     # against a local `supabase start`: her way out's names held to Wera Cocina's, which the database answers
 bash docs/checks/5R-k-apple-revoke-contract.sh      # the same stack: the function that tells Apple, served, with this app's body among the three
 bash docs/checks/10.5-iv-a-door-contract.sh         # the same stack: the one door, every key the list reads, asked as a neighbour
+bash docs/checks/10.5b-iii-a-reserving-contract.sh  # the same stack: reserving, giving back, collecting and her standing, by apartados.ts's names
 TZ=UTC npm --prefix itacate test          # CI's zone: the list's days and windows are local time, and the Mac is UTC−6
 bash store/cocina-itacate/render.sh itacate-icono   # the iPhone's icon, the cow on the blue — and nothing else (native on the iPhone)
 ```
@@ -89,8 +90,11 @@ from `itacate/` with the two local `EXPO_PUBLIC_SUPABASE_` values in the shell, 
   ⚠️ **Since `0079` (`10.5b-i`) a line's `quantity` is what is LEFT** once neighbours reserve — what this app
   has always drawn as *Quedan N* — and a line with nothing left is not sent, because `countOf` refuses 0; the
   door also sends each line's `para_llevar` and `para_aqui`, each offer's `container_price` and each kitchen's
-  `payment` and `eat`, which this app reads from `10.5b-iii`. Reserving's own functions (`reserve_plate`,
-  `my_reservations`, `cancel_my_reservation`, `confirm_my_pickup`) are `supabase/README.md`'s `0079` row.
+  `payment` and `eat`, which this app reads since `10.5b-iii-a` (with `0080`'s `min_score` and `stars`). ⚠️ **Reserving's
+  claim is `src/api/apartados.ts`** (`10.5b-iii-a`): `0079`'s `reserve_plate`, `my_reservations`, `cancel_my_reservation`,
+  `confirm_my_pickup` and `0080`'s `give_my_yes`, `my_standing` (`supabase/README.md`'s rows) — every argument and key read,
+  the states drawn, the refusals turned into sentences — asked as a neighbour against a real PostgREST by
+  `docs/checks/10.5b-iii-a-reserving-contract.sh` (its own job in `db.yml`, `itacate-reserving`; its falsifier breaks the file).
 - **Sign-in leans on two settings outside this repository**, both made by the owner's one command,
   `bash docs/runbooks/set-itacate-sign-in.sh` (a session's write to either is refused), and read
   back by `--check`: the three values its bundle reads in this EAS project's `preview` and, since
@@ -173,8 +177,9 @@ from `itacate/` with the two local `EXPO_PUBLIC_SUPABASE_` values in the shell, 
   links open Google Maps and send nothing of hers**: *Cómo llegar* is Google's Maps URLs (no key, nothing
   billed), to her own pin, else her address as she wrote it — never Google's 30-day copy — with no origin;
   *Ver en Google Maps* opens her link only when `mapsLinkOk` (the database's rule, Wera Cocina's copy)
-  takes it. The reserving is `10.5b`'s: no button, no line about paying. The price, *Quedan* and *Sorpresa*
-  are `@/ui/Precio`'s, drawn alike on the list and both pages.
+  takes it. The price, *Quedan* and *Sorpresa* are `@/ui/Precio`'s, drawn alike on the list and both pages.
+  ⚠️ **Since `10.5b-iii-a` a dish's page reserves** — the next bullet; a kitchen's page shows no payment and no stars
+  until `10.5b-iii-b`.
   ⚠️⚠️ **Since `10.5-v-c-ii` what each page draws is a component — `@/ui/PaginaDeCocina`, `@/ui/PaginaDePlatillo` —
   handed the kitchen, her trade's name, the distance in words and the clock by its route**, which alone reads (the door,
   `useDistancia`); `@/ui/FilaCocina` takes the distance in words too. **Wera Cocina copies both, with every part they
@@ -186,6 +191,22 @@ from `itacate/` with the two local `EXPO_PUBLIC_SUPABASE_` values in the shell, 
   dish from her page. ⚠️ **Since `10.5-v-d` the list's dish card is copied too** — `@/ui/TarjetaPlatillo`, taking its
   kitchen, offer and dish one by one and the distance in words (the list passes `distanciaTexto`), drawn at the foot of
   Wera Cocina's *Tu oferta de hoy* as she types: the same rule, a change here is copied there in the same PR.
+- **Reserving and collecting** (`10.5b-iii-a`; slice 3's design of 2026-11-05 and `10.5b-ii`'s final design of
+  2026-11-10). A dish's page says how it is eaten and how she pays at the kitchen, and **its foot is the route's, never the
+  page's** (`pie`, a slot `@/ui/PaginaDePlatillo` takes and Wera Cocina's copy leaves empty): `@/ui/PieDeApartar`, *Apartar · $60*
+  or why not, chosen by `@/lib/apartar`'s `pieDe`. The sheet (`@/ui/HojaApartar`): her yes once, then how she eats it, her hour
+  in quarter hours, how she pays, the total, her code. Every rule in `@/lib/apartar` is one `reserve_plate` also enforces, worked
+  out again so the phone offers only what will be taken; the database answers last. ⚠️ **The reservation's id is made on the
+  phone** (`@/lib/ids`), new for each changed choice, so a tap sent again after a lost answer is the same reservation — and so
+  **her code's hour is the one the database kept under that id**, never only the chip she tapped. ⚠️ **The sheet keeps the dish
+  it opened on**: once the LAST plate is hers the door stops sending the dish, and the page must not take her code with it.
+  *Apartados* (`(vecino)/(tabs)/apartados`, `@/ui/BoletoApartado`, `@/lib/apartados`): her tickets, a kitchen's cancel while its
+  window is open, ⚠️ **a plate that *se liberó* less than a day ago, which keeps its swipe** (`confirm_my_pickup` takes *Ya lo
+  tengo* for that day, and it keeps the clock's *No se presentó* off her score), and *Anteriores*. Her reservations are read
+  every minute while one is pending, and ⚠️ **her standing (`my_standing`) again whenever what is pending changes** — a handover
+  on the kitchen's phone changes her limit. *Ya lo tengo* is a swipe (`@/ui/Deslizar`, `@/lib/deslizar`): how far is Wera's
+  slide that sells (`app/src/cart/commit.ts`'s `COMMIT_AT`, read by `test/apartados.test.ts`). *Tú* shows her score from her
+  third thumb, rounded down. Both reads are keyed on the login and held in memory only, as every read here.
 - **The map, with the list sliding over it** (`10.5-iv-b-i`; the owner's answer 4 of 2026-11-05, *C*, as the family-shell
   page draws *Cerca*). *Cerca* is two layers: **Google's map, the whole screen** (`@/ui/MapaDeCocinas`) — every kitchen the
   door sends as a pin in her colour with her trade's drawing, faded when quiet, wherever she moves it (his ruling of
@@ -290,7 +311,7 @@ follows it, as `cocina/CLAUDE.md`'s does:
 
 - **The tab bar is *Cerca · Apartados · Mis cocinas · Tú*** — four tabs at most, each with its word; the two ends never move; a tab appears only when
   its feature ships; a new feature arrives first as a card on *Cerca*. Wera's JavaScript tabs, not native tabs. ⚠️ **Built by `10.5-v-b`**:
-  the tabs are data (`@/navigation/pestanas` — the two middle ones name the rows that bring them, `10.5b` and `10.9`), the bar is drawn by
+  the tabs are data (`@/navigation/pestanas` — a tab not yet in use names the row that brings it: *Apartados* is in use since `10.5b-iii-a`, *Mis cocinas* waits for `10.9`), the bar is drawn by
   `@/ui/Pestanas` on `expo-router/js-tabs` (the tab in use: blue, a heavier word and a pill of the blue's tint — ⚠️ the other pills the bar's
   white, never `transparent`, since `10.5-v-c-i`: Android squared every pill after the first switch), and `(vecino)/(tabs)/` holds
   exactly the tabs in use — `test/pestanas.test.ts` refuses a screen there that is not one. A tab draws `@/ui/Cabeza` (no *Volver*: a tab is
@@ -305,9 +326,10 @@ follows it, as `cocina/CLAUDE.md`'s does:
   opacity only (§2.11). ⚠️ **Built by `10.5-v-b`:** `@/theme/letra` and `src/marca/letras/` are Wera's file and font byte for byte,
   loaded by the root before the first screen (the phone's face if the load fails); `PALETTE.accion` is the blue, held to `app.json`'s
   icon ground; the motion's numbers are `@/theme/movimiento`'s, drawn by `@/ui/Llega` (a screen's first blocks, once, on mount),
-  `@/ui/Hoja` (a sheet's spring) and, since `10.5-iv-b-i`, `@/ui/HojaDeLista` (the list sliding over the map) — **the only three
-  modules that import Reanimated**, their animated styles `opacity` and `transform` alone (`test/pestanas.test.ts`); the
-  last is also the one module with a gesture (`react-native-gesture-handler`, its root in `app/_layout.tsx`). Reanimated's native half was in this app's first build (`libreanimated.so` and `libworklets.so`
+  `@/ui/Hoja` (a sheet's spring), since `10.5-iv-b-i` `@/ui/HojaDeLista` (the list sliding over the map) and since `10.5b-iii-a`
+  `@/ui/Deslizar` (*Ya lo tengo*'s swipe) — **the only four modules that import Reanimated**, their animated styles `opacity` and
+  `transform` alone (`test/pestanas.test.ts`); the last two are the only modules with a gesture (`react-native-gesture-handler`,
+  its root in `app/_layout.tsx`). Reanimated's native half was in this app's first build (`libreanimated.so` and `libworklets.so`
   read inside the test build's APK) and Expo's Babel preset adds its worklets plugin by itself; `10.5-v-b` is the first JavaScript to
   use it in any of the three apps. ⚠️ **The two pages keep their look** (their head is Wera Cocina's preview, `cocina/src/ui/Portada.tsx`)
   until Wera Cocina's shell (`10.5-v-c`) gives both apps' copies Nunito.

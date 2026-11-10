@@ -57,16 +57,14 @@ describe('the tab bar — Cerca · Apartados · Mis cocinas · Tú (the ruling o
     expect(PESTANAS.length).toBeLessThanOrEqual(4);
   });
 
-  it('the two ends never move, and only they are drawn until reserving and the stamp card ship', () => {
+  it('the two ends never move; Apartados is drawn since reserving shipped (`10.5b-iii-a`), Mis cocinas waits for the stamp card', () => {
     expect(PESTANAS[0].ruta).toBe('index');
     expect(PESTANAS[PESTANAS.length - 1].ruta).toBe('tu');
-    expect(EN_USO.map((p) => p.label)).toEqual(['Cerca', 'Tú']);
-    expect(PESTANAS.filter((p) => p.llega !== null).map((p) => [p.label, p.llega])).toEqual([
-      ['Apartados', '10.5b'],
-      ['Mis cocinas', '10.9'],
-    ]);
+    expect(EN_USO.map((p) => p.label)).toEqual(['Cerca', 'Apartados', 'Tú']);
+    expect(PESTANAS.filter((p) => p.llega !== null).map((p) => [p.label, p.llega])).toEqual([['Mis cocinas', '10.9']]);
     expect(pestanaDe('tu')?.label).toBe('Tú');
-    expect(pestanaDe('apartados')).toBeNull();
+    expect(pestanaDe('apartados')?.label).toBe('Apartados');
+    expect(pestanaDe('mis-cocinas')).toBeNull();
   });
 
   it('every glyph is in the icon set the bar draws with', () => {
@@ -156,13 +154,13 @@ describe('one staggered entrance per screen, transform and opacity only (ADR-035
     expect(razon).toBeLessThan(0.95);
   });
 
-  it('Reanimated is drawn by the motion parts alone — and, since `10.5-iv-b-i`, the list sliding over the map — their styles opacity and transform only', () => {
+  it('Reanimated is drawn by the motion parts alone — and the list sliding over the map (`10.5-iv-b-i`) and *Ya lo tengo*\'s swipe (`10.5b-iii-a`) — their styles opacity and transform only', () => {
     const animators = files.filter((f) => /from 'react-native-reanimated'/.test(f.text)).map((f) => f.name);
-    expect(animators.sort()).toEqual(['ui/Hoja.tsx', 'ui/HojaDeLista.tsx', 'ui/Llega.tsx']);
+    expect(animators.sort()).toEqual(['ui/Deslizar.tsx', 'ui/Hoja.tsx', 'ui/HojaDeLista.tsx', 'ui/Llega.tsx']);
     const estilos = animators.flatMap((name) => [...code(name).matchAll(/useAnimatedStyle\(\(\) => \(\{([\s\S]*?)\}\)\)/g)].map((m) => m[1]));
-    expect(estilos.length).toBe(4);
+    expect(estilos.length).toBe(6);
     for (const estilo of estilos) {
-      const claves = [...estilo.matchAll(/(?:^|[{,]\s*)([a-zA-Z]+):/g)].map((m) => m[1]).filter((k) => k !== 'translateY');
+      const claves = [...estilo.matchAll(/(?:^|[{,]\s*)([a-zA-Z]+):/g)].map((m) => m[1]).filter((k) => k !== 'translateY' && k !== 'translateX');
       expect(claves.every((clave) => clave === 'opacity' || clave === 'transform'), estilo).toBe(true);
     }
     // And nothing else animates: no core `Animated`, no layout animation.
@@ -179,8 +177,8 @@ describe('one staggered entrance per screen, transform and opacity only (ADR-035
     }
   });
 
-  it('every screen of the shell arrives — the two tabs, Dónde buscar and the way in', () => {
-    for (const path of ['app/(vecino)/(tabs)/index.tsx', 'app/(vecino)/(tabs)/tu.tsx', 'app/(vecino)/donde.tsx', 'app/(auth)/entrar.tsx']) {
+  it('every screen of the shell arrives — the three tabs, Dónde buscar and the way in', () => {
+    for (const path of ['app/(vecino)/(tabs)/index.tsx', 'app/(vecino)/(tabs)/apartados.tsx', 'app/(vecino)/(tabs)/tu.tsx', 'app/(vecino)/donde.tsx', 'app/(auth)/entrar.tsx']) {
       expect(code(path), path).toMatch(/<Llega i=\{0\}/);
     }
     // The list's cards arrive in their order; a new order is not a second arrival (keyed cards).
