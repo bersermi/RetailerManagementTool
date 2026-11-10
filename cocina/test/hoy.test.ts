@@ -153,21 +153,54 @@ describe('the day’s card', () => {
     const abierta = oferta('a', { start: nov(6, 16), end: nov(6, 18), lines: [linea('Comida corrida', 8), linea('Enchiladas verdes', 4)] });
     const luego = oferta('b', { start: nov(6, 17), end: nov(6, 19, 30), lines: [linea('Bolsa de pan', 5, 4500, true)] });
     const termino = oferta('c', { start: nov(6, 12), end: nov(6, 14), lines: [linea('Pozole', 6)] });
+    // Until her reservations are read (`10.5b-iv-a`): what is on offer, and nothing about what is taken.
     expect(diaDe([termino, luego, abierta], ahora())).toEqual({
       kind: 'oferta',
       total: 17,
+      de: null,
+      entregados: null,
       desde: nov(6, 16),
       hasta: nov(6, 19, 30),
       renglones: [
-        { key: 'a:0', nombre: 'Comida corrida', cuantos: 8, terminada: false },
-        { key: 'a:1', nombre: 'Enchiladas verdes', cuantos: 4, terminada: false },
-        { key: 'b:0', nombre: 'Bolsa de pan', cuantos: 5, terminada: false },
-        { key: 'c:0', nombre: 'Pozole', cuantos: 6, terminada: true },
+        { key: 'a:0', nombre: 'Comida corrida', cuantos: 8, de: null, terminada: false },
+        { key: 'a:1', nombre: 'Enchiladas verdes', cuantos: 4, de: null, terminada: false },
+        { key: 'b:0', nombre: 'Bolsa de pan', cuantos: 5, de: null, terminada: false },
+        { key: 'c:0', nombre: 'Pozole', cuantos: 6, de: null, terminada: true },
       ],
     });
     expect(ES.hoy.porciones(17)).toBe('17 porciones en oferta');
     expect(ES.hoy.porciones(1)).toBe('1 porción en oferta');
     expect(ES.hoy.enOferta(4)).toBe('4 en oferta');
+  });
+
+  it('`10.5b-iv-a`: once her reservations are read, what is LEFT of each dish and in all, and how many she handed over', () => {
+    const abierta = oferta('a', { start: nov(6, 16), end: nov(6, 18), lines: [linea('Comida corrida', 8), linea('Enchiladas verdes', 4)] });
+    const luego = oferta('b', { start: nov(6, 17), end: nov(6, 19, 30), lines: [linea('Bolsa de pan', 5, 4500, true)] });
+    const termino = oferta('c', { start: nov(6, 12), end: nov(6, 14), lines: [linea('Pozole', 6)] });
+    // A dish's key is its offer and its LINE NUMBER — its place in the offer, from 1 (`publish_listing`'s `v_i`).
+    const tomados = new Map([['a:1', 3], ['a:2', 1], ['c:1', 6]]);
+    const dia = diaDe([termino, luego, abierta], ahora(), { tomados, entregados: 2 });
+    expect(dia).toEqual({
+      kind: 'oferta',
+      total: 13,
+      de: 17,
+      entregados: 2,
+      desde: nov(6, 16),
+      hasta: nov(6, 19, 30),
+      renglones: [
+        { key: 'a:0', nombre: 'Comida corrida', cuantos: 5, de: 8, terminada: false },
+        { key: 'a:1', nombre: 'Enchiladas verdes', cuantos: 3, de: 4, terminada: false },
+        { key: 'b:0', nombre: 'Bolsa de pan', cuantos: 5, de: 5, terminada: false },
+        { key: 'c:0', nombre: 'Pozole', cuantos: 0, de: 6, terminada: true },
+      ],
+    });
+    // Never below zero, though the database never lets it be.
+    const sobrado = diaDe([abierta], ahora(), { tomados: new Map([['a:1', 99]]), entregados: 0 });
+    expect(sobrado.kind === 'oferta' && sobrado.renglones[0].cuantos).toBe(0);
+    expect(ES.hoy.quedan(13, 17)).toBe('Quedan 13 de 17');
+    expect(ES.hoy.quedanRenglon(5, 8)).toBe('quedan 5 de 8');
+    expect(ES.hoy.yEntregados('Faltan 1 h 40 min', 1)).toBe('Faltan 1 h 40 min · 1 entregado');
+    expect(ES.hoy.yEntregados('Faltan 1 h 40 min', 2)).toBe('Faltan 1 h 40 min · 2 entregados');
   });
 
   it('until when, and the time left — before the first window opens, when it starts', () => {
@@ -374,11 +407,16 @@ const code = (path: string) =>
 describe('Hoy — a hub: a number and a door in each zone, nothing edited in place', () => {
   const hoy = code('app/(cocina)/(tabs)/index.tsx');
 
-  it('the day’s card first, opening Tus ofertas; then Publicar with Repetir; then the doors', () => {
-    const order = ['<DiaDeHoy', 'ES.publicar.abrir', 'chips.map(', '<Puertas'].map((s) => hoy.indexOf(s));
+  it('the day’s card first, opening Tus ofertas; then Lo que sigue; then Publicar with Repetir; then the doors', () => {
+    const order = ['<DiaDeHoy', '<LoQueSigue', 'ES.publicar.abrir', 'chips.map(', '<Puertas'].map((s) => hoy.indexOf(s));
     expect(order.every((at) => at > 0)).toBe(true);
     expect([...order].sort((a, b) => a - b)).toEqual(order);
-    expect(hoy).toMatch(/<DiaDeHoy dia=\{diaDe\(listings\.data, ahora\)\} ahora=\{ahora\} onPress=\{\(\) => router\.push\('\/ofertas'\)\} \/>/);
+    // `10.5b-iv-a`: the card is handed what is taken once her reservations are read, and `null` until then.
+    expect(hoy).toMatch(/<DiaDeHoy dia=\{diaDe\(listings\.data, ahora, cuentas\)\} ahora=\{ahora\} onPress=\{\(\) => router\.push\('\/ofertas'\)\} \/>/);
+    expect(hoy).toMatch(/apartados\.data === undefined \|\| ordenes === null\s*\?\s*null/);
+    // *Lo que sigue* is drawn only while something is still to hand over; *Entregar* opens the code.
+    expect(hoy).toMatch(/\{sigue !== null && \(/);
+    expect(hoy).toMatch(/onEntregar=\{\(\) => router\.push\('\/entregar'\)\}/);
     expect(hoy).toMatch(/onPress=\{\(\) => void repetir\(listing\)\}/);
   });
 

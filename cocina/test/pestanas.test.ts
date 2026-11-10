@@ -57,16 +57,14 @@ describe('the tab bar — Hoy · Apartados · Clientes · Mi cocina (the ruling 
     expect(PESTANAS.length).toBeLessThanOrEqual(4);
   });
 
-  it('the two ends never move, and only they are drawn until reserving and the stamp card ship', () => {
+  it('the two ends never move, and Apartados is drawn since the handover shipped — the stamp card still waits', () => {
     expect(PESTANAS[0].ruta).toBe('index');
     expect(PESTANAS[PESTANAS.length - 1].ruta).toBe('mi-cocina');
-    expect(EN_USO.map((p) => p.label)).toEqual(['Hoy', 'Mi cocina']);
-    expect(PESTANAS.filter((p) => p.llega !== null).map((p) => [p.label, p.llega])).toEqual([
-      ['Apartados', '10.5b'],
-      ['Clientes', '10.9'],
-    ]);
+    expect(EN_USO.map((p) => p.label)).toEqual(['Hoy', 'Apartados', 'Mi cocina']);
+    expect(PESTANAS.filter((p) => p.llega !== null).map((p) => [p.label, p.llega])).toEqual([['Clientes', '10.9']]);
     expect(pestanaDe('mi-cocina')?.label).toBe('Mi cocina');
-    expect(pestanaDe('apartados')).toBeNull();
+    expect(pestanaDe('apartados')?.label).toBe('Apartados');
+    expect(pestanaDe('clientes')).toBeNull();
   });
 
   it('every glyph is in the icon set the bar draws with', () => {
@@ -89,7 +87,8 @@ describe('the tab bar — Hoy · Apartados · Clientes · Mi cocina (the ruling 
     expect(layout).toMatch(/import \{ Tabs \} from 'expo-router\/js-tabs';/);
     expect(layout).not.toMatch(/native-tabs|NativeTabs/);
     expect(layout).toMatch(/EN_USO\.map\(/);
-    expect(layout).toMatch(/tabBar=\{\(props\) => <Pestanas \{\.\.\.props\} \/>\}/);
+    // `10.5b-iv-a`: the bar is handed the counts — what waits for her thumb, on *Apartados*.
+    expect(layout).toMatch(/tabBar=\{\(props\) => <Pestanas \{\.\.\.props\} cuentas=\{cuentas\} \/>\}/);
     const bar = code('ui/Pestanas.tsx');
     // The press is told to the tab first, as react-navigation's own bar does.
     expect(bar).toMatch(/navigation\.emit\(\{ type: 'tabPress', target: route\.key, canPreventDefault: true \}\)/);

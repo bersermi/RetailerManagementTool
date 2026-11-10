@@ -34,8 +34,8 @@ export interface Pestana {
 export const PESTANAS: readonly Pestana[] = [
   // A sun: her day — what is on offer now, and the one action, publishing.
   { ruta: 'index', label: ES.pestanas.hoy, icono: 'white-balance-sunny', llega: null },
-  // A ticket: what neighbours reserved, to hand over with its code — reserving is `10.5b`'s.
-  { ruta: 'apartados', label: ES.pestanas.apartados, icono: 'ticket-confirmation-outline', llega: '10.5b' },
+  // A ticket: what neighbours reserved, to hand over with its code — in use since `10.5b-iv-a`.
+  { ruta: 'apartados', label: ES.pestanas.apartados, icono: 'ticket-confirmation-outline', llega: null },
   // People: her stamp card, who follows her, her numbers (the services, `10.9`).
   { ruta: 'clientes', label: ES.pestanas.clientes, icono: 'account-group-outline', llega: '10.9' },
   // A shop front: what she sets once — her page, where she hands food over, her trade, her account.

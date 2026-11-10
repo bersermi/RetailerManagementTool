@@ -5,13 +5,15 @@
 // `10.5-iii-c` (her kitchen deleted alone, her login kept),
 // `10.4b-iv-a` (what she publishes: her list, publishing, withdrawing),
 // `10.4h` (address first: her line with no pin, and her pin cleared), `10.5-ii`
-// (her page in Itacate, and the pictures that go up before what points at them) and
-// `10.5-i-b-ii` (Google's point for her address, kept as a 30-day copy).
+// (her page in Itacate, and the pictures that go up before what points at them),
+// `10.5-i-b-ii` (Google's point for her address, kept as a 30-day copy) and
+// `10.5b-iv-a` (her kitchen's reservations, the handover and the fonda's thumb).
 //
 // ⚠️ THE IMPURE HALF OF `src/api/` (ADR-035 §2.11): the only module here that
 // imports the live client, so no node suite can load it; every name it sends is
 // a constant from a pure module beside it (`@/api/kitchen`, `@/api/place`,
-// `@/api/account`, `@/api/listing`, `@/api/pagina`, `@/api/fotos`), which the
+// `@/api/account`, `@/api/listing`, `@/api/pagina`, `@/api/fotos`,
+// `@/api/apartados`), which the
 // suite and the contract checks read. Screens reach these through `@/api/hooks`.
 // ============================================================================
 
@@ -35,6 +37,28 @@ import {
   type Deleted,
   type OwnerRow,
 } from '@/api/account';
+import {
+  HAND_OVER_RESERVATION,
+  RATE_NEIGHBOUR,
+  RESERVATION_COLUMNS,
+  RESERVATION_DAY_COLUMN,
+  RESERVATION_LINES_TABLE,
+  RESERVATION_LINE_ORDER,
+  RESERVATION_NEIGHBOURS,
+  RESERVATION_ORDER,
+  RESERVATION_OWNER_COLUMN,
+  RESERVATION_TABLE,
+  entregadoFrom,
+  neighboursArgs,
+  pulgarDadoFrom,
+  reservasFrom,
+  vecinosFrom,
+  type HandOverArgs,
+  type Pulgar,
+  type RateNeighbourArgs,
+  type Reserva,
+  type SobreElVecino,
+} from '@/api/apartados';
 import type { DireccionCalls } from '@/api/direccion';
 import {
   PHOTO_BUCKET,
@@ -218,6 +242,45 @@ export async function myListings(kitchenId: string): Promise<Listing[]> {
   const { data, error } = await query.order(LINE_ORDER, { referencedTable: LINES_TABLE }).limit(LISTING_LIMIT);
   if (error) throw error;
   return listingsFrom(data);
+}
+
+/**
+ * ⚠️ `10.5b-iv-a`: HER KITCHEN'S RESERVATIONS FROM `desde` ON (`YYYY-MM-DD`, the day she
+ * collects), her hour first, each with its lines and their dishes. FILTERED ON THE KITCHEN,
+ * as her list is: the walls show a login every kitchen she belongs to. ⚠️ THE LINES' ORDER
+ * IS THE EMBED'S OWN (`referencedTable`), as `myListings`' is.
+ */
+export async function myReservations(kitchenId: string, desde: string): Promise<Reserva[]> {
+  let query = supabase
+    .from(RESERVATION_TABLE)
+    .select(RESERVATION_COLUMNS)
+    .eq(RESERVATION_OWNER_COLUMN, kitchenId)
+    .gte(RESERVATION_DAY_COLUMN, desde);
+  for (const { column, ascending } of RESERVATION_ORDER.split(',').map(orderTerm)) query = query.order(column, { ascending });
+  const { data, error } = await query.order(RESERVATION_LINE_ORDER, { referencedTable: RESERVATION_LINES_TABLE });
+  if (error) throw error;
+  return reservasFrom(data);
+}
+
+/** `10.5b-iv-a`: who reserved each of the last 30 days' orders, while it waits, and its thumb (`0080`). */
+export async function reservationNeighbours(kitchenId: string): Promise<Record<string, SobreElVecino>> {
+  const { data, error } = await supabase.rpc(RESERVATION_NEIGHBOURS, neighboursArgs(kitchenId));
+  if (error) throw error;
+  return vecinosFrom(data);
+}
+
+/** `10.5b-iv-a`: *Ya cobré y lo entregué* — and *Sí pasó* (`0079`, `0080`). ⚠️ Always recorded; a retry keeps the first moment. */
+export async function handOverReservation(args: HandOverArgs): Promise<void> {
+  const { data, error } = await supabase.rpc(HAND_OVER_RESERVATION, args);
+  if (error) throw error;
+  entregadoFrom(data);
+}
+
+/** `10.5b-iv-a`: the fonda's thumb on one order (`0080`). A retry of the same thumb answers it. */
+export async function rateNeighbour(args: RateNeighbourArgs): Promise<Pulgar> {
+  const { data, error } = await supabase.rpc(RATE_NEIGHBOUR, args);
+  if (error) throw error;
+  return pulgarDadoFrom(data);
 }
 
 /** Publishes the window and its lines in one call (`0072`). ⚠️ The id is the phone's; a retry returns it. */

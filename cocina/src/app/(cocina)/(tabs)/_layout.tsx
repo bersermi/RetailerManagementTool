@@ -1,7 +1,9 @@
 import { Tabs } from 'expo-router/js-tabs';
 
-import { useKitchen, usePlace } from '@/api/hooks';
+import { useApartados, useKitchen, usePlace } from '@/api/hooks';
+import { ordenesDe, porCalificar } from '@/lib/apartados';
 import { RecordatorioProvider } from '@/lib/RecordatorioProvider';
+import { useAhora } from '@/lib/useAhora';
 import { useDondeEstaSuCocina } from '@/lib/useGoogle';
 import { EN_USO } from '@/navigation/pestanas';
 import { Pestanas } from '@/ui/Pestanas';
@@ -24,6 +26,9 @@ import { Pestanas } from '@/ui/Pestanas';
 // opens it — so the refresh moved to what is always mounted, and *Mi cocina*'s small map
 // reads the same answer (one query, one request).
 //
+// ⚠️ `10.5b-iv-a`: *APARTADOS* IS A TAB, AND ITS COUNT IS READ HERE (`useCuentas`): what waits for
+// her thumb, handed to the bar.
+//
 // ⚠️ `10.5-v-c-ii`: HER REMINDER LIVES HERE TOO (`@/lib/RecordatorioProvider`) — *Hoy* asks
 // its question and *Mi cocina* keeps its row, both tabs mounted at once, so her answer, the
 // one sheet both open, what her phone schedules and a tap that opens *Publicar* are held
@@ -33,15 +38,28 @@ import { Pestanas } from '@/ui/Pestanas';
 export default function TabsDeCocina() {
   useRefrescoDeSuPunto();
   const kitchen = useKitchen();
+  const cuentas = useCuentas(kitchen?.id ?? null);
   return (
     <RecordatorioProvider kitchenId={kitchen?.id ?? null}>
-      <Tabs screenOptions={{ headerShown: false }} tabBar={(props) => <Pestanas {...props} />}>
+      <Tabs screenOptions={{ headerShown: false }} tabBar={(props) => <Pestanas {...props} cuentas={cuentas} />}>
         {EN_USO.map((pestana) => (
           <Tabs.Screen key={pestana.ruta} name={pestana.ruta} options={{ title: pestana.label }} />
         ))}
       </Tabs>
     </RecordatorioProvider>
   );
+}
+
+/**
+ * ⚠️ `10.5b-iv-a`: THE COUNT ON *APARTADOS* — what waits for her thumb (the final design: *Por
+ * calificar with a count on the tab*). Read here, always mounted, from the same query the tab
+ * reads — one request — and with the clock, so a window's end adds to it on its own.
+ */
+function useCuentas(kitchenId: string | null): { readonly apartados: number } {
+  const apartados = useApartados(kitchenId);
+  const ahora = useAhora(60_000);
+  const datos = apartados.data;
+  return { apartados: datos === undefined ? 0 : porCalificar(ordenesDe(datos.reservas, datos.vecinos, ahora), ahora) };
 }
 
 /** Her kitchen's copy of Google's point, kept fresh — nothing on screen says any of it. */
