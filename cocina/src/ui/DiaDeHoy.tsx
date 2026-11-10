@@ -9,7 +9,8 @@ import { PALETTE, SIZE } from '@/theme/palette';
 // *HOY*'S FIRST ZONE — THE DAY AT A GLANCE (the family-shell page's green card, round
 // 6). Plan task `10.5-v-c-i`. With something on offer: *Hoy en Itacate* and until when,
 // how many plates in all, the time left as a bar, each dish on a line — *4 en oferta*
-// or *Terminada* — and *Faltan 1 h 40 min*. With nothing: *Hoy todavía no has
+// or *Terminada* — and *Faltan 1 h 40 min*; since `10.5b-iv-a`, once her reservations are
+// read, *Quedan 4 de 8*, *quedan 2 de 5* and *Faltan 1 h 40 min · 1 entregado*. With nothing: *Hoy todavía no has
 // publicado* and when she last did; once today's is over, *Por hoy ya se terminó*.
 //
 // ⚠️ THE WHOLE CARD IS ONE DOOR, TO *TUS OFERTAS* — nothing on it is edited in place
@@ -51,9 +52,11 @@ export function DiaDeHoy({ dia, ahora, onPress }: { dia: Dia; ahora: Date; onPre
 
   const quedan = dia.renglones.length - RENGLONES_EN_LA_TARJETA;
   const fraccion = fraccionDe(dia.desde, dia.hasta, ahora);
-  const grande = ES.hoy.porciones(dia.total);
+  // ⚠️ `10.5b-iv-a`: once her reservations are read, what is LEFT of what she offers.
+  const grande = dia.de === null ? ES.hoy.porciones(dia.total) : ES.hoy.quedan(dia.total, dia.de);
   const hasta = hastaTexto(dia.hasta, ahora);
-  const falta = faltaTexto(dia.desde, dia.hasta, ahora);
+  const sinEntregados = faltaTexto(dia.desde, dia.hasta, ahora);
+  const falta = dia.entregados === null || dia.entregados === 0 ? sinEntregados : ES.hoy.yEntregados(sinEntregados, dia.entregados);
   return (
     <Pressable
       accessibilityRole="button"
@@ -84,7 +87,11 @@ export function DiaDeHoy({ dia, ahora, onPress }: { dia: Dia; ahora: Date; onPre
               {renglon.nombre}
             </Text>
             <Text style={{ fontSize: SIZE.bodySize - 1, fontWeight: '700', color: renglon.terminada ? PALETTE.sobreAccionApagada : PALETTE.sobreAccion }}>
-              {renglon.terminada ? ES.hoy.terminada : ES.hoy.enOferta(renglon.cuantos)}
+              {renglon.terminada
+                ? ES.hoy.terminada
+                : renglon.de === null
+                  ? ES.hoy.enOferta(renglon.cuantos)
+                  : ES.hoy.quedanRenglon(renglon.cuantos, renglon.de)}
             </Text>
           </View>
         ))}

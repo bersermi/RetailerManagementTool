@@ -3,8 +3,10 @@ import type { BottomTabBarProps } from 'expo-router/js-tabs';
 import { Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { pestanaDe } from '@/navigation/pestanas';
+import { pestanaDe, type Pestana } from '@/navigation/pestanas';
+import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { Cuenta } from '@/ui/Segmento';
 
 // ============================================================================
 // THE TAB BAR ITSELF. Plan task `10.5-v-c-i`: Itacate's bar (`itacate/src/ui/Pestanas.tsx`,
@@ -18,11 +20,15 @@ import { PALETTE, SIZE } from '@/theme/palette';
 // bar has no room for it. ⚠️ IT DOES WHAT THE DEFAULT BAR DOES ON A PRESS — it tells
 // the tab first (`tabPress`, which a screen may stop) and moves only if nobody did.
 // The device's bottom inset is added under it, so the words never sit under the
-// gesture bar or the home indicator. NO CHECK CAN SEE IT (§2.11): the phone is the
-// instrument.
+// gesture bar or the home indicator. ⚠️ `10.5b-iv-a`: a tab may carry a count in a rust
+// round over its glyph (`cuentas`) — *Apartados*' is what waits for her thumb. NO CHECK CAN
+// SEE IT (§2.11): the phone is the instrument.
 // ============================================================================
 
-export function Pestanas({ state, navigation }: BottomTabBarProps) {
+/** A count beside a tab's glyph, by its route — `10.5b-iv-a`: what waits for her thumb on *Apartados*. */
+export type Cuentas = Partial<Record<Pestana['ruta'], number>>;
+
+export function Pestanas({ state, navigation, cuentas = {} }: BottomTabBarProps & { cuentas?: Cuentas }) {
   const insets = useSafeAreaInsets();
   return (
     <View
@@ -42,6 +48,7 @@ export function Pestanas({ state, navigation }: BottomTabBarProps) {
         if (pestana === null) return null;
         const enUso = state.index === index;
         const color = enUso ? PALETTE.accion : PALETTE.tintaApagada;
+        const cuenta = cuentas[pestana.ruta] ?? 0;
         const tocar = () => {
           const evento = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
           if (!enUso && !evento.defaultPrevented) navigation.navigate(route.name, route.params);
@@ -50,7 +57,7 @@ export function Pestanas({ state, navigation }: BottomTabBarProps) {
           <Pressable
             key={route.key}
             accessibilityRole="tab"
-            accessibilityLabel={pestana.label}
+            accessibilityLabel={cuenta > 0 ? `${pestana.label}, ${ES.apartados.cuentaAyuda(cuenta)}` : pestana.label}
             accessibilityState={{ selected: enUso }}
             onPress={tocar}
             style={{ flex: 1, maxWidth: 112, minHeight: SIZE.tapTarget, alignItems: 'center', justifyContent: 'center', gap: 3 }}
@@ -69,6 +76,11 @@ export function Pestanas({ state, navigation }: BottomTabBarProps) {
               }}
             >
               <MaterialCommunityIcons name={pestana.icono} size={SIZE.iconSize} color={color} />
+              {cuenta > 0 && (
+                <View style={{ position: 'absolute', top: -3, right: 4 }}>
+                  <Cuenta n={cuenta} />
+                </View>
+              )}
             </View>
             <Text style={{ fontSize: 12, fontWeight: enUso ? '700' : '600', color }}>{pestana.label}</Text>
           </Pressable>

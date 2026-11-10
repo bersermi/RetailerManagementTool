@@ -104,6 +104,14 @@ on:
       # drawn and the refusals turned into sentences. Its own job, `itacate-reserving`, below.
       - "docs/checks/10.5b-iii-a-reserving-contract.sh"
       - "docs/checks/10.5b-iii-a-reserving-contract-falsify.sh"
+      # ⚠️ `10.5b-iv-a`, WERA COCINA HANDS OVER: `cocina/src/api/apartados.ts` (under
+      # `cocina/src/api/**` above) reads her kitchen's reservations from `0079`'s table — its
+      # columns, a two-level embed, the day bound and the order — and names `0080`'s
+      # `reservation_neighbours` and `rate_neighbour` and `hand_over_reservation`, every argument
+      # and key, the labels it sends and the refusals it turns into sentences. Its own job,
+      # `cocina-handover`, below; the neighbour reserves through Itacate's names.
+      - "docs/checks/10.5b-iv-a-handover-contract.sh"
+      - "docs/checks/10.5b-iv-a-handover-contract-falsify.sh"
       # ⚠️⚠️ AND THE ROSTER'S, as of plan task 5b-ii-a. `app/src/api/members.ts`
       # is a second claim about the applied schema — two column lists — and it
       # carries something `workspace.ts` does not: a claim about a POLICY. The
@@ -2417,6 +2425,46 @@ jobs:
 
       - name: Contract — can the reserving check still fail (its own fixtures; the runner counts them)
         run: bash docs/checks/10.5b-iii-a-reserving-contract-falsify.sh
+
+      - name: Stop
+        if: always()
+        run: supabase stop --no-backup
+
+  # ===========================================================================
+  # WERA COCINA HANDS OVER (plan `10.5b-iv-a`): `cocina/src/api/apartados.ts` is the fonda's
+  # claim about her kitchen's reservations — `0079`'s table read with its columns and its lines'
+  # dishes, and `0080`'s `reservation_neighbours`, `rate_neighbour` and `hand_over_reservation`.
+  # A misspelt column is a 400 and the tab shows no order; a misspelt argument a 404 and *Ya
+  # cobré y lo entregué* does nothing; a misspelt key of a jsonb answer a 200 with the name or the
+  # thumb missing. Its own job for `itacate-reserving`'s reason: the falsifier runs the whole
+  # check twenty-one times, two sign-ups each.
+  # ===========================================================================
+  cocina-handover:
+    name: what a fonda hands over and how she rates the neighbour, against Wera Cocina's own names
+    runs-on: ubuntu-latest
+    # ⚠️ Twenty-one runs of two sign-ups each, and GoTrue allows 30 in five minutes: a run that
+    # spends them waits out the window (`signup`'s retries).
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: 2.114.0
+
+      - name: Start Postgres, GoTrue and PostgREST
+        run: supabase start -x realtime,storage-api,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
+
+      - name: Apply migrations from scratch
+        run: supabase db reset
+
+      - name: Contract — does cocina/src/api/apartados.ts read her reservations, hand them over and rate the neighbour by the names 0079 and 0080 answer (plan 10.5b-iv-a)
+        run: bash docs/checks/10.5b-iv-a-handover-contract.sh
+
+      - name: Contract — can the handover check still fail (its own fixtures; the runner counts them)
+        run: bash docs/checks/10.5b-iv-a-handover-contract-falsify.sh
 
       - name: Stop
         if: always()

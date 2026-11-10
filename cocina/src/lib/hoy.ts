@@ -78,8 +78,30 @@ export function deHoy(listings: readonly Listing[], now: Date): Listing[] {
 export interface RenglonDelDia {
   readonly key: string;
   readonly nombre: string;
+  /** On offer — or, once her reservations are read, what is LEFT of it (`10.5b-iv-a`). */
   readonly cuantos: number;
+  /** What she offers of it, once her reservations are read; else `null`. */
+  readonly de: number | null;
   readonly terminada: boolean;
+}
+
+/**
+ * ⚠️ `10.5b-iv-a`: WHAT HER RESERVATIONS SAY OF TODAY, once they are read — every plate taken
+ * of each dish (`@/lib/apartados`' `tomadosDe`, keyed by `claveDePlato`) and how many she
+ * handed over today. Until then the card counts what is on offer, as it did before reserving.
+ */
+export interface Cuentas {
+  readonly tomados: ReadonlyMap<string, number>;
+  readonly entregados: number;
+}
+
+/**
+ * The key of a dish of an offer — the offer and its line number. ⚠️ A LINE'S NUMBER IS ITS
+ * PLACE: `publish_listing` numbers them 1 to n in her order (`0079`, `v_i`), and the read
+ * sorts them by it — `@/lib/apartados`' `claveDePlato`, which reads the number back.
+ */
+function clave(listing: Listing, i: number): string {
+  return `${listing.id}:${i + 1}`;
 }
 
 /** What the day's card says. */
@@ -90,15 +112,19 @@ export type Dia =
   | { readonly kind: 'terminado' }
   | {
       readonly kind: 'oferta';
-      /** Every plate on offer now, in every offer. From `10.5b`, what is left of them. */
+      /** Every plate on offer now, in every offer — once her reservations are read, what is left of them. */
       readonly total: number;
+      /** What she offers in all, once her reservations are read; else `null`. */
+      readonly de: number | null;
+      /** How many she handed over today, once her reservations are read; else `null`. */
+      readonly entregados: number | null;
       /** The first start and the last end of what is on offer — the bar runs between them. */
       readonly desde: Date;
       readonly hasta: Date;
       readonly renglones: readonly RenglonDelDia[];
     };
 
-export function diaDe(listings: readonly Listing[], now: Date): Dia {
+export function diaDe(listings: readonly Listing[], now: Date, cuentas: Cuentas | null = null): Dia {
   const hoy = deHoy(listings, now);
   const vivas = hoy.filter((l) => listingState(l, now) === 'oferta');
   if (vivas.length === 0) {
@@ -107,16 +133,22 @@ export function diaDe(listings: readonly Listing[], now: Date): Dia {
     const ultima = publicadas.reduce<Date | null>((a, l) => (a === null || l.createdAt > a ? l.createdAt : a), null);
     return { kind: 'nada', ultima };
   }
+  const quedan = (l: Listing, i: number): number =>
+    cuentas === null ? l.lines[i].count : Math.max(0, l.lines[i].count - (cuentas.tomados.get(clave(l, i)) ?? 0));
+  const ofrecidos = vivas.reduce((sum, l) => sum + l.lines.reduce((n, line) => n + line.count, 0), 0);
   return {
     kind: 'oferta',
-    total: vivas.reduce((sum, l) => sum + l.lines.reduce((n, line) => n + line.count, 0), 0),
+    total: vivas.reduce((sum, l) => sum + l.lines.reduce((n, _line, i) => n + quedan(l, i), 0), 0),
+    de: cuentas === null ? null : ofrecidos,
+    entregados: cuentas === null ? null : cuentas.entregados,
     desde: new Date(Math.min(...vivas.map((l) => l.start.getTime()))),
     hasta: new Date(Math.max(...vivas.map((l) => l.end.getTime()))),
     renglones: hoy.flatMap((l) =>
       l.lines.map((line, i) => ({
         key: `${l.id}:${i}`,
         nombre: line.name,
-        cuantos: line.count,
+        cuantos: quedan(l, i),
+        de: cuentas === null ? null : line.count,
         terminada: listingState(l, now) !== 'oferta',
       })),
     ),

@@ -4,8 +4,9 @@
 // `10.4b-iii-c` (her way out), `10.4b-iv-a` (what she publishes), `10.4h`
 // (address first: her address screen's writes, and her trade's door of its own),
 // `10.5-ii` (her page in Itacate, and a photo per dish), `10.5-iii-c` (her
-// kitchen deleted alone) and `10.5-i-b-ii` (Google's point for her address, kept
-// again when its 30-day copy is a week old).
+// kitchen deleted alone), `10.5-i-b-ii` (Google's point for her address, kept
+// again when its 30-day copy is a week old) and `10.5b-iv-a` (her kitchen's
+// reservations, the handover and the fonda's thumb).
 //
 // ⚠️ A SCREEN NEVER CALLS `@/api/calls` ITSELF — Wera's R12: a hook here owns
 // the query key, when the read may run, and what it means. Every read waits for
@@ -18,7 +19,7 @@
 // that landed would look stuck for as long as that read takes (Wera, `8g`).
 // ============================================================================
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useState } from 'react';
 
 import {
@@ -32,18 +33,37 @@ import {
   type DeleteBusinessArgs,
 } from '@/api/account';
 import {
+  APARTADOS_KEY,
+  HISTORIAL_FRESCO_MS,
+  apartadosKey,
+  desdeDia,
+  diaTexto,
+  fallaDe,
+  handOverArgs,
+  noSePresentoArgs,
+  rateNeighbourArgs,
+  type Falla,
+  type Pulgar,
+  type Reserva,
+  type SobreElVecino,
+} from '@/api/apartados';
+import {
   accountOwners,
   deleteMyAccount,
   deleteMyBusiness,
   direccionCalls,
   firstPlace,
+  handOverReservation,
   kitchenGiros,
   kitchenCalls,
   kitchenPage,
   myKitchens,
   myListings,
+  myReservations,
   photoRequest,
   publishListing,
+  rateNeighbour,
+  reservationNeighbours,
   revokeApple,
   setKitchenGiro,
   setKitchenPage,
@@ -85,6 +105,8 @@ import { PLACES_KEY, placeKey, type SetGooglePointArgs, type SetStorePinArgs } f
 import { makeKitchen, withKitchen, type Draft } from '@/api/registro';
 import { useAuth } from '@/auth/AuthProvider';
 import { releaseStep } from '@/auth/apple';
+import { conEntrega, firmaDeHoy, sinNoSePresento, vivo } from '@/lib/apartados';
+import { useAhora } from '@/lib/useAhora';
 
 /** Her kitchens, keyed on the login (`kitchensKey`). */
 export function useMyKitchens() {
@@ -572,4 +594,168 @@ export function useDeleteKitchen() {
   }
 
   return { remove, busy: mutation.isPending };
+}
+
+// ----------------------------------------------------------------------------
+// `10.5b-iv-a` — her kitchen's reservations, the handover and the fonda's thumb
+// ----------------------------------------------------------------------------
+
+/** What *Apartados* is drawn from: her kitchen's reservations and what is said of each one's neighbour. */
+export interface Apartados {
+  readonly reservas: readonly Reserva[];
+  readonly vecinos: Readonly<Record<string, SobreElVecino>>;
+}
+
+/**
+ * ⚠️ TODAY'S ORDERS ARE READ AGAIN EVERY MINUTE WHILE SOMETHING CAN CHANGE (`vivo`) AND THE APP IS IN
+ * FRONT: nothing tells her phone a neighbour reserved (the fonda's notification is `10.5b-v`'s), so the
+ * list is how she learns it. TanStack stops the interval while the app is in the background
+ * (`@/api/QueryProvider`'s `focusManager`).
+ */
+export const APARTADOS_CADA_MS = 60_000;
+
+/** What a screen reads of her reservations: one query's shape, three reads underneath. */
+export interface LecturaDeApartados {
+  readonly data: Apartados | undefined;
+  readonly isError: boolean;
+  readonly isFetching: boolean;
+  readonly isRefetching: boolean;
+  readonly refetch: () => Promise<unknown>;
+}
+
+/**
+ * `10.5b-iv-a`: her kitchen's reservations and `reservation_neighbours`' line on each, as THREE reads
+ * (`HISTORIAL_FRESCO_MS`'s reason — her data is paid by her): TODAY's and later's (`hoy`) every minute
+ * while `vivo`; the 30 days before today (`antes`) when the app opens and every 30 minutes; who reserved
+ * each (`vecinos`) whenever today's orders change (`firmaDeHoy` is in its key), the last answer kept on
+ * screen meanwhile. All keyed on the login, the kitchen and the day; a write invalidates the three.
+ */
+export function useApartados(kitchenId: string | null): LecturaDeApartados {
+  const { session, ready } = useAuth();
+  const userId = session?.user.id ?? null;
+  const ahora = useAhora(APARTADOS_CADA_MS);
+  const dia = diaTexto(ahora);
+  const enabled = ready && userId !== null && kitchenId !== null;
+  const listings = useListings(kitchenId);
+  const hoy = useQuery({
+    queryKey: apartadosKey(userId, kitchenId, 'hoy', dia),
+    queryFn: () => myReservations(kitchenId as string, dia),
+    enabled,
+    refetchInterval: (query) => (vivo(listings.data, query.state.data, new Date()) ? APARTADOS_CADA_MS : false),
+  });
+  const antes = useQuery({
+    queryKey: apartadosKey(userId, kitchenId, 'antes', dia),
+    queryFn: () => myReservations(kitchenId as string, desdeDia(ahora), dia),
+    enabled,
+    staleTime: HISTORIAL_FRESCO_MS,
+  });
+  const firma = hoy.data === undefined ? null : firmaDeHoy(hoy.data, ahora);
+  const vecinos = useQuery({
+    queryKey: apartadosKey(userId, kitchenId, 'vecinos', firma ?? ''),
+    queryFn: () => reservationNeighbours(kitchenId as string),
+    enabled: enabled && firma !== null,
+    placeholderData: keepPreviousData,
+    staleTime: HISTORIAL_FRESCO_MS,
+  });
+  const data =
+    hoy.data === undefined || antes.data === undefined || vecinos.data === undefined
+      ? undefined
+      : { reservas: [...antes.data, ...hoy.data], vecinos: vecinos.data };
+  const { refetch: refetchHoy } = hoy;
+  const { refetch: refetchAntes } = antes;
+  const { refetch: refetchVecinos } = vecinos;
+  const refetch = useCallback(
+    () => Promise.all([refetchHoy(), refetchAntes(), refetchVecinos()]),
+    [refetchHoy, refetchAntes, refetchVecinos],
+  );
+  return {
+    data,
+    isError: hoy.isError || antes.isError || vecinos.isError,
+    isFetching: hoy.isFetching || antes.isFetching || vecinos.isFetching,
+    isRefetching: hoy.isRefetching || antes.isRefetching,
+    refetch,
+  };
+}
+
+/**
+ * *Ya cobré y lo entregué* — and *Sí pasó* (`hand_over_reservation`). `entregar` answers
+ * `null`, or why it did not go through (`Falla`, whose sentence is `ES.apartados.fallas`').
+ * ⚠️ `at` IS WHEN SHE TAPPED, sent as the moment it happened (`p_at`) — the queue of
+ * `10.5b-iv-b` sends it late. ⚠️ ON SUCCESS THE ORDER MOVES AT ONCE (`conEntrega`), and her
+ * reservations are read again either way: a reply lost after the database wrote it fails here
+ * while the handover exists, and a retry keeps the first moment.
+ */
+export function useEntregar(kitchenId: string | null) {
+  const queries = useQueryClient();
+  const { session } = useAuth();
+  const userId = session?.user.id ?? null;
+  const mutation = useMutation({
+    mutationFn: (input: { id: string; at: Date }) => handOverReservation(handOverArgs(input.id, input.at)),
+    onSuccess: (_none, input) => {
+      for (const lectura of ['hoy', 'antes']) {
+        queries.setQueriesData<readonly Reserva[]>({ queryKey: apartadosKey(userId, kitchenId, lectura) }, (reservas) =>
+          conEntrega(reservas, input.id, input.at),
+        );
+      }
+      queries.setQueriesData<Readonly<Record<string, SobreElVecino>>>({ queryKey: apartadosKey(userId, kitchenId, 'vecinos') }, (vecinos) =>
+        vecinos === undefined ? undefined : sinNoSePresento(vecinos, input.id),
+      );
+    },
+    onSettled: () => {
+      void queries.invalidateQueries({ queryKey: APARTADOS_KEY });
+    },
+  });
+
+  async function entregar(id: string): Promise<Falla | null> {
+    try {
+      await mutation.mutateAsync({ id, at: new Date() });
+      return null;
+    } catch (thrown) {
+      return fallaDe(thrown);
+    }
+  }
+
+  return { entregar, busyId: mutation.isPending ? (mutation.variables?.id ?? null) : null };
+}
+
+/** A thumb as she gives it: up or down with her labels, or *No se presentó* on a plate that *se liberó*. */
+export type PulgarNuevo = { readonly arriba: boolean; readonly etiquetas: readonly string[] } | 'noSePresento';
+
+/**
+ * The fonda's thumb (`rate_neighbour`). `calificar` answers `null`, or why it did not go
+ * through. ⚠️ THE THUMB IT KEPT IS DRAWN AT ONCE, and her reservations are read again either
+ * way. ⚠️ ONE AT A TIME (`busyId`): a second thumb sent before the first came back could
+ * arrive first, and the database would keep the older.
+ */
+export function useCalificarVecino(kitchenId: string | null) {
+  const queries = useQueryClient();
+  const { session } = useAuth();
+  const userId = session?.user.id ?? null;
+  const mutation = useMutation({
+    mutationFn: (input: { id: string; pulgar: PulgarNuevo }) => {
+      const at = new Date();
+      return rateNeighbour(input.pulgar === 'noSePresento' ? noSePresentoArgs(input.id, at) : rateNeighbourArgs(input.id, input.pulgar, at));
+    },
+    onSuccess: (pulgar: Pulgar, input) => {
+      queries.setQueriesData<Readonly<Record<string, SobreElVecino>>>({ queryKey: apartadosKey(userId, kitchenId, 'vecinos') }, (vecinos) => {
+        if (vecinos === undefined) return undefined;
+        const antes = vecinos[input.id];
+        return { ...vecinos, [input.id]: { vecino: antes?.vecino ?? null, pulgar, calificarHasta: null } };
+      });
+    },
+    onSettled: () => {
+      void queries.invalidateQueries({ queryKey: APARTADOS_KEY });
+    },
+  });
+
+  async function calificar(id: string, pulgar: PulgarNuevo): Promise<Falla | null> {
+    try {
+      await mutation.mutateAsync({ id, pulgar });
+      return null;
+    } catch (thrown) {
+      return fallaDe(thrown);
+    }
+  }
+
+  return { calificar, busyId: mutation.isPending ? (mutation.variables?.id ?? null) : null };
 }

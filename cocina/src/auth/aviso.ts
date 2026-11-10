@@ -18,3 +18,11 @@
 
 /** The page every link in this app opens. */
 export const AVISO_URL = 'https://tu-wera.com/privacidad/cocina-e-itacate/';
+
+/**
+ * ⚠️ `10.5b-iv-a`: THE TERMS OF USE, which she accepts once before her first thumb about a
+ * neighbour — Google counts a rating of a person as user content, and asks that the terms be
+ * accepted before anyone gives one. Itacate's link to the same page (`itacate/src/auth/aviso.ts`,
+ * `10.5b-iii-b`); its paragraph on ratings is `10.5b-vi`'s, before either app reaches people.
+ */
+export const TERMINOS_URL = 'https://tu-wera.com/terminos/cocina-e-itacate/';

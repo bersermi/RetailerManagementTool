@@ -506,8 +506,8 @@ export const ES = {
    * ⚠️ `10.5-v-c-i`: *HOY* AS A HUB (his directions of 2026-11-06, the family-shell page's
    * round 6): the day's card — *Hoy en Itacate*, how many are on offer and until when, the
    * time left, each dish on a line — then *Publicar una oferta* with *Repetir*, then the
-   * doors. Before reserving (`10.5b`) nothing is reserved, so the card counts what is on
-   * offer; *Quedan 4 de 8* is that row's.
+   * doors. Until her reservations are read the card counts what is on offer; then *Quedan 4
+   * de 8* (`10.5b-iv-a`).
    */
   hoy: {
     enItacate: 'Hoy en Itacate',
@@ -515,6 +515,11 @@ export const ES = {
     hasta: (dia: string | null, hora: string) => (dia === null ? `hasta las ${hora}` : `hasta ${dia} a las ${hora}`),
     porciones: (n: number) => (n === 1 ? '1 porción en oferta' : `${n} porciones en oferta`),
     enOferta: (n: number) => `${n} en oferta`,
+    /** ⚠️ `10.5b-iv-a`: once her reservations are read — what is left of what she offers. */
+    quedan: (n: number, de: number) => `Quedan ${n} de ${de}`,
+    quedanRenglon: (n: number, de: number) => `quedan ${n} de ${de}`,
+    /** *Faltan 1 h 40 min · 1 entregado*. */
+    yEntregados: (falta: string, n: number) => (n === 1 ? `${falta} · 1 entregado` : `${falta} · ${n} entregados`),
     terminada: 'Terminada',
     /** Under the card's lines when there are more than it draws. */
     masRenglones: (n: number) => `y ${n} más`,
@@ -599,6 +604,194 @@ export const ES = {
     repetir: 'Repetir',
     nota: 'Repetir la publica otra vez, con las horas de hoy, y la puedes deshacer.',
     ninguna: 'Todavía no has publicado nada.',
+  },
+
+  /**
+   * ⚠️ `10.5b-iv-a`: *APARTADOS* — SHE SEES AND HANDS OVER. The owner's final design of 2026-11-10
+   * (the page *Names, Records and Stars*, version 5): *Hoy* and *Historial*, each order led by its
+   * number and what to prepare, the neighbour's name and score second and muted; each state one
+   * colour and one action. *Entregar un apartado* and its words are slice 3's (the family-shell
+   * page, stage 2, ruled 2026-11-05): the code typed, one big line of what to charge.
+   * ⚠️ NO SENTENCE ABOUT PENALTIES (`10.5-v-a`): a reservation is drawn as a handover.
+   */
+  apartados: {
+    titulo: 'Apartados',
+    hoy: 'Hoy',
+    historial: 'Historial',
+    /** Under the switch: *3 por entregar · 1 por calificar*. */
+    resumen: (entregar: number, calificar: number) =>
+      [entregar > 0 ? `${entregar} por entregar` : null, calificar > 0 ? `${calificar} por calificar` : null]
+        .filter((parte): parte is string => parte !== null)
+        .join(' · ') || 'Nada por entregar',
+    entregarUno: 'Entregar un apartado',
+    entregar: 'Entregar',
+    calificar: 'Calificar',
+    noSePresento: 'No se presentó',
+    siPaso: 'Sí pasó',
+    marcas: {
+      porEntregar: 'Por entregar',
+      pronto: 'Por entregar',
+      porCalificar: 'Por calificar',
+      seLibero: 'Se liberó',
+      entregado: 'Entregado',
+      noSePresento: 'No se presentó',
+      liberado: 'Se liberó',
+      cancelo: 'Canceló',
+      noVa: 'No va',
+      canceladoCocina: 'Cancelado por la cocina',
+    },
+    /** Beside her hour, once it is 15 minutes away or less. */
+    en: (minutos: number) => (minutos > 0 ? `en ${minutos} min` : minutos === 0 ? 'es ahora' : `hace ${-minutos} min`),
+    /** What to prepare: *1 × Mole con arroz*. */
+    platillo: (cuantos: number, nombre: string) => `${cuantos} × ${nombre}`,
+    /** How to prepare it, short, on a card. */
+    comerCorto: { llevar: 'Empácala', aqui: 'Sírvela' },
+    /** What to charge, short, on a card — the final design's. */
+    cobraCorto: {
+      efectivo: (monto: string) => `Cobra ${monto} en efectivo`,
+      tarjeta: (monto: string) => `Cobra ${monto} con tarjeta`,
+      transferencia: (monto: string) => `Cobra ${monto} por transferencia`,
+    },
+    junto: (una: string, otra: string) => `${una} · ${otra}`,
+    nueva: 'Nueva en Itacate',
+    porcentaje: (n: number) => `👍 ${n}%`,
+    sinNombre: 'Sin nombre',
+    entregadoA: (hora: string) => `Entregado a las ${hora}`,
+    /** A plate that *se liberó*: *Ayer · 15:00 · no pasó por ella*. */
+    noPaso: (dia: string, hora: string) => `${dia} · ${hora} · no pasó por ella`,
+    /** Until when the clock waits for her thumb. */
+    siNoLoCalificas: (cuando: string) => `Si no lo calificas antes de ${cuando}, cuenta como No se presentó.`,
+    /** *las 16:00* today, *mañana a las 16:00* another day. */
+    cuando: (dia: string | null, hora: string) => (dia === null ? `las ${hora}` : `${dia} a las ${hora}`),
+    /** A past order's line: *Ayer · 1 × Mole con arroz · Llegó a tiempo*. */
+    fila: (partes: readonly string[]) => partes.join(' · '),
+    porCalificarGrupo: (n: number) => `Por calificar · ${n}`,
+    anteriores: 'Anteriores',
+    vacioHoy: 'Hoy no tienes apartados por entregar.',
+    vacioHoyDetalle: 'Cuando un vecino aparte, aparece aquí con su código.',
+    vacioHistorial: 'Todavía no hay apartados anteriores.',
+    leyendo: 'Leyendo tus apartados…',
+    sinLeer: 'No se pudieron leer tus apartados.',
+    /** What a screen reader says of the count on the tab and on *Historial*. */
+    cuentaAyuda: (n: number) => (n === 1 ? '1 por calificar' : `${n} por calificar`),
+    /** What a screen reader says a card opens. */
+    abrirAyuda: (codigo: string) => `Abrir el apartado ${codigo}`,
+    pulgares: { arriba: '👍', abajo: '👎' },
+    /** Why a handover or a thumb did not go through (`@/api/apartados`' `Falla`). */
+    fallas: {
+      sesion: 'No se pudo guardar: este apartado ya no es de tu cocina, o tu sesión se cerró. Entra de nuevo.',
+      cambio: 'Este apartado cambió. Revísalo e intenta de nuevo.',
+      yaNoSeCalifica: 'Ya no se puede calificar este apartado.',
+      sinSenal: 'Sin conexión a internet. Intenta de nuevo en un momento.',
+      otra: 'Algo salió mal. Intenta de nuevo.',
+    },
+  },
+
+  /** `10.5b-iv-a`: an order opened — the final design's *An order opened*. */
+  apartado: {
+    volver: 'Apartados',
+    pasa: (hora: string) => `Pasa a las ${hora}`,
+    /** Her hour on another day — a window that crosses midnight, or tomorrow's offer: *Pasa mañana a las 13:00*. */
+    pasaDia: (dia: string, hora: string) => `Pasa ${dia} a las ${hora}`,
+    /** What an order that was not handed over came to: *Total $65 · efectivo*. */
+    total: (monto: string, pago: string) => `Total ${monto} · ${pago}`,
+    comerLargo: { llevar: 'Para llevar · empácala', aqui: 'Para comer aquí · sírvela' },
+    conDesechable: (monto: string) => `Con desechable · ${monto}`,
+    vecina: 'Quién lo apartó',
+    calificaciones: (n: number) => (n === 1 ? '1 calificación' : `${n} calificaciones`),
+    aparto: 'Apartó',
+    pasaFila: 'Pasa',
+    seLibera: 'Se libera si no pasa',
+    entregado: 'Entregado',
+    huboProblema: 'Hubo un problema',
+    /** What lands in the owner's chat: the code and the kitchen, so he knows which order without asking. */
+    problemaMensaje: (codigo: string, cocina: string) => `Hola, tuve un problema con el apartado ${codigo} en ${cocina} (Wera Cocina).`,
+    yaNoEsta: 'Este apartado ya no está en tu lista.',
+  },
+
+  /** `10.5b-iv-a`: *ENTREGAR UN APARTADO* — slice 3's handover (the family-shell page, stage 2). */
+  entregar: {
+    titulo: 'Entregar un apartado',
+    volver: 'Volver',
+    escribe: 'Escribe el código del vecino',
+    teLoDice: 'Te lo dice o te enseña su teléfono.',
+    noEsta: 'Ese código no está en tus apartados de hoy. Pídeselo otra vez.',
+    borrar: 'Borrar',
+    codigo: (codigo: string) => `Código ${codigo}`,
+    esDeHoy: 'Es de hoy',
+    comerGrande: { llevar: 'Para llevar: empácala', aqui: 'Para comer aquí: sírvela' },
+    pago: { efectivo: 'Efectivo', tarjeta: 'Tarjeta', transferencia: 'Transferencia' },
+    cobraLargo: {
+      efectivo: (monto: string) => `Cobra ${monto} en efectivo`,
+      tarjeta: (monto: string) => `Cobra ${monto} con tu terminal`,
+      transferencia: (monto: string) => `Dale tus datos y revisa en tu banco que llegó ${monto}`,
+    },
+    cobraleAqui: 'Cóbrale cuando acostumbres: al servir o al terminar.',
+    yaCobre: 'Ya cobré y lo entregué',
+    yaLaServi: 'Ya la serví',
+    otroCodigo: 'Otro código',
+    yaSeEntrego: (hora: string) => `Ya se entregó a las ${hora}.`,
+    /** After *Ya cobré y lo entregué* — the final design's *After the handover*: *Cobraste $65 en efectivo · 14:31*. */
+    cobraste: {
+      efectivo: (monto: string, hora: string) => `Cobraste ${monto} en efectivo · ${hora}`,
+      tarjeta: (monto: string, hora: string) => `Cobraste ${monto} con tarjeta · ${hora}`,
+      transferencia: (monto: string, hora: string) => `Cobraste ${monto} por transferencia · ${hora}`,
+    },
+    /** After *Ya la serví*: she charges when she usually does, so nothing says she did. */
+    laServiste: (hora: string) => `La serviste a las ${hora}`,
+    /** ⚠️ *Entregar* is always recorded (ruled 2026-11-10): she is told, never stopped. */
+    cancelado: 'Este apartado se canceló. Si se lo das, queda como entregado.',
+    /** ⚠️ She swiped *Ya lo tengo* in Itacate before the counter recorded it: what to charge stays, and the button. */
+    yaLoMarco: 'En Itacate ya marcó que lo recogió. Si todavía no se lo das, cóbrale y entrégaselo.',
+    terminado: 'Su horario ya terminó. Si se lo das, queda como entregado.',
+    leyendo: 'Leyendo tus apartados de hoy…',
+  },
+
+  /**
+   * `10.5b-iv-a`: HER THUMB ABOUT THE NEIGHBOUR — the final design's *After the handover*: one
+   * tap is enough, his labels after it, *Después* to leave it for later.
+   */
+  pulgar: {
+    pregunta: (nombre: string | null) => (nombre === null ? '¿Cómo te fue?' : `¿Cómo te fue con ${nombre}?`),
+    arribaAyuda: 'Bien',
+    abajoAyuda: 'Mal',
+    etiquetas: {
+      a_tiempo: 'Llegó a tiempo',
+      amable: 'Persona amable',
+      tarde: 'Se presentó tarde',
+      pago: 'Problemas con el pago',
+      no_se_presento: 'No se presentó',
+    },
+    listo: 'Listo',
+    despues: 'Después',
+    /** Under a thumb she may still change. */
+    cambiarHasta: (cuando: string) => `Puedes cambiarla hasta ${cuando}.`,
+    /** The clock's, never a person's. */
+    reloj: 'Nadie lo calificó en 24 horas: cuenta como No se presentó.',
+    calificaste: (nombre: string | null) => (nombre === null ? 'Calificación guardada' : `Calificaste a ${nombre}`),
+  },
+
+  /**
+   * `10.5b-iv-a`: THE TERMS, ONCE, BEFORE HER FIRST THUMB (the final design). Kept on this phone
+   * (`@/lib/terminos`) while the owner rules where — the plan's decisions block.
+   */
+  terminos: {
+    titulo: 'Antes de tu primera calificación',
+    texto: 'Después de entregar puedes calificar a quien apartó con 👍 o 👎. Tu calificación cuenta en su porcentaje, que ven las cocinas donde aparta.',
+    nunca: 'Esa persona ve su porcentaje, nunca qué cocina la calificó. Califica solo lo que pasó.',
+    terminos: 'Términos de uso',
+    aviso: 'Aviso de privacidad',
+    acepto: 'Acepto y sigo',
+  },
+
+  /** `10.5b-iv-a`: *LO QUE SIGUE* on *Hoy* — the next handover (the family-shell page's zone 2). */
+  loQueSigue: {
+    titulo: 'Lo que sigue',
+    /** *Mole con arroz para llevar · $60 efectivo*. */
+    detalle: (plato: string, comer: string, monto: string, pago: string) => `${plato} ${comer} · ${monto} ${pago}`,
+    comer: { llevar: 'para llevar', aqui: 'para comer aquí' },
+    pago: { efectivo: 'efectivo', tarjeta: 'tarjeta', transferencia: 'transferencia' },
+    mas: (n: number) => (n === 1 ? 'Y 1 apartado más por entregar' : `Y ${n} apartados más por entregar`),
   },
 
   /**

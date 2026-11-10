@@ -32,6 +32,13 @@ export const PALETTE = {
    * matters, a pale green for the rest — and its time bar runs on a lighter green. The
    * toast is the ink, with *Deshacer* in the same pale green.
    */
+  /**
+   * ⚠️ `10.5b-iv-a`, THIS APP'S OWN: an order's marks, the final design's table of states (the page
+   * *Names, Records and Stars*, version 5, `.st-*`): rust on its tint for what waits for her thumb,
+   * the error's red on its tint for a kitchen's cancel. Green is the action's, grey the line's.
+   */
+  marcaSuave: '#F7E7DC',
+  errorSuave: '#F7DEDA',
   sobreAccion: '#FFFFFF',
   sobreAccionApagada: '#CDE3D6',
   barraSobreAccion: '#3E8766',

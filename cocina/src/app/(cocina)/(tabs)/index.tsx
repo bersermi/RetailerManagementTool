@@ -2,9 +2,10 @@ import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { router } from 'expo-router';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 
-import { useKitchen, useKitchenGiros, useListings, usePage, usePlace } from '@/api/hooks';
+import { useApartados, useKitchen, useKitchenGiros, useListings, usePage, usePlace } from '@/api/hooks';
 import { giroLabel, type Kitchen } from '@/api/kitchen';
 import { addressComplete } from '@/api/place';
+import { entregadosHoy, loQueSigue, ordenesDe, tomadosDe } from '@/lib/apartados';
 import { chipDe, diaDe, estadoDe, faltaDeLaPagina, faltanDe, nombreDe, repetibles, PENDIENTES } from '@/lib/hoy';
 import { useNota } from '@/lib/NotaProvider';
 import { useRecordatorio } from '@/lib/RecordatorioProvider';
@@ -19,6 +20,7 @@ import { BotonLleno } from '@/ui/BotonLleno';
 import { DiaDeHoy } from '@/ui/DiaDeHoy';
 import { LeyendoCocina } from '@/ui/LeyendoCocina';
 import { Llega } from '@/ui/Llega';
+import { LoQueSigue } from '@/ui/LoQueSigue';
 import { PreguntaRecordatorio } from '@/ui/PreguntaRecordatorio';
 import { Puertas, type PuertaDeHoy } from '@/ui/Puertas';
 
@@ -29,7 +31,11 @@ import { Puertas, type PuertaDeHoy } from '@/ui/Puertas';
 // items"*. Every launch opens here. Top to bottom, each zone a number and a door:
 //   1. THE DAY (`@/ui/DiaDeHoy`) — what is on offer, until when, the time left; the
 //      whole card opens *Tus ofertas*;
-//   2. *Lo que sigue* — the next handover, with *Entregar* — is reserving's (`10.5b`);
+//   2. *LO QUE SIGUE* (`@/ui/LoQueSigue`, `10.5b-iv-a`) — the next handover, its hour, its
+//      code and what to charge, with *Entregar*, and how many more; drawn only while something
+//      is still to hand over. Since the same row the day's card says what is LEFT, *Quedan 4
+//      de 8*, and how many she handed over, from her reservations (`useApartados`, the same
+//      query the tab reads);
 //   3. THE ONE ACTION — *Publicar una oferta*, and her last day's offers as *Repetir*
 //      chips, one tap each, with *Deshacer* (`@/lib/useRepetir`);
 //   4. THE DOORS (`@/ui/Puertas`) — *Tu página · 3 de 5*, which she closes with its ✕
@@ -63,6 +69,7 @@ function HoyDe({ kitchen }: { kitchen: Kitchen }) {
   const place = usePlace(kitchen.id);
   const page = usePage(kitchen.id);
   const listings = useListings(kitchen.id);
+  const apartados = useApartados(kitchen.id);
   const ahora = useAhora(CADA_MEDIO_MINUTO);
   const [cerrada, setCerrada] = usePuertaCerrada(kitchen.id);
   const { avisar } = useNota();
@@ -73,6 +80,13 @@ function HoyDe({ kitchen }: { kitchen: Kitchen }) {
   const quiet = { fontSize: SIZE.bodySize, color: PALETTE.tintaApagada } as const;
 
   const chips = listings.data === undefined ? [] : repetibles(listings.data, ahora);
+  // ⚠️ `10.5b-iv-a`: until her reservations are read the card counts what is on offer.
+  const ordenes = apartados.data === undefined ? null : ordenesDe(apartados.data.reservas, apartados.data.vecinos, ahora);
+  const cuentas =
+    apartados.data === undefined || ordenes === null
+      ? null
+      : { tomados: tomadosDe(apartados.data.reservas), entregados: entregadosHoy(ordenes, ahora) };
+  const sigue = ordenes === null ? null : loQueSigue(ordenes, ahora);
 
   const puertas: PuertaDeHoy[] = [];
   if (!cerrada && listings.data !== undefined && place.data !== undefined && page.data !== undefined) {
@@ -107,7 +121,7 @@ function HoyDe({ kitchen }: { kitchen: Kitchen }) {
       <ScrollView contentContainerStyle={{ padding: SIZE.space * 1.5, paddingBottom: SIZE.space * 8, gap: SIZE.space * 1.5 }}>
         <Llega i={0}>
           {listings.data !== undefined ? (
-            <DiaDeHoy dia={diaDe(listings.data, ahora)} ahora={ahora} onPress={() => router.push('/ofertas')} />
+            <DiaDeHoy dia={diaDe(listings.data, ahora, cuentas)} ahora={ahora} onPress={() => router.push('/ofertas')} />
           ) : listings.isError ? (
             <View style={{ gap: SIZE.rowGap }}>
               <Text style={{ fontSize: SIZE.bodySize, color: PALETTE.tinta }}>{ES.publicaciones.sinLeer}</Text>
@@ -121,7 +135,19 @@ function HoyDe({ kitchen }: { kitchen: Kitchen }) {
           )}
         </Llega>
 
-        <Llega i={1} style={{ gap: SIZE.rowGap + 2 }}>
+        {sigue !== null && (
+          <Llega i={1}>
+            <LoQueSigue
+              siguiente={sigue.siguiente}
+              mas={sigue.mas}
+              ahora={ahora}
+              onEntregar={() => router.push('/entregar')}
+              onApartados={() => router.navigate('/apartados')}
+            />
+          </Llega>
+        )}
+
+        <Llega i={2} style={{ gap: SIZE.rowGap + 2 }}>
           <BotonLleno variante="principal" icon="plus" label={ES.publicar.abrir} onPress={() => router.push('/publicar')} />
           {chips.length > 0 && (
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: SIZE.rowGap, alignItems: 'center' }}>
@@ -163,13 +189,13 @@ function HoyDe({ kitchen }: { kitchen: Kitchen }) {
         </Llega>
 
         {puertas.length > 0 && (
-          <Llega i={2}>
+          <Llega i={3}>
             <Puertas puertas={puertas} />
           </Llega>
         )}
 
         {recordatorio.propuesta !== null && preguntar(recordatorio.guardado, recordatorio.propuesta) && (
-          <Llega i={3}>
+          <Llega i={4}>
             <PreguntaRecordatorio
               propuesta={recordatorio.propuesta}
               ocupado={recordatorio.ocupado}

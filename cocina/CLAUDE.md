@@ -19,6 +19,7 @@ bash docs/checks/10.4b-iii-a-cocina-contract.sh   # against a local `supabase st
 bash docs/checks/10.4b-iv-a-listing-contract.sh   # the same stack: her list, publishing (each line's keys), a retry, withdrawing
 bash docs/checks/5R-k-apple-revoke-contract.sh     # the same stack: the function that tells Apple, served, with Wera's body, this app's and Itacate's
 bash docs/checks/10.5-i-a-kitchen-photos-contract.sh   # the same stack WITH Storage started before the reset: her page and the bucket `cocina`, by this app's names
+bash docs/checks/10.5b-iv-a-handover-contract.sh      # the same stack: her kitchen's reservations, who reserved each, the handover and her thumb, by apartados.ts's names
 bash store/cocina-itacate/render.sh giros         # the nine trades' drawings, from brand/giros.svg into src/marca/giros/ — and nothing else
 TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic is local time, and the Mac is UTC−6
 ```
@@ -45,7 +46,7 @@ TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic i
   (`test/auth-rules.test.ts` reads `app/src/strings.ts` and `app/src/auth/credentials.ts`, and
   `test/support.test.ts` runs Wera's `app/src/auth/support.ts` beside its copy, which is why
   `cocina-itacate.yml` fires on them). Two differences, decided: **no persisted cache** (nothing
-  here works offline yet), so a read's key carries the login instead (`kitchensKey`); and the way in
+  here works offline yet — the first is `10.5b-iv-b`'s, the counter with no signal), so a read's key carries the login instead (`kitchensKey`); and the way in
   **opens on *Crear cuenta***, because no doors came before it (`src/app/(auth)/entrar.tsx`) — since `10.5-v-d` the
   opening's two buttons (`(auth)/hola`) open it on the half she picked, *Ya tengo cuenta* with `cuenta=tengo`.
 - **A module in `src/api/` is a claim about the applied schema**, as in Wera: `db.yml` fires on
@@ -54,7 +55,10 @@ TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic i
   job (`cocina-listings`), `docs/checks/10.4b-iv-a-listing-contract.sh` and its falsifier, which read
   `src/api/listing.ts`. ⚠️ **Cocina opens kitchens only**:
   its read filters on `kind = 'cocina'`, so a shop's owner who signs in here lands where a kitchen is
-  made, and her shop stays Wera's. ⚠️ **And a kitchen's place is read by the kitchen's id**
+  made, and her shop stays Wera's. ⚠️ **Since `10.5b-iv-a`, `src/api/apartados.ts`** — her kitchen's reservations
+  read from `0079`'s table, `0080`'s `reservation_neighbours` and `rate_neighbour`, `hand_over_reservation` — is a
+  claim of its own, asked by `docs/checks/10.5b-iv-a-handover-contract.sh` and its falsifier (its own job in `db.yml`,
+  `cocina-handover`), a neighbour reserving through Itacate's names. ⚠️ **And a kitchen's place is read by the kitchen's id**
   (`firstPlace`): the walls show a shop's owner her shop's store too, and an unfiltered read's first
   row is that store — her kitchen's address and pin would land on her shop (`10.4b-iii-b`).
 - **A kitchen is made whole at the end of the sign-up** (`src/api/registro.ts`, `10.4b-iii-b`): her
@@ -191,15 +195,16 @@ TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic i
   picture, nothing that opens, no distance, and a line under the bar while the door would not send her.
   ⚠️ **Since `0079` (`10.5b-i`) the door sends what is LEFT of each line, and leaves out a line with nothing left**; `@/lib/comoLaVen`
   still shows what she offers. They agree until a neighbour reserves; `10.5b-iv`, which reads her reservations, brings the preview
-  to what is left. ⚠️ **Since `10.5b-iii-a` the dish page says how it is eaten and how she pays, and takes a foot (`pie`) that
+  to what is left — now `10.5b-iv-c`'s (since `10.5b-iv-a` the phone knows what is taken: `@/lib/apartados`' `tomadosDe`).
+  ⚠️ **Since `10.5b-iii-a` the dish page says how it is eaten and how she pays, and takes a foot (`pie`) that
   only Itacate's route fills** — the preview draws none, so no *Apartar* here. The door now also sends how a kitchen takes payment,
-  how it hands plates over, who may reserve and each offer's *desechable*; this app does not read her settings until `10.5b-iv`
+  how it hands plates over, who may reserve and each offer's *desechable*; this app does not read her settings until `10.5b-iv-c`
   gives her the screens to set them, so `@/lib/comoLaVen` shows the door's own defaults (`SIN_AJUSTES`: cash, *para llevar*, no
   *desechable*, everyone) — what the door sends for every kitchen today — held to the door's `coalesce`s by `test/comoLaVen.test.ts`.
   ⚠️ **Since `10.5b-iii-b` the copies draw a kitchen's stars and *Cómo pagas aquí*** (her page: *★ 4.6 (5 calificaciones)* and her
   good tags, else *Todavía sin calificaciones*; a card and a dish's row: *★ 4.6*), in Itacate's amber — this palette carries
   `estrella` and `estrellaApagada` for them. `SIN_AJUSTES` has no stars: the door counts them from five ratings, the day after, and no
-  kitchen has one yet; `10.5b-iv`, which reads her own (`my_kitchen_ratings`), brings them to her preview with her settings.
+  kitchen has one yet; `10.5b-iv-c`, which reads her own (`my_kitchen_ratings`), brings them to her preview with her settings.
 - ⚠️ **The map has no key in a build made on this Mac** (`MAPS_KEY_PLACEHOLDER`, and the key is locked
   to the store and `preview` signatures). Measured 2026-10-30 on the emulator: such a map delivers
   taps but **never moves its camera and draws no marker**, so the zoom, the flights to a search's
@@ -351,7 +356,7 @@ follows it, as `itacate/CLAUDE.md`'s does:
   of the first run is kept on the phone, so a restart opens *Hoy*.
 - **The tab bar is *Hoy · Apartados · Clientes · Mi cocina*** — four tabs at most, each with its word; the two ends never move; a tab appears only when
   its feature ships; a new feature arrives first as a card on *Hoy*. Wera's JavaScript tabs, not native tabs. ⚠️ **Built by `10.5-v-c-i`**, Itacate's
-  shell copied: the tabs are data (`@/navigation/pestanas`, *Apartados* naming `10.5b` and *Clientes* `10.9`), the bar is `@/ui/Pestanas` (the tab
+  shell copied: the tabs are data (`@/navigation/pestanas`, *Apartados* in use since `10.5b-iv-a` and *Clientes* naming `10.9`), the bar is `@/ui/Pestanas` (the tab
   in use: green, a heavier word and a pill of the green's tint — ⚠️ the other pills the bar's white, never `transparent`: Android squared every pill
   after the first switch), and `(cocina)/(tabs)/` holds exactly the tabs in use. *Tus ofertas*, *Publicar*, her page's editor and her address's
   screens are pushed over the tabs. ⚠️ **Google's point for her address is asked again from the tabs' layout**, always mounted — *Mi cocina*,
@@ -376,3 +381,42 @@ follows it, as `itacate/CLAUDE.md`'s does:
   opacity only (§2.11) — `test/pestanas.test.ts` lets Reanimated into `@/ui/Llega`, `@/ui/Nota` and, since `10.5-v-d`,
   the opening's `@/ui/Apertura` alone.
 - **Money:** no screen stores or shows a bank account, a card or an amount paid — only how she will pay.
+
+## *Apartados* — she sees and hands over (`10.5b-iv-a`)
+
+The owner's final design of 2026-11-10 (the page *Names, Records and Stars*, version 5, its table of states) and slice 3's
+handover (the family-shell page, stage 2). ⚠️ **Online only**: today's reservations kept on the phone and the handover queued
+with no signal are `10.5b-iv-b`'s; her settings, − and + and *Así la ven*'s what-is-left are `10.5b-iv-c`'s.
+
+- **The read** (`useApartados`): her kitchen's reservations from 30 days back and later — `reservation_neighbours`' own reach —
+  and that function's line on each. ⚠️⚠️ **In three parts, because her data plan is hers** (measured: ~810 bytes an order; 30
+  days every minute was over 100 MB a day for a busy fonda): **today's and later's** (`hoy`) every minute while an offer of hers is
+  not over or an order still waits (`vivo`) and the app is in front; **the 30 days before** (`antes`, the newest first — PostgREST
+  answers at most 1,000 rows) when the app opens, every 30 minutes and when *Historial* opens; **who reserved each** (`vecinos`)
+  whenever today's orders change (`firmaDeHoy` is in its key). Nothing tells her phone a neighbour reserved until `10.5b-v`.
+  ⚠️ **`buyer_id` is granted to nobody**: the columns are named, never `*`. ⚠️ **The day after the window is the clock's on the
+  phone too** (`ordenesDe`): the name gone, an unrated released plate drawn *No se presentó*.
+- ⚠️ **The state is the database's definition, repeated** (`@/api/apartados`' `estadoDe`, `reservation_state`), and so is what
+  is taken of a dish (`tomado`, `listing_line_taken`) — `test/apartados.test.ts` holds both to whichever migration defines each
+  last. Each state's mark, colour and action is `@/lib/apartados`' `marcaDe`/`coloresDe`: green *Entregar* (rust hour 15
+  minutes before), rust *Calificar*, rust *No se presentó* with green *Sí pasó*, grey for what is over.
+- ⚠️ **Every *Entregar* opens the code** (`/entregar`, a keypad of its own): an order is never handed over from its card. The
+  code is found among today's and every order still to hand over, the nearest to now (`buscarCodigo` — a window may cross
+  midnight or open tomorrow, and an hour on another day says its day), whatever its state. ⚠️ **A neighbour who swiped *Ya lo
+  tengo* first is still to hand over** until her window ends (`marcaDe`): what to charge and the button stay — ⚠️ **a handover is
+  always recorded** (ruled 2026-11-10), so a cancelled or released order is handed over all the same, the screen saying so first.
+  The handover sends her phone's moment (`p_at`) — what `10.5b-iv-b`'s queue will send late.
+- **Her thumb** (`@/ui/CalificarVecino`): sent on the tap, her labels of its side on *Listo* (Itacate's stars' rule), one send at a
+  time; changeable for 24 hours; the clock's drawn, never offered. ⚠️⚠️ **The panel keeps the order and the name it opened with**
+  (`panelPara`, `nombres`, `nombreVisto`): once rated, the database stops sending the name (as ruled), and a panel drawn from the
+  live read closed before she could add a label (found on the emulator). ⚠️ ***Sí pasó* clears a *No se presentó* on the phone
+  too** (`sinNoSePresento`), as `hand_over_reservation` does in the database — else her panel opened on 👎.
+- ⚠️ **The terms, once per login on each phone, before her first thumb** (`@/ui/AntesDeCalificar`, `@/lib/terminos`) — a *No
+  se presentó* from the list opens the order first when they are not yet accepted. Kept on the phone, not the database: where it
+  is kept is the owner's question in the plan's decisions block.
+- **The tab's count** is what waits for her thumb (`porCalificar`), read in the tabs' layout from the same query, handed to
+  `@/ui/Pestanas` as `cuentas`. Nothing on *Hoy* or *Apartados* names who may reserve (the final design).
+- **To see it on the emulator**: Cocina's debug APK (`cocina/android/app/build/outputs/apk/debug/`, no native change since
+  2026-11-03) in place of the test build, Metro from `cocina/` on 8082 with the local values, and a fixture made through the
+  apps' own functions — `10.5b-iv-a`'s session back-dated a fortnight of one neighbour's plates as the database's owner for a
+  score, and moved a window into the past for a plate that *se liberó*.
