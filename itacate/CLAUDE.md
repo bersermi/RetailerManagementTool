@@ -267,17 +267,18 @@ from `itacate/` with the two local `EXPO_PUBLIC_SUPABASE_` values in the shell, 
   (removed, not masked as Wera Cocina's are: the config is hashed as one text for both platforms, and a
   masked key would still be new text in Android's hash), and ignores the file; `test/runtime.test.ts`
   computes the runtime with and without them, and pins Android's to the one Itacate's test build in the
-  field carries (`4de35b0b…`, build `2b638d21`) — **measured unchanged with the iPhone's key and icon in the
+  field carries (`4de35b0b…`, build `2b638d21`) — and, since `10.5-iv-b-ii`, the iPhone's (`a46650e4…`, build `282cfb7d`) — **measured unchanged with the iPhone's key and icon in the
   config (`10.5-iv-b-i`), so the map reached that build as an update.** A new value read from the
   environment into the config joins that file and that test, and the update runbook's list.
 - **Ship an update only through the runbook, which computes the runtime the way the build does** —
   `bash docs/runbooks/ship-an-update.sh preview "…" --app itacate`, run on `main` after a green merge
   (`10.5-iii-a`, its first; `production` since `10.5-iii-b`, his); its rehearsal in `app.yml` holds the
   `--app itacate` cases. Never a bare
-  `eas update`. ⚠️ **Its only test build is Android's `preview` APK** (`2b638d21`, from `10.2b`; EAS
-  keeps it to 2026-11-11, installed copies keep working) — no iPhone test build exists, and the first
-  needs the owner at Terminal.app for its signing profile (`5R-b-iii`'s finding): it is `10.5-iv-b-ii`'s,
-  the map's iPhone half. The iPhone store build of `10.2b` (`e3100436`) was never installed anywhere. The bundle reads
+  `eas update`. ⚠️ **Its test builds are two**: Android's `preview` APK (`2b638d21`, from `10.2b`; EAS
+  keeps it to 2026-11-11, installed copies keep working) and, **since 2026-11-09, the iPhone's** (`282cfb7d`,
+  1.0.0 build 2, `10.5-iv-b-ii` — made by the owner's command at Terminal.app, for its signing profile, and on
+  his iPhone); an update reaches both, and `test/runtime.test.ts` pins both runtimes. The iPhone store build of
+  `10.2b` (`e3100436`) was never installed anywhere. The bundle reads
   five values — the database's two and the support number, which this project holds in `preview`, and
   in `production` once his command has run again (`10.5-iii-b`), and since `10.5-iv-a-i` Google's two
   keys through `extra`, the organization's variables in both environments; a new `EXPO_PUBLIC_` value, or
