@@ -63,6 +63,14 @@ listings do not say *inventario*; the home page of tu-wera.com still does.
 
 ## What is on your phone
 
+⏳ **10 November, later: Itacate after the plate, sent over the air** (*Itacate: tus estrellas después del plato, tu recordatorio y cómo pagas
+en cada cocina (10.5b-iii-b)*) to Itacate's test builds — **your iPhone's included**, with nothing to reinstall — and to Wera Cocina's (*Wera
+Cocina: Así la ven dice cómo pagan y sus calificaciones*). On the iPhone: open Itacate, wait ten seconds, **close it completely** and open it
+again — the update runs from the second open; if it still looks as before, once more. **First sign it arrived:** a kitchen's page shows
+***Cómo pagas aquí*** with an *Efectivo* chip, and *Todavía sin calificaciones* under its name. **What to look at:** *What only you can judge* →
+*Itacate → after the plate* — ⚠️ with your second account, and an hour at least 20 minutes away, so the reminder has time to come. In Wera
+Cocina, *Ver como la ven* shows the same two lines. Seen first on a test Android with each same file, opened signed out: downloaded, then running (each app's own update record — Itacate's on its second open, Wera Cocina's on its third); and every new screen on a test copy of the database before the merge, the reminder arriving on that phone's lock screen and over the open app. Nothing changes in Wera.
+
 ⏳ **10 November: Itacate reserves, sent over the air** (*Itacate: apartar y recoger, tu código y tu calificación (10.5b-iii-a)*)
 to Itacate's test builds — **your iPhone's included**, with nothing to reinstall — and to Wera Cocina's (*Wera Cocina: Así la ven
 dice cómo se come y cómo se paga*). On the iPhone: open Itacate, wait ten seconds, **close it completely** and open it again — the
