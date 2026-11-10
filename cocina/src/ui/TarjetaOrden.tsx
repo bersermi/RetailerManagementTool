@@ -35,7 +35,6 @@ import { PALETTE, SIZE } from '@/theme/palette';
 export function TarjetaOrden({
   orden,
   ahora,
-  ocupado = false,
   problema = null,
   onAbrir,
   onEntregar,
@@ -45,9 +44,11 @@ export function TarjetaOrden({
 }: {
   orden: Orden;
   ahora: Date;
-  /** A write about this order is on its way: its buttons wait. */
-  ocupado?: boolean;
-  /** Why the last write about it did not go through, or `null`. */
+  /**
+   * Why the database refused a send about it, or `null` — `10.5b-iv-b`: her handovers and thumbs are
+   * queued and drawn at once (`@/api/cola`), so nothing about an order waits on the network and its
+   * buttons never do; a refusal comes back here.
+   */
   problema?: string | null;
   onAbrir: () => void;
   onEntregar: () => void;
@@ -96,15 +97,15 @@ export function TarjetaOrden({
         )}
       </Pressable>
 
-      {porEntregar && <Accion label={ES.apartados.entregar} tipo="ir" ocupado={ocupado} onPress={onEntregar} />}
-      {marca === 'porCalificar' && <Accion label={ES.apartados.calificar} tipo="calificar" ocupado={ocupado} onPress={onCalificar} />}
+      {porEntregar && <Accion label={ES.apartados.entregar} tipo="ir" onPress={onEntregar} />}
+      {marca === 'porCalificar' && <Accion label={ES.apartados.calificar} tipo="calificar" onPress={onCalificar} />}
       {marca === 'seLibero' && (
         <View style={{ flexDirection: 'row', gap: SIZE.rowGap }}>
           <View style={{ flex: 1 }}>
-            <Accion label={ES.apartados.noSePresento} tipo="calificar" ocupado={ocupado} onPress={onNoSePresento} />
+            <Accion label={ES.apartados.noSePresento} tipo="calificar" onPress={onNoSePresento} />
           </View>
           <View style={{ flex: 1 }}>
-            <Accion label={ES.apartados.siPaso} tipo="bien" ocupado={ocupado} onPress={onSiPaso} />
+            <Accion label={ES.apartados.siPaso} tipo="bien" onPress={onSiPaso} />
           </View>
         </View>
       )}

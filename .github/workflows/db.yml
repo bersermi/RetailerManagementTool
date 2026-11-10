@@ -110,6 +110,9 @@ on:
       # `reservation_neighbours` and `rate_neighbour` and `hand_over_reservation`, every argument
       # and key, the labels it sends and the refusals it turns into sentences. Its own job,
       # `cocina-handover`, below; the neighbour reserves through Itacate's names.
+      # ⚠️ `10.5b-iv-b`, THE HANDOVER WITH NO SIGNAL: the same check reads her queue's claims out of
+      # `cocina/src/api/cola.ts` (under `cocina/src/api/**` above) — which refusals are final, and
+      # that a late send keeps her moment and a thumb lands behind its handover.
       - "docs/checks/10.5b-iv-a-handover-contract.sh"
       - "docs/checks/10.5b-iv-a-handover-contract-falsify.sh"
       # ⚠️⚠️ AND THE ROSTER'S, as of plan task 5b-ii-a. `app/src/api/members.ts`
@@ -2437,12 +2440,14 @@ jobs:
   # A misspelt column is a 400 and the tab shows no order; a misspelt argument a 404 and *Ya
   # cobré y lo entregué* does nothing; a misspelt key of a jsonb answer a 200 with the name or the
   # thumb missing. Its own job for `itacate-reserving`'s reason: the falsifier runs the whole
-  # check twenty-one times, two sign-ups each.
+  # check twenty-five times, two sign-ups each. ⚠️ Since `10.5b-iv-b` it asks for her queue too
+  # (`cocina/src/api/cola.ts`): a late send keeps her moment, a thumb lands behind its handover,
+  # and a call with no session is never taken as the database's last word.
   # ===========================================================================
   cocina-handover:
     name: what a fonda hands over and how she rates the neighbour, against Wera Cocina's own names
     runs-on: ubuntu-latest
-    # ⚠️ Twenty-one runs of two sign-ups each, and GoTrue allows 30 in five minutes: a run that
+    # ⚠️ Twenty-five runs of two sign-ups each, and GoTrue allows 30 in five minutes: a run that
     # spends them waits out the window (`signup`'s retries).
     timeout-minutes: 30
 
@@ -2460,7 +2465,7 @@ jobs:
       - name: Apply migrations from scratch
         run: supabase db reset
 
-      - name: Contract — does cocina/src/api/apartados.ts read her reservations, hand them over and rate the neighbour by the names 0079 and 0080 answer (plan 10.5b-iv-a)
+      - name: Contract — does cocina/src/api/apartados.ts read her reservations, hand them over and rate the neighbour by the names 0079 and 0080 answer, and does her queue (cola.ts) send late as they keep it (plans 10.5b-iv-a, 10.5b-iv-b)
         run: bash docs/checks/10.5b-iv-a-handover-contract.sh
 
       - name: Contract — can the handover check still fail (its own fixtures; the runner counts them)

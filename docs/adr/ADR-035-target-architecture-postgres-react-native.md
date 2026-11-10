@@ -57,6 +57,11 @@
   - **Internal:** §2.3 opens *"Nineteen tables"* (there are 22). §6 says `record_transfer`
     ships in `0004` (it is `0020`). §2.10 names `@rmt/money` (the package is `@tienda/money`).
     §8's checklist has every box unticked, among them the invites, built in `0027`–`0029`.
+- **Revised:** 2026-11-10 — **§2.6's *Offline*: Wera Cocina's handover works with no signal** (plan `10.5b-iv-b`, the decision
+  maker's questions 7–10 of 2026-11-05, *"it works without signal (today's reservations saved on her phone)"*): her kitchen, her offers
+  and her reservations kept on the phone, with visible staleness; *Entregar* and her thumb queued — one path online and offline — in a
+  queue of the app's own, not Wera's outbox. The amendment is in §2.6, below the price's. §2.11's connectivity row holds for it as
+  written: its one module is Wera's, copied.
 - **Revised:** 2026-11-05 — **§2.2's *Address search* row: Itacate's phones ask Google too** (plan `10.5-iv-a-i`, the list of the
   kitchens near her): Geocoding from the neighbour's phone for her alone, never kept — a kitchen the door sends with no point, placed
   by its address and held in memory while the app is open, and the postal code she types when she gives no location. Each request
@@ -1487,6 +1492,20 @@ the function applies hers only while the price in force on her day is that one a
 changed after that day; otherwise it is *superseded* — the other price stays and hers is
 dropped, and nobody is told. Builds from before keep writing `price_list` directly, which
 its policies still allow (§2.2's field rule).
+
+⚠️ **AMENDED 2026-11-10 (plan `10.5b-iv-b`, the decision maker's questions 7–10 of 2026-11-05: *"it works without signal"*):
+WERA COCINA'S HANDOVER IS A QUEUED WRITE TOO, AND ITS READS SERVE FROM THE PHONE.** The same principles — queued, rendered at once,
+flushed on reconnect, a retry free — with three differences, each for a reason: (1) **its queue is not this outbox.** A handover and a
+fonda's thumb are not documents and touch no ledger, so nothing dead-letters them (`record_failed_write` is the ledger's); the queue
+is one key in the phone's store (`cocina/src/api/cola.ts`), sent in the order made — a thumb never ahead of its order's handover,
+which `rate_neighbour` would refuse — and idempotent by the functions themselves: `hand_over_reservation` and `rate_neighbour` take
+the phone's moment (`p_at`, kept between the order's making and now) and keep the first handover. (2) **A refusal that is final is
+drawn on its order and leaves the queue**: `22023`, `TD022`, and a `42501` that is the functions' own — never the `42501` the client
+roles answer when a call arrives with no session (the client sends the publishable key when it could not renew the sign-in), which
+waits like a lost link; `docs/checks/10.5b-iv-a-handover-contract.sh` holds the distinction to a real PostgREST. (3) **The queue is
+per login and outlives a sign-out**, sent only while that login is in. Its reads — her kitchens, her offers, her reservations and who
+reserved each — are kept on the phone with *"Sin señal. Lo que ves se leyó a las 13:05."* drawn while there is no signal: the
+visible staleness this paragraph asks for (`cocina/src/api/persist.ts`).
 
 The outbox has three states — `pending`, `flushing`, `dead` — and it is a named
 deliverable of build step **`5c`**, not something a screen acquires along the way.

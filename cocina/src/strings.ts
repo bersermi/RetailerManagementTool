@@ -745,6 +745,39 @@ export const ES = {
     yaLoMarco: 'En Itacate ya marcó que lo recogió. Si todavía no se lo das, cóbrale y entrégaselo.',
     terminado: 'Su horario ya terminó. Si se lo das, queda como entregado.',
     leyendo: 'Leyendo tus apartados de hoy…',
+    /**
+     * `10.5b-iv-b`: with no signal a code not on the phone may be a reservation made since the last read —
+     * so never *Pídeselo otra vez* alone: *Ese código no está en tus apartados de las 13:05. Sin señal no llegan los nuevos.*
+     */
+    noEstaSinSenal: (cuando: string) => `Ese código no está en tus apartados de ${cuando}. Sin señal no llegan los nuevos.`,
+    /** `10.5b-iv-b`: under *Entregado* while her handover waits on the phone. */
+    guardadaAqui: 'Guardada en este teléfono. Se envía sola cuando vuelve la señal.',
+  },
+
+  /**
+   * `10.5b-iv-b`: THE HANDOVER WITH NO SIGNAL — what the counter says when the phone is all she has (ADR-035
+   * §2.6: reads from the phone with visible staleness, writes queued and said). ⚠️ *Todavía están en este
+   * teléfono…* is Wera's sentence for its unsent notes (`app/src/strings.ts`, `unsentNote`), so the family
+   * says it one way.
+   */
+  cola: {
+    /** *Sin señal. Lo que ves se leyó a las 13:05.* — or *ayer a las 21:40*. */
+    sinSenal: (dia: string | null, hora: string) =>
+      dia === null ? `Sin señal. Lo que ves se leyó a las ${hora}.` : `Sin señal. Lo que ves se leyó ${dia} a las ${hora}.`,
+    /** With no signal and nothing ever read on this phone. */
+    sinDatos: 'Sin señal. Tus apartados aparecen aquí en cuanto vuelva.',
+    /** *2 entregas y 1 calificación por enviar*. */
+    porEnviar: (entregas: number, calificaciones: number) => {
+      const partes: string[] = [];
+      if (entregas > 0) partes.push(entregas === 1 ? '1 entrega' : `${entregas} entregas`);
+      if (calificaciones > 0) partes.push(calificaciones === 1 ? '1 calificación' : `${calificaciones} calificaciones`);
+      return `${partes.join(' y ')} por enviar`;
+    },
+    /** Wera's sentence, in the singular for one (found on the emulator: *1 entrega por enviar · Todavía están…*). */
+    seEnvian: (cuantas: number) =>
+      cuantas === 1
+        ? 'Todavía está en este teléfono. Se envía sola cuando vuelve la señal.'
+        : 'Todavía están en este teléfono. Se envían solas cuando vuelve la señal.',
   },
 
   /**

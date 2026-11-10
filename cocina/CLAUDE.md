@@ -19,7 +19,7 @@ bash docs/checks/10.4b-iii-a-cocina-contract.sh   # against a local `supabase st
 bash docs/checks/10.4b-iv-a-listing-contract.sh   # the same stack: her list, publishing (each line's keys), a retry, withdrawing
 bash docs/checks/5R-k-apple-revoke-contract.sh     # the same stack: the function that tells Apple, served, with Wera's body, this app's and Itacate's
 bash docs/checks/10.5-i-a-kitchen-photos-contract.sh   # the same stack WITH Storage started before the reset: her page and the bucket `cocina`, by this app's names
-bash docs/checks/10.5b-iv-a-handover-contract.sh      # the same stack: her kitchen's reservations, who reserved each, the handover and her thumb, by apartados.ts's names
+bash docs/checks/10.5b-iv-a-handover-contract.sh      # the same stack: her kitchen's reservations, who reserved each, the handover and her thumb, by apartados.ts's names — and her queue's claims, by cola.ts's
 bash store/cocina-itacate/render.sh giros         # the nine trades' drawings, from brand/giros.svg into src/marca/giros/ — and nothing else
 TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic is local time, and the Mac is UTC−6
 ```
@@ -45,8 +45,9 @@ TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic i
   against Wera's FILES, not a second spelling: the sign-in sentences and the name's key
   (`test/auth-rules.test.ts` reads `app/src/strings.ts` and `app/src/auth/credentials.ts`, and
   `test/support.test.ts` runs Wera's `app/src/auth/support.ts` beside its copy, which is why
-  `cocina-itacate.yml` fires on them). Two differences, decided: **no persisted cache** (nothing
-  here works offline yet — the first is `10.5b-iv-b`'s, the counter with no signal), so a read's key carries the login instead (`kitchensKey`); and the way in
+  `cocina-itacate.yml` fires on them). Two differences, decided: **its saved cache is three reads, bound
+  without Wera's library** (`10.5b-iv-b`, the section *With no signal* below) — every read's key still carries
+  the login (`kitchensKey`); and the way in
   **opens on *Crear cuenta***, because no doors came before it (`src/app/(auth)/entrar.tsx`) — since `10.5-v-d` the
   opening's two buttons (`(auth)/hola`) open it on the half she picked, *Ya tengo cuenta* with `cuenta=tengo`.
 - **A module in `src/api/` is a claim about the applied schema**, as in Wera: `db.yml` fires on
@@ -385,15 +386,23 @@ follows it, as `itacate/CLAUDE.md`'s does:
 ## *Apartados* — she sees and hands over (`10.5b-iv-a`)
 
 The owner's final design of 2026-11-10 (the page *Names, Records and Stars*, version 5, its table of states) and slice 3's
-handover (the family-shell page, stage 2). ⚠️ **Online only**: today's reservations kept on the phone and the handover queued
-with no signal are `10.5b-iv-b`'s; her settings, − and + and *Así la ven*'s what-is-left are `10.5b-iv-c`'s.
+handover (the family-shell page, stage 2). Since `10.5b-iv-b` it works with no signal (the next section); her settings, − and +
+and *Así la ven*'s what-is-left are `10.5b-iv-c`'s.
 
 - **The read** (`useApartados`): her kitchen's reservations from 30 days back and later — `reservation_neighbours`' own reach —
   and that function's line on each. ⚠️⚠️ **In three parts, because her data plan is hers** (measured: ~810 bytes an order; 30
   days every minute was over 100 MB a day for a busy fonda): **today's and later's** (`hoy`) every minute while an offer of hers is
   not over or an order still waits (`vivo`) and the app is in front; **the 30 days before** (`antes`, the newest first — PostgREST
   answers at most 1,000 rows) when the app opens, every 30 minutes and when *Historial* opens; **who reserved each** (`vecinos`)
-  whenever today's orders change (`firmaDeHoy` is in its key). Nothing tells her phone a neighbour reserved until `10.5b-v`.
+  whenever today's orders change (`firmaDeHoy`). Nothing tells her phone a neighbour reserved until `10.5b-v`.
+  ⚠️⚠️ **When they are read again lives in ONE reader** (`useApartadosAlDia`, in the tabs' layout, since `10.5b-iv-b`): a new day
+  and a new order are `refetch()`s from an effect, and a `refetch()` cancels a read in flight and sends a new one — from every screen
+  each would go out once per screen. Every other screen calls `useApartados`, which reads the same queries and asks nothing again.
+  ⚠️ **A list read on another day is asked again** (with the app open at midnight, and on the morning's first launch), and until the
+  history is, today's read reaches back to the day it was read (`desdeDeHoy`) — so no day falls between the two lists.
+  (The minute itself TanStack merges — each answer re-arms every screen's interval — measured at the local gateway 2026-11-10: one
+  read of today's orders a minute with three screens up, the interval on one reader or on all three.) ⚠️ **No key carries the day or today's orders** (they are kept on the phone): the two
+  lists are joined by id, today's winning (`unir`), and read again when the day turns.
   ⚠️ **`buyer_id` is granted to nobody**: the columns are named, never `*`. ⚠️ **The day after the window is the clock's on the
   phone too** (`ordenesDe`): the name gone, an unrated released plate drawn *No se presentó*.
 - ⚠️ **The state is the database's definition, repeated** (`@/api/apartados`' `estadoDe`, `reservation_state`), and so is what
@@ -420,3 +429,47 @@ with no signal are `10.5b-iv-b`'s; her settings, − and + and *Así la ven*'s w
   2026-11-03) in place of the test build, Metro from `cocina/` on 8082 with the local values, and a fixture made through the
   apps' own functions — `10.5b-iv-a`'s session back-dated a fortnight of one neighbour's plates as the database's owner for a
   score, and moved a window into the past for a plate that *se liberó*.
+
+## With no signal — the counter works from the phone (`10.5b-iv-b`)
+
+The owner's questions 7–10 of 2026-11-05: *"it works without signal (today's reservations saved on her phone)"*. ADR-035 §2.6's
+*Offline* paragraph, amended for this app: reads from the phone with visible staleness, writes queued and drawn at once.
+
+- **Three reads are kept on the phone** (`@/api/persist`, pinned by `test/persist.test.ts`): her kitchens, her offers and her
+  reservations — today's and later's, the 30 days before, who reserved each (the neighbour's short name and score, while the order
+  waits or waits for its thumb). Nothing else. ⚠️ **TanStack's own `hydrate` as the client is built**, from the phone's synchronous
+  store (`@/api/QueryProvider`), never Wera's persister library: the first frame already has her kitchen, so a cold start with no
+  signal goes straight to *Hoy*, and no dependency was added (an install here can move Wera's runtime). Saved at most every three
+  seconds, at once when the app leaves the front, and at once when a queued send lands. Wera's rules kept: a refresh that failed is
+  written as the success it last was (`asLastGood`); the kept reads are never collected (`gcTime`); the buster is a shape version
+  (`CACHE_SHAPE`); ⚠️ **a `Date` is written as `{ "$fecha": iso }`** (`aTexto`/`deTexto`) — her orders' moments are `Date`s, and JSON
+  alone brings them back as strings that throw on the first `getTime`. ⚠️ **Forgotten on *Cerrar sesión* alone** (`forgetCache` in
+  `AuthProvider.signOut`, memory first), never on `session === null`, which a renewal that failed with no signal also is.
+- ⚠️⚠️ **Her handover and her thumb are QUEUED, with signal or without** (`@/api/cola`, pure, pinned by `test/cola.test.ts`; bound by
+  `@/lib/cola` and `@/lib/ColaProvider`): one path, Wera's C10.3. A write on a weak signal waits up to 30 s for its answer
+  (`@/lib/plazo`) and a neighbour is at the counter, so the tap is written to the phone (`cocina.cola`, its own key) and drawn at once
+  (`reservasConCola`, `vecinosConCola`), and sent now or when the signal returns, with her phone's moment (`p_at` — the database keeps
+  it, and keeps the first handover). At most one of each per order (a second thumb replaces the first's content, keeping its moment and
+  place; a handover clears a *No se presentó* waiting for the same order, and opens her thumb until her window's end plus 24 hours, as the
+  database will once it lands). ⚠️ **A thumb never goes ahead of its handover**: sent in the order made, and an order whose send did not go
+  keeps its later ones waiting — others go on; a new login ends a drain. ⚠️ **A landed send is drawn into the cached read and the cache saved
+  BEFORE it leaves the queue** (`@/api/llegada`, awaited by the drain): her reservations' reads in flight are cancelled first — one that
+  started before the send landed would write the list from before it — and each read keeps its age, which *Sin señal* reads
+  (`test/llegada.test.ts`, against a real TanStack client). ⚠️⚠️ **Only the database's last word drops a send** (`desenlaceDe`): `22023`, `TD022`,
+  and a `42501` whose message is the functions' own (*not at one of your kitchens*) — never a `42501` *permission denied for function*,
+  which is what a call with NO session answers (supabase-js sends the publishable key when it could not renew hers; measured on the local
+  stack), nor `PGRST301`–`303`; both stop the drain and wait. `docs/checks/10.5b-iv-a-handover-contract.sh` groups 11–13 ask a real
+  PostgREST for each. ⚠️ **The queue outlives *Cerrar sesión***, per login: a send goes only while the login that made it is in — a
+  handover is her record, and another session would sign it.
+- **The signal is Wera's machine, copied** (`@/api/connectivity`, held to `app/src/api/connectivity.ts` code for code by
+  `test/senal.test.ts`; `cocina-itacate.yml` fires on Wera's file), bound by `@/lib/connectivityMonitor`, **the only module that imports
+  `expo-network`**: a listener plus a poll plus the app-state wake, a drop believed after two seconds, a retry ladder that outlasts the
+  auth layer's 90 seconds. It drains her queue and is handed to TanStack's `onlineManager` (a read with no signal waits with its copy).
+- **What the counter says** (`@/ui/SinSenal`, on *Hoy*, *Apartados* and *Entregar un apartado*): *Sin señal. Lo que ves se leyó a las
+  13:05.* and *2 entregas y 1 calificación por enviar* with Wera's *Todavía están en este teléfono. Se envían solas cuando vuelve la
+  señal.*; under *Entregado*, *Guardada en este teléfono. Se envía sola cuando vuelve la señal.*; and with no signal a code not on the
+  phone is *Ese código no está en tus apartados de las 13:05. Sin señal no llegan los nuevos.* — never *Pídeselo otra vez* alone.
+  A refusal that comes back later is drawn on its order (`rechazoDe`, a day).
+- **To see it on the emulator**: the debug build against the local shop (above); **offline = airplane mode AND `adb reverse --remove
+  tcp:54443`** (the local shop is reached through adb, not the emulator's network); read the queue and the cache with `run-as
+  mx.wera.cocina cat files/SQLite/ExpoSQLiteStorage` (table `storage`, keys `cocina.cola` and `cocina.query-cache`).

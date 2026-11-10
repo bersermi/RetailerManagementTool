@@ -37,6 +37,16 @@
 #      and the order waits for a thumb again.
 #   9. A plate eaten there carries no *desechable*; one taken away carries its $5.
 #  10. The neighbour reads none of the kitchen's reservations, and signed out nothing is answered.
+#  ⚠️ `10.5b-iv-b` — WHAT HER QUEUE RELIES ON (`cocina/src/api/cola.ts`: the handover and her thumb
+#  are queued on the phone and sent when there is signal, maybe much later):
+#  11. A handover sent late keeps her phone's moment, and a second send keeps the first.
+#  12. A thumb sent before its order's handover is refused (group 7's `yaNoSeCalifica`) — which is
+#      why the queue never sends one ahead — and after the late handover it lands with HER moment.
+#  13. Which refusals the queue takes as the database's last word, read out of `cola.ts`: the
+#      functions' own `42501` matches its pattern; a call with NO session — what supabase-js sends
+#      when it could not renew hers — answers `42501` too, `permission denied for function`, and
+#      must NOT match, or a phone whose sign-in lapsed would drop her handover; a broken token is
+#      a code it waits on; and the codes it draws as refusals are the ones the database answered.
 #
 # ⚠️ WHAT IT DOES NOT ASSERT: the database's own rules (`supabase/tests/0079_…` and `0080_…`),
 # or what the screens do with an answer (`cocina/test/apartados.test.ts`, which also holds the
@@ -48,12 +58,13 @@
 # this a dozen times.
 #
 # Run:  supabase start && supabase db reset && bash docs/checks/10.5b-iv-a-handover-contract.sh
-# With: $1 a copy of cocina's apartados.ts — how the falsifier points it at a broken one.
+# With: $1 a copy of cocina's apartados.ts, $2 a copy of its cola.ts — how the falsifier points it at a broken one.
 # Exit: 0 every assertion holds; 1 otherwise.
 
 set -uo pipefail
 
 APARTADOS_TS="${1:-cocina/src/api/apartados.ts}"
+COLA_TS="${2:-cocina/src/api/cola.ts}"
 ITACATE_TS="itacate/src/api/apartados.ts"
 COCINAS_TS="itacate/src/api/cocinas.ts"
 KITCHEN_TS="cocina/src/api/kitchen.ts"
@@ -61,7 +72,7 @@ PLACE_TS="cocina/src/api/place.ts"
 LISTING_TS="cocina/src/api/listing.ts"
 PAGINA_TS="cocina/src/api/pagina.ts"
 CREDENTIALS_TS="cocina/src/auth/credentials.ts"
-for f in "$APARTADOS_TS" "$ITACATE_TS" "$COCINAS_TS" "$KITCHEN_TS" "$PLACE_TS" "$LISTING_TS" "$PAGINA_TS" "$CREDENTIALS_TS"; do
+for f in "$APARTADOS_TS" "$COLA_TS" "$ITACATE_TS" "$COCINAS_TS" "$KITCHEN_TS" "$PLACE_TS" "$LISTING_TS" "$PAGINA_TS" "$CREDENTIALS_TS"; do
   [[ -r "$f" ]] || { echo "FAIL: cannot read $f (run this from the repository root)"; exit 1; }
 done
 
@@ -130,6 +141,13 @@ LINE_BODY="$(fields_of "$LISTING_TS" LineBody '')"
 SET_PAGE="$(const SET_KITCHEN_PAGE "$PAGINA_TS")"
 PAGE_ARGS="$(fields_of "$PAGINA_TS" SetPageArgs 'p_')"
 NAME_KEY="$(const FULL_NAME_KEY "$CREDENTIALS_TS")"
+# `10.5b-iv-b`: the queue's own claims — its pattern for a final 42501, the codes it waits on as her
+# sign-in's, and the codes it draws as refusals (`FINALES`, `'22023': 'cambio',` or `TD022: 'yaNoSeCalifica',`).
+FINAL_42501="$(sed -n 's#^export const NO_ES_DE_SU_COCINA = /\(.*\)/;$#\1#p' "$COLA_TS" | head -1)"
+SESSION_CODES="$(sed -n "s/^export const CODIGOS_DE_SESION: readonly string\[\] = \[\(.*\)\];.*/\1/p" "$COLA_TS" | tr -d "' " | head -1)"
+final_of() { awk '/^export const FINALES/{f=1;next} f&&/^};/{exit} f' "$COLA_TS" | sed -n "s/^  '\{0,1\}\([A-Z0-9]*\)'\{0,1\}: '$1',.*/\1/p" | head -1; }
+FINAL_CAMBIO="$(final_of cambio)"
+FINAL_NO_RATING="$(final_of yaNoSeCalifica)"
 
 for pair in "RESERVATION_TABLE:$TABLE" "RESERVATION_COLUMNS:$COLUMNS" "RESERVATION_OWNER_COLUMN:$OWNER_COLUMN" \
             "RESERVATION_DAY_COLUMN:$DAY_COLUMN" "RESERVATION_ORDER:$ORDER" "RESERVATION_HISTORY_ORDER:$HISTORY_ORDER" "RESERVATION_LINES_TABLE:$LINES_TABLE" \
@@ -143,7 +161,8 @@ for pair in "RESERVATION_TABLE:$TABLE" "RESERVATION_COLUMNS:$COLUMNS" "RESERVATI
             "OnboardArgs:$ONBOARD_ARGS" "COCINA_KIND:$KIND" "PLACE_TABLE:$PLACE_TABLE" "PLACE_OWNER_COLUMN:$PLACE_OWNER" \
             "SET_STORE_ADDRESS:$SET_ADDRESS" "SetStoreAddressArgs:$ADDRESS_ARGS" "PUBLISH_LISTING:$PUBLISH" \
             "PublishArgs:$PUBLISH_ARGS" "LineBody:$LINE_BODY" "SET_KITCHEN_PAGE:$SET_PAGE" "SetPageArgs:$PAGE_ARGS" \
-            "FULL_NAME_KEY:$NAME_KEY"; do
+            "FULL_NAME_KEY:$NAME_KEY" "NO_ES_DE_SU_COCINA:$FINAL_42501" "CODIGOS_DE_SESION:$SESSION_CODES" \
+            "the queue's final code for cambio:$FINAL_CAMBIO" "the queue's final code for yaNoSeCalifica:$FINAL_NO_RATING"; do
   if [[ -z "${pair#*:}" ]]; then
     echo "FAIL: could not read ${pair%%:*} out of the apps' source"
     echo "      This check asserts the app's own claim. Without it there is nothing to"
@@ -157,6 +176,7 @@ UP1="$(nth "$UP_LABELS" 1)"; DOWN1="$(nth "$DOWN_LABELS" 1)"
 ok "read from Wera Cocina: $TABLE?select=… by $OWNER_COLUMN, $DAY_COLUMN, order $ORDER, $LINES_TABLE by $LINE_ORDER; $NEIGHBOURS($NEIGHBOURS_ARGS), $HAND_OVER($HAND_OVER_ARGS), $RATE($RATE_ARGS)"
 ok "and the answers: a reservation {$ROW_KEYS}, its line {$LINE_KEYS}, its dish {$DISH_KEYS}; a neighbour's line {$ENTRY_KEYS}, the neighbour {$NEIGHBOUR_KEYS}, a thumb {$THUMB_KEYS}; rated {$RATED_KEYS}"
 ok "and the labels ($UP_LABELS up, $DOWN_LABELS down, $NO_SHOW), the codes ($NO_RATING_CODE yaNoSeCalifica, $CHANGED_CODE cambio, $SESSION_CODE sesion), how she pays ($PAYMENTS) and eats ($WAYS)"
+ok "and from her queue: a final 42501 is /$FINAL_42501/, her sign-in's codes are $SESSION_CODES, its final codes $FINAL_CAMBIO cambio and $FINAL_NO_RATING yaNoSeCalifica"
 
 # --- the local stack -------------------------------------------------------
 STATUS="$(supabase status -o env 2>/dev/null)"
@@ -508,11 +528,73 @@ elif [[ "$(status "$out2")" == 2* ]]; then fail "signed out, $NEIGHBOURS() answe
 else ok "the neighbour reads none of the kitchen's reservations and is refused its neighbours' lines ($s2); signed out nothing is answered ($(status "$out"), $(status "$out2"))"
 fi
 
+# --- 11. `10.5b-iv-b`: a handover sent late keeps her moment ----------------------------------
+# R3 is still pending (group 7). Made two hours ago, as the database's owner, so a moment 40 minutes
+# ago is inside what `hand_over_reservation` keeps (between the order's making and now).
+LATE="$(iso -40)"; THUMB_AT="$(iso -35)"
+same_instant() { python3 -c 'import datetime,sys; p=lambda t: datetime.datetime.fromisoformat(t.replace("Z","+00:00")); print("OK" if sys.argv[1] and sys.argv[2] and p(sys.argv[1])==p(sys.argv[2]) else "%r is not %r" % (sys.argv[1], sys.argv[2]))' "$1" "$2" 2>&1; }
+made="$(as_owner "update public.reservation set created_at = now() - interval '2 hours' where id = '$R3' returning id")"
+if [[ "$made" != "$R3" ]]; then
+  fail "could not move the third plate's making into the past ($made)"
+else
+  TOKEN="$FONDA"
+  s="$(ask "$SCRATCH/h3.json" POST "/rest/v1/rpc/$HAND_OVER" "$(by_names "$HAND_OVER_ARGS" "\"$R3\"" "\"$LATE\"")")"
+  read_as_fonda "$SCRATCH/read5.json" > /dev/null
+  kept="$(same_instant "$(verdict handed_at "$SCRATCH/read5.json" "$R3")" "$LATE")"
+  TOKEN="$FONDA"
+  s2="$(ask "$SCRATCH/h3b.json" POST "/rest/v1/rpc/$HAND_OVER" "$(by_names "$HAND_OVER_ARGS" "\"$R3\"" "\"$(iso 0)\"")")"
+  read_as_fonda "$SCRATCH/read6.json" > /dev/null
+  again="$(same_instant "$(verdict handed_at "$SCRATCH/read6.json" "$R3")" "$LATE")"
+  if [[ "$s" != 200 ]]; then fail "a handover sent late answered $s $(head -c 200 "$SCRATCH/h3.json")"
+  elif [[ "$kept" != OK ]]; then fail "a handover sent late did not keep her moment: $kept"
+  elif [[ "$s2" != 200 || "$again" != OK ]]; then fail "sent again from her queue, the handover answered $s2 and moved: $again"
+  else ok "a handover sent 40 minutes late keeps her phone's moment, and the queue's second send keeps the first"
+  fi
+fi
+
+# --- 12. `10.5b-iv-b`: a thumb behind its handover, with her moment ----------------------------
+# Group 7 refused a thumb on R3 while it was pending (`$NO_RATING_CODE`): a queue that sent the thumb first
+# would take that as final and lose it. Behind the late handover, the same thumb lands — given at HER moment.
+TOKEN="$FONDA"
+s="$(ask "$SCRATCH/t4.json" POST "/rest/v1/rpc/$RATE" "$(by_names "$RATE_ARGS" "\"$R3\"" true "[\"$UP1\"]" "\"$THUMB_AT\"")")"
+v="$(verdict rated "$SCRATCH/t4.json" "$RATED_KEYS" up "$UP1")"
+given="$(same_instant "$(pick given_at "$(cat "$SCRATCH/t4.json")")" "$THUMB_AT")"
+if [[ "$s" != 200 || "$v" != OK ]]; then fail "a thumb sent behind its late handover answered $s — $v $(head -c 200 "$SCRATCH/t4.json")"
+elif [[ "$given" != OK ]]; then fail "a thumb sent late was not given at her moment: $given"
+else ok "refused while its order was pending ($NO_RATING_CODE, group 7), the thumb sent behind the late handover lands, given at her phone's moment"
+fi
+
+# --- 13. `10.5b-iv-b`: which refusals her queue takes as the database's last word --------------
+matches() { python3 -c 'import re,sys; print("yes" if re.search(sys.argv[1], sys.argv[2]) else "no")' "$1" "$2"; }
+TOKEN="$VECINA"
+s1="$(ask "$SCRATCH/q1.json" POST "/rest/v1/rpc/$HAND_OVER" "$(by_names "$HAND_OVER_ARGS" "\"$R1\"" "\"$(iso 0)\"")")"
+TOKEN=""
+s2="$(ask "$SCRATCH/q2.json" POST "/rest/v1/rpc/$HAND_OVER" "$(by_names "$HAND_OVER_ARGS" "\"$R1\"" "\"$(iso 0)\"")")"
+TOKEN="eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiYXV0aGVudGljYXRlZCJ9.c2lnbmF0dXJl"
+s3="$(ask "$SCRATCH/q3.json" POST "/rest/v1/rpc/$HAND_OVER" "$(by_names "$HAND_OVER_ARGS" "\"$R1\"" "\"$(iso 0)\"")")"
+TOKEN="$FONDA"
+c1="$(pick code "$(cat "$SCRATCH/q1.json")")"; m1="$(pick message "$(cat "$SCRATCH/q1.json")")"
+c2="$(pick code "$(cat "$SCRATCH/q2.json")")"; m2="$(pick message "$(cat "$SCRATCH/q2.json")")"
+c3="$(pick code "$(cat "$SCRATCH/q3.json")")"
+if [[ "$c1" != 42501 || "$(matches "$FINAL_42501" "$m1")" != yes ]]; then
+  fail "the functions' own refusal ($s1 $c1 '$m1') is not what her queue takes as final (/$FINAL_42501/) — a handover that is not hers would wait for ever"
+elif [[ "$c2" != 42501 ]]; then
+  fail "with no session the database answered $s2 '$c2' '$m2' — the case her queue tells apart from a refusal is not the database's"
+elif [[ "$(matches "$FINAL_42501" "$m2")" != no ]]; then
+  fail "a call with no session ('$m2') matches what her queue takes as final (/$FINAL_42501/) — a phone whose sign-in lapsed would drop her handover"
+elif [[ ",$SESSION_CODES," != *",$c3,"* ]]; then
+  fail "a broken token answered $s3 '$c3', which her queue does not wait on as her sign-in's ($SESSION_CODES) — it would be taken as a refusal"
+elif [[ "$FINAL_CAMBIO" != "$CHANGED_CODE" || "$FINAL_NO_RATING" != "$NO_RATING_CODE" ]]; then
+  fail "her queue draws $FINAL_CAMBIO as cambio and $FINAL_NO_RATING as yaNoSeCalifica, the database answered $CHANGED_CODE and $NO_RATING_CODE (group 7)"
+else ok "her queue takes as final the functions' own 42501 ('$m1') and the codes the database answered, never a call with no session ($s2, '$m2'), and waits on a broken token ($c3)"
+fi
+
 echo
 if (( fails > 0 )); then
   echo "$fails assertion group(s) failed."
   exit 1
 fi
-echo "all 10 assertion groups passed — Wera Cocina reads her kitchen's reservations, hands them over and rates the"
+echo "all 13 assertion groups passed — Wera Cocina reads her kitchen's reservations, hands them over and rates the"
 echo "neighbour by the names the database answers: every column and key, the labels it sends, the codes it turns into"
-echo "sentences, a desechable only on a plate taken away, and never who reserved."
+echo "sentences, a desechable only on a plate taken away, and never who reserved; and her queue's sends keep her moment,"
+echo "a thumb lands behind its handover, and only the database's last word is taken as one."

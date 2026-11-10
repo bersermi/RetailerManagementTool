@@ -4,6 +4,7 @@ import type { Session } from '@supabase/supabase-js';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import * as WebBrowser from 'expo-web-browser';
 
+import { forgetCache } from '@/api/persist';
 import { APPLE_PROVIDER, appleOutcome, appleThrown, asksAppleFirst, nameToStore, type AppleReturn } from '@/auth/apple';
 import { FULL_NAME_KEY, checkCredentials, checkSignUp } from '@/auth/credentials';
 import { authErrorKey, authErrorMessage } from '@/auth/errors';
@@ -254,14 +255,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // ⚠️ OFFLINE, WITH A SIGN-IN THAT COULD NOT BE RENEWED, THE LIBRARY REFUSES TO
   // SIGN OUT and removes nothing — and `@/auth/held` keeps that sign-in on
   // screen, so *Cerrar sesión* would do nothing. The phone forgets it here: the
-  // same removal the library's local sign-out makes. Nothing else is kept on the
-  // phone to forget: the query cache is keyed on the login (`kitchensKey`).
+  // same removal the library's local sign-out makes.
+  // ⚠️ `10.5b-iv-b`: AND IT FORGETS WHAT THE PHONE KEEPS SO THE COUNTER WORKS WITH NO
+  // SIGNAL (`@/api/persist`) — her kitchen, her offers, her orders and who reserved each
+  // — memory first, AFTER the session is gone, so no read is enabled to fill it again.
+  // HERE AND NEVER ON `session === null`, which is also what a renewal that failed with
+  // no signal looks like: that would wipe her orders at the one moment they are all she
+  // has. ⚠️ Her queue is not forgotten (`@/api/cola`): it is sent when she comes back in.
   const signOut = useCallback(async () => {
     const { error } = await supabase.auth.signOut();
     if (error) {
       removeKey(deviceStore(), SESSION_KEY);
       setSession(null);
     }
+    forgetCache(deviceStore());
   }, []);
 
   const value = useMemo<Auth>(

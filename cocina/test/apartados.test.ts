@@ -17,6 +17,7 @@ import {
   RESERVATION_ORDER,
   POR_CODIGO,
   RESERVATION_COLUMNS,
+  desdeDeHoy,
   desdeDia,
   diaTexto,
   estadoDe,
@@ -32,6 +33,7 @@ import {
   type Reserva,
   type SobreElVecino,
 } from '@/api/apartados';
+import { reservasConCola, vecinosConCola, type Envio } from '@/api/cola';
 import { terminosKey, aceptoTerminos, aceptarTerminos } from '@/lib/terminos';
 import {
   PRONTO_MS,
@@ -40,7 +42,6 @@ import {
   cobrasteTexto,
   cobroLargoTexto,
   cuandoTexto,
-  conEntrega,
   deHoy,
   entregadosHoy,
   estadoTexto,
@@ -58,10 +59,10 @@ import {
   porEntregar,
   porcentajeDe,
   siNoLoCalificasTexto,
-  sinNoSePresento,
   tarjetaTexto,
   teclear,
   tomadosDe,
+  unir,
   vivo,
   type Orden,
 } from '@/lib/apartados';
@@ -314,10 +315,11 @@ describe('what is sent', () => {
   it('the handover sends the moment she tapped, for the queue that sends it late (`10.5b-iv-b`)', () => {
     const at = nov(10, 14, 31);
     expect(handOverArgs('r1', at)).toEqual({ p_id: 'r1', p_at: at.toISOString() });
-    // Drawn at once, as the database keeps it: never before the order was made, never twice.
-    const [r] = conEntrega([reserva('r1')], 'r1', nov(10, 12)) ?? [];
+    // Drawn at once while it waits, as the database keeps it: never before the order was made, never twice.
+    const entrega = (en: Date): Envio => ({ tipo: 'entrega', usuario: 'u', cocina: 'k', reserva: 'r1', en: en.toISOString(), version: 1 });
+    const [r] = reservasConCola([reserva('r1')], [entrega(nov(10, 12))]);
     expect(r.entregadaEn).toEqual(nov(10, 13, 10));
-    const [s] = conEntrega([reserva('r1', { entregadaEn: nov(10, 14) })], 'r1', nov(10, 15)) ?? [];
+    const [s] = reservasConCola([reserva('r1', { entregadaEn: nov(10, 14) })], [entrega(nov(10, 15))]);
     expect(s.entregadaEn).toEqual(nov(10, 14));
   });
 });
@@ -329,10 +331,13 @@ describe('Sí pasó, on the phone as in the database', () => {
     const noShow = { arriba: false, etiquetas: ['no_se_presento' as const], dadoEn: nov(10, 13), cambiarHasta: nov(11, 13), reloj: false };
     const tarde = { arriba: false, etiquetas: ['tarde' as const], dadoEn: nov(10, 13), cambiarHasta: nov(11, 13), reloj: false };
     const vecinos = { a: { ...ana, pulgar: noShow }, b: { ...ana, pulgar: tarde } };
-    expect(sinNoSePresento(vecinos, 'a').a.pulgar).toBeNull();
-    expect(sinNoSePresento(vecinos, 'b').b.pulgar).toEqual(tarde);
-    expect(sinNoSePresento(vecinos, 'z')).toEqual(vecinos);
-    expect(code('api/hooks.ts')).toMatch(/vecinos === undefined \? undefined : sinNoSePresento\(vecinos, input\.id\)/);
+    const siPaso = (reservaId: string): Envio => ({ tipo: 'entrega', usuario: 'u', cocina: 'k', reserva: reservaId, en: nov(10, 15).toISOString(), version: 1 });
+    expect(vecinosConCola(vecinos, [siPaso('a')], []).a.pulgar).toBeNull();
+    expect(vecinosConCola(vecinos, [siPaso('b')], []).b.pulgar).toEqual(tarde);
+    expect(vecinosConCola(vecinos, [siPaso('z')], [])).toEqual(vecinos);
+    // ⚠️ `10.5b-iv-b`: while it waits (`useApartados`), and once it landed, into the cached read (`@/api/llegada`).
+    expect(code('api/hooks.ts')).toMatch(/vecinos: vecinosConCola\(vecinos\.data, porEnviar, reservas\)/);
+    expect(code('api/llegada.ts')).toMatch(/const dibujado = vecinosConCola\(vecinos, \[envio\], reservas\);/);
   });
 });
 
@@ -493,26 +498,30 @@ describe('Entregar un apartado — the code typed', () => {
       const screen = code(path);
       // Every *Entregar* opens the code; the only handover sent from these screens is *Sí pasó*.
       expect(screen, path).not.toMatch(/onEntregar=\{\(\) => (void )?entregar/);
-      for (const call of screen.matchAll(/await entregar\(/g)) {
+      for (const call of screen.matchAll(/\bentregar\(/g)) {
         const before = screen.slice(Math.max(0, (call.index ?? 0) - 260), call.index);
-        expect(before, path).toMatch(/siPaso/);
+        expect(before, path).toMatch(/[sS]iPaso/);
       }
     }
+    // Not vacuous: the list and the order each send *Sí pasó*.
+    expect(code('app/(cocina)/(tabs)/apartados.tsx')).toMatch(/onSiPaso=\{\(\) => entregar\(orden\.id\)\}/);
+    expect(code('app/(cocina)/apartado/[id].tsx')).toMatch(/function siPaso\(\) \{\s*if \(orden !== null\) entregar\(orden\.id\);/);
     expect(code('app/(cocina)/entregar.tsx')).toMatch(/buscarCodigo\(ordenes, codigo, ahora\)/);
   });
 });
 
 describe('her thumb, and the terms before her first', () => {
-  it('one tap is enough: the thumb is sent as she taps it, her labels on Listo — one send at a time', () => {
+  it('one tap is enough: the thumb is queued as she taps it, her labels on Listo — never awaited (`10.5b-iv-b`)', () => {
     const panel = code('ui/CalificarVecino.tsx');
-    expect(panel).toMatch(/function tocarPulgar[\s\S]*?if \(ocupado\) return;[\s\S]*?void enviar\(nuevo, quedan\)/);
-    expect(panel).toMatch(/async function listo\(\)/);
+    expect(panel).toMatch(/function tocarPulgar[\s\S]*?if \(enviado !== firma\(nuevo, quedan\)\) enviar\(nuevo, quedan\);/);
+    expect(panel).toMatch(/function listo\(\) \{/);
+    expect(panel).not.toMatch(/await|async/);
     expect(panel).toMatch(/if \(!terminos\.aceptados\) return <AntesDeCalificar/);
   });
 
   it('⚠️ the panel stays open on the order it opened on, with the name it opened with — once rated the name is no longer sent (found on the emulator)', () => {
     const screen = code('app/(cocina)/entregar.tsx');
-    expect(screen).toMatch(/const calificando = orden !== null && \(panelPara === orden\.id \|\| recuperada\) && vecino !== null;/);
+    expect(screen).toMatch(/const calificando = orden !== null && panelPara === orden\.id && vecino !== null;/);
     expect(screen).toMatch(/orden\.vecino \?\? nombres\.current\.get\(orden\.id\)/);
     expect(screen).toMatch(/setEntregadaAqui\(o\.id\);\s*setPanelPara\(o\.id\);/);
     expect(code('app/(cocina)/apartado/[id].tsx')).toMatch(/nombre=\{orden\.vecino\?\.nombre \?\? nombreVisto\.current\}/);
@@ -536,7 +545,7 @@ describe('her thumb, and the terms before her first', () => {
 
   it('a no-show is a thumb too: from the list, the terms first, on the order', () => {
     expect(code('app/(cocina)/(tabs)/apartados.tsx')).toMatch(/if \(!terminos\.aceptados\) return abrir\(orden\);/);
-    expect(code('app/(cocina)/apartado/[id].tsx')).toMatch(/terminos\.aceptados \? void noSePresento\(\) : setPidiendoTerminos\(true\)/);
+    expect(code('app/(cocina)/apartado/[id].tsx')).toMatch(/terminos\.aceptados \? noSePresento\(\) : setPidiendoTerminos\(true\)/);
   });
 });
 
@@ -544,10 +553,42 @@ describe('the tab — read again every minute, and its count', () => {
   it('⚠️ her data is hers to pay: today’s orders every minute while something can change, the 30 days before when the app opens, who reserved each when today’s change', () => {
     const hooks = code('api/hooks.ts');
     expect(hooks).toMatch(/export const APARTADOS_CADA_MS = 60_000;/);
-    expect(hooks).toMatch(/queryKey: apartadosKey\(userId, kitchenId, 'hoy', dia\),\s*queryFn: \(\) => myReservations\(kitchenId as string, dia\),[\s\S]*?refetchInterval: \(query\) => \(vivo\(listings\.data, query\.state\.data, new Date\(\)\) \? APARTADOS_CADA_MS : false\)/);
-    expect(hooks).toMatch(/queryKey: apartadosKey\(userId, kitchenId, 'antes', dia\),\s*queryFn: \(\) => myReservations\(kitchenId as string, desdeDia\(ahora\), dia\),[\s\S]*?staleTime: HISTORIAL_FRESCO_MS/);
-    expect(hooks).toMatch(/queryKey: apartadosKey\(userId, kitchenId, 'vecinos', firma \?\? ''\),/);
+    // ⚠️ `10.5b-iv-b`: kept on the phone, so no key carries the day or today's orders.
+    expect(hooks).toMatch(/queryKey: apartadosKey\(userId, kitchenId, 'hoy'\),\s*queryFn: \(\) => \{[\s\S]*?return myReservations\(kitchenId as string, desdeDeHoy\(leido > 0 \? new Date\(leido\) : null, new Date\(\)\)\);[\s\S]*?refetchInterval: alDia \? \(query\) => \(vivo\(listings\.data, query\.state\.data, new Date\(\)\) \? APARTADOS_CADA_MS : false\) : undefined/);
+    expect(hooks).toMatch(/queryKey: apartadosKey\(userId, kitchenId, 'antes'\),\s*queryFn: \(\) => \{\s*const now = new Date\(\);\s*return myReservations\(kitchenId as string, desdeDia\(now\), diaTexto\(now\)\);[\s\S]*?staleTime: HISTORIAL_FRESCO_MS/);
+    expect(hooks).toMatch(/queryKey: apartadosKey\(userId, kitchenId, 'vecinos'\),/);
+    expect(hooks).toMatch(/if \(antesVista !== null && antesVista !== firma\) void refetchVecinos\(\);/);
     expect(code('api/calls.ts')).toMatch(/if \(antes !== null\) query = query\.lt\(RESERVATION_DAY_COLUMN, antes\);/);
+  });
+
+  it('⚠️ and what asks again is kept ONCE — a `refetch()` cancels a read in flight and sends a new one, so from every screen a new day or order would go out once per screen', () => {
+    const hooks = code('api/hooks.ts');
+    expect(hooks).toMatch(/export function useApartados\(kitchenId: string \| null\): LecturaDeApartados \{\s*return useLecturas\(kitchenId, false\);/);
+    expect(hooks).toMatch(/export function useApartadosAlDia\(kitchenId: string \| null\): LecturaDeApartados \{\s*return useLecturas\(kitchenId, true\);/);
+    const callers = ['app/(cocina)/(tabs)/_layout.tsx', 'app/(cocina)/(tabs)/index.tsx', 'app/(cocina)/(tabs)/apartados.tsx', 'app/(cocina)/entregar.tsx', 'app/(cocina)/apartado/[id].tsx']
+      .filter((path) => /useApartadosAlDia\(/.test(code(path)));
+    expect(callers).toEqual(['app/(cocina)/(tabs)/_layout.tsx']);
+  });
+
+  it('the two lists as one: each order once, today’s read winning — across midnight neither has all of it', () => {
+    const ayer = reserva('a', { dia: '2026-11-09' });
+    const ayerEntregada = reserva('a', { dia: '2026-11-09', entregadaEn: nov(9, 15) });
+    expect(unir([ayer], [ayerEntregada, reserva('b')]).map((r) => [r.id, r.entregadaEn])).toEqual([
+      ['a', nov(9, 15)],
+      ['b', null],
+    ]);
+    expect(unir([reserva('a')], []).map((r) => r.id)).toEqual(['a']);
+    expect(code('api/hooks.ts')).toMatch(/const reservas = reservasConCola\(unir\(antes\.data, hoy\.data\), porEnviar\);/);
+  });
+
+  it('⚠️ after midnight no day falls between them: today’s read reaches back to the day the history was read, and a list read on another day is asked again (the review of `10.5b-iv-b`)', () => {
+    // The history read at 23:50 on the 10th holds up to the 9th; at 00:10 on the 11th today's read starts on the 10th.
+    expect(desdeDeHoy(nov(10, 23, 50), nov(11, 0, 10))).toBe('2026-11-10');
+    expect(desdeDeHoy(nov(10, 9), nov(10, 14))).toBe('2026-11-10');
+    expect(desdeDeHoy(null, nov(11, 0, 10))).toBe('2026-11-11');
+    const hooks = code('api/hooks.ts');
+    expect(hooks).toMatch(/if \(leidoAntes > 0 && diaTexto\(new Date\(leidoAntes\)\) !== dia\) void refetchAntes\(\);/);
+    expect(hooks).toMatch(/if \(leidoHoy > 0 && diaTexto\(new Date\(leidoHoy\)\) !== dia\) void refetchHoy\(\);/);
   });
 
   it('today’s are read every minute only while an offer of hers is not over, or an order still waits', () => {
@@ -571,6 +612,7 @@ describe('the tab — read again every minute, and its count', () => {
 
   it('the count on Apartados is what waits for her thumb, from the query the tab reads', () => {
     const layout = code('app/(cocina)/(tabs)/_layout.tsx');
+    expect(layout).toMatch(/const apartados = useApartadosAlDia\(kitchenId\);/);
     expect(layout).toMatch(/porCalificar\(ordenesDe\(datos\.reservas, datos\.vecinos, ahora\), ahora\)/);
     expect(code('ui/Pestanas.tsx')).toMatch(/const cuenta = cuentas\[pestana\.ruta\] \?\? 0;/);
   });
@@ -646,10 +688,13 @@ describe('the review of 10.5b-iv-a — each defect it found, held', () => {
     expect(code('api/calls.ts')).toMatch(/const order = antes === null \? RESERVATION_ORDER : RESERVATION_HISTORY_ORDER;/);
   });
 
-  it('a lost reply is the screen’s own handover once the re-read finds it; both writes of a released plate wait for each other', () => {
-    expect(code('app/(cocina)/entregar.tsx')).toMatch(/const recuperada = orden !== null && intento === orden\.id && orden\.entregadaEn !== null;/);
-    const abierta = code('app/(cocina)/apartado/[id].tsx');
-    expect(abierta.match(/ocupado=\{(?:calificando === orden\.id \|\| entregando === orden\.id|entregando === orden\.id \|\| calificando === orden\.id)\}/g)?.length).toBe(2);
+  it('⚠️ `10.5b-iv-b`: a lost reply is the queue’s to send again, and nothing at the counter waits on the network', () => {
+    // The handover is drawn from the queue at once, so no screen keeps a "reply lost" state of its own,
+    // and none awaits a write; the queue removes a send only once the database answered (`test/cola.test.ts`).
+    for (const path of ['app/(cocina)/entregar.tsx', 'app/(cocina)/apartado/[id].tsx', 'app/(cocina)/(tabs)/apartados.tsx']) {
+      const screen = code(path);
+      expect(screen, path).not.toMatch(/recuperada|intento|busyId|await (entregar|calificar)\(/);
+    }
   });
 
   it('the words say only what is true: TD022 is more than 24 hours, and a score counts the clock’s too', () => {

@@ -15,6 +15,7 @@ import { FilaOrden } from '@/ui/FilaOrden';
 import { LeyendoCocina } from '@/ui/LeyendoCocina';
 import { Llega } from '@/ui/Llega';
 import { Segmento } from '@/ui/Segmento';
+import { SinSenal } from '@/ui/SinSenal';
 import { TarjetaOrden } from '@/ui/TarjetaOrden';
 
 // ============================================================================
@@ -29,9 +30,12 @@ import { TarjetaOrden } from '@/ui/TarjetaOrden';
 //     *Anteriores*, the newest first, never with a name.
 // ⚠️ NOTHING HERE NAMES WHO MAY RESERVE (the final design): that setting is *Mi cocina →
 // Ajustes de apartados* (`10.5b-iv-c`).
-// ⚠️ READ AGAIN EVERY MINUTE WHILE THE APP IS IN FRONT (`useApartados`), and on a pull: no
-// notification tells her a neighbour reserved until `10.5b-v`. The clock is read every half
-// minute, so an hour turns rust and a window's end moves an order on its own.
+// ⚠️ READ AGAIN EVERY MINUTE WHILE THE APP IS IN FRONT (`useApartadosAlDia`, in the tabs' layout),
+// and on a pull: no notification tells her a neighbour reserved until `10.5b-v`. The clock is read
+// every half minute, so an hour turns rust and a window's end moves an order on its own.
+// ⚠️ `10.5b-iv-b`: WITH NO SIGNAL IT IS THE PHONE'S COPY, and says when it was read; what waits to go
+// is said above the list (`@/ui/SinSenal`); *Sí pasó* and *No se presentó* are queued and drawn at once,
+// a refusal on its card (`rechazoDe`).
 // ⚠️ `unknown` IS NOT `none`: a read that failed says so with *Intentar de nuevo*. What each
 // order says is `@/lib/apartados`', pinned by `test/apartados.test.ts`. NO CHECK CAN SEE
 // THIS SCREEN (ADR-035 §2.11): the phone is its instrument.
@@ -53,44 +57,37 @@ function ApartadosDe({ kitchen }: { kitchen: Kitchen }) {
   const apartados = useApartados(kitchen.id);
   const ahora = useAhora(CADA_MEDIO_MINUTO);
   const [mitad, setMitad] = useState<Mitad>('hoy');
-  const { entregar, busyId: entregando } = useEntregar(kitchen.id);
-  const { calificar, busyId: calificando } = useCalificarVecino(kitchen.id);
+  const { entregar } = useEntregar(kitchen.id);
+  const { calificar } = useCalificarVecino(kitchen.id);
   const terminos = useTerminos();
-  const [problema, setProblema] = useState<{ readonly id: string; readonly texto: string } | null>(null);
 
   const quiet = { fontSize: SIZE.bodySize, color: PALETTE.tintaApagada } as const;
   const seccion = { fontSize: SIZE.smallSize, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase', color: PALETTE.tintaApagada } as const;
 
   const abrir = (orden: Orden) => router.push({ pathname: '/apartado/[id]', params: { id: orden.id } });
 
-  async function siPaso(orden: Orden) {
-    setProblema(null);
-    const falla = await entregar(orden.id);
-    if (falla !== null) setProblema({ id: orden.id, texto: ES.apartados.fallas[falla] });
-  }
-
-  async function noSePresento(orden: Orden) {
+  function noSePresento(orden: Orden) {
     // ⚠️ A no-show is a thumb: the terms first, once — on the order, where they can be read.
     if (!terminos.aceptados) return abrir(orden);
-    setProblema(null);
-    const falla = await calificar(orden.id, 'noSePresento');
-    if (falla !== null) setProblema({ id: orden.id, texto: ES.apartados.fallas[falla] });
+    calificar(orden.id, 'noSePresento');
   }
 
-  const tarjeta = (orden: Orden) => (
-    <TarjetaOrden
-      key={orden.id}
-      orden={orden}
-      ahora={ahora}
-      ocupado={entregando === orden.id || calificando === orden.id}
-      problema={problema !== null && problema.id === orden.id ? problema.texto : null}
-      onAbrir={() => abrir(orden)}
-      onEntregar={() => router.push('/entregar')}
-      onCalificar={() => abrir(orden)}
-      onNoSePresento={() => void noSePresento(orden)}
-      onSiPaso={() => void siPaso(orden)}
-    />
-  );
+  const tarjeta = (orden: Orden) => {
+    const falla = apartados.rechazoDe(orden.id);
+    return (
+      <TarjetaOrden
+        key={orden.id}
+        orden={orden}
+        ahora={ahora}
+        problema={falla === null ? null : ES.apartados.fallas[falla]}
+        onAbrir={() => abrir(orden)}
+        onEntregar={() => router.push('/entregar')}
+        onCalificar={() => abrir(orden)}
+        onNoSePresento={() => noSePresento(orden)}
+        onSiPaso={() => entregar(orden.id)}
+      />
+    );
+  };
 
   const banda = <Banda titulo={ES.apartados.titulo} antetitulo={kitchen.displayName} />;
 
@@ -99,7 +96,9 @@ function ApartadosDe({ kitchen }: { kitchen: Kitchen }) {
       <View style={{ flex: 1, backgroundColor: PALETTE.fondo }}>
         {banda}
         <View style={{ padding: SIZE.space * 2, gap: SIZE.space }}>
-          {apartados.isError ? (
+          {apartados.sinSenal ? (
+            <Text style={{ fontSize: SIZE.bodySize, color: PALETTE.tinta }}>{ES.cola.sinDatos}</Text>
+          ) : apartados.isError ? (
             <>
               <Text style={{ fontSize: SIZE.bodySize, color: PALETTE.tinta }}>{ES.apartados.sinLeer}</Text>
               <BotonLleno label={ES.cocina.otraVez} busy={apartados.isFetching} onPress={() => void apartados.refetch()} />
@@ -130,6 +129,7 @@ function ApartadosDe({ kitchen }: { kitchen: Kitchen }) {
           <RefreshControl refreshing={apartados.isRefetching} onRefresh={() => void apartados.refetch()} tintColor={PALETTE.accion} colors={[PALETTE.accion]} />
         }
       >
+        <SinSenal sinSenal={apartados.sinSenal} leidoEn={apartados.leidoEn} porEnviar={apartados.porEnviar} ahora={ahora} />
         <Llega i={0}>
           <Segmento<Mitad>
             valor={mitad}

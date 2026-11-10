@@ -23,6 +23,7 @@ import { Llega } from '@/ui/Llega';
 import { LoQueSigue } from '@/ui/LoQueSigue';
 import { PreguntaRecordatorio } from '@/ui/PreguntaRecordatorio';
 import { Puertas, type PuertaDeHoy } from '@/ui/Puertas';
+import { SinSenal } from '@/ui/SinSenal';
 
 // ============================================================================
 // *HOY* — A HUB. Plan task `10.5-v-c-i`, the owner's directions of 2026-11-06 (the
@@ -43,6 +44,9 @@ import { Puertas, type PuertaDeHoy } from '@/ui/Puertas';
 //   5. HER REMINDER'S QUESTION, ONCE (`@/ui/PreguntaRecordatorio`, `10.5-v-c-ii`) — after
 //      her third offer, while the rule finds her hour and her days; either answer and it
 //      is gone from this phone, the reminder kept in *Mi cocina*.
+//   0. `10.5b-iv-b`: ABOVE THEM, WITH NO SIGNAL OR WHILE ANYTHING WAITS (`@/ui/SinSenal`) — when what
+//      she sees was read, and what is still on the phone to send. Her kitchen, her offers and her
+//      orders are the phone's copy then (`@/api/persist`), so *Lo que sigue* works with no signal.
 // ⚠️ NOTHING ON *HOY* IS EDITED IN PLACE: correcting a count is in *Tus ofertas*.
 // *Así te ven los vecinos* left *Hoy* for *Mi cocina* (his direction).
 //
@@ -119,6 +123,7 @@ function HoyDe({ kitchen }: { kitchen: Kitchen }) {
     <View style={{ flex: 1, backgroundColor: PALETTE.fondo }}>
       <Banda titulo={kitchen.displayName} antetitulo={trade ?? ES.cocina.antetitulo} />
       <ScrollView contentContainerStyle={{ padding: SIZE.space * 1.5, paddingBottom: SIZE.space * 8, gap: SIZE.space * 1.5 }}>
+        <SinSenal sinSenal={apartados.sinSenal} leidoEn={apartados.leidoEn} porEnviar={apartados.porEnviar} ahora={ahora} />
         <Llega i={0}>
           {listings.data !== undefined ? (
             <DiaDeHoy dia={diaDe(listings.data, ahora, cuentas)} ahora={ahora} onPress={() => router.push('/ofertas')} />

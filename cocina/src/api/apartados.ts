@@ -114,6 +114,19 @@ export function desdeDia(now: Date): string {
   return diaTexto(d);
 }
 
+/**
+ * ⚠️ `10.5b-iv-b`: THE FIRST DAY TODAY'S READ ASKS FOR — today, or the day the history was last read if that
+ * is earlier (the review of `10.5b-iv-b`). The history read on day D holds the 30 days before D; once the
+ * phone's day is later, the days from D to yesterday are in neither list until the history is read again —
+ * and with no signal it is not. So until it is, today's read reaches back to D: no order falls between them.
+ */
+export function desdeDeHoy(historialLeidoEn: Date | null, now: Date): string {
+  const hoy = diaTexto(now);
+  if (historialLeidoEn === null) return hoy;
+  const leido = diaTexto(historialLeidoEn);
+  return leido < hoy ? leido : hoy;
+}
+
 /** A date as Postgres writes a `date`, in the phone's day. */
 export function diaTexto(at: Date): string {
   const two = (n: number) => String(n).padStart(2, '0');

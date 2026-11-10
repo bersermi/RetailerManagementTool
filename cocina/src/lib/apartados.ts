@@ -275,17 +275,14 @@ export function porcentajeDe(calificacion: { readonly up: number; readonly total
 }
 
 /**
- * An order with its handover recorded on this phone, before the re-read — so the card moves
- * the moment she taps (`useEntregar`). The same moment the database keeps, clamped as it
- * clamps: never before the order was made.
+ * ⚠️ `10.5b-iv-b`: THE TWO LISTS AS ONE — the 30 days before and today's and later's — each order once,
+ * today's read winning. Their keys no longer carry the day (they are kept on the phone), so across
+ * midnight, until both are read again, today's still holds yesterday's orders and the other does not
+ * yet: joined by id, nothing is drawn twice and nothing goes missing.
  */
-export function conEntrega(reservas: readonly Reserva[] | undefined, id: string, at: Date): Reserva[] | undefined {
-  if (reservas === undefined) return undefined;
-  return reservas.map((r) =>
-    r.id !== id || r.entregadaEn !== null
-      ? r
-      : { ...r, entregadaEn: new Date(Math.max(at.getTime(), r.creadaEn.getTime())) },
-  );
+export function unir(antes: readonly Reserva[], hoy: readonly Reserva[]): Reserva[] {
+  const deHoy = new Set(hoy.map((r) => r.id));
+  return [...antes.filter((r) => !deHoy.has(r.id)), ...hoy];
 }
 
 // ----------------------------------------------------------------------------
@@ -330,6 +327,21 @@ export function prontoTexto(orden: Orden, now: Date): string | null {
 /** A moment in a sentence: *las 16:00* today, *mañana a las 16:00* another day — never *hoy a las*. */
 export function cuandoTexto(at: Date, now: Date): string {
   return ES.apartados.cuando(diaTexto(at) === diaTexto(now) ? null : dayOf(at, now).toLowerCase(), clockOf(at));
+}
+
+/**
+ * `10.5b-iv-b`: *Sin señal. Lo que ves se leyó a las 13:05.* — or *ayer a las 21:40* — when her orders are
+ * the phone's copy (ADR-035 §2.6: visible staleness).
+ */
+export function sinSenalTexto(leidoEn: Date, now: Date): string {
+  return ES.cola.sinSenal(diaTexto(leidoEn) === diaTexto(now) ? null : dayOf(leidoEn, now).toLowerCase(), clockOf(leidoEn));
+}
+
+/** `10.5b-iv-b`: *2 entregas y 1 calificación por enviar*, or `null` when nothing waits. */
+export function porEnviarTexto(envios: readonly { readonly tipo: 'entrega' | 'pulgar' }[]): string | null {
+  const entregas = envios.filter((e) => e.tipo === 'entrega').length;
+  const pulgares = envios.length - entregas;
+  return envios.length === 0 ? null : ES.cola.porEnviar(entregas, pulgares);
 }
 
 /** After the handover, on its screen: *Cobraste $65 en efectivo · 14:31*, or *La serviste a las 14:31*. */
@@ -416,18 +428,6 @@ export function coloresDe(marca: Marca): { readonly fondo: string; readonly tint
     case 'noVa':
       return { fondo: PALETTE.linea, tinta: PALETTE.tintaApagada };
   }
-}
-
-/**
- * ⚠️ *SÍ PASÓ* CLEARS A *NO SE PRESENTÓ* THUMB, on the phone as in the database (`0080`'s
- * `hand_over_reservation`: a handover recorded after a no-show thumb deletes it, and the order
- * waits for a thumb again) — drawn at once with the handover, so her thumb's panel never opens on
- * the thumb the database just deleted (found on the emulator).
- */
-export function sinNoSePresento(vecinos: Readonly<Record<string, SobreElVecino>>, id: string): Record<string, SobreElVecino> {
-  const sobre = vecinos[id];
-  if (sobre === undefined || sobre.pulgar === null || !sobre.pulgar.etiquetas.includes('no_se_presento')) return { ...vecinos };
-  return { ...vecinos, [id]: { ...sobre, pulgar: null } };
 }
 
 /**

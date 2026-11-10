@@ -8,6 +8,7 @@ import { QueryProvider } from '@/api/QueryProvider';
 import { useMembership } from '@/api/hooks';
 import { AuthProvider, useAuth } from '@/auth/AuthProvider';
 import { groupOf, redirectFor } from '@/auth/guard';
+import { ColaProvider } from '@/lib/ColaProvider';
 import { NotaProvider } from '@/lib/NotaProvider';
 import { holdSplash, releaseSplash } from '@/lib/splash';
 import { FUENTES } from '@/theme/letra';
@@ -26,6 +27,8 @@ import { FUENTES } from '@/theme/letra';
 // ⚠️ `10.5-v-d`: THE NATIVE SPLASH IS HELD FROM HERE (`@/lib/splash`, Wera's `8g`) until the
 // screen behind it is the one she will see — the opening lets it go once its cow is in,
 // `Gate` everywhere else — so a stranger never sees *Hoy* for a frame, nor an empty square.
+// ⚠️ `10.5b-iv-b`: THE SIGNAL AND HER QUEUE (`@/lib/ColaProvider`) are inside both too — the
+// queue sends for the login signed in, and draws what landed into the query cache.
 // ============================================================================
 holdSplash();
 
@@ -40,14 +43,16 @@ export default function RootLayout() {
   return (
     <AuthProvider>
       <QueryProvider>
-        <Gate />
-        {/* Dark icons, always: the app is light only, as Wera (`8g`). */}
-        <StatusBar style="dark" />
-        <View style={{ flex: 1 }}>
-          <NotaProvider>
-            <Stack screenOptions={{ headerShown: false }} />
-          </NotaProvider>
-        </View>
+        <ColaProvider>
+          <Gate />
+          {/* Dark icons, always: the app is light only, as Wera (`8g`). */}
+          <StatusBar style="dark" />
+          <View style={{ flex: 1 }}>
+            <NotaProvider>
+              <Stack screenOptions={{ headerShown: false }} />
+            </NotaProvider>
+          </View>
+        </ColaProvider>
       </QueryProvider>
     </AuthProvider>
   );
