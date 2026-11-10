@@ -12,7 +12,7 @@
 // ============================================================================
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import {
   OWNERS_KEY,
@@ -48,7 +48,7 @@ import {
   revokeApple,
 } from '@/api/calls';
 import { COCINAS_KEY, cocinasKey, girosKey, type Giro, type Kitchen } from '@/api/cocinas';
-import { hayPendientes } from '@/lib/apartados';
+import { hayPendientes, pendientesDe } from '@/lib/apartados';
 import { FILE_OF, isPicturePath, type PhotoSize } from '@/api/fotos';
 import { releaseStep } from '@/auth/apple';
 import { useAuth } from '@/auth/AuthProvider';
@@ -195,16 +195,30 @@ const PENDIENTE_CADA_MS = 60_000;
  * (`my_reservations`, `0079`). Keyed on the login, in memory only. Read again every
  * minute while one is pending — the fonda's *Entregar*, or a window that ends, changes it
  * from the other phone — and when the app comes back to the front.
+ *
+ * ⚠️ WHEN WHAT IS STILL TO COLLECT CHANGES, HER STANDING IS READ AGAIN: a handover typed on
+ * the kitchen's phone raises her limit from one to three and frees what she holds, and
+ * nothing of hers was written to say so — without it a dish's foot kept *Ya tienes un
+ * apartado* after she had collected it (found by the review of `10.5b-iii-a`).
  */
 export function useApartados() {
   const { session, ready } = useAuth();
   const userId = session?.user.id ?? null;
-  return useQuery<Apartado[]>({
+  const queries = useQueryClient();
+  const query = useQuery<Apartado[]>({
     queryKey: apartadosKey(userId),
     queryFn: myReservations,
     enabled: ready && userId !== null,
-    refetchInterval: (query) => (hayPendientes(query.state.data) ? PENDIENTE_CADA_MS : false),
+    refetchInterval: (q) => (hayPendientes(q.state.data) ? PENDIENTE_CADA_MS : false),
   });
+  const pendientes = query.data === undefined ? null : pendientesDe(query.data);
+  const antes = useRef<string | null>(null);
+  useEffect(() => {
+    if (pendientes === null) return;
+    if (antes.current !== null && antes.current !== pendientes) void queries.invalidateQueries({ queryKey: POSICION_KEY });
+    antes.current = pendientes;
+  }, [pendientes, queries]);
+  return query;
 }
 
 /**

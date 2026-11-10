@@ -306,6 +306,8 @@ export const ES = {
     listo: '¡Listo, ya lo apartaste!',
     tuCodigo: 'Tu código',
     verTuApartado: 'Ver tu apartado',
+    /** Her reservations or her standing could not be read: the foot says why and asks again. */
+    reintentar: 'Intentar de nuevo',
     /** ⚠️ `0080`: her express yes, once, before her first reservation — the final design's words. */
     antes: {
       titulo: 'Antes de tu primer apartado',
@@ -352,14 +354,16 @@ export const ES = {
     dilo: { llevar: 'Dilo o enséñalo al recoger.', aqui: 'Dilo o enséñalo al llegar.' },
     /** Her hour: *a las 17:45*, *a la 1:00*. */
     aLas: (hora: string) => (hora.startsWith('1:') ? `a la ${hora}` : `a las ${hora}`),
+    /** Until when: *hasta las 16:00*, *hasta la 1:30*. */
+    hasta: (hora: string) => (hora.startsWith('1:') ? `hasta la ${hora}` : `hasta las ${hora}`),
     pasa: (cuando: string) => `Pasa ${cuando}`,
     manana: (aLas: string) => `mañana ${aLas}`,
     elDia: (dia: string, aLas: string) => `el ${dia} ${aLas}`,
     faltanMin: (min: number) => `faltan ${min} min`,
     faltanHoras: (horas: number, min: number) => (min === 0 ? `faltan ${horas} h` : `faltan ${horas} h ${min} min`),
     yaEstaLista: 'ya está lista',
-    notaLlevar: (hasta: string) => `Tu comida estará lista y empacada a esa hora. La cocina la guarda hasta las ${hasta}.`,
-    notaAqui: (hasta: string) => `Te la sirven al llegar, para comer ahí. La cocina la guarda hasta las ${hasta}.`,
+    notaLlevar: (hasta: string) => `Tu comida estará lista y empacada a esa hora. La cocina la guarda ${hasta}.`,
+    notaAqui: (hasta: string) => `Te la sirven al llegar, para comer ahí. La cocina la guarda ${hasta}.`,
     paga: {
       efectivoLlevar: (total: string) => `Paga ${total} en efectivo al recoger. Si puedes, lleva el importe exacto.`,
       efectivoAqui: (total: string) => `Paga ${total} en efectivo en la cocina. Si puedes, lleva el importe exacto.`,
@@ -373,7 +377,7 @@ export const ES = {
     /** What a screen reader hears on the swipe, and the one action it may take instead. */
     deslizaAyuda: 'Ya lo tengo. Desliza a la derecha, o usa la acción para confirmar.',
     yaLoTengo: 'Ya lo tengo',
-    cancelarHasta: (hora: string) => `¿Cambio de planes? Cancelar, hasta ${hora.startsWith('1:') ? 'la' : 'las'} ${hora}`,
+    cancelarHasta: (hasta: string) => `¿Cambio de planes? Cancelar, ${hasta}`,
     noVoy: 'No voy a poder ir',
     hojaCancelar: {
       titulo: '¿Cancelar tu apartado?',
@@ -388,6 +392,15 @@ export const ES = {
       no: 'Sí voy a ir',
     },
     yaLoTienes: 'Ya lo tienes. ¡Buen provecho!',
+    /**
+     * ⚠️ A PLATE WHOSE WINDOW ENDED WITH NO HANDOVER — *se liberó* — that she may still say she
+     * has: `confirm_my_pickup` takes her *Ya lo tengo* until a day after the window (`0079`), and
+     * it keeps the clock's *No se presentó* off her score when the kitchen forgot *Entregar*.
+     */
+    porConfirmar: {
+      titulo: '¿Ya lo tienes?',
+      texto: (hasta: string) => `La cocina lo guardó ${hasta}. Si ya lo tienes, confírmalo.`,
+    },
     /** ⚠️ `0080`: the kitchen's cancel is built and switched off — read correctly the day it turns on. */
     laCocinaCancelo: 'La cocina canceló tu apartado',
     razon: { se_acabo: 'Se les acabó.', cerramos: 'Tuvieron que cerrar.', otro: '' },

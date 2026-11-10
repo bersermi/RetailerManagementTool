@@ -24,6 +24,8 @@ export function PieDeApartar({
   onApartar,
   onVerApartados,
   onVerCalificacion,
+  falla = null,
+  onReintentar,
 }: {
   pie: Pie;
   /** The dish's price, as the button says it. */
@@ -31,6 +33,9 @@ export function PieDeApartar({
   onApartar: () => void;
   onVerApartados: () => void;
   onVerCalificacion: () => void;
+  /** Why her reservations or her standing could not be read (`pie.kind === 'falla'`). */
+  falla?: string | null;
+  onReintentar?: () => void;
 }) {
   const insets = useSafeAreaInsets();
   return (
@@ -67,6 +72,9 @@ export function PieDeApartar({
       {pie.kind === 'sinHoras' && (
         <Text style={{ fontSize: SIZE.smallSize, lineHeight: 19, color: PALETTE.tintaApagada }}>{ES.apartar.enMostrador}</Text>
       )}
+      {pie.kind === 'falla' && (
+        <Text style={{ fontSize: SIZE.smallSize, lineHeight: 19, fontWeight: '600', color: PALETTE.error }}>{falla ?? ES.apartar.fallas.otra}</Text>
+      )}
 
       {pie.kind === 'apartar' && <BotonLleno label={ES.apartar.boton(precio)} variante="principal" onPress={onApartar} />}
       {pie.kind === 'cargando' && <BotonLleno label={ES.apartar.boton(precio)} variante="principal" busy onPress={onApartar} />}
@@ -76,9 +84,11 @@ export function PieDeApartar({
       {pie.kind === 'limite' && <Apagado texto={ES.apartar.limite(pie.limite)} />}
       {pie.kind === 'calificacion' && <Apagado texto={ES.apartar.boton(precio)} />}
       {pie.kind === 'sinHoras' && <Apagado texto={ES.apartar.sinHoras} />}
+      {pie.kind === 'falla' && <Apagado texto={ES.apartar.boton(precio)} />}
 
       {pie.kind === 'limite' && <Liga texto={ES.apartar.verTusApartados} onPress={onVerApartados} />}
       {pie.kind === 'calificacion' && <Liga texto={ES.apartar.verTuCalificacion} onPress={onVerCalificacion} />}
+      {pie.kind === 'falla' && onReintentar !== undefined && <Liga texto={ES.apartar.reintentar} onPress={onReintentar} />}
     </View>
   );
 }

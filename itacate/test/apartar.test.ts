@@ -209,6 +209,13 @@ describe('the dish page’s foot — in the order she meets it', () => {
     expect(pieDe({ cocina: k, oferta: o, platillo: p, apartados: [], posicion: undefined, ahora }).kind).toBe('cargando');
   });
 
+  it('says why, and asks again, when they could not be read — never a spinner that never ends', () => {
+    expect(pieDe({ cocina: k, oferta: o, platillo: p, apartados: undefined, posicion: posicion(), fallo: true, ahora }).kind).toBe('falla');
+    expect(pieDe({ cocina: k, oferta: o, platillo: p, apartados: [], posicion: undefined, fallo: true, ahora }).kind).toBe('falla');
+    // A failed read again with both in hand is not a failure of the foot.
+    expect(pieDe({ cocina: k, oferta: o, platillo: p, apartados: [], posicion: posicion(), fallo: true, ahora }).kind).toBe('apartar');
+  });
+
   it('Apartar, when nothing stops her', () => {
     expect(pieDe({ cocina: k, oferta: o, platillo: p, apartados: [], posicion: posicion(), ahora }).kind).toBe('apartar');
   });

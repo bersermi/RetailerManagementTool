@@ -103,6 +103,8 @@ export function esDeEstePlatillo(apartado: Apartado, cocina: Kitchen, oferta: Of
 export type Pie =
   /** Her reservations or her standing are not read yet. */
   | { readonly kind: 'cargando' }
+  /** …and could not be: the foot says why and asks again, never a spinner that never ends. */
+  | { readonly kind: 'falla' }
   /** She holds this very dish: her code is one tap away. */
   | { readonly kind: 'yaLoApartaste'; readonly apartado: Apartado }
   /** The kitchen's setting turns her away — said before she taps. */
@@ -120,10 +122,12 @@ export function pieDe(input: {
   readonly platillo: Dish;
   readonly apartados: readonly Apartado[] | undefined;
   readonly posicion: Posicion | undefined;
+  /** Whether reading what is missing of the two failed (TanStack's `isError` with no data). */
+  readonly fallo?: boolean;
   readonly ahora: Date;
 }): Pie {
   const { cocina, oferta, platillo, apartados, posicion, ahora } = input;
-  if (apartados === undefined || posicion === undefined) return { kind: 'cargando' };
+  if (apartados === undefined || posicion === undefined) return input.fallo === true ? { kind: 'falla' } : { kind: 'cargando' };
   const pendientes = apartados.filter((a) => a.estado === 'apartado');
   const suyo = pendientes.find((a) => esDeEstePlatillo(a, cocina, oferta, platillo));
   if (suyo !== undefined) return { kind: 'yaLoApartaste', apartado: suyo };

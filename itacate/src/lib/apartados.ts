@@ -21,12 +21,26 @@ import { DIRECCIONES_URL, comoLlegarUrl, consulta } from '@/lib/paginas';
 import { clockOf, dayOf, daysFrom } from '@/lib/ventana';
 import { ES } from '@/strings';
 
-/** The tab, in three parts: her tickets, a cancel by the kitchen while its window is open, and the rest. */
+/**
+ * ⚠️ HOW LONG AFTER ITS WINDOW SHE MAY STILL SAY *YA LO TENGO*: a day — `confirm_my_pickup`
+ * refuses `TD018` after `held_until + interval '24 hours'` (`0079`, its ruling (e)), and
+ * `test/apartados.test.ts` reads that out of the migration. It is also the day after which
+ * an unrated plate that *se liberó* counts as *No se presentó* (`0080`'s `neighbour_score`),
+ * so her swipe in that day is what keeps a kitchen's forgotten *Entregar* off her score.
+ */
+export const YA_LO_TENGO_DESPUES_MS = 24 * 3_600_000;
+
+/** The tab, in four parts: her tickets, a cancel by the kitchen while its window is open, a plate to confirm, and the rest. */
 export interface Secciones {
   /** Still to collect, the soonest first — each a whole ticket. */
   readonly pendientes: readonly Apartado[];
   /** Cancelled by the kitchen while its window is still open: she must not walk over for nothing. */
   readonly avisos: readonly Apartado[];
+  /**
+   * Its window ended with no handover (*se liberó*) less than a day ago: she may still swipe
+   * *Ya lo tengo* — the kitchen may have handed it over and not typed her code. The newest first.
+   */
+  readonly porConfirmar: readonly Apartado[];
   /** Everything else of her last 30 days, the newest first. */
   readonly anteriores: readonly Apartado[];
 }
@@ -35,10 +49,22 @@ export function seccionesDe(apartados: readonly Apartado[], ahora: Date): Seccio
   const t = ahora.getTime();
   const pendientes = apartados.filter((a) => a.estado === 'apartado').sort((a, b) => a.hora.getTime() - b.hora.getTime());
   const avisos = apartados.filter((a) => a.estado === 'cancelado_cocina' && a.guardadaHasta.getTime() > t);
-  const anteriores = apartados
-    .filter((a) => a.estado !== 'apartado' && !avisos.includes(a))
+  const porConfirmar = apartados
+    .filter((a) => a.estado === 'liberado' && t < a.guardadaHasta.getTime() + YA_LO_TENGO_DESPUES_MS)
     .sort((a, b) => b.hora.getTime() - a.hora.getTime());
-  return { pendientes, avisos, anteriores };
+  const anteriores = apartados
+    .filter((a) => a.estado !== 'apartado' && !avisos.includes(a) && !porConfirmar.includes(a))
+    .sort((a, b) => b.hora.getTime() - a.hora.getTime());
+  return { pendientes, avisos, porConfirmar, anteriores };
+}
+
+/** What is still to collect, as one key — her standing is read again when it changes (`useApartados`). */
+export function pendientesDe(apartados: readonly Apartado[]): string {
+  return apartados
+    .filter((a) => a.estado === 'apartado')
+    .map((a) => a.id)
+    .sort()
+    .join(',');
 }
 
 /** Whether any reservation is still to collect — the tab then reads the list again every minute. */
@@ -51,11 +77,15 @@ export function aLasDe(hora: Date): string {
   return ES.apartados.aLas(clockOf(hora));
 }
 
-/** *Pasa a las 17:45*, *Pasa mañana a las 9:00*, *Pasa el Lun 27 a las 9:00*. */
+/**
+ * *Pasa a las 17:45*, *Pasa mañana a las 9:00*, *Pasa el Lun 27 a las 9:00*. An hour already
+ * gone is said by its time alone — after midnight, a window that started yesterday still
+ * holds her plate, and *ya está lista* stands beside it.
+ */
 export function pasaTexto(hora: Date, ahora: Date): string {
   const dias = daysFrom(ahora, hora);
   const aLas = aLasDe(hora);
-  if (dias === 0) return ES.apartados.pasa(aLas);
+  if (dias <= 0) return ES.apartados.pasa(aLas);
   if (dias === 1) return ES.apartados.pasa(ES.apartados.manana(aLas));
   return ES.apartados.pasa(ES.apartados.elDia(dayOf(hora, ahora), aLas));
 }
@@ -70,8 +100,13 @@ export function faltaTexto(hora: Date, ahora: Date): string {
 
 /** Under her hour: how it is handed over, and until when the kitchen keeps it. */
 export function notaTexto(apartado: Apartado): string {
-  const hasta = clockOf(apartado.guardadaHasta);
+  const hasta = ES.apartados.hasta(clockOf(apartado.guardadaHasta));
   return apartado.comer === 'aqui' ? ES.apartados.notaAqui(hasta) : ES.apartados.notaLlevar(hasta);
+}
+
+/** A plate that *se liberó* less than a day ago: until when it was kept, and that she may still confirm it. */
+export function porConfirmarTexto(apartado: Apartado): string {
+  return ES.apartados.porConfirmar.texto(ES.apartados.hasta(clockOf(apartado.guardadaHasta)));
 }
 
 /** What to pay and how — the method she picked, never an account or an amount paid. */
@@ -94,7 +129,7 @@ export function puedeCancelar(apartado: Apartado, ahora: Date): boolean {
 }
 
 export function cambioDePlanesTexto(apartado: Apartado, ahora: Date): string {
-  return puedeCancelar(apartado, ahora) ? ES.apartados.cancelarHasta(clockOf(apartado.cancelarHasta)) : ES.apartados.noVoy;
+  return puedeCancelar(apartado, ahora) ? ES.apartados.cancelarHasta(ES.apartados.hasta(clockOf(apartado.cancelarHasta))) : ES.apartados.noVoy;
 }
 
 /** A past reservation's line: *Hoy 17:45 · Entregado*. */

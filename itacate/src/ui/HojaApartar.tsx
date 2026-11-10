@@ -5,9 +5,10 @@ import { Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-na
 
 import type { Posicion } from '@/api/apartados';
 import type { Comer, Dish, Kitchen, Offer, Pago } from '@/api/cocinas';
-import { useApartar, useDarMiSi } from '@/api/hooks';
+import { useApartados, useApartar, useDarMiSi } from '@/api/hooks';
 import { AVISO_URL } from '@/auth/aviso';
 import { formatMXN } from '@/format/mxn';
+import { pasaTexto } from '@/lib/apartados';
 import { comeresDe, horasDe, horaVigente, inicialDe, porcentajeDe, totalDe } from '@/lib/apartar';
 import { nuevoId } from '@/lib/ids';
 import { ventanaTexto } from '@/lib/lista';
@@ -32,8 +33,11 @@ import { Opcion } from '@/ui/Opcion';
 // opens, and made again whenever she changes her hour, how she eats it or how she pays —
 // so a tap sent again after a lost answer is that same reservation, and a changed one
 // never comes back as the old. ⚠️ An hour the clock passes while the sheet is open moves to
-// the next (`horaVigente`). NO CHECK CAN SEE THIS SCREEN (ADR-035 §2.11): the phone is its
-// instrument.
+// the next (`horaVigente`) — keeping the id, so a tap sent again after a lost answer is
+// still the one reservation; ⚠️ AND SO HER CODE'S HOUR IS THE DATABASE'S: once her
+// reservations are read again it is the one kept under that id, with its day (*Pasa mañana
+// a la 1:00*) — never only the chip she tapped (found by the review of `10.5b-iii-a`). NO
+// CHECK CAN SEE THIS SCREEN (ADR-035 §2.11): the phone is its instrument.
 // ============================================================================
 
 /** The sheet's body scrolls past this share of the screen — a long window has many hours. */
@@ -64,6 +68,7 @@ export function HojaApartar({
   const { height } = useWindowDimensions();
   const { apartar, busy } = useApartar();
   const { darSi, busy: dandoSi } = useDarMiSi();
+  const apartados = useApartados();
   const [id, setId] = useState(() => nuevoId());
   const [hora, setHora] = useState<Date | null>(null);
   const [comer, setComer] = useState<Comer>('llevar');
@@ -71,7 +76,7 @@ export function HojaApartar({
   const [pagosAbiertos, setPagosAbiertos] = useState(false);
   const [falla, setFalla] = useState<string | null>(null);
   const [siDado, setSiDado] = useState(false);
-  const [listo, setListo] = useState<{ readonly codigo: string; readonly hora: Date } | null>(null);
+  const [listo, setListo] = useState<{ readonly id: string; readonly codigo: string; readonly hora: Date } | null>(null);
 
   // Each opening starts afresh: the first hour, *para llevar* when it can be, cash, a new id.
   useEffect(() => {
@@ -93,6 +98,8 @@ export function HojaApartar({
   const comeres = comeresDe(platillo);
   const cuenta = totalDe(platillo, oferta, comer);
   const paso = listo !== null ? 'listo' : posicion?.siDesde === null && !siDado ? 'si' : 'elegir';
+  /** Her hour as the database kept it under this id, once read; the chip she tapped until then. */
+  const horaDelListo = listo === null ? null : (apartados.data?.find((a) => a.id === listo.id)?.hora ?? listo.hora);
   const titulo =
     paso === 'listo' ? ES.apartar.listo : paso === 'si' ? ES.apartar.antes.titulo : ES.apartar.titulo(platillo.name);
 
@@ -105,14 +112,18 @@ export function HojaApartar({
 
   async function aceptar() {
     const resultado = await darSi();
-    if (resultado.ok) setSiDado(true);
-    else setFalla(ES.apartar.fallas[resultado.falla]);
+    if (resultado.ok) {
+      setSiDado(true);
+      setFalla(null);
+    } else {
+      setFalla(ES.apartar.fallas[resultado.falla]);
+    }
   }
 
   async function confirmar() {
     if (horaElegida === null || busy) return;
     const resultado = await apartar({ id, ofertaId: oferta.id, lineNo: platillo.lineNo, hora: horaElegida, pago, comer });
-    if (resultado.ok) setListo({ codigo: resultado.valor.codigo, hora: horaElegida });
+    if (resultado.ok) setListo({ id: resultado.valor.id, codigo: resultado.valor.codigo, hora: horaElegida });
     else setFalla(ES.apartar.fallas[resultado.falla]);
   }
 
@@ -286,7 +297,7 @@ export function HojaApartar({
               {listo.codigo}
             </Text>
             <Text style={{ fontSize: SIZE.bodySize, fontWeight: '700', color: PALETTE.tinta }}>
-              {ES.apartados.pasa(ES.apartados.aLas(clockOf(listo.hora)))}
+              {pasaTexto(horaDelListo ?? listo.hora, ahora)}
             </Text>
             <View style={{ alignSelf: 'stretch' }}>
               <BotonLleno label={ES.apartar.verTuApartado} variante="principal" onPress={onVerApartado} />

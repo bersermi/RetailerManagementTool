@@ -40,10 +40,13 @@ import {
   notaTexto,
   pagoTexto,
   pasaTexto,
+  pendientesDe,
   platoTexto,
+  porConfirmarTexto,
   puedeCancelar,
   razonTexto,
   seccionesDe,
+  YA_LO_TENGO_DESPUES_MS,
 } from '@/lib/apartados';
 import { DESLIZAR_HASTA, alSoltarConfirma, avanceDe } from '@/lib/deslizar';
 import { ES } from '@/strings';
@@ -286,23 +289,47 @@ describe('when a call is refused', () => {
   });
 });
 
-describe('the tab, in three parts', () => {
+describe('the tab, in four parts', () => {
   const ahora = local(2026, 11, 10, 14, 0);
 
-  it('her tickets soonest first; a kitchen’s cancel while its window is open; the rest newest first', () => {
+  it('her tickets soonest first; a kitchen’s cancel while its window is open; a plate to confirm; the rest newest first', () => {
     const tarde = uno({ id: 'p-2', pickup_at: '2026-11-10T22:00:00+00:00' });
     const pronto = uno({ id: 'p-1', pickup_at: '2026-11-10T20:30:00+00:00' });
     const cancelada = uno({ id: 'c-1', state: 'cancelado_cocina', cancel_reason: 'se_acabo' });
     const vieja = uno({ id: 'v-1', state: 'recogido', pickup_at: '2026-11-08T20:30:00+00:00' });
-    const ayer = uno({ id: 'v-2', state: 'liberado', pickup_at: '2026-11-09T20:30:00+00:00' });
+    // Released yesterday at 13:00, Mexico City — more than a day ago: over.
+    const ayer = uno({ id: 'v-2', state: 'liberado', pickup_at: '2026-11-09T18:30:00+00:00', held_until: '2026-11-09T19:00:00+00:00' });
+    // Released at 13:00 today: she may still say she has it.
+    const hoy = uno({ id: 'l-1', state: 'liberado', pickup_at: '2026-11-10T18:30:00+00:00', held_until: '2026-11-10T19:00:00+00:00' });
     const cerrada = uno({ id: 'c-2', state: 'cancelado_cocina', held_until: '2026-11-10T19:00:00+00:00' });
-    const s = seccionesDe([vieja, tarde, cancelada, pronto, ayer, cerrada], ahora);
+    const s = seccionesDe([vieja, tarde, cancelada, pronto, ayer, hoy, cerrada], ahora);
     expect(s.pendientes.map((a) => a.id)).toEqual(['p-1', 'p-2']);
     expect(s.avisos.map((a) => a.id)).toEqual(['c-1']);
+    expect(s.porConfirmar.map((a) => a.id)).toEqual(['l-1']);
     expect(s.anteriores.map((a) => a.id)).toEqual(['c-2', 'v-2', 'v-1']);
     expect(hayPendientes([vieja, tarde])).toBe(true);
     expect(hayPendientes([vieja])).toBe(false);
     expect(hayPendientes(undefined)).toBe(false);
+  });
+
+  it('a released plate keeps its swipe for a day after its window — the day `confirm_my_pickup` takes it, and after which the clock counts it', () => {
+    expect(YA_LO_TENGO_DESPUES_MS).toBe(24 * 3_600_000);
+    expect(definicion('confirm_my_pickup')).toMatch(/now\(\) > v_r\.held_until \+ interval '24 hours'/);
+    expect(definicion('neighbour_score')).toMatch(/r\.held_until \+ interval '24 hours' <= now\(\)/);
+    const hoy = uno({ id: 'l-1', state: 'liberado', held_until: '2026-11-10T19:00:00+00:00' });
+    expect(seccionesDe([hoy], local(2026, 11, 11, 12, 59)).porConfirmar).toHaveLength(1);
+    expect(seccionesDe([hoy], local(2026, 11, 11, 13, 0)).porConfirmar).toHaveLength(0);
+    expect(seccionesDe([hoy], local(2026, 11, 11, 13, 0)).anteriores).toHaveLength(1);
+    expect(porConfirmarTexto(hoy)).toBe('La cocina lo guardó hasta las 13:00. Si ya lo tienes, confírmalo.');
+  });
+
+  it('what is still to collect, as one key — the same set in any order, and a handover changes it', () => {
+    const a = uno({ id: 'a' });
+    const b = uno({ id: 'b' });
+    const hecho = uno({ id: 'b', state: 'recogido' });
+    expect(pendientesDe([a, b])).toBe(pendientesDe([b, a]));
+    expect(pendientesDe([a, hecho])).not.toBe(pendientesDe([a, b]));
+    expect(pendientesDe([])).toBe('');
   });
 });
 
@@ -319,11 +346,17 @@ describe('her ticket, word for word (Mexico City)', () => {
     expect(pasaTexto(local(2026, 11, 11, 13, 0), ahora)).toBe('Pasa mañana a las 13:00');
     expect(pasaTexto(local(2026, 11, 11, 1, 0), ahora)).toBe('Pasa mañana a la 1:00');
     expect(pasaTexto(local(2026, 11, 13, 9, 15), ahora)).toBe('Pasa el Vie 13 a las 9:15');
+    // After midnight, a window that started yesterday still holds her plate: its hour alone.
+    expect(pasaTexto(local(2026, 11, 10, 23, 45), local(2026, 11, 11, 0, 10))).toBe('Pasa a las 23:45');
   });
 
   it('how it is handed over, and until when it is kept', () => {
     expect(notaTexto(a)).toBe('Tu comida estará lista y empacada a esa hora. La cocina la guarda hasta las 16:00.');
     expect(notaTexto(uno({ eat: 'aqui' }))).toBe('Te la sirven al llegar, para comer ahí. La cocina la guarda hasta las 16:00.');
+    // 1:30 at night is *la* 1:30.
+    expect(notaTexto(uno({ held_until: '2026-11-11T07:30:00+00:00' }))).toBe(
+      'Tu comida estará lista y empacada a esa hora. La cocina la guarda hasta la 1:30.',
+    );
   });
 
   it('what to pay and how — the dish and its desechable — never an account', () => {

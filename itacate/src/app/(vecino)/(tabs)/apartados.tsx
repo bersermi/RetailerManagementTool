@@ -6,13 +6,14 @@ import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, Text, View }
 import type { Apartado } from '@/api/apartados';
 import { apiErrorMessage } from '@/api/errors';
 import { useApartados, useCancelarApartado, useCocinas, useYaLoTengo } from '@/api/hooks';
-import { anteriorTexto, pasaTexto, platoTexto, puedeCancelar, razonTexto, seccionesDe } from '@/lib/apartados';
+import { anteriorTexto, pasaTexto, platoTexto, porConfirmarTexto, puedeCancelar, razonTexto, seccionesDe } from '@/lib/apartados';
 import { useAhora } from '@/lib/useAhora';
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
 import { BoletoApartado } from '@/ui/BoletoApartado';
 import { BotonLleno } from '@/ui/BotonLleno';
 import { Cabeza } from '@/ui/Cabeza';
+import { Deslizar } from '@/ui/Deslizar';
 import { Grupo } from '@/ui/Grupo';
 import { Hoja } from '@/ui/Hoja';
 import { Llega } from '@/ui/Llega';
@@ -28,7 +29,10 @@ import { Llega } from '@/ui/Llega';
 // once, *Cancelar* and *No voy a poder ir* ask first in a sheet, since a plate given back
 // goes to another neighbour. ⚠️ A TAB STAYS MOUNTED: what she just collected is said until
 // she leaves the tab. The list is read again every minute while one is pending
-// (`useApartados`), and on a pull. NO CHECK CAN SEE THIS SCREEN (ADR-035 §2.11).
+// (`useApartados`), and on a pull. ⚠️ A PLATE THAT *SE LIBERÓ* LESS THAN A DAY AGO keeps
+// its swipe (`porConfirmar`): the kitchen may have handed it over without typing her code,
+// and her *Ya lo tengo* is taken until a day after the window (`0079`) — found by the review
+// of `10.5b-iii-a`, before it shipped. NO CHECK CAN SEE THIS SCREEN (ADR-035 §2.11).
 // ============================================================================
 
 /** The clock this screen reads — *faltan 25 min*, and *Cancelar* turning into *No voy a poder ir*. */
@@ -138,7 +142,26 @@ export default function Apartados() {
               </Llega>
             ))}
 
-            {secciones.pendientes.length === 0 && secciones.avisos.length === 0 && recogido === null && (
+            {secciones.porConfirmar.map((apartado, i) => (
+              <Llega key={apartado.id} i={secciones.avisos.length + secciones.pendientes.length + i} style={styles.porConfirmar}>
+                <Text style={styles.porConfirmarTitulo}>{ES.apartados.porConfirmar.titulo}</Text>
+                <Text style={styles.filaTitulo}>{apartado.cocina.nombre}</Text>
+                <Text style={styles.filaDetalle}>{platoTexto(apartado)}</Text>
+                <Text style={styles.filaDetalle}>{porConfirmarTexto(apartado)}</Text>
+                <Deslizar
+                  texto={ES.apartados.desliza[apartado.comer]}
+                  ayuda={ES.apartados.deslizaAyuda}
+                  accion={ES.apartados.yaLoTengo}
+                  ocupado={confirmando === apartado.id}
+                  onListo={() => void yaLoTengo(apartado)}
+                />
+              </Llega>
+            ))}
+
+            {secciones.pendientes.length === 0 &&
+              secciones.avisos.length === 0 &&
+              secciones.porConfirmar.length === 0 &&
+              recogido === null && (
               <Llega i={0} style={styles.vacio}>
                 <MaterialCommunityIcons name="ticket-confirmation-outline" size={52} color={PALETTE.linea} />
                 <Text style={styles.vacioTitulo}>{ES.apartados.vacio}</Text>
@@ -150,7 +173,7 @@ export default function Apartados() {
             )}
 
             {secciones.anteriores.length > 0 && (
-              <Llega i={secciones.pendientes.length + 1} style={styles.anteriores}>
+              <Llega i={secciones.avisos.length + secciones.pendientes.length + secciones.porConfirmar.length + 1} style={styles.anteriores}>
                 <Text style={styles.seccion}>{ES.apartados.anteriores}</Text>
                 <Grupo>
                   {secciones.anteriores.map((apartado) => (
@@ -197,6 +220,15 @@ const styles = StyleSheet.create({
   aviso: { gap: SIZE.rowGap / 2, padding: SIZE.space, borderRadius: 14, backgroundColor: PALETTE.banda },
   avisoTitulo: { fontSize: SIZE.bodySize, fontWeight: '700', color: PALETTE.error },
   avisoTexto: { fontSize: SIZE.smallSize, lineHeight: 19, color: PALETTE.tinta },
+  porConfirmar: {
+    gap: SIZE.rowGap / 2,
+    padding: SIZE.space * 1.25,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: PALETTE.linea,
+    backgroundColor: PALETTE.superficie,
+  },
+  porConfirmarTitulo: { fontSize: SIZE.bodySize, fontWeight: '700', color: PALETTE.accion, paddingBottom: SIZE.rowGap / 2 },
   vacio: { alignItems: 'center', gap: SIZE.rowGap, paddingTop: SIZE.space * 3, paddingHorizontal: SIZE.space },
   vacioTitulo: { fontSize: SIZE.bodySize, fontWeight: '700', color: PALETTE.tinta, textAlign: 'center' },
   vacioBoton: { alignSelf: 'stretch', paddingTop: SIZE.space },
