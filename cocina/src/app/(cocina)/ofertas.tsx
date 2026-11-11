@@ -3,8 +3,9 @@ import { useState } from 'react';
 import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { useKitchen, useListings, useWithdraw } from '@/api/hooks';
+import { useApartados, useCantidades, useKitchen, useListings, useWithdraw } from '@/api/hooks';
 import type { Listing } from '@/api/listing';
+import { tomadosDe } from '@/lib/apartados';
 import { anteriores, deHoy, diaDe, hastaTexto, nombreDe } from '@/lib/hoy';
 import { useNota } from '@/lib/NotaProvider';
 import { useAhora } from '@/lib/useAhora';
@@ -26,7 +27,8 @@ import { OfertaDeHoy } from '@/ui/OfertaDeHoy';
 //   - HOY — today's offers (`@/lib/hoy`'s `deHoy`), each with *Ya se terminó* while it is
 //     on offer (`@/ui/OfertaDeHoy`), and *Así la ven* beside it (`10.5-v-c-ii`): an offer of one
 //     dish opens that dish's page in Itacate, one of several her page, where each is listed;
-//     − and + with `10.5b`;
+//     and since `10.5b-iv-c` − and + on each dish, *quedan 2 de 5* between them (`useCantidades`,
+//     what is taken read from her reservations: `tomadosDe`);
 //   - *PUBLICAR UNA OFERTA*, again, at the foot of today's;
 //   - ANTERIORES — one row per offer she made before today, its newest, the newest first,
 //     each with *Repetir* (one tap, with *Deshacer*) or *Hoy* when she already published it
@@ -46,6 +48,9 @@ export default function TusOfertas() {
   const ahora = useAhora(CADA_MEDIO_MINUTO);
   const { withdraw, busyId } = useWithdraw(kitchen?.id ?? null);
   const { repetir, busyId: repitiendo } = useRepetir(kitchen);
+  const apartados = useApartados(kitchen?.id ?? null);
+  const tomados = apartados.data === undefined ? null : tomadosDe(apartados.data.reservas);
+  const { cambiar, ocupadas, problemas } = useCantidades(kitchen?.id ?? null);
   const { avisar } = useNota();
   const [problema, setProblema] = useState<{ readonly id: string; readonly text: string } | null>(null);
 
@@ -124,6 +129,10 @@ export default function TusOfertas() {
                 problema={problema !== null && problema.id === listing.id ? problema.text : null}
                 onTerminar={() => void terminar(listing)}
                 onAsiLaVen={() => asiLaVen(listing)}
+                tomados={tomados}
+                onCantidad={(lineNo, paso, count, taken) => cambiar(listing.id, lineNo, paso, count, taken)}
+                ocupadas={ocupadas}
+                problemas={problemas}
               />
             ))}
           </Llega>

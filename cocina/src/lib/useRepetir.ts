@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import { useRef, useState } from 'react';
 
-import { usePlace, usePublish } from '@/api/hooks';
+import { useAjustes, usePlace, usePublish } from '@/api/hooks';
 import type { Kitchen } from '@/api/kitchen';
 import { attemptFor, publishArgs, type Attempt, type Listing } from '@/api/listing';
 import { nombreDe, planDeRepetir } from '@/lib/hoy';
@@ -23,10 +23,13 @@ import { ES } from '@/strings';
 // kept per offer, so a tap after *Sin conexión* sends the same id and can never publish
 // twice — `publish_listing` answers an id it holds with that publication. A tap while
 // one is out does nothing (`busyId`).
+// ⚠️ `10.5b-iv-c`: WITH HER KITCHEN'S WAYS (`useAjustes`), so each dish is narrowed to what her
+// kitchen offers now, as the form does; while they are unread, a narrowed dish opens the form.
 // ============================================================================
 
 export function useRepetir(kitchen: Kitchen | null) {
   const place = usePlace(kitchen?.id ?? null);
+  const ajustes = useAjustes(kitchen?.id ?? null);
   const { publish } = usePublish(kitchen?.id ?? null);
   const { avisar, avisarPublicada } = useNota();
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -35,7 +38,7 @@ export function useRepetir(kitchen: Kitchen | null) {
   async function repetir(listing: Listing) {
     if (kitchen === null || busyId !== null) return;
     const now = new Date();
-    const plan = planDeRepetir(listing, place.data?.id ?? null, now, newId);
+    const plan = planDeRepetir(listing, place.data?.id ?? null, now, newId, ajustes.data ?? null);
     if (plan.kind === 'formulario') {
       router.push({ pathname: '/publicar', params: { repetir: listing.id } });
       return;

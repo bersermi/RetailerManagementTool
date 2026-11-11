@@ -20,7 +20,20 @@ import {
   PUBLISH_LISTING,
   TAGS,
   WITHDRAW_LISTING,
+  CANTIDAD_MAXIMA,
+  QUANTITY_CODES,
+  SET_LISTING_QUANTITY,
   attemptFor,
+  cantidadErrorMessage,
+  cantidadFrom,
+  cantidadPedida,
+  comoSeComeDe,
+  esApartado,
+  countOf,
+  eleccionRepetida,
+  ofreceLasDos,
+  setQuantityArgs,
+  withCantidad,
   centavosOf,
   checkLine,
   checkLines,
@@ -103,7 +116,7 @@ describe('her list, as the app asks for it', () => {
     expect(LISTING_TABLE).toBe('listing');
     expect(LINES_TABLE).toBe('listing_line');
     expect(LISTING_COLUMNS).toBe(
-      'id,location_id,pickup_start,pickup_end,created_at,withdrawn_at,listing_line(line_no,name,description,tags,unit_price,quantity,surprise,usual_price,image_path)',
+      'id,location_id,pickup_start,pickup_end,created_at,withdrawn_at,container_price,listing_line(line_no,name,description,tags,unit_price,quantity,surprise,usual_price,image_path,para_llevar,para_aqui)',
     );
     expect(LISTING_COLUMNS).not.toContain('*');
     expect(LISTING_COLUMNS).toContain(`${LINES_TABLE}(`);
@@ -154,7 +167,8 @@ describe('the database’s rules, as `0072` and `0076` write them', () => {
   it('every key a line is sent under is one the function reads — a misspelt key would be silently dropped', () => {
     const read = new Set([...PUBLISH_BODY.matchAll(/v_line (?:->>|->|\?) '([a-z_]+)'/g)].map((m) => m[1]));
     const sent = Object.keys(lineBody(line({ surprise: true, usual: '90', tags: ['pica'], description: 'x' })));
-    expect(sent.length).toBe(8);
+    // ⚠️ `10.5b-iv-c`: ten since `0079` — `para_llevar` and `para_aqui`.
+    expect(sent.length).toBe(10);
     for (const key of sent) expect(read, key).toContain(key);
   });
 
@@ -267,6 +281,9 @@ describe('what the database is sent', () => {
       surprise: false,
       usual_price: '120.00',
       image_path: null,
+      // `10.5b-iv-c`: her kitchen's ways unread — the kitchen's own.
+      para_llevar: null,
+      para_aqui: null,
     });
   });
 
@@ -351,7 +368,8 @@ describe('her list, read back', () => {
     expect(l.placeId).toBe('place-1');
     expect(l.start.toISOString()).toBe('2026-10-31T23:00:00.000Z');
     expect(l.lines.map((x) => x.name)).toEqual(['Comida corrida', 'Bolsa de pan']);
-    expect(l.lines[0]).toEqual({ name: 'Comida corrida', description: null, tags: ['pica'], priceCentavos: 6550, count: 4, surprise: false, usualCentavos: null, imagePath: null });
+    expect(l.lines[0]).toEqual({ name: 'Comida corrida', description: null, tags: ['pica'], priceCentavos: 6550, count: 4, surprise: false, usualCentavos: null, imagePath: null, llevar: true, aqui: false });
+    expect(l.desechableCentavos).toBeNull();
     expect(l.lines[1]).toMatchObject({ priceCentavos: 4500, count: 5, surprise: true, usualCentavos: 9000 });
     expect(centavosOf(65.1)).toBe(6510);
   });
@@ -428,16 +446,17 @@ describe('Repetir', () => {
       end: new Date(2026, 9, 30, 20),
       createdAt: new Date(2026, 9, 30, 19, 10),
       withdrawnAt: null,
+      desechableCentavos: null,
       lines: [
-        { name: 'Comida corrida', description: null, tags: ['pica'], priceCentavos: 6550, count: 4, surprise: false, usualCentavos: 9000, imagePath: 'k/comida' },
-        { name: 'Bolsa de pan', description: '6 piezas', tags: [], priceCentavos: 4500, count: 5, surprise: true, usualCentavos: 9000, imagePath: null },
+        { name: 'Comida corrida', description: null, tags: ['pica'], priceCentavos: 6550, count: 4, surprise: false, usualCentavos: 9000, imagePath: 'k/comida', llevar: true, aqui: false },
+        { name: 'Bolsa de pan', description: '6 piezas', tags: [], priceCentavos: 4500, count: 5, surprise: true, usualCentavos: 9000, imagePath: null, llevar: true, aqui: false },
       ],
     };
     let n = 0;
     const draft = repeatDraft(past, new Date(2026, 9, 31, 19), () => `key-${(n += 1)}`);
     expect(draft.lines).toEqual([
-      { key: 'key-1', surprise: false, name: 'Comida corrida', description: '', tags: ['pica'], price: '65.50', count: '4', usual: '90', foto: { kind: 'guardada', path: 'k/comida' } },
-      { key: 'key-2', surprise: true, name: 'Bolsa de pan', description: '6 piezas', tags: [], price: '45', count: '5', usual: '90', foto: { kind: 'ninguna' } },
+      { key: 'key-1', surprise: false, name: 'Comida corrida', description: '', tags: ['pica'], price: '65.50', count: '4', usual: '90', foto: { kind: 'guardada', path: 'k/comida' }, llevar: true, aqui: false },
+      { key: 'key-2', surprise: true, name: 'Bolsa de pan', description: '6 piezas', tags: [], price: '45', count: '5', usual: '90', foto: { kind: 'ninguna' }, llevar: true, aqui: false },
     ]);
     // ⚠️ `10.5-ii`: yesterday's photo is sent again, as it was — never uploaded twice.
     expect(draft.lines.map((l) => lineBody(l).image_path)).toEqual(['k/comida', null]);
@@ -457,7 +476,7 @@ describe('Repetir', () => {
 describe('the screens’ wiring, read as text', () => {
   it('the form checks the lines, then the window against the clock at the press, before anything is sent', () => {
     const screen = code('app/(cocina)/publicar.tsx');
-    const lines = screen.indexOf('checkLines(lines)');
+    const lines = screen.indexOf('checkLines(lines, ajustes)');
     const window = screen.indexOf('checkVentana(ventana, new Date())');
     const sent = screen.indexOf('await publish(');
     expect(lines).toBeGreaterThan(-1);
@@ -516,5 +535,217 @@ describe('the screens’ wiring, read as text', () => {
     expect(screen).toMatch(/const id = attempt\.current\.id;/);
     expect(code('lib/NotaProvider.tsx')).toMatch(/avisarPublicada: \(texto, kitchenId, listingId\) => mostrar\(texto, \(\) => quitar\(kitchenId, listingId\)\)/);
     expect(code('api/hooks.ts')).toMatch(/mutationFn: \(input: \{ kitchenId: string; id: string \}\) => withdrawListing\(\{ p_id: input\.id \}\)/);
+  });
+});
+
+// ============================================================================
+// `10.5b-iv-c` — how each dish may be eaten, a count of zero, and − and +
+// ============================================================================
+
+/** The text of the last migration that defines a function — the body the database runs. */
+function ultimaQueDefine(name: string): string {
+  const files = readdirSync(MIGRATIONS).filter((f) => f.endsWith('.sql')).sort();
+  const pattern = new RegExp(`create (or replace )?function public\\.${name}\\(`);
+  const hits = files.filter((f) => pattern.test(readFileSync(join(MIGRATIONS, f), 'utf8')));
+  const text = readFileSync(join(MIGRATIONS, hits[hits.length - 1]), 'utf8');
+  return text.slice(text.search(pattern), text.indexOf(`comment on function public.${name}(`));
+}
+
+/** `her list, read back`'s row, at top level for the `10.5b-iv-c` blocks. */
+const filaDe = (patch: Partial<ListingRow> = {}): ListingRow => ({
+  id: 'l-1',
+  location_id: 'place-1',
+  pickup_start: '2026-10-31T23:00:00+00:00',
+  pickup_end: '2026-11-01T00:00:00+00:00',
+  created_at: '2026-10-31T22:30:00+00:00',
+  withdrawn_at: null,
+  listing_line: [
+    { line_no: 2, name: 'Bolsa de pan', description: '6 piezas', tags: [], unit_price: 45, quantity: 5, surprise: true, usual_price: 90 },
+    { line_no: 1, name: 'Comida corrida', description: ' ', tags: ['pica', 'nuevo'], unit_price: '65.5', quantity: '4', surprise: false, usual_price: null },
+  ],
+  ...patch,
+});
+
+const AMBAS = { llevar: true, aqui: true } as const;
+const LLEVAR = { llevar: true, aqui: false } as const;
+const AQUI = { llevar: false, aqui: true } as const;
+
+describe('`10.5b-iv-c`: how each dish may be eaten — narrowed from her kitchen, never widened', () => {
+  it('`publish_listing` reads the two keys, refuses a way the kitchen does not offer, and makes a bag to go', () => {
+    expect(PUBLISH_BODY).toContain(`v_line ? 'para_llevar'`);
+    expect(PUBLISH_BODY).toContain(`v_line ? 'para_aqui'`);
+    expect(PUBLISH_BODY).toContain('if (v_llevar and not v_k_llevar) or (v_aqui and not v_k_aqui) then');
+    expect(PUBLISH_BODY).toContain("v_llevar := coalesce((v_line ->> 'para_llevar')::boolean, v_k_llevar);");
+    expect(PUBLISH_BODY).toMatch(/if v_surprise then\s+v_llevar := true;\s+v_aqui\s+:= false;/);
+  });
+
+  it('the form asks a dish only when her kitchen offers both ways, and starts with both on', () => {
+    expect(ofreceLasDos(null)).toBe(false);
+    expect(ofreceLasDos(LLEVAR)).toBe(false);
+    expect(ofreceLasDos(AQUI)).toBe(false);
+    expect(ofreceLasDos(AMBAS)).toBe(true);
+    expect(emptyLine('k')).toMatchObject({ llevar: true, aqui: true });
+  });
+
+  it('sends her choice with both ways, the kitchen’s own otherwise — never a way the kitchen lacks', () => {
+    expect(comoSeComeDe(line({ llevar: false, aqui: true }), AMBAS)).toEqual({ para_llevar: false, para_aqui: true });
+    expect(comoSeComeDe(line({ llevar: true, aqui: true }), AMBAS)).toEqual({ para_llevar: true, para_aqui: true });
+    // One way: whatever the line holds, nothing is sent — `publish_listing`'s coalesce is the kitchen's.
+    expect(comoSeComeDe(line({ llevar: true, aqui: true }), AQUI)).toEqual({ para_llevar: null, para_aqui: null });
+    expect(comoSeComeDe(line({ llevar: false, aqui: true }), LLEVAR)).toEqual({ para_llevar: null, para_aqui: null });
+    // Unread, and a bag: the kitchen's own, and to go.
+    expect(comoSeComeDe(line({ aqui: true }), null)).toEqual({ para_llevar: null, para_aqui: null });
+    expect(comoSeComeDe(line({ surprise: true, usual: '90', llevar: false, aqui: true }), AMBAS)).toEqual({ para_llevar: null, para_aqui: null });
+    expect(publishBody('p', [line({ llevar: false })], { start: new Date(0), end: new Date(1) }, AMBAS).p_lines[0]).toMatchObject({ para_llevar: false, para_aqui: true });
+  });
+
+  it('a dish with neither, when both are offered, is said before anything is sent', () => {
+    expect(checkLine(line({ llevar: false, aqui: false }), AMBAS)).toBe('comer');
+    expect(checkLine(line({ llevar: false, aqui: false }), LLEVAR)).toBeNull();
+    expect(checkLine(line({ llevar: false, aqui: false }), null)).toBeNull();
+    expect(checkLine(line({ surprise: true, usual: '90', llevar: false, aqui: false }), AMBAS)).toBeNull();
+    const lines = [line({ llevar: false, aqui: false })];
+    expect(issueSentence(checkLines(lines, AMBAS)!, lines)).toBe('Platillo 1: elige para llevar, para comer aquí o las dos.');
+  });
+
+  it('*Repetir* keeps each dish’s ways, narrowed to what her kitchen offers now — all of them when none is left', () => {
+    const dish = (llevar: boolean, aqui: boolean) => ({ ...toListing(filaDe()).lines[0], llevar, aqui });
+    expect(eleccionRepetida(dish(true, false), AMBAS)).toEqual(LLEVAR);
+    expect(eleccionRepetida(dish(false, true), AMBAS)).toEqual(AQUI);
+    expect(eleccionRepetida(dish(true, true), LLEVAR)).toEqual(LLEVAR);
+    expect(eleccionRepetida(dish(false, true), LLEVAR)).toEqual(LLEVAR);
+    expect(eleccionRepetida(dish(false, true), null)).toEqual(AQUI);
+  });
+
+  it('reads each line’s ways and the offer’s desechable — the columns’ defaults when a row has none', () => {
+    const l = toListing(
+      filaDe({
+        container_price: '5.00',
+        listing_line: [
+          { line_no: 1, name: 'a', description: null, tags: [], unit_price: 1, quantity: 1, surprise: false, usual_price: null, para_llevar: false, para_aqui: true },
+          { line_no: 2, name: 'b', description: null, tags: [], unit_price: 1, quantity: 1, surprise: false, usual_price: null },
+        ],
+      }),
+    );
+    expect(l.desechableCentavos).toBe(500);
+    expect(l.lines.map((x) => [x.llevar, x.aqui])).toEqual([
+      [false, true],
+      [true, false],
+    ]);
+    // What was sent is drawn until the re-read: a bag to go, `null` the kitchen's own (to go until read).
+    const made = listingFrom(publishArgs({ id: 'n', sent: '' }, publishBody('p', [line({ llevar: false })], { start: new Date(0), end: new Date(1) }, AMBAS)));
+    expect(made.lines[0]).toMatchObject({ llevar: false, aqui: true });
+    expect(made.desechableCentavos).toBeNull();
+  });
+});
+
+describe('`10.5b-iv-c`: a count of zero, and − and +', () => {
+  const SET = ultimaQueDefine('set_listing_quantity');
+
+  it('the table takes 0 since `0079`, and the read reads it — the whole offer is no longer dropped', () => {
+    const tabla = readFileSync(join(MIGRATIONS, '0079_reserving_and_collecting.sql'), 'utf8');
+    expect(tabla).toContain('add constraint listing_line_quantity_not_negative check (quantity >= 0)');
+    expect(countOf(0)).toBe(0);
+    expect(countOf('0.000')).toBe(0);
+    expect(() => countOf(-1)).toThrow();
+    expect(() => countOf('1.5')).toThrow();
+    const zero = filaDe({ listing_line: [{ line_no: 1, name: 'a', description: null, tags: [], unit_price: 1, quantity: '0', surprise: false, usual_price: null }] });
+    expect(listingsFrom([zero]).map((l) => l.lines[0].count)).toEqual([0]);
+  });
+
+  it('names the function and its arguments as `0079` writes them; the answer’s two keys', () => {
+    expect(SET_LISTING_QUANTITY).toBe('set_listing_quantity');
+    expect(SET).toMatch(/create function public\.set_listing_quantity\(\s*p_listing_id uuid,\s*p_line_no\s+integer,\s*p_quantity\s+numeric\s*\)/);
+    expect(Object.keys(setQuantityArgs('l', 2, 3))).toEqual(['p_listing_id', 'p_line_no', 'p_quantity']);
+    expect(SET).toContain("return jsonb_build_object('quantity', p_quantity::numeric(12,3)::text,");
+    expect(SET).toContain("'taken', v_taken::numeric(12,3)::text);");
+    expect(cantidadFrom({ quantity: '3.000', taken: '1.000' })).toEqual({ count: 3, taken: 1 });
+    expect(() => cantidadFrom({ quantity: '3.000' })).toThrow();
+  });
+
+  it('never below what is taken, never below 0 or above 999 — the function’s own limits', () => {
+    expect(SET).toContain('p_quantity < 0 or p_quantity > 999');
+    expect(SET).toContain("if p_quantity < v_taken then");
+    expect(CANTIDAD_MAXIMA).toBe(999);
+    expect(cantidadPedida(5, 2, -1)).toBe(4);
+    expect(cantidadPedida(2, 2, -1)).toBeNull();
+    expect(cantidadPedida(1, 0, -1)).toBe(0);
+    expect(cantidadPedida(0, 0, -1)).toBeNull();
+    expect(cantidadPedida(5, 2, 1)).toBe(6);
+    expect(cantidadPedida(999, 0, 1)).toBeNull();
+  });
+
+  it('its refusals are hers to read: TD019 someone reserved meanwhile, TD015 the offer is over', () => {
+    expect(SET).toContain("using errcode = 'TD019'");
+    expect(SET).toContain("using errcode = 'TD015'");
+    expect(Object.keys(QUANTITY_CODES).sort()).toEqual(['TD015', 'TD019']);
+    expect(cantidadErrorMessage({ code: 'TD019' })).toBe(ES.ofertas.apartados);
+    expect(cantidadErrorMessage({ code: 'TD015' })).toBe(ES.ofertas.terminada);
+    expect(cantidadErrorMessage(new TypeError('Network request failed'))).toBe(ES.api.errors.offline);
+  });
+
+  it('a TD019 refusal reads today’s orders again — what is taken moved, and the phone’s copy is up to a minute old (seen on the emulator)', () => {
+    expect(esApartado({ code: 'TD019' })).toBe(true);
+    expect(esApartado({ code: 'TD015' })).toBe(false);
+    expect(esApartado(new TypeError('Network request failed'))).toBe(false);
+    const hooks = code('api/hooks.ts');
+    const hook = hooks.slice(hooks.indexOf('export function useCantidades'));
+    expect(hook).toMatch(/if \(esApartado\(thrown\)\) void queries\.invalidateQueries\(\{ queryKey: apartadosKey\(userId, kitchenId, 'hoy'\) \}\);/);
+  });
+
+  it('draws the new count on that line alone', () => {
+    const list = [toListing(filaDe())];
+    const moved = withCantidad(list, 'l-1', 2, 7)!;
+    expect(moved[0].lines.map((l) => l.count)).toEqual([4, 7]);
+    expect(withCantidad(list, 'otra', 1, 9)![0].lines.map((l) => l.count)).toEqual([4, 5]);
+    expect(withCantidad(undefined, 'l-1', 1, 1)).toBeUndefined();
+  });
+
+  it('the hook sends one at a time per dish and the last tap wins; the read is cancelled before the drawing', () => {
+    const hooks = code('api/hooks.ts');
+    const hook = hooks.slice(hooks.indexOf('export function useCantidades'));
+    expect(hook).toMatch(/cantidadPedida\(deseados\.current\.get\(clave\) \?\? count, taken, paso\)/);
+    const cancel = hook.indexOf('await queries.cancelQueries({ queryKey: key });');
+    const draw = hook.indexOf('queries.setQueryData<Listing[]>(key, (listings) => withCantidad(');
+    expect(cancel).toBeGreaterThan(-1);
+    expect(draw).toBeGreaterThan(cancel);
+    expect(hook).toMatch(/while \(deseados\.current\.get\(clave\) !== enviado\)/);
+    expect(hook).toMatch(/if \(enviando\.current\.has\(clave\)\) return;/);
+  });
+});
+
+describe('`10.5b-iv-c`: the form starts with her last choice (call 26) — kept on her phone only when the form asked', () => {
+  const memoria = () => {
+    const datos = new Map<string, string>();
+    return {
+      getItem: (k: string) => datos.get(k) ?? null,
+      setItem: (k: string, v: string) => void datos.set(k, v),
+      removeItem: (k: string) => void datos.delete(k),
+    };
+  };
+
+  it('nothing chosen yet: both on; then what she chose, per kitchen', async () => {
+    const { eleccionGuardada, guardarEleccion, TODAS } = await import('@/lib/eleccion');
+    const store = memoria();
+    expect(eleccionGuardada(store, 'k1')).toEqual(TODAS);
+    guardarEleccion(store, 'k1', { llevar: false, aqui: true });
+    expect(eleccionGuardada(store, 'k1')).toEqual({ llevar: false, aqui: true });
+    expect(eleccionGuardada(store, 'k2')).toEqual(TODAS);
+    guardarEleccion(store, 'k1', { llevar: true, aqui: true });
+    expect(eleccionGuardada(store, 'k1')).toEqual(TODAS);
+    // A form that did not ask — one way — keeps nothing; neither is no choice.
+    guardarEleccion(store, 'k1', { llevar: true, aqui: false });
+    guardarEleccion(store, 'k1', null);
+    guardarEleccion(store, 'k1', { llevar: false, aqui: false });
+    expect(eleccionGuardada(store, 'k1')).toEqual({ llevar: true, aqui: false });
+    expect(emptyLine('x', { llevar: false, aqui: true })).toMatchObject({ llevar: false, aqui: true });
+  });
+
+  it('the form reads it for every new dish and keeps it after publishing, only when it asked', () => {
+    const screen = code('app/(cocina)/publicar.tsx');
+    expect(screen).toMatch(/const \[eleccion\] = useState\(\(\) => eleccionDe\(kitchen\.id\)\);/);
+    expect(screen).toMatch(/\[emptyLine\(newId\(\), eleccion\)\]/);
+    expect(screen).toMatch(/\[\.\.\.now, emptyLine\(newId\(\), eleccion\)\]/);
+    expect(screen).toMatch(/recordarEleccion\(kitchen\.id, ofreceLasDos\(ajustes\) && elegida !== undefined \? \{ llevar: elegida\.llevar, aqui: elegida\.aqui \} : null\);/);
   });
 });

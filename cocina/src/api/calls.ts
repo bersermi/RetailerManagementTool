@@ -6,19 +6,30 @@
 // `10.4b-iv-a` (what she publishes: her list, publishing, withdrawing),
 // `10.4h` (address first: her line with no pin, and her pin cleared), `10.5-ii`
 // (her page in Itacate, and the pictures that go up before what points at them),
-// `10.5-i-b-ii` (Google's point for her address, kept as a 30-day copy) and
-// `10.5b-iv-a` (her kitchen's reservations, the handover and the fonda's thumb).
+// `10.5-i-b-ii` (Google's point for her address, kept as a 30-day copy),
+// `10.5b-iv-a` (her kitchen's reservations, the handover and the fonda's thumb) and
+// `10.5b-iv-c` (her settings, her stars, − and +, and the read before Apple is told).
 //
 // ⚠️ THE IMPURE HALF OF `src/api/` (ADR-035 §2.11): the only module here that
 // imports the live client, so no node suite can load it; every name it sends is
 // a constant from a pure module beside it (`@/api/kitchen`, `@/api/place`,
 // `@/api/account`, `@/api/listing`, `@/api/pagina`, `@/api/fotos`,
-// `@/api/apartados`), which the
+// `@/api/apartados`, `@/api/ajustes`, `@/api/calificaciones`), which the
 // suite and the contract checks read. Screens reach these through `@/api/hooks`.
 // ============================================================================
 
 import type { FunctionRegion } from '@supabase/supabase-js';
 
+import {
+  AJUSTES_COLUMNS,
+  AJUSTES_OWNER_COLUMN,
+  AJUSTES_TABLE,
+  setAjustesArgs,
+  toAjustes,
+  type Ajustes,
+  type AjustesFields,
+  type AjustesPatch,
+} from '@/api/ajustes';
 import {
   APPLE_REVOKE,
   APPLE_REVOKE_REGION,
@@ -30,6 +41,11 @@ import {
   OWNER_COLUMNS,
   OWNER_ROLE,
   OWNER_ROLE_COLUMN,
+  PENDING_COLUMNS,
+  PENDING_NULL_COLUMNS,
+  PENDING_OWNER_COLUMN,
+  PENDING_TABLE,
+  PENDING_UNTIL_COLUMN,
   deletedFrom,
   revokeBody,
   type DeleteArgs,
@@ -60,6 +76,7 @@ import {
   type Reserva,
   type SobreElVecino,
 } from '@/api/apartados';
+import { MY_KITCHEN_RATINGS, calificacionesFrom, ratingsArgs, type Calificaciones } from '@/api/calificaciones';
 import type { DireccionCalls } from '@/api/direccion';
 import {
   PHOTO_BUCKET,
@@ -96,11 +113,14 @@ import {
   LISTING_OWNER_COLUMN,
   LISTING_TABLE,
   PUBLISH_LISTING,
+  SET_LISTING_QUANTITY,
   WITHDRAW_LISTING,
+  cantidadFrom,
   listingsFrom,
   orderTerm,
   type Listing,
   type PublishArgs,
+  type SetQuantityArgs,
   type WithdrawArgs,
 } from '@/api/listing';
 import {
@@ -298,6 +318,51 @@ export async function publishListing(args: PublishArgs): Promise<string> {
 export async function withdrawListing(args: WithdrawArgs): Promise<void> {
   const { error } = await supabase.rpc(WITHDRAW_LISTING, args);
   if (error) throw error;
+}
+
+/** `10.5b-iv-c`: − and + — how many of one line she offers now (`0079`). Answers what she offers and what is taken. */
+export async function setListingQuantity(args: SetQuantityArgs): Promise<{ readonly count: number; readonly taken: number }> {
+  const { data, error } = await supabase.rpc(SET_LISTING_QUANTITY, args);
+  if (error) throw error;
+  return cantidadFrom(data);
+}
+
+/**
+ * `10.5b-iv-c`: her settings — six columns of her page's row (`0079`, `0080`), or the
+ * defaults when she has no row. Read apart from her page (`@/api/ajustes`' header).
+ */
+export async function kitchenAjustes(kitchenId: string): Promise<Ajustes> {
+  const { data, error } = await supabase.from(AJUSTES_TABLE).select(AJUSTES_COLUMNS).eq(AJUSTES_OWNER_COLUMN, kitchenId).maybeSingle();
+  if (error) throw error;
+  return toAjustes(data as Partial<AjustesFields> | null);
+}
+
+/** `10.5b-iv-c`: one setting, through her page's one door (`set_kitchen_page`); it answers with the row as saved. */
+export async function setKitchenAjustes(kitchenId: string, patch: AjustesPatch): Promise<Ajustes> {
+  const { data, error } = await supabase.rpc(SET_KITCHEN_PAGE, setAjustesArgs(kitchenId, patch));
+  if (error) throw error;
+  return toAjustes(data as Partial<AjustesFields> | null);
+}
+
+/** `10.5b-iv-c`: her stars, as a kitchen may see them (`0080`): the day after, from five, never who. */
+export async function myKitchenRatings(kitchenId: string): Promise<Calificaciones | null> {
+  const { data, error } = await supabase.rpc(MY_KITCHEN_RATINGS, ratingsArgs(kitchenId));
+  if (error) throw error;
+  return calificacionesFrom(data);
+}
+
+/**
+ * ⚠️ `10.5b-iv-c`: IS A PLATE STILL TO HAND OVER AT ANY OF THESE BUSINESSES — asked before
+ * Apple is told about her deletion (`@/api/account`'s header). `reservation_state`'s
+ * `apartado` as filters: none of three moments, its hold not over at the phone's `now`.
+ */
+export async function plateStillPending(businessIds: readonly string[], now: Date): Promise<boolean> {
+  if (businessIds.length === 0) return false;
+  let query = supabase.from(PENDING_TABLE).select(PENDING_COLUMNS).in(PENDING_OWNER_COLUMN, [...businessIds]);
+  for (const column of PENDING_NULL_COLUMNS.split(',')) query = query.is(column, null);
+  const { data, error } = await query.gt(PENDING_UNTIL_COLUMN, now.toISOString()).limit(1);
+  if (error) throw error;
+  return (data ?? []).length > 0;
 }
 
 /**

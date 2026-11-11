@@ -115,6 +115,13 @@ on:
       # that a late send keeps her moment and a thumb lands behind its handover.
       - "docs/checks/10.5b-iv-a-handover-contract.sh"
       - "docs/checks/10.5b-iv-a-handover-contract-falsify.sh"
+      # ⚠️ `10.5b-iv-c`, HER SETTINGS AND HER OFFERS: `cocina/src/api/ajustes.ts` and `calificaciones.ts`
+      # (under `cocina/src/api/**` above) name `kitchen_page`'s six settings, the keys `set_kitchen_page`
+      # reads and `0080`'s `my_kitchen_ratings` with every key of its answer; `listing.ts` how each dish
+      # may be eaten and `set_listing_quantity` (− and +); `account.ts` the read that asks about a
+      # pending plate before Apple is told. Its own job, `cocina-settings`, below.
+      - "docs/checks/10.5b-iv-c-settings-contract.sh"
+      - "docs/checks/10.5b-iv-c-settings-contract-falsify.sh"
       # ⚠️⚠️ AND THE ROSTER'S, as of plan task 5b-ii-a. `app/src/api/members.ts`
       # is a second claim about the applied schema — two column lists — and it
       # carries something `workspace.ts` does not: a claim about a POLICY. The
@@ -2470,6 +2477,45 @@ jobs:
 
       - name: Contract — can the handover check still fail (its own fixtures; the runner counts them)
         run: bash docs/checks/10.5b-iv-a-handover-contract-falsify.sh
+
+      - name: Stop
+        if: always()
+        run: supabase stop --no-backup
+
+  # ===========================================================================
+  # `10.5b-iv-c` — HER SETTINGS, HER STARS, HOW EACH DISH MAY BE EATEN, − AND +, AND THE
+  # READ BEFORE APPLE IS TOLD. `cocina/src/api/ajustes.ts`, `calificaciones.ts`, `listing.ts`
+  # and `account.ts` against a real PostgREST: a fonda made through Wera Cocina's own names,
+  # a neighbour reserving through Itacate's, five rated plates made yesterday by the
+  # database's owner. Its own job for `cocina-handover`'s reason: the falsifier runs the
+  # check twenty times, two sign-ups each.
+  # ===========================================================================
+  cocina-settings:
+    name: her settings, her stars, − and +, and the read before a deletion, against Wera Cocina's own names
+    runs-on: ubuntu-latest
+    # ⚠️ Twenty runs of two sign-ups each, and GoTrue allows 30 in five minutes: a run that
+    # spends them waits out the window (`signup`'s retries).
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: 2.114.0
+
+      - name: Start Postgres, GoTrue and PostgREST
+        run: supabase start -x realtime,storage-api,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
+
+      - name: Apply migrations from scratch
+        run: supabase db reset
+
+      - name: Contract — do cocina/src/api/ajustes.ts, calificaciones.ts, listing.ts and account.ts set her settings, read her stars, publish each dish's ways, move − and +, and ask about a pending plate by the names 0079 and 0080 answer (plan 10.5b-iv-c)
+        run: bash docs/checks/10.5b-iv-c-settings-contract.sh
+
+      - name: Contract — can the settings check still fail (its own fixtures; the runner counts them)
+        run: bash docs/checks/10.5b-iv-c-settings-contract-falsify.sh
 
       - name: Stop
         if: always()

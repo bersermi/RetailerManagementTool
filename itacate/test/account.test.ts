@@ -280,6 +280,27 @@ describe('Apple is told, and told it is Itacate', () => {
     expect(asked).toBeGreaterThan(-1);
     expect([asked < told, told < deleted, deleted < gone]).toEqual([true, true, true]);
     expect(hooks).toMatch(/if \(step\.kind === 'stop'\) return null;/);
+    // ⚠️ `10.5b-iv-c`: the database asked first, as Wera Cocina's hook asks it.
+    const pending = hooks.indexOf('await plateStillPending(pendientesEn, new Date())');
+    expect(pending).toBeGreaterThan(-1);
+    expect(pending).toBeLessThan(asked);
+    expect(hooks).toMatch(/if \(pendiente\) return deleteErrorMessage\(\{ code: PLATE_PENDING_CODE \}\);/);
+  });
+
+  it('`10.5b-iv-c`: the read before Apple is Wera Cocina’s, name for name and line for line', () => {
+    const twin = readFileSync(new URL('../../cocina/src/api/account.ts', import.meta.url), 'utf8');
+    const ours = readFileSync(new URL('../src/api/account.ts', import.meta.url), 'utf8');
+    for (const name of ['PENDING_TABLE', 'PENDING_COLUMNS', 'PENDING_OWNER_COLUMN', 'PENDING_NULL_COLUMNS', 'PENDING_UNTIL_COLUMN']) {
+      const value = (text: string) => new RegExp(`^export const ${name} = '([^']*)';`, 'm').exec(text)?.[1];
+      expect(value(ours), name).toBeDefined();
+      expect(value(ours), name).toBe(value(twin));
+    }
+    const read = (path: string) => {
+      const text = readFileSync(new URL(path, import.meta.url), 'utf8');
+      const start = text.indexOf('export async function plateStillPending');
+      return text.slice(start, text.indexOf('\n}\n', start));
+    };
+    expect(read('../src/api/calls.ts')).toBe(read('../../cocina/src/api/calls.ts'));
   });
 });
 
@@ -336,7 +357,8 @@ describe('her way out, on *Tú*, the last tab, one tap from anywhere', () => {
     const block = code('src/ui/Salidas.tsx');
     expect(block).toMatch(/const goes = useBusinessesThatGo\(\);/);
     expect(block).toMatch(/deletionFrom\(goes\)/);
-    expect(block).toMatch(/remove\(deleteArgs\(deletion, typed\)\)/);
+    // ⚠️ `10.5b-iv-c`: with every business that goes, so the database is asked before Apple's sheet.
+    expect(block).toMatch(/remove\(deleteArgs\(deletion, typed\), pendingIds\(deletion\)\)/);
     expect(block).toMatch(/disabled=\{removing \|\| !ready\}/);
     expect(block).toMatch(/label=\{ES\.auth\.signOut\}/);
     // Offered once what goes is known.

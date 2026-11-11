@@ -61,7 +61,7 @@ run C0 green "" listing ""
 
 echo "C1  a column of the read is misspelt — PostgREST refuses every list"
 run C1 red "the app's list read answered 400" listing \
-  "s/,created_at,withdrawn_at,listing_line(/,created_at,retirada_at,listing_line(/"
+  "s/,created_at,withdrawn_at,container_price,listing_line(/,created_at,retirada_at,container_price,listing_line(/"
 
 echo "C2  the list is filtered on the place's column, not the kitchen's — her list comes back empty"
 run C2 red "her list after publishing: the list returned []" listing \

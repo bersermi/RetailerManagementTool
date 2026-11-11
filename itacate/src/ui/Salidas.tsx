@@ -22,7 +22,7 @@
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
-import { confirmWords, deleteArgs, deletionFrom, namesReady, takesAShop, typedLabel, type Typed } from '@/api/account';
+import { confirmWords, deleteArgs, deletionFrom, namesReady, pendingIds, takesAShop, typedLabel, type Typed } from '@/api/account';
 import { useBusinessesThatGo, useDeleteMyAccount } from '@/api/hooks';
 import { useAuth } from '@/auth/AuthProvider';
 import { ES } from '@/strings';
@@ -55,7 +55,7 @@ export function Salidas() {
   async function confirm() {
     if (removing || !ready) return;
     setProblem(null);
-    setProblem(await remove(deleteArgs(deletion, typed)));
+    setProblem(await remove(deleteArgs(deletion, typed), pendingIds(deletion)));
   }
 
   function cancel() {

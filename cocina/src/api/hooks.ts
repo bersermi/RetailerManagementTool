@@ -6,8 +6,9 @@
 // `10.5-ii` (her page in Itacate, and a photo per dish), `10.5-iii-c` (her
 // kitchen deleted alone), `10.5-i-b-ii` (Google's point for her address, kept
 // again when its 30-day copy is a week old), `10.5b-iv-a` (her kitchen's
-// reservations, the handover and the fonda's thumb) and `10.5b-iv-b` (those
-// reads kept on the phone, and the handover and the thumb queued).
+// reservations, the handover and the fonda's thumb), `10.5b-iv-b` (those
+// reads kept on the phone, and the handover and the thumb queued) and `10.5b-iv-c`
+// (her settings, her stars, − and +, and the database asked before Apple).
 //
 // ⚠️ A SCREEN NEVER CALLS `@/api/calls` ITSELF — Wera's R12: a hook here owns
 // the query key, when the read may run, and what it means. Every read waits for
@@ -23,8 +24,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+import { AJUSTES_KEY, ajustesCon, ajustesKey, type Ajustes, type AjustesPatch } from '@/api/ajustes';
 import {
   OWNERS_KEY,
+  PLATE_PENDING_CODE,
   businessesThatGo,
   deleteErrorMessage,
   deleteKitchenErrorMessage,
@@ -44,24 +47,30 @@ import {
   type Reserva,
   type SobreElVecino,
 } from '@/api/apartados';
+import { CALIFICACIONES_FRESCAS_MS, calificacionesKey } from '@/api/calificaciones';
 import {
   accountOwners,
   deleteMyAccount,
   deleteMyBusiness,
   direccionCalls,
   firstPlace,
+  kitchenAjustes,
   kitchenGiros,
   kitchenCalls,
   kitchenPage,
+  myKitchenRatings,
   myKitchens,
   myListings,
   myReservations,
   photoRequest,
+  plateStillPending,
   publishListing,
   reservationNeighbours,
   revokeApple,
+  setKitchenAjustes,
   setKitchenGiro,
   setKitchenPage,
+  setListingQuantity,
   setPlaceGooglePoint,
   setPlacePin,
   uploadPictures,
@@ -82,8 +91,13 @@ import {
 } from '@/api/kitchen';
 import {
   LISTINGS_KEY,
+  cantidadErrorMessage,
+  cantidadPedida,
+  esApartado,
   listingFrom,
   listingsKey,
+  setQuantityArgs,
+  withCantidad,
   withListing,
   withWithdrawn,
   type Listing,
@@ -528,9 +542,18 @@ export function useDeleteMyAccount() {
     mutationFn: (args: DeleteArgs) => deleteMyAccount(args),
   });
 
-  async function remove(args: DeleteArgs): Promise<string | null> {
+  /**
+   * ⚠️ `10.5b-iv-c`: `pendientesEn` — every business that goes with her account
+   * (`@/api/account`'s `pendingIds`). THE DATABASE IS ASKED FIRST whether a plate is still to
+   * hand over at one of them (`TD014`'s own rule), so a deletion it would refuse never opens
+   * Apple's sheet nor takes her off Apple's list. A read that fails (no signal) says nothing:
+   * the deletion goes on, and the database still answers last.
+   */
+  async function remove(args: DeleteArgs, pendientesEn: readonly string[] = []): Promise<string | null> {
     setLeaving(true);
     try {
+      const pendiente = await plateStillPending(pendientesEn, new Date()).catch(() => false);
+      if (pendiente) return deleteErrorMessage({ code: PLATE_PENDING_CODE });
       const step = releaseStep(await askAppleAgain());
       if (step.kind === 'stop') return null;
       if (step.kind === 'revoke') {
@@ -592,6 +615,144 @@ export function useDeleteKitchen() {
   }
 
   return { remove, busy: mutation.isPending };
+}
+
+// ----------------------------------------------------------------------------
+// `10.5b-iv-c` — her settings, her stars, and − and +
+// ----------------------------------------------------------------------------
+
+/** Her kitchen's settings (`@/api/ajustes`): the open kitchen's, or the defaults when she has no row. */
+export function useAjustes(kitchenId: string | null) {
+  const { session, ready } = useAuth();
+  const userId = session?.user.id ?? null;
+  return useQuery({
+    queryKey: ajustesKey(userId, kitchenId),
+    queryFn: () => kitchenAjustes(kitchenId as string),
+    enabled: ready && userId !== null && kitchenId !== null,
+  });
+}
+
+/**
+ * One setting saved — a switch, an option, the *desechable*'s price — through her page's one door,
+ * the key she changed and nothing else. ⚠️ DRAWN AT ONCE (`ajustesCon`) and PUT BACK when the door
+ * refuses or the signal fails, with the sentence to show; the row the door answers is drawn then,
+ * and her settings are read again either way. ⚠️ ONE AT A TIME (`busy`): a switch tapped twice
+ * would send two requests whose answers can cross, and the last to land would win.
+ */
+export function useGuardarAjuste(kitchenId: string | null) {
+  const queries = useQueryClient();
+  const { session } = useAuth();
+  const userId = session?.user.id ?? null;
+  const key = ajustesKey(userId, kitchenId);
+  const mutation = useMutation({
+    mutationFn: (patch: AjustesPatch) => setKitchenAjustes(kitchenId as string, patch),
+    onMutate: async (patch) => {
+      await queries.cancelQueries({ queryKey: key });
+      const antes = queries.getQueryData<Ajustes>(key);
+      if (antes !== undefined) queries.setQueryData<Ajustes>(key, ajustesCon(antes, patch));
+      return { antes };
+    },
+    onError: (_thrown, _patch, context) => {
+      if (context?.antes !== undefined) queries.setQueryData<Ajustes>(key, context.antes);
+    },
+    onSuccess: (guardados) => {
+      queries.setQueryData<Ajustes>(key, guardados);
+    },
+    onSettled: () => {
+      void queries.invalidateQueries({ queryKey: AJUSTES_KEY });
+    },
+  });
+
+  async function guardar(patch: AjustesPatch): Promise<string | null> {
+    if (kitchenId === null || mutation.isPending) return null;
+    try {
+      await mutation.mutateAsync(patch);
+      return null;
+    } catch (thrown) {
+      return apiErrorMessage(thrown);
+    }
+  }
+
+  return { guardar, busy: mutation.isPending };
+}
+
+/** Her stars (`my_kitchen_ratings`): the day after, from five, never who. Read again at most every half hour. */
+export function useCalificaciones(kitchenId: string | null) {
+  const { session, ready } = useAuth();
+  const userId = session?.user.id ?? null;
+  return useQuery({
+    queryKey: calificacionesKey(userId, kitchenId),
+    queryFn: () => myKitchenRatings(kitchenId as string),
+    enabled: ready && userId !== null && kitchenId !== null,
+    staleTime: CALIFICACIONES_FRESCAS_MS,
+  });
+}
+
+/**
+ * − and + on *Tus ofertas* (`set_listing_quantity`). `cambiar` moves one plate from where her
+ * last tap left it — never below what is taken (`cantidadPedida`) — draws it at once
+ * (`withCantidad`) and sends it. ⚠️ ONE SEND AT A TIME PER DISH, THE LAST TAP WINS: three quick
+ * taps of + are three requests whose answers could land in any order, so while one is out the
+ * next tap only moves what is wanted (`deseados`, counted from synchronously, so no tap is lost
+ * to a render not yet made), and the loop sends it once the first has answered — the database
+ * ends where her finger ended. ⚠️ A READ OF HER LIST IN FLIGHT IS CANCELLED BEFORE THE DRAWING:
+ * it would land after it with the count from before the tap. On a refusal (`TD019`: someone
+ * reserved meanwhile) the sentence is that dish's, and her list is read again either way.
+ */
+export function useCantidades(kitchenId: string | null) {
+  const queries = useQueryClient();
+  const { session } = useAuth();
+  const userId = session?.user.id ?? null;
+  const deseados = useRef(new Map<string, number>());
+  const enviando = useRef(new Set<string>());
+  const [ocupadas, setOcupadas] = useState<ReadonlySet<string>>(() => new Set());
+  const [problemas, setProblemas] = useState<Readonly<Record<string, string>>>({});
+
+  const cambiar = useCallback(
+    (listingId: string, lineNo: number, paso: 1 | -1, count: number, taken: number) => {
+      const clave = `${listingId}:${lineNo}`;
+      const deseado = cantidadPedida(deseados.current.get(clave) ?? count, taken, paso);
+      if (deseado === null) return;
+      deseados.current.set(clave, deseado);
+      const key = listingsKey(userId, kitchenId);
+      setProblemas((now) => {
+        if (!(clave in now)) return now;
+        const { [clave]: _quitado, ...resto } = now;
+        return resto;
+      });
+      void (async () => {
+        await queries.cancelQueries({ queryKey: key });
+        queries.setQueryData<Listing[]>(key, (listings) => withCantidad(listings, listingId, lineNo, deseados.current.get(clave) ?? deseado));
+        if (enviando.current.has(clave)) return;
+        enviando.current.add(clave);
+        setOcupadas((now) => new Set(now).add(clave));
+        try {
+          let enviado: number | undefined;
+          while (deseados.current.get(clave) !== enviado) {
+            enviado = deseados.current.get(clave) as number;
+            await setListingQuantity(setQuantityArgs(listingId, lineNo, enviado));
+          }
+        } catch (thrown) {
+          setProblemas((now) => ({ ...now, [clave]: cantidadErrorMessage(thrown) }));
+          // ⚠️ Someone reserved meanwhile (`TD019`): what is taken changed, and the phone's copy is up to a
+          // minute old — read today's orders again now, or *quedan* says one more than there is (seen on the emulator).
+          if (esApartado(thrown)) void queries.invalidateQueries({ queryKey: apartadosKey(userId, kitchenId, 'hoy') });
+        } finally {
+          deseados.current.delete(clave);
+          enviando.current.delete(clave);
+          setOcupadas((now) => {
+            const sin = new Set(now);
+            sin.delete(clave);
+            return sin;
+          });
+          void queries.invalidateQueries({ queryKey: LISTINGS_KEY });
+        }
+      })();
+    },
+    [queries, userId, kitchenId],
+  );
+
+  return { cambiar, ocupadas, problemas };
 }
 
 // ----------------------------------------------------------------------------

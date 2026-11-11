@@ -234,6 +234,34 @@ export function deleteErrorMessage(error: unknown): string {
   return apiErrorMessage(error);
 }
 
+// ----------------------------------------------------------------------------
+// ⚠️ `10.5b-iv-c`: THE DATABASE ASKED BEFORE APPLE IS TOLD — Wera Cocina's
+// (`cocina/src/api/account.ts`, whose header carries the reason), copied: when a kitchen
+// goes with her account, one read asks whether a plate is still to hand over there
+// (`reservation_state`'s `apartado`) before Apple's sheet opens. A neighbour who owns
+// nothing reads nothing.
+// ----------------------------------------------------------------------------
+
+/** The reservations, read under her walls: an owner reads her kitchens' (`0079`). */
+export const PENDING_TABLE = 'reservation';
+
+/** Only whether one exists: its id. */
+export const PENDING_COLUMNS = 'id';
+
+/** The column the read is filtered on — the businesses that go (`in.(…)`). */
+export const PENDING_OWNER_COLUMN = 'workspace_id';
+
+/** `reservation_state`'s `apartado`: none of these three moments (`is.null`) … */
+export const PENDING_NULL_COLUMNS = 'handed_over_at,picked_up_at,cancelled_at';
+
+/** … and its hold not over (`gt.` the phone's now). */
+export const PENDING_UNTIL_COLUMN = 'held_until';
+
+/** The ids the pre-deletion read asks about — every business that goes, or none. */
+export function pendingIds(deletion: Deletion): string[] {
+  return deletion.kind === 'deletes' ? deletion.businesses.map((business) => business.id) : [];
+}
+
 /**
  * ⚠️⚠️ THE ONE THING THIS APP REACHES THAT IS NOT POSTGRES — Wera's (`5R-k`):
  * the Edge Function that holds the owner's Apple key, trades the code Apple's

@@ -72,6 +72,9 @@ from `itacate/` with the two local `EXPO_PUBLIC_SUPABASE_` values in the shell, 
   build 3); only an iPhone shows the sheet, and **no account made with Apple has been seen deleted
   from Itacate's first iPhone build** (`282cfb7d`, `10.5-iv-b-ii`) — the handbook's *Itacate's way
   out*, A, is that proof. ⚠️ ***Tú* is a `Formulario`** so a typed name stays above the keyboard.
+  ⚠️ **Since `10.5b-iv-c` the database is asked BEFORE Apple's sheet opens** (Wera Cocina's way, copied): when a kitchen goes with her
+  account, one read (`PENDING_*`) asks whether a plate is still to hand over there — `TD014` would refuse the deletion, and Apple must not
+  be told of one that does not happen. `test/account.test.ts` holds the read to Wera Cocina's, name for name and line for line.
 - **A module in `src/api/` is a claim about the applied schema**, as in Wera and Wera Cocina:
   `db.yml` fires on `itacate/src/api/**` since `10.5-iii-a`. ⚠️ **Her way out's names
   (`src/api/account.ts`) are Wera Cocina's, one by one**: the first group of

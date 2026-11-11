@@ -306,10 +306,17 @@ describe('where the two previews open, and how they differ from Itacate’s page
 
   it('fed from her own rows — never the door', () => {
     for (const screen of [asi, como]) {
-      expect(screen).toMatch(/cocinaComoLaVen\(\{ kitchen, place: place\.data, page: page\.data, listings: listings\.data, now: ahora \}\)/);
+      // ⚠️ `10.5b-iv-c`: and her settings, her stars and what is taken — her own reads, never the door's.
+      expect(screen).toMatch(/cocinaComoLaVen\(\{ kitchen, place: place\.data, page: page\.data, listings: listings\.data, now: ahora, \.\.\.loQueVen \}\)/);
+      expect(screen).toMatch(/const loQueVen = useLoQueVen\(kitchen\?\.id \?\? null\);/);
       expect(screen).not.toMatch(/on_offer_now|useCocinas/);
     }
     expect(como).toMatch(/!seVeEnItacate\(listings\.data, ahora\) && \(/);
+    const lo = cocina('lib/useLoQueVen.ts');
+    expect(lo).toMatch(/useAjustes\(kitchenId\)/);
+    expect(lo).toMatch(/estrellas: estrellasDe\(calificaciones\.data \?\? null\)/);
+    expect(lo).toMatch(/tomadosDe\(apartados\.data\.reservas\)/);
+    expect(lo).not.toMatch(/on_offer_now|useCocinas/);
   });
 
   it('*Así la ven* on each of today’s offers; *Ver como la ven* beside *Editar tu página*', () => {

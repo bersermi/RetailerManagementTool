@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
+import { AJUSTES_COLUMNS, AJUSTES_INICIALES, comeresDe, pagosDe, type Ajustes } from '@/api/ajustes';
 import type { Kitchen as SuCocina } from '@/api/kitchen';
 import type { Line, Listing } from '@/api/listing';
 import { EMPTY_PAGE } from '@/api/pagina';
@@ -19,9 +20,11 @@ import {
   nombreNormal,
   ofertasDe,
   puntoDe,
+  quedanDe,
   resumenDe,
   seVeEnItacate,
 } from '@/lib/comoLaVen';
+import { claveDePlato } from '@/lib/apartados';
 import { hoyDe, comoLlegarUrl, repetidosDe } from '@/vecinos/paginas';
 import { patronDe } from '@/vecinos/lista';
 
@@ -79,6 +82,8 @@ const linea = (name: string, priceCentavos = 6500, extra: Partial<Line> = {}): L
   surprise: false,
   usualCentavos: 12000,
   imagePath: null,
+  llevar: true,
+  aqui: false,
   ...extra,
 });
 
@@ -86,7 +91,7 @@ let n = 0;
 /** A publication made at `creada`, for `start`–`end`. */
 function pub(creada: Date, start: Date, end: Date, lines: Line[], extra: Partial<Listing> = {}): Listing {
   n += 1;
-  return { id: `l${String(n).padStart(3, '0')}`, placeId: 'p1', start, end, createdAt: creada, withdrawnAt: null, lines, ...extra };
+  return { id: `l${String(n).padStart(3, '0')}`, placeId: 'p1', start, end, createdAt: creada, withdrawnAt: null, desechableCentavos: null, lines, ...extra };
 }
 
 const COCINA: SuCocina = { id: 'k1', displayName: 'Fonda Doña Mari', giroPrincipal: 'fonda' } as SuCocina;
@@ -145,7 +150,7 @@ describe('the door’s rules, read out of the migration that defines it last', (
     expect(REPETIDOS_MAXIMOS).toBe(5);
   });
 
-  it('`10.5b-iii-a`: until she can set them, her settings are the door’s own defaults — cash, para llevar, no desechable, everyone', () => {
+  it('`10.5b-iii-a`: until her settings are read, the door’s own defaults — cash, para llevar, no desechable, everyone', () => {
     const { body } = ultimaQueDefine('on_offer_now');
     for (const fragment of [
       'coalesce(kp.accepts_card, false) as accepts_card',
@@ -168,9 +173,31 @@ describe('the door’s rules, read out of the migration that defines it last', (
       aqui: false,
       desechableCentavos: null,
     });
-    // And nothing in this app reads them yet: `10.5b-iv` brings her settings, and with them the preview's.
-    const fuentes = ['api/pagina.ts', 'api/listing.ts', 'api/kitchen.ts'].map((f) => readFileSync(join(fileURLToPath(new URL('../src', import.meta.url)), f), 'utf8'));
-    for (const fuente of fuentes) expect(fuente).not.toMatch(/accepts_card|para_llevar|container_price|min_score/);
+    // ⚠️ `10.5b-iv-c`: the same defaults as a kitchen with no row of settings (`@/api/ajustes`).
+    expect(pagosDe(AJUSTES_INICIALES)).toEqual(SIN_AJUSTES.pagos);
+    expect(comeresDe(AJUSTES_INICIALES)).toEqual(SIN_AJUSTES.comeres);
+    expect(AJUSTES_INICIALES).toMatchObject({ llevar: SIN_AJUSTES.llevar, aqui: SIN_AJUSTES.aqui, desechableCentavos: null, minScore: null });
+    // Since `10.5b-iv-c` her settings are read — apart from her page, whose shape is the door's (`@/vecinos/`).
+    const fuente = (f: string) => readFileSync(join(fileURLToPath(new URL('../src', import.meta.url)), f), 'utf8');
+    expect(fuente('api/pagina.ts')).not.toMatch(/accepts_card|para_llevar|container_price|min_score/);
+    expect(AJUSTES_COLUMNS.split(',')).toEqual(['accepts_card', 'accepts_transfer', 'para_llevar', 'para_aqui', 'container_price', 'min_score']);
+  });
+
+  it('`10.5b-iv-c`: what is left, as the door sends it — less what is taken, a dish with none not sent, an offer with none not on offer', () => {
+    const { body } = ultimaQueDefine('on_offer_now');
+    for (const fragment of [
+      "'quantity', (ll.quantity - t.taken)::numeric(12,3)::text,",
+      'and ll.quantity > t.taken))',
+      'and x.quantity > public.listing_line_taken(x.id))), \'[]\'::jsonb)',
+      // each line's ways, each offer's desechable, as published
+      "'para_llevar', ll.para_llevar,",
+      "'container_price', li.container_price::text,",
+      // her settings: cash always and first, then card, then transfer; to go first
+      "'payment', to_jsonb(array['efectivo'] || case when k.accepts_card then array['tarjeta'] else '{}'::text[] end || case when k.accepts_transfer then array['transferencia'] else '{}'::text[] end)",
+      "'eat', to_jsonb(case when k.para_llevar then array['llevar'] else '{}'::text[] end || case when k.para_aqui then array['aqui'] else '{}'::text[] end)",
+    ]) {
+      expect(body, fragment).toContain(fragment);
+    }
   });
 
   it('`normalize_name` is lower case, trimmed, every run of spaces one — as the database’s', () => {
@@ -336,5 +363,62 @@ describe('her kitchen, whole, through Itacate’s own rules', () => {
     expect(cocina.address).toEqual({ street: '', number: '', colonia: '', city: '', postalCode: '' });
     expect(comoLlegarUrl(cocina)).toBeNull();
     expect(hoyDe(cocina, ahora())).toEqual({ kind: 'quieta', titulo: 'Hoy no ha publicado', linea: null });
+  });
+});
+
+describe('`10.5b-iv-c`: her preview with what is left, her settings and her stars', () => {
+  it('each dish counts what is left; one with nothing left is not sent; its number stays its own', () => {
+    const now = ahora();
+    const o = pub(at(6, 12), at(6, 17), at(6, 19), [linea('Comida corrida'), linea('Agua de jamaica', 1500), linea('Flan', 3000)]);
+    const tomados = new Map([
+      [claveDePlato(o.id, 1), 3],
+      [claveDePlato(o.id, 2), 8],
+    ]);
+    expect(quedanDe(o, 0, tomados)).toBe(5);
+    expect(quedanDe(o, 1, tomados)).toBe(0);
+    expect(quedanDe(o, 2, null)).toBe(8);
+    const [oferta] = ofertasDe([o], now, tomados);
+    expect(oferta.dishes.map((d) => [d.lineNo, d.name, d.count])).toEqual([
+      [1, 'Comida corrida', 5],
+      [3, 'Flan', 8],
+    ]);
+  });
+
+  it('an offer with nothing left is not on offer — and her kitchen is still seen while it is open, as the door says', () => {
+    const now = ahora();
+    const o = pub(at(6, 12), at(6, 17), at(6, 19), [linea('Comida corrida')]);
+    const todo = new Map([[claveDePlato(o.id, 1), 8]]);
+    expect(ofertasDe([o], now, todo)).toEqual([]);
+    expect(ofertasDe([o], now, null)).toHaveLength(1);
+    expect(seVeEnItacate([o], now)).toBe(true);
+  });
+
+  it('a dish keeps its own ways; an offer the desechable it was published with', () => {
+    const now = ahora();
+    const o = pub(at(6, 12), at(6, 17), at(6, 19), [linea('Comida corrida', 6500, { llevar: false, aqui: true })], { desechableCentavos: 500 });
+    const [oferta] = ofertasDe([o], now);
+    expect(oferta.desechableCentavos).toBe(500);
+    expect(oferta.dishes[0]).toMatchObject({ llevar: false, aqui: true });
+  });
+
+  it('an offer kept on the phone by the build before — no ways, no desechable — reads as the columns’ defaults, never undefined', () => {
+    const now = ahora();
+    // As the phone's copy holds it: written before these fields existed.
+    const { llevar: _l, aqui: _a, ...viejaLinea } = linea('Comida corrida');
+    const { desechableCentavos: _d, ...vieja } = pub(at(6, 12), at(6, 17), at(6, 19), [viejaLinea as unknown as Line]);
+    const [oferta] = ofertasDe([vieja as unknown as Listing], now);
+    expect(oferta.desechableCentavos).toBeNull();
+    expect(oferta.dishes[0]).toMatchObject({ llevar: true, aqui: false });
+  });
+
+  it('her settings and her stars reach the kitchen the pages draw; unread, the door’s defaults', () => {
+    const now = ahora();
+    const ajustes: Ajustes = { tarjeta: true, transferencia: false, llevar: true, aqui: true, desechableCentavos: 500, minScore: 80 };
+    const estrellas = { promedio: '4.6', cuantas: 7, etiquetas: ['lista_a_tiempo' as const] };
+    const base = { kitchen: COCINA, place: lugar(), page: EMPTY_PAGE, listings: [], now };
+    const leida = cocinaComoLaVen({ ...base, ajustes, estrellas });
+    expect(leida).toMatchObject({ pagos: ['efectivo', 'tarjeta'], comeres: ['llevar', 'aqui'], minScore: 80, estrellas });
+    const sinLeer = cocinaComoLaVen(base);
+    expect(sinLeer).toMatchObject({ pagos: ['efectivo'], comeres: ['llevar'], minScore: null, estrellas: null });
   });
 });

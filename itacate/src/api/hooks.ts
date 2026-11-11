@@ -17,6 +17,7 @@ import { useEffect, useRef, useState } from 'react';
 
 import {
   OWNERS_KEY,
+  PLATE_PENDING_CODE,
   businessesThatGo,
   deleteErrorMessage,
   ownersKey,
@@ -46,6 +47,7 @@ import {
   myStanding,
   onOfferNow,
   photoRequest,
+  plateStillPending,
   rateKitchen,
   reservePlate,
   revokeApple,
@@ -158,9 +160,17 @@ export function useDeleteMyAccount() {
     mutationFn: (args: DeleteArgs) => deleteMyAccount(args),
   });
 
-  async function remove(args: DeleteArgs): Promise<string | null> {
+  /**
+   * ⚠️ `10.5b-iv-c`: `pendientesEn` — every business that goes (`pendingIds`). THE DATABASE IS ASKED
+   * FIRST whether a plate is still to hand over at one of them, so a deletion `TD014` would refuse
+   * never opens Apple's sheet nor takes her off Apple's list (Wera Cocina's hook, copied). A read that
+   * fails says nothing: the deletion goes on, and the database still answers last.
+   */
+  async function remove(args: DeleteArgs, pendientesEn: readonly string[] = []): Promise<string | null> {
     setLeaving(true);
     try {
+      const pendiente = await plateStillPending(pendientesEn, new Date()).catch(() => false);
+      if (pendiente) return deleteErrorMessage({ code: PLATE_PENDING_CODE });
       const step = releaseStep(await askAppleAgain());
       if (step.kind === 'stop') return null;
       if (step.kind === 'revoke') {
