@@ -70,6 +70,9 @@ sign it arrived:** with airplane mode on, *Hoy* opens with ***Sin señal. Lo que
 only you can judge* → *Wera Cocina → with no signal*. Seen first on a test Android with that same file, opened signed out: downloaded, then
 running (its own update record). Nothing changes in Wera or Itacate.
 
+✅ **11 November: *Wera: tu tienda* is public on Google Play in Mexico** — anyone, your new Android phone included, can
+install it from Play. Like the App Store version, it takes every Wera fix over the air (*Shipping a fix to the phones*).
+
 ✅ **10 November, evening: you have an Android phone.** It replaces the test Android here as the second phone: the next session that needs it installs Itacate's and Wera Cocina's Android test builds on it with you (both files are kept on this Mac), Wera can come from Play's closed test, and the first push (`10.5b-v`) is measured on your two phones. Nothing to do with it yet.
 
 ⏳ **10 November, afternoon: Wera Cocina hands over, sent over the air** (*Wera Cocina: Apartados, entregar con el código y calificar a
@@ -623,7 +626,7 @@ after you have tried it.
 | **10.5c** | **Notifications as a system, ready for your campaigns** — your request of 10 November: the kinds each app sends, who may be sent what (a campaign only after the person says yes in the app, with a way out), campaigns and their variants that you start without a new build, and each kind measured from sent to tapped to what the person did after — never a person's name | Planned on your word of 10 November. Its session draws it on a page for your rulings before anything is built, then names the build work. It comes before the first push (`10.5b-v`), so that push is built on it; after Wera Cocina's handover (`10.5b-iv`) |
 | **10.5b-v** | **Wera Cocina — the notification**: *Nuevo apartado · Comida corrida para las 17:45 · efectivo* on every phone of the kitchen, naming nobody; each person can turn it off | After `10.5b-iv` and the notifications design (`10.5c`), on which it is built. Needs the two push keys in Expo — yours: Android's from your Firebase, the iPhone's from Apple; a session tells you the steps |
 | **10.5b-vi** | **Before reserving reaches people, and the public releases** — the privacy page and both stores' privacy answers; tried end to end on two phones; the App Store records; Play's forms for both apps; your testers | After the rows before it, `10.5b-ii-b` included — the privacy page then says what a kitchen sees of a neighbour and the ratings. Yours: the IMPI name search for *Itacate* before its public listing, your Apple sign-in for the first App Store upload, and Play Console's forms |
-| **10.6a** | **Wera — *Ofrecer* in Merma**: *Tirar* or *Ofrecer*; her products at her price, her shelf price beside it, the half as a hint she can use; until an hour she picks, today or tomorrow (your word of 6 November); no line on the screen saying what may not be offered (your word of 6 November); her yes, once, to the kitchens seeing her shop's name and address | Ruled 6 November. After the MVP's public releases, and after Google's answer on Wera's production access. It takes in the hand relay that was `10.0b`: no offer goes through you. ⚠️ Two things for when it is taken: Wera's opening may blink as Wera Cocina's did (found 7 November) — copying Wera Cocina's two fixes is recommended, yours to say; and your iPhone runs the App Store Wera since about 7 November, so that session puts the test build back on it first (two minutes over Wi‑Fi, your data kept) |
+| **10.6a** | **Wera — *Ofrecer* in Merma**: *Tirar* or *Ofrecer*; her products at her price, her shelf price beside it, the half as a hint she can use; until an hour she picks, today or tomorrow (your word of 6 November); no line on the screen saying what may not be offered (your word of 6 November); her yes, once, to the kitchens seeing her shop's name and address | Ruled 6 November. After the MVP's public releases (Google's answer on Wera ✅ — Wera is on Google Play since 11 November). It takes in the hand relay that was `10.0b`: no offer goes through you. ⚠️ Two things for when it is taken: Wera's opening may blink as Wera Cocina's did (found 7 November) — copying Wera Cocina's two fixes is recommended, yours to say; and your iPhone runs the App Store Wera since about 7 November, so that session puts the test build back on it first (two minutes over Wi‑Fi, your data kept) |
 | **10.6b** | **Wera Cocina — *De las tiendas***: a card on *Hoy*, the shops nearest first with their address and *Cómo llegar*, Wera's photo on each product; reserving several products with one code | Ruled 6 November. After `10.6a` and reserving (`10.5b`) |
 | **10.6c** | **Wera — the handover**: *Inicio* lists what to have ready; in Vender the code, the products into the ticket at the offer's price, and *Cobrar*, as any sale, with or without signal | Ruled 6 November. After `10.6b` |
 | **5P-e** | **The pilot's start list** — what has to be true before a shop that is not yours signs up: backups, the two security fixes, a health check you can run, and getting the app onto each phone | **Behind the four rows of your family-shell rulings since 5 November.** **Needed before a shop that is not yours signs up — not yet** (your question of 4 November, night). Your order of 15 October put this row's experience half in the design review you paused; what a session can do alone is its estimate's to say. ✅ **Your three answers are built (15 October)**: the two doors are closed; an invitation lets someone in straight away only if they signed in with Google or Apple; a copy of the live database is taken on this Mac every night at 03:30 (*The nightly copy*, below). Your phone is measuring. ✅ Google's sign-in is open to everybody (*In production*, your word of 9 November). Left: a health check you can run, the Samsung install note, one page of what to do once a shop is live |
@@ -652,7 +655,7 @@ Program and Play Console — both opened 1 October), `5R-b` (cloud builds and fi
 |---|---|---|
 | **13 October** | ✅ **Done 13 October** — you booted the sealed emulator; Wera opened **still signed in** after about 21½ days untouched. No further reading is scheduled; that emulator is free to use or delete | — |
 | **8 November** | ✅ **Done 9 November** — you applied for production on Google Play, a day late. The answers drafted with you are in `store/google-play.md`, section 7 | — |
-| **16 November** | **Google's answer** on Wera's production access — an email, usually within seven days. Tell a session *"Google approved"*, or paste Google's words. Nothing yet? Tell the session that too, and it moves the date a week | Wera stays off Play's public listing; nothing breaks |
+| **16 November** | ✅ **Done 10 November** — Google approved, and you released Wera: *Wera: tu tienda* is on Google Play in Mexico since 11 November | — |
 | **4 December** | **Delete the photos of businesses that no longer exist** — a session lists them (*Photos of a shop or a kitchen that no longer exists*); if it names one, you run the deletion. Then every 30 days | Both privacy pages promise it within 30 days |
 | **30 April 2027** | **Delete the pilot's measurements** on the live database — the aviso promises it. If the pilot runs longer, change the date on the pages and tell the users first | The aviso says something false about people's data |
 
@@ -1800,10 +1803,9 @@ the key is in, it signs nobody in. Do those first and tell a session; it checks 
 
 ## When the stores approve Wera
 
-✅ **Apple approved: *Wera: tu tienda* is on the App Store in Mexico since 5 November** (your word of
-6 November; Apple's own record read the same day: version 1.0.0, under your name). Google is next:
-**Tell a session the words *"Google approved"*** when it writes to you — it knows the rest, from the
-plan's `5R-e` row.
+✅ **Both stores: *Wera: tu tienda* is on the App Store in Mexico since 5 November and on Google Play in
+Mexico since 11 November** (your words; Apple's record read on 6 November, Play's public listing on 11
+November). Nothing here waits on you any more but the list at the foot.
 
 1. ✅ **Sent by you on 6 November, evening** (`0b53a0d`, both stores — iPhone group `6872e4aa`, Android
    `357313b0`). Each store version takes it on its second open. Kept for the record: what waited
@@ -1822,11 +1824,10 @@ plan's `5R-e` row.
    6 November: both stores' builds take it. Then open the store Wera, close it completely and
    open it again. (Android's store version got the first five as they went out, the last on
    29 October.)
-2. **Google:** ✅ **you applied for production on 9 November.** Google answers by email, usually
-   within seven days (*The dates*, above). If it approves, tell a session *"Google approved"*: the
-   release to everyone is yours in Play Console, Mexico only, and the session walks you through it.
-   If it asks for more testing, paste its words; the answers you sent are drafted in
-   `store/google-play.md`, section 7.
+2. **Google:** ✅ **approved 10 November, live 11 November.** You applied on 9 November; on Google's
+   approval you released it yourself in Play Console — *Production*, Mexico only, the build your testers
+   had (version 7) added from the library, with the release notes in `store/google-play.md` section 8.
+   Nothing had to be built or updated first. Every fix still reaches it over the air, as on the iPhone.
 3. **If a store refuses something**, paste its words to a session.
 
 **Still yours from 21 October, none of them blocking the review:**
