@@ -324,3 +324,25 @@ The last clause only if Play's pre-launch report shows no crash; without it the 
 *"before release."* (222). *"More than 2,300"* is the CI run that merged pull request 530 (2,361 tests). *"6 updates"* are the
 plan's `production --only android` groups `2e6bd55a`, `0ea14047`, `189728be`, `b98c9319`, `338f6217`
 and `357313b0`.
+
+## 8. Production — the release to everyone (done 2026-11-10/11)
+
+Google approved production access on 2026-11-10; the owner released it the same night and it was live on
+2026-11-11. **Test and release → Production:**
+
+| Field | Answer |
+|---|---|
+| Countries / regions | **Mexico** only |
+| App bundle | **Add from library → 7 (1.0.0)** — the closed track's bundle; never a new upload (a used version code is refused) |
+| Release name | leave what Play fills in |
+| Rollout | full rollout recommended (the same bundle the testers ran; every fix reaches it over the air) |
+
+**Release notes** (es-419):
+
+<!-- max:500 -->
+```
+Wera: tu tienda ya está en Google Play. Vende, compra, registra merma y ve tus números, aunque no tengas señal.
+```
+
+Then *Next → Save → Start rollout to Production* (and *Send changes for review* on *Publishing overview*
+if managed publishing is on).
