@@ -3,12 +3,14 @@ import { useRef, useState } from 'react';
 import { ActivityIndicator, Keyboard, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { estrellasDe } from '@/api/calificaciones';
 import { newPicturePath } from '@/api/fotos';
-import { useKitchen, useListings, usePage, usePlace, usePublish } from '@/api/hooks';
+import { useAjustes, useCalificaciones, useKitchen, useListings, usePage, usePlace, usePublish } from '@/api/hooks';
 import type { Kitchen } from '@/api/kitchen';
 import {
   MAX_LINES,
   attemptFor,
+  ofreceLasDos,
   checkLines,
   emptyLine,
   fotosPorSubir,
@@ -22,6 +24,7 @@ import {
 } from '@/api/listing';
 import { EMPTY_PAGE, colorOf, defaultsFor } from '@/api/pagina';
 import type { Place } from '@/api/place';
+import { eleccionDe, recordarEleccion } from '@/lib/eleccion';
 import { elegirFoto, tomarFoto } from '@/lib/foto';
 import { nombreDe } from '@/lib/hoy';
 import { newId } from '@/lib/ids';
@@ -84,6 +87,12 @@ import { TarjetaPlatillo } from '@/vecinos/ui/TarjetaPlatillo';
 // ⚠️ AND IT IS THE FIRST RUN'S LAST STEP when opened from *¿Qué ofreces hoy?* (`primera`):
 // published, she goes on to her page as neighbours see it (`/ya-estas`), the first run's
 // screens dismissed under it, never back to *Hoy* or to the question.
+//
+// ⚠️ `10.5b-iv-c`: HER KITCHEN'S WAYS AND *DESECHABLE* (`useAjustes`): with both ways on, each dish
+// asks how it may be eaten (`@/ui/Renglon`), checked (`'comer'`) and sent (`publishBody`'s
+// `cocina`); *Repetir* keeps each dish's ways, narrowed to what her kitchen offers now. The card at
+// the foot shows her payment, *desechable* and stars. Her settings unread, nothing is asked and each
+// dish is sent as the kitchen's own — the database's `coalesce`.
 // ============================================================================
 
 const PAD = 'publicar-numeros';
@@ -93,8 +102,12 @@ export default function Publicar() {
   const kitchen = useKitchen();
   const place = usePlace(kitchen?.id ?? null);
   const listings = useListings(kitchen?.id ?? null);
+  const ajustes = useAjustes(kitchen?.id ?? null);
   const source = repetir === undefined ? null : (listings.data?.find((l) => l.id === repetir) ?? null);
-  const waiting = repetir !== undefined && listings.data === undefined && !listings.isError;
+  // ⚠️ `10.5b-iv-c`: *Repetir* narrows each dish to her kitchen's ways — wait for them, unless the read failed.
+  const waiting =
+    (repetir !== undefined && listings.data === undefined && !listings.isError) ||
+    (repetir !== undefined && ajustes.data === undefined && !ajustes.isError);
 
   if (kitchen === null || place.data === undefined || waiting) {
     return (
@@ -127,11 +140,15 @@ function Form({ kitchen, place, source, primera }: { kitchen: Kitchen; place: Pl
   const { publish, busy } = usePublish(kitchen.id);
   const { avisarPublicada } = useNota();
   const page = usePage(kitchen.id);
+  const ajustes = useAjustes(kitchen.id).data ?? null;
+  const estrellas = estrellasDe(useCalificaciones(kitchen.id).data ?? null);
   const fondo = { dibujo: defaultsFor(kitchen.giroPrincipal).dibujo, color: colorOf(page.data ?? EMPTY_PAGE, kitchen.giroPrincipal) };
   const [notas, setNotas] = useState<Record<string, string | null>>({});
   const [abierta, setAbierta] = useState(false);
-  const [start] = useState(() => (source === null ? null : repeatDraft(source, new Date(), newId)));
-  const [lines, setLines] = useState<LineDraft[]>(() => start?.lines ?? [emptyLine(newId())]);
+  const [start] = useState(() => (source === null ? null : repeatDraft(source, new Date(), newId, ajustes)));
+  // ⚠️ `10.5b-iv-c`: a new dish starts with how she last chose it, on this phone (`@/lib/eleccion`).
+  const [eleccion] = useState(() => eleccionDe(kitchen.id));
+  const [lines, setLines] = useState<LineDraft[]>(() => start?.lines ?? [emptyLine(newId(), eleccion)]);
   const [ventana, setVentana] = useState<Ventana>(() => start?.ventana ?? firstVentana(new Date()));
   const [problem, setProblem] = useState<string | null>(null);
   const attempt = useRef<Attempt | null>(null);
@@ -160,16 +177,19 @@ function Form({ kitchen, place, source, primera }: { kitchen: Kitchen; place: Pl
   async function publicar() {
     if (busy || abierta) return;
     Keyboard.dismiss();
-    const issue = checkLines(lines);
+    const issue = checkLines(lines, ajustes);
     if (issue !== null) return setProblem(issueSentence(issue, lines));
     const late = checkVentana(ventana, new Date());
     if (late !== null) return setProblem(ES.publicar.errores.ventana[late]);
-    const body = publishBody(placeId, lines, ventana);
+    const body = publishBody(placeId, lines, ventana, ajustes);
     attempt.current = attemptFor(attempt.current, body, newId);
     const id = attempt.current.id;
     const answer = await publish(publishArgs(attempt.current, body), fotosPorSubir(lines));
     setProblem(answer);
     if (answer !== null) return;
+    // Her choice kept for the next form — only when the form asked (both ways), from her first dish.
+    const elegida = lines.find((line) => !line.surprise);
+    recordarEleccion(kitchen.id, ofreceLasDos(ajustes) && elegida !== undefined ? { llevar: elegida.llevar, aqui: elegida.aqui } : null);
     avisarPublicada(ES.nota.publicaste(nombreDe({ lines: body.p_lines })), kitchen.id, id);
     if (!primera) return salir();
     router.dismissAll();
@@ -178,7 +198,7 @@ function Form({ kitchen, place, source, primera }: { kitchen: Kitchen; place: Pl
 
   const section = { fontSize: SIZE.bodySize, fontWeight: '700', color: PALETTE.tinta, marginTop: SIZE.space } as const;
   const ahora = new Date();
-  const previa = previaDe({ kitchen, place, page: page.data ?? EMPTY_PAGE, lines, ventana, now: ahora });
+  const previa = previaDe({ kitchen, place, page: page.data ?? EMPTY_PAGE, lines, ventana, now: ahora, ajustes, estrellas });
 
   return (
     <View style={{ flex: 1, backgroundColor: PALETTE.fondo }}>
@@ -208,13 +228,14 @@ function Form({ kitchen, place, source, primera }: { kitchen: Kitchen; place: Pl
             fondo={fondo}
             nota={notas[line.key] ?? null}
             onFoto={(tomar) => void foto(line.key, tomar)}
+            cocina={ajustes}
           />
         ))}
         {lines.length < MAX_LINES && (
           <BotonLleno
             icon="plus"
             label={ES.publicar.otro}
-            onPress={() => setLines((now) => (now.length >= MAX_LINES ? now : [...now, emptyLine(newId())]))}
+            onPress={() => setLines((now) => (now.length >= MAX_LINES ? now : [...now, emptyLine(newId(), eleccion)]))}
           />
         )}
 

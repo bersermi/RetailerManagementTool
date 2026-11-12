@@ -25,6 +25,11 @@ import {
   OWNER_COLUMNS,
   OWNER_ROLE,
   OWNER_ROLE_COLUMN,
+  PENDING_COLUMNS,
+  PENDING_NULL_COLUMNS,
+  PENDING_OWNER_COLUMN,
+  PENDING_TABLE,
+  PENDING_UNTIL_COLUMN,
   deletedFrom,
   revokeBody,
   type DeleteArgs,
@@ -114,6 +119,19 @@ export async function deleteMyAccount(args: DeleteArgs): Promise<Deleted> {
   const { data, error } = await supabase.rpc(DELETE_MY_ACCOUNT, args);
   if (error) throw error;
   return deletedFrom(data);
+}
+
+/**
+ * ⚠️ `10.5b-iv-c`: IS A PLATE STILL TO HAND OVER AT ANY OF THESE BUSINESSES — asked before
+ * Apple is told about her deletion; Wera Cocina's `plateStillPending`, copied.
+ */
+export async function plateStillPending(businessIds: readonly string[], now: Date): Promise<boolean> {
+  if (businessIds.length === 0) return false;
+  let query = supabase.from(PENDING_TABLE).select(PENDING_COLUMNS).in(PENDING_OWNER_COLUMN, [...businessIds]);
+  for (const column of PENDING_NULL_COLUMNS.split(',')) query = query.is(column, null);
+  const { data, error } = await query.gt(PENDING_UNTIL_COLUMN, now.toISOString()).limit(1);
+  if (error) throw error;
+  return (data ?? []).length > 0;
 }
 
 /**

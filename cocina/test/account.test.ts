@@ -17,6 +17,12 @@ import {
   OWNER_ROLE,
   OWNER_ROLE_COLUMN,
   OWNERS_TABLE,
+  PENDING_COLUMNS,
+  PENDING_NULL_COLUMNS,
+  PENDING_OWNER_COLUMN,
+  PENDING_TABLE,
+  PENDING_UNTIL_COLUMN,
+  PLATE_PENDING_CODE,
   businessesThatGo,
   confirmWords,
   deleteArgs,
@@ -30,6 +36,7 @@ import {
   namesReady,
   normalizedName,
   ownersKey,
+  pendingIds,
   revokeBody,
   takesAShop,
   typedLabel,
@@ -39,6 +46,7 @@ import {
 import { APPLE_PROVIDER, asksAppleFirst, hasAppleIdentity, releaseStep } from '@/auth/apple';
 import { ES } from '@/strings';
 import { ES as WERA } from '../../app/src/strings';
+import { ES as ITACATE } from '../../itacate/src/strings';
 
 // ============================================================================
 // HER WAY OUT. Plan task `10.4b-iii-c`.
@@ -255,6 +263,43 @@ describe('Apple is told, and told it is Cocina', () => {
     expect(asked).toBeGreaterThan(-1);
     expect([asked < told, told < deleted, deleted < gone]).toEqual([true, true, true]);
     expect(hooks).toMatch(/if \(step\.kind === 'stop'\) return null;/);
+    // ⚠️ `10.5b-iv-c`: THE DATABASE IS ASKED FIRST — a plate still to hand over stops it before Apple's sheet.
+    const pending = hooks.indexOf('await plateStillPending(pendientesEn, new Date())');
+    expect(pending).toBeGreaterThan(-1);
+    expect(pending).toBeLessThan(asked);
+    expect(hooks).toMatch(/if \(pendiente\) return deleteErrorMessage\(\{ code: PLATE_PENDING_CODE \}\);/);
+    // A read that fails says nothing: the database still answers last.
+    expect(hooks).toMatch(/plateStillPending\(pendientesEn, new Date\(\)\)\.catch\(\(\) => false\)/);
+  });
+
+  it('`10.5b-iv-c`: the read before Apple is `reservation_state`’s `apartado`, as filters, over every business that goes', () => {
+    const state = readFileSync(new URL('../../supabase/migrations/0080_names_scores_and_stars.sql', import.meta.url), 'utf8');
+    expect(state).toContain("when p_handed_over_at is not null or p_picked_up_at is not null then 'recogido'");
+    expect(state).toContain("when p_cancelled_at is not null then");
+    expect(state).toContain("when p_held_until <= now() then 'liberado'");
+    expect(PENDING_TABLE).toBe('reservation');
+    expect(PENDING_COLUMNS).toBe('id');
+    expect(PENDING_OWNER_COLUMN).toBe('workspace_id');
+    expect(PENDING_NULL_COLUMNS.split(',').sort()).toEqual(['cancelled_at', 'handed_over_at', 'picked_up_at']);
+    expect(PENDING_UNTIL_COLUMN).toBe('held_until');
+    const calls = code('src/api/calls.ts');
+    expect(calls).toMatch(/\.from\(PENDING_TABLE\)\.select\(PENDING_COLUMNS\)\.in\(PENDING_OWNER_COLUMN, \[\.\.\.businessIds\]\)/);
+    expect(calls).toMatch(/for \(const column of PENDING_NULL_COLUMNS\.split\(','\)\) query = query\.is\(column, null\);/);
+    expect(calls).toMatch(/\.gt\(PENDING_UNTIL_COLUMN, now\.toISOString\(\)\)\.limit\(1\)/);
+    expect(calls).toMatch(/if \(businessIds\.length === 0\) return false;/);
+    expect(pendingIds({ kind: 'leaves' })).toEqual([]);
+    expect(pendingIds({ kind: 'unknown' })).toEqual([]);
+    const fonda: Business = { id: 'k1', name: 'Fonda Lupe', kind: 'cocina' };
+    const tienda: Business = { id: 's1', name: 'Tienda Lupe', kind: 'tienda' };
+    expect(pendingIds(deletionFrom([fonda, tienda], 'k1'))).toEqual(['k1', 's1']);
+  });
+
+  it('`10.5b-iv-c`: `TD014` says why on both deletions — the account’s in Itacate’s words', () => {
+    expect(PLATE_PENDING_CODE).toBe('TD014');
+    expect(deleteErrorMessage({ code: 'TD014' })).toBe(ES.account.errors.reservaPendiente);
+    expect(ES.account.errors.reservaPendiente).toBe(ITACATE.account.errors.reservaPendiente);
+    expect(deleteKitchenErrorMessage({ code: 'TD014' })).toBe(ES.kitchenDeletion.errors.reservaPendiente);
+    expect(ES.kitchenDeletion.errors.reservaPendiente).toContain('esta cocina');
   });
 });
 
@@ -296,7 +341,8 @@ describe('the two screens a signed-in person stands on both have the way out', (
     const block = code('src/ui/Salidas.tsx');
     expect(block).toMatch(/const goes = useBusinessesThatGo\(\);/);
     expect(block).toMatch(/deletionFrom\(goes, openKitchenId\)/);
-    expect(block).toMatch(/remove\(deleteArgs\(deletion, typed\)\)/);
+    // ⚠️ `10.5b-iv-c`: with every business that goes, so the database is asked before Apple's sheet.
+    expect(block).toMatch(/remove\(deleteArgs\(deletion, typed\), pendingIds\(deletion\)\)/);
     expect(block).toMatch(/disabled=\{removing \|\| !ready\}/);
     // Offered once what goes is known.
     expect(block).toMatch(/deletion\.kind !== 'unknown' && \(/);

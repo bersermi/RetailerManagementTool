@@ -5,6 +5,7 @@ import { SafeAreaInsetsContext, useSafeAreaInsets } from 'react-native-safe-area
 import { useKitchen, useListings, usePage, usePlace } from '@/api/hooks';
 import { cocinaComoLaVen } from '@/lib/comoLaVen';
 import { useAhora } from '@/lib/useAhora';
+import { useLoQueVen } from '@/lib/useLoQueVen';
 import { ES, VECINOS } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
 import { BarraVista } from '@/ui/BarraVista';
@@ -35,6 +36,8 @@ export default function AsiLaVen() {
   const place = usePlace(kitchen?.id ?? null);
   const page = usePage(kitchen?.id ?? null);
   const listings = useListings(kitchen?.id ?? null);
+  // `10.5b-iv-c`: her settings, her stars and what is taken — the door's defaults until read.
+  const loQueVen = useLoQueVen(kitchen?.id ?? null);
   const ahora = useAhora(CADA_MINUTO);
 
   const cerrar = () => (router.canGoBack() ? router.back() : router.replace('/ofertas'));
@@ -69,7 +72,7 @@ export default function AsiLaVen() {
     );
   }
 
-  const cocina = cocinaComoLaVen({ kitchen, place: place.data, page: page.data, listings: listings.data, now: ahora });
+  const cocina = cocinaComoLaVen({ kitchen, place: place.data, page: page.data, listings: listings.data, now: ahora, ...loQueVen });
   const estado = platilloDe([cocina], cocina.id, parametro(params.oferta), lineaDe(parametro(params.linea)), ahora);
   return (
     <View style={{ flex: 1, backgroundColor: PALETTE.fondo }}>

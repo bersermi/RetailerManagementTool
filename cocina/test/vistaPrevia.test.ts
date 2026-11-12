@@ -120,7 +120,8 @@ describe('the form draws it — read as text', () => {
   });
 
   it('made from what she typed, her new photos handed over, opening nothing and measuring no distance', () => {
-    expect(screen).toMatch(/previaDe\(\{ kitchen, place, page: page\.data \?\? EMPTY_PAGE, lines, ventana, now: ahora \}\)/);
+    // ⚠️ `10.5b-iv-c`: with her settings and her stars, once read.
+    expect(screen).toMatch(/previaDe\(\{ kitchen, place, page: page\.data \?\? EMPTY_PAGE, lines, ventana, now: ahora, ajustes, estrellas \}\)/);
     expect(screen).toMatch(/<RecienTomadas\.Provider value=\{recienTomadas\(lines\)\}>/);
     expect(screen).toMatch(/<View pointerEvents="none"/);
     expect(screen).toMatch(/<TarjetaPlatillo[\s\S]*?distancia=\{null\}[\s\S]*?onPress=\{\(\) => \{\}\}/);

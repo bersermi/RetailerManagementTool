@@ -32,6 +32,17 @@
 // the body's keys and this app's id out of this file and puts them in front of
 // the real function; `docs/checks/10.4b-iii-a-cocina-contract.sh` reads the
 // rest and asks a real PostgREST.
+//
+// ⚠️⚠️ `10.5b-iv-c` — A PLATE STILL TO HAND OVER (`0079`'s `TD014`, ruled 2026-11-10): no
+// business she alone owns is deleted — alone, or with her account — while a neighbour holds
+// a plate there; each deletion says why (`PLATE_PENDING_CODE`). ⚠️ AND THE DATABASE IS ASKED
+// BEFORE APPLE IS TOLD (the review of `10.5b-iii-b` found it; this row decided it): Apple must
+// be told while her login still exists (the function asks the auth server who is calling), so
+// it was told first — and a deletion `TD014` then refused had already taken her off Apple's
+// list. Now, when a business goes with her account, one read asks whether a plate is pending
+// at any of them (`PENDING_*`, `reservation_state`'s `apartado`) BEFORE Apple's sheet opens;
+// one is, and she is told why with no sheet at all. The database still answers last: a
+// neighbour who reserves between the read and the deletion meets `TD014` there, as before.
 // ============================================================================
 
 import { apiErrorMessage } from '@/api/errors';
@@ -42,6 +53,9 @@ export const DELETE_MY_ACCOUNT = 'delete_my_account';
 
 /** `0073`'s refusal: a business she alone owns has no name among those typed. */
 export const NAME_MISMATCH_CODE = 'TD007';
+
+/** ⚠️ `10.5b-iv-c`: `0079`'s refusal, of both deletions — a plate still to hand over at a business that would go (Itacate's name). */
+export const PLATE_PENDING_CODE = 'TD014';
 
 /** The arguments, by the name PostgREST matches on. */
 export interface DeleteArgs {
@@ -223,10 +237,37 @@ export function deletedFrom(data: unknown): Deleted {
  * list again.
  */
 export function deleteErrorMessage(error: unknown): string {
-  if (typeof error === 'object' && error !== null && (error as { code?: unknown }).code === NAME_MISMATCH_CODE) {
-    return ES.account.errors.listChanged;
-  }
+  const code = typeof error === 'object' && error !== null ? (error as { code?: unknown }).code : undefined;
+  if (code === NAME_MISMATCH_CODE) return ES.account.errors.listChanged;
+  if (code === PLATE_PENDING_CODE) return ES.account.errors.reservaPendiente;
   return apiErrorMessage(error);
+}
+
+// ----------------------------------------------------------------------------
+// ⚠️ `10.5b-iv-c`: THE DATABASE ASKED BEFORE APPLE IS TOLD — see the header
+// ----------------------------------------------------------------------------
+
+/** The reservations, read under her walls: an owner reads her businesses' (`0079`). */
+export const PENDING_TABLE = 'reservation';
+
+/** Only whether one exists: its id. */
+export const PENDING_COLUMNS = 'id';
+
+/** The column the read is filtered on — the businesses that go (`in.(…)`). */
+export const PENDING_OWNER_COLUMN = 'workspace_id';
+
+/**
+ * ⚠️ `reservation_state`'s `apartado`, as four filters: none of these three moments
+ * (`is.null`) — not handed over, not confirmed by her, not cancelled — and …
+ */
+export const PENDING_NULL_COLUMNS = 'handed_over_at,picked_up_at,cancelled_at';
+
+/** … its hold not over (`gt.` the phone's now): a plate that *se liberó* is no longer pending. */
+export const PENDING_UNTIL_COLUMN = 'held_until';
+
+/** The ids the pre-deletion read asks about — every business that goes, or none. */
+export function pendingIds(deletion: Deletion): string[] {
+  return deletion.kind === 'deletes' ? deletion.businesses.map((business) => business.id) : [];
 }
 
 // ----------------------------------------------------------------------------
@@ -284,6 +325,8 @@ export function deleteKitchenErrorMessage(error: unknown): string {
   const code = typeof error === 'object' && error !== null ? (error as { code?: unknown }).code : undefined;
   if (code === NAME_MISMATCH_CODE) return ES.kitchenDeletion.errors.nameChanged;
   if (code === NOT_HERS_ALONE_CODE) return ES.kitchenDeletion.errors.notHersAlone;
+  // `10.5b-iv-c`: no Apple here, so nothing to ask first — the database's answer is said.
+  if (code === PLATE_PENDING_CODE) return ES.kitchenDeletion.errors.reservaPendiente;
   return apiErrorMessage(error);
 }
 

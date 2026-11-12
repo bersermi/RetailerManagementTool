@@ -365,6 +365,14 @@ export const ES = {
     errors: {
       /** `0073`'s refusal: a business the screen did not show. */
       listChanged: 'La lista de tus negocios cambió. Revísala y escribe otra vez cada nombre.',
+      /**
+       * ⚠️ `10.5b-iv-c`: `0079`'s `TD014` — a neighbour holds a plate at a kitchen that would go with
+       * her account (ruled 2026-11-10: refused until each is handed over or its window ends). Said
+       * before Apple's sheet opens, from the read that asks first. Itacate's sentence, word for word
+       * (`test/account.test.ts`): one login, so one answer in both apps.
+       */
+      reservaPendiente:
+        'Alguien tiene un apartado por recoger en tu cocina. Podrás eliminar tu cuenta cuando se lo entregues o cuando termine su horario.',
     },
   },
   /**
@@ -388,6 +396,9 @@ export const ES = {
       nameChanged: 'El nombre de la cocina cambió. Revísalo y escríbelo otra vez.',
       /** `0077`'s `TD012`: the kitchen is not hers alone, or is gone already. */
       notHersAlone: 'Solo la única persona dueña de esta cocina puede eliminarla.',
+      /** ⚠️ `10.5b-iv-c`: `0079`'s `TD014` — a plate still to hand over here. */
+      reservaPendiente:
+        'Alguien tiene un apartado por recoger en esta cocina. Podrás eliminarla cuando se lo entregues o cuando termine su horario.',
     },
   },
 
@@ -446,6 +457,16 @@ export const ES = {
     /** The bar above the number pads on an iPhone. */
     listo: 'Listo',
     sinLugar: 'No encontramos dónde entregas. Vuelve a tu cocina e intenta de nuevo.',
+    /**
+     * ⚠️ `10.5b-iv-c`: HOW THIS DISH MAY BE EATEN — asked only when her kitchen offers both ways
+     * (*Mi cocina › Cómo se come*), after *Avisa si pica* (the family-shell page: *"The form, after
+     * Avisa si pica"*). Both on at first; she switches one off for this offer.
+     */
+    comoSeCome: 'Cómo se come',
+    llevar: 'Para llevar',
+    aqui: 'Para comer aquí',
+    /** A bag, when her kitchen offers both: the database makes it *para llevar* whatever is sent. */
+    bolsaParaLlevar: 'Una bolsa sorpresa siempre es para llevar.',
     errores: {
       /** A problem said with its line's heading in front: `Platillo 2: escribe el precio.` */
       enRenglon: (renglon: string, problema: string) => `${renglon}: ${problema}`,
@@ -460,6 +481,8 @@ export const ES = {
         usual: 'escribe lo que vale normalmente, para que tus vecinos vean cuánto ahorran.',
         usualShape: 'lo que vale normalmente no se ve bien. Escríbelo así: 120.',
         usualLow: 'lo que vale normalmente tiene que ser más que el precio.',
+        /** `10.5b-iv-c`: her kitchen offers both ways and she switched both off for this dish. */
+        comer: 'elige para llevar, para comer aquí o las dos.',
       },
       ventana: {
         backwards: 'La hora de fin tiene que ser después de la de inicio.',
@@ -604,6 +627,17 @@ export const ES = {
     repetir: 'Repetir',
     nota: 'Repetir la publica otra vez, con las horas de hoy, y la puedes deshacer.',
     ninguna: 'Todavía no has publicado nada.',
+    /**
+     * ⚠️ `10.5b-iv-c`: − AND + (the owner's call 17 of 2026-11-05): how many she offers now, never
+     * below what is reserved; the price and the dish never change. What is left reads as *Hoy*
+     * says it — `ES.hoy.quedanRenglon` — beside the two buttons.
+     */
+    menos: (platillo: string) => `${platillo}: uno menos`,
+    mas: (platillo: string) => `${platillo}: uno más`,
+    /** `set_listing_quantity`'s `TD019`: a neighbour reserved while she tapped −. */
+    apartados: 'Alguien acaba de apartar: no puedes dejar menos de lo apartado.',
+    /** Its `TD015`: withdrawn, or the window ended. */
+    terminada: 'Esta oferta ya terminó.',
   },
 
   /**
@@ -834,6 +868,25 @@ export const ES = {
   miCocina: {
     titulo: 'Mi cocina',
     giro: 'Qué es tu cocina',
+    /**
+     * ⚠️ `10.5b-iv-c`: HER SETTINGS, rows among the ones she sets once (`10.5b-ii`'s final design,
+     * *Mi cocina*: *Cómo te pagan*, *Cómo se come*, *El desechable*, *Tus calificaciones*,
+     * *Ajustes de apartados*), each with what it is set to under it — state first (ADR-035 §2.8).
+     */
+    cobro: 'Cómo te pagan',
+    comer: 'Cómo se come',
+    desechable: 'El desechable',
+    calificaciones: 'Tus calificaciones',
+    ajustesApartados: 'Ajustes de apartados',
+    /** Each row's line: what is set. */
+    separador: ' · ',
+    desechableCobras: (precio: string) => `${precio} por cada plato para llevar`,
+    desechableNo: 'No lo cobras',
+    calificacionesListas: (promedio: string, n: number) => `★ ${promedio} · ${n} ${n === 1 ? 'calificación' : 'calificaciones'}`,
+    calificacionesPocas: 'Todavía sin calificaciones',
+    pueden: (quien: string) => `Pueden apartar: ${quien}`,
+    /** A setting read that failed: the row still opens its screen, which says so. */
+    sinLeer: 'No se pudo leer',
     ayuda: 'Ayuda',
     whatsapp: 'Escríbenos por WhatsApp',
     whatsappDetalle: 'Te contesta una persona',
@@ -842,6 +895,111 @@ export const ES = {
     ayudaMensajeConCorreo: (email: string) => `Hola, necesito ayuda con Wera Cocina. Mi correo es ${email}`,
     aviso: 'Aviso de privacidad',
     cuenta: 'Tu cuenta',
+  },
+
+  /**
+   * ⚠️ `10.5b-iv-c`: HER SETTINGS' SCREENS, from *Mi cocina* — the family-shell page's two sheets
+   * (stage 2: *Cómo te pagan*, *Para llevar o comer aquí*, ruled 2026-11-05) and `10.5b-ii`'s final
+   * design (*Ajustes de apartados*, *Tus calificaciones*, ruled 2026-11-10). A switch or an option
+   * is saved on the tap; *Listo* goes back. ⚠️ NO SCREEN STORES OR SHOWS A BANK ACCOUNT, A CARD OR
+   * AN AMOUNT PAID — only how she is paid.
+   */
+  ajustes: {
+    volver: 'Mi cocina',
+    listo: 'Listo',
+    leyendo: 'Leyendo tus ajustes…',
+    sinLeer: 'No pudimos leer tus ajustes. Revisa tu conexión a internet.',
+    otraVez: 'Intentar de nuevo',
+    guardando: 'Guardando…',
+    cobro: {
+      titulo: 'Cómo te pagan',
+      efectivo: 'Efectivo',
+      efectivoDetalle: 'Siempre',
+      tarjeta: 'Tarjeta',
+      tarjetaDetalle: 'Con tu propia terminal',
+      transferencia: 'Transferencia',
+      transferenciaDetalle: 'A tu cuenta, por SPEI',
+      /** Shown while *Transferencia* is on: no account is kept (ruled 2026-11-05). */
+      notaTransferencia: 'Tus vecinos te transfieren al llegar: tú les das tus datos, como siempre. Wera Cocina no guarda ninguna cuenta.',
+      /**
+       * ⚠️ The drawing's *Wera nunca recibe tu dinero* narrowed to what is true whatever comes later:
+       * what a neighbour pays goes to her, and this app never touches it.
+       */
+      nota: 'Tus vecinos te pagan a ti, directo: Wera Cocina no toca ese dinero.',
+    },
+    comer: {
+      titulo: 'Cómo se come',
+      intro: 'Lo que haces en tu cocina. Cada oferta puede limitarlo.',
+      llevar: 'Para llevar',
+      llevarDetalle: 'La empacas y se la llevan',
+      aqui: 'Para comer aquí',
+      aquiDetalle: 'Tienes mesas y se la sirves',
+      nota: 'Al menos una. Si están las dos, tus vecinos eligen al apartar, y para llevar va primero.',
+    },
+    desechable: {
+      titulo: 'El desechable',
+      intro: '¿Cobras el desechable? Escribe su precio: se suma cuando eligen para llevar, y lo ven antes de apartar.',
+      campo: 'Precio de cada desechable',
+      ejemplo: '5',
+      guardar: 'Guardar',
+      noLoCobro: 'No lo cobro',
+      cobras: (precio: string) => `Cobras ${precio} por cada plato para llevar.`,
+      noCobras: 'No cobras el desechable.',
+      /** Call 28 (ruled 2026-11-05): each offer keeps the price it had when published. */
+      nota: 'Cada oferta guarda el precio que tenía cuando la publicaste.',
+      errores: {
+        vacio: 'Escribe el precio, o toca No lo cobro.',
+        forma: 'El precio no se ve bien. Escríbelo así: 5 o 5.50.',
+      },
+    },
+    apartados: {
+      titulo: 'Ajustes de apartados',
+      quien: 'Quién puede apartar',
+      todos: 'Todos',
+      masDe: (n: number) => `Más de ${n}%`,
+      /** The row's line in *Mi cocina*: `masDe`'s, with the thumb. */
+      masDeCorto: (n: number) => `más de ${n}% de 👍`,
+      todosCorto: 'todos',
+      explica: 'Según su calificación: cuántos 👍 le han dado las cocinas.',
+      /** ⚠️ Fewer than three thumbs always pass (`0080`) — said without naming anyone's gender. */
+      nuevas: 'Quien todavía no tiene calificación siempre puede apartar.',
+      /** Nobody is cancelled by it (`0080`): it applies when a neighbour reserves. */
+      nadieSeCancela: 'Si lo cambias, ningún apartado se cancela.',
+    },
+    calificaciones: {
+      titulo: 'Tus calificaciones',
+      /** From five (`0080`): the average and how many. */
+      cuantas: (n: number) => (n === 1 ? '1 calificación' : `${n} calificaciones`),
+      enTuPagina: 'Tus vecinos la ven en tu página de Itacate.',
+      /** Below five: how many, and nothing else (Q3, ruled 2026-11-10). */
+      pocas: (n: number) =>
+        n === 0
+          ? 'Todavía no tienes calificaciones.'
+          : n === 1
+            ? 'Tienes 1 calificación.'
+            : `Tienes ${n} calificaciones.`,
+      desdeLaQuinta: 'Las ves aquí, y tus vecinos en tu página, desde la quinta.',
+      loQueDicen: 'Lo que más dicen',
+      deAyer: 'De ayer, en desorden',
+      sinAyer: 'Ayer nadie te calificó.',
+      /** The day after (`kitchen_ratings_counted`). */
+      alDiaSiguiente: 'Cada calificación aparece aquí al día siguiente.',
+      nuncaQuien: 'Nunca ves quién te calificó.',
+      estrellasAyuda: (n: number) => `${n} de 5 estrellas`,
+      promedioAyuda: (promedio: string, n: number) => `${promedio} de 5 estrellas, ${n === 1 ? '1 calificación' : `${n} calificaciones`}`,
+      /** `0080`'s eight tags: the good four after four or five stars, the other four after one to three. */
+      etiqueta: {
+        lista_a_tiempo: 'Lista a tiempo',
+        buena_porcion: 'Buena porción',
+        muy_rica: 'Muy rica',
+        me_atendieron_bien: 'Me atendieron bien',
+        tuve_que_esperar: 'Tuve que esperar',
+        porcion_chica: 'Porción chica',
+        no_me_gusto: 'No me gustó',
+        me_atendieron_mal: 'Me atendieron mal',
+      },
+      sinLeer: 'No pudimos leer tus calificaciones. Revisa tu conexión a internet.',
+    },
   },
 
   /**

@@ -25,12 +25,17 @@
 // square, *Tomar foto* and *Elegir* (`@/ui/CampoFoto`); with none, her kitchen's
 // drawing on her colour (`fondo`). *Repetir* opens with yesterday's photo in it.
 // The form opens the camera and makes the photo's path; this draws the slot.
+//
+// ⚠️ `10.5b-iv-c`: *CÓMO SE COME*, AFTER *AVISA SI PICA* — only when her kitchen offers both
+// ways (`cocina`, her settings; the family-shell page's form, call 26): *Para llevar* and *Para
+// comer aquí*, both on at first, each switched off for this dish alone. A bag says it is always
+// to go instead. With one way, nothing is asked: the dish is her kitchen's.
 // ============================================================================
 
 import { Pressable, Text, View } from 'react-native';
 
 import { NINGUNA } from '@/api/fotos';
-import { DESCRIPTION_MAX, NAME_MAX, TAGS, type LineDraft, type Tag } from '@/api/listing';
+import { DESCRIPTION_MAX, NAME_MAX, TAGS, ofreceLasDos, type ComoSeCome, type LineDraft, type Tag } from '@/api/listing';
 import type { Defaults } from '@/api/pagina';
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
@@ -50,6 +55,7 @@ export function Renglon({
   fondo,
   nota,
   onFoto,
+  cocina = null,
 }: {
   line: LineDraft;
   n: number;
@@ -63,6 +69,8 @@ export function Renglon({
   nota: string | null;
   /** The camera (`true`) or the gallery, for this line. */
   onFoto: (tomar: boolean) => void;
+  /** `10.5b-iv-c`: her kitchen's ways, once read — the dish is asked only when both are on. */
+  cocina?: ComoSeCome | null;
 }) {
   const kind = line.surprise ? 'bolsa' : 'platillo';
   const toggle = (tag: Tag) =>
@@ -211,6 +219,34 @@ export function Renglon({
           );
         })}
       </View>
+
+      {ofreceLasDos(cocina) &&
+        (line.surprise ? (
+          <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada }}>{ES.publicar.bolsaParaLlevar}</Text>
+        ) : (
+          <>
+            <Text style={{ fontSize: SIZE.smallSize, fontWeight: '600', color: PALETTE.tintaApagada }}>{ES.publicar.comoSeCome}</Text>
+            <View style={{ flexDirection: 'row', gap: SIZE.rowGap }}>
+              {(['llevar', 'aqui'] as const).map((forma) => {
+                const on = line[forma];
+                const word = ES.publicar[forma];
+                return (
+                  <Pressable
+                    key={forma}
+                    accessibilityRole="checkbox"
+                    accessibilityLabel={word}
+                    accessibilityState={{ checked: on, disabled: !editable }}
+                    disabled={!editable}
+                    onPress={() => onChange((now) => (forma === 'llevar' ? { llevar: !now.llevar } : { aqui: !now.aqui }))}
+                    style={[pill(on), { flex: 1 }]}
+                  >
+                    <Text style={{ fontSize: SIZE.bodySize, fontWeight: on ? '700' : '400', color: PALETTE.tinta }}>{word}</Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </>
+        ))}
     </View>
   );
 }

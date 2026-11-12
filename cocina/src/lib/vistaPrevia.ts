@@ -14,18 +14,24 @@
 // draws no *Quedan*. A usual price she wrote that is not above the price draws no
 // saving, as Itacate draws none (`ahorroDe`); *Publicar* says why.
 //
+// ⚠️ `10.5b-iv-c`: HOW EACH DISH WILL BE SENT, AND HER SETTINGS — the card says *Para llevar*
+// or *Aquí o para llevar* as the dish will be sent (`@/api/listing`'s `comoSeComeDe`: her choice
+// when her kitchen offers both ways, else the kitchen's), and her kitchen's payment, *desechable*
+// and stars are the ones *Mi cocina* holds; the door's defaults while those are not read.
+//
 // ⚠️ PURE: `test/vistaPrevia.test.ts` pins every rule here.
 // ============================================================================
 
 import { porSubir, pathOf, type Foto } from '@/api/fotos';
 import type { Kitchen as SuCocina } from '@/api/kitchen';
-import { parseCount, parsePesos, type LineDraft } from '@/api/listing';
+import type { Ajustes } from '@/api/ajustes';
+import { comoSeComeDe, parseCount, parsePesos, type LineDraft } from '@/api/listing';
 import type { Page } from '@/api/pagina';
 import type { Place } from '@/api/place';
 import { SIN_AJUSTES, cocinaComoLaVen } from '@/lib/comoLaVen';
 import type { Ventana } from '@/lib/ventana';
 import { ES } from '@/strings';
-import type { Dish, Kitchen, Offer } from '@/vecinos/cocinas';
+import type { Dish, Estrellas, Kitchen, Offer } from '@/vecinos/cocinas';
 
 /** The offer the card belongs to, before it has an id of its own. Never sent. */
 export const OFERTA_PREVIA = 'vista-previa';
@@ -48,8 +54,19 @@ function escrito(typed: string): boolean {
   return typed.trim() !== '';
 }
 
+/**
+ * The ways a dish will be eaten, as it will be sent: a bag to go; her choice when her kitchen
+ * offers both; else her kitchen's (`null` from `comoSeComeDe`) — the door's default unread.
+ */
+function comoSeComePrevio(line: LineDraft, ajustes: Ajustes | null): { readonly llevar: boolean; readonly aqui: boolean } {
+  if (line.surprise) return { llevar: true, aqui: false };
+  const enviado = comoSeComeDe(line, ajustes);
+  if (enviado.para_llevar !== null && enviado.para_aqui !== null) return { llevar: enviado.para_llevar, aqui: enviado.para_aqui };
+  return ajustes === null ? { llevar: SIN_AJUSTES.llevar, aqui: SIN_AJUSTES.aqui } : { llevar: ajustes.llevar, aqui: ajustes.aqui };
+}
+
 /** One line of the form as the card's dish. See the header. */
-export function platilloPrevio(line: LineDraft, i: number): Dish {
+export function platilloPrevio(line: LineDraft, i: number, ajustes: Ajustes | null = null): Dish {
   const kind = line.surprise ? 'bolsa' : 'platillo';
   const name = line.name.trim();
   const description = line.description.trim();
@@ -64,8 +81,7 @@ export function platilloPrevio(line: LineDraft, i: number): Dish {
     surprise: line.surprise,
     usualCentavos: usual,
     photo: pathOf(line.foto),
-    llevar: SIN_AJUSTES.llevar,
-    aqui: SIN_AJUSTES.aqui,
+    ...comoSeComePrevio(line, ajustes),
   };
 }
 
@@ -83,13 +99,19 @@ export function previaDe(input: {
   readonly lines: readonly LineDraft[];
   readonly ventana: Ventana;
   readonly now: Date;
+  /** `10.5b-iv-c`: her settings and her stars, once read. */
+  readonly ajustes?: Ajustes | null;
+  readonly estrellas?: Estrellas | null;
 }): Previa {
   const { kitchen, place, page, lines, ventana, now } = input;
-  const platillos = lines.map(platilloPrevio);
+  const ajustes = input.ajustes ?? null;
+  const platillos = lines.map((line, i) => platilloPrevio(line, i, ajustes));
+  const desechableCentavos = ajustes === null ? SIN_AJUSTES.desechableCentavos : ajustes.desechableCentavos;
   return {
-    // Her name, trade, colour and logo — nothing else of it is drawn by the card.
-    cocina: cocinaComoLaVen({ kitchen, place, page, listings: [], now }),
-    oferta: { id: OFERTA_PREVIA, start: ventana.start, end: ventana.end, dishes: platillos, desechableCentavos: SIN_AJUSTES.desechableCentavos },
+    // Her name, trade, colour, logo and stars — nothing else of it is drawn by the card.
+    cocina: cocinaComoLaVen({ kitchen, place, page, listings: [], now, ajustes, estrellas: input.estrellas }),
+    // ⚠️ The *desechable* her kitchen holds now, which publishing copies onto the offer.
+    oferta: { id: OFERTA_PREVIA, start: ventana.start, end: ventana.end, dishes: platillos, desechableCentavos },
     platillos,
   };
 }

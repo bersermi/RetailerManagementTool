@@ -25,6 +25,9 @@
 // what goes and what stays, asks the kitchen's name, and keeps her signed in: the
 // guard moves her once her kitchen leaves her list. One of the two opens at a
 // time, so a box is never typed under the wrong warning.
+//
+// ⚠️ `10.5b-iv-c`: A PLATE STILL TO HAND OVER (`TD014`) is said on both — *Eliminar mi cuenta* asks
+// the database about the businesses that go before Apple's sheet opens (`pendingIds`).
 // ============================================================================
 
 import { useState } from 'react';
@@ -38,6 +41,7 @@ import {
   kitchenAlone,
   nameMatches,
   namesReady,
+  pendingIds,
   takesAShop,
   typedLabel,
   type Typed,
@@ -80,7 +84,7 @@ export function Salidas({ openKitchenId }: { openKitchenId: string | null }) {
   async function confirm() {
     if (removing || !ready) return;
     setProblem(null);
-    setProblem(await remove(deleteArgs(deletion, typed)));
+    setProblem(await remove(deleteArgs(deletion, typed), pendingIds(deletion)));
   }
 
   // ⚠️ On success she stays signed in, so the block closes itself: with a second

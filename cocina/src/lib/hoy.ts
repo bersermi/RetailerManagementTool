@@ -30,6 +30,7 @@ import {
   listingState,
   publishBody,
   repeatDraft,
+  type ComoSeCome,
   type Listing,
   type PublishBody,
 } from '@/api/listing';
@@ -260,13 +261,26 @@ export type PlanDeRepetir = { readonly kind: 'publicar'; readonly body: PublishB
  * When today's hours are over, or the old offer breaks a rule the form now checks, the
  * form opens filled in, as *Repetir* did before — she picks, nothing is guessed for her.
  */
-export function planDeRepetir(listing: Listing, placeId: string | null, now: Date, mint: () => string): PlanDeRepetir {
+/**
+ * ⚠️ `10.5b-iv-c`: `cocina` is her kitchen's ways (`@/api/ajustes`), so each dish keeps its ways
+ * narrowed to them, as the form would (`repeatDraft`). UNREAD (`null`), a dish she had narrowed —
+ * one way of two — opens the form: sent as the kitchen's own, it would come back wider than she
+ * published it. A dish sent as it always is (to go, the default) needs no settings to repeat.
+ */
+export function planDeRepetir(
+  listing: Listing,
+  placeId: string | null,
+  now: Date,
+  mint: () => string,
+  cocina: ComoSeCome | null = null,
+): PlanDeRepetir {
   if (placeId === null) return { kind: 'formulario' };
-  const draft = repeatDraft(listing, now, mint);
+  if (cocina === null && listing.lines.some((line) => !line.surprise && (line.aqui === true || line.llevar === false))) return { kind: 'formulario' };
+  const draft = repeatDraft(listing, now, mint, cocina);
   if (daysFrom(now, draft.ventana.start) !== 0) return { kind: 'formulario' };
-  if (checkLines(draft.lines) !== null) return { kind: 'formulario' };
+  if (checkLines(draft.lines, cocina) !== null) return { kind: 'formulario' };
   if (checkVentana(draft.ventana, now) !== null) return { kind: 'formulario' };
-  return { kind: 'publicar', body: publishBody(placeId, draft.lines, draft.ventana) };
+  return { kind: 'publicar', body: publishBody(placeId, draft.lines, draft.ventana, cocina) };
 }
 
 // ----------------------------------------------------------------------------

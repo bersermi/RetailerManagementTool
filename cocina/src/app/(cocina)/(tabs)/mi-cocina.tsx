@@ -4,12 +4,13 @@ import { ActivityIndicator, Linking, Pressable, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { guardada } from '@/api/fotos';
-import { useKitchen, useKitchenGiros, useListings, usePage, usePlace } from '@/api/hooks';
+import { useAjustes, useCalificaciones, useKitchen, useKitchenGiros, useListings, usePage, usePlace } from '@/api/hooks';
 import { giroLabel, type Kitchen } from '@/api/kitchen';
 import { colorOf } from '@/api/pagina';
 import { addressComplete, addressLine } from '@/api/place';
 import { useAuth } from '@/auth/AuthProvider';
 import { AVISO_URL } from '@/auth/aviso';
+import { calificacionesFila, cobroTexto, comerTexto, desechableFila, quienTexto } from '@/lib/ajustes';
 import { ayudaUrl } from '@/auth/support';
 import { estadoDe, faltanDe } from '@/lib/hoy';
 import { useRecordatorio } from '@/lib/RecordatorioProvider';
@@ -52,6 +53,12 @@ import { Salidas } from '@/ui/Salidas';
 // sign-up is said here in red — *Falta …* — with its door (`@/api/registro`: only the
 // first write can fail the sign-up). Publishing does not wait on them.
 //
+// ⚠️⚠️ `10.5b-iv-c`: HER SETTINGS, ROWS AMONG THE ONES SHE SETS ONCE (`10.5b-ii`'s final design,
+// *Mi cocina*): her trade, *Cómo te pagan*, *Cómo se come*, *El desechable*, her reminder, *Tus
+// calificaciones* and *Ajustes de apartados* — each saying what is set under its name (`@/lib/
+// ajustes`), each opening its screen. A read that failed still opens the screen, which says so.
+// *Ajustes de apartados* is named only here (*"nothing on Hoy or Apartados naming it"*).
+//
 // ⚠️ HER WAY OUT AT THE FOOT (`@/ui/Salidas`): *Cerrar sesión*, *Eliminar esta cocina* and
 // *Eliminar mi cuenta* — one tap from anywhere, the tab (Apple's 5.1.1(v)). The block is
 // KEYED ON THE KITCHEN, so when one goes and her next-made kitchen opens here, nothing
@@ -74,6 +81,11 @@ function MiCocinaDe({ kitchen }: { kitchen: Kitchen }) {
   const place = usePlace(kitchen.id);
   const page = usePage(kitchen.id);
   const listings = useListings(kitchen.id);
+  const ajustes = useAjustes(kitchen.id);
+  const calificaciones = useCalificaciones(kitchen.id);
+  // A row's line while her settings are out or failed: nothing, or *No se pudo leer*.
+  const deAjustes = (texto: (a: NonNullable<typeof ajustes.data>) => string) =>
+    ajustes.data !== undefined ? texto(ajustes.data) : ajustes.isError ? ES.miCocina.sinLeer : null;
   const here = place.data;
   // ⚠️ Her kitchen's copy of Google's point — the same answer the tabs' layout keeps fresh.
   const donde = useDondeEstaSuCocina(here);
@@ -210,6 +222,19 @@ function MiCocinaDe({ kitchen }: { kitchen: Kitchen }) {
               falta={missingGiro}
               onPress={() => router.push('/giro')}
             />
+            <Fila icono="cash-multiple" titulo={ES.miCocina.cobro} detalle={deAjustes(cobroTexto)} onPress={() => router.push('/cobro')} />
+            <Fila
+              icono="shopping-outline"
+              titulo={ES.miCocina.comer}
+              detalle={deAjustes(comerTexto)}
+              onPress={() => router.push('/como-se-come')}
+            />
+            <Fila
+              icono="package-variant-closed"
+              titulo={ES.miCocina.desechable}
+              detalle={deAjustes(desechableFila)}
+              onPress={() => router.push('/desechable')}
+            />
             {filaRecordatorio !== null && (
               <Fila
                 icono="bell-outline"
@@ -218,6 +243,24 @@ function MiCocinaDe({ kitchen }: { kitchen: Kitchen }) {
                 onPress={recordatorio.abrirHoja}
               />
             )}
+            <Fila
+              icono="star-outline"
+              titulo={ES.miCocina.calificaciones}
+              detalle={
+                calificaciones.data !== undefined
+                  ? calificacionesFila(calificaciones.data)
+                  : calificaciones.isError
+                    ? ES.miCocina.sinLeer
+                    : null
+              }
+              onPress={() => router.push('/calificaciones')}
+            />
+            <Fila
+              icono="tune-variant"
+              titulo={ES.miCocina.ajustesApartados}
+              detalle={deAjustes(quienTexto)}
+              onPress={() => router.push('/ajustes-apartados')}
+            />
           </Grupo>
         </Llega>
 

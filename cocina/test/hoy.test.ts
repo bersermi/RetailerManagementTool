@@ -72,6 +72,8 @@ const linea = (name: string, count = 8, priceCentavos = 6500, surprise = false):
   surprise,
   usualCentavos: 12000,
   imagePath: null,
+  llevar: true,
+  aqui: false,
 });
 
 function oferta(id: string, o: { start: Date; end: Date; createdAt?: Date; withdrawnAt?: Date | null; lines?: Line[] }): Listing {
@@ -82,6 +84,7 @@ function oferta(id: string, o: { start: Date; end: Date; createdAt?: Date; withd
     end: o.end,
     createdAt: o.createdAt ?? new Date(o.start.getTime() - 20 * 60_000),
     withdrawnAt: o.withdrawnAt ?? null,
+    desechableCentavos: null,
     lines: o.lines ?? [linea('Comida corrida')],
   };
 }

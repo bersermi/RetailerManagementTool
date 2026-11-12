@@ -8,6 +8,7 @@ import { useKitchen, useKitchenGiros, useListings, usePage, usePlace } from '@/a
 import { giroLabel } from '@/api/kitchen';
 import { cocinaComoLaVen, seVeEnItacate } from '@/lib/comoLaVen';
 import { useAhora } from '@/lib/useAhora';
+import { useLoQueVen } from '@/lib/useLoQueVen';
 import { ES } from '@/strings';
 import { TITULO } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
@@ -42,6 +43,8 @@ export default function YaEstas() {
   const place = usePlace(kitchen?.id ?? null);
   const page = usePage(kitchen?.id ?? null);
   const listings = useListings(kitchen?.id ?? null);
+  // `10.5b-iv-c`: her settings, her stars and what is taken — the door's defaults until read.
+  const loQueVen = useLoQueVen(kitchen?.id ?? null);
   const ahora = useAhora(CADA_MINUTO);
 
   const irAHoy = () => router.replace('/');
@@ -89,7 +92,7 @@ export default function YaEstas() {
   }
 
   const seVe = seVeEnItacate(listings.data, ahora);
-  const cocina = cocinaComoLaVen({ kitchen, place: place.data, page: page.data, listings: listings.data, now: ahora });
+  const cocina = cocinaComoLaVen({ kitchen, place: place.data, page: page.data, listings: listings.data, now: ahora, ...loQueVen });
   return (
     <View style={{ flex: 1, backgroundColor: PALETTE.fondo }}>
       <Llega

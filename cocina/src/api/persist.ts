@@ -54,6 +54,10 @@ export const CACHE_KEY = 'cocina.query-cache';
  * The shape of what is written. ⚠️ BUMP IT WHEN A KEPT READ'S SHAPE CHANGES — a field
  * renamed or a key re-cut; a phone holding another shape starts empty rather than handing
  * this code rows it cannot read. A NEW key on the list is not a new shape.
+ * ⚠️ NOR IS A FIELD ADDED, read with its default where the code meets it (`10.5b-iv-c`: each
+ * line's `llevar`/`aqui` and each offer's `desechableCentavos` — `@/lib/comoLaVen`, `eleccionRepetida`,
+ * `planDeRepetir`): a bump would also drop her reservations kept for the counter, and an update
+ * first opened with no signal would leave her with nothing to hand over from.
  */
 export const CACHE_SHAPE = 'v1';
 

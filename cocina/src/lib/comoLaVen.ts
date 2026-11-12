@@ -27,18 +27,28 @@
 // (`@/lib/ventana`); the door reads her kitchen's zone.
 // ⚠️ SINCE `10.5b-iii-a` THE DOOR ALSO SENDS HOW SHE TAKES PAYMENT, THE WAYS SHE HANDS PLATES
 // OVER, WHO MAY RESERVE, EACH OFFER'S *DESECHABLE* AND EACH LINE'S WAYS (`0079`, `0080`), and
-// Itacate's dish page draws the first two. This app does not read her settings until
-// `10.5b-iv` gives her the screens to set them, so the preview shows THE DOOR'S OWN DEFAULTS
-// (`SIN_AJUSTES`: cash only, *para llevar* only, no *desechable*, everyone may reserve) —
-// what the door sends for every kitchen today, since nothing can change them yet;
-// `test/comoLaVen.test.ts` holds them to the door's `coalesce`s.
+// since `10.5b-iii-b` HER STARS, and Itacate's pages draw them.
+// ⚠️⚠️ SINCE `10.5b-iv-c` THE PREVIEW IS THE DOOR'S ANSWER FOR HER, WHOLE:
+//   - WHAT IS LEFT (`0079`): each dish's count is what she offers less what is taken
+//     (`@/lib/apartados`' `tomadosDe`, `listing_line_taken`'s rule), a dish with nothing left
+//     is not sent, and an offer with nothing left is not on offer — so a plate reserved in
+//     Itacate leaves her preview as it leaves the door;
+//   - HER SETTINGS (`@/api/ajustes`): how she takes payment, the ways she hands plates over
+//     and who may reserve; each dish's own ways and each offer's *desechable* from her list;
+//   - HER STARS (`@/api/calificaciones`' `estrellasDe`): from five, the day after, her three most
+//     given good tags — worked out from her own `my_kitchen_ratings`, never the door.
+// Until a read answers, its part is the door's own default (`SIN_AJUSTES`: cash only, *para
+// llevar* only, everyone, no stars; nothing taken) — `test/comoLaVen.test.ts` holds them to the
+// door's `coalesce`s, and every rule above to its text.
 // ============================================================================
 
+import { comeresDe, pagosDe, type Ajustes } from '@/api/ajustes';
 import type { Kitchen as SuCocina } from '@/api/kitchen';
 import type { Line, Listing } from '@/api/listing';
 import type { Page } from '@/api/pagina';
 import { toMilliseconds, type Place } from '@/api/place';
-import type { Dish, Kitchen, Offer, Point, Repeat, Summary } from '@/vecinos/cocinas';
+import { claveDePlato } from '@/lib/apartados';
+import type { Dish, Estrellas, Kitchen, Offer, Point, Repeat, Summary } from '@/vecinos/cocinas';
 
 const DIA_MS = 86_400_000;
 
@@ -53,16 +63,35 @@ export const VECES_PARA_REPETIR = 2;
 /** At most this many repeated dishes (`limit 5`). */
 export const REPETIDOS_MAXIMOS = 5;
 
-/** A publication on offer, as the door sends it: not withdrawn, its window not over. */
-function enOferta(listing: Listing, now: Date): boolean {
+/** What is taken of each dish, by `claveDePlato` — `null` while her reservations are not read: nothing. */
+export type Tomados = ReadonlyMap<string, number> | null;
+
+/**
+ * What is left of one dish, as the door sends it (`ll.quantity - t.taken`): what she offers
+ * less what is taken — never below zero, though the database never lets it be.
+ */
+export function quedanDe(listing: Listing, i: number, tomados: Tomados): number {
+  const tomadas = tomados?.get(claveDePlato(listing.id, i + 1)) ?? 0;
+  return Math.max(0, listing.lines[i].count - tomadas);
+}
+
+/** Not withdrawn and its window not over — what makes her kitchen SEEN, whatever is left. */
+function vigente(listing: Listing, now: Date): boolean {
   return listing.withdrawnAt === null && listing.end.getTime() > now.getTime();
 }
 
 /**
+ * A publication on offer, as the door sends it: not withdrawn, its window not over — and,
+ * since `0079`, something left (`and exists (… x.quantity > public.listing_line_taken(x.id))`).
+ */
+function enOferta(listing: Listing, now: Date, tomados: Tomados): boolean {
+  return vigente(listing, now) && listing.lines.some((_line, i) => quedanDe(listing, i, tomados) > 0);
+}
+
+/**
  * ⚠️ `10.5b-iii-a`: what the door sends of a kitchen whose settings are its defaults (`0079`'s
- * `coalesce`s, `0080`'s NULL) — every kitchen until `10.5b-iv` lets her set them. ⚠️ And since
- * `10.5b-iii-b` no stars: the door sends them from five ratings counted the day after, and no
- * kitchen has one yet; `10.5b-iv` reads her own (`my_kitchen_ratings`) for her preview.
+ * `coalesce`s, `0080`'s NULL), and no stars (from five ratings, counted the day after). Since
+ * `10.5b-iv-c` only the fallback while her settings or her stars are not read yet.
  */
 export const SIN_AJUSTES = {
   pagos: ['efectivo'],
@@ -74,34 +103,47 @@ export const SIN_AJUSTES = {
   desechableCentavos: null,
 } as const;
 
-/** One of her lines as a dish — numbered as `publish_listing` numbers them, 1 to 10 in her order. */
-function platilloDe(line: Line, i: number): Dish {
+/**
+ * One of her lines as a dish — numbered as `publish_listing` numbers them, 1 to 10 in her order —
+ * with what is LEFT of it and its own ways (`10.5b-iv-c`).
+ */
+function platilloDe(line: Line, i: number, quedan: number): Dish {
   return {
     lineNo: i + 1,
     name: line.name,
     description: line.description,
     tags: line.tags,
     priceCentavos: line.priceCentavos,
-    count: line.count,
+    count: quedan,
     surprise: line.surprise,
     usualCentavos: line.usualCentavos,
     photo: line.imagePath,
-    llevar: SIN_AJUSTES.llevar,
-    aqui: SIN_AJUSTES.aqui,
+    // ⚠️ Read with the columns' defaults: a copy kept on the phone by the build before `10.5b-iv-c`
+    // has neither (`@/api/persist`'s `CACHE_SHAPE` comment).
+    llevar: line.llevar !== false,
+    aqui: line.aqui === true,
   };
 }
 
-/** What she has on offer at `now`, the earliest window first, then by id (`order by li.pickup_start, li.id`). */
-export function ofertasDe(listings: readonly Listing[], now: Date): Offer[] {
+/**
+ * What she has on offer at `now`, the earliest window first, then by id (`order by li.pickup_start,
+ * li.id`) — each dish with what is left, a dish with nothing left not sent (`and ll.quantity >
+ * t.taken`), and each offer's *desechable* as it was copied when she published.
+ */
+export function ofertasDe(listings: readonly Listing[], now: Date, tomados: Tomados = null): Offer[] {
   return listings
-    .filter((listing) => enOferta(listing, now))
+    .filter((listing) => enOferta(listing, now, tomados))
     .sort((a, b) => a.start.getTime() - b.start.getTime() || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
     .map((listing) => ({
       id: listing.id,
       start: listing.start,
       end: listing.end,
-      dishes: listing.lines.map(platilloDe),
-      desechableCentavos: SIN_AJUSTES.desechableCentavos,
+      dishes: listing.lines
+        .map((line, i) => ({ line, i, quedan: quedanDe(listing, i, tomados) }))
+        .filter(({ quedan }) => quedan > 0)
+        .map(({ line, i, quedan }) => platilloDe(line, i, quedan)),
+      // ⚠️ `?? null`: a copy kept by the build before `10.5b-iv-c` has none, and the page formats a number.
+      desechableCentavos: listing.desechableCentavos ?? null,
     }));
 }
 
@@ -192,20 +234,34 @@ export function resumenDe(listings: readonly Listing[], now: Date): Summary {
 }
 
 /** Whether a neighbour sees her kitchen in Itacate now: something on offer, or a publication in the last 14 days. */
+/**
+ * ⚠️ NOT WHAT IS LEFT: the door sends her kitchen while an offer is not withdrawn and its window
+ * not over — taken or not — or for 14 days after a publication (`((li.withdrawn_at is null and
+ * li.pickup_end > now()) or li.created_at >= now() - interval '14 days')`).
+ */
 export function seVeEnItacate(listings: readonly Listing[], now: Date): boolean {
   const desde = now.getTime() - DIAS_A_LA_VISTA * DIA_MS;
-  return listings.some((listing) => enOferta(listing, now) || listing.createdAt.getTime() >= desde);
+  return listings.some((listing) => vigente(listing, now) || listing.createdAt.getTime() >= desde);
 }
 
-/** Her kitchen as Itacate's two pages read it — the door's answer for her alone. */
+/**
+ * Her kitchen as Itacate's two pages read it — the door's answer for her alone. ⚠️ `10.5b-iv-c`:
+ * `ajustes`, `estrellas` and `tomados` are her settings, her stars and what is taken — each the
+ * door's default while its read has not answered (`undefined` or `null`).
+ */
 export function cocinaComoLaVen(input: {
   readonly kitchen: SuCocina;
   readonly place: Place | null;
   readonly page: Page;
   readonly listings: readonly Listing[];
   readonly now: Date;
+  readonly ajustes?: Ajustes | null;
+  readonly estrellas?: Estrellas | null;
+  readonly tomados?: Tomados;
 }): Kitchen {
   const { kitchen, place, page, listings, now } = input;
+  const ajustes = input.ajustes ?? null;
+  const tomados = input.tomados ?? null;
   return {
     id: kitchen.id,
     name: kitchen.displayName,
@@ -214,11 +270,11 @@ export function cocinaComoLaVen(input: {
     directions: place?.directions ?? null,
     point: puntoDe(place, now),
     page,
-    offers: ofertasDe(listings, now),
+    offers: ofertasDe(listings, now, tomados),
     summary: resumenDe(listings, now),
-    pagos: SIN_AJUSTES.pagos,
-    comeres: SIN_AJUSTES.comeres,
-    minScore: SIN_AJUSTES.minScore,
-    estrellas: SIN_AJUSTES.estrellas,
+    pagos: ajustes === null ? SIN_AJUSTES.pagos : pagosDe(ajustes),
+    comeres: ajustes === null ? SIN_AJUSTES.comeres : comeresDe(ajustes),
+    minScore: ajustes === null ? SIN_AJUSTES.minScore : ajustes.minScore,
+    estrellas: input.estrellas ?? SIN_AJUSTES.estrellas,
   };
 }

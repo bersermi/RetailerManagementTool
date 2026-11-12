@@ -75,13 +75,15 @@ const linea = (name = 'Comida corrida'): Line => ({
   surprise: false,
   usualCentavos: null,
   imagePath: null,
+  llevar: true,
+  aqui: false,
 });
 let n = 0;
 /** One she published at `creada`, for that evening. */
 function pub(creada: Date, extra: Partial<Listing> = {}): Listing {
   n += 1;
   const start = new Date(creada.getTime() + 60 * 60_000);
-  return { id: `r${n}`, placeId: 'p1', start, end: new Date(start.getTime() + 2 * 3_600_000), createdAt: creada, withdrawnAt: null, lines: [linea()], ...extra };
+  return { id: `r${n}`, placeId: 'p1', start, end: new Date(start.getTime() + 2 * 3_600_000), createdAt: creada, withdrawnAt: null, desechableCentavos: null, lines: [linea()], ...extra };
 }
 
 /**

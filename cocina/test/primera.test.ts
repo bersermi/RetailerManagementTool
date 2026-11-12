@@ -184,7 +184,8 @@ describe('each screen hands on to the next', () => {
     expect(ya).toMatch(/const seVe = seVeEnItacate\(listings\.data, ahora\);/);
     expect(ya).toMatch(/\{seVe \? ES\.primera\.yaEsta : ES\.primera\.asiTeVeran\}/);
     expect(ya).toMatch(/\{seVe \? ES\.primera\.asiTeVen : ES\.vista\.noSeVe\}/);
-    expect(ya).toMatch(/cocinaComoLaVen\(\{ kitchen, place: place\.data, page: page\.data, listings: listings\.data, now: ahora \}\)/);
+    expect(ya).toMatch(/cocinaComoLaVen\(\{ kitchen, place: place\.data, page: page\.data, listings: listings\.data, now: ahora, \.\.\.loQueVen \}\)/);
+    expect(ya).toMatch(/const loQueVen = useLoQueVen\(kitchen\?\.id \?\? null\);/);
     expect(ya).toMatch(/<PaginaDeCocina[\s\S]*?distancia=\{null\}[\s\S]*?onPlatillo=\{\(\) => \{\}\}[\s\S]*?atras=\{false\}/);
     expect(ya).toMatch(/const irAHoy = \(\) => router\.replace\('\/'\);/);
     expect(ya).toMatch(/label=\{ES\.primera\.irAHoy\} onPress=\{irAHoy\}/);

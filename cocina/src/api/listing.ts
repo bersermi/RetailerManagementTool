@@ -51,10 +51,27 @@
 // `usePublish`), under the path made when it was taken, so a retry is the same
 // photo and the same publication. *Repetir* sends yesterday's path again: a dish
 // she sells every week is photographed once (proposal B).
+//
+// ⚠️⚠️ `10.5b-iv-c` — HOW EACH DISH MAY BE EATEN, AND − AND + (`0079`, the owner's calls 17
+// and 26 of 2026-11-05):
+//   - EACH LINE NARROWS HER KITCHEN'S WAYS, never widens them (`publish_listing` refuses a
+//     way her kitchen does not offer): two more keys of each line, `para_llevar` and
+//     `para_aqui`, sent only when her kitchen offers both — else `null`, the kitchen's own,
+//     so a setting changed on another phone is never contradicted by a stale read here. A
+//     surprise bag is always *para llevar*, whatever is sent. A new form starts with both on
+//     (*"What her kitchen allows, all on"*); *Repetir* keeps each dish's ways as published,
+//     narrowed to what her kitchen offers now (`repeatDraft`).
+//   - THE READ BRINGS EACH LINE'S WAYS AND THE OFFER'S *DESECHABLE* (copied when published),
+//     for her preview (`@/lib/comoLaVen`) and *Repetir*.
+//   - − AND + ARE `set_listing_quantity`: how many she offers NOW, a whole number 0 to 999,
+//     never below what is reserved (`TD019`) — the price and the dish never change. ⚠️ SO A
+//     LINE'S COUNT MAY BE 0 since `0079`: `countOf` reads it, where until this row it refused
+//     it and the whole offer was dropped from her list (found by `10.5b-iv-a`).
 // ============================================================================
 
 import { SCALE, formatDecimal, parseDecimal } from '@tienda/money';
 
+import { apiErrorMessage } from '@/api/errors';
 import { NINGUNA, guardada, pathOf, porSubir, type Foto, type FotoNueva } from '@/api/fotos';
 import { formatMXN } from '@/format/mxn';
 import { repeatVentana, type Ventana } from '@/lib/ventana';
@@ -75,7 +92,7 @@ export const LINES_TABLE = 'listing_line';
  * Named, never `*`; the embed is `LINES_TABLE`'s. ⚠️ ONE LINE: the contract
  * check reads it with one `sed`.
  */
-export const LISTING_COLUMNS = 'id,location_id,pickup_start,pickup_end,created_at,withdrawn_at,listing_line(line_no,name,description,tags,unit_price,quantity,surprise,usual_price,image_path)';
+export const LISTING_COLUMNS = 'id,location_id,pickup_start,pickup_end,created_at,withdrawn_at,container_price,listing_line(line_no,name,description,tags,unit_price,quantity,surprise,usual_price,image_path,para_llevar,para_aqui)';
 
 /** ⚠️ The column the list is filtered on — the open kitchen's id. See the header. */
 export const LISTING_OWNER_COLUMN = 'workspace_id';
@@ -124,6 +141,9 @@ export interface LineRow {
   readonly usual_price: number | string | null;
   /** `10.5-ii`: the dish's photo, `<kitchen>/<uuid>` in the bucket `cocina` (`0076`). */
   readonly image_path?: string | null;
+  /** `10.5b-iv-c`: whether it may be taken away, and eaten at her kitchen (`0079`). */
+  readonly para_llevar?: boolean;
+  readonly para_aqui?: boolean;
 }
 
 /** A publication as PostgREST sends it. */
@@ -134,6 +154,8 @@ export interface ListingRow {
   readonly pickup_end: string;
   readonly created_at: string;
   readonly withdrawn_at: string | null;
+  /** `10.5b-iv-c`: the *desechable*'s price as her kitchen stated it when this was published (`0079`). */
+  readonly container_price?: number | string | null;
   readonly listing_line: readonly LineRow[] | null;
 }
 
@@ -152,6 +174,10 @@ export interface Line {
   readonly usualCentavos: number | null;
   /** Its photo's path, or `null` — her kitchen's drawing. */
   readonly imagePath: string | null;
+  /** `10.5b-iv-c`: it may be taken away (`para_llevar`). */
+  readonly llevar: boolean;
+  /** `10.5b-iv-c`: it may be eaten at her kitchen (`para_aqui`). */
+  readonly aqui: boolean;
 }
 
 /** A publication, as this app holds it. */
@@ -167,6 +193,8 @@ export interface Listing {
    */
   readonly createdAt: Date;
   readonly withdrawnAt: Date | null;
+  /** `10.5b-iv-c`: the *desechable* copied when it was published, or `null` — no charge. */
+  readonly desechableCentavos: number | null;
   readonly lines: readonly Line[];
 }
 
@@ -179,11 +207,22 @@ export function centavosOf(value: number | string): number {
   return parseDecimal(typeof value === 'number' ? String(value) : value.trim(), SCALE.money);
 }
 
-/** A count read back: the database holds whole numbers from 1 to 999 here. */
-function countOf(value: number | string): number {
+/**
+ * A count read back: a whole number from 0 to 999. ⚠️ 0 SINCE `0079`: − may take a line to
+ * nothing when nothing of it is reserved (`listing_line_quantity_not_negative`). Until
+ * `10.5b-iv-c` this refused 0, and `listingsFrom` dropped the whole offer from her list.
+ */
+export function countOf(value: number | string): number {
   const n = typeof value === 'number' ? value : Number(value);
-  if (!Number.isInteger(n) || n < 1) throw new RangeError(`a count of ${String(value)}`);
+  if (!Number.isInteger(n) || n < 0) throw new RangeError(`a count of ${String(value)}`);
   return n;
+}
+
+/** The *desechable* read back: pesos above zero, or `null` — no charge. */
+function desechableOf(value: number | string | null | undefined): number | null {
+  if (value === null || value === undefined) return null;
+  const centavos = centavosOf(value);
+  return centavos > 0 ? centavos : null;
 }
 
 /** One row, renamed, its lines in her order. The only place that knows both spellings. Throws on a value it cannot read. */
@@ -196,6 +235,7 @@ export function toListing(row: ListingRow): Listing {
     end: new Date(row.pickup_end),
     createdAt: new Date(row.created_at),
     withdrawnAt: row.withdrawn_at === null ? null : new Date(row.withdrawn_at),
+    desechableCentavos: desechableOf(row.container_price),
     lines: lines.map((line) => ({
       name: line.name,
       description: line.description === null || line.description.trim() === '' ? null : line.description,
@@ -205,6 +245,9 @@ export function toListing(row: ListingRow): Listing {
       surprise: line.surprise === true,
       usualCentavos: line.usual_price === null ? null : centavosOf(line.usual_price),
       imagePath: typeof line.image_path === 'string' && line.image_path.trim() !== '' ? line.image_path : null,
+      // The columns' defaults (`0079`) for a row read before the column was: to go, not here.
+      llevar: line.para_llevar !== false,
+      aqui: line.para_aqui === true,
     })),
   };
 }
@@ -277,11 +320,32 @@ export interface LineDraft {
   readonly usual: string;
   /** `10.5-ii`: its photo — none, one already saved (*Repetir*), or one just taken. */
   readonly foto: Foto;
+  /**
+   * `10.5b-iv-c`: her choice for this dish when her kitchen offers both ways — *para llevar*,
+   * *para comer aquí*, or both. Read only then (`comoSeComeDe`); a bag is always to go.
+   */
+  readonly llevar: boolean;
+  readonly aqui: boolean;
 }
 
-/** A line nobody has typed into: a dish, nothing chosen, no photo. */
-export function emptyLine(key: string): LineDraft {
-  return { key, surprise: false, name: '', description: '', tags: [], price: '', count: '', usual: '', foto: NINGUNA };
+/** The ways her kitchen hands plates over — `@/api/ajustes`' `Ajustes` is one. */
+export interface ComoSeCome {
+  readonly llevar: boolean;
+  readonly aqui: boolean;
+}
+
+/** Whether her kitchen offers both ways — the only case the form asks this dish. */
+export function ofreceLasDos(cocina: ComoSeCome | null): boolean {
+  return cocina !== null && cocina.llevar && cocina.aqui;
+}
+
+/**
+ * A line nobody has typed into: a dish, nothing chosen, no photo — and, ⚠️ `10.5b-iv-c`, how it may
+ * be eaten as she last chose it on this phone (`@/lib/eleccion`, *"The form starts with her last
+ * choice"*), else every way her kitchen offers (*"What her kitchen allows, all on"*).
+ */
+export function emptyLine(key: string, eleccion: ComoSeCome = { llevar: true, aqui: true }): LineDraft {
+  return { key, surprise: false, name: '', description: '', tags: [], price: '', count: '', usual: '', foto: NINGUNA, llevar: eleccion.llevar, aqui: eleccion.aqui };
 }
 
 /** The photos taken on this form that must go up before it is published, each once. */
@@ -329,9 +393,14 @@ export type LineIssue =
   | 'countShape'
   | 'usual'
   | 'usualShape'
-  | 'usualLow';
+  | 'usualLow'
+  | 'comer';
 
-export function checkLine(line: LineDraft): LineIssue | null {
+/**
+ * ⚠️ `10.5b-iv-c`: `cocina` is her kitchen's ways, or `null` while they are not read — then
+ * nothing is asked of the dish and it is sent as the kitchen's own (`comoSeComeDe`).
+ */
+export function checkLine(line: LineDraft, cocina: ComoSeCome | null = null): LineIssue | null {
   const name = line.name.trim();
   if (name === '') return 'name';
   if (name.length > NAME_MAX) return 'nameLong';
@@ -345,17 +414,19 @@ export function checkLine(line: LineDraft): LineIssue | null {
   const usual = parsePesos(line.usual);
   if (usual === null || usual >= PRICE_CEILING_CENTAVOS) return 'usualShape';
   if (usual <= price) return 'usualLow';
+  // `10.5b-iv-c`: with both ways open she picks at least one (`publish_listing`, `22023`).
+  if (!line.surprise && ofreceLasDos(cocina) && !line.llevar && !line.aqui) return 'comer';
   return null;
 }
 
 /** What is wrong with the whole form, and on which line (counted from 1), or `null`. */
 export type FormIssue = { readonly line: number; readonly issue: LineIssue } | { readonly line: null; readonly issue: 'noLines' | 'tooMany' };
 
-export function checkLines(lines: readonly LineDraft[]): FormIssue | null {
+export function checkLines(lines: readonly LineDraft[], cocina: ComoSeCome | null = null): FormIssue | null {
   if (lines.length === 0) return { line: null, issue: 'noLines' };
   if (lines.length > MAX_LINES) return { line: null, issue: 'tooMany' };
   for (let i = 0; i < lines.length; i += 1) {
-    const issue = checkLine(lines[i]);
+    const issue = checkLine(lines[i], cocina);
     if (issue !== null) return { line: i + 1, issue };
   }
   return null;
@@ -416,6 +487,22 @@ export interface LineBody {
   readonly surprise: boolean;
   readonly usual_price: string | null;
   readonly image_path: string | null;
+  /**
+   * `10.5b-iv-c`: how it may be eaten — sent only when her kitchen offers both ways, else
+   * `null`: the kitchen's own (`publish_listing`'s `coalesce`). See the header.
+   */
+  readonly para_llevar: boolean | null;
+  readonly para_aqui: boolean | null;
+}
+
+/**
+ * How one dish is sent: her choice when her kitchen offers both ways; `null` for the
+ * kitchen's own otherwise — one way only, a surprise bag (always to go), or her ways not
+ * read yet. ⚠️ NEVER A WAY HER KITCHEN DOES NOT OFFER, which `publish_listing` refuses.
+ */
+export function comoSeComeDe(line: LineDraft, cocina: ComoSeCome | null): { readonly para_llevar: boolean | null; readonly para_aqui: boolean | null } {
+  if (line.surprise || !ofreceLasDos(cocina)) return { para_llevar: null, para_aqui: null };
+  return { para_llevar: line.llevar, para_aqui: line.aqui };
 }
 
 function required<T>(value: T | null, what: string): T {
@@ -424,7 +511,7 @@ function required<T>(value: T | null, what: string): T {
 }
 
 /** A checked line as the database is sent it: trimmed, money as two-decimal text, tags in the fixed order. */
-export function lineBody(line: LineDraft): LineBody {
+export function lineBody(line: LineDraft, cocina: ComoSeCome | null = null): LineBody {
   const description = line.description.trim();
   const usual = required(parsePesos(line.usual), 'a vale');
   return {
@@ -436,19 +523,20 @@ export function lineBody(line: LineDraft): LineBody {
     surprise: line.surprise,
     usual_price: formatDecimal(usual, SCALE.money),
     image_path: pathOf(line.foto),
+    ...comoSeComeDe(line, cocina),
   };
 }
 
 /** Everything but the id — what `attemptFor` compares. */
 export type PublishBody = Omit<PublishArgs, 'p_id'>;
 
-/** The body for checked lines and a checked window at her kitchen's place. */
-export function publishBody(placeId: string, lines: readonly LineDraft[], ventana: Ventana): PublishBody {
+/** The body for checked lines and a checked window at her kitchen's place, with her kitchen's ways when read. */
+export function publishBody(placeId: string, lines: readonly LineDraft[], ventana: Ventana, cocina: ComoSeCome | null = null): PublishBody {
   return {
     p_location_id: placeId,
     p_pickup_start: ventana.start.toISOString(),
     p_pickup_end: ventana.end.toISOString(),
-    p_lines: lines.map(lineBody),
+    p_lines: lines.map((line) => lineBody(line, cocina)),
   };
 }
 
@@ -487,6 +575,8 @@ export function listingFrom(args: PublishArgs, at: Date = new Date()): Listing {
     end: new Date(args.p_pickup_end),
     createdAt: at,
     withdrawnAt: null,
+    // The kitchen's copy lands with the re-read; until then it is drawn with none.
+    desechableCentavos: null,
     lines: args.p_lines.map((line) => ({
       name: line.name,
       description: line.description,
@@ -496,6 +586,9 @@ export function listingFrom(args: PublishArgs, at: Date = new Date()): Listing {
       surprise: line.surprise,
       usualCentavos: line.usual_price === null ? null : centavosOf(line.usual_price),
       imagePath: line.image_path,
+      // `null` is the kitchen's own, which the re-read brings; to go until then.
+      llevar: line.surprise || line.para_llevar !== false,
+      aqui: !line.surprise && line.para_aqui === true,
     })),
   };
 }
@@ -536,6 +629,20 @@ export function pesosText(centavos: number): string {
 }
 
 /**
+ * ⚠️ `10.5b-iv-c`: A DISH'S WAYS, REPEATED — as she published them, narrowed to what her
+ * kitchen offers now; when that leaves none (she switched that way off since), every way
+ * her kitchen offers. Unread, the dish's own: `comoSeComeDe` then sends the kitchen's.
+ */
+export function eleccionRepetida(line: Line, cocina: ComoSeCome | null): ComoSeCome {
+  // ⚠️ The columns' defaults for a copy kept on the phone by the build before `10.5b-iv-c` (`@/api/persist`).
+  const suyo = { llevar: line.llevar !== false, aqui: line.aqui === true };
+  if (cocina === null) return suyo;
+  const llevar = suyo.llevar && cocina.llevar;
+  const aqui = suyo.aqui && cocina.aqui;
+  return llevar || aqui ? { llevar, aqui } : { llevar: cocina.llevar, aqui: cocina.aqui };
+}
+
+/**
  * The form *Repetir* opens: her lines as she published them — each with a new
  * handle and its photo, already saved — and the window's hours on the next day
  * they have not ended (`repeatVentana`). ⚠️ NOTHING IS SENT UNTIL SHE PRESSES
@@ -545,6 +652,7 @@ export function repeatDraft(
   listing: Listing,
   now: Date,
   mint: () => string,
+  cocina: ComoSeCome | null = null,
 ): { readonly lines: LineDraft[]; readonly ventana: Ventana } {
   return {
     lines: listing.lines.slice(0, MAX_LINES).map((line) => ({
@@ -558,7 +666,81 @@ export function repeatDraft(
       // ⚠️ `10.5-v-d`: a dish's too. One published before the rule has none, and the form asks.
       usual: line.usualCentavos !== null ? pesosText(line.usualCentavos) : '',
       foto: guardada(line.imagePath),
+      ...eleccionRepetida(line, cocina),
     })),
     ventana: repeatVentana(listing.start, listing.end, now),
   };
+}
+
+// ----------------------------------------------------------------------------
+// − and + — `set_listing_quantity` (`0079`, call 17; `10.5b-iv-c`)
+// ----------------------------------------------------------------------------
+
+/** How many of one line she offers now — the owner or a manager, never below what is reserved. */
+export const SET_LISTING_QUANTITY = 'set_listing_quantity';
+
+/** Its arguments, by the names PostgREST matches on; the contract check reads them out of here. */
+export interface SetQuantityArgs {
+  readonly p_listing_id: string;
+  readonly p_line_no: number;
+  readonly p_quantity: number;
+}
+
+/** What it answers, by the database's names: decimal text, read by `countOf`. ⚠️ The contract check reads these keys. */
+export interface QuantityRow {
+  readonly quantity: string;
+  readonly taken: string;
+}
+
+/** − and + move one plate; the database takes 0 to 999. */
+export const CANTIDAD_MAXIMA = COUNT_MAX;
+
+/** `set_listing_quantity`'s refusals this app turns into sentences (`0079`'s header). */
+export const QUANTITY_CODES = {
+  /** Below what is reserved — a neighbour reserved while she tapped −. */
+  TD019: 'apartados',
+  /** Withdrawn, or its window over. */
+  TD015: 'terminada',
+} as const;
+
+export function setQuantityArgs(listingId: string, lineNo: number, quantity: number): SetQuantityArgs {
+  return { p_listing_id: listingId, p_line_no: lineNo, p_quantity: quantity };
+}
+
+/** The answer read: how many she offers and how many are taken. Throws on one it cannot read. */
+export function cantidadFrom(data: unknown): { readonly count: number; readonly taken: number } {
+  const row = (typeof data === 'object' && data !== null ? data : {}) as Partial<QuantityRow>;
+  if (row.quantity === undefined || row.taken === undefined) throw new RangeError(`${SET_LISTING_QUANTITY} answered ${JSON.stringify(data)}`);
+  return { count: countOf(row.quantity), taken: countOf(row.taken) };
+}
+
+/**
+ * What one tap asks for, or `null` — nothing to send: never below what is taken, never
+ * below 0 or above 999. The database checks the same and answers `TD019`.
+ */
+export function cantidadPedida(count: number, taken: number, paso: 1 | -1): number | null {
+  const next = count + paso;
+  if (next < 0 || next > CANTIDAD_MAXIMA || next < taken) return null;
+  return next;
+}
+
+/** Her list with one line's count set — drawn at once, before the database answers. */
+export function withCantidad(listings: readonly Listing[] | undefined, id: string, lineNo: number, count: number): Listing[] | undefined {
+  if (listings === undefined) return undefined;
+  return listings.map((l) =>
+    l.id !== id ? l : { ...l, lines: l.lines.map((line, i) => (i + 1 === lineNo ? { ...line, count } : line)) },
+  );
+}
+
+/** Whether a refused − was `TD019`: a neighbour reserved meanwhile, so what is taken moved. */
+export function esApartado(error: unknown): boolean {
+  const code = typeof error === 'object' && error !== null ? (error as { code?: unknown }).code : undefined;
+  return QUANTITY_CODES[code as keyof typeof QUANTITY_CODES] === 'apartados';
+}
+
+/** The Spanish sentence for a refused − or +: `TD019` and `TD015` are hers to read; anything else is the app's table. */
+export function cantidadErrorMessage(error: unknown): string {
+  const code = typeof error === 'object' && error !== null ? (error as { code?: unknown }).code : undefined;
+  if (typeof code === 'string' && code in QUANTITY_CODES) return ES.ofertas[QUANTITY_CODES[code as keyof typeof QUANTITY_CODES]];
+  return apiErrorMessage(error);
 }

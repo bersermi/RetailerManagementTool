@@ -20,6 +20,7 @@ bash docs/checks/10.4b-iv-a-listing-contract.sh   # the same stack: her list, pu
 bash docs/checks/5R-k-apple-revoke-contract.sh     # the same stack: the function that tells Apple, served, with Wera's body, this app's and Itacate's
 bash docs/checks/10.5-i-a-kitchen-photos-contract.sh   # the same stack WITH Storage started before the reset: her page and the bucket `cocina`, by this app's names
 bash docs/checks/10.5b-iv-a-handover-contract.sh      # the same stack: her kitchen's reservations, who reserved each, the handover and her thumb, by apartados.ts's names — and her queue's claims, by cola.ts's
+bash docs/checks/10.5b-iv-c-settings-contract.sh      # the same stack: her settings, her stars, each dish's ways, − and +, and the read before a deletion, by ajustes.ts', calificaciones.ts', listing.ts' and account.ts' names
 bash store/cocina-itacate/render.sh giros         # the nine trades' drawings, from brand/giros.svg into src/marca/giros/ — and nothing else
 TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic is local time, and the Mac is UTC−6
 ```
@@ -59,7 +60,10 @@ TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic i
   made, and her shop stays Wera's. ⚠️ **Since `10.5b-iv-a`, `src/api/apartados.ts`** — her kitchen's reservations
   read from `0079`'s table, `0080`'s `reservation_neighbours` and `rate_neighbour`, `hand_over_reservation` — is a
   claim of its own, asked by `docs/checks/10.5b-iv-a-handover-contract.sh` and its falsifier (its own job in `db.yml`,
-  `cocina-handover`), a neighbour reserving through Itacate's names. ⚠️ **And a kitchen's place is read by the kitchen's id**
+  `cocina-handover`), a neighbour reserving through Itacate's names. ⚠️ **Since `10.5b-iv-c`, `src/api/ajustes.ts` and
+  `src/api/calificaciones.ts`** — her six settings on `kitchen_page` and the keys `set_kitchen_page` reads, `0080`'s `my_kitchen_ratings`
+  and every key of its answer — **with `listing.ts`' − and + and each dish's ways, and `account.ts`' pending read**, are asked by
+  `docs/checks/10.5b-iv-c-settings-contract.sh` and its falsifier (its own job, `cocina-settings`). ⚠️ **And a kitchen's place is read by the kitchen's id**
   (`firstPlace`): the walls show a shop's owner her shop's store too, and an unfiltered read's first
   row is that store — her kitchen's address and pin would land on her shop (`10.4b-iii-b`).
 - **A kitchen is made whole at the end of the sign-up** (`src/api/registro.ts`, `10.4b-iii-b`): her
@@ -113,6 +117,11 @@ TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic i
   `account.ts`. Only an iPhone shows the sheet: Android deletes without telling Apple, as Wera does. ⚠️ **The
   first deletion made with Apple from an iPhone build of this app is the only proof that the owner's key covers
   its id** (his grouping under Wera's App ID, 2026-10-30): Apple answers `invalid_client` when it does not.
+  ⚠️ **Since `10.5b-iv-c` the database is asked BEFORE Apple's sheet opens**: when a business goes with her account, one read
+  (`PENDING_*`, `reservation_state`'s `apartado` as four filters) asks whether a plate is still to hand over at any of them — `TD014`
+  would refuse the deletion, and Apple must not be told of a deletion that does not happen. One is, and she reads why, with no sheet. A
+  read that fails says nothing; the database still answers last. Itacate's copy asks the same read (`itacate/test/account.test.ts`
+  holds it to this file).
   ⚠️ **Itacate's way out is this one, copied** (`itacate/src/api/account.ts`, `10.5-iii-b`):
   `10.4b-iii-a-cocina-contract.sh` refuses any of its names that differs from this file's before it sends a
   request, so a change to the owners read or the deletion's body is made in both apps, in one PR.
@@ -122,7 +131,8 @@ TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic i
   p_business_name)` — the kitchen's id and the name as typed — and nothing told to Apple, nobody signed out:
   the hook drops the kitchen from her list at once and reads her kitchens and the owners again, so the guard
   sends her where a kitchen is made, or to her next-made kitchen; the block is keyed on the kitchen so nothing
-  typed survives into the next. ⚠️ **A kitchen only**: the database refuses a shop (`TD013`), and Itacate's
+  typed survives into the next. ⚠️ **Not while a plate is still to hand over there** (`TD014`, since `10.5b-iv-c` said in words:
+  *Alguien tiene un apartado por recoger en esta cocina…*). ⚠️ **A kitchen only**: the database refuses a shop (`TD013`), and Itacate's
   copy has none of these names — `account.ts` is the file the contract check reads them from. By email:
   `docs/runbooks/delete-a-kitchen.sh`, which can never delete a login.
 - **What she publishes is `0072`'s, checked first on the phone** (`src/api/listing.ts`, `src/lib/ventana.ts`,
@@ -137,6 +147,12 @@ TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic i
   (ADR-035 §2.11: `parseDecimal` in, `formatDecimal` out, integer centavos between) — this app's one workspace
   package — and is drawn by `src/format/mxn.ts`, a copy of Wera's that `test/mxn.test.ts` runs beside Wera's file.
   Nothing is queued: with no signal she is told so and the form keeps what she typed.
+  ⚠️⚠️ **Since `10.5b-iv-c`, how each dish may be eaten** (call 26): with both of her kitchen's ways on, each dish asks *Para llevar* /
+  *Para comer aquí* after *Avisa si pica*, both on at first; sent as `para_llevar`/`para_aqui` ONLY then — else `null`, the kitchen's
+  own, so a stale read never contradicts her settings (`comoSeComeDe`); a bag always to go. *Repetir* — the form's and the one tap's —
+  keeps each dish's ways narrowed to what her kitchen offers now (`eleccionRepetida`); unread, a narrowed dish opens the form. The read
+  brings each line's ways and each offer's *desechable* (copied when published). ⚠️ **A line's count may be 0 since `0079`** (− with
+  nothing reserved): `countOf` reads it — until `10.5b-iv-c` it refused 0 and the whole offer left her list.
   ⚠️⚠️ **Since `10.5-v-d` *Lo que vale normalmente* is required on every line, a dish's too** (the owner's ruling of
   2026-11-06), so every card in Itacate shows the saving: `checkLine`'s `usual`, sent by `lineBody` for every line, carried
   by *Repetir*. **The database never requires it** — `usual_price` stays nullable for the builds in the field (the field
@@ -194,18 +210,15 @@ TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic i
   defines `on_offer_now` and `normalize_name` last, so `cocina-itacate.yml` fires on every migration. Seen on the emulator 2026-11-07:
   her page's *Lo que suele ofrecer* matched the local door's answer line for line. As the page drew a preview: no way back over the
   picture, nothing that opens, no distance, and a line under the bar while the door would not send her.
-  ⚠️ **Since `0079` (`10.5b-i`) the door sends what is LEFT of each line, and leaves out a line with nothing left**; `@/lib/comoLaVen`
-  still shows what she offers. They agree until a neighbour reserves; `10.5b-iv`, which reads her reservations, brings the preview
-  to what is left — now `10.5b-iv-c`'s (since `10.5b-iv-a` the phone knows what is taken: `@/lib/apartados`' `tomadosDe`).
-  ⚠️ **Since `10.5b-iii-a` the dish page says how it is eaten and how she pays, and takes a foot (`pie`) that
-  only Itacate's route fills** — the preview draws none, so no *Apartar* here. The door now also sends how a kitchen takes payment,
-  how it hands plates over, who may reserve and each offer's *desechable*; this app does not read her settings until `10.5b-iv-c`
-  gives her the screens to set them, so `@/lib/comoLaVen` shows the door's own defaults (`SIN_AJUSTES`: cash, *para llevar*, no
-  *desechable*, everyone) — what the door sends for every kitchen today — held to the door's `coalesce`s by `test/comoLaVen.test.ts`.
-  ⚠️ **Since `10.5b-iii-b` the copies draw a kitchen's stars and *Cómo pagas aquí*** (her page: *★ 4.6 (5 calificaciones)* and her
-  good tags, else *Todavía sin calificaciones*; a card and a dish's row: *★ 4.6*), in Itacate's amber — this palette carries
-  `estrella` and `estrellaApagada` for them. `SIN_AJUSTES` has no stars: the door counts them from five ratings, the day after, and no
-  kitchen has one yet; `10.5b-iv-c`, which reads her own (`my_kitchen_ratings`), brings them to her preview with her settings.
+  ⚠️⚠️ **Since `10.5b-iv-c` the preview is the door's answer for her, whole** (`@/lib/useLoQueVen` hands `cocinaComoLaVen` three more
+  reads): **what is LEFT** (`0079`) — each dish's count less what is taken (`@/lib/apartados`' `tomadosDe`), a dish with nothing left not
+  sent, an offer with nothing left not on offer, though her kitchen is still *seen* while it is open, as the door says (`seVeEnItacate`
+  ignores what is left); **her settings** — payment, ways, who may reserve — and each dish's own ways and each offer's *desechable*; **her
+  stars** from five (`@/api/calificaciones`' `estrellasDe`: the door's three most given good tags, worked out from her own
+  `my_kitchen_ratings`, never the door). Unread, each part is the door's default (`SIN_AJUSTES`, held to its `coalesce`s by
+  `test/comoLaVen.test.ts`). ⚠️ **Since `10.5b-iii-a` the dish page takes a foot (`pie`) that only Itacate's route fills** — the
+  preview draws none, so no *Apartar* here. The copies draw the stars and *Cómo pagas aquí* in Itacate's amber (`estrella`,
+  `estrellaApagada`).
 - ⚠️ **The map has no key in a build made on this Mac** (`MAPS_KEY_PLACEHOLDER`, and the key is locked
   to the store and `preview` signatures). Measured 2026-10-30 on the emulator: such a map delivers
   taps but **never moves its camera and draws no marker**, so the zoom, the flights to a search's
@@ -387,7 +400,7 @@ follows it, as `itacate/CLAUDE.md`'s does:
 
 The owner's final design of 2026-11-10 (the page *Names, Records and Stars*, version 5, its table of states) and slice 3's
 handover (the family-shell page, stage 2). Since `10.5b-iv-b` it works with no signal (the next section); her settings, − and +
-and *Así la ven*'s what-is-left are `10.5b-iv-c`'s.
+and *Así la ven*'s what-is-left are `10.5b-iv-c`'s (the section after it).
 
 - **The read** (`useApartados`): her kitchen's reservations from 30 days back and later — `reservation_neighbours`' own reach —
   and that function's line on each. ⚠️⚠️ **In three parts, because her data plan is hers** (measured: ~810 bytes an order; 30
@@ -473,3 +486,37 @@ The owner's questions 7–10 of 2026-11-05: *"it works without signal (today's r
 - **To see it on the emulator**: the debug build against the local shop (above); **offline = airplane mode AND `adb reverse --remove
   tcp:54443`** (the local shop is reached through adb, not the emulator's network); read the queue and the cache with `run-as
   mx.wera.cocina cat files/SQLite/ExpoSQLiteStorage` (table `storage`, keys `cocina.cola` and `cocina.query-cache`).
+
+## Her settings and her offers (`10.5b-iv-c`)
+
+The family-shell page's two sheets (stage 2, ruled 2026-11-05: *Cómo te pagan*, *Para llevar o comer aquí*; calls 12, 17, 26–28)
+and `10.5b-ii`'s final design (*Mi cocina*'s rows, *Ajustes de apartados*; Q3's stars). No migration: every column and function is
+`0079`'s and `0080`'s.
+
+- **Her settings are six columns of her page's row** (`@/api/ajustes`: `accepts_card`, `accepts_transfer`, `para_llevar`, `para_aqui`,
+  `container_price`, `min_score`), ⚠️ **read apart from her page** — `Page` is the door's own shape, which Itacate's copied pages are
+  drawn from — and set through the same door, `set_kitchen_page`, **one key a tap** (only what she changed, `@/api/pagina`'s rule).
+  Not kept on the phone (`@/api/persist`): nothing at the counter needs them with no signal. `test/ajustes.test.ts` holds every rule to
+  `0079`'s and `0080`'s text.
+- ***Mi cocina***: after her trade, *Cómo te pagan*, *Cómo se come*, *El desechable*, her reminder, *Tus calificaciones*, *Ajustes de
+  apartados* — each row saying what is set (`@/lib/ajustes`), each opening a screen pushed over the tabs (`(cocina)/cobro`,
+  `como-se-come`, `desechable`, `calificaciones`, `ajustes-apartados`) inside `@/ui/PantallaDeAjustes`: the band with *‹ Mi cocina*,
+  ⚠️ *Leyendo…* or *Intentar de nuevo* until her settings are read — never the defaults drawn as hers — and *Listo*.
+- **A switch or an option saves on the tap** (`useGuardarAjuste`): drawn at once (`ajustesCon`), put back with the sentence when the door
+  refuses or the signal fails, one save at a time. `@/ui/FilaInterruptor` (a row with a drawn switch; `fijo` for *Efectivo*, always on,
+  and the LAST way a kitchen hands plates over — the database refuses neither, `22023`) and `@/ui/FilaOpcion` (a radio row).
+- ***Cómo te pagan*** — *Efectivo* always; *Tarjeta* and *Transferencia*, off at first. ⚠️ No account, card or amount is asked or kept;
+  with *Transferencia* on, the screen says so. The drawing's *Wera nunca recibe tu dinero* is written *Tus vecinos te pagan a ti,
+  directo: Wera Cocina no toca ese dinero.* (true whatever fee comes later).
+- ***El desechable*** — a price (Wera's `parsePesos` cleaning, above 0, below 100,000) with *Guardar*, or *No lo cobro*; each offer
+  keeps the price it had when published, and the screen says so.
+- ***Ajustes de apartados › Quién puede apartar*** — *Todos*, *Más de 75%*, *80%*, *85%*, and nothing else; ⚠️ named in *Mi cocina*
+  alone (`test/ajustes.test.ts` refuses it on *Hoy* and *Apartados*); someone with no score yet always passes; nobody is cancelled.
+- ***Tus calificaciones*** (`my_kitchen_ratings`, read at most every 30 minutes): from five, ★ and the average, how many, *Lo que más
+  dicen* (each tag given) and *De ayer, en desorden*; below five, how many and *desde la quinta*. Nothing that arrives can say who.
+  ⚠️ The round-1 drawing's *Reportar* is not drawn: no function takes a report.
+- **− and + on *Tus ofertas*** (`useCantidades`, `set_listing_quantity`): *quedan 2 de 5* between them, − stopping at what is reserved
+  (`TD019` said if a neighbour reserved meanwhile), + at 999. ⚠️ **One send at a time per dish, the last tap wins**, counted from the
+  last tap (never a render not yet made); her list's read in flight is cancelled before the drawing. Online only.
+- **To see it on the emulator**: the debug build against the local shop (*Apartados*' section); `docs/checks/10.5b-iv-c-settings-contract.sh`
+  shows how five rated plates of yesterday are made as the database's owner, for *Tus calificaciones* from five.
