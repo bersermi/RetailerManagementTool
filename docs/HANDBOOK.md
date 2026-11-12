@@ -63,6 +63,14 @@ listings do not say *inventario*; the home page of tu-wera.com still does.
 
 ## What is on your phone
 
+⏳ **11 November: Wera Cocina's settings and your offers, sent over the air** (*Wera Cocina: tus ajustes, menos y más, y así la ven
+(10.5b-iv-c)*) to Wera Cocina's test builds — **your iPhone's included**, with nothing to reinstall. On the iPhone: open Wera Cocina, wait ten
+seconds, **close it completely** and open it again — the update runs from the second open; if it still looks as before, once more. **First
+sign it arrived:** *Mi cocina* shows ***Cómo te pagan · Efectivo*** under your trade. **What to look at:** *What only you can judge* →
+*Wera Cocina → her settings and offers*. Seen first on a test Android with that same file, opened signed out: downloaded, then running (its
+own update record). **And Itacate's test builds** got one change you will rarely see (*Itacate: antes de avisar a Apple…*): deleting an
+account that owns a kitchen with a plate still to hand over now says why before Apple's sheet opens. Nothing changes in Wera.
+
 ⏳ **10 November, night: Wera Cocina's counter with no signal, sent over the air** (*Wera Cocina: entregar y calificar sin señal
 (10.5b-iv-b)*) to Wera Cocina's test builds — **your iPhone's included**, with nothing to reinstall. On the iPhone: open Wera Cocina, wait ten
 seconds, **close it completely** and open it again — the update runs from the second open; if it still looks as before, once more. **First
