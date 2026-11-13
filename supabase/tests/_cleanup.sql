@@ -223,6 +223,8 @@ begin
   -- ADDED 2026-10-13 (task 5P-b): `runbook_engagement.sql`'s two helpers.
   drop function if exists public._at(uuid, integer, time);
   drop function if exists public._cell(text, integer, uuid);
+  -- ADDED 2026-11-12 (task 5P-e): `runbook_health.sql`'s one helper.
+  drop function if exists public._row(text);
 
   -- 3. Every business table. `unit` is excluded because it is reference data
   --    seeded by migration 0001, not fixture — emptying it would break every
