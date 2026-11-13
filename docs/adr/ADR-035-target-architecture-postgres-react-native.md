@@ -52,8 +52,11 @@
     Less than §2.2 asks, on his word.
     The nightly production check (§2.4, §2.10): no workflow has a schedule, and the one migration with
     `pg_cron` (`0078`, plan `10.5-i-b-i`, 2026-11-04) clears Google's points past 29 days — the project's first
-    scheduled job; the production check still has none. CODEOWNERS and generated TypeScript types in CI (§2.10): neither exists.
-    The first two are open questions and a row in the plan (`5P-e`).
+    scheduled job; the production check still has none. Its pilot version is a read the owner runs,
+    `docs/runbooks/health.sql` (plan `5P-e`, 2026-11-12: dead letters counted and priced, the §2.4 invariant per
+    shop), held to the schema by `supabase/tests/runbook_health.sql`; nothing sends it daily. CODEOWNERS and
+    generated TypeScript types in CI (§2.10): neither exists. Supabase Pro is the owner's step the day before the
+    first real shop (the handbook's *When a shop that is not yours is live*).
   - **Internal:** §2.3 opens *"Nineteen tables"* (there are 22). §6 says `record_transfer`
     ships in `0004` (it is `0020`). §2.10 names `@rmt/money` (the package is `@tienda/money`).
     §8's checklist has every box unticked, among them the invites, built in `0027`–`0029`.

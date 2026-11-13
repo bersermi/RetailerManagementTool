@@ -645,7 +645,8 @@ after you have tried it.
 | **10.6a** | **Wera — *Ofrecer* in Merma**: *Tirar* or *Ofrecer*; her products at her price, her shelf price beside it, the half as a hint she can use; until an hour she picks, today or tomorrow (your word of 6 November); no line on the screen saying what may not be offered (your word of 6 November); her yes, once, to the kitchens seeing her shop's name and address | Ruled 6 November. After the MVP's public releases (Google's answer on Wera ✅ — Wera is on Google Play since 11 November). It takes in the hand relay that was `10.0b`: no offer goes through you. ⚠️ Two things for when it is taken: Wera's opening may blink as Wera Cocina's did (found 7 November) — copying Wera Cocina's two fixes is recommended, yours to say; and your iPhone runs the App Store Wera since about 7 November, so that session puts the test build back on it first (two minutes over Wi‑Fi, your data kept) |
 | **10.6b** | **Wera Cocina — *De las tiendas***: a card on *Hoy*, the shops nearest first with their address and *Cómo llegar*, Wera's photo on each product; reserving several products with one code | Ruled 6 November. After `10.6a` and reserving (`10.5b`) |
 | **10.6c** | **Wera — the handover**: *Inicio* lists what to have ready; in Vender the code, the products into the ticket at the offer's price, and *Cobrar*, as any sale, with or without signal | Ruled 6 November. After `10.6b` |
-| **5P-e** | **The pilot's start list** — what has to be true before a shop that is not yours signs up: backups, the two security fixes, a health check you can run, and getting the app onto each phone | **Behind the four rows of your family-shell rulings since 5 November.** **Needed before a shop that is not yours signs up — not yet** (your question of 4 November, night). Your order of 15 October put this row's experience half in the design review you paused; what a session can do alone is its estimate's to say. ✅ **Your three answers are built (15 October)**: the two doors are closed; an invitation lets someone in straight away only if they signed in with Google or Apple; a copy of the live database is taken on this Mac every night at 03:30 (*The nightly copy*, below). Your phone is measuring. ✅ Google's sign-in is open to everybody (*In production*, your word of 9 November). Left: a health check you can run, the Samsung install note, one page of what to do once a shop is live. ⚠️ **This is where the next piece of work is**, since 12 November: Wera is public in both stores, so a shop that is not yours can sign up any day, and every Step 10 row waits on an answer (your analyst's on notifications, or yours) |
+| **5P-e** | **The pilot's start list** — what has to be true before a shop that is not yours signs up: backups, the two security fixes, a health check you can run, and getting the app onto each phone | ✅ **Done 12 November.** Your three answers were built on 15 October (the two doors closed; an invitation lets someone in straight away only after Google or Apple; the nightly copy). Added now: the health check (*Is any shop's record broken?*). Its first run on the live database found 18 shops, every one's stock adding up, and one delivery of yours from 24 September that never saved. The nightly copy now takes Wera Cocina's and Itacate's tables too, and keeps nothing past seven days. And one page for when a real shop is live (*When a shop that is not yours is live*): Supabase Pro the day before, which Supabase says takes effect at once with nothing restarted; how a shop installs Wera; Samsung's switch; and what to run when. **Yours, on the day:** Supabase Pro |
+| **7c** | **What am I throwing away** — in Números, the products a shop throws away most, by quantity | ⚠️ **This is where the next piece of work is**, since 12 November — not because it is urgent, but because it is the one row nothing waits on: every Step 10 row waits on an answer (your analyst's on notifications, or yours), and the design review is paused at your word. Its first step is to check whether Números' waste block, from your review of 20 October, already answers it. If it does, the row closes with nothing built, and a session tells you so |
 | **5P-f** | **Wera tells you on Discord** — a line in your channel when somebody makes an account or opens a shop | ✅ **Done 22 October** — your channel got a test line that day. The lines name nobody, on purpose. See *Wera's alerts on Discord* below |
 | **5R-l** | **A lawyer reads the aviso** | ⏸️ Parked by you on 12 October — after the pilot, when it is a business |
 | **8n** | **Rescatado on Inicio** — what Wera paid the shop, beside *Ahorro en compras* | ✅ **Done 17 October, your answer: what Wera paid.** When you mark a pickup *recogida* in the dashboard, type what you paid in the new `wera_paid` cell — see *Handling a Te lo compro request*, below. The shop's owner and manager see it add up, and a coin drops into the jar |
@@ -990,6 +991,65 @@ would mean uninstalling. When you want the copy: in Terminal.app, `cd` into `app
 
 ---
 
+## When a shop that is not yours is live
+
+Everything you run once a real shop keeps its records in Wera, in one place (`5P-e`, 12 November).
+Each line points to its own section. Everything runs from this Mac, in the repository folder.
+
+**The day before the first one signs up: Supabase Pro.** Dashboard → your organization's
+*Billing* → *Subscription Plan* → *Change subscription plan* → *Pro*. What Supabase's own pages say
+(read 12 November): *"Upgrades take effect immediately"*, with nothing about a restart, a new
+address or new keys, so the apps and their builds do not change. Daily backups start on their own,
+and *"Pro Plan projects can access the last 7 days of daily backups"*, which is what the avisos
+promise. A Pro project is never paused for inactivity. The plan belongs to the organization, so
+every project in it moves together. ⚠️ **Leave *Compute size* alone that day.** Changing it is a
+separate step, *"usually applied with less than 2 minutes of downtime"*, and Pro does not ask for
+it. Afterwards, tell a session: it reads the backup list and turns off the Mac's nightly copy,
+which Pro replaces (your ruling of 15 October).
+
+**Putting Wera on the shop's phone.** From the store: *Wera: tu tienda* on Google Play, or Wera
+on the App Store. There is nothing to switch off or register, and every fix reaches it over the
+air. ⚠️ **A phone with the store's copy takes no pilot readings** (the panel behind the long press on
+*Ajustes*' title). Those come only from the test build, which is also what puts a phone on the
+`preview` channel. For a phone you want measured:
+
+- **Android:** `~/RetailerToolDev/wera-builds/android-3fd48b8c/wera-preview-6.apk`, the newest
+  test build. Inside the file (read 12 November): the `preview` channel and runtime `5a4a7a5d`,
+  the one every update goes to. ⚠️ Not the older `wera-android-preview-24376f0a-camara.apk` in the
+  same folder: no update reaches it. Send it by WhatsApp or cable. **On a Samsung, first:**
+  *Ajustes → Seguridad y privacidad → Bloqueador automático* → off. It is on by default on phones
+  sold with One UI 6.1.1 or newer, it refuses any app that is not from a store, and Samsung says it
+  also stops such an app's updates, so leave it off while the phone runs the test build. Then open
+  the file. If the phone asks, allow the app that opened it (WhatsApp, *Mis archivos*): *Ajustes →
+  Seguridad y privacidad → Más ajustes de seguridad → Instalar aplic. desconocidas*. (Samsung's
+  Mexican page, read 12 November. The names can vary a little by model.)
+- **iPhone:** the phone is registered first, then gets a new iPhone test build that includes it
+  (*Another iPhone in the pilot*, under *What is on your phone*: `npx eas-cli device:create`, then
+  the iOS build again). Allow a day.
+- ⚠️ **A phone cannot switch between the two copies without uninstalling.** Google signs the
+  store's copy and Expo signs the test build, so Android refuses to install one over the other.
+  Uninstall only once *Lo último* shows nothing waiting: a write still on the phone goes with it.
+
+**Every few days, two reads:**
+
+- How much each shop uses Wera: *Seeing how much each shop uses Wera*, below.
+- Whether any shop's record is broken: *Is any shop's record broken?*, below.
+
+**When somebody writes to you:**
+
+- Forgot their password: *If somebody forgot their password*.
+- Wants their account deleted, or only their kitchen: *If somebody asks to delete their account*.
+
+**What runs without you, and how to see that it did:**
+
+- The nightly copy at 03:30, until Pro: *The nightly copy*.
+- A line on Discord for each new account and each new shop: *Wera's alerts on Discord*.
+
+**Every 30 days:** the photos of businesses that no longer exist (*Photos of a shop or a kitchen
+that no longer exists*). The next date is in the plan's dates block.
+
+---
+
 ## Seeing how much each shop uses Wera
 
 From this Mac, in the project folder. It reads and changes nothing:
@@ -1031,17 +1091,52 @@ then record one sale. Run the line above a minute later.
 
 ---
 
+## Is any shop's record broken?
+
+From this Mac, in the project folder. It reads and changes nothing:
+
+```
+supabase db query --linked -o table -f docs/runbooks/health.sql
+```
+
+One row per shop. Shops with something to look at come first and read `look`. The rest read `ok`.
+
+- **unsaved**: things a phone recorded that the database refused, and nobody has put back yet. The
+  shop's Inicio already says *Una operación no se guardó*. **oldest** is the day of the first one,
+  on the shop's own calendar. **unsaved_sales**, **unsaved_purchases** and **unsaved_waste** are
+  what they are worth in pesos: sales and Merma at the shelf price, deliveries at cost, worked out
+  the way the phone works them out. **unpriced** counts the ones that could not be priced from what
+  they carry, and their pesos are in none of the three columns.
+- **lots_off**: lots whose stock no longer adds up from their movements. It must always be 0, and
+  anything else is never the shop's doing.
+
+If a row reads `look`, paste it to a session. A delivery is never put back without asking the shop
+first: they may already have typed it again.
+
+**The first run on the live project, 12 November:** 18 shops, and every lot adds up. One row to look
+at, yours: the delivery of the night of 24 September, *unpriced* because one of its lines was in a
+unit that measures something else (the bug fixed the next day). *Inicio, Una operación no se
+guardó* under *What only you can judge* asks you about it.
+
+This read stands in for the nightly check the architecture promises. Nothing sends it to you on
+its own yet.
+
+---
+
 ## The nightly copy
 
 Until the pilot starts, the live database is copied onto this Mac every night at 03:30, your
 ruling of 15 October: every table, into `~/RetailerToolDev/wera-backups/`, one folder per
 night, seven nights kept. Supabase's free plan keeps no backups at all. **The day before the
-first real shop signs up, move the project to Supabase Pro** (dashboard → *Billing*): it is the
-same database upgraded, not moved, and the app does not change.
+first real shop signs up, move the project to Supabase Pro**: what Supabase says about it is in
+*When a shop that is not yours is live*, above.
 
-- **Did it run?** `~/RetailerToolDev/wera-backups/nightly-copy.log` ends with *22 tables, 0
-  failed* for each night. The Mac has to be on and awake at 03:30; a night it was asleep is
-  simply missing.
+- **Did it run?** `~/RetailerToolDev/wera-backups/nightly-copy.log` ends each night with *… tables,
+  0 failed*. The Mac has to be on and awake at 03:30, and a night it was asleep is simply missing.
+- **Since 12 November it copies every part of the database, not only Wera's**: Wera Cocina's and
+  Itacate's tables (a neighbour's yes, the ratings) and the starter catalog were in no copy before.
+  A table that fails is now tried three times, and a copy is deleted once it is seven days old,
+  as the avisos promise. Before, a copy could stay eight.
 - **One now, by hand:** `bash docs/runbooks/nightly-copy.sh` from the repository folder.
 - ⚠️ **It is a copy of the shops' records, not of the logins.** If it is ever needed, a
   session puts the rows back by hand and everybody signs in again.
@@ -1150,8 +1245,8 @@ reply that it is done; the pages promise an answer within 20 business days.
 invented, not the one they write from, so the script finds nothing. Ask them for the shop's
 name and tell a session: it can find the account's address, and you run the script with that.
 ⚠️ The script does not tell Apple, which only the app can do. In your reply, add: *"Para que
-Wera deje de aparecer en tu cuenta de Apple: en tu iPhone, Configuración → tu nombre → Iniciar
-sesión con Apple → Wera → Eliminar."*
+Wera deje de aparecer en tu cuenta de Apple: en tu iPhone, Configuración → tu nombre → Inicio de
+sesión y seguridad → Iniciar sesión con Apple → Wera → Eliminar."*
 
 ### If somebody asks to delete only their kitchen
 
@@ -1872,9 +1967,9 @@ November). Nothing here waits on you any more but the list at the foot.
 - ✅ **The notice email** of that section's step 4 — owed to nobody: the only account made before
   14 October is yours (read 12 November).
 - ✅ **Google sign-in for everybody** — *In production* (your word, 9 November).
-- **The pilot Android's new install** — not needed until the pilot starts (`5P-e`): no Android has taken a Wera
-  test update since October.
-- **Supabase Pro** — the day before a shop that is not yours starts keeping its real records.
+- **How a pilot shop installs Wera** — from its store, since 12 November; the test build only for a phone you want
+  measured (*When a shop that is not yours is live*).
+- **Supabase Pro** — the day before a shop that is not yours starts keeping its real records (the same page says how).
 
 ---
 

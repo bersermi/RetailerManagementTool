@@ -539,6 +539,10 @@ on:
       # tests is not, so without this line an edit to the query would merge having
       # run nothing.
       - "docs/runbooks/engagement.sql"
+      # And its sibling, as of plan task 5P-e: `docs/runbooks/health.sql`, the
+      # read of dead letters and the ledger across every shop, held by
+      # `supabase/tests/runbook_health.sql` the same way and for the same reason.
+      - "docs/runbooks/health.sql"
       # ⚠️⚠️ AND THE ONE THING HERE THAT IS NOT POSTGRES, as of plan task `5R-k`.
       # `supabase/functions/apple-revoke/` is the first Edge Function (ADR-035's
       # amendment of 2026-10-13), and `supabase/**` above already re-runs this
