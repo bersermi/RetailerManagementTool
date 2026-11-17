@@ -437,6 +437,15 @@ function ConoceWera() {
   const [, closed] = useState(0);
   // ⚠️ `5R-n`: THE STORY OF HER ROLE, and nothing while her role is not read.
   const role = useMyRole();
+  // ⚠️ `5R-n`, MEASURED ON THE EMULATOR: Inicio stays mounted behind the story,
+  // and the compiler keeps this card from drawing again when the screen does —
+  // the card stayed after her story was seen and marked. So it reads its mark
+  // again every time Inicio comes back in front.
+  useFocusEffect(
+    useCallback(() => {
+      closed((n) => n + 1);
+    }, []),
+  );
   if (historiaVista(deviceStore(), role) !== false) return null;
   return (
     <View
