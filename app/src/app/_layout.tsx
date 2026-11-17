@@ -20,18 +20,19 @@ import {
 } from '@/navigation/lastScreen';
 import { cerradaAlEmpleado } from '@/navigation/inicio';
 import { start as startConnectivity } from '@/lib/connectivityMonitor';
-import { holdSplash, holdSplashForUpdate, releaseSplash } from '@/lib/splash';
-import { puedeEsperar, useEstreno } from '@/lib/useEstreno';
+import { holdSplash, releaseSplash } from '@/lib/splash';
+import { esperaConElSplash, puedeEsperar, useEstreno } from '@/lib/useEstreno';
 import { PILOT_BUILD } from '@/lib/pilotFlag';
 import { OfflineSurfaces } from '@/offline/OfflineSurfaces';
 import { send as sendReadings, touchedApp } from '@/pilot/recorder';
 import { DensityProvider } from '@/theme/DensityProvider';
 import { FUENTES } from '@/theme/letra';
 
-// ⚠️ `8g`: the splash waits for the screen she will see (`@/lib/splash`).
-holdSplash();
-// ⚠️ `5R-n`: and on a build's own first code, for the newest update (`@/lib/estreno`).
-if (puedeEsperar()) holdSplashForUpdate();
+// ⚠️ `8g`: the splash waits for the screen she will see (`@/lib/splash`) —
+// ⚠️ `5R-n`: and on a build's own first code, first for the newest update
+// (`@/lib/estreno`); `holdSplash` then starts when that wait ends.
+if (puedeEsperar()) esperaConElSplash();
+else holdSplash();
 
 // The root, and it now does four things: it puts C3.18's density scale in reach
 // of every screen, it puts the session there too, it puts TanStack Query — the

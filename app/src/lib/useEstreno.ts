@@ -12,14 +12,22 @@
 //
 // ⚠️ ONCE IT HAS OPENED, IT NEVER REOPENS: an update that arrives while she is
 // looking at the screen waits for the next launch, as every update always has.
+//
+// ⚠️⚠️ THE SPLASH ON SUCH A LAUNCH: `esperaConElSplash` holds it with no safety of
+// its own, and `holdSplash` (`@/lib/splash`, unchanged — Wera Cocina's copy is
+// held to it byte for byte) is called when the wait ends, so the screen that then
+// mounts gets the usual `SPLASH_SAFETY_MS` and the welcome lets go once its cow is
+// in. ⚠️ THE WAIT ENDS BY ITSELF, a second past its limit, whatever this hook did:
+// a splash that never lets go is an app that never opens.
 // ============================================================================
 
+import * as SplashScreen from 'expo-splash-screen';
 import * as Updates from 'expo-updates';
 import { useEffect, useRef, useState } from 'react';
 
 import { useAuth } from '@/auth/AuthProvider';
 import { ESPERA_MAXIMA_MS, pasoDe, type Paso } from '@/lib/estreno';
-import { endUpdateWait } from '@/lib/splash';
+import { holdSplash } from '@/lib/splash';
 import { PALETTE } from '@/theme/palette';
 
 /** When this launch's JavaScript started, near enough: this module is read before the first render. */
@@ -30,6 +38,12 @@ const RECARGA_MAXIMA_MS = 3_000;
 /** May this launch wait at all? A build's own code, with expo-updates running. Read before the first render. */
 export function puedeEsperar(): boolean {
   return Updates.isEnabled && Updates.isEmbeddedLaunch && !__DEV__;
+}
+
+/** In place of `holdSplash`, before the first render of a launch that may wait. */
+export function esperaConElSplash(): void {
+  void SplashScreen.preventAutoHideAsync().catch(() => {});
+  setTimeout(holdSplash, ESPERA_MAXIMA_MS + 1_000);
 }
 
 /** `true` once the app may open — at once on every launch but a first open with nobody signed in. */
@@ -53,7 +67,7 @@ export function useEstreno(): boolean {
 
   useEffect(() => {
     if (paso === 'abrir') {
-      endUpdateWait();
+      holdSplash();
       return undefined;
     }
     if (paso === 'recargar') {
