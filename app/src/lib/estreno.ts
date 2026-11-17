@@ -42,6 +42,14 @@ export interface Arranque {
   readonly lista: boolean;
   /** Milliseconds since this launch's JavaScript started. */
   readonly ms: number;
+  /**
+   * ⚠️ THE RELOAD WAS ASKED FOR ALREADY. Measured on the emulator (2026-11-17):
+   * as expo-updates restarts, it RESETS its state — nothing checking, nothing
+   * pending — and a decision read again from that opened the app on the old code
+   * for the few hundred milliseconds before the restart, where the welcome's
+   * mount spent the once-per-phone opening. Once asked, the answer holds.
+   */
+  readonly recargando: boolean;
 }
 
 /** Open on this code, keep the splash up a moment more, or reopen into the update. */
@@ -56,6 +64,7 @@ export type Paso = 'abrir' | 'esperar' | 'recargar';
  */
 export function pasoDe(a: Arranque): Paso {
   if (!a.activo || !a.embebido) return 'abrir';
+  if (a.recargando) return 'recargar';
   if (a.sesion === 'alguien') return 'abrir';
   if (a.lista && a.sesion === 'nadie') return 'recargar';
   if (a.ms >= ESPERA_MAXIMA_MS) return 'abrir';
