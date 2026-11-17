@@ -177,15 +177,15 @@ On the first screen tap "¿Ya tienes cuenta? Entrar" (under the two large button
 | Financial info | **Other financial info** | Prices, costs and the shop's takings |
 | App activity | **Other user-generated content** | The catalog, and each supplier's name, contact, phone and address |
 | Device or other IDs | **Device or other IDs** | The random id each install sends to Expo when it checks for an update |
-| Photos and videos | **Photos** | ⚠️ **Since `8m`:** the photos of a product a shop sends with *Te lo compro*; **since `8o`** also the photo a shop takes of a product it created, for its own list |
-| Personal info | **Address** | ⚠️ **Since `8k`:** the store's address, which is a home when the shop is in one; asked for *Te lo compro* |
+| Photos and videos | **Photos** | The photo an owner or Encargado takes of a product the shop created, for its own list (since `8o`). ⚠️ *Te lo compro*'s photos (`8m`) are paused since `10.0a` — paused, not removed, and it can come back by an update — so the row stays ticked |
+| Personal info | **Address** | The store's address, which is a home when the shop is in one (`8k`). ⚠️ **Since `10.0a` nothing asks for it first:** a shop gives it in *Ajustes* when it wants to (`8q`), and nothing uses it while *Te lo compro* is paused. Still collected, so still ticked |
 | Personal info | **Phone number** | ⚠️ **His ruling of 2026-10-21, declared ahead of use** (*"for future additions"*), as on the App Store. Today no account carries one; a supplier's phone is the shop's own record, above |
 
 **For every one of the ten** — ⚠️ the two `8m` rows apply from the first store build that carries the camera:
 
 | Question | Answer |
 |---|---|
-| Is this data collected, shared, or both? | **Collected** only — Supabase and Expo are service providers — ⚠️ **except Photos: collected and shared.** When Wera offers a product to a buyer it shows the photos with the shop's name (the aviso's section 5, the owner's answer of 2026-10-17) |
+| Is this data collected, shared, or both? | **Collected** only — Supabase and Expo are service providers — ⚠️ **except Photos: collected and shared.** When Wera offers a product to a buyer it shows the photos with the shop's name (the aviso's section 5, the owner's answer of 2026-10-17). ⚠️ **Kept for 1.1 (`5R-o`), though *Te lo compro* is paused:** declaring a share that is not happening today is harmless to review, and it lets *Te lo compro* come back by an update without a form change; declaring less than the app does is what Google refuses |
 | Is this data processed ephemerally? | **No** |
 | Is this data required, or can users choose? | **Required** |
 
@@ -210,8 +210,8 @@ covers every version, store builds included, and the aviso says so (finalidad 9)
 
 **Not ticked, and why:** location, contacts, files, messages, health, web browsing —
 Wera reads none of them and sends none off the phone. Photos are only the ones taken with the
-camera, for *Te lo compro* or (since `8o`) of a product the shop created; the phone's gallery is
-never read. *App interactions*, *Crash logs* and
+camera — of a product the shop created (since `8o`), and for *Te lo compro* while it was open; the
+phone's gallery is never read. *App interactions*, *Crash logs* and
 *Diagnostics* — the pilot's measurements are not in the store build, and there is no crash or
 analytics library. (*Phone number* was here until his ruling of 2026-10-21; it is ticked now.)
 
@@ -346,3 +346,31 @@ Wera: tu tienda ya está en Google Play. Vende, compra, registra merma y ve tus 
 
 Then *Next → Save → Start rollout to Production* (and *Send changes for review* on *Publishing overview*
 if managed publishing is on).
+
+## 9. Wera 1.1.0 — a new production release (`5R-o`)
+
+The handbook's *Wera 1.1 in both stores* has the steps. **Test and release → Production → Create new
+release:**
+
+| Field | Answer |
+|---|---|
+| App bundle | **Upload** the `.aab` the session names (a new version code; 1.0.0 was 7) |
+| Release name | leave what Play fills in |
+| Rollout | **100 %** |
+| Countries / regions | unchanged — **Mexico** only |
+
+**Release notes** (es-419) — the same words as the App Store's *What's New* (`app-store.md`, section 9):
+
+<!-- max:500 -->
+```
+Novedades de Wera 1.1:
+• Quien entra como Empleado ve solo su trabajo: Vender, Comprar, Merma y lo que registró.
+• Conoce Wera: un recorrido de un minuto para el dueño y el encargado, y uno más corto para el empleado.
+• Los arreglos que nos pidieron las tiendas.
+```
+
+**Nothing else changes for 1.1** — read again on 2026-11-17: the listing's text names nothing 1.1 no
+longer does (it never named *Te lo compro*); *Data safety* keeps its ten types and their answers (the
+*Photos* and *Address* rows above say why); the content rating, the target audience, the ads and the
+app access answers are unchanged. The screenshots stay 1.0's of 2026-10-21 — not compared screen by
+screen with 1.1's; `README.md`'s recipe retakes them if he wants them current.
