@@ -176,7 +176,10 @@ what the estimate found.** Update `docs/PLAN.md` (and usually the handbook) when
   look-questions not yet answerable. Full argument: the plan's `## Working agreement`.
 - **Stop and ask before a one-way door** — a migration or anything else that changes the
   database's shape, a rule about who may see or do what, anything the seed bakes in, anything
-  that changes what a shopkeeper sees or types. When he cannot answer, park it in
+  that changes what a shopkeeper, a fonda or a neighbour sees or types — unless his rulings in
+  wera-vision's `negocio/decisiones.md` or the family-shell page already decide it. A notification
+  question (what is sent, to whom, when, what is counted) is his product analyst's: park it in the
+  decisions block as hers. When he cannot answer, park it in
   ⛔ DECISIONS OWED with a recommendation and carry on with what does not depend on it. (The
   owner's standing prompt; written here on 2026-10-13, because a session he starts without
   that prompt is bound by this file alone.)
