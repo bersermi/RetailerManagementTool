@@ -16,7 +16,8 @@
 # and two kitchens: her kitchens listed and never her shop, a shop's name and a
 # name with an accent refused, the line it printed for one kitchen run as printed
 # — that kitchen gone, her login, her shop and her other kitchen kept — and the
-# same line again refused.
+# same line again refused. ⚠️ Since `10.9a-i` each deleted kitchen's choices and requests about
+# its menu (`0081`, `servicio`) are read back gone, and the kept kitchen's kept.
 #
 # WHY IT EXISTS. The runbook is the only way out without the app, and the aviso
 # and both deletion pages promise it (Google requires one). It is run by hand,
@@ -86,6 +87,15 @@ business() { # user-id name kind
 
 users_with() { sql "select count(*)::text as n from auth.users where lower(email) = lower('$1');" n; }
 business_left() { sql "select count(*)::text as n from public.workspace where id = '$1';" n; }
+# `10.9a-i`: what a kitchen uses and what it told Wera about its menu (`0081`), rows of its own.
+servicio_left() { sql "select ((select count(*) from servicio.kitchen_feature where workspace_id = '$1')
+                             + (select count(*) from servicio.menu_request where workspace_id = '$1'))::text as n;" n; }
+# A choice and a request about the menu, written as the database's owner: a deletion must take both.
+uses() { # kitchen-id
+  sql "with f as (insert into servicio.kitchen_feature (workspace_id, feature, state) values ('$1', 'menu', 'interesada') returning 1),
+            m as (insert into servicio.menu_request (workspace_id, body) values ('$1', 'Ensayo') returning 1)
+       select ((select count(*) from f) + (select count(*) from m))::text as n;" n
+}
 
 # Every fixture still standing goes, as the function deletes: each one's own
 # businesses named. Silent; a leftover never makes a case green.
@@ -130,6 +140,9 @@ fixtures() {
   kitchen_g2="Antojitos Gabi $tag"
   u_g="$(login tres)" && s_g="$(business "$u_g" "$shop_g" tienda)" \
     && k_g="$(business "$u_g" "$kitchen_g" cocina)" && k_g2="$(business "$u_g" "$kitchen_g2" cocina)" || return 1
+  # `10.9a-i`: three kitchens with a choice and a request each — one deleted with its account, one
+  # deleted alone, one kept.
+  [[ "$(uses "$k_b")" == 2 && "$(uses "$k_g")" == 2 && "$(uses "$k_g2")" == 2 ]] || return 1
 }
 
 # One case: the runbook's exit code, a sentence it printed, and what the
@@ -154,7 +167,7 @@ N_KITCHEN_ASKED="a kitchen alone, asked for without its name, is refused and nam
 N_BOTH_ASKED="a shop and a kitchen, asked for without names, are both named, and nothing changes"
 N_ONE_OF_TWO="one name of two is refused before the database is asked, and nothing changes"
 N_ONE_WRONG="two names, one of them wrong, is refused by the database itself, and nothing changes"
-N_PRINTED="the command it printed, run as printed, deletes the login, the shop and the kitchen"
+N_PRINTED="the command it printed, run as printed, deletes the login, the shop and the kitchen — with what the kitchen uses and told Wera"
 N_APOSTROPHE="a kitchen's name with an apostrophe, typed in another case and spacing, deletes it"
 N_SHOP_ALONE="a shop alone and one --shop, as before this row, deletes both"
 N_COOWNER="a co-owner needs no name: her login goes, the shop stays, her name stays on it"
@@ -163,7 +176,7 @@ K_NOBODY="the kitchen's runbook: an email with no account is refused, and nothin
 K_ASKED="no kitchen named: her two kitchens listed, never her shop, and nothing changes"
 K_SHOP="her shop's name is no kitchen's: refused, and nothing changes"
 K_ACCENT="her kitchen's name with an accent added: refused — accents count — and nothing changes"
-K_PRINTED="the line it printed for one kitchen, run as printed: that kitchen gone, her login, her shop and her other kitchen kept"
+K_PRINTED="the line it printed for one kitchen, run as printed: that kitchen gone with what it uses and told Wera, her login, her shop and her other kitchen kept, its own kept"
 K_AGAIN="the same line again: refused — no kitchen of hers is called that any more — and nothing else changes"
 
 # ⚠️ `part` is `all`, `account` or `kitchen`: a broken copy of ONE runbook runs that
@@ -203,7 +216,7 @@ cases() { # account-runbook kitchen-runbook [part]
   else
     run "${args[@]}"
   fi
-  check "$N_PRINTED" 0 "Done on the LOCAL database" "users_with $(mail ambas); business_left $s_b; business_left $k_b" "0 0 0"
+  check "$N_PRINTED" 0 "Done on the LOCAL database" "users_with $(mail ambas); business_left $s_b; business_left $k_b; servicio_left $k_b" "0 0 0 0"
 
   run "$(mail solo-cocina)" --shop "fonda  d'lupe $tag" --local
   check "$N_APOSTROPHE" 0 "businesses deleted: 1" "users_with $(mail solo-cocina); business_left $k_a" "0 0"
@@ -245,7 +258,7 @@ cases() { # account-runbook kitchen-runbook [part]
   else
     run_kitchen "${args[@]}"
   fi
-  check "$K_PRINTED" 0 "Done on the LOCAL database" "$everything" "1 0 1 1"
+  check "$K_PRINTED" 0 "Done on the LOCAL database" "$everything; servicio_left $k_g; servicio_left $k_g2" "1 0 1 1 0 2"
 
   if [[ -n "$again" ]] && eval "args=($again)"; then run_kitchen "${args[@]}"; else out="(no line)"; code=99; fi
   check "$K_AGAIN" 1 "no kitchen $(mail tres) alone owns is called" "$everything" "1 0 1 1"

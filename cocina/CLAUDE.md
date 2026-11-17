@@ -21,6 +21,7 @@ bash docs/checks/5R-k-apple-revoke-contract.sh     # the same stack: the functio
 bash docs/checks/10.5-i-a-kitchen-photos-contract.sh   # the same stack WITH Storage started before the reset: her page and the bucket `cocina`, by this app's names
 bash docs/checks/10.5b-iv-a-handover-contract.sh      # the same stack: her kitchen's reservations, who reserved each, the handover and her thumb, by apartados.ts's names — and her queue's claims, by cola.ts's
 bash docs/checks/10.5b-iv-c-settings-contract.sh      # the same stack: her settings, her stars, each dish's ways, − and +, and the read before a deletion, by ajustes.ts', calificaciones.ts', listing.ts' and account.ts' names
+bash docs/checks/10.9a-i-features-contract.sh         # the same stack: what her kitchen uses, Wera's switch, Cuéntanos, and the door's word on it, by servicios.ts' names and Itacate's
 bash store/cocina-itacate/render.sh giros         # the nine trades' drawings, from brand/giros.svg into src/marca/giros/ — and nothing else
 TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic is local time, and the Mac is UTC−6
 ```
@@ -63,7 +64,12 @@ TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic i
   `cocina-handover`), a neighbour reserving through Itacate's names. ⚠️ **Since `10.5b-iv-c`, `src/api/ajustes.ts` and
   `src/api/calificaciones.ts`** — her six settings on `kitchen_page` and the keys `set_kitchen_page` reads, `0080`'s `my_kitchen_ratings`
   and every key of its answer — **with `listing.ts`' − and + and each dish's ways, and `account.ts`' pending read**, are asked by
-  `docs/checks/10.5b-iv-c-settings-contract.sh` and its falsifier (its own job, `cocina-settings`). ⚠️ **And a kitchen's place is read by the kitchen's id**
+  `docs/checks/10.5b-iv-c-settings-contract.sh` and its falsifier (its own job, `cocina-settings`). ⚠️ **Since `10.9a-i`, `src/api/servicios.ts`** —
+  `0081`'s `my_kitchen_features`, `set_kitchen_features` and `send_menu_request`, every argument and key of their one answer, the four features,
+  the three states and `TD024` — is asked by `docs/checks/10.9a-i-features-contract.sh` and its falsifier (its own job, `cocina-features`), with
+  the door's `features` by Itacate's names. Her choices are **per kitchen, never per phone**: every member reads them, only the owner writes them
+  and what she tells Wera about the menu; a feature Wera has switched off (`available`) is offered nowhere and refused `on`; a feature or a state
+  this build does not know is left out (`loQueUsaFrom`). Read by `useServicios`; no screen writes them until `10.9a-ii`. ⚠️ **And a kitchen's place is read by the kitchen's id**
   (`firstPlace`): the walls show a shop's owner her shop's store too, and an unfiltered read's first
   row is that store — her kitchen's address and pin would land on her shop (`10.4b-iii-b`).
 - **A kitchen is made whole at the end of the sign-up** (`src/api/registro.ts`, `10.4b-iii-b`): her
@@ -215,7 +221,8 @@ TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic i
   sent, an offer with nothing left not on offer, though her kitchen is still *seen* while it is open, as the door says (`seVeEnItacate`
   ignores what is left); **her settings** — payment, ways, who may reserve — and each dish's own ways and each offer's *desechable*; **her
   stars** from five (`@/api/calificaciones`' `estrellasDe`: the door's three most given good tags, worked out from her own
-  `my_kitchen_ratings`, never the door). Unread, each part is the door's default (`SIN_AJUSTES`, held to its `coalesce`s by
+  `my_kitchen_ratings`, never the door); ⚠️ and since `10.9a-i` **what the door says she uses** (`servicios`: `@/api/servicios`' `enLaPuerta`,
+  from her own `my_kitchen_features` — the card and promotions she uses, never her numbers — `[]` while unread). Unread, each part is the door's default (`SIN_AJUSTES`, held to its `coalesce`s by
   `test/comoLaVen.test.ts`). ⚠️ **Since `10.5b-iii-a` the dish page takes a foot (`pie`) that only Itacate's route fills** — the
   preview draws none, so no *Apartar* here. The copies draw the stars and *Cómo pagas aquí* in Itacate's amber (`estrella`,
   `estrellaApagada`).
@@ -367,7 +374,9 @@ follows it, as `itacate/CLAUDE.md`'s does:
   she uses, in a fixed order, and *Tu página · 4 de 5* gives way to one quiet nudge line (`10.9a`); *Mi cocina* gains *Lo que
   usas* and *Quién trabaja aquí* (`10.9a`, `10.9b`); **a helper — the database's *staff* — publishes and hands over**
   (`10.9b`); a camera module to scan, and printing and sharing for the counter poster, arrive with a new store build
-  (`10.9c`). A service never lives in two places: its tile on *Hoy* opens its one screen.
+  (`10.9c`). A service never lives in two places: its tile on *Hoy* opens its one screen. ⚠️ **`10.9a` split in three on 2026-11-17**: the database
+  and both apps' claims (`10.9a-i`, built — `@/api/servicios`), the first run's third step and *Lo que usas* (`10.9a-ii`), *Hoy*'s tiles and the
+  nudges (`10.9a-iii`).
 - **The first run** (`10.5-v-d`, the family-shell page's): a stranger is sent to the opening (`(auth)/hola`, `@/auth/guard`),
   Wera's `8g` opening in Cocina's green (`@/ui/Apertura`, `@/theme/apertura` — starts on the splash's own frame, ends on the
   icon's picture, both read off `store/cocina-itacate/render.sh` and `app.json` by `test/primera.test.ts`; once per phone,

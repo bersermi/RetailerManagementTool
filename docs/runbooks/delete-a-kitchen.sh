@@ -16,9 +16,10 @@
 #
 # It does EXACTLY what *Eliminar esta cocina* does: it calls `delete_my_business`
 # (`0077`) as that person, with the kitchen and the name typed, so the kitchen
-# goes with everything in it — its place, its page, what it published — and her
-# login and every other business she owns stay. There is no second deletion
-# path to keep in step with the first.
+# goes with everything in it — its place, its page, what it published, and since
+# `0081` what it uses and what it told Wera about its menu — and her login and
+# every other business she owns stay. There is no second deletion path to keep in
+# step with the first.
 #
 # ⚠️ A SCRIPT OF ITS OWN, NOT A FLAG ON `delete-an-account.sh`: that one deletes a
 # login, and a flag forgotten there would delete the account she asked to keep.

@@ -7,14 +7,15 @@
 // `10.4h` (address first: her line with no pin, and her pin cleared), `10.5-ii`
 // (her page in Itacate, and the pictures that go up before what points at them),
 // `10.5-i-b-ii` (Google's point for her address, kept as a 30-day copy),
-// `10.5b-iv-a` (her kitchen's reservations, the handover and the fonda's thumb) and
-// `10.5b-iv-c` (her settings, her stars, − and +, and the read before Apple is told).
+// `10.5b-iv-a` (her kitchen's reservations, the handover and the fonda's thumb),
+// `10.5b-iv-c` (her settings, her stars, − and +, and the read before Apple is told) and
+// `10.9a-i` (what her kitchen uses, and what she tells Wera about the menu).
 //
 // ⚠️ THE IMPURE HALF OF `src/api/` (ADR-035 §2.11): the only module here that
 // imports the live client, so no node suite can load it; every name it sends is
 // a constant from a pure module beside it (`@/api/kitchen`, `@/api/place`,
 // `@/api/account`, `@/api/listing`, `@/api/pagina`, `@/api/fotos`,
-// `@/api/apartados`, `@/api/ajustes`, `@/api/calificaciones`), which the
+// `@/api/apartados`, `@/api/ajustes`, `@/api/calificaciones`, `@/api/servicios`), which the
 // suite and the contract checks read. Screens reach these through `@/api/hooks`.
 // ============================================================================
 
@@ -77,6 +78,18 @@ import {
   type SobreElVecino,
 } from '@/api/apartados';
 import { MY_KITCHEN_RATINGS, calificacionesFrom, ratingsArgs, type Calificaciones } from '@/api/calificaciones';
+import {
+  MY_KITCHEN_FEATURES,
+  SEND_MENU_REQUEST,
+  SET_KITCHEN_FEATURES,
+  featuresArgs,
+  loQueUsaFrom,
+  menuRequestArgs,
+  setFeaturesArgs,
+  type Estado,
+  type LoQueUsa,
+  type Servicio,
+} from '@/api/servicios';
 import type { DireccionCalls } from '@/api/direccion';
 import {
   PHOTO_BUCKET,
@@ -349,6 +362,36 @@ export async function myKitchenRatings(kitchenId: string): Promise<Calificacione
   const { data, error } = await supabase.rpc(MY_KITCHEN_RATINGS, ratingsArgs(kitchenId));
   if (error) throw error;
   return calificacionesFrom(data);
+}
+
+/**
+ * `10.9a-i`: what her kitchen uses, what Wera offers, Próximamente (`0081`) — any member. ⚠️ An answer
+ * it cannot read is an error, never *nothing chosen*: a screen must not draw her choices as none.
+ */
+export async function myKitchenFeatures(kitchenId: string): Promise<LoQueUsa> {
+  const { data, error } = await supabase.rpc(MY_KITCHEN_FEATURES, featuresArgs(kitchenId));
+  if (error) throw error;
+  const loQueUsa = loQueUsaFrom(data);
+  if (loQueUsa === null) throw new TypeError(`${MY_KITCHEN_FEATURES}: an answer this build cannot read`);
+  return loQueUsa;
+}
+
+/** `10.9a-i`: her choices, one or several — the owner only; it answers the read as the database left it. */
+export async function setKitchenFeatures(kitchenId: string, choices: Readonly<Partial<Record<Servicio, Estado>>>): Promise<LoQueUsa> {
+  const { data, error } = await supabase.rpc(SET_KITCHEN_FEATURES, setFeaturesArgs(kitchenId, choices));
+  if (error) throw error;
+  const loQueUsa = loQueUsaFrom(data);
+  if (loQueUsa === null) throw new TypeError(`${SET_KITCHEN_FEATURES}: an answer this build cannot read`);
+  return loQueUsa;
+}
+
+/** `10.9a-i`: *Cuéntanos cómo necesitas tu menú* — kept by Wera, never sent anywhere; the owner only. */
+export async function sendMenuRequest(kitchenId: string, text: string): Promise<LoQueUsa> {
+  const { data, error } = await supabase.rpc(SEND_MENU_REQUEST, menuRequestArgs(kitchenId, text));
+  if (error) throw error;
+  const loQueUsa = loQueUsaFrom(data);
+  if (loQueUsa === null) throw new TypeError(`${SEND_MENU_REQUEST}: an answer this build cannot read`);
+  return loQueUsa;
 }
 
 /**

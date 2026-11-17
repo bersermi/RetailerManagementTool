@@ -421,4 +421,14 @@ describe('`10.5b-iv-c`: her preview with what is left, her settings and her star
     const sinLeer = cocinaComoLaVen(base);
     expect(sinLeer).toMatchObject({ pagos: ['efectivo'], comeres: ['llevar'], minScore: null, estrellas: null });
   });
+
+  it('`10.9a-i`: what the door says she uses reaches the kitchen the pages draw; unread, none — as the door says of a kitchen that chose nothing', () => {
+    const now = ahora();
+    const base = { kitchen: COCINA, place: lugar(), page: EMPTY_PAGE, listings: [], now };
+    expect(cocinaComoLaVen({ ...base, servicios: ['tarjeta'] }).servicios).toEqual(['tarjeta']);
+    expect(cocinaComoLaVen(base).servicios).toEqual([]);
+    // The door's own text: an empty list, never null, for a kitchen with nothing on.
+    const { body } = ultimaQueDefine('on_offer_now');
+    expect(body).toContain("'features', (select coalesce(jsonb_agg(f.feature order by array_position(array['tarjeta', 'promociones'], f.feature)), '[]'::jsonb)");
+  });
 });

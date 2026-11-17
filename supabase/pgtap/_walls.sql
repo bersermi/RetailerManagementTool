@@ -86,6 +86,9 @@ signed_in (proname) as (values
   -- (refused for everyone while switched off) — and her three, keyed on her own id
   ('reservation_neighbours'), ('rate_neighbour'), ('my_kitchen_ratings'),
   ('cancel_reservation_as_kitchen'), ('give_my_yes'), ('my_standing'), ('rate_kitchen'),
+  -- what a kitchen uses (`0081`, plan `10.9a-i`): every member reads her kitchen's
+  -- choices; its owner alone writes them and what she tells Wera about the menu
+  ('my_kitchen_features'), ('set_kitchen_features'), ('send_menu_request'),
   -- what a policy, a check or a computed column runs as the caller
   ('catalog_image_path'), ('has_role'), ('merma_path_ok'), ('my_locations'),
   ('my_role'), ('my_workspaces'), ('normalize_name'), ('photo_folder_ok'),
