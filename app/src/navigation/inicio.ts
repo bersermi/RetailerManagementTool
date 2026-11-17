@@ -1,5 +1,7 @@
 import type { Href } from 'expo-router';
 
+import type { Documents } from '@/api/documents';
+import type { Role } from '@/api/members';
 import type { GlyphName } from '@/navigation/tabs';
 import { ES } from '@/strings';
 
@@ -30,6 +32,20 @@ import { ES } from '@/strings';
 // space for, then the bell and Ajustes last. C12.1 caps the bar at four — five
 // icon-plus-word tabs across 390 px gives each 78 px and one of the words is
 // *Desperdicio* — and área 13 settled that by drawing it on 2026-09-15.
+//
+// ⚠️⚠️ AND SINCE `5R-n` (THE OWNER'S RULING OF 2026-11-17) IT IS TWO SCREENS, BY
+// ROLE: *"Empleado can only use the operational features like recording Ventas,
+// Compras and Merma. No Numeros, can only see lo último on things she rang up
+// herself."* Her Inicio is `INICIO_EMPLEADO` — no takings, no week, no streak,
+// no savings — her doors are the ones marked `empleado`, her *Lo último* is
+// `loQueRegistro`'s, and the rooms she no longer reaches from here send her back
+// (`cerradaAlEmpleado`, read by the root layout's `Gate`). The owner and the
+// Encargado keep everything. ⚠️ A ROLE NOT YET READ IS HERS, as the walkthrough's
+// rule is (`@/navigation/recorrido`): a frame of the short screen for an owner is
+// nothing, a frame of the takings for an Empleado is the thing he ruled out.
+// ⚠️⚠️ ON THE SCREEN ONLY — his ruling of the same evening (*"Go with your
+// recommendation"*): the database still answers her login with the store's sales
+// (`sale_line`, `0003`), so this hides what the app shows and refuses nothing.
 // ============================================================================
 
 /**
@@ -83,6 +99,24 @@ export const INICIO_BLOCKS: readonly InicioBlock[] = [
 ];
 
 /**
+ * ⚠️ `5R-n` — THE EMPLEADO'S INICIO, in the owner's order: the dead-letter
+ * banner, *Conoce Wera*, the three doors to her work, *Lo último* (only what she
+ * recorded) and *Más* (only Lo último and Ajustes). Never *Hoy*'s takings,
+ * *Tu semana*, *la racha*, *Ahorro en compras* nor the next pickup.
+ */
+export const INICIO_EMPLEADO: readonly InicioBlock[] = ['aviso', 'recorrido', 'puertas', 'ultimo', 'mas'];
+
+/** Does she see the shop's whole Inicio — its figures and every room? The owner and the Encargado. */
+export function veTodoElInicio(role: Role | null): boolean {
+  return role === 'owner' || role === 'manager';
+}
+
+/** The bands of her Inicio, top to bottom. A role not yet read gets the Empleado's. */
+export function bloquesDe(role: Role | null): readonly InicioBlock[] {
+  return veTodoElInicio(role) ? INICIO_BLOCKS : INICIO_EMPLEADO;
+}
+
+/**
  * Where a door sits and therefore how big it is drawn — §2.8's own two words.
  * *Tarjeta* is a large card for a work module; *fila* is a row for a room.
  */
@@ -133,6 +167,13 @@ export interface InicioDoor {
    * answers empty for anyone else. Absent for everybody else, not dead.
    */
   readonly ownerOnly?: boolean;
+  /**
+   * ⚠️ `5R-n`, THE OWNER'S RULING OF 2026-11-17: DRAWN FOR AN EMPLEADO TOO — her
+   * work (Vender, Comprar, Merma), what she recorded (*Lo último*) and Ajustes.
+   * `false` is a room of the shop's — its figures, its catalog, its suppliers —
+   * which only the owner and the Encargado open. Absent for her, not dead.
+   */
+  readonly empleado: boolean;
 }
 
 /**
@@ -158,6 +199,7 @@ export interface InicioDoor {
 export const INICIO_DOORS: readonly InicioDoor[] = [
   {
     key: 'vender',
+    empleado: true,
     shape: 'tarjeta',
     label: ES.tabs.vender,
     icon: 'cash-register',
@@ -166,6 +208,7 @@ export const INICIO_DOORS: readonly InicioDoor[] = [
   },
   {
     key: 'comprar',
+    empleado: true,
     shape: 'tarjeta',
     label: ES.tabs.comprar,
     icon: 'truck-delivery',
@@ -174,6 +217,7 @@ export const INICIO_DOORS: readonly InicioDoor[] = [
   },
   {
     key: 'desperdicio',
+    empleado: true,
     shape: 'tarjeta',
     label: ES.tabs.desperdicio,
     icon: 'basket-minus-outline',
@@ -182,6 +226,7 @@ export const INICIO_DOORS: readonly InicioDoor[] = [
   },
   {
     key: 'productos',
+    empleado: false,
     shape: 'mas',
     label: ES.catalog.title,
     icon: 'package-variant-closed',
@@ -194,6 +239,7 @@ export const INICIO_DOORS: readonly InicioDoor[] = [
   },
   {
     key: 'proveedores',
+    empleado: false,
     shape: 'mas',
     label: ES.providers.title,
     icon: 'account-tie-outline',
@@ -215,6 +261,7 @@ export const INICIO_DOORS: readonly InicioDoor[] = [
   },
   {
     key: 'numeros',
+    empleado: false,
     shape: 'mas',
     label: ES.numbers.title,
     icon: 'chart-bar',
@@ -225,13 +272,16 @@ export const INICIO_DOORS: readonly InicioDoor[] = [
       'four and full. A row and not a card, and for the reason that put ' +
       'Productos and the recent-documents list here: a thing you look at between ' +
       'customers, not a thing you do all day. ⚠️ LAST, so no door a shopkeeper ' +
-      'has already learned moves. ⚠️ No fence on it: the same ruling made it ' +
-      "every role's, which is §2.7's matrix — sale_line_select has no has_role " +
-      '(0003), so a cashier sees her own stores by RLS. ⚠️ The glyph is the BAR ' +
+      'has already learned moves. ⚠️ No fence on it in the database: ' +
+      "sale_line_select has no has_role (0003). ⚠️ BUT SINCE 5R-n (the owner's " +
+      'ruling of 2026-11-17, reversing his 7a of 2026-09-28) it is not drawn for ' +
+      'an Empleado — "No Numeros" — and the database was left as it is, his ' +
+      'second ruling of that evening. ⚠️ The glyph is the BAR ' +
       'CHART because a bar chart is what the screen opens on.',
   },
   {
     key: 'documentos',
+    empleado: true,
     shape: 'mas',
     label: ES.documents.title,
     icon: 'clipboard-text-clock-outline',
@@ -251,6 +301,7 @@ export const INICIO_DOORS: readonly InicioDoor[] = [
   },
   {
     key: 'solicitudes',
+    empleado: false,
     shape: 'mas',
     label: ES.approvals.bell,
     icon: 'bell-outline',
@@ -264,6 +315,7 @@ export const INICIO_DOORS: readonly InicioDoor[] = [
   },
   {
     key: 'ajustes',
+    empleado: true,
     shape: 'mas',
     label: ES.settings.title,
     icon: 'cog-outline',
@@ -294,4 +346,67 @@ export function doorsOfShape(shape: InicioShape): readonly InicioDoor[] {
  */
 export function isOpen(door: InicioDoor): boolean {
   return door.route !== null;
+}
+
+/**
+ * ⚠️ `5R-n` — THE DOORS OF ONE SHAPE THAT HER ROLE OPENS, in table order. The
+ * owner and the Encargado get every door (the bell is still the owner's alone,
+ * which `index.tsx` asks of the queue); an Empleado, and a role not yet read,
+ * only the doors marked `empleado`.
+ */
+export function doorsFor(shape: InicioShape, role: Role | null): readonly InicioDoor[] {
+  const all = veTodoElInicio(role);
+  return doorsOfShape(shape).filter((door) => all || door.empleado);
+}
+
+/**
+ * ⚠️ `5R-n` — THE ROOMS AN EMPLEADO NO LONGER REACHES FROM INICIO, AND EVERY ROOM
+ * THAT OPENS ONLY FROM THEM: Números and *Tu semana*; Productos with the catalog,
+ * a product's page, its prices, its costs and the forms that make or edit one;
+ * Proveedores with a supplier's page and the form that makes one. Opened another
+ * way — a link, a screen left open when her role changed — she is sent to Inicio.
+ *
+ * ⚠️ A ROUTE AND EVERYTHING UNDER IT: `/ficha` closes `/ficha/<id>`.
+ * `app/test/inicio.test.ts` reads every route file under `src/app/` and holds
+ * each to one side of this list, so a new room is a decision, not a door left open.
+ */
+export const CERRADAS_AL_EMPLEADO = [
+  '/numeros',
+  '/semana',
+  '/productos',
+  '/catalogo',
+  '/ficha',
+  '/producto',
+  '/precios',
+  '/costos',
+  '/proveedores',
+  '/proveedor',
+] as const;
+
+/**
+ * Is she somewhere her role does not open? ⚠️ ONLY A ROLE READ AS EMPLEADO IS
+ * SENT BACK — never one not yet read: an owner reopening Números must not be
+ * moved while the roster answers. Inicio already draws no door for a role not read.
+ */
+export function cerradaAlEmpleado(role: Role | null, pathname: string): boolean {
+  if (role !== 'staff') return false;
+  return CERRADAS_AL_EMPLEADO.some((room) => pathname === room || pathname.startsWith(`${room}/`));
+}
+
+/**
+ * ⚠️ `5R-n` — *LO ÚLTIMO* FOR HER ROLE: the owner and the Encargado see every
+ * document of the shop; an Empleado, and a role not yet read, only the ones she
+ * recorded (`created_by`, already read for `mayCorrect`). A document with no
+ * author is nobody's, so not hers. The notes still on her phone are not passed
+ * here: they are on her phone because she recorded them.
+ *
+ * ⚠️ A LIST THAT HAD DOCUMENTS AND HAS NONE OF HERS IS `nothing`, never `unknown`
+ * — the read answered; the sentence under it is *no hay*, not *se ve cuando haya señal*.
+ */
+export function loQueRegistro<D extends Documents>(docs: D, role: Role | null, userId: string | null): D {
+  if (veTodoElInicio(role)) return docs;
+  const suyos = docs.documents.filter((doc) => userId !== null && doc.createdBy === userId);
+  const state = docs.state === 'some' && suyos.length === 0 ? 'nothing' : docs.state;
+  // ⚠️ THE REST OF WHAT THE HOOK ANSWERED (`failed`) RIDES ALONG UNCHANGED.
+  return { ...docs, state, documents: suyos } as D;
 }

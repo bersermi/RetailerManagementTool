@@ -26,14 +26,15 @@ import {
 } from '@/api/sales';
 import { showsTakings, takingsLine } from '@/api/today';
 import { formatMXN } from '@/format/mxn';
-import { INICIO_BLOCKS, doorsOfShape, type InicioBlock, type InicioDoor } from '@/navigation/inicio';
+import { bloquesDe, doorsFor, loQueRegistro, type InicioBlock, type InicioDoor } from '@/navigation/inicio';
+import { useAuth } from '@/auth/AuthProvider';
 import { TE_LO_COMPRO, veTeLoCompro } from '@/navigation/pausa';
 import { DeadLetterBanner } from '@/offline/DeadLetterBanner';
 import { useOnline } from '@/offline/useOnline';
 import { useTakingsWithUnsent, useUnsent } from '@/offline/useUnsent';
 import { useReduceMotion } from '@/lib/movimiento';
 import { useRecorridoPorSiSolo } from '@/navigation/useRecorrido';
-import { RECORRIDO_KEY } from '@/offline/ensenar';
+import { historiaVista, marcarHistoria } from '@/offline/ensenar';
 import { deviceStore, readKey, writeKey } from '@/lib/store';
 import { WEEK_SEEN_KEY, lastWeek, offersWeek, weekRange } from '@/api/semana';
 import { ES } from '@/strings';
@@ -62,6 +63,12 @@ import { Rotulo } from '@/ui/Rotulo';
 // ⚠️ THE ORDER IS THE TABLE'S, `INICIO_BLOCKS` in `@/navigation/inicio`, read by
 // `app/test/inicio.test.ts`: the banner, then *Hoy* — state before anything
 // tappable — then the rest.
+//
+// ⚠️⚠️ `5R-n`, THE OWNER'S RULING OF 2026-11-17: AN EMPLEADO'S INICIO IS HER WORK
+// — `bloquesDe` gives her `INICIO_EMPLEADO` (no *Hoy*, no week, no streak, no
+// savings), `doorsFor` her doors, and *Lo último* only what she recorded
+// (`loQueRegistro`). A role not yet read draws hers. On the screen only: the
+// database still answers her login with the store's sales (his ruling).
 //
 // ⚠️ EVERY NUMBER IS A READ THE APP ALREADY MAKES. The record and the streak are
 // Números' six months of days (`useSales`), the figure is `useToday` with the
@@ -127,6 +134,8 @@ export default function Inicio() {
   useFreshPickupsWhenShown(focused);
   // ⚠️ `8g`, 2026-10-21: a shop in its first days gets *Conoce Wera* by itself, once.
   useRecorridoPorSiSolo(false);
+  // ⚠️ `5R-n`: WHICH INICIO — the shop's, or the Empleado's.
+  const role = useMyRole();
   const [burst, setBurst] = useState(0);
   const [cheer, setCheer] = useState<string | null>(null);
   const celebrate = useCallback((word: string) => {
@@ -143,7 +152,7 @@ export default function Inicio() {
         refreshControl={<Jalar {...refresh} />}
       >
         {/* ⚠️ THE ORDER IS THE TABLE'S AND NOT THIS FILE'S — see the header. */}
-        {INICIO_BLOCKS.map((block) => (
+        {bloquesDe(role).map((block) => (
           <Bloque key={block} block={block} focused={focused} onCelebrate={celebrate} />
         ))}
       </ScrollView>
@@ -426,7 +435,9 @@ function Marca({ gross, best, weekday, reduce }: { gross: number; best: number; 
 function ConoceWera() {
   const { scale } = useDensity();
   const [, closed] = useState(0);
-  if (readKey(deviceStore(), RECORRIDO_KEY) !== null) return null;
+  // ⚠️ `5R-n`: THE STORY OF HER ROLE, and nothing while her role is not read.
+  const role = useMyRole();
+  if (historiaVista(deviceStore(), role) !== false) return null;
   return (
     <View
       style={{
@@ -466,7 +477,7 @@ function ConoceWera() {
         accessibilityRole="button"
         accessibilityLabel={ES.recorrido.inicio.close}
         onPress={() => {
-          writeKey(deviceStore(), RECORRIDO_KEY, '1');
+          marcarHistoria(deviceStore(), role);
           closed((n) => n + 1);
         }}
         style={{ minHeight: scale.tapTarget, minWidth: scale.tapTarget, alignItems: 'center', justifyContent: 'center' }}
@@ -588,9 +599,10 @@ function Puertas() {
     comprar: PALETTE.compra,
     desperdicio: PALETTE.desperdicio,
   };
+  const role = useMyRole();
   return (
     <View style={{ flexDirection: 'row', gap: scale.rowGap }}>
-      {doorsOfShape('tarjeta').map((door) => (
+      {doorsFor('tarjeta', role).map((door) => (
         <Pressable
           key={door.key}
           accessibilityRole="button"
@@ -627,7 +639,11 @@ function Puertas() {
  */
 function Ultimo({ focused }: { focused: boolean }) {
   const { scale } = useDensity();
-  const { documents, state } = useDocuments('sale');
+  // ⚠️ `5R-n`: AN EMPLEADO'S ARE THE SALES SHE RANG UP (`loQueRegistro`), and the
+  // notes still on her phone are hers already.
+  const role = useMyRole();
+  const { session } = useAuth();
+  const { documents, state } = loQueRegistro(useDocuments('sale'), role, session?.user.id ?? null);
   const online = useOnline();
   // ⚠️ `8g`, 2026-10-20: AND THE SALES STILL ON THE PHONE, deduped by id against
   // what the server answered — the offline report's C. No mark: *Lo último*
@@ -892,7 +908,8 @@ function Mas() {
   const { scale } = useDensity();
   const role = useMyRole();
   const queue = usePendingRequests();
-  const doors = doorsOfShape('mas').filter((d) => !d.ownerOnly || (role === 'owner' && queue.visible));
+  // ⚠️ `5R-n`: AN EMPLEADO'S *MÁS* IS LO ÚLTIMO AND AJUSTES (`doorsFor`).
+  const doors = doorsFor('mas', role).filter((d) => !d.ownerOnly || (role === 'owner' && queue.visible));
   const rows: (InicioDoor | null)[][] = [];
   for (let i = 0; i < doors.length; i += 3) {
     const row: (InicioDoor | null)[] = doors.slice(i, i + 3);

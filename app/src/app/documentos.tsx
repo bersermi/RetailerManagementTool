@@ -26,6 +26,7 @@ import {
   type ShopDocument,
 } from '@/api/documents';
 import { useCorrectDocument, useDocuments, useMyRole } from '@/api/hooks';
+import { loQueRegistro } from '@/navigation/inicio';
 import { useRefresh } from '@/offline/useRefresh';
 import { Jalar } from '@/ui/Jalar';
 import { useAuth } from '@/auth/AuthProvider';
@@ -146,12 +147,20 @@ export default function Documentos() {
   // DELIBERATE. Hooks cannot be called conditionally, and the version that could
   // — one `useDocuments(kind)` — would re-fetch on every switch in the pilot
   // store, where half the day has no signal. Two keys, both warm.
-  const purchases = useDocuments('purchase');
-  const sales = useDocuments('sale');
+  // ⚠️⚠️ `5R-n`, THE OWNER'S RULING OF 2026-11-17: AN EMPLEADO SEES ONLY WHAT SHE
+  // RECORDED (*"can only see lo último on things she rang up herself"*) —
+  // `loQueRegistro` (`@/navigation/inicio`), on all three kinds. The owner and the
+  // Encargado see the shop's. On the screen only: the database still answers her.
+  const role = useMyRole();
+  const { session } = useAuth();
+  const userId = session?.user.id ?? null;
+
+  const purchases = loQueRegistro(useDocuments('purchase'), role, userId);
+  const sales = loQueRegistro(useDocuments('sale'), role, userId);
   // ⚠️ THE THIRD, `6a-ii-a`. The paragraph above is why all of them are
   // subscribed rather than only the visible one, and it holds harder with three:
   // a switch that re-fetched would do it twice as often in a shop with no signal.
-  const waste = useDocuments('waste');
+  const waste = loQueRegistro(useDocuments('waste'), role, userId);
   const shown = kind === 'purchase' ? purchases : kind === 'sale' ? sales : waste;
 
   // ⚠️ WHAT THE CONFIRMATION BOX IS ASKING ABOUT, or `null`. `5h-ii-b`.
@@ -175,10 +184,8 @@ export default function Documentos() {
 
   // ⚠️ THE HALF OF `0021`'s FENCE THIS PHONE CAN KNOW — and this screen decides
   // none of it: `mayCorrect` (`@/api/corrections`) does, and the database
-  // decides the half that involves a clock.
-  const role = useMyRole();
-  const { session } = useAuth();
-  const userId = session?.user.id ?? null;
+  // decides the half that involves a clock. `role` and `userId` are read above,
+  // where `5R-n` needs them first.
 
   const { correct, working, failed, forget } = useCorrectDocument();
 

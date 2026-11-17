@@ -15,7 +15,9 @@
 // phone was standing beside the first.
 // ============================================================================
 
+import type { Role } from '@/api/members';
 import { readKey, writeKey, type DeviceStore } from '@/lib/store';
+import { historiaDe, vioSuHistoria, type Historia } from '@/navigation/recorrido';
 
 /** The first sale's line has been shown on this phone. */
 export const FIRST_SALE_KEY = 'wera.taught.first-sale';
@@ -32,6 +34,38 @@ export const OPENING_KEY = 'wera.taught.opening';
  * without signal is still taught at its two moments, and the story only names it.
  */
 export const RECORRIDO_KEY = 'wera.taught.recorrido';
+
+/**
+ * ⚠️ `5R-n`, 2026-11-17: EACH STORY'S OWN MARK — *Conoce Wera* once per story,
+ * not per phone (`@/navigation/recorrido`). `RECORRIDO_KEY` above is the mark of
+ * before, which said only that a story was seen; it is read, never written again.
+ */
+export const RECORRIDO_KEYS: Readonly<Record<Historia, string>> = {
+  dueno: 'wera.taught.recorrido.dueno',
+  empleado: 'wera.taught.recorrido.empleado',
+};
+
+/**
+ * Has this phone seen the story of her role? `null` while her role is not read —
+ * then nothing opens and nothing is adopted. ⚠️ IT WRITES WHEN THE OLD MARK
+ * BECOMES THIS STORY'S (`vioSuHistoria`), so the other story never inherits it.
+ */
+export function historiaVista(store: DeviceStore | undefined, role: Role | null): boolean | null {
+  if (role === null) return null;
+  const historia = historiaDe(role);
+  const { vista, adopta } = vioSuHistoria(historia, {
+    dueno: readKey(store, RECORRIDO_KEYS.dueno) !== null,
+    empleado: readKey(store, RECORRIDO_KEYS.empleado) !== null,
+    antes: readKey(store, RECORRIDO_KEY) !== null,
+  });
+  if (adopta) writeKey(store, RECORRIDO_KEYS[historia], '1');
+  return vista;
+}
+
+/** Her story has been opened, or its card on Inicio closed. */
+export function marcarHistoria(store: DeviceStore | undefined, role: Role | null): void {
+  writeKey(store, RECORRIDO_KEYS[historiaDe(role)], '1');
+}
 
 /**
  * Is this the first time — and if so, it no longer will be.

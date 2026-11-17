@@ -17,9 +17,10 @@
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useRef } from 'react';
 
-import { deviceStore, readKey } from '@/lib/store';
+import { useMyRole } from '@/api/hooks';
+import { deviceStore } from '@/lib/store';
 import { abrePorSiSolo } from '@/navigation/recorrido';
-import { RECORRIDO_KEY } from '@/offline/ensenar';
+import { historiaVista } from '@/offline/ensenar';
 import { DONE_NOTE_HOLD_MS } from '@/theme/pulse';
 
 /** Past the arrival line's hold, so it is read before the story covers it. */
@@ -35,19 +36,23 @@ export function useRecorridoPorSiSolo(arrived: boolean, selling = false): void {
   const latched = useRef(false);
   if (arrived) latched.current = true;
   const justArrived = latched.current;
+  // ⚠️ `5R-n`: THE STORY OF HER ROLE — once per story, not per phone. A role not
+  // yet read opens nothing (`historiaVista` answers `null`); the effect runs
+  // again when the roster says.
+  const role = useMyRole();
 
   useFocusEffect(
     useCallback(() => {
-      const seen = readKey(deviceStore(), RECORRIDO_KEY) !== null;
-      if (!abrePorSiSolo({ seen, selling })) return undefined;
+      const seen = historiaVista(deviceStore(), role);
+      if (seen === null || !abrePorSiSolo({ seen, selling })) return undefined;
       const timer = setTimeout(
         () => {
-          if (readKey(deviceStore(), RECORRIDO_KEY) !== null) return;
+          if (historiaVista(deviceStore(), role) !== false) return;
           router.push('/recorrido');
         },
         justArrived ? AFTER_ARRIVAL_MS : SETTLE_MS,
       );
       return () => clearTimeout(timer);
-    }, [justArrived, selling]),
+    }, [justArrived, selling, role]),
   );
 }

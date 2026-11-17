@@ -2,7 +2,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Stack, router, usePathname, useSegments } from 'expo-router';
 import { useFonts } from 'expo-font';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 import { View } from 'react-native';
 
 import { QueryProvider } from '@/api/QueryProvider';
@@ -18,8 +18,10 @@ import {
   restoreTarget,
   routeMemory,
 } from '@/navigation/lastScreen';
+import { cerradaAlEmpleado } from '@/navigation/inicio';
 import { start as startConnectivity } from '@/lib/connectivityMonitor';
-import { holdSplash, releaseSplash } from '@/lib/splash';
+import { holdSplash, holdSplashForUpdate, releaseSplash } from '@/lib/splash';
+import { puedeEsperar, useEstreno } from '@/lib/useEstreno';
 import { PILOT_BUILD } from '@/lib/pilotFlag';
 import { OfflineSurfaces } from '@/offline/OfflineSurfaces';
 import { send as sendReadings, touchedApp } from '@/pilot/recorder';
@@ -28,6 +30,8 @@ import { FUENTES } from '@/theme/letra';
 
 // ⚠️ `8g`: the splash waits for the screen she will see (`@/lib/splash`).
 holdSplash();
+// ⚠️ `5R-n`: and on a build's own first code, for the newest update (`@/lib/estreno`).
+if (puedeEsperar()) holdSplashForUpdate();
 
 // The root, and it now does four things: it puts C3.18's density scale in reach
 // of every screen, it puts the session there too, it puts TanStack Query — the
@@ -66,45 +70,57 @@ export default function RootLayout() {
   if (!fontsReady && fontError === null) return null;
   return (
     <AuthProvider>
-      <QueryProvider>
-        <DensityProvider>
-          <Gate />
-          <Drain />
-          {/* ⚠️ THE STACK IS WRAPPED SO THE OFFLINE SURFACES CAN SIT OVER IT
-              (5c-iv-a). They are absolutely positioned and `box-none`, so they
-              overlay every screen without the screens knowing — which is what
-              C10.1's "surfacing on screen changes" needs, and what putting the
-              notice inside each screen would have cost: every screen having to
-              remember. ⚠️ They are AFTER the Stack deliberately: a sibling
-              earlier in the tree renders underneath it. */}
-          {/* ⚠️ `onTouchStart` IS §5's AND ONLY ON A PILOT BUILD (plan `5P-a`):
-              any finger-down before Vender has drawn means the launch went
-              through a person, so it is not a cold open. `undefined` on every
-              other build, so this view carries no handler at all. */}
-          <View
-            style={{ flex: 1 }}
-            onTouchStart={PILOT_BUILD === null ? undefined : touchedApp}
-          >
-            {/* ⚠️ `8g`: DARK ICONS, ALWAYS. Seen by `5R-d-iv-a` on 2026-10-13: with
-                nothing setting it, Android drew the clock and the icons WHITE on
-                Wera's white and cream headers. The app is light only (the owner,
-                2026-09-30), so there is no mode to follow. */}
-            <StatusBar style="dark" />
-            <Stack screenOptions={{ headerShown: false }}>
-              <Stack.Screen name="ajustes" options={{ presentation: 'modal' }} />
-              <Stack.Screen name="solicitudes" options={{ presentation: 'modal' }} />
-            </Stack>
-            <OfflineSurfaces />
-            {/* ⚠️ C11.9's banner is drawn by Inicio itself since `8g` (the owner's
-                Inicio of 2026-10-16): in its flow, pushing the screen down, rather
-                than mounted here and floating over a reserved room. Inicio is a
-                tab and stays mounted, so a dismissal still survives selling for
-                an hour and coming back. */}
-          </View>
-        </DensityProvider>
-      </QueryProvider>
+      <Estreno>
+        <QueryProvider>
+          <DensityProvider>
+            <Gate />
+            <Drain />
+            {/* ⚠️ THE STACK IS WRAPPED SO THE OFFLINE SURFACES CAN SIT OVER IT
+                (5c-iv-a). They are absolutely positioned and `box-none`, so they
+                overlay every screen without the screens knowing — which is what
+                C10.1's "surfacing on screen changes" needs, and what putting the
+                notice inside each screen would have cost: every screen having to
+                remember. ⚠️ They are AFTER the Stack deliberately: a sibling
+                earlier in the tree renders underneath it. */}
+            {/* ⚠️ `onTouchStart` IS §5's AND ONLY ON A PILOT BUILD (plan `5P-a`):
+                any finger-down before Vender has drawn means the launch went
+                through a person, so it is not a cold open. `undefined` on every
+                other build, so this view carries no handler at all. */}
+            <View
+              style={{ flex: 1 }}
+              onTouchStart={PILOT_BUILD === null ? undefined : touchedApp}
+            >
+              {/* ⚠️ `8g`: DARK ICONS, ALWAYS. Seen by `5R-d-iv-a` on 2026-10-13: with
+                  nothing setting it, Android drew the clock and the icons WHITE on
+                  Wera's white and cream headers. The app is light only (the owner,
+                  2026-09-30), so there is no mode to follow. */}
+              <StatusBar style="dark" />
+              <Stack screenOptions={{ headerShown: false }}>
+                <Stack.Screen name="ajustes" options={{ presentation: 'modal' }} />
+                <Stack.Screen name="solicitudes" options={{ presentation: 'modal' }} />
+              </Stack>
+              <OfflineSurfaces />
+              {/* ⚠️ C11.9's banner is drawn by Inicio itself since `8g` (the owner's
+                  Inicio of 2026-10-16): in its flow, pushing the screen down, rather
+                  than mounted here and floating over a reserved room. Inicio is a
+                  tab and stays mounted, so a dismissal still survives selling for
+                  an hour and coming back. */}
+            </View>
+          </DensityProvider>
+        </QueryProvider>
+      </Estreno>
     </AuthProvider>
   );
+}
+
+/**
+ * ⚠️ `5R-n`: NOTHING IS MOUNTED WHILE A FIRST OPEN WAITS FOR THE NEWEST UPDATE
+ * (`@/lib/useEstreno`) — the splash covers it, and the welcome's opening must
+ * not play, and be spent, under a splash about to reopen the app. Every other
+ * launch passes straight through.
+ */
+function Estreno({ children }: { children: ReactNode }) {
+  return useEstreno() ? children : null;
 }
 
 // ============================================================================
@@ -142,6 +158,9 @@ function Gate() {
   // she goes to Vender, the cashier's door, which every role may use.
   const members = useWorkspaceMembers();
   const role = members.isError ? 'staff' : roleOf(members.data, session?.user.id ?? null);
+  // ⚠️ `5R-n`: THE ROLE AS THE ROSTER SAID IT, with no guess for a failed read —
+  // the rooms an Empleado no longer opens close only on a role READ as hers.
+  const readRole = roleOf(members.data, session?.user.id ?? null);
 
   // ⚠️⚠️ `8g`, 2026-10-21: THE MOMENT SHE BELONGS TO A SHOP, EVERYTHING IS READ
   // AGAIN. Anything read while she had none was read for nobody — the landing's
@@ -175,6 +194,13 @@ function Gate() {
       router.replace(to);
       return;
     }
+    // ⚠️ `5R-n`, THE OWNER'S RULING OF 2026-11-17: A ROOM HER ROLE DOES NOT OPEN —
+    // Números, *Tu semana*, Productos, Proveedores and what opens from them —
+    // sends an Empleado to Inicio, however she got there (`cerradaAlEmpleado`).
+    if (membership === 'member' && cerradaAlEmpleado(readRole, pathname)) {
+      router.replace('/');
+      return;
+    }
     // ⚠️ `8g`: NOWHERE TO SEND HER, so the screen behind the splash is hers —
     // except the welcome, which lets go once the cow's pictures are in.
     if (ready && pathname !== '/hola') releaseSplash();
@@ -202,7 +228,7 @@ function Gate() {
     }
 
     rememberLastScreen(routeMemory(), pathname);
-  }, [ready, session, membership, segments, pathname, role, workspace]);
+  }, [ready, session, membership, segments, pathname, role, readRole, workspace]);
 
   return null;
 }

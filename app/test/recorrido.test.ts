@@ -16,10 +16,22 @@ import {
   RECORRIDO_EMPLEADO,
   abrePorSiSolo,
   esUltima,
+  historiaDe,
   recorridoDe,
+  vioSuHistoria,
   type Momento,
+  type Recuerdo,
 } from '@/navigation/recorrido';
-import { FIRST_OUTAGE_KEY, FIRST_SALE_KEY, OPENING_KEY, RECORRIDO_KEY } from '@/offline/ensenar';
+import type { DeviceStore } from '@/lib/store';
+import {
+  FIRST_OUTAGE_KEY,
+  FIRST_SALE_KEY,
+  OPENING_KEY,
+  RECORRIDO_KEY,
+  RECORRIDO_KEYS,
+  historiaVista,
+  marcarHistoria,
+} from '@/offline/ensenar';
 import { ES } from '@/strings';
 
 
@@ -111,10 +123,84 @@ describe('how long a card stays — his correction of 2026-10-22, "too little to
   });
 });
 
-describe('the key it is remembered by', () => {
-  it('is its own, apart from the other things taught once', () => {
-    const keys = [FIRST_SALE_KEY, FIRST_OUTAGE_KEY, OPENING_KEY, RECORRIDO_KEY];
+describe('the keys it is remembered by', () => {
+  it('are their own, apart from the other things taught once and from each other', () => {
+    const keys = [FIRST_SALE_KEY, FIRST_OUTAGE_KEY, OPENING_KEY, RECORRIDO_KEY, RECORRIDO_KEYS.dueno, RECORRIDO_KEYS.empleado];
     expect(new Set(keys).size).toBe(keys.length);
-    expect(RECORRIDO_KEY.startsWith('wera.taught.')).toBe(true);
+    for (const key of keys.slice(3)) expect(key.startsWith('wera.taught.')).toBe(true);
+  });
+
+  // ⚠️ A RENAMED KEY IS EVERY PHONE SEEING ITS STORY AGAIN: the old one is pinned.
+  it('still reads the mark every phone wrote before 5R-n', () => {
+    expect(RECORRIDO_KEY).toBe('wera.taught.recorrido');
+  });
+});
+
+// ============================================================================
+// ONCE PER STORY, NOT PER PHONE — `5R-n`, the owner's ruling of 2026-11-17.
+// ============================================================================
+
+const nada: Recuerdo = { dueno: false, empleado: false, antes: false };
+
+describe('once per story, not per phone (5R-n)', () => {
+  it('names the owner’s story for an owner and an Encargado, hers for everyone else', () => {
+    expect(historiaDe('owner')).toBe('dueno');
+    expect(historiaDe('manager')).toBe('dueno');
+    expect(historiaDe('staff')).toBe('empleado');
+    expect(historiaDe(null)).toBe('empleado');
+  });
+
+  it('opens the owner’s eight on a phone that saw only the Empleado’s four — and the other way round', () => {
+    expect(vioSuHistoria('dueno', { ...nada, empleado: true })).toEqual({ vista: false, adopta: false });
+    expect(vioSuHistoria('empleado', { ...nada, dueno: true })).toEqual({ vista: false, adopta: false });
+  });
+
+  it('keeps a story seen once it was seen, whatever the other', () => {
+    expect(vioSuHistoria('dueno', { ...nada, dueno: true, empleado: true }).vista).toBe(true);
+    expect(vioSuHistoria('empleado', { ...nada, empleado: true }).vista).toBe(true);
+  });
+
+  it('gives the mark of before to the first story asked about, once — the other never inherits it', () => {
+    expect(vioSuHistoria('dueno', { ...nada, antes: true })).toEqual({ vista: true, adopta: true });
+    // After the adoption the owner's story has its own mark; the Empleado's is unseen.
+    expect(vioSuHistoria('empleado', { dueno: true, empleado: false, antes: true })).toEqual({ vista: false, adopta: false });
+  });
+
+  it('opens on a phone that saw neither', () => {
+    expect(vioSuHistoria('dueno', nada).vista).toBe(false);
+    expect(vioSuHistoria('empleado', nada).vista).toBe(false);
+  });
+});
+
+/** A device store in memory — the phone's own is `localStorage` over SQLite. */
+function memoria(start: Record<string, string> = {}): DeviceStore & { readonly data: Map<string, string> } {
+  const data = new Map(Object.entries(start));
+  return {
+    data,
+    getItem: (key) => data.get(key) ?? null,
+    setItem: (key, value) => void data.set(key, value),
+    removeItem: (key) => void data.delete(key),
+  };
+}
+
+describe('what this phone writes (5R-n)', () => {
+  it('decides nothing and writes nothing while her role is not read', () => {
+    const store = memoria({ [RECORRIDO_KEY]: '1' });
+    expect(historiaVista(store, null)).toBeNull();
+    expect([...store.data.keys()]).toEqual([RECORRIDO_KEY]);
+  });
+
+  it('writes the mark of before into the first role’s story, so the tester’s phone opens the other one later', () => {
+    const store = memoria({ [RECORRIDO_KEY]: '1' });
+    expect(historiaVista(store, 'staff')).toBe(true);
+    expect(store.data.get(RECORRIDO_KEYS.empleado)).toBe('1');
+    expect(historiaVista(store, 'owner')).toBe(false);
+  });
+
+  it('marks the story of her role when it is opened or its card closed, and only that one', () => {
+    const store = memoria();
+    marcarHistoria(store, 'manager');
+    expect(historiaVista(store, 'owner')).toBe(true);
+    expect(historiaVista(store, 'staff')).toBe(false);
   });
 });
