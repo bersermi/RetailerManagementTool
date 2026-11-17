@@ -69,7 +69,7 @@ TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic i
   the three states and `TD024` — is asked by `docs/checks/10.9a-i-features-contract.sh` and its falsifier (its own job, `cocina-features`), with
   the door's `features` by Itacate's names. Her choices are **per kitchen, never per phone**: every member reads them, only the owner writes them
   and what she tells Wera about the menu; a feature Wera has switched off (`available`) is offered nowhere and refused `on`; a feature or a state
-  this build does not know is left out (`loQueUsaFrom`). Read by `useServicios`; no screen writes them until `10.9a-ii`. ⚠️ **And a kitchen's place is read by the kitchen's id**
+  this build does not know is left out (`loQueUsaFrom`). Read by `useServicios`; written since `10.9a-ii` by `useElegirServicios` and `useContarMenu` (the section *Her choices* below). ⚠️ **And a kitchen's place is read by the kitchen's id**
   (`firstPlace`): the walls show a shop's owner her shop's store too, and an unfiltered read's first
   row is that store — her kitchen's address and pin would land on her shop (`10.4b-iii-b`).
 - **A kitchen is made whole at the end of the sign-up** (`src/api/registro.ts`, `10.4b-iii-b`): her
@@ -375,23 +375,25 @@ follows it, as `itacate/CLAUDE.md`'s does:
   usas* and *Quién trabaja aquí* (`10.9a`, `10.9b`); **a helper — the database's *staff* — publishes and hands over**
   (`10.9b`); a camera module to scan, and printing and sharing for the counter poster, arrive with a new store build
   (`10.9c`). A service never lives in two places: its tile on *Hoy* opens its one screen. ⚠️ **`10.9a` split in three on 2026-11-17**: the database
-  and both apps' claims (`10.9a-i`, built — `@/api/servicios`), the first run's third step and *Lo que usas* (`10.9a-ii`), *Hoy*'s tiles and the
-  nudges (`10.9a-iii`).
+  and both apps' claims (`10.9a-i`, built — `@/api/servicios`), the first run's third step and *Lo que usas* (`10.9a-ii`, built — the section *Her
+  choices* below), *Hoy*'s tiles and the nudges (`10.9a-iii`).
 - **The first run** (`10.5-v-d`, the family-shell page's): a stranger is sent to the opening (`(auth)/hola`, `@/auth/guard`),
   Wera's `8g` opening in Cocina's green (`@/ui/Apertura`, `@/theme/apertura` — starts on the splash's own frame, ends on the
   icon's picture, both read off `store/cocina-itacate/render.sh` and `app.json` by `test/primera.test.ts`; once per phone,
   `OPENING_KEY`; on Android after the splash's 400 ms fade, measured on the emulator). Wera's cream cow, byte for byte,
   drawn green by tint. ⚠️ **The splash is held from the root's module** (`@/lib/splash`, Wera's) until the opening's
-  pictures are in, or `Gate` has nowhere to send her. Then *Crear cuenta* / *Ya tengo cuenta*, her account, *Paso 1 de 3*
-  (name and trade), *Paso 2 de 3* (her address), and — ⚠️ **the guard sends a kitchen made in the sign-up to
-  `/que-ofreces`, never straight to *Hoy*** — *Paso 3 de 3*, *¿Qué ofreces hoy?*: *Publicar mi primera oferta* (the one
-  form, `primera`) or *Después*, both ending on `/ya-estas`, her page as Itacate draws it (titled *Tu cocina ya está en
-  Itacate* only while the door would send her), then *Ir a Hoy*. Android's back on the last two leaves for *Hoy*; nothing
-  of the first run is kept on the phone, so a restart opens *Hoy*.
+  pictures are in, or `Gate` has nowhere to send her. Then *Crear cuenta* / *Ya tengo cuenta*, her account, *Paso 1 de N*
+  (name and trade), *Paso 2 de N* (her address), and — ⚠️ **the guard sends a kitchen made in the sign-up on, never straight
+  to *Hoy*** — since `10.9a-ii` (G32, ruled 2026-11-17: no first offer inside the first run) to *Paso 3 de 3*, *¿Qué más quieres
+  usar?* (`/que-mas`), while this build carries a feature to pick, else at once to `/ya-estas`, her page as Itacate draws it
+  (titled *Tu cocina ya está en Itacate* only while the door would send her), then *Ir a Hoy*. ⚠️ **N is the build's** (`@/lib/
+  loQueUsas`' `pasos`): 2 until a feature is built (the section *Her choices*). *¿Qué ofreces hoy?* (`/que-ofreces`) was the third
+  step from `10.5-v-d` to `10.9a-ii`. Android's back on the last two leaves for *Hoy*; nothing of the first run is kept on the
+  phone, so a restart opens *Hoy*.
 - **The tab bar is *Hoy · Apartados · Mi cocina*, the same for every kitchen** (his arrangement A, 2026-11-16; it said *Hoy · Apartados · Clientes ·
   Mi cocina* until then) — four tabs at most, each with its word; the two ends never move; a service lives as a tile on *Hoy* and its own screen,
   never as a tab. Wera's JavaScript tabs, not native tabs. ⚠️ **Built by `10.5-v-c-i`**, Itacate's
-  shell copied: the tabs are data (`@/navigation/pestanas`, *Apartados* in use since `10.5b-iv-a`; *Clientes* still in the data naming `10.9`, until `10.9a` takes it out), the bar is `@/ui/Pestanas` (the tab
+  shell copied: the tabs are data (`@/navigation/pestanas`, *Apartados* in use since `10.5b-iv-a`; *Clientes* out of the data since `10.9a-ii`), the bar is `@/ui/Pestanas` (the tab
   in use: green, a heavier word and a pill of the green's tint — ⚠️ the other pills the bar's white, never `transparent`: Android squared every pill
   after the first switch), and `(cocina)/(tabs)/` holds exactly the tabs in use. *Tus ofertas*, *Publicar*, her page's editor and her address's
   screens are pushed over the tabs. ⚠️ **Google's point for her address is asked again from the tabs' layout**, always mounted — *Mi cocina*,
@@ -541,3 +543,34 @@ and `10.5b-ii`'s final design (*Mi cocina*'s rows, *Ajustes de apartados*; Q3's 
   last tap (never a render not yet made); her list's read in flight is cancelled before the drawing. Online only.
 - **To see it on the emulator**: the debug build against the local shop (*Apartados*' section); `docs/checks/10.5b-iv-c-settings-contract.sh`
   shows how five rated plates of yesterday are made as the database's owner, for *Tus calificaciones* from five.
+
+## Her choices — *¿Qué más quieres usar?*, *Lo que usas*, *Cuéntanos* (`10.9a-ii`)
+
+The owner's rulings of 2026-11-16 and 17 (G32, G33, G44, G45; the family-shell page, round 7), on `10.9a-i`'s functions. No
+migration. The rules are `@/lib/loQueUsas`, pure, pinned by `test/loQueUsas.test.ts`.
+
+- ⚠️⚠️ **Two gates decide what she is offered**: Wera's switch for everyone (`available`, the database's) AND this build —
+  `PANTALLA_DE` names the screen of each feature built into it, `PREPARAR` its setup (only the card's). **Both empty until the card
+  (`10.9e`)**; each feature's row adds its own. A feature with no screen here is offered nowhere even with its switch on, so a phone
+  still on an older update never offers what it cannot open. The menu is never picked: *Próximamente* until its own session.
+- ⚠️ **The first run's step count is the build's** (`pasos`): *Paso 1 de N* is drawn before her kitchen exists, and the database
+  answers what is offered only to a member. 2 today; 3 the day a feature is built — and if its switch is still off for everyone, the
+  third step goes straight on (`elegibles` empty), so **the row that builds a feature turns its switch on with it**.
+- ***¿Qué más quieres usar?*** (`(cocina)/que-mas`): her need first and the feature under it, nothing pre-checked; *Tu menú a la mano ·
+  Próximamente* greyed while `proximamente` is on. ⚠️ ***Seguir* is ONE `set_kitchen_features` call** — `on` for what she picked, `off`
+  for the rest she was shown (`eleccionesDe`) — and waits for it; *Decidir después* sends nothing. Then `/ya-estas`. The card's setup is
+  never done here.
+- ***Mi cocina › Lo que usas*** (`@/ui/LoQueUsas`, at the top, above her page): each feature offered with its state (`filasDe`: *En tu
+  Hoy*, or *No la usas* in its gender, and a green *Activar*); ***Activar*** (`(cocina)/activar/[servicio]`): the feature's picture
+  (`ICONO_DE`, held to the glyph map), its need, a sentence, *Lo que te pide*, one button that waits for the database, then its setup or
+  *Listo, ya está en tu Hoy* and *Ver mi Hoy* (`router.dismissTo('/')`). Off is in each feature's own screen. *Tu menú · Próximamente*
+  with *Me interesa* → `interesada` and *Anotado*. ⚠️ **Absent when there is nothing to draw — every kitchen today.**
+- ⚠️ **`TD024` is said in words** (*Ya no está disponible.*, `servicioErrorMessage`): Wera switched a feature off while she looked; her
+  choices are read again, so the feature leaves the screen and no button stays to be refused.
+- ***Cuéntanos cómo necesitas tu menú*** (`@/ui/Cuentanos`, *Hoy*'s foot): while `proximamente` is on, until her kitchen told us once
+  (`menu_requests`, the database's) or she closed it with ✕ — kept on the phone per kitchen (`@/lib/puerta`'s `'menu'`), with *Deshacer*.
+  Its sheet is React Native's `Modal` with `KeyboardAvoidingView` padding on BOTH phones (nothing resizes a Modal's window on Android):
+  500 characters (`MENU_MAXIMO`), blank refused on the phone, *Gracias, lo leemos todo* once it landed.
+- **To see it on the emulator**: the debug build against the local shop (*Apartados*' section), the local switches turned on as the
+  database's owner (`update servicio.feature_switch set is_on = true where name in (…)`), and — for the third step and *Activar* — a local
+  edit of `PANTALLA_DE` naming any existing route, never committed. `10.9a-ii`'s walk did all three, and put both back.

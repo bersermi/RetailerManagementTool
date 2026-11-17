@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import type { Membership } from '@/api/kitchen';
 import { groupOf, redirectFor, type RouteGroup } from '@/auth/guard';
+import { pasos } from '@/lib/loQueUsas';
 
 // ============================================================================
 // WHICH OF THREE ROOMS SHE BELONGS IN. Plan task `10.4b-iii-a`.
@@ -53,8 +54,15 @@ describe('signed in with a kitchen', () => {
   });
 
   // ⚠️ `10.5-v-d`, the first run: only *Registrar mi cocina* has her in the sign-up with a kitchen.
-  it('made in the sign-up a moment ago: on to *¿Qué ofreces hoy?*, never straight to *Hoy*', () => {
-    expect(at(true, true, 'member', 'onboarding')).toBe('/que-ofreces');
+  // ⚠️ `10.9a-ii`: on to *¿Qué más quieres usar?* while this build carries a feature to pick, else
+  // to her page as her neighbours see it — the same count *Paso 1 de N* drew (`pasos`).
+  it('made in the sign-up a moment ago: on to the first run’s last screens, never straight to *Hoy*', () => {
+    expect(at(true, true, 'member', 'onboarding')).toBe(pasos() === 3 ? '/que-mas' : '/ya-estas');
+  });
+
+  it('today no feature is built here, so the first run is two steps and goes on to her page', () => {
+    expect(pasos()).toBe(2);
+    expect(at(true, true, 'member', 'onboarding')).toBe('/ya-estas');
   });
 });
 

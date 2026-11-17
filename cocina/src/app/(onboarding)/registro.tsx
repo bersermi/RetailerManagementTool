@@ -8,6 +8,7 @@ import { pasoUno } from '@/api/registro';
 import { useAuth } from '@/auth/AuthProvider';
 import { quienEntro } from '@/auth/quien';
 import { useBorrador } from '@/lib/borrador';
+import { pasoDe } from '@/lib/loQueUsas';
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
 import { Banda } from '@/ui/Banda';
@@ -70,7 +71,7 @@ export default function Registro() {
           gap: SIZE.space,
         }}
       >
-        <Text style={{ fontSize: SIZE.smallSize, fontWeight: '600', color: PALETTE.tintaApagada }}>{ES.registro.paso(1)}</Text>
+        <Text style={{ fontSize: SIZE.smallSize, fontWeight: '600', color: PALETTE.tintaApagada }}>{pasoDe(1)}</Text>
         {quien !== null && (
           <Text style={{ fontSize: SIZE.bodySize, color: PALETTE.tintaApagada }}>{ES.registro.quien(quien)}</Text>
         )}

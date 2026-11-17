@@ -1,12 +1,14 @@
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { router } from 'expo-router';
+import { useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 
-import { useApartados, useKitchen, useKitchenGiros, useListings, usePage, usePlace } from '@/api/hooks';
+import { useApartados, useContarMenu, useKitchen, useKitchenGiros, useListings, usePage, usePlace, useServicios } from '@/api/hooks';
 import { giroLabel, type Kitchen } from '@/api/kitchen';
 import { addressComplete } from '@/api/place';
 import { entregadosHoy, loQueSigue, ordenesDe, tomadosDe } from '@/lib/apartados';
 import { chipDe, diaDe, estadoDe, faltaDeLaPagina, faltanDe, nombreDe, repetibles, PENDIENTES } from '@/lib/hoy';
+import { cuentanosEnHoy } from '@/lib/loQueUsas';
 import { useNota } from '@/lib/NotaProvider';
 import { useRecordatorio } from '@/lib/RecordatorioProvider';
 import { preguntar } from '@/lib/recordatorio';
@@ -17,6 +19,7 @@ import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
 import { Banda } from '@/ui/Banda';
 import { BotonLleno } from '@/ui/BotonLleno';
+import { HojaCuentanos, LineaCuentanos } from '@/ui/Cuentanos';
 import { DiaDeHoy } from '@/ui/DiaDeHoy';
 import { LeyendoCocina } from '@/ui/LeyendoCocina';
 import { Llega } from '@/ui/Llega';
@@ -44,6 +47,9 @@ import { SinSenal } from '@/ui/SinSenal';
 //   5. HER REMINDER'S QUESTION, ONCE (`@/ui/PreguntaRecordatorio`, `10.5-v-c-ii`) — after
 //      her third offer, while the rule finds her hour and her days; either answer and it
 //      is gone from this phone, the reminder kept in *Mi cocina*.
+//   6. `10.9a-ii`: AT THE FOOT, *CUÉNTANOS CÓMO NECESITAS TU MENÚ* (`@/ui/Cuentanos`, G45) — while
+//      every *Próximamente* may show (after both stores approve), until her kitchen told us once
+//      or she closed it with ✕ on this phone (`@/lib/loQueUsas`' `cuentanosEnHoy`). Absent today.
 //   0. `10.5b-iv-b`: ABOVE THEM, WITH NO SIGNAL OR WHILE ANYTHING WAITS (`@/ui/SinSenal`) — when what
 //      she sees was read, and what is still on the phone to send. Her kitchen, her offers and her
 //      orders are the phone's copy then (`@/api/persist`), so *Lo que sigue* works with no signal.
@@ -79,6 +85,11 @@ function HoyDe({ kitchen }: { kitchen: Kitchen }) {
   const { avisar } = useNota();
   const { repetir, busyId } = useRepetir(kitchen);
   const recordatorio = useRecordatorio();
+  // `10.9a-ii`: *Cuéntanos*, at the foot.
+  const servicios = useServicios(kitchen.id);
+  const [menuCerrado, setMenuCerrado] = usePuertaCerrada(kitchen.id, 'menu');
+  const { enviar, busy: enviando } = useContarMenu(kitchen.id);
+  const [hojaMenu, setHojaMenu] = useState(false);
 
   const trade = giroLabel(giros.data, kitchen.giroPrincipal);
   const quiet = { fontSize: SIZE.bodySize, color: PALETTE.tintaApagada } as const;
@@ -210,7 +221,32 @@ function HoyDe({ kitchen }: { kitchen: Kitchen }) {
             />
           </Llega>
         )}
+
+        {cuentanosEnHoy(servicios.data, menuCerrado) && (
+          <Llega i={5}>
+            <LineaCuentanos
+              onAbrir={() => setHojaMenu(true)}
+              onCerrar={() => {
+                setMenuCerrado(true);
+                avisar(ES.cuentanos.quitado, () => setMenuCerrado(false));
+              }}
+            />
+          </Llega>
+        )}
       </ScrollView>
+      <HojaCuentanos
+        visible={hojaMenu}
+        ocupado={enviando}
+        onCerrar={() => setHojaMenu(false)}
+        onEnviar={async (texto) => {
+          const problema = await enviar(texto);
+          if (problema === null) {
+            setHojaMenu(false);
+            avisar(ES.cuentanos.gracias);
+          }
+          return problema;
+        }}
+      />
     </View>
   );
 }
