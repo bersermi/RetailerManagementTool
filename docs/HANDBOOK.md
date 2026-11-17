@@ -63,6 +63,14 @@ listings do not say *inventario*; the home page of tu-wera.com still does.
 
 ## What is on your phone
 
+⏳ **17 November: Wera Cocina's choices, sent over the air** (*Wera Cocina: tus elecciones — ¿Qué más quieres usar?, Lo que usas y
+Cuéntanos (10.9a-ii)*) to Wera Cocina's test builds — **your iPhone's included**, with nothing to reinstall. On the iPhone: open Wera Cocina,
+wait ten seconds, **close it completely** and open it again. ⚠️ **On your own kitchens nothing you can see changes**: every one of your
+switches is off, so *Lo que usas*, *Tu menú* and *Cuéntanos* stay hidden, and no feature is built yet for the third step to offer. **The one
+change you can see** is a new kitchen's first run — with a throwaway account (*Cerrar sesión*, *Crear cuenta*), it reads *Paso 1 de 2*,
+*Paso 2 de 2*, then your page as neighbours will see it, with no *¿Qué ofreces hoy?*. Seen first on a test Android with that same file,
+opened signed out: downloaded, then running (its own update record). Nothing changes in Wera or Itacate.
+
 ⏳ **11 November: Wera Cocina's settings and your offers, sent over the air** (*Wera Cocina: tus ajustes, menos y más, y así la ven
 (10.5b-iv-c)*) to Wera Cocina's test builds — **your iPhone's included**, with nothing to reinstall. On the iPhone: open Wera Cocina, wait ten
 seconds, **close it completely** and open it again — the update runs from the second open; if it still looks as before, once more. **First
