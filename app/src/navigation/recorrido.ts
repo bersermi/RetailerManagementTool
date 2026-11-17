@@ -21,6 +21,17 @@
 // arrival's line has been read — and never over a basket she is ringing up:
 // then it waits for the next time the screen comes up. The card on Inicio stays
 // for a phone where it was closed before it opened, and Ajustes keeps it.
+//
+// ⚠️⚠️ ONCE PER STORY, NOT PER PHONE — `5R-n`, the owner's ruling of 2026-11-17.
+// A tester joined his shop as *Empleado*, saw her four cards, and that phone
+// would never have opened the owner's eight on his own store. Now each story is
+// remembered by itself (`RECORRIDO_KEYS`, `@/offline/ensenar`): a phone that saw
+// the Empleado's opens the owner's the first time it is an owner or Encargado,
+// and the other way round; a story seen stays seen. ⚠️ THE ONE MARK OF BEFORE
+// (`RECORRIDO_KEY`) said only *a story*, never which: it becomes the story of the
+// first role this phone is read as after the update (`vioSuHistoria`) — on every
+// phone that opened it so far that is the role it had then. ⚠️ A ROLE NOT YET READ
+// OPENS NOTHING and adopts nothing: which story is hers is not known yet.
 // ============================================================================
 
 import type { Role } from '@/api/members';
@@ -80,9 +91,37 @@ export function cardMs(text: string, withPicture: boolean): number {
   return Math.min(MAX_CARD_MS, Math.max(MIN_CARD_MS, ms));
 }
 
+/** ⚠️ `5R-n`: the two stories, each remembered by itself. */
+export type Historia = 'dueno' | 'empleado';
+
+/** Her story: the owner's and the Encargado's eight, or the Empleado's four. */
+export function historiaDe(role: Role | null): Historia {
+  return role === 'owner' || role === 'manager' ? 'dueno' : 'empleado';
+}
+
 /** The story for her role in this shop. */
 export function recorridoDe(role: Role | null): readonly Tarjeta[] {
-  return role === 'owner' || role === 'manager' ? RECORRIDO_DUENO : RECORRIDO_EMPLEADO;
+  return historiaDe(role) === 'dueno' ? RECORRIDO_DUENO : RECORRIDO_EMPLEADO;
+}
+
+/** What this phone remembers: each story's own mark, and the one mark of before `5R-n`. */
+export interface Recuerdo {
+  readonly dueno: boolean;
+  readonly empleado: boolean;
+  /** `RECORRIDO_KEY`: a story was opened, or its card closed — never which. */
+  readonly antes: boolean;
+}
+
+/**
+ * Has this phone seen her story — and does the mark of before become that
+ * story's now (`adopta`, written by the caller)? ⚠️ THE OLD MARK BELONGS TO ONE
+ * STORY ONLY: once either story has a mark of its own, it counts for nothing.
+ */
+export function vioSuHistoria(historia: Historia, r: Recuerdo): { readonly vista: boolean; readonly adopta: boolean } {
+  if (r[historia]) return { vista: true, adopta: false };
+  const otra: Historia = historia === 'dueno' ? 'empleado' : 'dueno';
+  if (r.antes && !r[otra]) return { vista: true, adopta: true };
+  return { vista: false, adopta: false };
 }
 
 /** What `abrePorSiSolo` is asked. */

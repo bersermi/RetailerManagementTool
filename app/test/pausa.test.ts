@@ -14,12 +14,15 @@ import { describe, expect, it } from 'vitest';
 import { canWriteCatalog } from '@/api/catalogWrite';
 import type { Role } from '@/api/members';
 import {
+  PROXIMAMENTE,
   TE_LO_COMPRO,
   mermaConPuertas,
   mermaPideDireccion,
+  mermaProximamente,
   recorridoPrometeTeLoCompro,
   veTeLoCompro,
 } from '@/navigation/pausa';
+import { ES } from '@/strings';
 
 /** Every answer a membership read can give, *not known yet* included. */
 const EVERY_ROLE: readonly (Role | null)[] = ['owner', 'manager', 'staff', null];
@@ -76,5 +79,43 @@ describe('open, exactly as before `10.0a`', () => {
   it('promises a pickup in the tutorial unless Wera already knows it cannot reach the store', () => {
     expect(recorridoPrometeTeLoCompro('abierto', false)).toBe(true);
     expect(recorridoPrometeTeLoCompro('abierto', true)).toBe(false);
+  });
+});
+
+// ============================================================================
+// MERMA'S *PRÓXIMAMENTE* — `5R-n`, the owner's ruling of 2026-11-17. Built
+// switched off: the update to the 1.0 builds and the 1.1 build Apple reviews
+// must not show it; `5R-p` turns it on. Both states held here.
+// ============================================================================
+
+describe('Merma’s Próximamente, as shipped', () => {
+  it('is off — switching it on is `5R-p`’s, after both stores approve 1.1', () => {
+    expect(PROXIMAMENTE).toBe('apagado');
+  });
+
+  it('draws for nobody while off', () => {
+    for (const role of EVERY_ROLE) expect(mermaProximamente('apagado', TE_LO_COMPRO, role), String(role)).toBe(false);
+  });
+});
+
+describe('Merma’s Próximamente, switched on', () => {
+  it('draws for an owner and an Encargado while Te lo compro is paused', () => {
+    expect(mermaProximamente('encendido', 'pausado', 'owner')).toBe(true);
+    expect(mermaProximamente('encendido', 'pausado', 'manager')).toBe(true);
+  });
+
+  it('never for an Empleado, nor a role not yet read — her Merma is her work', () => {
+    expect(mermaProximamente('encendido', 'pausado', 'staff')).toBe(false);
+    expect(mermaProximamente('encendido', 'pausado', null)).toBe(false);
+  });
+
+  it('never once Te lo compro is open again — then its door is the real thing', () => {
+    for (const role of EVERY_ROLE) expect(mermaProximamente('encendido', 'abierto', role), String(role)).toBe(false);
+  });
+
+  it('names the two, Te lo compro in the word its door already uses', () => {
+    expect(ES.waste.proximamente.title).toBe('Próximamente');
+    expect(ES.waste.doors.compro).toBe('Te lo compro');
+    expect(ES.waste.proximamente.ofrecer).toBe('Ofrecer a las cocinas');
   });
 });

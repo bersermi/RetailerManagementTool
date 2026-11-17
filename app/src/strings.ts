@@ -1663,6 +1663,18 @@ export const ES = {
       back: 'Volver',
     },
 
+    /**
+     * ⚠️ `5R-n`, THE OWNER'S RULING OF 2026-11-17: *"I need to show the Te lo
+     * compro and Ofrecer feature marked as proximamente"* — a heading over two
+     * grey rows at Merma's foot, names only, nothing to tap. *Te lo compro* is
+     * `doors.compro`, read rather than respelled. Drawn only once `5R-p` turns
+     * `PROXIMAMENTE` on (`@/navigation/pausa`).
+     */
+    proximamente: {
+      title: 'Próximamente',
+      ofrecer: 'Ofrecer a las cocinas',
+    },
+
     /** ⚠️ `8l`: a line's expiry, under its name — `Caduca hoy`, `Sin fecha`. */
     expires: (day: string) => `Caduca ${day.charAt(0).toLowerCase()}${day.slice(1)}`,
     /** ⚠️ `8l`: the cart's three new questions — per line, and in its foot. */

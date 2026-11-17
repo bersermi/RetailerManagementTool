@@ -32,6 +32,13 @@ import type { Role } from '@/api/members';
 // suite reads the decisions; whether Merma opens on Tirar, Inicio has no pickup
 // card and the tutorial promises no pickup is the owner's phone (the plan's
 // status entry for `10.0a` says what to look at).
+//
+// ⚠️⚠️ AND SINCE `5R-n` A SECOND VALUE, `PROXIMAMENTE` — the owner's ruling of
+// 2026-11-17: Merma shows *Te lo compro* and *Ofrecer a las cocinas* as
+// *Próximamente*, two grey rows with nothing to tap. **BUILT SWITCHED OFF**: an
+// update reaches the 1.0 store builds and the 1.1 build Apple reviews runs its own
+// code, and neither may show it; `5R-p` switches it on once both stores approve
+// 1.1. `app/test/pausa.test.ts` holds both states.
 // ============================================================================
 
 /** Te lo compro in a version of Wera: drawn, or paused. */
@@ -66,6 +73,24 @@ export function mermaPideDireccion(estado: Estado, sinDireccion: boolean): boole
  */
 export function veTeLoCompro(estado: Estado, role: Role | null): boolean {
   return estado === 'abierto' && canWriteCatalog(role);
+}
+
+/** Merma's *Próximamente*, in a version of Wera: drawn, or not yet. */
+export type Aviso = 'apagado' | 'encendido';
+
+/** ⚠️ THE ONE VALUE `5R-p` CHANGES — off until both stores approve Wera 1.1. */
+export const PROXIMAMENTE: Aviso = 'apagado';
+
+/**
+ * Does Merma draw *Próximamente* — *Te lo compro* and *Ofrecer a las cocinas*,
+ * names only? Switched on, and only while Te lo compro is paused (open, its door
+ * is the real thing), for an owner or an Encargado — whose services they would
+ * be. ⚠️ NOT FOR AN EMPLEADO, decided on the owner's behalf in `5R-n`: her Merma
+ * is her work, and a promise she cannot act on is the app talking past her —
+ * the walkthrough's rule (`@/navigation/recorrido`). Nor a role not yet read.
+ */
+export function mermaProximamente(aviso: Aviso, estado: Estado, role: Role | null): boolean {
+  return aviso === 'encendido' && estado === 'pausado' && canWriteCatalog(role);
 }
 
 /**

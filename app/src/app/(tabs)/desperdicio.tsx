@@ -97,7 +97,14 @@ import { comportamientoTeclado } from '@/lib/teclado';
 import { useDesfaseTeclado } from '@/lib/useDesfaseTeclado';
 import { usePilotVisit } from '@/pilot/usePilotVisit';
 import { correctingLine } from '@/api/corrections';
-import { TE_LO_COMPRO, mermaConPuertas, mermaPideDireccion, veTeLoCompro } from '@/navigation/pausa';
+import {
+  PROXIMAMENTE,
+  TE_LO_COMPRO,
+  mermaConPuertas,
+  mermaPideDireccion,
+  mermaProximamente,
+  veTeLoCompro,
+} from '@/navigation/pausa';
 import { setTabGuard } from '@/navigation/salida';
 import { comproFace, sendButton, type ComproFace } from '@/offline/teLoCompro';
 import { useOnline } from '@/offline/useOnline';
@@ -390,7 +397,7 @@ export default function Desperdicio() {
           onCompro={() => setModo('compro')}
         />
       ) : shown === 'tirar' ? (
-        <Tirar />
+        <Tirar proximamente={mermaProximamente(PROXIMAMENTE, TE_LO_COMPRO, role)} />
       ) : (
         <TeLoCompro key={requestKey} acceso={acceso} isOwner={role === 'owner'} onDirty={setRequestDirty} />
       )}
@@ -621,7 +628,7 @@ function Puerta({
 // Tirar
 // ============================================================================
 
-function Tirar() {
+function Tirar({ proximamente }: { proximamente: boolean }) {
   const { scale } = useDensity();
 
   // ⚠️ THE SAME LIST AS PRODUCTOS AND VENDER — C3.1, *"there are no buy-only or
@@ -802,6 +809,10 @@ function Tirar() {
         keyboardDismissMode="none"
         keyboardShouldPersistTaps="handled"
       />
+
+      {/* ⚠️ `5R-n`: WHAT IS COMING, AT MERMA'S FOOT, ONLY WHILE NOTHING IS COUNTED
+          OR SEARCHED — the first line counted gives this room to the bar. */}
+      {proximamente && cart.length === 0 && typed === '' ? <Proximamente /> : null}
 
       <Barra
         lines={cart.length}
@@ -1126,6 +1137,50 @@ function Barra({
           />
         </View>
       ) : null}
+    </View>
+  );
+}
+
+/**
+ * ⚠️ `5R-n` — *PRÓXIMAMENTE*, the owner's ruling of 2026-11-17: a heading over
+ * two grey rows, names only, nothing to tap — *Te lo compro* and *Ofrecer a las
+ * cocinas*, the two ways Merma will one day go further than the bin. At the foot
+ * while Merma is idle, over the bar, so it is seen without scrolling a catalog
+ * of hundreds; gone while she works, so the work keeps its room. Drawn only by
+ * this file, so it stays here (`R14`). Switched on by `5R-p`.
+ */
+function Proximamente() {
+  const { scale } = useDensity();
+  const names = [ES.waste.doors.compro, ES.waste.proximamente.ofrecer];
+  return (
+    <View
+      accessible
+      accessibilityLabel={`${ES.waste.proximamente.title}. ${names.join('. ')}`}
+      style={{
+        gap: scale.rowGap / 2,
+        paddingHorizontal: scale.space,
+        paddingVertical: scale.rowGap,
+        borderTopWidth: 1,
+        borderTopColor: PALETTE.linea,
+      }}
+    >
+      <Rotulo text={ES.waste.proximamente.title} />
+      {names.map((name) => (
+        <View
+          key={name}
+          style={{
+            justifyContent: 'center',
+            minHeight: scale.tapTarget * 0.75,
+            paddingHorizontal: scale.space,
+            borderRadius: scale.rowGap,
+            borderWidth: 1,
+            borderColor: PALETTE.linea,
+            backgroundColor: PALETTE.superficie,
+          }}
+        >
+          <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>{name}</Text>
+        </View>
+      ))}
     </View>
   );
 }

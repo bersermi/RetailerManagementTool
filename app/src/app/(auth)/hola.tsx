@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { AccessibilityInfo, Animated, Easing, Image, View, useWindowDimensions } from 'react-native';
+import { AccessibilityInfo, Animated, Easing, Image, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { writePuerta, type Puerta } from '@/auth/puerta';
@@ -41,6 +41,17 @@ const VACA_CREMA = require('@/marca/vaca-crema.png') as number;
 //
 // ⚠️ NO CHECK CAN SEE THE MOTION (`R9`): the emulator and his iPhone are the
 // instruments. What is pinned is the geometry (`app/test/apertura.test.ts`).
+//
+// ⚠️⚠️ `5R-n` — WERA COCINA'S TWO FIXES OF 2026-11-07 (`10.5-v-d`, its
+// `@/ui/Apertura`), copied here, where the same code had the same defect:
+// (1) THE COWS ARE DRAWN AT ONCE (`fadeDuration={0}`) — Android's `Image` fades
+// every picture in over 300 ms by default, so the cow faded in as the splash
+// faded out and blinked pale (recorded on Wera Cocina's test build, twice);
+// (2) SOMETHING ON SCREEN CHANGES EVERY FRAME WHILE THE SPLASH LEAVES (`latido`,
+// one invisible point) — on Android expo-splash-screen lets a held screen draw
+// only on its next change after `hideAsync`, and with nothing moving until the
+// first step the splash left late, over the square. Its opacity moves between
+// 0.01 and 0.02 on the cream: never seen, but a change.
 // ============================================================================
 export default function Hola() {
   const { scale } = useDensity();
@@ -54,9 +65,19 @@ export default function Hola() {
   // (`@/lib/splash`), so the first frame she sees is the splash's own.
   const [loaded, setLoaded] = useState(0);
   const ready = loaded >= 2;
+  const latido = useRef(new Animated.Value(0)).current;
   useEffect(() => {
-    if (ready) releaseSplash();
-  }, [ready]);
+    if (!ready) return;
+    releaseSplash();
+    // ⚠️ `5R-n`: every frame until the first step — whatever the phone's motion
+    // setting, and on every launch: it is never seen.
+    Animated.timing(latido, {
+      toValue: 1,
+      duration: OPENING.squareFrom,
+      easing: Easing.linear,
+      useNativeDriver: true,
+    }).start();
+  }, [ready, latido]);
 
   const square = useRef(new Animated.Value(plays ? 0 : 1)).current;
   const cream = useRef(new Animated.Value(plays ? 0 : 1)).current;
@@ -136,6 +157,20 @@ export default function Hola() {
   return (
     <View style={{ flex: 1, backgroundColor: PALETTE.fondo }}>
       <Animated.View
+        pointerEvents="none"
+        accessible={false}
+        style={{
+          position: 'absolute',
+          left: 0,
+          top: 0,
+          // ⚠️ ONE PIXEL, not a size a person looks at (`R6`): it is never seen.
+          width: StyleSheet.hairlineWidth,
+          height: StyleSheet.hairlineWidth,
+          backgroundColor: PALETTE.tinta,
+          opacity: latido.interpolate({ inputRange: [0, 1], outputRange: [0.01, 0.02] }),
+        }}
+      />
+      <Animated.View
         style={{
           position: 'absolute',
           left: width / 2 - SQUARE_SIDE / 2,
@@ -176,6 +211,7 @@ export default function Hola() {
           >
             <Image
               source={source}
+              fadeDuration={0}
               onLoad={() => setLoaded((n) => n + 1)}
               onError={() => setLoaded((n) => n + 1)}
               style={{ width: COW_BOX, height: COW_BOX }}

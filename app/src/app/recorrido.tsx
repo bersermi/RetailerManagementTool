@@ -19,7 +19,7 @@ import { useReduceMotion } from '@/lib/movimiento';
 import { deviceStore, writeKey } from '@/lib/store';
 import { TE_LO_COMPRO, recorridoPrometeTeLoCompro } from '@/navigation/pausa';
 import { cardMs, esUltima, recorridoDe, type Tarjeta } from '@/navigation/recorrido';
-import { RECORRIDO_KEY } from '@/offline/ensenar';
+import { marcarHistoria } from '@/offline/ensenar';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { TITULO } from '@/theme/letra';
@@ -112,10 +112,12 @@ export default function Recorrido() {
   const progress = useRef(new Animated.Value(0)).current;
   const pausedAt = useRef(0);
 
-  // ⚠️ OPENING IT IS SEEING IT: it never opens by itself again on this phone.
+  // ⚠️ OPENING IT IS SEEING IT: this story never opens by itself again on this
+  // phone. ⚠️ `5R-n`: THE STORY OF HER ROLE, marked once the roster has said
+  // which it is — the other story still opens the first time she has that role.
   useEffect(() => {
-    writeKey(deviceStore(), RECORRIDO_KEY, '1');
-  }, []);
+    if (known) marcarHistoria(deviceStore(), role);
+  }, [known, role]);
 
   const card = cards[Math.min(index, cards.length - 1)] ?? 'hola';
   const last = esUltima(cards, index);
