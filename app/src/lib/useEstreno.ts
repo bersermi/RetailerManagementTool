@@ -52,6 +52,9 @@ export function useEstreno(): boolean {
   const estado = Updates.useUpdates();
   const [, otraVez] = useState(0);
   const abierto = useRef(!puedeEsperar());
+  // ⚠️ ONCE THE RELOAD IS ASKED FOR, IT IS WAITED FOR (`Arranque.recargando`) —
+  // expo-updates resets its state as it restarts, and must not be read as news.
+  const recargando = useRef(false);
 
   const paso: Paso = abierto.current
     ? 'abrir'
@@ -62,8 +65,10 @@ export function useEstreno(): boolean {
         buscando: estado.isStartupProcedureRunning || estado.isChecking || estado.isDownloading,
         lista: estado.isUpdatePending,
         ms: Date.now() - ARRANCO,
+        recargando: recargando.current,
       });
   if (paso === 'abrir') abierto.current = true;
+  if (paso === 'recargar') recargando.current = true;
 
   useEffect(() => {
     if (paso === 'abrir') {

@@ -14,7 +14,15 @@ import { ESPERA_MAXIMA_MS, pasoDe, type Arranque } from '@/lib/estreno';
 // ============================================================================
 
 /** A store build's first open, nobody signed in, its check still running, a second in. */
-const PRIMERA: Arranque = { activo: true, embebido: true, sesion: 'nadie', buscando: true, lista: false, ms: 1_000 };
+const PRIMERA: Arranque = {
+  activo: true,
+  embebido: true,
+  sesion: 'nadie',
+  buscando: true,
+  lista: false,
+  ms: 1_000,
+  recargando: false,
+};
 
 describe('the launches that never wait', () => {
   it('opens at once on a downloaded update — every launch but a build’s first code', () => {
@@ -64,5 +72,20 @@ describe('before the session is read', () => {
 
   it('but never past the limit', () => {
     expect(pasoDe({ ...PRIMERA, sesion: 'sinLeer', ms: ESPERA_MAXIMA_MS })).toBe('abrir');
+  });
+});
+
+// ⚠️ MEASURED ON THE EMULATOR, 2026-11-17: as expo-updates restarts it resets its
+// state to nothing checking, nothing pending — read again, that opened the app on
+// the old code for a moment, and the welcome spent the once-per-phone opening there.
+describe('once the reload is asked for', () => {
+  const pedida: Arranque = { ...PRIMERA, buscando: false, lista: false, recargando: true };
+
+  it('keeps waiting for it while expo-updates resets its state, never opening the old code', () => {
+    expect(pasoDe(pedida)).toBe('recargar');
+  });
+
+  it('even past the limit — the reload’s own watchdog opens if it never comes', () => {
+    expect(pasoDe({ ...pedida, ms: ESPERA_MAXIMA_MS * 2 })).toBe('recargar');
   });
 });
