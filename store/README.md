@@ -14,11 +14,11 @@ pictures Google asks for.
 | [`cocina-itacate/`](cocina-itacate/) | Their provisional 512 px icons and feature graphics, drawn by `render.sh` from Wera's mark; and their phone screenshots |
 | `limits.py` | Measures every pasted field against its store's limit |
 
-**Where each stands.** Google Play's closed test has its text, forms and pictures ready; its
-first upload is the bundle built with the cow on its icon, by the owner's rulings of 2026-10-13. The handbook's
-*Putting Wera on Google Play's closed test* has the steps (`5R-d-iv-b`, the owner's hands). The
-public listings — final text, final screenshots, the App Store record — are `5R-d-iv-c`, after
-the owner's review (`8g`) and the logo (`5R-m`).
+**Where each stands.** *Wera: tu tienda* 1.0.0 is public in Mexico on both stores — the App Store
+since 2026-11-05 (build 3), Google Play since 2026-11-11 (version code 7). **1.1.0 is `5R-o`'s**: its
+release notes and what was read again for it are section 9 of each store's file, and the handbook's
+*Wera 1.1 in both stores* has the owner's steps. (Corrected 2026-11-17: this paragraph still described
+the closed test.)
 
 ## The limits
 
@@ -26,7 +26,8 @@ the owner's review (`8g`) and the logo (`5R-m`).
 it, and names any that is over. On 2026-10-13 all eleven fit: Play's name 15 of 30, short
 description 76 of 80, full description 1,543 of 4,000; Apple's name 15 of 30, subtitle 29 of
 30, promotional text 123 of 170, description 1,426 of 4,000, keywords 90 of 100 bytes. It is
-not in CI: a console refuses an over-long field the moment it is pasted.
+not in CI: a console refuses an over-long field the moment it is pasted. On 2026-11-17 (`5R-o`, with
+1.1's release notes in both stores' files) it measured 30 fields, all fitting.
 
 ## ⚠️ Never in this folder
 
@@ -49,7 +50,7 @@ against the code: this table is the only link, as `site/README.md` is for the av
 | Nothing is *shared* | Supabase and Expo process data on Wera's behalf (the aviso's section 5). Google: a transfer to a service provider is not sharing |
 | Encrypted in transit | `app/src/lib/env.ts` refuses a Supabase address that is not `https://`; the manifest of the store build does not allow cleartext (measured below) |
 | No usage data, no diagnostics | `EXPO_PUBLIC_PILOT` is not in EAS's `production` environment, and the store build's bundle carries no label (measured below). `app/package.json` has no analytics or crash library |
-| No location, contacts or microphone. ⚠️ **Since `8m`: the camera, for *Te lo compro*, and *Photos* and *Address* are declared** (drafted 2026-10-17 for his approval; they apply from the first store build that carries the camera). ⚠️ **Since `8o` the camera also takes a product's photo on Crear and Editar** (`0063`'s bucket `producto`), and the forms say so — ✅ **and since 2026-10-21 `app.json`'s camera sentence says both** (*para tomar fotos de tus productos y de lo que pides que Wera recoja*), changed with the build that follows it | `app.json`'s `expo-image-picker` entry: the camera's sentence, `photosPermission: false`, `microphonePermission: false`. `app/src/capture/photo.ts` opens the camera only, and re-encodes each photo, which drops its metadata (where it was taken). ⚠️ **Not yet measured on a store build**: the build below has no camera |
+| No location, contacts or microphone. ⚠️ **Since `8m`: the camera, for *Te lo compro*, and *Photos* and *Address* are declared** (drafted 2026-10-17 for his approval; they apply from the first store build that carries the camera). ⚠️ **Since `8o` the camera also takes a product's photo on Crear and Editar** (`0063`'s bucket `producto`), and the forms say so — ✅ **and since 2026-10-21 `app.json`'s camera sentence says both** (*para tomar fotos de tus productos y de lo que pides que Wera recoja*), changed with the build that follows it. ⚠️ **Since `10.0a` *Te lo compro* is paused** (`@/navigation/pausa`), so only the product photo uses the camera; **1.1 (`5R-o`) says only that** — *Wera usa la cámara para tomar fotos de tus productos.* — and both stores keep *Photos* and *Address* declared (each file's section 9 says why) | `app.json`'s `expo-image-picker` entry: the camera's sentence, `photosPermission: false`, `microphonePermission: false`. `app/src/capture/photo.ts` opens the camera only, and re-encodes each photo, which drops its metadata (where it was taken). ⚠️ **Not yet measured on a store build**: the build below has no camera |
 | No ads, no advertising id | No ad library in `app/package.json`; the store build's manifest has no `AD_ID` permission (measured below) |
 | An account can be deleted in the app and by a web page | `5R-c` (*Ajustes → Tu cuenta → Eliminar mi cuenta*) and `tu-wera.com/eliminar-cuenta/` |
 | Sign-up by *username and password* and by *OAuth* | Since `8g` (2026-10-21) the first screen is two doors and *¿Ya tienes cuenta? Entrar*; the account screen after them has email and password, and *Continuar con Google* through a browser tab (`signInWithOAuth` + `openAuthSessionAsync`). No Google library is in the build, so Play re-signing the app changes nothing about sign-in |

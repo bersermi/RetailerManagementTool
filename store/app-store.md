@@ -175,10 +175,12 @@ it is harmless to review; Google's form declares it too, so the two stores agree
 in the store build and there is no crash library. *Contacts* means the phone's address book,
 which Wera never reads; a supplier's phone is the shop's own record and sits under *Other
 User Content*. *Location*, *Health*, *Browsing History*, *Search History*,
-*Sensitive Info* — none. ⚠️ **Since `8m`**, *Photos or Videos* is the photos a shop takes with the
-camera for *Te lo compro* — **and since `8o` the photo an owner or manager takes of a product the
-shop created** (optional; its members see it) — and *Physical Address* the store's address (a home,
-when the shop is in one); both apply from the first build that carries the camera.
+*Sensitive Info* — none. *Photos or Videos* is the photo an owner or manager takes of a product the
+shop created (since `8o`; optional; its members see it), and *Physical Address* the store's address
+(a home, when the shop is in one), given in *Ajustes* when the shop wants to. ⚠️ **Both stay declared
+in 1.1 (`5R-o`, read again 2026-11-17):** *Te lo compro*, which also took photos and asked for the
+address first, is paused since `10.0a` — paused, not removed, and an update can bring it back — and
+both are still collected.
 
 ## 7. App Review information
 
@@ -193,7 +195,7 @@ when the shop is in one); both apply from the first build that carries the camer
 ```
 Wera is a point-of-sale and stock-record app for small shops in Mexico. The interface is in Spanish.
 
-The demo account owns a shop with products already loaded. To record a sale: tab "Vender", tap + on a product, open the basket ("Total") and confirm. "Comprar" records a delivery from a supplier and "Merma" records a write-off. "Inicio" has the catalog, the last seven days, suppliers, reports ("Números") and settings ("Ajustes").
+The demo account owns a shop with products already loaded. The first time an account opens its shop on a phone, a one-minute tour ("Conoce Wera") opens by itself; "Saltar" closes it. To record a sale: tab "Vender", tap + on a product, open the basket ("Total") and confirm. "Comprar" records a delivery from a supplier and "Merma" records a write-off. "Inicio" has the catalog, the last seven days, suppliers, reports ("Números") and settings ("Ajustes").
 
 Wera processes no payments: it only records sales a shop made in cash. There are no in-app purchases and no ads.
 
@@ -217,3 +219,27 @@ phone in Spanish, *Continue with Apple* on a reviewer's.
 *Does your app use encryption?* It uses only HTTPS and hashing, which are exempt.
 `ITSAppUsesNonExemptEncryption: false` is in `app/app.json` since `5R-k`, so a build made after
 it is not asked the question again.
+
+## 9. Version 1.1.0 (`5R-o`)
+
+The handbook's *Wera 1.1 in both stores* has the steps. App Store Connect copies the 1.0 version's
+description, keywords, promotional text, screenshots and review information into a new version; only
+these change.
+
+**What's New in This Version** — the same words as Play's release notes (`google-play.md`, section 9):
+
+<!-- max:4000 -->
+```
+Novedades de Wera 1.1:
+• Quien entra como Empleado ve solo su trabajo: Vender, Comprar, Merma y lo que registró.
+• Conoce Wera: un recorrido de un minuto para el dueño y el encargado, y uno más corto para el empleado.
+• Los arreglos que nos pidieron las tiendas.
+```
+
+**App Review notes:** section 7's, pasted again — since 2026-11-17 they name the tour that opens on a
+new phone.
+
+**Read again on 2026-11-17, nothing else changes:** the description, subtitle and keywords name nothing
+1.1 no longer does (they never named *Te lo compro*); the privacy answers (section 6) and the age
+rating are unchanged. What a reviewer meets that 1.0's reviewer did not: the tour, and the iPhone's
+camera question, which since 1.1 reads *Wera usa la cámara para tomar fotos de tus productos.*

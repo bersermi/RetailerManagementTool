@@ -658,7 +658,7 @@ after you have tried it.
 | **10.5c-ii** | **Campaigns, in the database** — your yes-or-no record per person; campaigns and their wordings; the group held back; who a campaign may be aimed at; sending within the hours and limits; a test to your own phones before any launch; the results, never a name | After the first push (`10.5b-v-ii`) and **your product analyst's answers to the page's questions 2 to 5** |
 | **10.5c-iii** | **Campaigns, in both apps** — Itacate's phones registered too; *Notificaciones* in both apps, a switch per kind; the yes sheet at its moment; a campaign's tap opens what it names | After `10.5c-ii`. Before the public releases, so the privacy page each person first accepts already says all of it |
 | **5R-n** | **Wera for the barrio — the fixes, sent over the air**: an *Empleado* sees only her work — Vender, Comprar and Merma, and in *Lo último* only what she recorded; no Números, no takings, no *Tu semana*, no Productos or Proveedores; Merma with *Te lo compro* and *Ofrecer a las cocinas* as *Próximamente*, kept hidden until both stores approve 1.1; the walkthrough once per role, not once per phone; a new phone's first open waiting a few seconds for the newest update; Wera's opening without its blink | ✅ **Done 17 November, night** — sent over the air to both store versions and the test builds; *What is on your phone* says how to take it, and *What only you can judge* → *Wera → an Empleado's screens* what to look at. **What she meets in Comprar** (you asked to hear before anything changed there — nothing did): the prices you last paid are filled in for her too, as you ruled on 25 September; neither she nor anyone can create a supplier or a product from Comprar. **A new phone's first open** was seen on a test Android: the cow stays while Wera fetches the newest version, then the opening plays on it — it works from the 1.1 builds on. |
-| **5R-o** | **Wera 1.1.0 in both stores, from one commit** — the camera sentence without *Te lo compro*; both store versions built and read inside; the stores' privacy answers and release notes read again | ⚠️ **This is where the next piece of work is**, since 17 November, night — **after your look at `5R-n`**. **Yours, in about twenty minutes:** in **App Store Connect**, a new version 1.1.0 with the build the session sends, its *Novedades*, sent to review; in **Play Console**, *Producción* → a new release with the file the session gives you, its *Novedades*, rolled out to 100 % — the session writes each step here. Apple usually answers in a day or two; Google can take up to seven |
+| **5R-o** | **Wera 1.1.0 in both stores, from one commit** — the camera sentence without *Te lo compro*; both store versions built and read inside; the stores' privacy answers and release notes read again | ⚠️ **This is where the next piece of work is**, since 17 November, night — **after your look at `5R-n`**. ✅ **Its words are ready (17 November, late night):** both stores' privacy answers read again for 1.1 — none changes; one *Novedades* for both; and your steps in both consoles, in *Wera 1.1 in both stores*. **Left, after your look:** a session changes the camera sentence and the version, makes both store versions and sends the iPhone's to Apple; then **yours, about twenty minutes** — App Store Connect and Play Console, step by step on that page. Apple usually answers in a day or two; Google can take up to seven |
 | **5R-p** | **After both stores approve** — a short session: both listings read at 1.1.0, *Próximamente* switched on, and Wera installed fresh from each store on your two phones, with you | When Apple's and Google's emails say approved: tell a session |
 | **10.9a** | **The frame every service lands on** — Wera Cocina's first run in three steps, the third *¿Qué más quieres usar?* (no first offer inside it); three tabs for every kitchen, *Hoy* growing a tile for each feature she uses; the gentle nudges you ruled (*¿Tienes alguna oferta?* instead of *Tu página · 4 de 5*); *Lo que usas* in *Mi cocina*; *Tu menú* as *Próximamente* and *Cuéntanos cómo necesitas tu menú*; in the database, which features each kitchen uses, and a switch of yours to keep a built feature off for everyone | ✂️ **Split in three on 17 November**, measured too big for one sitting — a migration with its checks, then two sets of Wera Cocina screens: the database (`10.9a-i`, done that day); her choices in the first run and *Mi cocina* (`10.9a-ii`); *Hoy*'s tiles and the nudges (`10.9a-iii`) |
 | **10.9a-i** | **The frame's database** — which features each kitchen uses (on, off, or *Me interesa*), kept per kitchen; a switch of yours for each feature, and one for *Próximamente*; Itacate told which services a kitchen uses; *Me interesa* and *Cuéntanos cómo necesitas tu menú* recorded | ✅ **Done 17 November, and on the live database the same night** (every switch read back off there) — tried against a test copy of the database, every write read back. **Nothing on a phone changes**: no screen draws it yet. **What it holds:** for each kitchen and feature — the loyalty card, promotions, her numbers, your menu — whether she uses it, not, or said *Me interesa*, with when; only the kitchen's owner writes it, everyone at the kitchen reads it. **Your switches, all off** until each feature is built: one per feature (off, no fonda is offered it or can turn it on, and no neighbour sees it), and one for every *Próximamente* (*Tu menú*, *Cuéntanos*), for after both stores approve. Turning one on is one line on the live database, which you run — a session writes it out for you, since sessions may not write there. **Itacate** learns which services a kitchen uses — the card and promotions only; never that she reads her numbers — and ignores a name it does not know, so its builds in the field survive the services after it. **Your Discord:** *Una cocina quiere: Tu menú* when a fonda taps *Me interesa*, and *Una cocina nos contó cómo necesita su menú* when she writes — what she wrote stays in the database, never on Discord |
@@ -2004,6 +2004,49 @@ November). Nothing here waits on you any more but the list at the foot.
 - **How a pilot shop installs Wera** — from its store, since 12 November; the test build only for a phone you want
   measured (*When a shop that is not yours is live*).
 - **Supabase Pro** — the day before a shop that is not yours starts keeping its real records (the same page says how).
+
+---
+
+## Wera 1.1 in both stores
+
+⏳ **Not yet — first your look at `5R-n`** (*What only you can judge* → *Wera → an Empleado's screens*), because each
+store version costs a review and should carry what you have seen. Then a session changes the iPhone's camera sentence
+and the version, builds both store versions from one commit, reads each inside, sends the iPhone's to Apple and gives
+you the Android file. **Then these steps are yours, about twenty minutes.** Every word to paste is in section 9 of
+[`store/app-store.md`](../store/app-store.md) and [`store/google-play.md`](../store/google-play.md).
+
+**Why 1.1 at all:** a phone that installs Wera from a store runs that version's own code on its first open — 1.0's is
+from 21 October, with *Te lo compro* in Merma and no tour. 1.1 opens on today's code, waits a few seconds for anything
+newer, and its camera question no longer names *Te lo compro*. ⚠️ **From the moment the 1.1 builds exist, an update
+reaches 1.1 only** — a phone on 1.0 takes 1.1 from its store first.
+
+**App Store Connect** (appstoreconnect.apple.com) — once Apple's email says the build is processed:
+
+1. *Apps* → *Wera: tu tienda* → in the left column, the **+** beside *iOS App* → type `1.1.0` → *Create*. Apple copies
+   1.0's description, keywords, screenshots and review information into it.
+2. ***What's New in This Version*** — paste section 9's block.
+3. ***Build*** — the **+** beside it → the build the session names → *Done*.
+4. ***App Review Information → Notes*** — paste section 7's block again (it now mentions the tour a new phone opens).
+   The demo account stays as it is.
+5. ***App Store Version Release*** — **recommended: *Automatically release this version***, so nothing waits on you after
+   Apple's yes. *Manually release this version* if you would rather press it yourself.
+6. *Save* (top right) → *Add for Review* → *Submit for Review*. Apple answers by email, usually within a day or two.
+
+**Play Console** (play.google.com/console):
+
+1. *Wera: tu tienda* → *Test and release* → *Production*. ⚠️ **If 1.0's release still shows a rollout below 100 %, raise
+   it to 100 % first** — Play refuses a new release while one is still rolling out (its help page, *Prepare and roll out a
+   release*).
+2. *Create new release* → under *App bundles*, *Upload* → the `.aab` the session names, from
+   `~/RetailerToolDev/wera-builds/`.
+3. *Release name* — leave what Play fills in.
+4. ***What's new in this release?*** — between `<es-419>` and `</es-419>`, paste section 9's block.
+5. *Next* → on *Preview and confirm*, the rollout percentage **100** → *Save* → *Start rollout*; then, if *Publishing
+   overview* lists changes waiting, *Send changes for review*. Google's review can take up to seven days.
+6. ***Data safety*** — nothing changes for 1.1 (section 9 says why); leave it.
+
+**When both emails say approved, tell a session *approved*** — that is `5R-p`: both listings read at 1.1.0, Merma's
+*Próximamente* switched on, and Wera installed fresh from each store on your two phones.
 
 ---
 
