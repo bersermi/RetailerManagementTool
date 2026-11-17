@@ -5,15 +5,16 @@ import { ES } from '@/strings';
 
 // ============================================================================
 // WERA COCINA'S TAB BAR, AS DATA. Plan task `10.5-v-c-i`, the owner's ruling of
-// 2026-11-05 (the family-shell page's calls 1 and 4): *Hoy · Apartados · Clientes ·
-// Mi cocina* — four tabs at most, each with its word, and THE TWO ENDS NEVER MOVE; a
-// tab appears only when its feature ships, and a new feature arrives first as a card
-// on *Hoy*. Its twin is Itacate's (`itacate/src/navigation/pestanas.ts`, `10.5-v-b`).
+// 2026-11-05 (the family-shell page's calls 1 and 4) — four tabs at most, each with its
+// word, and THE TWO ENDS NEVER MOVE; a tab appears only when its feature ships. ⚠️ Since
+// his arrangement A (2026-11-16) the bar is *Hoy · Apartados · Mi cocina* for every
+// kitchen: a service is a tile on *Hoy* and its own screen, never a tab — *Clientes* left
+// the data with `10.9a-ii`. Its twin is Itacate's (`itacate/src/navigation/pestanas.ts`, `10.5-v-b`).
 //
 // ⚠️ DATA AND NOT JSX, as Wera's tabs are (`app/src/navigation/tabs.ts`): the suite
 // reads the order, the words and the glyphs (`test/pestanas.test.ts`) — a misspelt
-// glyph is a blank square on the bar, which nothing else would see. The two tabs that
-// are not here yet name the row that brings them; the bar draws only `EN_USO`, and the
+// glyph is a blank square on the bar, which nothing else would see. A tab that
+// is not here yet names the row that brings it; the bar draws only `EN_USO`, and the
 // folder `(cocina)/(tabs)/` holds exactly their screens, so no route appears as a tab
 // by accident. ⚠️ *Tus ofertas* is a room, not a tab (the page's rule 3: a card
 // before a room, a room before a tab): it is pushed over the tabs from *Hoy*.
@@ -24,7 +25,7 @@ type Glifo = ComponentProps<typeof MaterialCommunityIcons>['name'];
 
 export interface Pestana {
   /** The screen's file in `(cocina)/(tabs)/`, without `.tsx`. */
-  readonly ruta: 'index' | 'apartados' | 'clientes' | 'mi-cocina';
+  readonly ruta: 'index' | 'apartados' | 'mi-cocina';
   readonly label: string;
   readonly icono: Glifo;
   /** The plan row that brings it, or `null` once it has shipped. */
@@ -36,8 +37,6 @@ export const PESTANAS: readonly Pestana[] = [
   { ruta: 'index', label: ES.pestanas.hoy, icono: 'white-balance-sunny', llega: null },
   // A ticket: what neighbours reserved, to hand over with its code — in use since `10.5b-iv-a`.
   { ruta: 'apartados', label: ES.pestanas.apartados, icono: 'ticket-confirmation-outline', llega: null },
-  // People: her stamp card, who follows her, her numbers (the services, `10.9`).
-  { ruta: 'clientes', label: ES.pestanas.clientes, icono: 'account-group-outline', llega: '10.9' },
   // A shop front: what she sets once — her page, where she hands food over, her trade, her account.
   { ruta: 'mi-cocina', label: ES.pestanas.miCocina, icono: 'storefront-outline', llega: null },
 ];

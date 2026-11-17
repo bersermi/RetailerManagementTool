@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -159,24 +159,33 @@ describe('each screen hands on to the next', () => {
     expect([ES.hola.crear, ES.hola.tengo]).toEqual([ES.auth.signUp, 'Ya tengo cuenta']);
   });
 
-  it('three steps now: her kitchen, her address, and *¿Qué ofreces hoy?*', () => {
-    expect(code('app/(onboarding)/registro.tsx')).toMatch(/ES\.registro\.paso\(1\)/);
-    expect(code('app/(onboarding)/donde.tsx')).toMatch(/ES\.registro\.paso\(2\)/);
-    expect(code('app/(cocina)/que-ofreces.tsx')).toMatch(/ES\.registro\.paso\(3\)/);
+  // ⚠️ `10.9a-ii` (G32, ruled 2026-11-17): no first offer inside the first run — *¿Qué ofreces hoy?* is gone,
+  // and the third step is *¿Qué más quieres usar?* while this build carries a feature to pick.
+  it('her kitchen, her address — each step counted by the build’s rule — then *¿Qué más quieres usar?* or her page', () => {
+    expect(code('app/(onboarding)/registro.tsx')).toMatch(/\{pasoDe\(1\)\}/);
+    expect(code('app/(onboarding)/donde.tsx')).toMatch(/paso=\{pasoDe\(2\)\}/);
+    expect(code('app/(cocina)/que-mas.tsx')).toMatch(/\{pasoDe\(3\)\}/);
+    expect(existsSync(join(ROOT, 'cocina/src/app/(cocina)/que-ofreces.tsx'))).toBe(false);
   });
 
-  it('*¿Qué ofreces hoy?*: the one form for her first offer, or *Después* to her page — and back leaves for *Hoy*', () => {
-    const que = code('app/(cocina)/que-ofreces.tsx');
-    expect(que).toMatch(/label=\{ES\.primera\.publicar\}\s*onPress=\{\(\) => router\.push\(\{ pathname: '\/publicar', params: \{ primera: '1' \} \}\)\}/);
-    expect(que).toMatch(/label=\{ES\.primera\.despues\} onPress=\{\(\) => router\.replace\('\/ya-estas'\)\}/);
+  it('*¿Qué más quieres usar?*: *Seguir* sends one call and goes on to her page; *Decidir después* sends nothing; back leaves for *Hoy*', () => {
+    const que = code('app/(cocina)/que-mas.tsx');
+    expect(que).toMatch(/const problema = await elegir\(eleccionesDe\(mostrados, elegidos\)\);\s*if \(problema !== null\) return setProblema\(problema\);\s*router\.replace\('\/ya-estas'\);/);
+    expect((que.match(/elegir\(/g) ?? []).length).toBe(1);
+    expect(que).toMatch(/const despues = \(\) => router\.replace\('\/ya-estas'\);/);
+    expect(que).toMatch(/label=\{ES\.queMas\.despues\} onPress=\{despues\}/);
+    expect(que).toMatch(/if \(nada\) router\.replace\('\/ya-estas'\);/);
     expect(que).toMatch(/BackHandler\.addEventListener\('hardwareBackPress', \(\) => \{\s*router\.replace\('\/'\);\s*return true;/);
+    // Nothing pre-checked: the set starts empty.
+    expect(que).toMatch(/useState<ReadonlySet<Elegible>>\(new Set\(\)\)/);
   });
 
-  it('the form, opened from there: published, with *Deshacer*, on to her page — the first run dismissed under it', () => {
+  it('the form no longer ends the first run: published, it goes back where it came from', () => {
     const form = code('app/(cocina)/publicar.tsx');
     const nota = form.indexOf('avisarPublicada(ES.nota.publicaste(');
     expect(nota).toBeGreaterThan(-1);
-    expect(form.slice(nota)).toMatch(/if \(!primera\) return salir\(\);\s*router\.dismissAll\(\);\s*router\.replace\('\/ya-estas'\);/);
+    expect(form.slice(nota)).toMatch(/^avisarPublicada\([^;]*\);\s*salir\(\);\s*\}/);
+    expect(form).not.toMatch(/primera|ya-estas/);
   });
 
   it('her page: Itacate’s, from her own rows; its title true of her kitchen now; then *Hoy*', () => {
@@ -192,13 +201,13 @@ describe('each screen hands on to the next', () => {
   });
 
   it('in the drawing’s words', () => {
-    expect(ES.primera).toMatchObject({
-      titulo: '¿Qué ofreces hoy?',
-      publicar: 'Publicar mi primera oferta',
-      despues: 'Después',
+    expect(ES.primera).toEqual({
       yaEsta: 'Tu cocina ya está en Itacate',
+      asiTeVen: 'Así te ven tus vecinos:',
+      asiTeVeran: 'Así te verán tus vecinos',
       irAHoy: 'Ir a Hoy',
     });
-    expect(ES.registro.paso(3)).toBe('Paso 3 de 3');
+    expect(ES.queMas).toMatchObject({ titulo: '¿Qué más quieres usar?', seguir: 'Seguir', despues: 'Decidir después' });
+    expect(ES.registro.paso(3, 3)).toBe('Paso 3 de 3');
   });
 });

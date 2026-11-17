@@ -84,9 +84,8 @@ import { TarjetaPlatillo } from '@/vecinos/ui/TarjetaPlatillo';
 // line, filling in as she types (`@/lib/vistaPrevia`, the family-shell page's form). It
 // opens nothing and measures no distance: she is in her kitchen. A photo she has just
 // taken is drawn from the phone (`RecienTomadas`), since it goes up only on *Publicar*.
-// ⚠️ AND IT IS THE FIRST RUN'S LAST STEP when opened from *¿Qué ofreces hoy?* (`primera`):
-// published, she goes on to her page as neighbours see it (`/ya-estas`), the first run's
-// screens dismissed under it, never back to *Hoy* or to the question.
+// (From `10.5-v-d` to `10.9a-ii` it was also the first run's last step, opened from *¿Qué
+// ofreces hoy?*; the owner's ruling of 2026-11-17, G32, took the first offer out of the first run.)
 //
 // ⚠️ `10.5b-iv-c`: HER KITCHEN'S WAYS AND *DESECHABLE* (`useAjustes`): with both ways on, each dish
 // asks how it may be eaten (`@/ui/Renglon`), checked (`'comer'`) and sent (`publishBody`'s
@@ -98,7 +97,7 @@ import { TarjetaPlatillo } from '@/vecinos/ui/TarjetaPlatillo';
 const PAD = 'publicar-numeros';
 
 export default function Publicar() {
-  const { repetir, primera } = useLocalSearchParams<{ repetir?: string; primera?: string }>();
+  const { repetir } = useLocalSearchParams<{ repetir?: string }>();
   const kitchen = useKitchen();
   const place = usePlace(kitchen?.id ?? null);
   const listings = useListings(kitchen?.id ?? null);
@@ -125,7 +124,7 @@ export default function Publicar() {
       </View>
     );
   }
-  return <Form kitchen={kitchen} place={place.data} source={source} primera={primera !== undefined} />;
+  return <Form kitchen={kitchen} place={place.data} source={source} />;
 }
 
 /** Back to her kitchen — the screen under this one, or the kitchen itself when opened alone. */
@@ -134,7 +133,7 @@ function salir() {
   else router.replace('/');
 }
 
-function Form({ kitchen, place, source, primera }: { kitchen: Kitchen; place: Place; source: Listing | null; primera: boolean }) {
+function Form({ kitchen, place, source }: { kitchen: Kitchen; place: Place; source: Listing | null }) {
   const placeId = place.id;
   const insets = useSafeAreaInsets();
   const { publish, busy } = usePublish(kitchen.id);
@@ -191,9 +190,7 @@ function Form({ kitchen, place, source, primera }: { kitchen: Kitchen; place: Pl
     const elegida = lines.find((line) => !line.surprise);
     recordarEleccion(kitchen.id, ofreceLasDos(ajustes) && elegida !== undefined ? { llevar: elegida.llevar, aqui: elegida.aqui } : null);
     avisarPublicada(ES.nota.publicaste(nombreDe({ lines: body.p_lines })), kitchen.id, id);
-    if (!primera) return salir();
-    router.dismissAll();
-    router.replace('/ya-estas');
+    salir();
   }
 
   const section = { fontSize: SIZE.bodySize, fontWeight: '700', color: PALETTE.tinta, marginTop: SIZE.space } as const;

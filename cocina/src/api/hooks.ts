@@ -7,8 +7,9 @@
 // kitchen deleted alone), `10.5-i-b-ii` (Google's point for her address, kept
 // again when its 30-day copy is a week old), `10.5b-iv-a` (her kitchen's
 // reservations, the handover and the fonda's thumb), `10.5b-iv-b` (those
-// reads kept on the phone, and the handover and the thumb queued) and `10.5b-iv-c`
-// (her settings, her stars, − and +, and the database asked before Apple).
+// reads kept on the phone, and the handover and the thumb queued), `10.5b-iv-c`
+// (her settings, her stars, − and +, and the database asked before Apple), `10.9a-i`
+// (what her kitchen uses) and `10.9a-ii` (her choices and *Cuéntanos*, written).
 //
 // ⚠️ A SCREEN NEVER CALLS `@/api/calls` ITSELF — Wera's R12: a hook here owns
 // the query key, when the read may run, and what it means. Every read waits for
@@ -48,7 +49,7 @@ import {
   type SobreElVecino,
 } from '@/api/apartados';
 import { CALIFICACIONES_FRESCAS_MS, calificacionesKey } from '@/api/calificaciones';
-import { serviciosKey } from '@/api/servicios';
+import { SERVICIOS_KEY, serviciosKey, type Estado, type LoQueUsa, type Servicio } from '@/api/servicios';
 import {
   accountOwners,
   deleteMyAccount,
@@ -69,7 +70,9 @@ import {
   publishListing,
   reservationNeighbours,
   revokeApple,
+  sendMenuRequest,
   setKitchenAjustes,
+  setKitchenFeatures,
   setKitchenGiro,
   setKitchenPage,
   setListingQuantity,
@@ -119,6 +122,7 @@ import { useAuth } from '@/auth/AuthProvider';
 import { releaseStep } from '@/auth/apple';
 import { firmaDeHoy, unir, vivo } from '@/lib/apartados';
 import { encolarEnvio, useCola } from '@/lib/cola';
+import { servicioErrorMessage } from '@/lib/loQueUsas';
 import { useAhora } from '@/lib/useAhora';
 import { useSenal } from '@/lib/useSenal';
 
@@ -692,7 +696,8 @@ export function useCalificaciones(kitchenId: string | null) {
 
 /**
  * `10.9a-i`: what her kitchen uses (`my_kitchen_features`) — her choices, what Wera offers, Próximamente.
- * Read when a screen that draws it mounts; the frame's screens (`10.9a-ii`, `10.9a-iii`) write through it.
+ * Read when a screen that draws it mounts — the first run's third step, *Lo que usas* and *Hoy*'s foot
+ * (`10.9a-ii`) — and written by the two hooks below.
  */
 export function useServicios(kitchenId: string | null) {
   const { session, ready } = useAuth();
@@ -702,6 +707,69 @@ export function useServicios(kitchenId: string | null) {
     queryFn: () => myKitchenFeatures(kitchenId as string),
     enabled: ready && userId !== null && kitchenId !== null,
   });
+}
+
+/**
+ * `10.9a-ii`: her choices written — the first run's *Seguir* (every feature it showed, in one call),
+ * *Activar* and *Me interesa* (one). ⚠️ NOT DRAWN BEFORE IT LANDS: a choice turns a tile on her *Hoy*
+ * and, for the card and promotions, a word on her page in Itacate, so the screen waits with its
+ * button busy and draws the database's answer (`set_kitchen_features` answers the read whole).
+ * ⚠️ `TD024` — Wera switched it off while she looked — is said in words (`servicioErrorMessage`)
+ * and her kitchen's choices are read again, so the feature leaves the screen. ONE AT A TIME.
+ */
+export function useElegirServicios(kitchenId: string | null) {
+  const queries = useQueryClient();
+  const { session } = useAuth();
+  const userId = session?.user.id ?? null;
+  const mutation = useMutation({
+    mutationFn: (choices: Readonly<Partial<Record<Servicio, Estado>>>) => setKitchenFeatures(kitchenId as string, choices),
+    onSuccess: (loQueUsa) => {
+      queries.setQueryData<LoQueUsa>(serviciosKey(userId, kitchenId), loQueUsa);
+    },
+    onError: () => {
+      void queries.invalidateQueries({ queryKey: SERVICIOS_KEY });
+    },
+  });
+
+  async function elegir(choices: Readonly<Partial<Record<Servicio, Estado>>>): Promise<string | null> {
+    if (kitchenId === null || mutation.isPending) return null;
+    try {
+      await mutation.mutateAsync(choices);
+      return null;
+    } catch (thrown) {
+      return servicioErrorMessage(thrown);
+    }
+  }
+
+  return { elegir, busy: mutation.isPending };
+}
+
+/**
+ * `10.9a-ii`: *Cuéntanos cómo necesitas tu menú* sent (`send_menu_request`). What she wrote stays in
+ * the database; the answer's `menu_requests` takes the line off *Hoy* on every phone of her kitchen.
+ */
+export function useContarMenu(kitchenId: string | null) {
+  const queries = useQueryClient();
+  const { session } = useAuth();
+  const userId = session?.user.id ?? null;
+  const mutation = useMutation({
+    mutationFn: (texto: string) => sendMenuRequest(kitchenId as string, texto),
+    onSuccess: (loQueUsa) => {
+      queries.setQueryData<LoQueUsa>(serviciosKey(userId, kitchenId), loQueUsa);
+    },
+  });
+
+  async function enviar(texto: string): Promise<string | null> {
+    if (kitchenId === null || mutation.isPending) return null;
+    try {
+      await mutation.mutateAsync(texto);
+      return null;
+    } catch (thrown) {
+      return apiErrorMessage(thrown);
+    }
+  }
+
+  return { enviar, busy: mutation.isPending };
 }
 
 /**

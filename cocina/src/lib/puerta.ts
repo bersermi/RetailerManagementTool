@@ -14,29 +14,36 @@ import { deviceStore, readKey, removeKey, writeKey, type DeviceStore } from '@/l
 // the door back. Nothing is sent anywhere — it is how she arranged her screen, not
 // something about her. A store that fails reads as open: the door comes back, never
 // a screen that cannot draw.
+//
+// ⚠️ `10.9a-ii`: *CUÉNTANOS CÓMO NECESITAS TU MENÚ*, CLOSED WITH ITS ✕ (G45), IS KEPT THE SAME WAY,
+// under a key of its own (`'menu'`). Whether her kitchen already told us is the database's, never
+// this phone's (`@/lib/loQueUsas`' `cuentanosEnHoy`).
 // ============================================================================
 
-/** The key a kitchen's closed door is kept under. */
-export function clavePuerta(kitchenId: string): string {
-  return `wera-cocina.hoy.pagina-cerrada.${kitchenId}`;
+/** The lines on *Hoy* she can close: her page's door, and *Cuéntanos*. */
+export type Puerta = 'pagina' | 'menu';
+
+/** The key a kitchen's closed line is kept under — her page's door kept its key of `10.5-v-c-i`. */
+export function clavePuerta(kitchenId: string, puerta: Puerta = 'pagina'): string {
+  return puerta === 'pagina' ? `wera-cocina.hoy.pagina-cerrada.${kitchenId}` : `wera-cocina.hoy.menu-cerrado.${kitchenId}`;
 }
 
 /** Whether she closed it, read from `store`. */
-export function puertaCerrada(store: DeviceStore | undefined, kitchenId: string): boolean {
-  return readKey(store, clavePuerta(kitchenId)) === '1';
+export function puertaCerrada(store: DeviceStore | undefined, kitchenId: string, puerta: Puerta = 'pagina'): boolean {
+  return readKey(store, clavePuerta(kitchenId, puerta)) === '1';
 }
 
 /** Close it, or open it again (*Deshacer*). */
-export function guardarPuerta(store: DeviceStore | undefined, kitchenId: string, cerrada: boolean): void {
-  if (cerrada) writeKey(store, clavePuerta(kitchenId), '1');
-  else removeKey(store, clavePuerta(kitchenId));
+export function guardarPuerta(store: DeviceStore | undefined, kitchenId: string, cerrada: boolean, puerta: Puerta = 'pagina'): void {
+  if (cerrada) writeKey(store, clavePuerta(kitchenId, puerta), '1');
+  else removeKey(store, clavePuerta(kitchenId, puerta));
 }
 
-/** Her door's state on *Hoy*, read once per kitchen and written as she changes it. */
-export function usePuertaCerrada(kitchenId: string): readonly [boolean, (cerrada: boolean) => void] {
-  const [cerrada, setCerrada] = useState(() => puertaCerrada(deviceStore(), kitchenId));
+/** Her line's state on *Hoy*, read once per kitchen and written as she changes it. */
+export function usePuertaCerrada(kitchenId: string, puerta: Puerta = 'pagina'): readonly [boolean, (cerrada: boolean) => void] {
+  const [cerrada, setCerrada] = useState(() => puertaCerrada(deviceStore(), kitchenId, puerta));
   function cambiar(nueva: boolean) {
-    guardarPuerta(deviceStore(), kitchenId, nueva);
+    guardarPuerta(deviceStore(), kitchenId, nueva, puerta);
     setCerrada(nueva);
   }
   return [cerrada, cambiar] as const;

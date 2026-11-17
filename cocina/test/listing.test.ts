@@ -515,7 +515,7 @@ describe('the screens’ wiring, read as text', () => {
     }
     const repetir = code('lib/useRepetir.ts');
     expect(repetir).toMatch(/if \(plan\.kind === 'formulario'\) \{\s*router\.push\(\{ pathname: '\/publicar', params: \{ repetir: listing\.id \} \}\);/);
-    expect(code('app/(cocina)/publicar.tsx')).toMatch(/useLocalSearchParams<\{ repetir\?: string; primera\?: string \}>\(\)/);
+    expect(code('app/(cocina)/publicar.tsx')).toMatch(/useLocalSearchParams<\{ repetir\?: string \}>\(\)/);
   });
 
   it('a one-tap Repetir is the same publication on a retry, as the form’s is', () => {

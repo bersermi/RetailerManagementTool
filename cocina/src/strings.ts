@@ -97,8 +97,12 @@ export const ES = {
   registro: {
     antetitulo: 'Wera Cocina',
     titulo: 'Registra tu cocina',
-    /** ⚠️ `10.5-v-d`: three steps — her kitchen, her address, then *¿Qué ofreces hoy?* (the first run). */
-    paso: (n: number) => `Paso ${n} de 3`,
+    /**
+     * ⚠️ `10.9a-ii`: her kitchen, her address, and — while this build carries a feature to pick —
+     * *¿Qué más quieres usar?* (`@/lib/loQueUsas`' `pasos`, the build's). *¿Qué ofreces hoy?* was the
+     * third step from `10.5-v-d` until the owner's ruling of 2026-11-17 (G32: no first offer inside it).
+     */
+    paso: (n: number, de: number) => `Paso ${n} de ${de}`,
     quien: (who: string) => `Entraste como ${who}.`,
     nombre: 'Nombre de tu cocina',
     /** A hint in muted ink, never a value: she types her own. */
@@ -514,14 +518,12 @@ export const ES = {
   },
 
   /**
-   * ⚠️ `10.5-v-c-i`: THE TAB BAR — *Hoy · Apartados · Clientes · Mi cocina* (the owner's
-   * ruling of 2026-11-05, the family-shell page's call 4). *Apartados* arrives with
-   * reserving (`10.5b`), *Clientes* with the stamp card; their words wait here.
+   * ⚠️ `10.5-v-c-i`: THE TAB BAR — *Hoy · Apartados · Mi cocina*, the same for every kitchen (his
+   * arrangement A, 2026-11-16; *Clientes* left it then, and the data with `10.9a-ii`).
    */
   pestanas: {
     hoy: 'Hoy',
     apartados: 'Apartados',
-    clientes: 'Clientes',
     miCocina: 'Mi cocina',
   },
 
@@ -1080,21 +1082,107 @@ export const ES = {
   },
 
   /**
-   * ⚠️ `10.5-v-d`: THE FIRST RUN'S LAST TWO SCREENS (the family-shell page, ruled 2026-11-05):
-   * her kitchen made, *¿Qué ofreces hoy?* — her first offer, or *Después* — then her page as
-   * her neighbours see it, and *Ir a Hoy*. `yaEsta` is said only while the door would send
-   * her kitchen (`@/lib/comoLaVen`'s `seVeEnItacate`); before a first offer it is not true,
-   * so the page is introduced as what they will see.
+   * ⚠️ `10.5-v-d`: THE FIRST RUN'S LAST SCREEN (the family-shell page, ruled 2026-11-05): her
+   * page as her neighbours see it, and *Ir a Hoy*. `yaEsta` is said only while the door would
+   * send her kitchen (`@/lib/comoLaVen`'s `seVeEnItacate`); before a first offer it is not true,
+   * so the page is introduced as what they will see. *¿Qué ofreces hoy?* came before it until
+   * `10.9a-ii` (G32, ruled 2026-11-17: no first offer inside the first run).
    */
   primera: {
-    titulo: '¿Qué ofreces hoy?',
-    texto: 'Publica tu primera oferta y tus vecinos cerca la verán en Itacate. Toma menos de un minuto.',
-    publicar: 'Publicar mi primera oferta',
-    despues: 'Después',
     yaEsta: 'Tu cocina ya está en Itacate',
     asiTeVen: 'Así te ven tus vecinos:',
     asiTeVeran: 'Así te verán tus vecinos',
     irAHoy: 'Ir a Hoy',
+  },
+
+  /**
+   * ⚠️ `10.9a-ii`: THE FIRST RUN'S THIRD STEP (the owner's rulings of 2026-11-16 and 17, G32 and
+   * G33; the family-shell page, round 7): her need first and the feature under it
+   * (`loQueUsas.necesidad`, `loQueUsas.nombre`), nothing pre-checked; *Seguir* or *Decidir después*.
+   * Drawn only while this build carries a feature Wera offers (`@/lib/loQueUsas`).
+   */
+  queMas: {
+    titulo: '¿Qué más quieres usar?',
+    seguir: 'Seguir',
+    despues: 'Decidir después',
+    leyendo: 'Leyendo…',
+    sinLeer: 'No pudimos leer qué puedes usar. Revisa tu conexión a internet.',
+    otraVez: 'Intentar de nuevo',
+  },
+
+  /**
+   * ⚠️ `10.9a-ii`: *MI COCINA › LO QUE USAS* (G33, *Lo que usas* at the top of *Mi cocina*): each
+   * feature Wera offers with its state; off, a tap opens what it is, what it asks of her and
+   * *Activar*, then *Listo, ya está en tu Hoy*. *Tu menú · Próximamente* with *Me interesa*
+   * (G44: recorded, and a Discord line naming nobody). The need lines are the ruled words —
+   * *Tu menú a la mano* his rewording of 2026-11-17; `frase` and `pide` are the page's drawing.
+   */
+  loQueUsas: {
+    titulo: 'Lo que usas',
+    necesidad: {
+      tarjeta: 'Que regresen',
+      promociones: 'Dar a conocer algo nuevo',
+      numeros: 'Saber cómo te va',
+      menu: 'Tu menú a la mano',
+    },
+    nombre: {
+      tarjeta: 'Tarjeta de lealtad',
+      promociones: 'Promociones',
+      numeros: 'Tus números',
+      menu: 'Tu menú',
+    },
+    frase: {
+      tarjeta: 'Tus clientes juntan sellos y, al completarla, les das un premio.',
+      promociones: 'Un platillo nuevo, de temporada o tu día especial, en tu página de Itacate.',
+      numeros: 'Cuántos platos entregas, cuántos vecinos vienen y cuándo.',
+    },
+    pide: {
+      tarjeta: 'Elegir el premio, cuántos sellos, y pegar un cartel en tu mostrador.',
+      promociones: 'Escribir qué ofreces y hasta cuándo.',
+      numeros: 'Nada: se llenan solos con tus entregas.',
+    },
+    /** Under a feature she does not use, in its gender and number. */
+    noUsas: {
+      tarjeta: 'No la usas',
+      promociones: 'No las usas',
+      numeros: 'No los usas',
+    },
+    enTuHoy: 'En tu Hoy',
+    loQueTePide: 'Lo que te pide',
+    activar: 'Activar',
+    activando: 'Activando…',
+    volver: 'Mi cocina',
+    listo: 'Listo, ya está en tu Hoy',
+    verMiHoy: 'Ver mi Hoy',
+    proximamente: 'Próximamente',
+    meInteresa: 'Me interesa',
+    anotado: 'Anotado',
+    /** The toast after *Me interesa*. */
+    gracias: 'Gracias: lo anotamos',
+    /** `TD024`: Wera switched it off while she looked. */
+    noDisponible: 'Ya no está disponible.',
+  },
+
+  /**
+   * ⚠️ `10.9a-ii`: *CUÉNTANOS CÓMO NECESITAS TU MENÚ* at the foot of *Hoy* (G45, ruled 2026-11-17):
+   * a text box in a sheet; what she writes stays in the database and Discord only hears that one
+   * arrived. The line stays until she sends one or closes it with ✕. The sentence and the hint are
+   * the family-shell page's drawing.
+   */
+  cuentanos: {
+    titulo: 'Cuéntanos cómo necesitas tu menú',
+    detalle: 'Tu menú · Próximamente',
+    texto: 'Cómo te imaginas tu menú en Wera Cocina: cuándo lo cambias, qué lleva, quién lo ve.',
+    ejemplo: 'Por ejemplo: el lunes subo el menú de la semana, con precios.',
+    cuenta: (n: number, de: number) => `${n} de ${de}`,
+    enviar: 'Enviar',
+    enviando: 'Enviando…',
+    ahoraNo: 'Ahora no',
+    vacio: 'Escribe algo, aunque sea corto.',
+    gracias: 'Gracias, lo leemos todo',
+    quitar: 'Quitar de Hoy',
+    /** The toast after its ✕, with *Deshacer*: *Tu menú* stays in *Lo que usas*. */
+    quitado: 'Lo encuentras en Mi cocina › Lo que usas',
   },
 
   /** Days and times as she says them. ⚠️ Wera's shapes: `Mañana · 9:45 a 10:00` (`slotShort`), `Lun 13`. */

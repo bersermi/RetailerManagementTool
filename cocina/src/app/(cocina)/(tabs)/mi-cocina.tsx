@@ -26,6 +26,7 @@ import { Formulario } from '@/ui/Formulario';
 import { Grupo } from '@/ui/Grupo';
 import { LeyendoCocina } from '@/ui/LeyendoCocina';
 import { Llega } from '@/ui/Llega';
+import { LoQueUsas } from '@/ui/LoQueUsas';
 import { MapaFijo } from '@/ui/MapaFijo';
 import { sinPuntoPara } from '@/ui/PantallaDireccion';
 import { Pendientes } from '@/ui/Pendientes';
@@ -66,6 +67,10 @@ import { Salidas } from '@/ui/Salidas';
 // screen is a `Formulario`. *Escríbenos por WhatsApp* is drawn only on a build that
 // carries the owner's number, as *¿Olvidaste tu contraseña?* is. NO CHECK CAN SEE THIS
 // SCREEN (ADR-035 §2.11): the phone is its instrument.
+//
+// ⚠️ `10.9a-ii`: *LO QUE USAS* AT ITS TOP, above her page (`@/ui/LoQueUsas`; the family-shell page,
+// round 7, took *"at the top"* literally) — absent while Wera offers nothing this build carries
+// and no *Próximamente* may show, which is every kitchen today.
 // ============================================================================
 
 export default function MiCocina() {
@@ -135,6 +140,8 @@ function MiCocinaDe({ kitchen }: { kitchen: Kitchen }) {
       <Formulario
         contentContainerStyle={{ padding: SIZE.space * 1.5, paddingBottom: SIZE.space * 3 + insets.bottom, gap: SIZE.space * 1.5 }}
       >
+        <LoQueUsas kitchenId={kitchen.id} i={0} />
+
         <Llega i={0} style={{ gap: SIZE.rowGap + 2 }}>
           {page.data === undefined ? (
             wheel

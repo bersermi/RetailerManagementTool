@@ -51,17 +51,18 @@ const GLYPHS = JSON.parse(
   ),
 ) as Record<string, number>;
 
-describe('the tab bar — Hoy · Apartados · Clientes · Mi cocina (the ruling of 2026-11-05)', () => {
-  it('four tabs at most, in the ruled order, each with its word', () => {
-    expect(PESTANAS.map((p) => p.label)).toEqual(['Hoy', 'Apartados', 'Clientes', 'Mi cocina']);
+describe('the tab bar — Hoy · Apartados · Mi cocina, the same for every kitchen (his arrangement A, 2026-11-16)', () => {
+  it('four tabs at most, in the ruled order, each with its word — Clientes gone from the data since `10.9a-ii`', () => {
+    expect(PESTANAS.map((p) => p.label)).toEqual(['Hoy', 'Apartados', 'Mi cocina']);
     expect(PESTANAS.length).toBeLessThanOrEqual(4);
+    expect(Object.keys(ES.pestanas)).toEqual(['hoy', 'apartados', 'miCocina']);
   });
 
-  it('the two ends never move, and Apartados is drawn since the handover shipped — the stamp card still waits', () => {
+  it('the two ends never move, and every tab is drawn — a service is a tile on Hoy, never a tab', () => {
     expect(PESTANAS[0].ruta).toBe('index');
     expect(PESTANAS[PESTANAS.length - 1].ruta).toBe('mi-cocina');
     expect(EN_USO.map((p) => p.label)).toEqual(['Hoy', 'Apartados', 'Mi cocina']);
-    expect(PESTANAS.filter((p) => p.llega !== null).map((p) => [p.label, p.llega])).toEqual([['Clientes', '10.9']]);
+    expect(PESTANAS.filter((p) => p.llega !== null)).toEqual([]);
     expect(pestanaDe('mi-cocina')?.label).toBe('Mi cocina');
     expect(pestanaDe('apartados')?.label).toBe('Apartados');
     expect(pestanaDe('clientes')).toBeNull();

@@ -5,6 +5,7 @@ import { useMakeKitchen } from '@/api/hooks';
 import { checkAddress, type GooglePoint } from '@/api/place';
 import { draftFrom, pasoUno } from '@/api/registro';
 import { useBorrador } from '@/lib/borrador';
+import { pasoDe } from '@/lib/loQueUsas';
 import { ES } from '@/strings';
 import { PantallaDireccion } from '@/ui/PantallaDireccion';
 
@@ -50,7 +51,7 @@ export default function Donde() {
   return (
     <PantallaDireccion
       antetitulo={null}
-      paso={ES.registro.paso(2)}
+      paso={pasoDe(2)}
       valor={borrador}
       elegido={elegido}
       onCambio={(next, pick) => {
