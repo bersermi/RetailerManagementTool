@@ -48,6 +48,7 @@ import {
   type SobreElVecino,
 } from '@/api/apartados';
 import { CALIFICACIONES_FRESCAS_MS, calificacionesKey } from '@/api/calificaciones';
+import { serviciosKey } from '@/api/servicios';
 import {
   accountOwners,
   deleteMyAccount,
@@ -58,6 +59,7 @@ import {
   kitchenGiros,
   kitchenCalls,
   kitchenPage,
+  myKitchenFeatures,
   myKitchenRatings,
   myKitchens,
   myListings,
@@ -685,6 +687,20 @@ export function useCalificaciones(kitchenId: string | null) {
     queryFn: () => myKitchenRatings(kitchenId as string),
     enabled: ready && userId !== null && kitchenId !== null,
     staleTime: CALIFICACIONES_FRESCAS_MS,
+  });
+}
+
+/**
+ * `10.9a-i`: what her kitchen uses (`my_kitchen_features`) — her choices, what Wera offers, Próximamente.
+ * Read when a screen that draws it mounts; the frame's screens (`10.9a-ii`, `10.9a-iii`) write through it.
+ */
+export function useServicios(kitchenId: string | null) {
+  const { session, ready } = useAuth();
+  const userId = session?.user.id ?? null;
+  return useQuery({
+    queryKey: serviciosKey(userId, kitchenId),
+    queryFn: () => myKitchenFeatures(kitchenId as string),
+    enabled: ready && userId !== null && kitchenId !== null,
   });
 }
 

@@ -112,6 +112,9 @@ const EN_PARTE: Readonly<Record<string, { readonly de: string; readonly bloques:
       // `10.5b-iii-b`: her stars, and the good tags a kitchen's page shows (`0080`).
       'export const ETIQUETAS_BUENAS =',
       'export type EtiquetaBuena =',
+      // `10.9a-i`: the services a neighbour sees a kitchen use (`0081`).
+      'export const SERVICIOS_VISTOS =',
+      'export type ServicioVisto =',
       'export interface Estrellas {',
       'export interface Punto {',
       'export interface Point extends Punto {',

@@ -12,6 +12,7 @@ import {
   TAGS,
   COMERES,
   PAGOS,
+  SERVICIOS_VISTOS,
   aMilisegundos,
   centavosOf,
   cocinasKey,
@@ -26,6 +27,7 @@ import {
   minScoreOf,
   pagosOf,
   pointOf,
+  serviciosOf,
 } from '@/api/cocinas';
 
 // ============================================================================
@@ -316,6 +318,34 @@ describe('`10.5b-iii-a`: what reserving reads of the door (`0079`, `0080`)', () 
     expect(k.offers[0].dishes[0]).toMatchObject({ llevar: true, aqui: false });
     expect(k.offers[0].desechableCentavos).toBeNull();
     expect([k.pagos, k.comeres, k.minScore]).toEqual([['efectivo'], ['llevar'], null]);
+  });
+});
+
+describe('`10.9a-i`: what a neighbour sees a kitchen use — the door’s `features` (`0081`)', () => {
+  it('the names and their order are the door’s own: the card, then promotions — never her numbers', () => {
+    const door = laPuerta();
+    expect(door.archivo >= '0081').toBe(true);
+    const texto = door.texto.replace(/\s+/g, ' ');
+    expect([...SERVICIOS_VISTOS]).toEqual(['tarjeta', 'promociones']);
+    expect(texto).toContain("order by array_position(array['tarjeta', 'promociones'], f.feature)");
+    expect(texto).toContain("and f.feature in ('tarjeta', 'promociones'))");
+    expect(texto).not.toMatch(/'numeros'/);
+  });
+
+  it('⚠️ a name this build does not know is ignored, never an error — her kitchen still shows', () => {
+    expect(serviciosOf(['promociones', 'tarjeta'])).toEqual(['tarjeta', 'promociones']);
+    expect(serviciosOf(['menu', 'tarjeta', 'lo_que_venga'])).toEqual(['tarjeta']);
+    expect(serviciosOf(['lo_que_venga'])).toEqual([]);
+    const [k] = kitchensFrom([cocina({ features: ['tarjeta', 'lo_que_venga'] })]);
+    expect(k.servicios).toEqual(['tarjeta']);
+  });
+
+  it('a door before `0081`, or one it cannot read, says she uses none', () => {
+    expect(serviciosOf(undefined)).toEqual([]);
+    expect(serviciosOf(null)).toEqual([]);
+    expect(serviciosOf('tarjeta')).toEqual([]);
+    expect(kitchensFrom([cocina()])[0].servicios).toEqual([]);
+    expect(kitchensFrom([cocina({ features: [] })])[0].servicios).toEqual([]);
   });
 });
 

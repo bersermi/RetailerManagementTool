@@ -243,8 +243,11 @@ select public.chk('1.4 the re-created doors keep their signatures and their gran
                        'public.hand_over_reservation(uuid, timestamptz)', 'public.on_offer_now()',
                        'public.delete_my_account(text, text[])']::regprocedure[]) f)
   and (select count(*) = 1 from pg_proc where proname = 'reservation_state'));
-select public.chk('1.5 ⚠️ the kitchen''s cancel is off, the one switch there is',
-  (select count(*) = 1 and bool_and(name = 'kitchen_cancel' and not is_on) from servicio.feature_switch));
+-- ⚠️ `0081` (plan `10.9a-i`) adds a switch per feature, every one off: this check said *the one
+-- switch there is* until then, and now asks for the kitchen's cancel by name.
+select public.chk('1.5 ⚠️ the kitchen''s cancel is off — and no switch is on',
+  (select count(*) = 1 and bool_and(not is_on) from servicio.feature_switch where name = 'kitchen_cancel')
+  and not exists (select 1 from servicio.feature_switch where is_on));
 select public.chk('1.6 the kitchen reads who cancelled and why, and who may reserve; who reserved is still granted to nobody',
   has_column_privilege('authenticated', 'public.reservation', 'cancelled_by', 'SELECT')
   and has_column_privilege('authenticated', 'public.reservation', 'cancel_reason', 'SELECT')

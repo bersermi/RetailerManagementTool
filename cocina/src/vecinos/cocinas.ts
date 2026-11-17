@@ -32,6 +32,14 @@ export type Comer = (typeof COMERES)[number];
 export const ETIQUETAS_BUENAS = ['lista_a_tiempo', 'buena_porcion', 'muy_rica', 'me_atendieron_bien'] as const;
 export type EtiquetaBuena = (typeof ETIQUETAS_BUENAS)[number];
 
+/**
+ * The services a neighbour may see a kitchen use (`0081`'s door, `features`), in the fixed order —
+ * her loyalty card, her promotions. ⚠️ A NAME THIS BUILD DOES NOT KNOW IS IGNORED (`10.9a`), so a
+ * build in her hand survives the service that comes after it.
+ */
+export const SERVICIOS_VISTOS = ['tarjeta', 'promociones'] as const;
+export type ServicioVisto = (typeof SERVICIOS_VISTOS)[number];
+
 /** A place on the map. */
 export interface Punto {
   readonly latitude: number;
@@ -119,6 +127,8 @@ export interface Kitchen {
   readonly minScore: number | null;
   /** The neighbours' stars, from five ratings — `null` until then (*Todavía sin calificaciones*). */
   readonly estrellas: Estrellas | null;
+  /** `0081`: the services she uses that a neighbour sees, in `SERVICIOS_VISTOS`' order — none yet drawn. */
+  readonly servicios: readonly ServicioVisto[];
 }
 
 /** A kitchen's stars, as the cards and her page draw them. */

@@ -21,6 +21,7 @@ bash docs/checks/10.4b-iii-a-cocina-contract.sh     # against a local `supabase 
 bash docs/checks/5R-k-apple-revoke-contract.sh      # the same stack: the function that tells Apple, served, with this app's body among the three
 bash docs/checks/10.5-iv-a-door-contract.sh         # the same stack: the one door, every key the list reads, asked as a neighbour
 bash docs/checks/10.5b-iii-a-reserving-contract.sh  # the same stack: reserving, giving back, collecting, her stars and her standing, by apartados.ts's names
+bash docs/checks/10.9a-i-features-contract.sh       # the same stack: the door's `features`, by cocinas.ts's key and names, beside Wera Cocina's servicios.ts
 TZ=UTC npm --prefix itacate test          # CI's zone: the list's days and windows are local time, and the Mac is UTC−6
 bash store/cocina-itacate/render.sh itacate-icono   # the iPhone's icon, the cow on the blue — and nothing else (native on the iPhone)
 ```
@@ -95,7 +96,11 @@ from `itacate/` with the two local `EXPO_PUBLIC_SUPABASE_` values in the shell, 
   door also sends each line's `para_llevar` and `para_aqui`, each offer's `container_price` and each kitchen's
   `payment` and `eat`, which this app reads since `10.5b-iii-a` (with `0080`'s `min_score`) — and since `10.5b-iii-b` `0080`'s
   `stars` (from five ratings, good tags only: `estrellasOf`; its keys held to the door's text by `test/calificar.test.ts`, the
-  door check asking for the key itself). ⚠️ **Reserving's
+  door check asking for the key itself). ⚠️ **Since `10.9a-i` the door's `features`** (`0081`): the services a kitchen uses that a neighbour
+  sees — `SERVICIOS_VISTOS`, the card and promotions, in that order — read into `Kitchen.servicios` by `serviciosOf`, ⚠️ **a name this build does
+  not know ignored, never an error**, so a build in her hand survives the service after it; drawn by nothing until `10.9e` and `10.9g`. Asked by
+  `docs/checks/10.9a-i-features-contract.sh` (its own job in `db.yml`, `cocina-features`) by this file's key, beside Wera Cocina's names; a kitchen
+  built from `my_reservations` (`cocinaDe`) uses none. ⚠️ **Reserving's
   claim is `src/api/apartados.ts`** (`10.5b-iii-a`): `0079`'s `reserve_plate`, `my_reservations`, `cancel_my_reservation`,
   `confirm_my_pickup` and `0080`'s `give_my_yes`, `my_standing` — and since `10.5b-iii-b` `rate_kitchen` (`supabase/README.md`'s
   rows) — every argument and key read,
@@ -355,7 +360,7 @@ follows it, as `cocina/CLAUDE.md`'s does:
   reservation pinned at the top of *Cerca* and heading *Mis cocinas*, a dot on that tab while it lasts, past ones at its foot
   (`10.9d`); a kitchen's page shows only the services that kitchen uses — *Seguir* and a bell, a promotion's band, her loyalty
   card in the kitchen's colours (`10.9d`, `10.9e`, `10.9g`); **a feature the app does not know is ignored**, so its builds in
-  the field survive what comes later (`10.9a`); *Escanear* and *Mi código* at the top of *Mis cocinas* (`10.9e`).
+  the field survive what comes later (`10.9a-i`, built 2026-11-17: `serviciosOf`); *Escanear* and *Mi código* at the top of *Mis cocinas* (`10.9e`).
 - **The tab bar is *Cerca · Apartados · Tú* today, *Cerca · Mis cocinas · Tú* from `10.9d`** (his ruling of 2026-11-17) — four tabs at most, each
   with its word; the two ends never move; a new feature arrives first as a card on *Cerca*. Wera's JavaScript tabs, not native tabs. ⚠️ **Built by `10.5-v-b`**:
   the tabs are data (`@/navigation/pestanas` — a tab not yet in use names the row that brings it: *Apartados* is in use since `10.5b-iii-a` and leaves the bar with `10.9d`, *Mis cocinas* waits for `10.9d`), the bar is drawn by

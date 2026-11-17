@@ -122,6 +122,12 @@ on:
       # pending plate before Apple is told. Its own job, `cocina-settings`, below.
       - "docs/checks/10.5b-iv-c-settings-contract.sh"
       - "docs/checks/10.5b-iv-c-settings-contract-falsify.sh"
+      # ⚠️ `10.9a-i`, WHAT A KITCHEN USES: `cocina/src/api/servicios.ts` (under `cocina/src/api/**` above)
+      # names `0081`'s `my_kitchen_features`, `set_kitchen_features` and `send_menu_request`, every argument
+      # and key of their one answer, the four features, the three states and `TD024`; Itacate's
+      # `cocinas.ts` (under `itacate/src/api/**`) the door's `features`. Its own job, `cocina-features`, below.
+      - "docs/checks/10.9a-i-features-contract.sh"
+      - "docs/checks/10.9a-i-features-contract-falsify.sh"
       # ⚠️⚠️ AND THE ROSTER'S, as of plan task 5b-ii-a. `app/src/api/members.ts`
       # is a second claim about the applied schema — two column lists — and it
       # carries something `workspace.ts` does not: a claim about a POLICY. The
@@ -2520,6 +2526,44 @@ jobs:
 
       - name: Contract — can the settings check still fail (its own fixtures; the runner counts them)
         run: bash docs/checks/10.5b-iv-c-settings-contract-falsify.sh
+
+      - name: Stop
+        if: always()
+        run: supabase stop --no-backup
+
+  # ===========================================================================
+  # `10.9a-i` — WHAT A KITCHEN USES. `cocina/src/api/servicios.ts` against a real PostgREST: her
+  # kitchen's choices read and set by the app's names, every feature and state it sends, `TD024` while
+  # Wera has a feature switched off, *Cuéntanos* — and Itacate's `cocinas.ts`: the door's `features`, by
+  # the key it reads, asked as a neighbour. Its own job for `cocina-handover`'s reason: the falsifier runs
+  # the check fourteen times, two sign-ups each.
+  # ===========================================================================
+  cocina-features:
+    name: what a kitchen uses and the door's word on it, against Wera Cocina's and Itacate's own names
+    runs-on: ubuntu-latest
+    # ⚠️ Fourteen runs of two sign-ups each, and GoTrue allows 30 in five minutes: a run that
+    # spends them waits out the window (`signup`'s retries).
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: 2.114.0
+
+      - name: Start Postgres, GoTrue and PostgREST
+        run: supabase start -x realtime,storage-api,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
+
+      - name: Apply migrations from scratch
+        run: supabase db reset
+
+      - name: Contract — do cocina/src/api/servicios.ts and Itacate's cocinas.ts read and set what a kitchen uses, and read the door's word on it, by the names 0081 answers (plan 10.9a-i)
+        run: bash docs/checks/10.9a-i-features-contract.sh
+
+      - name: Contract — can the features check still fail (its own fixtures; the runner counts them)
+        run: bash docs/checks/10.9a-i-features-contract-falsify.sh
 
       - name: Stop
         if: always()

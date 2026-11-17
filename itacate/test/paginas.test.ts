@@ -84,6 +84,7 @@ function cocina(over: Partial<Kitchen> = {}): Kitchen {
     comeres: ['llevar'],
     minScore: null,
     estrellas: null,
+    servicios: [],
     ...over,
   };
 }

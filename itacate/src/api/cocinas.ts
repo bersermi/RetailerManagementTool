@@ -41,7 +41,9 @@
 // `quantity` is what is LEFT once neighbours reserve, and a line with nothing left is
 // not sent. ⚠️ SINCE `10.5b-iii-b` (AFTER THE PLATE) ALSO `0080`'s `stars` — the
 // neighbours' stars about each kitchen, from five ratings, counted the day after, with
-// her three most given good tags — which the cards and both pages draw.
+// her three most given good tags — which the cards and both pages draw. ⚠️ SINCE `10.9a-i`
+// `0081`'s `features` — the services she uses that a neighbour sees (the card, promotions) —
+// read and kept, and drawn by nothing until `10.9e` and `10.9g`; a name it does not know is ignored.
 // ============================================================================
 
 import { SCALE, parseDecimal } from '@tienda/money';
@@ -82,6 +84,8 @@ export interface KitchenRow {
   readonly min_score: number | null;
   /** `0080`: the neighbours' stars, from five ratings — else `null`. */
   readonly stars: StarsRow | null;
+  /** `0081`: the services a neighbour sees this kitchen use — `tarjeta`, `promociones`; later ones ignored. */
+  readonly features: readonly string[] | null;
 }
 
 /** `0080`: her stars, counted the day after, and her three most given good tags. */
@@ -178,6 +182,14 @@ export type Comer = (typeof COMERES)[number];
 export const ETIQUETAS_BUENAS = ['lista_a_tiempo', 'buena_porcion', 'muy_rica', 'me_atendieron_bien'] as const;
 export type EtiquetaBuena = (typeof ETIQUETAS_BUENAS)[number];
 
+/**
+ * The services a neighbour may see a kitchen use (`0081`'s door, `features`), in the fixed order —
+ * her loyalty card, her promotions. ⚠️ A NAME THIS BUILD DOES NOT KNOW IS IGNORED (`10.9a`), so a
+ * build in her hand survives the service that comes after it.
+ */
+export const SERVICIOS_VISTOS = ['tarjeta', 'promociones'] as const;
+export type ServicioVisto = (typeof SERVICIOS_VISTOS)[number];
+
 /** The fixed list of tags, as codes (`listing_line_tags_known`, `0072`) — Wera Cocina's `TAGS`. */
 export const TAGS = ['pica', 'cerdo', 'mariscos', 'cacahuate', 'lacteos', 'gluten'] as const;
 export type Tag = (typeof TAGS)[number];
@@ -273,6 +285,8 @@ export interface Kitchen {
   readonly minScore: number | null;
   /** The neighbours' stars, from five ratings — `null` until then (*Todavía sin calificaciones*). */
   readonly estrellas: Estrellas | null;
+  /** `0081`: the services she uses that a neighbour sees, in `SERVICIOS_VISTOS`' order — none yet drawn. */
+  readonly servicios: readonly ServicioVisto[];
 }
 
 /** A kitchen's stars, as the cards and her page draw them. */
@@ -434,6 +448,15 @@ export function estrellasOf(value: unknown): Estrellas | null {
   return { promedio, cuantas: s.count, etiquetas: [...new Set(etiquetas)] };
 }
 
+/**
+ * ⚠️ `0081`: the services the door says she uses, in `SERVICIOS_VISTOS`' order — a name this build
+ * does not know is left out, never an error; anything else is none.
+ */
+export function serviciosOf(value: unknown): ServicioVisto[] {
+  const dichos = list(value);
+  return SERVICIOS_VISTOS.filter((servicio) => dichos.includes(servicio));
+}
+
 /** Who may reserve by score — a whole per cent, else everyone (`null`). */
 export function minScoreOf(value: unknown): number | null {
   return typeof value === 'number' && Number.isInteger(value) && value > 0 && value < 100 ? value : null;
@@ -499,6 +522,7 @@ export function toKitchen(row: KitchenRow): Kitchen {
     comeres: comeresOf(k.eat),
     minScore: minScoreOf(k.min_score),
     estrellas: estrellasOf(k.stars),
+    servicios: serviciosOf(k.features),
   };
 }
 

@@ -48,7 +48,7 @@ import type { Line, Listing } from '@/api/listing';
 import type { Page } from '@/api/pagina';
 import { toMilliseconds, type Place } from '@/api/place';
 import { claveDePlato } from '@/lib/apartados';
-import type { Dish, Estrellas, Kitchen, Offer, Point, Repeat, Summary } from '@/vecinos/cocinas';
+import type { Dish, Estrellas, Kitchen, Offer, Point, Repeat, ServicioVisto, Summary } from '@/vecinos/cocinas';
 
 const DIA_MS = 86_400_000;
 
@@ -258,6 +258,8 @@ export function cocinaComoLaVen(input: {
   readonly ajustes?: Ajustes | null;
   readonly estrellas?: Estrellas | null;
   readonly tomados?: Tomados;
+  /** `10.9a-i`: what the door says she uses (`@/api/servicios`' `enLaPuerta`) — none while unread. */
+  readonly servicios?: readonly ServicioVisto[];
 }): Kitchen {
   const { kitchen, place, page, listings, now } = input;
   const ajustes = input.ajustes ?? null;
@@ -276,5 +278,6 @@ export function cocinaComoLaVen(input: {
     comeres: ajustes === null ? SIN_AJUSTES.comeres : comeresDe(ajustes),
     minScore: ajustes === null ? SIN_AJUSTES.minScore : ajustes.minScore,
     estrellas: input.estrellas ?? SIN_AJUSTES.estrellas,
+    servicios: input.servicios ?? [],
   };
 }

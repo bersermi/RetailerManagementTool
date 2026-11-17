@@ -176,5 +176,6 @@ export function cocinaDe(apartado: Apartado, puerta: Kitchen | undefined): Kitch
     comeres: ['llevar'],
     minScore: null,
     estrellas: null,
+    servicios: [],
   };
 }
