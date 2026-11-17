@@ -282,7 +282,9 @@ TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic i
 - **SDK 57, through the pilot.** Every native module this app will need is in its first store
   build — maps (`react-native-maps`), notifications (`expo-notifications`) and the camera
   (`expo-image-picker`, `expo-image-manipulator`: a fonda's photos) — so features ship over the
-  air. **No location**: a fonda's pin is set on a map, and `app.json` blocks the location
+  air. ⚠️ **Since 2026-11-16 the first public build also carries a camera module that scans a code, and printing and
+  sharing** (`10.9c` — the loyalty card's *Sellar*, a helper joining, the counter poster); `app.json`'s camera sentence
+  then says she scans too. **No location**: a fonda's pin is set on a map, and `app.json` blocks the location
   permissions even if a library declares them. A module missing at the public release waits for
   the major update (`10.8`); before it, one more build — `10.4d`'s, which carries the phone's own
   geocoder (`modules/geocodificador`).
@@ -357,6 +359,15 @@ The owner ruled how the two apps are arranged and worded on 2026-11-05 (`docs/PL
 and `10.5b`; the drawn reference is the family-shell page in his private notes' `diseno/`). Every screen built here
 follows it, as `itacate/CLAUDE.md`'s does:
 
+- ⚠️⚠️ **RE-RULED 2026-11-16 AND 17 — THE MVP RUNS THROUGH THE FAMILY SHELL'S STAGE 4, BUILT BY `10.9a`–`10.9h`**
+  (`docs/PLAN.md`; the family-shell page redrawn the same day). **The bullets below describe what is built until each row
+  lands**; what changes here: the first run loses *¿Qué ofreces hoy?* — *Paso 3 de 3* becomes *¿Qué más quieres usar?*, the
+  features she picks, nothing pre-checked — and forks after her account into *Registrar mi cocina* / *Unirme a una cocina*
+  (`10.9a`, `10.9b`); **three tabs for every kitchen**, *Clientes* gone (`10.9a`); *Hoy* gains a half-width tile per feature
+  she uses, in a fixed order, and *Tu página · 4 de 5* gives way to one quiet nudge line (`10.9a`); *Mi cocina* gains *Lo que
+  usas* and *Quién trabaja aquí* (`10.9a`, `10.9b`); **a helper — the database's *staff* — publishes and hands over**
+  (`10.9b`); a camera module to scan, and printing and sharing for the counter poster, arrive with a new store build
+  (`10.9c`). A service never lives in two places: its tile on *Hoy* opens its one screen.
 - **The first run** (`10.5-v-d`, the family-shell page's): a stranger is sent to the opening (`(auth)/hola`, `@/auth/guard`),
   Wera's `8g` opening in Cocina's green (`@/ui/Apertura`, `@/theme/apertura` — starts on the splash's own frame, ends on the
   icon's picture, both read off `store/cocina-itacate/render.sh` and `app.json` by `test/primera.test.ts`; once per phone,
@@ -368,9 +379,10 @@ follows it, as `itacate/CLAUDE.md`'s does:
   form, `primera`) or *Después*, both ending on `/ya-estas`, her page as Itacate draws it (titled *Tu cocina ya está en
   Itacate* only while the door would send her), then *Ir a Hoy*. Android's back on the last two leaves for *Hoy*; nothing
   of the first run is kept on the phone, so a restart opens *Hoy*.
-- **The tab bar is *Hoy · Apartados · Clientes · Mi cocina*** — four tabs at most, each with its word; the two ends never move; a tab appears only when
-  its feature ships; a new feature arrives first as a card on *Hoy*. Wera's JavaScript tabs, not native tabs. ⚠️ **Built by `10.5-v-c-i`**, Itacate's
-  shell copied: the tabs are data (`@/navigation/pestanas`, *Apartados* in use since `10.5b-iv-a` and *Clientes* naming `10.9`), the bar is `@/ui/Pestanas` (the tab
+- **The tab bar is *Hoy · Apartados · Mi cocina*, the same for every kitchen** (his arrangement A, 2026-11-16; it said *Hoy · Apartados · Clientes ·
+  Mi cocina* until then) — four tabs at most, each with its word; the two ends never move; a service lives as a tile on *Hoy* and its own screen,
+  never as a tab. Wera's JavaScript tabs, not native tabs. ⚠️ **Built by `10.5-v-c-i`**, Itacate's
+  shell copied: the tabs are data (`@/navigation/pestanas`, *Apartados* in use since `10.5b-iv-a`; *Clientes* still in the data naming `10.9`, until `10.9a` takes it out), the bar is `@/ui/Pestanas` (the tab
   in use: green, a heavier word and a pill of the green's tint — ⚠️ the other pills the bar's white, never `transparent`: Android squared every pill
   after the first switch), and `(cocina)/(tabs)/` holds exactly the tabs in use. *Tus ofertas*, *Publicar*, her page's editor and her address's
   screens are pushed over the tabs. ⚠️ **Google's point for her address is asked again from the tabs' layout**, always mounted — *Mi cocina*,

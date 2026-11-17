@@ -60,6 +60,25 @@
   - **Internal:** §2.3 opens *"Nineteen tables"* (there are 22). §6 says `record_transfer`
     ships in `0004` (it is `0020`). §2.10 names `@rmt/money` (the package is `@tienda/money`).
     §8's checklist has every box unticked, among them the invites, built in `0027`–`0029`.
+- **Reviewed:** 2026-11-17 — **A LIST, NOT AN AMENDMENT: the decision maker's rulings of 2026-11-16 and 17 that move the MVP
+  to the family shell's stage 4** (`docs/PLAN.md`, the status entry of 2026-11-17 and rows `10.9a`–`10.9h`). Each section is amended
+  by the row that builds it; until then the ruling wins over the sentence it touches.
+  - **§2.7, the neighbour's rows.** Her follows, her loyalty-card stamps and rewards are rows about her in `servicio`, read and written
+    only through `security definer` functions keyed on `auth.uid()` — the reservations' pattern (`0079`); no policy names her. A kitchen
+    reads *how many* follow it and, of its card, counts — a name only at the moment it scans her code or hands her a reward, as at a
+    handover. What she reads of a kitchen's services (which it uses, its card's terms, its promotions) comes through **the one door**,
+    re-made with defaulted fields — **not a second door**: no business reads another business's rows.
+  - **§2.7, roles in Wera Cocina.** Two roles for now: the **owner** and a **helper**, who is the database's `staff` and publishes,
+    hands over and gives stamps and rewards; the functions that ask for `manager` there today are lowered to `staff` by `10.9b`'s
+    migration (a rule about who may do what — ruled), and `manager` stays free for a third role he left open. Wera's matrix is
+    untouched.
+  - **§2.9's k ≥ 5 floor** is the cross-workspace analytics schema's, and **does not govern a kitchen's own numbers**, read by its
+    owner alone from its own rows (`10.9f`). For those he ruled a floor of his own: figures about people (distinct neighbours, how
+    many came back) only from five in the period; plates handed over and visits from the first.
+  - **§2.11's *Camera* row** gains a scanning module in both sibling apps, and Wera Cocina printing and sharing; Itacate gains app
+    links (an address per kitchen on tu-wera.com) — all in their first public builds (`10.9c`), pinned so Wera's runtime never moves.
+  - **§2.2's notifications:** the services' messages are his product analyst's to rule (the plan's decisions block), sent from
+    Postgres as the first push is — no second Edge Function.
 - **Revised:** 2026-11-11 — **§2.2's `apple-revoke` row: in Wera Cocina and Itacate the database is asked before Apple is told**
   (plan `10.5b-iv-c`, the question the review of `10.5b-iii-b` left to that row): a deletion `TD014` would refuse (a plate still to hand
   over at a business that goes, `0079`) no longer takes the person off Apple's list first. One read before the sheet; the database still

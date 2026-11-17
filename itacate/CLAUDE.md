@@ -122,7 +122,9 @@ from `itacate/` with the two local `EXPO_PUBLIC_SUPABASE_` values in the shell, 
   foreground-service location are blocked) — so features ship over the air: the sign-in's
   modules (`expo-apple-authentication`, `expo-crypto`, `expo-web-browser`, `expo-sqlite`) were in it
   too, so `10.5-iii-a` added three JavaScript packages at Wera's ranges and neither runtime moved
-  (measured). **No camera.** A
+  (measured). **No camera — until `10.9c`**: since the owner's rulings of 2026-11-16 the first public build carries a
+  camera module that scans a kitchen's code (asked the first time she taps *Escanear*; typing the number is her way out)
+  and app links (an address per kitchen on tu-wera.com that opens her page). A
   module missing at the public release waits for the major update (`10.8`); before it, one more
   build.
 - ⚠️⚠️ **Her location never leaves the phone** (the owner's ruling of 2026-11-04, night, which replaced
@@ -347,9 +349,16 @@ The owner ruled how the two apps are arranged and worded on 2026-11-05 (`docs/PL
 and `10.5b`; the drawn reference is the family-shell page in his private notes' `diseno/`). Every screen built here
 follows it, as `cocina/CLAUDE.md`'s does:
 
-- **The tab bar is *Cerca · Apartados · Mis cocinas · Tú*** — four tabs at most, each with its word; the two ends never move; a tab appears only when
-  its feature ships; a new feature arrives first as a card on *Cerca*. Wera's JavaScript tabs, not native tabs. ⚠️ **Built by `10.5-v-b`**:
-  the tabs are data (`@/navigation/pestanas` — a tab not yet in use names the row that brings it: *Apartados* is in use since `10.5b-iii-a`, *Mis cocinas* waits for `10.9`), the bar is drawn by
+- ⚠️⚠️ **RE-RULED 2026-11-16 AND 17 — THE MVP RUNS THROUGH THE FAMILY SHELL'S STAGE 4, BUILT BY `10.9a`–`10.9h`**
+  (`docs/PLAN.md`; the family-shell page redrawn the same day). **The bullets below describe what is built until each row
+  lands**; what changes here: **three tabs, *Cerca · Mis cocinas · Tú*** — *Apartados* stops being a tab: an active
+  reservation pinned at the top of *Cerca* and heading *Mis cocinas*, a dot on that tab while it lasts, past ones at its foot
+  (`10.9d`); a kitchen's page shows only the services that kitchen uses — *Seguir* and a bell, a promotion's band, her loyalty
+  card in the kitchen's colours (`10.9d`, `10.9e`, `10.9g`); **a feature the app does not know is ignored**, so its builds in
+  the field survive what comes later (`10.9a`); *Escanear* and *Mi código* at the top of *Mis cocinas* (`10.9e`).
+- **The tab bar is *Cerca · Apartados · Tú* today, *Cerca · Mis cocinas · Tú* from `10.9d`** (his ruling of 2026-11-17) — four tabs at most, each
+  with its word; the two ends never move; a new feature arrives first as a card on *Cerca*. Wera's JavaScript tabs, not native tabs. ⚠️ **Built by `10.5-v-b`**:
+  the tabs are data (`@/navigation/pestanas` — a tab not yet in use names the row that brings it: *Apartados* is in use since `10.5b-iii-a` and leaves the bar with `10.9d`, *Mis cocinas* waits for `10.9d`), the bar is drawn by
   `@/ui/Pestanas` on `expo-router/js-tabs` (the tab in use: blue, a heavier word and a pill of the blue's tint — ⚠️ the other pills the bar's
   white, never `transparent`, since `10.5-v-c-i`: Android squared every pill after the first switch), and `(vecino)/(tabs)/` holds
   exactly the tabs in use — `test/pestanas.test.ts` refuses a screen there that is not one. A tab draws `@/ui/Cabeza` (no *Volver*: a tab is
