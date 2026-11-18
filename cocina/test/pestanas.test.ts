@@ -164,13 +164,14 @@ describe('one staggered entrance per screen, and the toast — transform and opa
   });
 
   // ⚠️ `10.5-v-d`: a third, the opening (`@/ui/Apertura`) — the cow turning into the icon, Wera's `8g`.
-  it('Reanimated is drawn by the three motion parts alone, and their styles touch opacity and transform only', () => {
+  // ⚠️ `10.9a-iii`: a fourth, *Publicar*'s glow (`@/ui/Brillo`) — a halo grown on each axis and faded.
+  it('Reanimated is drawn by the four motion parts alone, and their styles touch opacity and transform only', () => {
     const animators = files.filter((f) => /from 'react-native-reanimated'/.test(f.text)).map((f) => f.name);
-    expect(animators.sort()).toEqual(['ui/Apertura.tsx', 'ui/Llega.tsx', 'ui/Nota.tsx']);
+    expect(animators.sort()).toEqual(['ui/Apertura.tsx', 'ui/Brillo.tsx', 'ui/Llega.tsx', 'ui/Nota.tsx']);
     const estilos = animators.flatMap((name) => [...code(name).matchAll(/useAnimatedStyle\(\(\) => \(\{([\s\S]*?)\}\)\)/g)].map((m) => m[1]));
-    expect(estilos.length).toBe(9);
-    // A transform's own members — a move, a size, a turn — are the transform.
-    const DEL_TRANSFORM = new Set(['translateY', 'translateX', 'scale', 'rotate']);
+    expect(estilos.length).toBe(10);
+    // A transform's own members — a move, a size on one axis or both, a turn — are the transform.
+    const DEL_TRANSFORM = new Set(['translateY', 'translateX', 'scale', 'scaleX', 'scaleY', 'rotate']);
     for (const estilo of estilos) {
       const claves = [...estilo.matchAll(/(?:^|[{,]\s*)([a-zA-Z]+):/g)].map((m) => m[1]).filter((k) => !DEL_TRANSFORM.has(k));
       expect(claves.every((clave) => clave === 'opacity' || clave === 'transform'), estilo).toBe(true);
@@ -187,6 +188,18 @@ describe('one staggered entrance per screen, and the toast — transform and opa
       expect(text, path).toMatch(/useEffect\(\(\) => \{[\s\S]*?\}, \[\]\);/);
       expect(text, path).toMatch(/reduceMotion: ReduceMotion\.System/);
     }
+  });
+
+  it('`10.9a-iii`: the glow plays from an effect, when it turns on and at each open, rests invisible, and a phone set to reduce motion never sees it', () => {
+    const text = code('ui/Brillo.tsx');
+    expect(text).toMatch(/useEffect\(\(\) => \{\s*if \(!activo \|\| !medido\) return;[\s\S]*?\}, \[activo, vez, medido\]\);/);
+    // At rest it is at its end: spread, and opacity (1 − 1) × … = 0.
+    expect(text).toMatch(/const pulso = useSharedValue\(1\);/);
+    expect(text).toMatch(/opacity: \(1 - pulso\.value\) \* BRILLO\.opacidad,/);
+    // Every timing, the repeat and the delay carry the phone's setting.
+    expect((text.match(/reduceMotion: ReduceMotion\.System/g) ?? []).length).toBe(2);
+    expect((text.match(/ReduceMotion\.System,\n/g) ?? []).length).toBe(2);
+    expect(code('app/(cocina)/(tabs)/index.tsx')).toMatch(/<Brillo activo=\{vista\?\.brilla === true\} vez=\{abierto\}>/);
   });
 
   it('`10.5-v-d`: the opening starts once its pictures are in, from an effect, and a phone set to reduce motion sees its end', () => {
@@ -232,8 +245,8 @@ describe('the toast — over every route, above the tab bar, Deshacer for 8 seco
 describe('*Mi cocina* — what she sets once, in the page’s order', () => {
   const screen = code('app/(cocina)/(tabs)/mi-cocina.tsx');
 
-  it('her page’s head, its checklist, where she hands food over, her trade, help, her account', () => {
-    const order = ['<Portada', '<Pendientes', 'ES.cocina.donde', 'ES.miCocina.giro', 'ES.miCocina.ayuda', '<Salidas'].map((s) => screen.indexOf(s));
+  it('her page’s head, what is missing of it (`10.9a-iii`: *Falta* rows, the checklist until then), where she hands food over, her trade, help, her account', () => {
+    const order = ['<Portada', '<Falta', 'ES.cocina.donde', 'ES.miCocina.giro', 'ES.miCocina.ayuda', '<Salidas'].map((s) => screen.indexOf(s));
     expect(order.every((at) => at > 0)).toBe(true);
     expect([...order].sort((a, b) => a - b)).toEqual(order);
   });

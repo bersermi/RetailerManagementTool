@@ -15,6 +15,9 @@ import { deviceStore, readKey, removeKey, writeKey, type DeviceStore } from '@/l
 // something about her. A store that fails reads as open: the door comes back, never
 // a screen that cannot draw.
 //
+// ⚠️ `10.9a-iii`: THE DOOR IS GONE (*Tu página · N de 5*, with every count of what she has not done), AND ITS
+// KEY NOW ENDS HER PAGE'S QUIET LINE ON *HOY* FOR GOOD (`@/lib/empujones`) — a kitchen that closed the door is
+// not asked again.
 // ⚠️ `10.9a-ii`: *CUÉNTANOS CÓMO NECESITAS TU MENÚ*, CLOSED WITH ITS ✕ (G45), IS KEPT THE SAME WAY,
 // under a key of its own (`'menu'`). Whether her kitchen already told us is the database's, never
 // this phone's (`@/lib/loQueUsas`' `cuentanosEnHoy`).

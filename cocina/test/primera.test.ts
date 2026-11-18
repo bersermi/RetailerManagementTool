@@ -182,7 +182,7 @@ describe('each screen hands on to the next', () => {
 
   it('the form no longer ends the first run: published, it goes back where it came from', () => {
     const form = code('app/(cocina)/publicar.tsx');
-    const nota = form.indexOf('avisarPublicada(ES.nota.publicaste(');
+    const nota = form.indexOf('avisarPublicada(estreno ? ES.festejo.oferta : ES.nota.publicaste(');
     expect(nota).toBeGreaterThan(-1);
     expect(form.slice(nota)).toMatch(/^avisarPublicada\([^;]*\);\s*salir\(\);\s*\}/);
     expect(form).not.toMatch(/primera|ya-estas/);

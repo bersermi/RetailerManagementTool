@@ -25,11 +25,11 @@ import { Fila } from '@/ui/Fila';
 import { Formulario } from '@/ui/Formulario';
 import { Grupo } from '@/ui/Grupo';
 import { LeyendoCocina } from '@/ui/LeyendoCocina';
+import { Falta } from '@/ui/Falta';
 import { Llega } from '@/ui/Llega';
 import { LoQueUsas } from '@/ui/LoQueUsas';
 import { MapaFijo } from '@/ui/MapaFijo';
 import { sinPuntoPara } from '@/ui/PantallaDireccion';
-import { Pendientes } from '@/ui/Pendientes';
 import { Portada } from '@/ui/Portada';
 import { Salidas } from '@/ui/Salidas';
 
@@ -37,7 +37,7 @@ import { Salidas } from '@/ui/Salidas';
 // *MI COCINA* — WHAT SHE SETS ONCE. Plan task `10.5-v-c-i`, the owner's rulings of
 // 2026-11-05 and his directions of 2026-11-06 (the family-shell page's `cMi`): her page
 // as neighbours see its head (*Así te ven los vecinos* left *Hoy* for here) with *Editar
-// tu página*, its checklist under it until all five are done, where she hands food over,
+// tu página*, what is missing of it under it (`10.9a-iii`: a *Falta* row each, no count — `@/ui/Falta`), where she hands food over,
 // her trade, help and her account. Since `10.5-v-c-ii`: *Ver como la ven* beside *Editar tu
 // página* — her page as Itacate draws it (`/como-la-ven`) — and *Recordatorio diario* under her
 // trade once she has one to set (`@/lib/RecordatorioProvider`), which opens its sheet.
@@ -173,7 +173,7 @@ function MiCocinaDe({ kitchen }: { kitchen: Kitchen }) {
 
         {faltan.length > 0 && (
           <Llega i={1}>
-            <Pendientes faltan={faltan} />
+            <Falta faltan={faltan} />
           </Llega>
         )}
 

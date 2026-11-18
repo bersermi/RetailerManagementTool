@@ -371,12 +371,12 @@ follows it, as `itacate/CLAUDE.md`'s does:
   lands**; what changes here: the first run loses *¿Qué ofreces hoy?* — *Paso 3 de 3* becomes *¿Qué más quieres usar?*, the
   features she picks, nothing pre-checked — and forks after her account into *Registrar mi cocina* / *Unirme a una cocina*
   (`10.9a`, `10.9b`); **three tabs for every kitchen**, *Clientes* gone (`10.9a`); *Hoy* gains a half-width tile per feature
-  she uses, in a fixed order, and *Tu página · 4 de 5* gives way to one quiet nudge line (`10.9a`); *Mi cocina* gains *Lo que
+  she uses, in a fixed order, and *Tu página · 4 de 5* gives way to one quiet nudge line (`10.9a`, built by `10.9a-iii`); *Mi cocina* gains *Lo que
   usas* and *Quién trabaja aquí* (`10.9a`, `10.9b`); **a helper — the database's *staff* — publishes and hands over**
   (`10.9b`); a camera module to scan, and printing and sharing for the counter poster, arrive with a new store build
   (`10.9c`). A service never lives in two places: its tile on *Hoy* opens its one screen. ⚠️ **`10.9a` split in three on 2026-11-17**: the database
   and both apps' claims (`10.9a-i`, built — `@/api/servicios`), the first run's third step and *Lo que usas* (`10.9a-ii`, built — the section *Her
-  choices* below), *Hoy*'s tiles and the nudges (`10.9a-iii`).
+  choices* below), *Hoy*'s tiles and the nudges (`10.9a-iii`, built — the section *The nudges and the firsts* below).
 - **The first run** (`10.5-v-d`, the family-shell page's): a stranger is sent to the opening (`(auth)/hola`, `@/auth/guard`),
   Wera's `8g` opening in Cocina's green (`@/ui/Apertura`, `@/theme/apertura` — starts on the splash's own frame, ends on the
   icon's picture, both read off `store/cocina-itacate/render.sh` and `app.json` by `test/primera.test.ts`; once per phone,
@@ -399,8 +399,9 @@ follows it, as `itacate/CLAUDE.md`'s does:
   screens are pushed over the tabs. ⚠️ **Google's point for her address is asked again from the tabs' layout**, always mounted — *Mi cocina*,
   which draws the small map, mounts only when she opens it.
 - ***Hoy* is a hub** (his directions of 2026-11-06, `10.5-v-c-i`): the day's card (`@/ui/DiaDeHoy`), *Publicar una oferta* with her last day's
-  offers as one-tap *Repetir* chips (`@/lib/useRepetir` — the form opens instead whenever it would not send the same thing untouched), and the
-  doors (`@/ui/Puertas`: *Tu página · 4 de 5*, closed on this phone per kitchen, `@/lib/puerta`). Nothing on it is edited in place. What every
+  offers as one-tap *Repetir* chips (`@/lib/useRepetir` — the form opens instead whenever it would not send the same thing untouched), and —
+  since `10.9a-iii` — a tile per feature she uses (`@/ui/Mosaicos`) where *Tu página · 4 de 5*'s door was (`@/ui/Puertas`, `10.5-v-c-i` to
+  `10.9a-iii`), with at most one quiet line under the day's card (the section *The nudges and the firsts*). Nothing on it is edited in place. What every
   zone says is `@/lib/hoy`'s, pure, pinned by `test/hoy.test.ts` in Mexico City's zone. ⚠️ **An offer taken back by *Deshacer* was never
   published**, for every rule there (`deshecha`: withdrawn within a minute of being published). *Tus ofertas* (`(cocina)/ofertas`) is today's
   with *Ya se terminó* and *Así la ven*, then *Anteriores*, one row per offer. *Mi cocina* is what she sets once — since `10.5-v-c-ii` with
@@ -414,9 +415,9 @@ follows it, as `itacate/CLAUDE.md`'s does:
   **No sentence saying there are no penalties**: a reservation is drawn as a handover — the hour, how she pays, the code.
 - **The look:** titles in Nunito ExtraBold (`expo-font`; Wera's file byte for byte in `src/marca/letras/`, loaded before the first screen,
   since `10.5-v-c-i`); Wera Cocina's green `#1C6B4B` for actions; Wera's terracotta `#A9501C` for
-  promotions only; state first, before anything tappable (ADR-035 §2.8); one staggered entrance per screen (`@/ui/Llega`, Itacate's), transform and
-  opacity only (§2.11) — `test/pestanas.test.ts` lets Reanimated into `@/ui/Llega`, `@/ui/Nota` and, since `10.5-v-d`,
-  the opening's `@/ui/Apertura` alone.
+  promotions and for what waits for her — an order's *pronto* and dot (`10.5b-iv-a`), a tile's dot and *Falta* (`10.9a-iii`) — never an action; state first, before anything tappable (ADR-035 §2.8); one staggered entrance per screen (`@/ui/Llega`, Itacate's), transform and
+  opacity only (§2.11) — `test/pestanas.test.ts` lets Reanimated into `@/ui/Llega`, `@/ui/Nota`, since `10.5-v-d`
+  the opening's `@/ui/Apertura` and, since `10.9a-iii`, *Publicar*'s glow `@/ui/Brillo` alone (`scaleX` and `scaleY` count as the transform).
 - **Money:** no screen stores or shows a bank account, a card or an amount paid — only how she will pay.
 
 ## *Apartados* — she sees and hands over (`10.5b-iv-a`)
@@ -574,3 +575,41 @@ migration. The rules are `@/lib/loQueUsas`, pure, pinned by `test/loQueUsas.test
 - **To see it on the emulator**: the debug build against the local shop (*Apartados*' section), the local switches turned on as the
   database's owner (`update servicio.feature_switch set is_on = true where name in (…)`), and — for the third step and *Activar* — a local
   edit of `PANTALLA_DE` naming any existing route, never committed. `10.9a-ii`'s walk did all three, and put both back.
+
+## The nudges and the firsts — *Hoy* (`10.9a-iii`)
+
+The owner's rulings of 2026-11-16 and 17 (G31, G32 and the nudges: *"attractive but not invasive"*; the family-shell page, round 7):
+**a nudge sits where the thing will live, and takes no space of its own.** No migration: every rule is `@/lib/empujones`, pure, pinned
+by `test/empujones.test.ts` against a calendar in Mexico City's zone.
+
+- ⚠️⚠️ **All of it is this phone's** (the ruling: *"phone-only"*) — one record per kitchen in the phone's store (`clave`:
+  `wera-cocina.hoy.empujones.<kitchen>`), nothing sent anywhere. ⚠️ **Every write is read, changed and written at once**
+  (`cambiarMemoria`): *Hoy*, the tabs' layout and *Publicar* each hold a copy, and a copy written whole would put another's fields back.
+  A store that fails reads as an empty record.
+- **Until her first offer** (`nuncaPublico`: none, or only one taken back by *Deshacer*) the day's card is the invitation (`Invitacion` in
+  `@/ui/DiaDeHoy`, his words), opening *Publicar*; and **on her first three days with none** — the first three days her *Hoy* opens with
+  no offer, not calendar days — *Publicar* glows at each open (`@/ui/Brillo`, keyed on `useAlAbrir`). *Hoy* marks today from an effect
+  keyed on one string (`marca`), never on every render.
+- **One small celebration per first**, the toast in the green with the cow (`festejar`; `@/ui/Nota`'s `festejo`): her first offer —
+  *¡Ya te ven en Itacate!*, read BEFORE it is sent (`ofertaDeEstreno`) and keeping its *Deshacer* — and her first reservation and first
+  handover, watched once from the tabs' layout on the read it already makes (`@/lib/useFestejos`). ⚠️ **A first is celebrated only if
+  this phone saw her history read with none** (`primerasDe`, `'cero'`): a phone that meets a reservation already there says nothing.
+  Her history is the 30 days the phone reads. The stamp's and the promotion's are their rows' (`10.9e`, `10.9g`).
+- **At most one quiet line under the day's card** (`@/ui/LineaEmpujon`, `lineaDe`), only on a day she published, and only once every read it
+  counts is in: her page's next missing part (her first offer never — it is the invitation's), on three days she publishes each, then the
+  next — ✕ ends them for good (`@/lib/puerta`'s `'pagina'`, the key her page's door kept since `10.5-v-c-i`), with *Deshacer*; else a
+  feature she did not pick, two weeks after the first day this phone drew her *Hoy*, one a week, on one day each, opening its *Activar*.
+  *Cuéntanos* at the foot is a *Próximamente*, not the line.
+- **No count of what she has not done anywhere** — *Mi cocina*'s checklist is a *Falta* row per missing part (`@/ui/Falta`), each opening
+  where it is done (`DONDE_SE_HACE`).
+- **The tiles** (`@/ui/Mosaicos`, `@/lib/loQueUsas`' `mosaicosDe`): one per feature she uses that this build carries, in the fixed order,
+  each opening its screen; dashed in its first-time state (*Prepara tu tarjeta*) until its row hands `vivos` its words (`EnVivo`), with a
+  dot for what waits. ⚠️ **None today** — `PANTALLA_DE` is empty until `10.9e`.
+- ***Así funciona*** (`@/ui/AsiFunciona`, `useAsiFunciona`): three pictures (`PASOS_DE`) at the top of a feature's one screen the first time
+  she opens it, gone when she uses it (`usado`) or closes it. **Built here, drawn by each feature's row** — nothing draws it today.
+- **To see it on the emulator**: the debug build against the local shop (*Apartados*' section), Metro **without** `CI=1` (with it Metro does
+  not watch files, so an edit never reaches the phone); a fonda signed up through the app; a neighbour reserving through `give_my_yes` and
+  `reserve_plate` with her own token (the handover check's way). The glow lasts under four seconds: read it from a burst of raw `screencap`s
+  sampling a band round the button (the first frames after a return come about a second apart). The tiles, *Así funciona* and a feature's
+  line need the local switches on and a local edit of `PANTALLA_DE` (never committed); "two weeks on" is the phone's record edited —
+  `adb exec-out run-as mx.wera.cocina cat files/SQLite/ExpoSQLiteStorage`, `desde` moved back with `sqlite3`, pushed back with the app stopped.

@@ -25,10 +25,12 @@ import {
 import { EMPTY_PAGE, colorOf, defaultsFor } from '@/api/pagina';
 import type { Place } from '@/api/place';
 import { eleccionDe, recordarEleccion } from '@/lib/eleccion';
+import { cambiarMemoria, leerMemoria, ofertaFestejada, ofertaDeEstreno } from '@/lib/empujones';
 import { elegirFoto, tomarFoto } from '@/lib/foto';
 import { nombreDe } from '@/lib/hoy';
 import { newId } from '@/lib/ids';
 import { useNota } from '@/lib/NotaProvider';
+import { deviceStore } from '@/lib/store';
 import { checkVentana, firstVentana, type Ventana } from '@/lib/ventana';
 import { previaDe, recienTomadas } from '@/lib/vistaPrevia';
 import { ES } from '@/strings';
@@ -138,6 +140,8 @@ function Form({ kitchen, place, source }: { kitchen: Kitchen; place: Place; sour
   const insets = useSafeAreaInsets();
   const { publish, busy } = usePublish(kitchen.id);
   const { avisarPublicada } = useNota();
+  // `10.9a-iii`: what she published before this one — her very first is celebrated.
+  const listings = useListings(kitchen.id);
   const page = usePage(kitchen.id);
   const ajustes = useAjustes(kitchen.id).data ?? null;
   const estrellas = estrellasDe(useCalificaciones(kitchen.id).data ?? null);
@@ -183,13 +187,17 @@ function Form({ kitchen, place, source }: { kitchen: Kitchen; place: Place; sour
     const body = publishBody(placeId, lines, ventana, ajustes);
     attempt.current = attemptFor(attempt.current, body, newId);
     const id = attempt.current.id;
+    // ⚠️ `10.9a-iii`: HER FIRST OFFER, READ BEFORE IT IS SENT — never published, never celebrated on this phone.
+    const estreno = ofertaDeEstreno(leerMemoria(deviceStore(), kitchen.id), listings.data);
     const answer = await publish(publishArgs(attempt.current, body), fotosPorSubir(lines));
     setProblem(answer);
     if (answer !== null) return;
     // Her choice kept for the next form — only when the form asked (both ways), from her first dish.
     const elegida = lines.find((line) => !line.surprise);
     recordarEleccion(kitchen.id, ofreceLasDos(ajustes) && elegida !== undefined ? { llevar: elegida.llevar, aqui: elegida.aqui } : null);
-    avisarPublicada(ES.nota.publicaste(nombreDe({ lines: body.p_lines })), kitchen.id, id);
+    // Her first: *¡Ya te ven en Itacate!*, in the green — and never again; *Deshacer* kept either way.
+    if (estreno) cambiarMemoria(deviceStore(), kitchen.id, ofertaFestejada);
+    avisarPublicada(estreno ? ES.festejo.oferta : ES.nota.publicaste(nombreDe({ lines: body.p_lines })), kitchen.id, id, estreno);
     salir();
   }
 

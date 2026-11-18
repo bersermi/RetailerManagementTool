@@ -50,3 +50,22 @@ export const NOTA = {
   /** How long a toast with nothing to undo stays. */
   solo: 4_000,
 } as const;
+
+/**
+ * ⚠️ `10.9a-iii`: *PUBLICAR* GLOWS — once each time she opens the app, on her first three days with no
+ * offer (the owner's nudges, ruled 2026-11-17; the family-shell page's `breath`: a ring of the green
+ * spreading 16 px and fading, twice, 1.7 s each, after 0.45 s). Drawn by `@/ui/Brillo` as a ring that
+ * grows and fades — `transform` and `opacity`, never a shadow (ADR-035 §2.11).
+ */
+export const BRILLO = {
+  /** How far the ring spreads beyond the button, in points. */
+  alcance: 16,
+  /** One pulse, in milliseconds. */
+  duracion: 1_700,
+  /** Before the first, so the screen has arrived. */
+  retraso: 450,
+  /** How many pulses. */
+  veces: 2,
+  /** How strong the ring starts. */
+  opacidad: 0.55,
+} as const;

@@ -277,8 +277,8 @@ describe('the screens’ wiring, read as text', () => {
     const kitchen = code('app/(cocina)/(tabs)/mi-cocina.tsx');
     expect(kitchen.match(/router\.push\('\/pagina'\)/g)?.length).toBe(2);
     expect(kitchen.indexOf('<Portada')).toBeGreaterThan(-1);
-    expect(kitchen.indexOf('<Portada')).toBeLessThan(kitchen.indexOf('<Pendientes'));
-    expect(kitchen.indexOf('<Pendientes')).toBeLessThan(kitchen.indexOf('ES.cocina.donde'));
+    expect(kitchen.indexOf('<Portada')).toBeLessThan(kitchen.indexOf('<Falta'));
+    expect(kitchen.indexOf('<Falta')).toBeLessThan(kitchen.indexOf('ES.cocina.donde'));
     expect(code('app/(cocina)/(tabs)/index.tsx')).not.toMatch(/<Portada/);
   });
 

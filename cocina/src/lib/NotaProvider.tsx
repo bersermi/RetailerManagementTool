@@ -23,6 +23,10 @@ import { Nota } from '@/ui/Nota';
 // it fails (no signal), the toast says so, and the offer is still on *Tus ofertas*.
 // A screen reader hears each toast as it arrives. NO CHECK CAN SEE IT (ADR-035 §2.11):
 // the phone is the instrument.
+// ⚠️ `10.9a-iii`: ONE SMALL CELEBRATION PER FIRST (the owner's nudges, ruled 2026-11-17) is a toast
+// too — `festejar`, and *Publicaste …*'s `festejo` for her first offer: the kitchen's green and the
+// cow instead of the dark strip and the check (the family-shell page's `.toast.first`). Her first
+// offer keeps its *Deshacer*: a celebration never takes the way back.
 // ============================================================================
 
 /** What *Deshacer* does: a sentence when it failed, `null` (or nothing) when it worked. */
@@ -32,13 +36,16 @@ interface NotaViva {
   readonly id: number;
   readonly texto: string;
   readonly deshacer: Deshacer | null;
+  readonly festejo: boolean;
 }
 
 interface Notas {
   /** A toast with nothing to undo, or with a *Deshacer* of her screen's own (her door, closed). */
   readonly avisar: (texto: string, deshacer?: Deshacer) => void;
-  /** *Publicaste …*, whose *Deshacer* takes that offer down again. */
-  readonly avisarPublicada: (texto: string, kitchenId: string, listingId: string) => void;
+  /** *Publicaste …*, whose *Deshacer* takes that offer down again — her first, as a celebration (`festejo`). */
+  readonly avisarPublicada: (texto: string, kitchenId: string, listingId: string, festejo?: boolean) => void;
+  /** `10.9a-iii`: a first — *¡Tu primer apartado!* — in the green, with nothing to undo. */
+  readonly festejar: (texto: string) => void;
 }
 
 const NOTAS = createContext<Notas | null>(null);
@@ -50,10 +57,10 @@ export function NotaProvider({ children }: { children: ReactNode }) {
   const cuenta = useRef(0);
   const reloj = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const mostrar = useCallback((texto: string, deshacer: Deshacer | null) => {
+  const mostrar = useCallback((texto: string, deshacer: Deshacer | null, festejo = false) => {
     cuenta.current += 1;
     setDeshaciendo(false);
-    setNota({ id: cuenta.current, texto, deshacer });
+    setNota({ id: cuenta.current, texto, deshacer, festejo });
     AccessibilityInfo.announceForAccessibility(texto);
   }, []);
 
@@ -69,7 +76,8 @@ export function NotaProvider({ children }: { children: ReactNode }) {
   const notas = useMemo<Notas>(
     () => ({
       avisar: (texto, deshacer) => mostrar(texto, deshacer ?? null),
-      avisarPublicada: (texto, kitchenId, listingId) => mostrar(texto, () => quitar(kitchenId, listingId)),
+      avisarPublicada: (texto, kitchenId, listingId, festejo = false) => mostrar(texto, () => quitar(kitchenId, listingId), festejo),
+      festejar: (texto) => mostrar(texto, null, true),
     }),
     [mostrar, quitar],
   );
@@ -87,7 +95,14 @@ export function NotaProvider({ children }: { children: ReactNode }) {
     <NOTAS.Provider value={notas}>
       {children}
       {nota !== null && (
-        <Nota key={nota.id} texto={nota.texto} conDeshacer={nota.deshacer !== null} deshaciendo={deshaciendo} onDeshacer={() => void deshacer()} />
+        <Nota
+          key={nota.id}
+          texto={nota.texto}
+          conDeshacer={nota.deshacer !== null}
+          deshaciendo={deshaciendo}
+          onDeshacer={() => void deshacer()}
+          festejo={nota.festejo}
+        />
       )}
     </NOTAS.Provider>
   );
