@@ -17,7 +17,10 @@
 # name with an accent refused, the line it printed for one kitchen run as printed
 # — that kitchen gone, her login, her shop and her other kitchen kept — and the
 # same line again refused. ⚠️ Since `10.9a-i` each deleted kitchen's choices and requests about
-# its menu (`0081`, `servicio`) are read back gone, and the kept kitchen's kept.
+# its menu (`0081`, `servicio`) are read back gone, and the kept kitchen's kept. ⚠️ Since
+# `10.9b-i` two helpers (`0082`): one deletes her account — her login goes, her kitchen stays,
+# her name stays on her ended membership — and one is in the kitchen deleted alone — her
+# membership goes with it, her login stays.
 #
 # WHY IT EXISTS. The runbook is the only way out without the app, and the aviso
 # and both deletion pages promise it (Google requires one). It is run by hand,
@@ -97,6 +100,18 @@ uses() { # kitchen-id
        select ((select count(*) from f) + (select count(*) from m))::text as n;" n
 }
 
+# `10.9b-i`: a helper at a kitchen (`staff`, at its place, as an invitation makes her), with no
+# name of her own on the membership — a deletion fills it from her login (`0053`).
+helper() { # kitchen-id user-id
+  sql "with m as (insert into public.workspace_member (workspace_id, user_id, role) values ('$1', '$2', 'staff')
+                  returning id, workspace_id),
+            l as (insert into public.member_location (workspace_id, member_id, location_id)
+                  select m.workspace_id, m.id, loc.id from m join public.location loc on loc.workspace_id = m.workspace_id
+                  returning 1)
+       select (select count(*) from l)::text as n;" n
+}
+memberships_of() { sql "select count(*)::text as n from public.workspace_member where user_id = '$1';" n; }
+
 # Every fixture still standing goes, as the function deletes: each one's own
 # businesses named. Silent; a leftover never makes a case green.
 cleanup() {
@@ -143,6 +158,10 @@ fixtures() {
   # `10.9a-i`: three kitchens with a choice and a request each — one deleted with its account, one
   # deleted alone, one kept.
   [[ "$(uses "$k_b")" == 2 && "$(uses "$k_g")" == 2 && "$(uses "$k_g2")" == 2 ]] || return 1
+  # `10.9b-i`: a helper at the kitchen Gabi keeps, who deletes her own account; and one at the
+  # kitchen Gabi deletes alone.
+  u_h="$(login ayudante)" && [[ "$(helper "$k_g2" "$u_h")" == 1 ]] || return 1
+  u_h2="$(login ayudante-gabi)" && [[ "$(helper "$k_g" "$u_h2")" == 1 ]] || return 1
 }
 
 # One case: the runbook's exit code, a sentence it printed, and what the
@@ -172,11 +191,12 @@ N_APOSTROPHE="a kitchen's name with an apostrophe, typed in another case and spa
 N_SHOP_ALONE="a shop alone and one --shop, as before this row, deletes both"
 N_COOWNER="a co-owner needs no name: her login goes, the shop stays, her name stays on it"
 N_NOTHING="an account with no business goes with no name, its email typed in capitals"
+N_HELPER="a kitchen's helper needs no name: her login goes, the kitchen stays, her name stays on her ended membership"
 K_NOBODY="the kitchen's runbook: an email with no account is refused, and nothing changes"
 K_ASKED="no kitchen named: her two kitchens listed, never her shop, and nothing changes"
 K_SHOP="her shop's name is no kitchen's: refused, and nothing changes"
 K_ACCENT="her kitchen's name with an accent added: refused — accents count — and nothing changes"
-K_PRINTED="the line it printed for one kitchen, run as printed: that kitchen gone with what it uses and told Wera, her login, her shop and her other kitchen kept, its own kept"
+K_PRINTED="the line it printed for one kitchen, run as printed: that kitchen gone with what it uses and told Wera and its helper's membership, her login, her shop, her other kitchen and the helper's login kept, its own kept"
 K_AGAIN="the same line again: refused — no kitchen of hers is called that any more — and nothing else changes"
 
 # ⚠️ `part` is `all`, `account` or `kitchen`: a broken copy of ONE runbook runs that
@@ -230,6 +250,10 @@ cases() { # account-runbook kitchen-runbook [part]
 
   run "$(mail nada | tr '[:lower:]' '[:upper:]')" --local
   check "$N_NOTHING" 0 "businesses deleted: 0" "users_with $(mail nada)" "0"
+
+  run "$(mail ayudante)" --local
+  check "$N_HELPER" 0 "businesses deleted: 0, businesses it left: 1" \
+    "users_with $(mail ayudante); business_left $k_g2; sql \"select (count(*) filter (where not is_active and display_name = 'Rehearsal ayudante'))::text as n from public.workspace_member where workspace_id = '$k_g2' and user_id = '$u_h';\" n" "0 1 1"
   fi
   if [[ "$part" == account ]]; then return 0; fi
 
@@ -258,7 +282,7 @@ cases() { # account-runbook kitchen-runbook [part]
   else
     run_kitchen "${args[@]}"
   fi
-  check "$K_PRINTED" 0 "Done on the LOCAL database" "$everything; servicio_left $k_g; servicio_left $k_g2" "1 0 1 1 0 2"
+  check "$K_PRINTED" 0 "Done on the LOCAL database" "$everything; servicio_left $k_g; servicio_left $k_g2; memberships_of $u_h2; users_with $(mail ayudante-gabi)" "1 0 1 1 0 2 0 1"
 
   if [[ -n "$again" ]] && eval "args=($again)"; then run_kitchen "${args[@]}"; else out="(no line)"; code=99; fi
   check "$K_AGAIN" 1 "no kitchen $(mail tres) alone owns is called" "$everything" "1 0 1 1"
@@ -326,6 +350,11 @@ broken "the count of names never compared" \
   'if [[ "$named" -lt "$sole_count" ]]; then' 'if [[ "$named" -lt 0 ]]; then' "$N_KITCHEN_ASKED"
 broken "a co-owned shop counted as hers" \
   'and o.user_id <> who.id)' 'and o.user_id <> who.id and false)' "$N_COOWNER"
+# ⚠️ `10.9b-i` tried "a kitchen she only helps at, counted as hers" (the owner predicate
+# dropped) and it stays green: her kitchen has another active owner, so the same clause that
+# guards the co-owner keeps it out — that copy is "a co-owned shop counted as hers", above.
+# The helper's read-backs (her login gone, her name on her ended membership) are the
+# database's, and `supabase/tests/0082_a_helper_publishes.sql` 6.1 is where they can fail.
 broken "the printed names left unquoted" \
   "again+=\" --shop '\${name//\$q/\$q\$bs\$q\$q}'\"" 'again+=" --shop ${name}"' "$N_PRINTED"
 # `10.5-iii-c`: the kitchen's runbook.

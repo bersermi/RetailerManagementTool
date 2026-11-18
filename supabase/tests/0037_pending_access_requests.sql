@@ -752,13 +752,14 @@ update auth.users
 -- kitchen she reserved at — the owner's ruling of 2026-11-10, ADR-035 §2.7's
 -- amendment under the name guarantee. Granted to nobody; only
 -- `reservation_neighbours` calls it, while the order waits for its thumb.
-select chk('5.3 exactly SEVEN functions call auth_full_name, and they are these seven',
+-- ⚠️ EIGHT SINCE 0082 (`10.9b-i`): `leave_kitchen` fills a missing name as a helper leaves.
+select chk('5.3 exactly EIGHT functions call auth_full_name, and they are these eight',
            (select coalesce(array_agg(proname::text order by proname), '{}')
               from pg_proc
              where pronamespace = 'public'::regnamespace
                and proname <> 'auth_full_name'
                and prosrc ~ 'auth_full_name')
-           = array['approve_request', 'delete_my_account', 'neighbour_name', 'onboard_workspace',
+           = array['approve_request', 'delete_my_account', 'leave_kitchen', 'neighbour_name', 'onboard_workspace',
                    'pending_access_requests', 'redeem_invite', 'request_access']::text[],
            coalesce((select string_agg(proname, ', ' order by proname)
                        from pg_proc

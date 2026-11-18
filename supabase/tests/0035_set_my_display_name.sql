@@ -604,12 +604,14 @@ select chk('5.5 workspace_member has exactly THREE policies since 0055 — 0035 
 
 -- ⚠️ FIVE SINCE 0053 (5R-c): `delete_my_account` freezes a departing member's
 -- name — with a `coalesce`, so it only fills a hole — and ends the membership.
-select chk('6.1 EXACTLY FIVE functions in public UPDATE workspace_member, and they are these five',
+-- ⚠️ SIX SINCE 0082 (`10.9b-i`): `leave_kitchen` ends a helper's own membership of a
+-- kitchen, and like `delete_my_account` it only fills a missing name.
+select chk('6.1 EXACTLY SIX functions in public UPDATE workspace_member, and they are these six',
            (select coalesce(array_agg(proname::text order by proname), '{}')
               from pg_proc
              where pronamespace = 'public'::regnamespace
                and prosrc ~ 'update\s+public\.workspace_member')
-           = array['approve_request', 'delete_my_account', 'redeem_invite', 'request_access',
+           = array['approve_request', 'delete_my_account', 'leave_kitchen', 'redeem_invite', 'request_access',
                    'set_my_display_name']::text[],
            coalesce((select string_agg(proname, ', ' order by proname)
                        from pg_proc
@@ -619,8 +621,9 @@ select chk('6.1 EXACTLY FIVE functions in public UPDATE workspace_member, and th
 -- ⚠️⚠️ THE OWNER'S RULING, READ OUT OF THE CATALOG. Three writers may only fill
 -- a hole; exactly one may replace a name. A session that "tidies" a `coalesce`
 -- away, or that adds one here, lands red.
-select chk('6.2 the THREE membership writers may only FILL a hole — coalesce(display_name, …)',
-           public._src('redeem_invite')  ~ 'display_name\s*=\s*coalesce\(display_name'
+select chk('6.2 the THREE membership writers — and since 0082 leave_kitchen — may only FILL a hole — coalesce(display_name, …)',
+           public._src('leave_kitchen')  ~ 'display_name\s*=\s*coalesce\(display_name'
+       and public._src('redeem_invite')  ~ 'display_name\s*=\s*coalesce\(display_name'
        and public._src('request_access') ~ 'display_name\s*=\s*coalesce\(display_name'
        and public._src('approve_request') ~ 'display_name\s*=\s*coalesce\(display_name',
            'all three update branches read from the applied catalog');

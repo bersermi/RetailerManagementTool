@@ -21,8 +21,10 @@
 # business keeps their name as a former member, and every business they alone
 # own — a shop in Wera, a kitchen in Wera Cocina, with everything in it (since
 # `0081` a kitchen's choices of what it uses and what it told Wera about its menu
-# too) — goes with them. There is no second deletion path to keep in step with
-# the first.
+# too) — goes with them. A kitchen's helper (`staff`, `0082`) owns nothing: her
+# login goes and her kitchen keeps her name on her ended membership, as a
+# co-owner's shop does — no name to type. There is no second deletion path to
+# keep in step with the first.
 #
 # ⚠️ ONE `--shop` FOR EACH BUSINESS SHE ALONE OWNS, a shop's name or a kitchen's
 # (`10.4b-iv-b`). `0073` asks every such business for its own typed name, so one
