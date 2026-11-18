@@ -15,9 +15,10 @@ pictures Google asks for.
 | `limits.py` | Measures every pasted field against its store's limit |
 
 **Where each stands.** *Wera: tu tienda* 1.0.0 is public in Mexico on both stores — the App Store
-since 2026-11-05 (build 3), Google Play since 2026-11-11 (version code 7). **1.1.0 is `5R-o`'s**: its
-release notes and what was read again for it are section 9 of each store's file, and the handbook's
-*Wera 1.1 in both stores* has the owner's steps. (Corrected 2026-11-17: this paragraph still described
+since 2026-11-05 (build 3), Google Play since 2026-11-11 (version code 7). **1.1.0 is built (`5R-o`,
+2026-11-18), from one commit, `358771f`:** the iPhone's build 4 is uploaded to App Store Connect, and
+the Android's version code 8 waits for the owner's upload; its release notes and what was read again
+for it are section 9 of each store's file, and the handbook's *Wera 1.1 in both stores* has his steps. (Corrected 2026-11-17: this paragraph still described
 the closed test.)
 
 ## The limits
@@ -61,30 +62,31 @@ against the code: this table is the only link, as `site/README.md` is for the av
 
 ## The store build — the one that goes to Play
 
-EAS build `89de4383` — Android, profile `production`, from commit `204385c` (the first day's
-three rounds, `8g`/`8q`, and the camera's new sentence), finished 2026-10-21. Each line below
-was read off the bundle itself (`aapt2 dump xmltree` on its manifest, its `assets/`), not off
-`app.json`.
+EAS build `011fb071` — Android, profile `production`, from commit `358771f` (`5R-o`: Wera 1.1.0 —
+the camera sentence without *Te lo compro*, an Empleado's words, and everything over the air since
+1.0), finished 2026-11-18. Each line below was read off the bundle itself (`aapt2 dump xmltree` on its
+manifest, its `assets/`, the ELF headers of `base/lib/arm64-v8a/`), not off `app.json`.
 
 | | |
 |---|---|
-| Package, version | `mx.wera.app`, 1.0.0, version code 7 |
+| Package, version | `mx.wera.app`, 1.1.0, version code 8 |
 | Target / minimum Android | API 36 / API 24 |
-| Permissions | Six requested: the app's own internal receiver permission, `INTERNET`, `ACCESS_NETWORK_STATE`, `ACCESS_WIFI_STATE`, `VIBRATE` and, since `8m`, **`CAMERA`**. No location, microphone, contacts, storage or `AD_ID`. ⚠️ The manifest also names `android.permission.DUMP` — **not requested**: it is the guard on `androidx.profileinstaller.ProfileInstallReceiver`, a library's receiver only callers holding it may reach |
+| Permissions | Six requested, the same as 1.0's: the app's own internal receiver permission, `INTERNET`, `ACCESS_NETWORK_STATE`, `ACCESS_WIFI_STATE`, `VIBRATE` and **`CAMERA`**. No location, microphone, contacts, storage or `AD_ID`. The manifest still names `android.permission.DUMP` — **not requested**: the guard on `androidx.profileinstaller.ProfileInstallReceiver`, as in 1.0 |
 | Update channel | `production`, checked on every launch |
-| Runtime | `5a4a7a5d…` (`base/assets/fingerprint`), the same as `main`'s and as the `preview` Android build made with it (`3fd48b8c`) — an over-the-air fix reaches both |
+| Runtime | `5d02ce3f…` (`base/assets/fingerprint`), the same as `main`'s at `358771f` (`docs/checks/wera-runtime.sh`) — ⚠️ not 1.0's `5a4a7a5d`: from this build on, an over-the-air fix reaches 1.1 only |
+| 16 KB pages | All 25 libraries in `arm64-v8a` load at 16 KB or more |
 | Pilot's measurements | Off: the bundle holds no `piloto-1` |
-| The first day | In its JavaScript: the two doors, Tu tienda with the name and the giros, `set_store_address` |
-| Server | The hosted project's address once; the local test proxy's not at all |
-| Icon | The cow, unchanged since `018e0e33` |
+| An Empleado's words | *Cuando llega el proveedor*, and *Registra ventas, compras y merma en las sucursales…*; the old *Registra ventas y compras…* is gone |
+| Server | The hosted project's address once; no local address |
+| Icon | The cow, unchanged since `01b250f` |
 | Sign in with Apple | Not on Android: the button is drawn on an iPhone only |
 
-It is in the owner's `~/Downloads/wera-tienda-1.0.0-7-primer-dia.aab`, with a copy in
-`~/RetailerToolDev/wera-builds/android-89de4383/`; EAS keeps the original until 2026-11-20.
-⚠️ **It replaces** `8e4c7544` (version code 5), `1d8b5921` (4) and `018e0e33` (3), whose files
-are still in Downloads; if one of them was uploaded, this is a new release on the same closed
-track. ⚠️ Not yet re-read: 16 KB page alignment (the native libraries changed with the camera
-module of `8m`).
+It is `~/RetailerToolDev/wera-builds/wera-tienda-1.1.0-8.aab` (SHA-256 `14dbda28…`). The iPhone's
+twin, EAS `2bb5eb1b` — 1.1.0 (4), runtime `72c82608` (`EXUpdates.bundle/fingerprint`), channel
+`production`, the camera sentence *Wera usa la cámara para tomar fotos de tus productos.*, signed by
+team `RGWA74UM3G` — is `wera-tienda-1.1.0-4.ipa` beside it, and was sent with `eas submit`
+(submission `c2ec81ca`) to the record `6818418895`, now named in `app/eas.json`. 1.0's bundle,
+`89de4383` (version code 7), stays in `~/RetailerToolDev/wera-builds/android-89de4383/`.
 
 ## The pictures
 
