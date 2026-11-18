@@ -272,7 +272,7 @@ describe('`10.9a-iii`: *Hoy*’s tiles — one per feature she uses that this bu
     const tile = code('ui/Mosaicos.tsx');
     expect(tile).toMatch(/onPress=\{\(\) => router\.push\(mosaico\.abre\)\}/);
     expect(tile).toMatch(/borderStyle: primera \? 'dashed' : 'solid'/);
-    expect(code('app/(cocina)/(tabs)/index.tsx')).toMatch(/const mosaicos = mosaicosDe\(servicios\.data\);/);
+    expect(code('app/(cocina)/(tabs)/index.tsx')).toMatch(/const mosaicos = mosaicosPara\(mosaicosDe\(servicios\.data\), duena\);/);
   });
 });
 
@@ -300,7 +300,7 @@ describe('the wiring, read as text', () => {
 
   it('*Cuéntanos* closes the sheet only once it landed, and its ✕ has *Deshacer*', () => {
     const hoy = code('app/(cocina)/(tabs)/index.tsx');
-    expect(hoy).toMatch(/\{cuentanosEnHoy\(servicios\.data, menuCerrado\) && \(/);
+    expect(hoy).toMatch(/\{duena && cuentanosEnHoy\(servicios\.data, menuCerrado\) && \(/);
     expect(hoy).toMatch(/const \[menuCerrado, setMenuCerrado\] = usePuertaCerrada\(kitchen\.id, 'menu'\);/);
     expect(hoy).toMatch(/avisar\(ES\.cuentanos\.quitado, \(\) => setMenuCerrado\(false\)\)/);
     expect(hoy).toMatch(/const problema = await enviar\(texto\);\s*if \(problema === null\) \{\s*setHojaMenu\(false\);\s*avisar\(ES\.cuentanos\.gracias\);/);

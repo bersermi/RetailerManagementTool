@@ -106,6 +106,14 @@ describe('what goes with her account', () => {
     expect(businessesThatGo([row('t1', OTHER, 'Tienda de su jefa', 'tienda')], ME)).toEqual([]);
   });
 
+  it('⚠️ `10.9b-ii`: a kitchen\'s helper owns nothing to name — her account goes alone, and Eliminar esta cocina is never hers', () => {
+    // The read returns her kitchen's OWNERS (role owner, active): a helper is not among them.
+    const rows = [row('k1', OTHER, 'Fonda Doña Mari')];
+    expect(businessesThatGo(rows, ME)).toEqual([]);
+    expect(deletionFrom(businessesThatGo(rows, ME), 'k1')).toEqual({ kind: 'leaves' });
+    expect(kitchenAlone(businessesThatGo(rows, ME), 'k1')).toBeNull();
+  });
+
   it('no answer yet is not “nothing goes”, and a name it cannot read is no guess', () => {
     expect(businessesThatGo(undefined, ME)).toBeNull();
     expect(businessesThatGo(null, ME)).toBeNull();
@@ -399,7 +407,8 @@ describe('her kitchen deleted alone', () => {
   // ⚠️ THE MISTAKES THAT WOULD BE SILENT EVERYWHERE ELSE: no check loads the hook.
   it('keeps her signed in and tells Apple nothing; her kitchen leaves her list at once, then both reads run again', () => {
     const all = code('src/api/hooks.ts');
-    const hook = all.slice(all.indexOf('export function useDeleteKitchen'));
+    const start = all.indexOf('export function useDeleteKitchen');
+    const hook = all.slice(start, all.indexOf('\nexport function ', start + 1));
     expect(hook).toMatch(/mutationFn: \(args: DeleteBusinessArgs\) => deleteMyBusiness\(args\)/);
     for (const never of ['signOut', 'askAppleAgain', 'revokeApple', 'deleteMyAccount']) {
       expect(hook, never).not.toContain(never);

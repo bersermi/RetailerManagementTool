@@ -94,7 +94,7 @@ const SIN_FRASE_NI_PORTADA: Estado = { giro: true, direccion: true, frase: false
 const COMPLETA: Estado = { giro: true, direccion: true, frase: true, oferta: true, portada: true };
 
 function entrada(over: Partial<EntradaDeHoy> & { ahora: Date }): EntradaDeHoy {
-  return { listings: [], estado: COMPLETA, loQueUsa: NADA, paginaCerrada: false, hechos: [], ...over };
+  return { listings: [], estado: COMPLETA, loQueUsa: NADA, paginaCerrada: false, hechos: [], duena: true, ...over };
 }
 
 /** What she sees at `x.ahora`, with today's marks made — as *Hoy* does on every open. */
@@ -344,6 +344,22 @@ describe('a feature she did not pick — off Hoy two weeks, then one line each, 
     expect(verHoy({ ...MEMORIA_VACIA, desde: '2026-11-01' }, { ...x, paginaCerrada: true }).linea?.kind).toBe('servicio');
   });
 
+  it('⚠️ `10.9b-ii`: a helper is never nudged — her page and her features are the owner’s; the invitation and the glow are publishing’s, and stay', () => {
+    const pagina = entrada({ ahora: nov(30, 18), estado: SIN_FRASE_NI_PORTADA, listings: [oferta('a', 30)], loQueUsa: ofrece(), hechos });
+    const servicio = { ...pagina, paginaCerrada: true };
+    const desde = { ...MEMORIA_VACIA, desde: '2026-11-01' };
+    expect(verHoy(desde, pagina).linea?.kind).toBe('pagina');
+    expect(verHoy(desde, servicio).linea?.kind).toBe('servicio');
+    expect(verHoy(desde, { ...pagina, duena: false }).linea).toBeNull();
+    expect(verHoy(desde, { ...servicio, duena: false }).linea).toBeNull();
+    // Her first day at a kitchen that never published: the same invitation and glow as the owner's.
+    const primerDia = entrada({ ahora: nov(16) });
+    const ayudante = verHoy(MEMORIA_VACIA, { ...primerDia, duena: false });
+    const duena = verHoy(MEMORIA_VACIA, primerDia);
+    expect([ayudante.invitacion, ayudante.brilla]).toEqual([duena.invitacion, duena.brilla]);
+    expect(ayudante.invitacion).toBe(true);
+  });
+
   it('the words are the page’s, each opening its Activar', () => {
     expect(ES.empujon.servicio).toEqual({
       tarjeta: '¿Quieres que regresen? Prueba la tarjeta de lealtad',
@@ -432,7 +448,7 @@ describe('the wiring', () => {
   it('Hoy marks today once each time what it marks changes, and *Cuéntanos* is not its line', () => {
     const hoy = code('app/(cocina)/(tabs)/index.tsx');
     expect(hoy).toMatch(/useEffect\(\(\) => \{\s*if \(vista !== null\) cambiar\(vista\.registrar\);\s*\}, \[marca, cambiar\]\);/);
-    expect(hoy).toMatch(/verHoy\(memoria, \{ listings: listings\.data, estado, loQueUsa: servicios\.data \?\? null, paginaCerrada: cerrada, ahora \}\)/);
+    expect(hoy).toMatch(/verHoy\(memoria, \{ listings: listings\.data, estado, loQueUsa: servicios\.data \?\? null, paginaCerrada: cerrada, ahora, duena \}\)/);
     expect(hoy.match(/<LineaEmpujon/g)).toHaveLength(1);
     // A feature's ✕ has its Deshacer.
     expect(hoy).toMatch(/avisar\(ES\.empujon\.servicioQuitado, \(\) => cambiar\(\(m\) => cerrarServicio\(m, linea\.servicio, false\)\)\);/);

@@ -19,7 +19,10 @@
 //     orders are read every minute (`vivo`);
 //   - her reservations (`['cocina', 'apartados']`: today's and later's, the 30 days
 //     before, and who reserved each) — *Apartados*, *Entregar un apartado*, *Lo que
-//     sigue*, her thumb.
+//     sigue*, her thumb;
+//   - ⚠️ `10.9b-ii`: her role at each kitchen (`['cocina', 'rol']`, `my_role`) — a helper's
+//     *Hoy* opened with no signal must not draw what is the owner's, nor an owner's lose
+//     her doors; unread, nobody is the owner (`@/api/equipo`' `esDuena`).
 // Nothing else: her page, her place and the trades are read when she opens them, and
 // none is needed at the counter. ⚠️ WHO RESERVED EACH IS KEPT TOO — the neighbour's
 // short name and score, while the order waits or waits for its thumb (`0080`): what the
@@ -43,6 +46,7 @@
 // ============================================================================
 
 import { APARTADOS_KEY } from '@/api/apartados';
+import { ROL_KEY } from '@/api/equipo';
 import { KITCHENS_KEY } from '@/api/kitchen';
 import { LISTINGS_KEY } from '@/api/listing';
 import { readKey, removeKey, writeKey, type DeviceStore } from '@/lib/store';
@@ -68,9 +72,9 @@ export const CACHE_GC_TIME = Infinity;
 export const CACHE_THROTTLE_MS = 3_000;
 
 /** The reads kept, as key prefixes. Everything else is refused. */
-export const PERSISTED_KEYS: readonly (readonly string[])[] = [KITCHENS_KEY, LISTINGS_KEY, APARTADOS_KEY];
+export const PERSISTED_KEYS: readonly (readonly string[])[] = [KITCHENS_KEY, LISTINGS_KEY, APARTADOS_KEY, ROL_KEY];
 
-/** One of the three — a prefix match, one way: a key shorter than a root never matches. */
+/** One of the four — a prefix match, one way: a key shorter than a root never matches. */
 export function shouldPersistKey(key: readonly unknown[]): boolean {
   return PERSISTED_KEYS.some((root) => root.every((segment, at) => key[at] === segment));
 }

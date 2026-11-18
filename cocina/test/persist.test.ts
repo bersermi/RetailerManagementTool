@@ -6,6 +6,7 @@ import { QueryClient, dehydrate, hydrate, type DehydratedState } from '@tanstack
 import { describe, expect, it } from 'vitest';
 
 import { apartadosKey, reservasFrom, vecinosFrom, type Reserva } from '@/api/apartados';
+import { equipoKey, rolKey } from '@/api/equipo';
 import { kitchensKey } from '@/api/kitchen';
 import { listingsKey } from '@/api/listing';
 import { pageKey } from '@/api/pagina';
@@ -69,12 +70,17 @@ const fila = {
 };
 
 describe('the reads kept — what a cold start with no signal needs at the counter, and nothing else', () => {
-  it('her kitchens, her offers and her reservations; never her page, her place or the trades', () => {
+  it('her kitchens, her offers, her reservations and her role at each; never her page, her place, the trades or her people', () => {
     expect(PERSISTED_KEYS).toEqual([
       ['cocina', 'mias'],
       ['cocina', 'publicaciones'],
       ['cocina', 'apartados'],
+      ['cocina', 'rol'],
     ]);
+    // `10.9b-ii`: her role, so a helper's Hoy with no signal never draws the owner's parts.
+    expect(shouldPersistKey(rolKey('u1', 'k1'))).toBe(true);
+    // The owner's list of who works here is read when she opens it, never kept.
+    expect(shouldPersistKey(equipoKey('u1', 'k1'))).toBe(false);
     expect(shouldPersistKey(kitchensKey('u1'))).toBe(true);
     expect(shouldPersistKey(listingsKey('u1', 'k1'))).toBe(true);
     for (const lectura of ['hoy', 'antes', 'vecinos']) expect(shouldPersistKey(apartadosKey('u1', 'k1', lectura))).toBe(true);

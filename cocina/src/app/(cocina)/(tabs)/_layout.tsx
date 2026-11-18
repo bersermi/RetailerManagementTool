@@ -1,6 +1,6 @@
 import { Tabs } from 'expo-router/js-tabs';
 
-import { useApartadosAlDia, useKitchen, usePlace } from '@/api/hooks';
+import { useApartadosAlDia, useKitchen, usePlace, useSiYaNoEstaAqui } from '@/api/hooks';
 import { ordenesDe, porCalificar } from '@/lib/apartados';
 import { RecordatorioProvider } from '@/lib/RecordatorioProvider';
 import { useFestejos } from '@/lib/useFestejos';
@@ -43,10 +43,15 @@ import { Pestanas } from '@/ui/Pestanas';
 //
 // ⚠️ `10.9a-iii`: AND HER FIRST RESERVATION AND FIRST HANDOVER ARE CELEBRATED HERE (`@/lib/useFestejos`),
 // on the same read — once, on this phone, from any tab or screen over them.
+//
+// ⚠️ `10.9b-ii`: AND HER ROLE IS WATCHED HERE (`useSiYaNoEstaAqui`): a helper the owner removed, or
+// who is gone, reads `null` for her role at this kitchen, and her kitchens are read again — once,
+// from here — so the guard sends her where a kitchen is made.
 // ============================================================================
 export default function TabsDeCocina() {
   useRefrescoDeSuPunto();
   const kitchen = useKitchen();
+  useSiYaNoEstaAqui(kitchen?.id ?? null);
   const apartados = useApartadosAlDia(kitchen?.id ?? null);
   const cuentas = useCuentas(apartados.data);
   useFestejos(kitchen?.id ?? null, apartados.data?.reservas);

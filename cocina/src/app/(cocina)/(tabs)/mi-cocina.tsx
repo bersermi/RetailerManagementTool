@@ -1,16 +1,31 @@
 import { router } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
+import { useState } from 'react';
 import { ActivityIndicator, Linking, Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { guardada } from '@/api/fotos';
-import { useAjustes, useCalificaciones, useKitchen, useKitchenGiros, useListings, usePage, usePlace } from '@/api/hooks';
+import { miCocinaPara, type Rol } from '@/api/equipo';
+import {
+  useAjustes,
+  useCalificaciones,
+  useKitchen,
+  useKitchenGiros,
+  useListings,
+  usePage,
+  usePlace,
+  useSalirDeLaCocina,
+  useServicios,
+  useSuRol,
+} from '@/api/hooks';
 import { giroLabel, type Kitchen } from '@/api/kitchen';
 import { colorOf } from '@/api/pagina';
 import { addressComplete, addressLine } from '@/api/place';
 import { useAuth } from '@/auth/AuthProvider';
 import { AVISO_URL } from '@/auth/aviso';
+import { cuentaDe } from '@/auth/quien';
 import { calificacionesFila, cobroTexto, comerTexto, desechableFila, quienTexto } from '@/lib/ajustes';
+import { ayudasAqui } from '@/lib/ayudante';
 import { ayudaUrl } from '@/auth/support';
 import { estadoDe, faltanDe } from '@/lib/hoy';
 import { useRecordatorio } from '@/lib/RecordatorioProvider';
@@ -24,6 +39,7 @@ import { BotonLleno } from '@/ui/BotonLleno';
 import { Fila } from '@/ui/Fila';
 import { Formulario } from '@/ui/Formulario';
 import { Grupo } from '@/ui/Grupo';
+import { HojaConfirmar } from '@/ui/HojaConfirmar';
 import { LeyendoCocina } from '@/ui/LeyendoCocina';
 import { Falta } from '@/ui/Falta';
 import { Llega } from '@/ui/Llega';
@@ -31,6 +47,7 @@ import { LoQueUsas } from '@/ui/LoQueUsas';
 import { MapaFijo } from '@/ui/MapaFijo';
 import { sinPuntoPara } from '@/ui/PantallaDireccion';
 import { Portada } from '@/ui/Portada';
+import { QuienTrabajaAqui } from '@/ui/QuienTrabajaAqui';
 import { Salidas } from '@/ui/Salidas';
 
 // ============================================================================
@@ -71,15 +88,35 @@ import { Salidas } from '@/ui/Salidas';
 // ⚠️ `10.9a-ii`: *LO QUE USAS* AT ITS TOP, above her page (`@/ui/LoQueUsas`; the family-shell page,
 // round 7, took *"at the top"* literally) — absent while Wera offers nothing this build carries
 // and no *Próximamente* may show, which is every kitchen today.
+//
+// ⚠️⚠️ `10.9b-ii`: TWO *MI COCINA*S, BY HER ROLE AT THIS KITCHEN (`@/api/equipo`' `miCocinaPara`; G18):
+//   - THE OWNER'S, above — and, after her settings, *Quién trabaja aquí* (`@/ui/QuienTrabajaAqui`),
+//     drawn while someone else works here (`10.9b-iii` adds *Invitar a alguien* and draws it always);
+//   - A HELPER'S (the family-shell page's `cMiAyudante`): her account — her name, her address, how she
+//     signs in (`@/auth/quien`' `cuentaDe`) —, the kitchen with what she does there (`@/lib/ayudante`'
+//     `ayudasAqui`: true today, the card's stamps once it exists), help, and *Salir de esta cocina*
+//     (`leave_kitchen`, a sheet first; her phone loses the kitchen at once and the guard sends her where
+//     a kitchen is made) above *Cerrar sesión* and *Eliminar mi cuenta* — which names nothing: she owns
+//     no business (`@/api/account`' `businessesThatGo`), and *Eliminar esta cocina* is never hers;
+//   - while her role is not read yet, a wheel — or, failed, *Intentar de nuevo* — and her way out
+//     under it, never one of the two drawn and then swapped.
 // ============================================================================
 
 export default function MiCocina() {
   const kitchen = useKitchen();
+  const rol = useSuRol(kitchen?.id ?? null);
   if (kitchen === null) return <LeyendoCocina titulo={ES.miCocina.titulo} />;
-  return <MiCocinaDe kitchen={kitchen} />;
+  switch (miCocinaPara(rol.data)) {
+    case 'duena':
+      return <MiCocinaDe kitchen={kitchen} rol={rol.data} />;
+    case 'ayudante':
+      return <MiCocinaDeAyudante key={kitchen.id} kitchen={kitchen} />;
+    default:
+      return <LeyendoSuRol kitchen={kitchen} fallo={rol.isError} leyendo={rol.isFetching} otraVez={() => void rol.refetch()} />;
+  }
 }
 
-function MiCocinaDe({ kitchen }: { kitchen: Kitchen }) {
+function MiCocinaDe({ kitchen, rol }: { kitchen: Kitchen; rol: Rol | null | undefined }) {
   const insets = useSafeAreaInsets();
   const { session } = useAuth();
   const giros = useKitchenGiros();
@@ -271,6 +308,8 @@ function MiCocinaDe({ kitchen }: { kitchen: Kitchen }) {
           </Grupo>
         </Llega>
 
+        <QuienTrabajaAqui kitchenId={kitchen.id} rol={rol} />
+
         <Llega i={4} style={{ gap: SIZE.rowGap }}>
           <Text style={seccion}>{ES.miCocina.ayuda}</Text>
           <Grupo>
@@ -299,6 +338,104 @@ function MiCocinaDe({ kitchen }: { kitchen: Kitchen }) {
           <Salidas key={kitchen.id} openKitchenId={kitchen.id} />
         </Llega>
       </Formulario>
+    </View>
+  );
+}
+
+/** Her role not read yet: a wheel, or the failure and *Intentar de nuevo* — and her way out under it. */
+function LeyendoSuRol({ kitchen, fallo, leyendo, otraVez }: { kitchen: Kitchen; fallo: boolean; leyendo: boolean; otraVez: () => void }) {
+  const insets = useSafeAreaInsets();
+  return (
+    <View style={{ flex: 1, backgroundColor: PALETTE.fondo }}>
+      <Banda titulo={ES.miCocina.titulo} antetitulo={kitchen.displayName} />
+      <Formulario contentContainerStyle={{ padding: SIZE.space * 1.5, paddingBottom: SIZE.space * 3 + insets.bottom, gap: SIZE.space * 1.5 }}>
+        {fallo ? (
+          <View style={{ gap: SIZE.rowGap }}>
+            <Text style={{ fontSize: SIZE.bodySize, color: PALETTE.tinta }}>{ES.cocina.sinLeer}</Text>
+            <BotonLleno variante="principal" label={ES.cocina.otraVez} busy={leyendo} onPress={otraVez} />
+          </View>
+        ) : (
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: SIZE.rowGap }}>
+            <ActivityIndicator color={PALETTE.accion} />
+            <Text style={{ fontSize: SIZE.bodySize, color: PALETTE.tintaApagada }}>{ES.cocina.leyendo}</Text>
+          </View>
+        )}
+        <Salidas key={kitchen.id} openKitchenId={kitchen.id} />
+      </Formulario>
+    </View>
+  );
+}
+
+/** A helper's *Mi cocina* — the family-shell page's *Ayudante*. */
+function MiCocinaDeAyudante({ kitchen }: { kitchen: Kitchen }) {
+  const insets = useSafeAreaInsets();
+  const { session } = useAuth();
+  const servicios = useServicios(kitchen.id);
+  const { salir, busy } = useSalirDeLaCocina(kitchen.id);
+  const [hoja, setHoja] = useState(false);
+  const cuenta = cuentaDe(session?.user);
+  const numero = SUPPORT_WHATSAPP;
+  const seccion = { fontSize: SIZE.smallSize, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase', color: PALETTE.tintaApagada } as const;
+
+  return (
+    <View style={{ flex: 1, backgroundColor: PALETTE.fondo }}>
+      <Banda titulo={ES.miCocina.titulo} antetitulo={ES.ayudante.enCocina(kitchen.displayName)} />
+      <Formulario
+        contentContainerStyle={{ padding: SIZE.space * 1.5, paddingBottom: SIZE.space * 3 + insets.bottom, gap: SIZE.space * 1.5 }}
+      >
+        <Llega i={0}>
+          <Grupo>
+            {cuenta !== null && <Fila icono="account-outline" titulo={cuenta.titulo} detalle={cuenta.detalle} />}
+            <Fila icono="storefront-outline" titulo={kitchen.displayName} detalle={ayudasAqui(servicios.data)} />
+          </Grupo>
+        </Llega>
+
+        <Llega i={1} style={{ gap: SIZE.rowGap }}>
+          <Text style={seccion}>{ES.miCocina.ayuda}</Text>
+          <Grupo>
+            {numero !== null && (
+              <Fila
+                icono="whatsapp"
+                titulo={ES.miCocina.whatsapp}
+                detalle={ES.miCocina.whatsappDetalle}
+                onPress={() => {
+                  Linking.openURL(ayudaUrl(numero, session?.user.email)).catch(() => {});
+                }}
+              />
+            )}
+            <Fila
+              icono="shield-lock-outline"
+              titulo={ES.miCocina.aviso}
+              onPress={() => {
+                WebBrowser.openBrowserAsync(AVISO_URL).catch(() => {});
+              }}
+            />
+          </Grupo>
+        </Llega>
+
+        <Llega i={2} style={{ gap: SIZE.space }}>
+          <Text style={seccion}>{ES.miCocina.cuenta}</Text>
+          <Grupo>
+            <Fila icono="exit-run" titulo={ES.ayudante.salir} onPress={() => setHoja(true)} />
+          </Grupo>
+          <Salidas key={kitchen.id} openKitchenId={kitchen.id} />
+        </Llega>
+      </Formulario>
+      <HojaConfirmar
+        visible={hoja}
+        titulo={ES.ayudante.salirTitulo(kitchen.displayName)}
+        texto={ES.ayudante.salirTexto}
+        confirmar={ES.ayudante.salir}
+        confirmando={ES.ayudante.saliendo}
+        cancelar={ES.ayudante.cancelar}
+        ocupado={busy}
+        onConfirmar={async () => {
+          const problema = await salir();
+          if (problema === null) setHoja(false);
+          return problema;
+        }}
+        onCerrar={() => setHoja(false)}
+      />
     </View>
   );
 }

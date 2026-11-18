@@ -82,6 +82,13 @@ describe('what goes with her account', () => {
     expect(deletionFrom(businessesThatGo([], ME))).toEqual({ kind: 'leaves' });
   });
 
+  it('⚠️ `10.9b-ii`: a neighbour who helps at a kitchen owns nothing to name — the login goes alone', () => {
+    // One login across the apps: the read returns her kitchen's OWNERS, and a helper is not among them.
+    const rows = [row('k1', OTHER, 'Fonda Doña Mari')];
+    expect(businessesThatGo(rows, ME)).toEqual([]);
+    expect(deletionFrom(businessesThatGo(rows, ME))).toEqual({ kind: 'leaves' });
+  });
+
   it('every business she alone owns, of either kind — kitchens first, then shops, each by name', () => {
     const rows = [
       row('t1', ME, 'Tienda Lupe', 'tienda'),

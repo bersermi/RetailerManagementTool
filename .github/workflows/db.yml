@@ -128,6 +128,13 @@ on:
       # `cocinas.ts` (under `itacate/src/api/**`) the door's `features`. Its own job, `cocina-features`, below.
       - "docs/checks/10.9a-i-features-contract.sh"
       - "docs/checks/10.9a-i-features-contract-falsify.sh"
+      # ⚠️ `10.9b-ii`, WHO WORKS AT A KITCHEN: `cocina/src/api/equipo.ts` (under `cocina/src/api/**` above)
+      # names `my_role` and its argument, the memberships' table, its columns and the filters the owner's
+      # list and *Quitar a …* send — the guard that never ends an owner's membership among them — and
+      # `0082`'s `leave_kitchen` with `TD025`; `account.ts` the owners read a helper's deletion asks.
+      # Its own job, `cocina-team`, below.
+      - "docs/checks/10.9b-ii-team-contract.sh"
+      - "docs/checks/10.9b-ii-team-contract-falsify.sh"
       # ⚠️⚠️ AND THE ROSTER'S, as of plan task 5b-ii-a. `app/src/api/members.ts`
       # is a second claim about the applied schema — two column lists — and it
       # carries something `workspace.ts` does not: a claim about a POLICY. The
@@ -2564,6 +2571,45 @@ jobs:
 
       - name: Contract — can the features check still fail (its own fixtures; the runner counts them)
         run: bash docs/checks/10.9a-i-features-contract-falsify.sh
+
+      - name: Stop
+        if: always()
+        run: supabase stop --no-backup
+
+  # ===========================================================================
+  # `10.9b-ii` — WHO WORKS AT A KITCHEN. `cocina/src/api/equipo.ts` against a real PostgREST, as a real
+  # owner and a real helper: her role (`my_role`), the owner's list, *Quitar a …* refused to a helper
+  # and never ending an owner's membership, a removed helper's kitchens read empty, *Deshacer*, *Salir
+  # de esta cocina* (`leave_kitchen`) and `TD025` for the owner — and the owners read a helper's
+  # *Eliminar mi cuenta* asks, naming nothing of hers. Its own job for `cocina-handover`'s reason: the
+  # falsifier runs the check fifteen times, two sign-ups each.
+  # ===========================================================================
+  cocina-team:
+    name: who works at a kitchen, Quitar and Salir, against Wera Cocina's own names
+    runs-on: ubuntu-latest
+    # ⚠️ Fifteen runs of two sign-ups each, and GoTrue allows 30 in five minutes: a run that
+    # spends them waits out the window (`signup`'s retries).
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: 2.114.0
+
+      - name: Start Postgres, GoTrue and PostgREST
+        run: supabase start -x realtime,storage-api,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
+
+      - name: Apply migrations from scratch
+        run: supabase db reset
+
+      - name: Contract — does cocina/src/api/equipo.ts read her role, read who works at her kitchen, remove a helper and let one leave, by the names 0001 and 0082 answer (plan 10.9b-ii)
+        run: bash docs/checks/10.9b-ii-team-contract.sh
+
+      - name: Contract — can the team check still fail (its own fixtures; the runner counts them)
+        run: bash docs/checks/10.9b-ii-team-contract-falsify.sh
 
       - name: Stop
         if: always()
