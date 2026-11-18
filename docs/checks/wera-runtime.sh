@@ -22,7 +22,9 @@
 # 2026-10-27; both channels (`preview`, `production`) carried them.
 # ⚠️ `5R-o` (Wera 1.1.0): the iPhone's camera sentence no longer names *Te lo
 # compro* — a plugin's setting, so both runtimes move (a `version` alone moves
-# nothing: `app/fingerprint.config.js`). The values below were computed BEFORE
+# nothing: `app/fingerprint.config.js`); and `app/eas.json` names the App Store
+# record (`ascAppId`), so `eas submit` runs without a terminal — `eas.json` is
+# hashed too, and costs nothing while the runtime moves. The values below were computed BEFORE
 # the 1.1 builds existed, on a clean `npm ci` of this tree (2026-11-18), and
 # CI's run of this pull request computed the same; the session that makes the
 # builds reads `build:list` and holds them to these before anything is sent.
@@ -39,8 +41,8 @@
 set -euo pipefail
 cd "$(dirname "$0")/../../app"
 
-IOS_IN_THE_FIELD="8342d3b71a0b7c330d715d4582207487f51dcbee"
-ANDROID_IN_THE_FIELD="6ca24a3173d6249e5252b8927069ceb5cdd3b2d8"
+IOS_IN_THE_FIELD="72c82608b8934651ac9c1f76058f62b61f518650"
+ANDROID_IN_THE_FIELD="5d02ce3ff425a8f6b8e6640beb4e8698af4ff7f7"
 
 runtime() {   # runtime <ios|android>
   npx expo-updates fingerprint:generate --platform "$1" 2>/dev/null \
