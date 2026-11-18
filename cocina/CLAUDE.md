@@ -294,9 +294,12 @@ TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic i
 - **SDK 57, through the pilot.** Every native module this app will need is in its first store
   build — maps (`react-native-maps`), notifications (`expo-notifications`) and the camera
   (`expo-image-picker`, `expo-image-manipulator`: a fonda's photos) — so features ship over the
-  air. ⚠️ **Since 2026-11-16 the first public build also carries a camera module that scans a code, and printing and
-  sharing** (`10.9c` — the loyalty card's *Sellar*, a helper joining, the counter poster); `app.json`'s camera sentence
-  then says she scans too. **No location**: a fonda's pin is set on a map, and `app.json` blocks the location
+  air. ⚠️ **Since `10.9c` (2026-11-18) the build also carries a camera module that scans a code — `expo-camera`
+  57.0.6 — and printing and sharing — `expo-print`, `expo-sharing`, at Wera's ranges** (the loyalty card's *Sellar*,
+  a helper joining, the counter poster). `app.json`'s ONE camera sentence names both uses and is written by two
+  plugins (`expo-image-picker`'s and `expo-camera`'s): an iPhone shows whichever ran last, so
+  `test/identity.test.ts` holds them to one string. Never the microphone (`recordAudioAndroid` and
+  `microphonePermission` off). **No location**: a fonda's pin is set on a map, and `app.json` blocks the location
   permissions even if a library declares them. A module missing at the public release waits for
   the major update (`10.8`); before it, one more build — `10.4d`'s, which carries the phone's own
   geocoder (`modules/geocodificador`).
@@ -306,7 +309,12 @@ TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic i
   already satisfies** (`npm view <pkg>@<v> dependencies`). Measured 2026-10-27:
   `expo-notifications` 57.0.24 upgraded `expo-constants` and moved Wera's runtime on both
   platforms; 57.0.17 fits. After any install, the root lockfile's diff must only **add**
-  entries, and `docs/checks/wera-runtime.sh` (in `app.yml`) must pass.
+  entries, and `docs/checks/wera-runtime.sh` (in `app.yml`) must pass. ⚠️ **Measured again 2026-11-18
+  (`10.9c`): `npm install expo-print@~57.0.2 expo-sharing@~57.0.22 -w @tienda/cocina` — Wera's own ranges —
+  fetched the newest patches and CHANGED Wera's hoisted `expo-sharing`, `@expo/config-plugins`, `@expo/plist`,
+  `xcode` and dropped `uuid`.** A module Wera already has goes in by writing its range into this
+  `package.json` by hand and running `npm install` with no package named: npm then keeps the locked copy.
+  Compare the lockfile's entries before and after (a few lines of `node` over `packages`), not `git diff --stat`.
 - **Three values come from EAS's environment into the config, never the repository:** the Android map key
   (`GOOGLE_MAPS_ANDROID_API_KEY`), the iPhone map key since `10.4g-i` (`GOOGLE_MAPS_IOS_API_KEY`) and Firebase's
   `google-services.json` (file variable `GOOGLE_SERVICES_JSON`, copied in by `eas-pre-install.sh`, which refuses
@@ -664,7 +672,9 @@ owner removes her from *Quién trabaja aquí*. G18: inviting is the owner's. `00
   `invite_helper`) — one per person; an earlier one keeps its 24 hours, and the code is shown once (only its hash is kept). The sheet:
   *Que abra Wera Cocina…*, the code in four groups, *Sirve para una persona, hasta mañana a las …*, what she will do there (`@/lib/
   ayudante`' `podraTexto` — true today: no stamps until the card), and ***Compartir el código*** — React Native's own `Share`, as Wera's
-  invitation is shared: no module, no native change. With no signal it says so, with *Intentar de nuevo*. The QR waits for `10.9c`.
+  invitation is shared: no module, no native change. With no signal it says so, with *Intentar de nuevo*. ⚠️ **Since `10.9c`
+  the code is a QR above the typed code** (`@/ui/CodigoQR`, the next section): the sixteen the database hashed, never the
+  grouped rendering.
 - ⚠️⚠️ **The code is Wera's, copied** (`normalizarCodigo` ← `app/src/api/redeem.ts`' `normalizeCredential`; `codigoAgrupado` ←
   `app/src/api/invites.ts`' `groupedToken`): the grouping is a rendering; `I`/`L` → `1`, `O` → `0`, as `normalize_workspace_code` does
   inside the hash; what is SENT is the normalised sixteen. `test/invitar.test.ts` holds both copies to Wera's files code for code
@@ -682,4 +692,30 @@ owner removes her from *Quién trabaja aquí*. G18: inviting is the owner's. `00
   en …* shows there.
 - **To see it on the emulator**: two logins on two phones, or one phone signed in as each in turn — the owner's *Invitar a alguien*, then
   the helper's *Unirme a una cocina* with the code read off the owner's screen (or `invite_helper` called as the owner through the local
-  API, the contract check's way).
+  API, the contract check's way). To SCAN it there, the next section.
+
+## The camera that scans, and a QR with no native module (`10.9c`)
+
+G16 and the row: a camera module in the first public build, asked the first time she taps, the code typed when she refuses.
+
+- **A QR is `@/lib/qr` + `@/ui/CodigoQR`**: `qrcode-generator` (MIT, no dependencies, plain JavaScript — measured first, as the row
+  asked: no app has SVG and none is needed) says which squares are dark; each row's dark runs are one `View` each, black on white, in the
+  four-square quiet zone, the square rounded to whole pixels. A code of Crockford's alphabet goes in QR's alphanumeric mode — 21 × 21 at
+  level M; anything else (a link) as bytes. ⚠️ **`test/qr.test.ts` READS THE DRAWING BACK with a real decoder** — `zxing-wasm` (the
+  reader `expo-camera`'s web half carries, a dev dependency pinned to the lockfile's copy, its WASM loaded from disk) — so a grid that
+  would not scan is red. The poster (`10.9e`, `expo-print` takes HTML) draws the same grid as `<rect>`s.
+- **The camera is `@/ui/Escaner`**: a box on the screen, `CameraView` reading QR codes alone, the four corners and *Apunta a su código*
+  over it. **What it shows is `@/lib/escaner`' `cajaDelEscaner`, a pure rule of the phone's answer**: never asked → a button (the tap
+  asks); allowed — here or by *Tomar foto*, the same permission — → the camera at once; refused while the phone will ask again → why, and
+  ask again; refused for good → why, and *Permitir la cámara en Ajustes* (coming back reads it again). `onLeido(texto)` says whether the
+  code was the one wanted: `true` and the screen closes the camera; `false` says *Ese no es el código…* and keeps reading, one answer per
+  code (it fires for every frame). ⚠️ **Nothing it sees is kept or sent** — the aviso's section 3 says so.
+- ***Unirme a una cocina***: the camera above the typed box; a scan goes through the typed box's own rule (`codigoAlEscribir`, then
+  `codigoCompleto`), so a scan is exactly what typing it would have been; the camera closes once the code is whole and opens again if the
+  box is cleared.
+- ⚠️ **To scan on the emulator** (`wera-android-36`, measured 2026-11-18): its back camera is `emulated` (a black picture) — boot it with
+  `emulator -avd wera-android-36 -camera-back imagefile:<png> -no-snapshot-load`, the QR **small in the middle of a large white 4:3
+  image** (`sips -p 1600 2133 --padColor FFFFFF`): with the QR filling the image, the emulator stretches it to the frame and nothing
+  reads. ⚠️ `adb exec-out screencap` draws the camera's box BLACK — `adb emu screenrecord screenshot <file>` shows what the camera sees.
+  The QR to hang there is the owner's own screen: a screenshot of *Invitar a alguien*, cropped (`sips --cropOffset`). Then *Unirme*
+  reads it, the box fills, and the database names the kitchen.

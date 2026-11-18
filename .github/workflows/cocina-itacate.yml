@@ -100,6 +100,11 @@ on:
       # Wera Cocina's suite holds its copies to these two files code for code (`cocina/test/invitar.test.ts`).
       - "app/src/api/redeem.ts"
       - "app/src/api/invites.ts"
+      # ⚠️ `10.9c`, A KITCHEN'S ADDRESS OPENS ITACATE: the host and path are in three places that fail
+      # silently apart — Itacate's `app.json`, these two files and the page they stand beside — and
+      # Itacate's suite reads all three (`itacate/test/enlaces.test.ts`).
+      - "site/.well-known/**"
+      - "site/cocina/**"
       - "package.json"
       - "package-lock.json"
       - ".github/workflows/cocina-itacate.yml"

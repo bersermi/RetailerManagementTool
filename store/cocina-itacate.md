@@ -296,7 +296,9 @@ it for Wera Cocina). *Financial info* — a price she sets for her own dish is h
 under *Other user-generated content*; nothing is paid in the app and no card or bank detail is
 asked (Google: *"Other financial info: … such as user salary or debts"*). *Videos* — the camera and
 the picker are asked for images only. Approximate location, contacts, files, messages, health,
-web browsing — none read.
+web browsing — none read. ⚠️ **Since `10.9c` the camera also SCANS a code** (*Escanear su código*, a helper
+joining): the picture is read on the phone and never leaves it — only the code's text is sent, to name the kitchen and
+join it — so it adds no data type here; *Photos* stays the photos she uploads.
 
 ### Data safety — Itacate
 
@@ -382,7 +384,9 @@ Google and Expo as the apps' service providers, as Wera's answers treat Supabase
 page does not say which it is for its own SDK. **Not ticked for Itacate:** *Precise location* —
 her location never leaves her phone (`10.5-iv-a-i`); phone number, photos — the kitchens' photos
 are theirs, and Itacate asks for no camera or picture of hers —, financial info, messages,
-contacts, files, health.
+contacts, files, health. ⚠️ **Since `10.9c` Itacate's build carries the camera** (Android's manifest lists
+`CAMERA`), and nothing asks for it until the loyalty card's *Escanear* (`10.9e`), which reads a kitchen's code on her
+phone and sends only its text — no photo, no data type; that row re-reads these answers.
 
 ### Government apps · Financial features · Health · Advertising ID
 

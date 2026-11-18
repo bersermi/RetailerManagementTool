@@ -963,7 +963,8 @@ export const ES = {
     noSePudoQuitar: 'Solo la dueña de la cocina puede quitar a alguien.',
     /** `10.9b-iii`: the row that opens *Invitar a alguien* (the drawing's, without the camera until `10.9c`). */
     invitar: 'Invitar a alguien',
-    invitarDetalle: 'Con un código para su teléfono',
+    /** The drawing's words, since `10.9c` draws the QR she scans. */
+    invitarDetalle: 'Con un código que escanea',
   },
   /**
    * `10.9b-iii` — *Invitar a alguien*, the owner's sheet (the family-shell page's `invitarSheet`): a code for

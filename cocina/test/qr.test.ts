@@ -57,6 +57,13 @@ describe('a helper’s code as a QR', () => {
     for (const fila of m) expect(fila).toHaveLength(21);
   });
 
+  it('drawn inside the quiet zone ISO/IEC 18004 asks for — four squares of white at least', () => {
+    // ⚠️ ZXing reads a code with no margin at all, so the read-back below cannot hold this: a phone's camera
+    // across a counter needs the white around it (`@/ui/CodigoQR` pads by this many squares).
+    expect(MARGEN_QR).toBeGreaterThanOrEqual(4);
+    expect(readFileSync(new URL('../src/ui/CodigoQR.tsx', import.meta.url), 'utf8')).toContain('padding: cuadro * MARGEN_QR');
+  });
+
   it('the runs paint exactly the dark squares — no square lost, none added', () => {
     const m = matrizQR(CODIGO);
     const tramos = tramosQR(m);

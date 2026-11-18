@@ -127,11 +127,29 @@ from `itacate/` with the two local `EXPO_PUBLIC_SUPABASE_` values in the shell, 
   foreground-service location are blocked) — so features ship over the air: the sign-in's
   modules (`expo-apple-authentication`, `expo-crypto`, `expo-web-browser`, `expo-sqlite`) were in it
   too, so `10.5-iii-a` added three JavaScript packages at Wera's ranges and neither runtime moved
-  (measured). **No camera — until `10.9c`**: since the owner's rulings of 2026-11-16 the first public build carries a
-  camera module that scans a kitchen's code (asked the first time she taps *Escanear*; typing the number is her way out)
-  and app links (an address per kitchen on tu-wera.com that opens her page). A
-  module missing at the public release waits for the major update (`10.8`); before it, one more
-  build.
+  (measured). ⚠️ **Since `10.9c` (2026-11-18) the build carries the camera** — `expo-camera` 57.0.6, pinned so Wera's
+  runtime never moves; *Itacate usa la cámara para escanear el código de la cocina.*, never the microphone — **and
+  NOTHING ASKS FOR IT YET**: *Escanear* is the loyalty card's (`10.9e`), which copies Wera Cocina's `@/ui/Escaner` and
+  `@/lib/escaner` (asked the first time she taps; typing the number is her way out) and changes the aviso's section 10
+  (*no te pide … tu cámara* is true until then) and Play's and Apple's answers with it. **And app links** — the next
+  bullet. A module missing at the public release waits for the major update (`10.8`); before it, one more build.
+- ⚠️⚠️ **A KITCHEN'S ADDRESS OPENS HER PAGE (`10.9c`, G40)**: `https://tu-wera.com/cocina/?k=<her id>&n=<her name>`.
+  Three places hold one host and one path and fail SILENTLY apart — the link just opens the browser — so
+  `test/enlaces.test.ts` reads all three: `app.json` (`ios.associatedDomains` `applinks:tu-wera.com`; Android's
+  `intentFilters`, `autoVerify` on `https`, `tu-wera.com`, `pathPrefix` `/cocina/` — native, a build to change), the
+  site's `site/.well-known/apple-app-site-association` (team `RGWA74UM3G`, `/cocina/*`) and `assetlinks.json` (the key EAS
+  signs with; ⚠️ **Play re-signs what it installs with its own key, read only in Play Console** — until it is in the file
+  too, Itacate from Play opens the site's page, never itself), and `@/lib/enlaces`, which `src/app/+native-intent.tsx`
+  runs on every link the phone hands the app: a kitchen's becomes `/cocina/<id>` (her page, `k` alone — `n` is for the
+  site's page), anything else (the sign-in's return above all) goes on untouched, and it never throws. **Signed out**, the
+  guard sends her to *Entrar* and her page opens once she is in (`@/auth/guard`' `paraDespues`, kept in `Gate`'s memory).
+  **Without Itacate** the address is `site/cocina/index.html`: her name read from `n` by the site's one script (the build
+  check holds it to reading the address bar), *Ya tengo Itacate: abrir esta cocina* (`mx.wera.vecino://cocina/<id>`), and
+  the stores — the App Store's line waits for Itacate's App Store record (`10.5b-vi`). ⚠️ **To see it on Android**:
+  `adb shell pm get-app-links mx.wera.vecino` must read `tu-wera.com: verified` (re-ask with `pm verify-app-links
+  --re-verify mx.wera.vecino`), then `adb shell am start -a android.intent.action.VIEW -d '<the address>'`; on an iPhone, a
+  tap on the address in Notes or WhatsApp (never typed into Safari, which stays on the site). `bash
+  docs/checks/5R-d-ii-site-live.sh` reads what the domain, Apple's CDN and Google's API serve.
 - ⚠️⚠️ **Her location never leaves the phone** (the owner's ruling of 2026-11-04, night, which replaced
   2026-11-01's 2 km square — this bullet said the square reaches the door until `10.5-iv-a-i`): the door
   takes no area and sends every kitchen a neighbour may see, and the distance and the order are worked
