@@ -93,6 +93,7 @@ const GROUND: Record<Tarjeta, string> = {
   descubre: PALETTE.marca,
   listo: PALETTE.accion,
   venderEmpleado: PALETTE.accion,
+  comprarEmpleado: PALETTE.compra,
   sinSenal: PALETTE.tinta,
   corrige: PALETTE.compra,
   mermaEmpleado: PALETTE.desperdicio,

@@ -14,6 +14,7 @@ import {
   palabras,
   RECORRIDO_DUENO,
   RECORRIDO_EMPLEADO,
+  SIN_PANTALLA,
   abrePorSiSolo,
   esUltima,
   historiaDe,
@@ -44,9 +45,12 @@ describe('who gets which story', () => {
     expect(RECORRIDO_DUENO).toContain('merma');
   });
 
-  it('gives an Empleado four, and none of them promises what she cannot open', () => {
+  it('gives an Empleado five, and none of them promises what she cannot open', () => {
     expect(recorridoDe('staff')).toEqual(RECORRIDO_EMPLEADO);
-    expect(RECORRIDO_EMPLEADO).toHaveLength(4);
+    expect(RECORRIDO_EMPLEADO).toHaveLength(5);
+    // ⚠️ `5R-o`: Comprar is hers since 2026-11-17 — her own card, second, as the owner's is.
+    expect(RECORRIDO_EMPLEADO[1]).toBe('comprarEmpleado');
+    expect(SIN_PANTALLA).toContain('comprarEmpleado');
     for (const owners of ['comprar', 'productos', 'numeros', 'descubre'] as const) {
       expect(RECORRIDO_EMPLEADO).not.toContain(owners);
     }
@@ -74,6 +78,10 @@ describe('who gets which story', () => {
     );
     expect(ES.recorrido.cards.productos.title).toBe('¿Sabes cuánto te deja cada producto?');
     expect(ES.recorrido.cards.numeros.title).toBe('Ten tus cuentas en orden y tus números a la mano');
+    expect(ES.recorrido.cards.comprarEmpleado.title).toBe('Cuando llega el proveedor');
+    expect(ES.recorrido.cards.comprarEmpleado.line).toBe(
+      'En Comprar anotas lo que te entregó y cuánto costó. Wera recuerda el último precio.',
+    );
   });
 });
 
@@ -115,10 +123,11 @@ describe('how long a card stays — his correction of 2026-10-22, "too little to
   it('keeps every real card at least twice the old six and a half seconds where it shows a screen', () => {
     for (const card of [...RECORRIDO_DUENO, ...RECORRIDO_EMPLEADO]) {
       const words = ES.recorrido.cards[card];
-      const ms = cardMs(`${words.title} ${words.line}`, card !== 'hola' && card !== 'listo');
+      const screen = !SIN_PANTALLA.includes(card);
+      const ms = cardMs(`${words.title} ${words.line}`, screen);
       expect(ms).toBeGreaterThanOrEqual(MIN_CARD_MS);
       expect(ms).toBeLessThanOrEqual(MAX_CARD_MS);
-      if (card !== 'hola' && card !== 'listo') expect(ms).toBeGreaterThanOrEqual(10_000);
+      if (screen) expect(ms).toBeGreaterThanOrEqual(10_000);
     }
   });
 });

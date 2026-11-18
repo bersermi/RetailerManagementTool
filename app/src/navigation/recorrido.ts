@@ -7,10 +7,14 @@
 // The route (`src/app/recorrido.tsx`) draws; this file decides, so a suite can
 // hold the two rules a phone cannot be asked about:
 //
-// ⚠️ WHO GETS WHICH STORY. An owner and an Encargado get eight cards: deliveries,
-// costs and *Te lo compro* are theirs. An Empleado gets four — selling, no
-// signal, correcting her own sales, Merma — because a card promising what she
-// cannot open is the app talking past her. A role not yet read is the short one.
+// ⚠️ WHO GETS WHICH STORY. An owner and an Encargado get eight cards: costs,
+// prices and *Te lo compro* are theirs. An Empleado gets five — selling, the
+// deliveries she records, no signal, correcting her own sales, Merma — because
+// a card promising what she cannot open is the app talking past her. A role not
+// yet read is the short one. ⚠️ HER COMPRAR CARD (`5R-o`, the owner's yes of
+// 2026-11-18) HAS NO PICTURE: the owner's shows a product's costs, a room closed
+// to her (`CERRADAS_AL_EMPLEADO`), and no picture of Comprar itself was taken.
+// It sits second, as the owner's does, so no two cards in a row share a ground.
 //
 // ⚠️⚠️ WHEN IT OPENS BY ITSELF — ONCE ON EVERY PHONE. The owner's ruling of
 // 2026-10-22, after his first user: *"Make the Recorrido display regardless if
@@ -47,6 +51,7 @@ export type Tarjeta =
   | 'descubre'
   | 'listo'
   | 'venderEmpleado'
+  | 'comprarEmpleado'
   | 'sinSenal'
   | 'corrige'
   | 'mermaEmpleado';
@@ -64,7 +69,16 @@ export const RECORRIDO_DUENO: readonly Tarjeta[] = [
 ];
 
 /** The Empleado's. Its last card is its Merma card, which says *a vender*. */
-export const RECORRIDO_EMPLEADO: readonly Tarjeta[] = ['venderEmpleado', 'sinSenal', 'corrige', 'mermaEmpleado'];
+export const RECORRIDO_EMPLEADO: readonly Tarjeta[] = [
+  'venderEmpleado',
+  'comprarEmpleado',
+  'sinSenal',
+  'corrige',
+  'mermaEmpleado',
+];
+
+/** The cards with no real screen under their words. */
+export const SIN_PANTALLA: readonly Tarjeta[] = ['hola', 'listo', 'comprarEmpleado'];
 
 /**
  * HOW LONG A CARD STAYS — ⚠️ THE OWNER'S CORRECTION OF 2026-10-22: six and a
