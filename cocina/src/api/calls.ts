@@ -9,14 +9,16 @@
 // `10.5-i-b-ii` (Google's point for her address, kept as a 30-day copy),
 // `10.5b-iv-a` (her kitchen's reservations, the handover and the fonda's thumb),
 // `10.5b-iv-c` (her settings, her stars, − and +, and the read before Apple is told),
-// `10.9a-i` (what her kitchen uses, and what she tells Wera about the menu) and `10.9b-ii`
-// (her role, who works at her kitchen, *Quitar a …* and *Salir de esta cocina*).
+// `10.9a-i` (what her kitchen uses, and what she tells Wera about the menu), `10.9b-ii`
+// (her role, who works at her kitchen, *Quitar a …* and *Salir de esta cocina*) and `10.9b-iii`
+// (a helper's code: *Invitar a alguien*, the kitchen's name before she joins, and joining).
 //
 // ⚠️ THE IMPURE HALF OF `src/api/` (ADR-035 §2.11): the only module here that
 // imports the live client, so no node suite can load it; every name it sends is
 // a constant from a pure module beside it (`@/api/kitchen`, `@/api/place`,
 // `@/api/account`, `@/api/listing`, `@/api/pagina`, `@/api/fotos`,
-// `@/api/apartados`, `@/api/ajustes`, `@/api/calificaciones`, `@/api/servicios`, `@/api/equipo`), which the
+// `@/api/apartados`, `@/api/ajustes`, `@/api/calificaciones`, `@/api/servicios`, `@/api/equipo`,
+// `@/api/invitar`), which the
 // suite and the contract checks read. Screens reach these through `@/api/hooks`.
 // ============================================================================
 
@@ -110,6 +112,17 @@ import {
   type Quitar,
   type Rol,
 } from '@/api/equipo';
+import {
+  INVITE_HELPER,
+  KITCHEN_OF_CODE,
+  REDEEM_INVITE,
+  codeArgs,
+  invitacionFrom,
+  inviteArgs,
+  nombreDeCocinaFrom,
+  unidaFrom,
+  type Invitacion,
+} from '@/api/invitar';
 import {
   PHOTO_BUCKET,
   PHOTO_TYPE,
@@ -588,4 +601,35 @@ export async function setMemberActive({ kitchenId, userId }: Quitar, activo: boo
 export async function leaveKitchen(kitchenId: string): Promise<void> {
   const { error } = await supabase.rpc(LEAVE_KITCHEN, leaveArgs(kitchenId));
   if (error) throw error;
+}
+
+// ----------------------------------------------------------------------------
+// `10.9b-iii` — a helper's code: *Invitar a alguien*, *Unirme a …*, joining
+// ----------------------------------------------------------------------------
+
+/** *Invitar a alguien* (`invite_helper`, `0083`): a new code for one person, 24 hours. The owner's alone. */
+export async function inviteHelper(kitchenId: string): Promise<Invitacion> {
+  const { data, error } = await supabase.rpc(INVITE_HELPER, inviteArgs(kitchenId));
+  if (error) throw error;
+  const invitacion = invitacionFrom(data);
+  if (invitacion === null) throw new Error(`${INVITE_HELPER} answered no code`);
+  return invitacion;
+}
+
+/** The name of the kitchen a live code would join (`kitchen_of_code`, `0083`); `TD005`/`TD003` when it would not. */
+export async function kitchenOfCode(codigo: string): Promise<string> {
+  const { data, error } = await supabase.rpc(KITCHEN_OF_CODE, codeArgs(codigo));
+  if (error) throw error;
+  const nombre = nombreDeCocinaFrom(data);
+  if (nombre === null) throw new Error(`${KITCHEN_OF_CODE} answered no name`);
+  return nombre;
+}
+
+/** Joining with the code (`redeem_invite`, `0028`): her helper's membership, at once. Answers the kitchen she joined. */
+export async function joinWithCode(codigo: string): Promise<{ readonly kitchenId: string; readonly nombre: string }> {
+  const { data, error } = await supabase.rpc(REDEEM_INVITE, codeArgs(codigo));
+  if (error) throw error;
+  const unida = unidaFrom(data);
+  if (unida === null) throw new Error(`${REDEEM_INVITE} answered no kitchen`);
+  return unida;
 }

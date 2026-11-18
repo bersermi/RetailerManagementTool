@@ -7,7 +7,7 @@ import { View } from 'react-native';
 import { QueryProvider } from '@/api/QueryProvider';
 import { useMembership } from '@/api/hooks';
 import { AuthProvider, useAuth } from '@/auth/AuthProvider';
-import { groupOf, redirectFor } from '@/auth/guard';
+import { groupOf, redirectFor, screenOf } from '@/auth/guard';
 import { ColaProvider } from '@/lib/ColaProvider';
 import { NotaProvider } from '@/lib/NotaProvider';
 import { holdSplash, releaseSplash } from '@/lib/splash';
@@ -72,7 +72,7 @@ function Gate() {
   const pathname = usePathname();
 
   useEffect(() => {
-    const to = redirectFor({ ready, hasSession: session !== null, membership, group: groupOf(segments) });
+    const to = redirectFor({ ready, hasSession: session !== null, membership, group: groupOf(segments), screen: screenOf(segments) });
     if (to !== null) {
       router.replace(to);
       return;

@@ -91,7 +91,7 @@ import { Salidas } from '@/ui/Salidas';
 //
 // ⚠️⚠️ `10.9b-ii`: TWO *MI COCINA*S, BY HER ROLE AT THIS KITCHEN (`@/api/equipo`' `miCocinaPara`; G18):
 //   - THE OWNER'S, above — and, after her settings, *Quién trabaja aquí* (`@/ui/QuienTrabajaAqui`),
-//     drawn while someone else works here (`10.9b-iii` adds *Invitar a alguien* and draws it always);
+//     always, with *Invitar a alguien* under the list since `10.9b-iii` (`@/ui/HojaInvitar`);
 //   - A HELPER'S (the family-shell page's `cMiAyudante`): her account — her name, her address, how she
 //     signs in (`@/auth/quien`' `cuentaDe`) —, the kitchen with what she does there (`@/lib/ayudante`'
 //     `ayudasAqui`: true today, the card's stamps once it exists), help, and *Salir de esta cocina*
@@ -308,7 +308,7 @@ function MiCocinaDe({ kitchen, rol }: { kitchen: Kitchen; rol: Rol | null | unde
           </Grupo>
         </Llega>
 
-        <QuienTrabajaAqui kitchenId={kitchen.id} rol={rol} />
+        <QuienTrabajaAqui kitchenId={kitchen.id} cocina={kitchen.displayName} rol={rol} />
 
         <Llega i={4} style={{ gap: SIZE.rowGap }}>
           <Text style={seccion}>{ES.miCocina.ayuda}</Text>

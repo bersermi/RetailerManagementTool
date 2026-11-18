@@ -20,7 +20,10 @@
 # its menu (`0081`, `servicio`) are read back gone, and the kept kitchen's kept. ⚠️ Since
 # `10.9b-i` two helpers (`0082`): one deletes her account — her login goes, her kitchen stays,
 # her name stays on her ended membership — and one is in the kitchen deleted alone — her
-# membership goes with it, her login stays.
+# membership goes with it, her login stays. ⚠️ Since `10.9b-iii` (`0083`) each helper JOINS by her
+# owner's code, as the phones do, and an invitation with no address is read back: the code a helper
+# joined with goes with her account, and a code nobody used goes with its kitchen — deleted with
+# its account, or alone.
 #
 # WHY IT EXISTS. The runbook is the only way out without the app, and the aviso
 # and both deletion pages promise it (Google requires one). It is run by hand,
@@ -100,17 +103,31 @@ uses() { # kitchen-id
        select ((select count(*) from f) + (select count(*) from m))::text as n;" n
 }
 
-# `10.9b-i`: a helper at a kitchen (`staff`, at its place, as an invitation makes her), with no
-# name of her own on the membership — a deletion fills it from her login (`0053`).
+# `10.9b-iii`: a helper's code, asked for as the kitchen's owner (`invite_helper`, `0083`) — an
+# invitation with no address. Prints the code.
+code_at() { # kitchen-id
+  local owner
+  owner="$(sql "select user_id::text as u from public.workspace_member
+                 where workspace_id = '$1' and role = 'owner' and is_active limit 1;" u)" || return 1
+  sql "with as_them as (
+         select set_config('request.jwt.claims',
+                  json_build_object('sub', '$owner', 'role', 'authenticated')::text, true) as c)
+       select public.invite_helper('$1') ->> 'token' as t from as_them;" t
+}
+# `10.9b-i`: a helper at a kitchen (`staff`, at its place) — since `10.9b-iii` joining by her owner's
+# code, as the phones do (`redeem_invite`), which names her membership from her login.
 helper() { # kitchen-id user-id
-  sql "with m as (insert into public.workspace_member (workspace_id, user_id, role) values ('$1', '$2', 'staff')
-                  returning id, workspace_id),
-            l as (insert into public.member_location (workspace_id, member_id, location_id)
-                  select m.workspace_id, m.id, loc.id from m join public.location loc on loc.workspace_id = m.workspace_id
-                  returning 1)
-       select (select count(*) from l)::text as n;" n
+  local code
+  code="$(code_at "$1")" && [[ -n "$code" ]] || return 1
+  sql "with as_them as (
+         select set_config('request.jwt.claims',
+                  json_build_object('sub', '$2', 'role', 'authenticated')::text, true) as c)
+       select (public.redeem_invite('$code') ->> 'location_count') as n from as_them;" n
 }
 memberships_of() { sql "select count(*)::text as n from public.workspace_member where user_id = '$1';" n; }
+# `10.9b-iii`: every invitation of a kitchen, used or not; and the ones a person joined with.
+codes_left() { sql "select count(*)::text as n from public.workspace_invite where workspace_id = '$1';" n; }
+joined_with() { sql "select count(*)::text as n from public.workspace_invite where accepted_by = '$1';" n; }
 
 # Every fixture still standing goes, as the function deletes: each one's own
 # businesses named. Silent; a leftover never makes a case green.
@@ -162,6 +179,8 @@ fixtures() {
   # kitchen Gabi deletes alone.
   u_h="$(login ayudante)" && [[ "$(helper "$k_g2" "$u_h")" == 1 ]] || return 1
   u_h2="$(login ayudante-gabi)" && [[ "$(helper "$k_g" "$u_h2")" == 1 ]] || return 1
+  # `10.9b-iii`: a code nobody used at the kitchen deleted with its account and at the one deleted alone.
+  [[ -n "$(code_at "$k_b")" && -n "$(code_at "$k_g")" ]] || return 1
 }
 
 # One case: the runbook's exit code, a sentence it printed, and what the
@@ -186,17 +205,17 @@ N_KITCHEN_ASKED="a kitchen alone, asked for without its name, is refused and nam
 N_BOTH_ASKED="a shop and a kitchen, asked for without names, are both named, and nothing changes"
 N_ONE_OF_TWO="one name of two is refused before the database is asked, and nothing changes"
 N_ONE_WRONG="two names, one of them wrong, is refused by the database itself, and nothing changes"
-N_PRINTED="the command it printed, run as printed, deletes the login, the shop and the kitchen — with what the kitchen uses and told Wera"
+N_PRINTED="the command it printed, run as printed, deletes the login, the shop and the kitchen — with what the kitchen uses and told Wera, and a code nobody used"
 N_APOSTROPHE="a kitchen's name with an apostrophe, typed in another case and spacing, deletes it"
 N_SHOP_ALONE="a shop alone and one --shop, as before this row, deletes both"
 N_COOWNER="a co-owner needs no name: her login goes, the shop stays, her name stays on it"
 N_NOTHING="an account with no business goes with no name, its email typed in capitals"
-N_HELPER="a kitchen's helper needs no name: her login goes, the kitchen stays, her name stays on her ended membership"
+N_HELPER="a kitchen's helper needs no name: her login goes, the kitchen stays, her name stays on her ended membership, the code she joined with goes"
 K_NOBODY="the kitchen's runbook: an email with no account is refused, and nothing changes"
 K_ASKED="no kitchen named: her two kitchens listed, never her shop, and nothing changes"
 K_SHOP="her shop's name is no kitchen's: refused, and nothing changes"
 K_ACCENT="her kitchen's name with an accent added: refused — accents count — and nothing changes"
-K_PRINTED="the line it printed for one kitchen, run as printed: that kitchen gone with what it uses and told Wera and its helper's membership, her login, her shop, her other kitchen and the helper's login kept, its own kept"
+K_PRINTED="the line it printed for one kitchen, run as printed: that kitchen gone with what it uses and told Wera, its helper's membership and its codes, her login, her shop, her other kitchen and the helper's login kept, its own kept"
 K_AGAIN="the same line again: refused — no kitchen of hers is called that any more — and nothing else changes"
 
 # ⚠️ `part` is `all`, `account` or `kitchen`: a broken copy of ONE runbook runs that
@@ -236,7 +255,7 @@ cases() { # account-runbook kitchen-runbook [part]
   else
     run "${args[@]}"
   fi
-  check "$N_PRINTED" 0 "Done on the LOCAL database" "users_with $(mail ambas); business_left $s_b; business_left $k_b; servicio_left $k_b" "0 0 0 0"
+  check "$N_PRINTED" 0 "Done on the LOCAL database" "users_with $(mail ambas); business_left $s_b; business_left $k_b; servicio_left $k_b; codes_left $k_b" "0 0 0 0 0"
 
   run "$(mail solo-cocina)" --shop "fonda  d'lupe $tag" --local
   check "$N_APOSTROPHE" 0 "businesses deleted: 1" "users_with $(mail solo-cocina); business_left $k_a" "0 0"
@@ -253,7 +272,7 @@ cases() { # account-runbook kitchen-runbook [part]
 
   run "$(mail ayudante)" --local
   check "$N_HELPER" 0 "businesses deleted: 0, businesses it left: 1" \
-    "users_with $(mail ayudante); business_left $k_g2; sql \"select (count(*) filter (where not is_active and display_name = 'Rehearsal ayudante'))::text as n from public.workspace_member where workspace_id = '$k_g2' and user_id = '$u_h';\" n" "0 1 1"
+    "users_with $(mail ayudante); business_left $k_g2; sql \"select (count(*) filter (where not is_active and display_name = 'Rehearsal ayudante'))::text as n from public.workspace_member where workspace_id = '$k_g2' and user_id = '$u_h';\" n; joined_with $u_h" "0 1 1 0"
   fi
   if [[ "$part" == account ]]; then return 0; fi
 
@@ -282,7 +301,7 @@ cases() { # account-runbook kitchen-runbook [part]
   else
     run_kitchen "${args[@]}"
   fi
-  check "$K_PRINTED" 0 "Done on the LOCAL database" "$everything; servicio_left $k_g; servicio_left $k_g2; memberships_of $u_h2; users_with $(mail ayudante-gabi)" "1 0 1 1 0 2 0 1"
+  check "$K_PRINTED" 0 "Done on the LOCAL database" "$everything; servicio_left $k_g; servicio_left $k_g2; memberships_of $u_h2; users_with $(mail ayudante-gabi); codes_left $k_g" "1 0 1 1 0 2 0 1 0"
 
   if [[ -n "$again" ]] && eval "args=($again)"; then run_kitchen "${args[@]}"; else out="(no line)"; code=99; fi
   check "$K_AGAIN" 1 "no kitchen $(mail tres) alone owns is called" "$everything" "1 0 1 1"

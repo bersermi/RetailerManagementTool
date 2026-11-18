@@ -112,6 +112,8 @@ export const ES = {
     giroSinLeer: 'No pudimos leer la lista. Revisa tu conexión a internet.',
     donde: '¿Dónde está tu cocina?',
     siguiente: 'Siguiente: tu dirección',
+    /** `10.9b-iii`: back to the fork, *¿Qué quieres hacer?*. */
+    volver: 'Volver',
     errores: {
       nombre: 'Escribe el nombre de tu cocina.',
       giro: 'Elige qué es tu cocina.',
@@ -959,6 +961,61 @@ export const ES = {
     noSigue: (porque: string) => `No se pudo deshacer. ${porque}`,
     /** `PGRST116`: the update found no row she may change — she is not the owner. */
     noSePudoQuitar: 'Solo la dueña de la cocina puede quitar a alguien.',
+    /** `10.9b-iii`: the row that opens *Invitar a alguien* (the drawing's, without the camera until `10.9c`). */
+    invitar: 'Invitar a alguien',
+    invitarDetalle: 'Con un código para su teléfono',
+  },
+  /**
+   * `10.9b-iii` — *Invitar a alguien*, the owner's sheet (the family-shell page's `invitarSheet`): a code for
+   * one person, good for 24 hours (his ruling of 2026-11-18). Typed until a camera can scan it (`10.9c`).
+   */
+  invitar: {
+    titulo: 'Invitar a alguien',
+    texto: 'Que abra Wera Cocina en su teléfono, toque Unirme a una cocina y escriba este código.',
+    haciendo: 'Haciendo el código…',
+    /** When it stops working: always tomorrow, at this hour. */
+    vale: (hora: string) => `Sirve para una persona, hasta mañana a las ${hora}.`,
+    /** What she may do there, true today; the card's stamps once her kitchen uses the card (`@/lib/ayudante`' `conTarjeta`). */
+    podra: 'Podrá entregar y publicar ofertas.',
+    podraConTarjeta: 'Podrá entregar, dar sellos y premios, y publicar ofertas.',
+    compartir: 'Compartir el código',
+    listo: 'Listo',
+    otraVez: 'Intentar de nuevo',
+    /** What *Compartir* sends — it names the kitchen, as Wera's invitation names the shop. */
+    mensaje: (cocina: string, codigo: string, hora: string) =>
+      `Te invito a ayudar en ${cocina}. Abre Wera Cocina, toca «Unirme a una cocina» y escribe este código: ${codigo}. ` +
+      `Sirve una sola vez, hasta mañana a las ${hora}.`,
+  },
+  /**
+   * `10.9b-iii` — the first run's fork, after her account (G32's first run: *Registrar mi cocina* /
+   * *Unirme a una cocina*), and joining with a code (the drawing's *Unirme a Fonda Doña Mari*).
+   */
+  empezar: {
+    antetitulo: 'Wera Cocina',
+    titulo: '¿Qué quieres hacer?',
+    registrar: 'Registrar mi cocina',
+    registrarDetalle: 'Tu cocina, tu página y tus ofertas',
+    unirme: 'Unirme a una cocina',
+    unirmeDetalle: 'Con el código que te dio la cocina',
+  },
+  unirme: {
+    antetitulo: 'Wera Cocina',
+    titulo: 'Unirme a una cocina',
+    volver: 'Volver',
+    texto: 'Pídele a la dueña que abra Mi cocina › Invitar a alguien y te dé su código.',
+    codigo: 'El código',
+    /** A hint in muted ink: how many, never a code. */
+    codigoEjemplo: '16 letras y números',
+    buscando: 'Buscando la cocina…',
+    unirme: (cocina: string) => `Unirme a ${cocina}`,
+    uniendo: 'Uniéndote…',
+    /** `TD005`: none, or someone else used it. */
+    noSirve: 'Ese código no sirve: no existe o ya lo usó alguien. Pídele uno nuevo a la dueña.',
+    /** `TD003`: it expired. */
+    vencio: 'Ese código ya venció. Pídele uno nuevo a la dueña.',
+    otraVez: 'Intentar de nuevo',
+    /** The toast on *Hoy*, once she is in. */
+    listo: (cocina: string) => `Listo: ya ayudas en ${cocina}.`,
   },
 
   /**

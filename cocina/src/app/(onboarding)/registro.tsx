@@ -19,9 +19,11 @@ import { Giros } from '@/ui/Giros';
 import { Salidas } from '@/ui/Salidas';
 
 // ============================================================================
-// WHERE A LOGIN WITH NO KITCHEN LANDS, AND MAKES ONE — its first step. Plan tasks
+// WHERE A LOGIN WITH NO KITCHEN MAKES ONE — its first step. Plan tasks
 // `10.4b-iii-a` (the landing), `10.4b-iii-b` (the kitchen) and `10.4h` (address
-// first: her address moved to a screen of its own, `/donde`).
+// first: her address moved to a screen of its own, `/donde`). ⚠️ Since `10.9b-iii`
+// she lands on the fork first (`/empezar`, *Registrar mi cocina* or *Unirme a una
+// cocina*), and *Volver* goes back to it.
 //
 // Every first sign-in comes here, and so does a shop's owner who opens this app
 // with her Wera login: Cocina reads kitchens only (`@/api/kitchen`), so her shop
@@ -62,7 +64,11 @@ export default function Registro() {
 
   return (
     <View style={{ flex: 1, backgroundColor: PALETTE.fondo }}>
-      <Banda titulo={ES.registro.titulo} antetitulo={ES.registro.antetitulo} />
+      <Banda
+        titulo={ES.registro.titulo}
+        antetitulo={ES.registro.antetitulo}
+        volver={{ label: ES.registro.volver, onPress: () => (router.canGoBack() ? router.back() : router.replace('/empezar')) }}
+      />
       <Formulario
         contentContainerStyle={{
           paddingHorizontal: SIZE.space * 2,

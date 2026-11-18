@@ -94,11 +94,19 @@ ask "create policy cocina_anon on storage.objects for select to anon using (buck
 run read-signed-out 'a signed-out read answered'
 restore
 
-# The write without the role: every member of a kitchen writes, the cook included.
+# The write without the role: anyone signed in writes in any kitchen's folder — a neighbour too.
+# (Until `0083` this fixture's reason was the cook's upload; since then the cook writes on purpose.)
 ask "drop policy cocina_insert on storage.objects;" > /dev/null
 ask "create policy cocina_insert on storage.objects for insert to authenticated
        with check (bucket_id = 'cocina' and public.kitchen_folder_ok(name));" > /dev/null
-run cook-writes "the cook's upload answered 200"
+run anyone-writes "a neighbour's upload answered"
+restore
+
+# ⚠️ `0076`'s role, put back (`10.9b-iii`): the helper publishes her dish but its photo is refused.
+ask "drop policy cocina_insert on storage.objects;" > /dev/null
+ask "create policy cocina_insert on storage.objects for insert to authenticated
+       with check (bucket_id = 'cocina' and public.photo_folder_ok(name, 'manager') and public.kitchen_folder_ok(name));" > /dev/null
+run helper-refused "the cook's upload answered 4[0-9][0-9]"
 restore
 
 # The write without the kitchen: `0063`'s shape alone, so a shop's owner writes files nobody can read.
@@ -137,8 +145,8 @@ run any-size 'a 2 MB file 200'
 restore
 
 echo
-if (( failed == 0 && passed == 10 )); then
-  echo "all 10 fixtures behaved as recorded — the contract check goes red on every wall it names."
+if (( failed == 0 && passed == 11 )); then
+  echo "all 11 fixtures behaved as recorded — the contract check goes red on every wall it names."
   exit 0
 fi
 echo "$failed of $((passed + failed)) fixtures misbehaved."

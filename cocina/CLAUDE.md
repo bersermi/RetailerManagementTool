@@ -22,7 +22,7 @@ bash docs/checks/10.5-i-a-kitchen-photos-contract.sh   # the same stack WITH Sto
 bash docs/checks/10.5b-iv-a-handover-contract.sh      # the same stack: her kitchen's reservations, who reserved each, the handover and her thumb, by apartados.ts's names — and her queue's claims, by cola.ts's
 bash docs/checks/10.5b-iv-c-settings-contract.sh      # the same stack: her settings, her stars, each dish's ways, − and +, and the read before a deletion, by ajustes.ts', calificaciones.ts', listing.ts' and account.ts' names
 bash docs/checks/10.9a-i-features-contract.sh         # the same stack: what her kitchen uses, Wera's switch, Cuéntanos, and the door's word on it, by servicios.ts' names and Itacate's
-bash docs/checks/10.9b-ii-team-contract.sh            # the same stack: her role, who works at her kitchen, Quitar and Salir, by equipo.ts' names — as a real owner and a real helper
+bash docs/checks/10.9b-ii-team-contract.sh            # the same stack: a helper joining by her owner's code (invitar.ts' names), her role, who works at her kitchen, Quitar and Salir (equipo.ts') — as a real owner and a real helper
 bash store/cocina-itacate/render.sh giros         # the nine trades' drawings, from brand/giros.svg into src/marca/giros/ — and nothing else
 TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic is local time, and the Mac is UTC−6
 ```
@@ -70,7 +70,9 @@ TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic i
   the three states and `TD024` — is asked by `docs/checks/10.9a-i-features-contract.sh` and its falsifier (its own job, `cocina-features`), with
   the door's `features` by Itacate's names. ⚠️ **Since `10.9b-ii`, `src/api/equipo.ts`** — her role (`my_role`), the memberships' table, its
   columns and the filters the owner's list and *Quitar a …* send, and `leave_kitchen` with `TD025` — is asked by `docs/checks/10.9b-ii-team-contract.sh`
-  and its falsifier (its own job, `cocina-team`), as a real owner and a real helper (the section *Helpers* below). Her choices are **per kitchen, never per phone**: every member reads them, only the owner writes them
+  and its falsifier (its own job, `cocina-team`), as a real owner and a real helper (the section *Helpers* below) — ⚠️ and since `10.9b-iii`
+  `src/api/invitar.ts` too (`0083`'s `invite_helper` and `kitchen_of_code`, `redeem_invite`, every argument and key of their answers, `TD005`
+  and `TD003`), the same check's second file: the helper joins by her owner's code. Her choices are **per kitchen, never per phone**: every member reads them, only the owner writes them
   and what she tells Wera about the menu; a feature Wera has switched off (`available`) is offered nowhere and refused `on`; a feature or a state
   this build does not know is left out (`loQueUsaFrom`). Read by `useServicios`; written since `10.9a-ii` by `useElegirServicios` and `useContarMenu` (the section *Her choices* below). ⚠️ **And a kitchen's place is read by the kitchen's id**
   (`firstPlace`): the walls show a shop's owner her shop's store too, and an unfiltered read's first
@@ -377,7 +379,7 @@ follows it, as `itacate/CLAUDE.md`'s does:
   she uses, in a fixed order, and *Tu página · 4 de 5* gives way to one quiet nudge line (`10.9a`, built by `10.9a-iii`); *Mi cocina* gains *Lo que
   usas* and *Quién trabaja aquí* (`10.9a`, `10.9b`); **a helper — the database's *staff* — publishes and hands over**
   (`10.9b`; the database lets her since `0082`, `10.9b-i`: `publish_listing`, `withdraw_listing`, `set_listing_quantity` ask `staff` at a
-  kitchen, and `leave_kitchen` is *Salir de esta cocina*; her screens built by `10.9b-ii` — the section *Helpers* below —, joining by a code `10.9b-iii` — ruled 2026-11-18: a code for one person, good for 24 hours, no address asked, joining at once); a camera module to scan, and printing and sharing for the counter poster, arrive with a new store build
+  kitchen, and `leave_kitchen` is *Salir de esta cocina*; her screens built by `10.9b-ii` — the section *Helpers* below —, joining by a code built by `10.9b-iii` — ruled 2026-11-18: a code for one person, good for 24 hours, no address asked, joining at once; the section *Joining* below); a camera module to scan, and printing and sharing for the counter poster, arrive with a new store build
   (`10.9c`). A service never lives in two places: its tile on *Hoy* opens its one screen. ⚠️ **`10.9a` split in three on 2026-11-17**: the database
   and both apps' claims (`10.9a-i`, built — `@/api/servicios`), the first run's third step and *Lo que usas* (`10.9a-ii`, built — the section *Her
   choices* below), *Hoy*'s tiles and the nudges (`10.9a-iii`, built — the section *The nudges and the firsts* below).
@@ -386,7 +388,8 @@ follows it, as `itacate/CLAUDE.md`'s does:
   icon's picture, both read off `store/cocina-itacate/render.sh` and `app.json` by `test/primera.test.ts`; once per phone,
   `OPENING_KEY`; on Android after the splash's 400 ms fade, measured on the emulator). Wera's cream cow, byte for byte,
   drawn green by tint. ⚠️ **The splash is held from the root's module** (`@/lib/splash`, Wera's) until the opening's
-  pictures are in, or `Gate` has nowhere to send her. Then *Crear cuenta* / *Ya tengo cuenta*, her account, *Paso 1 de N*
+  pictures are in, or `Gate` has nowhere to send her. Then *Crear cuenta* / *Ya tengo cuenta*, her account, ⚠️ since `10.9b-iii` the
+  fork *¿Qué quieres hacer?* (`/empezar`: *Registrar mi cocina* or *Unirme a una cocina* — the section *Joining* below), *Paso 1 de N*
   (name and trade), *Paso 2 de N* (her address), and — ⚠️ **the guard sends a kitchen made in the sign-up on, never straight
   to *Hoy*** — since `10.9a-ii` (G32, ruled 2026-11-17: no first offer inside the first run) to *Paso 3 de 3*, *¿Qué más quieres
   usar?* (`/que-mas`), while this build carries a feature to pick, else at once to `/ya-estas`, her page as Itacate draws it
@@ -638,7 +641,8 @@ the family-shell page's *Ayudante*. No migration: `my_role` (`0001`), the owner'
   `@/api/account`' `businessesThatGo`, held by both apps' `account.test.ts`) and never offers *Eliminar esta cocina*.
 - **The owner's *Quién trabaja aquí*** (`@/ui/QuienTrabajaAqui`, after her settings): the kitchen's active memberships, read on her phone
   alone (`useEquipo` — ⚠️ every member MAY read them, `workspace_member_select`; a helper's phone never asks), her own row *Dueña · tú*, a
-  name blank or missing drawn as the role's word. ⚠️ **Drawn only while someone else works there, until `10.9b-iii`'s *Invitar a alguien***.
+  name blank or missing drawn as the role's word, and *Invitar a alguien* under it — ⚠️ **drawn always since `10.9b-iii`** (only while
+  someone else worked there before it; the section *Joining* below).
   A helper's row opens *¿Quitar a … de tu cocina?*; *Quitar* is the table's own update of `is_active` (`setMemberActive`), asked back with
   `.single()` (an RLS refusal is a 200 with no row → `PGRST116`), ⚠️ **its filter `role=neq.owner`, so it never ends an owner's
   membership** (the falsifier's C11: on the wrong column it ends the owner's own); then *Quitaste a …* with *Deshacer* for 8 seconds (the
@@ -646,7 +650,36 @@ the family-shell page's *Ayudante*. No migration: `my_role` (`0001`), the owner'
 - ⚠️⚠️ **A helper removed or gone is read as no kitchen — by the walls**: `my_workspaces()` asks `is_active`, so her kitchens read `[]`.
   Her role answering `null` reads her kitchens again from ONE place (`useSiYaNoEstaAqui`, the tabs' layout), and the guard sends her where
   a kitchen is made — the next time a read goes out: on a return to the front a minute on.
-- **To see it on the emulator**: the debug build against the local shop (*Apartados*' section); an owner and a helper signed up through
-  GoTrue, the helper's `staff` membership and its `member_location` written as the database's owner (as `redeem_invite` writes them —
-  the contract check's fixture) until `10.9b-iii` builds joining. ⚠️ **Tap *Deshacer* in the same command as *Quitar***: reading a
-  screenshot between the two outlasts the toast's 8 seconds (the first walk's miss).
+- **To see it on the emulator**: the debug build against the local shop (*Apartados*' section); since `10.9b-iii` a helper joins through
+  the app (*Invitar a alguien* on the owner's phone, *Unirme a una cocina* on hers — the section *Joining*). ⚠️ **Tap *Deshacer* in the same
+  command as *Quitar***: reading a screenshot between the two outlasts the toast's 8 seconds (the first walk's miss).
+
+## Joining — a helper's code (`10.9b-iii`)
+
+The owner's ruling of 2026-11-18 (*"Agree with your recommendation."*): **a code for one person, good for 24 hours, sixteen characters
+in four groups of four (Wera's own invitation), no address asked, and she joins as a helper at once** — no one confirms her by name; the
+owner removes her from *Quién trabaja aquí*. G18: inviting is the owner's. `0083` is the database's half; the claims are `@/api/invitar`.
+
+- ***Invitar a alguien*** (`@/ui/HojaInvitar`, from *Quién trabaja aquí*): ⚠️ **a new code each time the sheet opens** (`useInvitar`,
+  `invite_helper`) — one per person; an earlier one keeps its 24 hours, and the code is shown once (only its hash is kept). The sheet:
+  *Que abra Wera Cocina…*, the code in four groups, *Sirve para una persona, hasta mañana a las …*, what she will do there (`@/lib/
+  ayudante`' `podraTexto` — true today: no stamps until the card), and ***Compartir el código*** — React Native's own `Share`, as Wera's
+  invitation is shared: no module, no native change. With no signal it says so, with *Intentar de nuevo*. The QR waits for `10.9c`.
+- ⚠️⚠️ **The code is Wera's, copied** (`normalizarCodigo` ← `app/src/api/redeem.ts`' `normalizeCredential`; `codigoAgrupado` ←
+  `app/src/api/invites.ts`' `groupedToken`): the grouping is a rendering; `I`/`L` → `1`, `O` → `0`, as `normalize_workspace_code` does
+  inside the hash; what is SENT is the normalised sixteen. `test/invitar.test.ts` holds both copies to Wera's files code for code
+  (`cocina-itacate.yml` fires on them).
+- **The fork** (`(onboarding)/empezar`, *¿Qué quieres hacer?*): ⚠️ **the guard sends every login with no kitchen here** (`/empezar`, no
+  longer `/registro`) — *Registrar mi cocina* (her three steps) or *Unirme a una cocina*; *Cerrar sesión* and *Eliminar mi cuenta* at its
+  foot, as on the form; the form has *Volver*.
+- ***Unirme a una cocina*** (`(onboarding)/unirme`): she types the code — or pastes the whole message *Compartir* sent her: the box finds
+  the LAST four groups of four in it (`codigoAlEscribir`), so no `maxLength` — and once it is whole the database is asked the kitchen's name
+  (`useCocinaDelCodigo`, `kitchen_of_code`; its refusals never retried), and the button says *Unirme a Fonda Doña Mari*. `TD005` (none, or
+  used) and `TD003` (expired) each say to ask for another. The tap is `redeem_invite`; the kitchen enters her list at once (`useUnirme`).
+- ⚠️⚠️ **The guard decides by the screen** (`@/auth/guard`' `screenOf`, `DONDE_SE_REGISTRA`): a kitchen that appears in the sign-up goes on
+  to the first run's last screens ONLY on `/donde`, where *Registrar mi cocina* makes it; anywhere else — she joined on `/unirme`, or her
+  owner's *Deshacer* gave her kitchen back while she sat on the fork — she goes to *Hoy* (a helper skips the set-up), and *Listo: ya ayudas
+  en …* shows there.
+- **To see it on the emulator**: two logins on two phones, or one phone signed in as each in turn — the owner's *Invitar a alguien*, then
+  the helper's *Unirme a una cocina* with the code read off the owner's screen (or `invite_helper` called as the owner through the local
+  API, the contract check's way).

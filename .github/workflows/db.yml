@@ -131,8 +131,10 @@ on:
       # ⚠️ `10.9b-ii`, WHO WORKS AT A KITCHEN: `cocina/src/api/equipo.ts` (under `cocina/src/api/**` above)
       # names `my_role` and its argument, the memberships' table, its columns and the filters the owner's
       # list and *Quitar a …* send — the guard that never ends an owner's membership among them — and
-      # `0082`'s `leave_kitchen` with `TD025`; `account.ts` the owners read a helper's deletion asks.
-      # Its own job, `cocina-team`, below.
+      # `0082`'s `leave_kitchen` with `TD025`; `account.ts` the owners read a helper's deletion asks;
+      # and since `10.9b-iii` `cocina/src/api/invitar.ts` — `0083`'s `invite_helper` and `kitchen_of_code`,
+      # `redeem_invite`, every argument and key of their answers, `TD005` and `TD003`: a helper joins by
+      # her owner's code. Its own job, `cocina-team`, below.
       - "docs/checks/10.9b-ii-team-contract.sh"
       - "docs/checks/10.9b-ii-team-contract-falsify.sh"
       # ⚠️⚠️ AND THE ROSTER'S, as of plan task 5b-ii-a. `app/src/api/members.ts`
@@ -1278,7 +1280,7 @@ jobs:
       # ⚠️⚠️ AND THE KITCHENS' PHOTOS — plan task `10.5-i-a`, `0076` — APPENDED to this
       # job because it is the one that starts Storage and already drives `0063`'s
       # buckets, whose shape the bucket `cocina` takes. Its walls are only real over
-      # the Storage API: the owner and managers of a KITCHEN write in her folder,
+      # the Storage API: every member of a KITCHEN writes in her folder (her helper since `0083`),
       # anyone signed in reads while the kitchen EXISTS, nobody signed out, pictures
       # only, nothing overwritten or deleted. Since `10.5-ii` its names are Wera
       # Cocina's, read out of `cocina/src/api/`, and its last step rehearses the
@@ -2581,13 +2583,15 @@ jobs:
   # owner and a real helper: her role (`my_role`), the owner's list, *Quitar a …* refused to a helper
   # and never ending an owner's membership, a removed helper's kitchens read empty, *Deshacer*, *Salir
   # de esta cocina* (`leave_kitchen`) and `TD025` for the owner — and the owners read a helper's
-  # *Eliminar mi cuenta* asks, naming nothing of hers. Its own job for `cocina-handover`'s reason: the
-  # falsifier runs the check fifteen times, two sign-ups each.
+  # *Eliminar mi cuenta* asks, naming nothing of hers. ⚠️ Since `10.9b-iii` the helper JOINS by her
+  # owner's code through `cocina/src/api/invitar.ts`' names (`invite_helper`, `kitchen_of_code`,
+  # `redeem_invite`, `0083`), where she was written as the database's owner before. Its own job for
+  # `cocina-handover`'s reason: the falsifier runs the check twenty-one times, two sign-ups each.
   # ===========================================================================
   cocina-team:
-    name: who works at a kitchen, Quitar and Salir, against Wera Cocina's own names
+    name: who works at a kitchen, joining by a code, Quitar and Salir, against Wera Cocina's own names
     runs-on: ubuntu-latest
-    # ⚠️ Fifteen runs of two sign-ups each, and GoTrue allows 30 in five minutes: a run that
+    # ⚠️ Twenty-one runs of two sign-ups each, and GoTrue allows 30 in five minutes: a run that
     # spends them waits out the window (`signup`'s retries).
     timeout-minutes: 30
 
@@ -2605,7 +2609,7 @@ jobs:
       - name: Apply migrations from scratch
         run: supabase db reset
 
-      - name: Contract — does cocina/src/api/equipo.ts read her role, read who works at her kitchen, remove a helper and let one leave, by the names 0001 and 0082 answer (plan 10.9b-ii)
+      - name: Contract — does a helper join by her owner's code (cocina/src/api/invitar.ts, 0083) and does cocina/src/api/equipo.ts read her role, read who works at her kitchen, remove a helper and let one leave, by the names 0001 and 0082 answer (plans 10.9b-ii, 10.9b-iii)
         run: bash docs/checks/10.9b-ii-team-contract.sh
 
       - name: Contract — can the team check still fail (its own fixtures; the runner counts them)

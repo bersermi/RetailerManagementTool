@@ -585,11 +585,15 @@ select chk(
               from pg_proc where pronamespace = 'public'::regnamespace
                 and prosrc like '%TD004%'), 'NONE — TD004 IS RAISED NOWHERE'));
 
+-- ⚠️ `0083` (`10.9b-iii`) REUSES `TD005` IN ONE MORE PLACE, FOR THE SAME MEANING: `kitchen_of_code`
+-- tells a helper the kitchen's name before she joins, and refuses exactly the codes `redeem_invite`
+-- would — unknown, or spent by someone else — with the same "ask for another". Reuse, not overload
+-- (`4d-i`'s rule), so the census names it rather than a new code being minted.
 select chk(
-  '7.2 TD005 is raised by redeem_invite and by NOTHING else in the schema',
+  '7.2 TD005 is raised by redeem_invite and its preview kitchen_of_code (0083), and by NOTHING else in the schema',
   (select coalesce(array_agg(proname::text order by proname), '{}')
      from pg_proc where pronamespace = 'public'::regnamespace
-       and prosrc like '%TD005%') = array['redeem_invite']::text[],
+       and prosrc like '%TD005%') = array['kitchen_of_code', 'redeem_invite']::text[],
   coalesce((select string_agg(proname, ', ' order by proname)
               from pg_proc where pronamespace = 'public'::regnamespace
                 and prosrc like '%TD005%'), 'NONE — TD005 IS RAISED NOWHERE'));

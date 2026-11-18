@@ -23,8 +23,10 @@
 # `0081` a kitchen's choices of what it uses and what it told Wera about its menu
 # too) — goes with them. A kitchen's helper (`staff`, `0082`) owns nothing: her
 # login goes and her kitchen keeps her name on her ended membership, as a
-# co-owner's shop does — no name to type. There is no second deletion path to
-# keep in step with the first.
+# co-owner's shop does — no name to type; since `0083` the code she joined with
+# (an invitation with no address) goes with her, and a code nobody used goes with
+# the kitchen it was for. There is no second deletion path to keep in step with
+# the first.
 #
 # ⚠️ ONE `--shop` FOR EACH BUSINESS SHE ALONE OWNS, a shop's name or a kitchen's
 # (`10.4b-iv-b`). `0073` asks every such business for its own typed name, so one

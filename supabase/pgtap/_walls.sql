@@ -91,6 +91,9 @@ signed_in (proname) as (values
   ('my_kitchen_features'), ('set_kitchen_features'), ('send_menu_request'),
   -- helpers (`0082`, plan `10.9b-i`): a helper ends her own membership of a kitchen
   ('leave_kitchen'),
+  -- a helper joins by a code (`0083`, plan `10.9b-iii`): its owner asks for one, and
+  -- whoever holds a live one is told the kitchen's name before she joins
+  ('invite_helper'), ('kitchen_of_code'),
   -- what a policy, a check or a computed column runs as the caller
   ('catalog_image_path'), ('has_role'), ('merma_path_ok'), ('my_locations'),
   ('my_role'), ('my_workspaces'), ('normalize_name'), ('photo_folder_ok'),
