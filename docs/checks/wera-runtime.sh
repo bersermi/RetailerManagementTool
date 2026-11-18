@@ -16,9 +16,16 @@
 # somebody tried to ship one.
 #
 # ⚠️ THE EXPECTED VALUES ARE EAS'S, NOT THIS TREE'S: the runtime of the newest
-# finished Wera build on each platform, read 2026-10-27 with
+# finished Wera build on each platform, read with
 #   (cd app && npx eas-cli build:list --platform <p> --status finished --limit 1 --json)
-# → `.runtime.version`. Both channels (`preview`, `production`) carried them.
+# → `.runtime.version`. 1.0's (iOS d308ba9f, Android 5a4a7a5d) were read
+# 2026-10-27; both channels (`preview`, `production`) carried them.
+# ⚠️ `5R-o` (Wera 1.1.0): the iPhone's camera sentence no longer names *Te lo
+# compro* — a plugin's setting, so both runtimes move (a `version` alone moves
+# nothing: `app/fingerprint.config.js`). The values below were computed BEFORE
+# the 1.1 builds existed, on a clean `npm ci` of this tree (2026-11-18), and
+# CI's run of this pull request computed the same; the session that makes the
+# builds reads `build:list` and holds them to these before anything is sent.
 #
 # WHEN IT GOES RED:
 #   - a sibling app's install moved a module Wera uses → pin the sibling's
@@ -32,8 +39,8 @@
 set -euo pipefail
 cd "$(dirname "$0")/../../app"
 
-IOS_IN_THE_FIELD="d308ba9fac469dbf9c8fd7766e55954dc0ad1440"
-ANDROID_IN_THE_FIELD="5a4a7a5d5328cda71e21d6c41a21ce9960b1f5af"
+IOS_IN_THE_FIELD="8342d3b71a0b7c330d715d4582207487f51dcbee"
+ANDROID_IN_THE_FIELD="6ca24a3173d6249e5252b8927069ceb5cdd3b2d8"
 
 runtime() {   # runtime <ios|android>
   npx expo-updates fingerprint:generate --platform "$1" 2>/dev/null \
