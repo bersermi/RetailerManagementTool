@@ -8,14 +8,15 @@
 // (her page in Itacate, and the pictures that go up before what points at them),
 // `10.5-i-b-ii` (Google's point for her address, kept as a 30-day copy),
 // `10.5b-iv-a` (her kitchen's reservations, the handover and the fonda's thumb),
-// `10.5b-iv-c` (her settings, her stars, − and +, and the read before Apple is told) and
-// `10.9a-i` (what her kitchen uses, and what she tells Wera about the menu).
+// `10.5b-iv-c` (her settings, her stars, − and +, and the read before Apple is told),
+// `10.9a-i` (what her kitchen uses, and what she tells Wera about the menu) and `10.9b-ii`
+// (her role, who works at her kitchen, *Quitar a …* and *Salir de esta cocina*).
 //
 // ⚠️ THE IMPURE HALF OF `src/api/` (ADR-035 §2.11): the only module here that
 // imports the live client, so no node suite can load it; every name it sends is
 // a constant from a pure module beside it (`@/api/kitchen`, `@/api/place`,
 // `@/api/account`, `@/api/listing`, `@/api/pagina`, `@/api/fotos`,
-// `@/api/apartados`, `@/api/ajustes`, `@/api/calificaciones`, `@/api/servicios`), which the
+// `@/api/apartados`, `@/api/ajustes`, `@/api/calificaciones`, `@/api/servicios`, `@/api/equipo`), which the
 // suite and the contract checks read. Screens reach these through `@/api/hooks`.
 // ============================================================================
 
@@ -91,6 +92,24 @@ import {
   type Servicio,
 } from '@/api/servicios';
 import type { DireccionCalls } from '@/api/direccion';
+import {
+  LEAVE_KITCHEN,
+  MEMBERS_TABLE,
+  MEMBER_ACTIVE_COLUMN,
+  MEMBER_COLUMNS,
+  MEMBER_KITCHEN_COLUMN,
+  MEMBER_ROLE_COLUMN,
+  MEMBER_USER_COLUMN,
+  MY_ROLE,
+  DUENA,
+  activoPatch,
+  leaveArgs,
+  roleArgs,
+  rolFrom,
+  type MemberRow,
+  type Quitar,
+  type Rol,
+} from '@/api/equipo';
 import {
   PHOTO_BUCKET,
   PHOTO_TYPE,
@@ -522,5 +541,51 @@ export async function revokeApple(code: string): Promise<void> {
     region: APPLE_REVOKE_REGION as FunctionRegion,
     timeout: APPLE_REVOKE_TIMEOUT_MS,
   });
+  if (error) throw error;
+}
+
+// ----------------------------------------------------------------------------
+// `10.9b-ii` — her role, who works at her kitchen, *Quitar a …*, *Salir de esta cocina*
+// ----------------------------------------------------------------------------
+
+/** Her role at one kitchen (`my_role`, `0001`), or `null` when she is no active member of it. */
+export async function myRole(kitchenId: string): Promise<Rol | null> {
+  const { data, error } = await supabase.rpc(MY_ROLE, roleArgs(kitchenId));
+  if (error) throw error;
+  return rolFrom(data);
+}
+
+/** Who works at THIS kitchen now — its active memberships, by name and role. The owner's list. */
+export async function kitchenTeam(kitchenId: string): Promise<MemberRow[]> {
+  const { data, error } = await supabase
+    .from(MEMBERS_TABLE)
+    .select(MEMBER_COLUMNS)
+    .eq(MEMBER_KITCHEN_COLUMN, kitchenId)
+    .eq(MEMBER_ACTIVE_COLUMN, true);
+  if (error) throw error;
+  return (data ?? []) as unknown as MemberRow[];
+}
+
+/**
+ * *Quitar a …* (`activo` false) and its *Deshacer* (true): the owner's update of one membership
+ * (`workspace_member_update`, `0001`). ⚠️ NEVER AN OWNER'S — the filter says so, whatever a stale
+ * list holds. ⚠️ AN RLS UPDATE REFUSAL IS A 200 WITH NO ROW, so the row is asked back and
+ * `.single()` turns a refusal into `PGRST116`.
+ */
+export async function setMemberActive({ kitchenId, userId }: Quitar, activo: boolean): Promise<void> {
+  const { error } = await supabase
+    .from(MEMBERS_TABLE)
+    .update(activoPatch(activo))
+    .eq(MEMBER_KITCHEN_COLUMN, kitchenId)
+    .eq(MEMBER_USER_COLUMN, userId)
+    .neq(MEMBER_ROLE_COLUMN, DUENA)
+    .select(MEMBER_USER_COLUMN)
+    .single();
+  if (error) throw error;
+}
+
+/** *Salir de esta cocina* (`leave_kitchen`, `0082`): her own membership ended; `TD025` for an owner. */
+export async function leaveKitchen(kitchenId: string): Promise<void> {
+  const { error } = await supabase.rpc(LEAVE_KITCHEN, leaveArgs(kitchenId));
   if (error) throw error;
 }

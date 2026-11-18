@@ -10,6 +10,7 @@
 // ============================================================================
 
 import { FULL_NAME_KEY } from '@/auth/credentials';
+import { ES } from '@/strings';
 
 /** As much of a signed-in user as this reads. */
 export interface Quien {
@@ -25,4 +26,28 @@ export function quienEntro(user: Quien | null | undefined): string | null {
   const email = user.email;
   if (typeof email === 'string' && email.trim() !== '') return email.trim();
   return null;
+}
+
+/** As much of a signed-in user as her account's row reads: `Quien`, and how she signs in. */
+export interface SuCuenta extends Quien {
+  readonly app_metadata?: Readonly<Record<string, unknown>> | null;
+}
+
+/** How she signs in, in her words — `null` for a way this build does not name. */
+export function comoEntra(user: SuCuenta | null | undefined): string | null {
+  const provider = user?.app_metadata?.provider;
+  return provider === 'google' || provider === 'apple' || provider === 'email' ? ES.ayudante.entras[provider] : null;
+}
+
+/**
+ * ⚠️ `10.9b-ii`: HER ACCOUNT'S ROW in a helper's *Mi cocina* (the family-shell page's *Ayudante*:
+ * *Lupita*, *lupita@correo.mx · entras con Google*) — her name, and under it her address and how
+ * she signs in. With no name, the address is the name and the line says only how she signs in.
+ */
+export function cuentaDe(user: SuCuenta | null | undefined): { readonly titulo: string; readonly detalle: string | null } | null {
+  const titulo = quienEntro(user);
+  if (titulo === null) return null;
+  const email = typeof user?.email === 'string' && user.email.trim() !== '' ? user.email.trim() : null;
+  const partes = [email === titulo ? null : email, comoEntra(user)].filter((p): p is string => p !== null);
+  return { titulo, detalle: partes.length > 0 ? partes.join(ES.ayudante.separador) : null };
 }

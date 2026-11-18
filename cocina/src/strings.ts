@@ -936,6 +936,54 @@ export const ES = {
   },
 
   /**
+   * ⚠️ `10.9b-ii`: *QUIÉN TRABAJA AQUÍ* — the owner's list in her *Mi cocina* (the family-shell page,
+   * round 7; G18, G19: inviting and removing are hers). Each person by name and role, *Quitar a …*
+   * on a helper. *Invitar a alguien* is `10.9b-iii`'s. The role words are the drawing's (*Dueña · tú*,
+   * *Ayudante*); `manager` has no drawing — no kitchen has one (G18 left the third role open).
+   */
+  equipo: {
+    seccion: 'Quién trabaja aquí',
+    roles: { owner: 'Dueña', manager: 'Encargada', staff: 'Ayudante' },
+    tu: (rol: string) => `${rol} · tú`,
+    sinLeer: 'No se pudo leer quién trabaja aquí.',
+    quitarTitulo: (nombre: string) => `¿Quitar a ${nombre} de tu cocina?`,
+    /** What happens, true today; the card's code once her kitchen uses the card (`@/lib/ayudante`' `conTarjeta`). */
+    quitarTexto: 'Su teléfono deja de ver tu cocina.',
+    quitarTextoConTarjeta: 'Su teléfono deja de ver tu cocina, y su código para sellar deja de servir.',
+    quitar: (nombre: string) => `Quitar a ${nombre}`,
+    quitando: 'Quitando…',
+    cancelar: 'Cancelar',
+    quitada: (nombre: string) => `Quitaste a ${nombre} de tu cocina`,
+    /** After *Deshacer*: she is back — or why not. */
+    sigue: (nombre: string) => `Listo: ${nombre} sigue en tu cocina.`,
+    noSigue: (porque: string) => `No se pudo deshacer. ${porque}`,
+    /** `PGRST116`: the update found no row she may change — she is not the owner. */
+    noSePudoQuitar: 'Solo la dueña de la cocina puede quitar a alguien.',
+  },
+
+  /**
+   * ⚠️ `10.9b-ii`: A HELPER'S OWN WORDS — her *Hoy*'s band and her *Mi cocina* (the family-shell
+   * page's *Ayudante*, round 7). ⚠️ *Ayudas aquí* says what is true today (`@/lib/ayudante`): stamps
+   * and rewards only once her kitchen uses the card this build carries.
+   */
+  ayudante: {
+    antetitulo: 'Ayudas en esta cocina',
+    enCocina: (cocina: string) => `Ayudas en ${cocina}`,
+    ayudas: 'Ayudas aquí: entregas y publicas ofertas',
+    ayudasConTarjeta: 'Ayudas aquí: entregas, das sellos y premios, publicas ofertas',
+    /** How she signs in, after her address (the drawing's *· entras con Google*). */
+    entras: { google: 'entras con Google', apple: 'entras con Apple', email: 'entras con tu correo' },
+    separador: ' · ',
+    salir: 'Salir de esta cocina',
+    salirTitulo: (cocina: string) => `¿Salir de ${cocina}?`,
+    salirTexto: 'Tu cuenta sigue. Tu teléfono deja de ver esta cocina; para volver, te tienen que invitar otra vez.',
+    saliendo: 'Saliendo…',
+    cancelar: 'Cancelar',
+    /** `0082`'s `TD025`: an owner does not leave — she deletes her kitchen. Never offered to her. */
+    duenaNoSale: 'Eres la dueña: no puedes salir de tu cocina. Si ya no la quieres, elimínala.',
+  },
+
+  /**
    * ⚠️ `10.5b-iv-c`: HER SETTINGS' SCREENS, from *Mi cocina* — the family-shell page's two sheets
    * (stage 2: *Cómo te pagan*, *Para llevar o comer aquí*, ruled 2026-11-05) and `10.5b-ii`'s final
    * design (*Ajustes de apartados*, *Tus calificaciones*, ruled 2026-11-10). A switch or an option

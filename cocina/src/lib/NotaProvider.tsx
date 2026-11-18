@@ -32,16 +32,28 @@ import { Nota } from '@/ui/Nota';
 /** What *Deshacer* does: a sentence when it failed, `null` (or nothing) when it worked. */
 type Deshacer = () => Promise<string | null> | void;
 
+/**
+ * What the toast says after *Deshacer* — an offer's words unless a caller brings its own
+ * (`10.9b-ii`: *Quitar a …*, whose *Deshacer* brings a person back, not an offer).
+ */
+export interface PalabrasDeDeshacer {
+  readonly hecho: string;
+  readonly fallo: (porque: string) => string;
+}
+
+const DE_UNA_OFERTA: PalabrasDeDeshacer = { hecho: ES.nota.deshecha, fallo: ES.nota.noSeQuito };
+
 interface NotaViva {
   readonly id: number;
   readonly texto: string;
   readonly deshacer: Deshacer | null;
   readonly festejo: boolean;
+  readonly palabras: PalabrasDeDeshacer;
 }
 
 interface Notas {
-  /** A toast with nothing to undo, or with a *Deshacer* of her screen's own (her door, closed). */
-  readonly avisar: (texto: string, deshacer?: Deshacer) => void;
+  /** A toast with nothing to undo, or with a *Deshacer* of her screen's own (her door, closed) — and its own words after it. */
+  readonly avisar: (texto: string, deshacer?: Deshacer, palabras?: PalabrasDeDeshacer) => void;
   /** *Publicaste …*, whose *Deshacer* takes that offer down again — her first, as a celebration (`festejo`). */
   readonly avisarPublicada: (texto: string, kitchenId: string, listingId: string, festejo?: boolean) => void;
   /** `10.9a-iii`: a first — *¡Tu primer apartado!* — in the green, with nothing to undo. */
@@ -57,10 +69,10 @@ export function NotaProvider({ children }: { children: ReactNode }) {
   const cuenta = useRef(0);
   const reloj = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const mostrar = useCallback((texto: string, deshacer: Deshacer | null, festejo = false) => {
+  const mostrar = useCallback((texto: string, deshacer: Deshacer | null, festejo = false, palabras = DE_UNA_OFERTA) => {
     cuenta.current += 1;
     setDeshaciendo(false);
-    setNota({ id: cuenta.current, texto, deshacer, festejo });
+    setNota({ id: cuenta.current, texto, deshacer, festejo, palabras });
     AccessibilityInfo.announceForAccessibility(texto);
   }, []);
 
@@ -75,7 +87,7 @@ export function NotaProvider({ children }: { children: ReactNode }) {
 
   const notas = useMemo<Notas>(
     () => ({
-      avisar: (texto, deshacer) => mostrar(texto, deshacer ?? null),
+      avisar: (texto, deshacer, palabras) => mostrar(texto, deshacer ?? null, false, palabras),
       avisarPublicada: (texto, kitchenId, listingId, festejo = false) => mostrar(texto, () => quitar(kitchenId, listingId), festejo),
       festejar: (texto) => mostrar(texto, null, true),
     }),
@@ -86,8 +98,8 @@ export function NotaProvider({ children }: { children: ReactNode }) {
     if (nota === null || nota.deshacer === null || deshaciendo) return;
     setDeshaciendo(true);
     const problema = await nota.deshacer();
-    if (typeof problema === 'string') mostrar(ES.nota.noSeQuito(problema), null);
-    else if (problema === null) mostrar(ES.nota.deshecha, null);
+    if (typeof problema === 'string') mostrar(nota.palabras.fallo(problema), null);
+    else if (problema === null) mostrar(nota.palabras.hecho, null);
     else setNota(null);
   }
 

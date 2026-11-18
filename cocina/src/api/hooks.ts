@@ -9,7 +9,8 @@
 // reservations, the handover and the fonda's thumb), `10.5b-iv-b` (those
 // reads kept on the phone, and the handover and the thumb queued), `10.5b-iv-c`
 // (her settings, her stars, − and +, and the database asked before Apple), `10.9a-i`
-// (what her kitchen uses) and `10.9a-ii` (her choices and *Cuéntanos*, written).
+// (what her kitchen uses), `10.9a-ii` (her choices and *Cuéntanos*, written) and `10.9b-ii`
+// (her role, who works at her kitchen, *Quitar a …* and *Salir de esta cocina*).
 //
 // ⚠️ A SCREEN NEVER CALLS `@/api/calls` ITSELF — Wera's R12: a hook here owns
 // the query key, when the read may run, and what it means. Every read waits for
@@ -49,6 +50,17 @@ import {
   type SobreElVecino,
 } from '@/api/apartados';
 import { CALIFICACIONES_FRESCAS_MS, calificacionesKey } from '@/api/calificaciones';
+import {
+  EQUIPO_KEY,
+  equipoKey,
+  esDuena,
+  quitarErrorMessage,
+  rolKey,
+  salirErrorMessage,
+  sinPersona,
+  type MemberRow,
+  type Rol,
+} from '@/api/equipo';
 import { SERVICIOS_KEY, serviciosKey, type Estado, type LoQueUsa, type Servicio } from '@/api/servicios';
 import {
   accountOwners,
@@ -59,6 +71,10 @@ import {
   kitchenAjustes,
   kitchenGiros,
   kitchenCalls,
+  kitchenTeam,
+  leaveKitchen,
+  myRole,
+  setMemberActive,
   kitchenPage,
   myKitchenFeatures,
   myKitchenRatings,
@@ -1038,4 +1054,118 @@ export function useCalificarVecino(kitchenId: string | null) {
     [userId, kitchenId],
   );
   return { calificar };
+}
+
+// ----------------------------------------------------------------------------
+// `10.9b-ii` — her role, who works at her kitchen, *Quitar a …*, *Salir de esta cocina*
+// ----------------------------------------------------------------------------
+
+/**
+ * Her role at the open kitchen (`my_role`) — `undefined` until read, `null` once she is no active
+ * member. ⚠️ KEPT ON THE PHONE (`@/api/persist`), so a helper's *Hoy* opened with no signal never
+ * draws the owner's parts, nor an owner's loses hers. Read again as her kitchens are: on every
+ * return to the front, a minute on.
+ */
+export function useSuRol(kitchenId: string | null) {
+  const { session, ready } = useAuth();
+  const userId = session?.user.id ?? null;
+  return useQuery<Rol | null>({
+    queryKey: rolKey(userId, kitchenId),
+    queryFn: () => myRole(kitchenId as string),
+    enabled: ready && userId !== null && kitchenId !== null,
+  });
+}
+
+/**
+ * ⚠️ A HELPER REMOVED OR GONE IS READ AS NO KITCHEN: when the database answers that she is no
+ * longer at this kitchen (`null`), her kitchens are read again — the walls leave it out — and the
+ * guard sends her where a kitchen is made. ONE READER, in the tabs' layout (always mounted), so
+ * one re-read: from every screen it would go out once per screen and cancel the one before.
+ */
+export function useSiYaNoEstaAqui(kitchenId: string | null): void {
+  const rol = useSuRol(kitchenId).data;
+  const queries = useQueryClient();
+  useEffect(() => {
+    if (kitchenId !== null && rol === null) void queries.invalidateQueries({ queryKey: KITCHENS_KEY });
+  }, [kitchenId, rol, queries]);
+}
+
+/**
+ * *Quién trabaja aquí* — the open kitchen's active memberships, read on the OWNER's phone alone
+ * (`rol`): a helper's phone never asks for her colleagues. Not kept on the phone.
+ */
+export function useEquipo(kitchenId: string | null, rol: Rol | null | undefined) {
+  const { session, ready } = useAuth();
+  const userId = session?.user.id ?? null;
+  return useQuery({
+    queryKey: equipoKey(userId, kitchenId),
+    queryFn: () => kitchenTeam(kitchenId as string),
+    enabled: ready && userId !== null && kitchenId !== null && esDuena(rol),
+  });
+}
+
+/**
+ * *Quitar a …* — the owner ends a helper's membership; her phone loses the kitchen on its next
+ * read. Answers `null`, or the sentence to show. ⚠️ DRAWN GONE ONLY ONCE IT LANDED: a refusal must
+ * not show her gone. `deshacer` puts her back (*Deshacer*, 8 seconds), answering the same way.
+ * Either way the list is read again.
+ */
+export function useQuitar(kitchenId: string | null) {
+  const queries = useQueryClient();
+  const { session } = useAuth();
+  const selfId = session?.user.id ?? null;
+  const mutation = useMutation({
+    mutationFn: (input: { userId: string; activo: boolean }) =>
+      setMemberActive({ kitchenId: kitchenId as string, userId: input.userId }, input.activo),
+    onSettled: () => {
+      void queries.invalidateQueries({ queryKey: EQUIPO_KEY });
+    },
+  });
+
+  async function cambiar(userId: string, activo: boolean): Promise<string | null> {
+    if (kitchenId === null) return null;
+    try {
+      await mutation.mutateAsync({ userId, activo });
+    } catch (thrown) {
+      return quitarErrorMessage(thrown);
+    }
+    if (!activo) queries.setQueryData<MemberRow[]>(equipoKey(selfId, kitchenId), (rows) => sinPersona(rows, userId));
+    return null;
+  }
+
+  return {
+    quitar: (userId: string) => cambiar(userId, false),
+    deshacer: (userId: string) => cambiar(userId, true),
+    busy: mutation.isPending,
+  };
+}
+
+/**
+ * *Salir de esta cocina* (`leave_kitchen`) — a helper ends her own membership. Answers `null`, or
+ * the sentence to show. ⚠️ ON SUCCESS THE KITCHEN LEAVES HER LIST AT ONCE (`setQueryData`, as
+ * *Eliminar esta cocina* does), so the guard sends her where a kitchen is made without waiting for
+ * the re-read. ⚠️ ON A REFUSAL HER KITCHENS ARE READ AGAIN TOO: an owner removed her meanwhile
+ * (`42501`), and the guard moves her if the kitchen is gone.
+ */
+export function useSalirDeLaCocina(kitchenId: string | null) {
+  const queries = useQueryClient();
+  const { session } = useAuth();
+  const userId = session?.user.id ?? null;
+  const mutation = useMutation({ mutationFn: (id: string) => leaveKitchen(id) });
+
+  async function salir(): Promise<string | null> {
+    if (kitchenId === null || mutation.isPending) return null;
+    try {
+      await mutation.mutateAsync(kitchenId);
+    } catch (thrown) {
+      void queries.invalidateQueries({ queryKey: KITCHENS_KEY });
+      return salirErrorMessage(thrown);
+    }
+    queries.setQueryData<Kitchen[]>(kitchensKey(userId), (kitchens) => kitchens?.filter((kitchen) => kitchen.id !== kitchenId));
+    void queries.invalidateQueries({ queryKey: KITCHENS_KEY });
+    void queries.invalidateQueries({ queryKey: OWNERS_KEY });
+    return null;
+  }
+
+  return { salir, busy: mutation.isPending };
 }

@@ -74,7 +74,11 @@
     migration (a rule about who may do what — ruled), and `manager` stays free for a third role he left open. Wera's matrix is
     untouched. ✅ **Built by `0082` (`10.9b-i`):** `publish_listing`, `withdraw_listing` and `set_listing_quantity` ask `staff` at a
     kitchen and `manager` anywhere else, the location wall (`my_locations()`) unchanged; `leave_kitchen` ends a helper's own
-    membership (*Salir de esta cocina*), never the owner's (`TD025`). ✅ **How a helper joins — the invitation's code — ruled by
+    membership (*Salir de esta cocina*), never the owner's (`TD025`). ⚠️ **Not yet a helper's: a photo on her dish** — the bucket
+    `cocina`'s insert policy (`0076`) still asks `manager`, found by `10.9b-ii` and lowered by `10.9b-iii`'s migration. ✅ **Her
+    screens built by `10.9b-ii`**: her role read by `my_role` and kept on the phone; the owner's *Quién trabaja aquí* reads the
+    kitchen's memberships (every member may, `workspace_member_select`) on the owner's phone alone, and removes a helper with the
+    table's own update of `is_active` (the owner's policy), its filter never matching an owner's row. ✅ **How a helper joins — the invitation's code — ruled by
     him 2026-11-18**: a code for one person, good for 24 hours, no address asked, joining at once (`10.9b-iii`, which makes
     `workspace_invite.email` optional for a kitchen's helper — today it is `NOT NULL`).
   - **§2.9's k ≥ 5 floor** is the cross-workspace analytics schema's, and **does not govern a kitchen's own numbers**, read by its

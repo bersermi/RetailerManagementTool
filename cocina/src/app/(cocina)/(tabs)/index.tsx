@@ -3,10 +3,12 @@ import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 
-import { useApartados, useContarMenu, useKitchen, useKitchenGiros, useListings, usePage, usePlace, useServicios } from '@/api/hooks';
+import { esDuena } from '@/api/equipo';
+import { useApartados, useContarMenu, useKitchen, useKitchenGiros, useListings, usePage, usePlace, useServicios, useSuRol } from '@/api/hooks';
 import { giroLabel, type Kitchen } from '@/api/kitchen';
 import { addressComplete } from '@/api/place';
 import { entregadosHoy, loQueSigue, ordenesDe, tomadosDe } from '@/lib/apartados';
+import { mosaicosPara } from '@/lib/ayudante';
 import { cerrarServicio, useMemoria, verHoy, type Linea } from '@/lib/empujones';
 import { chipDe, diaDe, estadoDe, ICONO_DE_PENDIENTE, nombreDe, repetibles } from '@/lib/hoy';
 import { cuentanosEnHoy, ICONO_DE, mosaicosDe } from '@/lib/loQueUsas';
@@ -65,6 +67,13 @@ import { SinSenal } from '@/ui/SinSenal';
 // ⚠️ `10.9a-iii`: WHAT THE NUDGES SAY IS `@/lib/empujones`' (`verHoy`), PURE, pinned by
 // `test/empujones.test.ts`; what was seen is kept on this phone, per kitchen, marked once a day
 // from an effect (`registrar`). *Cuéntanos* is a *Próximamente*, not a nudge line.
+// ⚠️⚠️ `10.9b-ii`: A HELPER'S *HOY* (the family-shell page's *Ayudante*; G18, G36) — her role is read
+// per kitchen and kept on the phone (`useSuRol`). She sees the day's card, *Lo que sigue* with
+// *Entregar*, *Publicar* and *Repetir* — and the invitation and its glow, which are publishing's —
+// and, once the card exists (`10.9e`), its tile (`@/lib/ayudante`' `mosaicosPara`). NEVER the other
+// tiles, the line about her page or the features (`verHoy`'s `duena`), the reminder's question or
+// *Cuéntanos*: each is the owner's. The band says *Ayudas en esta cocina*. ⚠️ UNTIL HER ROLE IS READ,
+// NOBODY IS THE OWNER: what is hers fades in, and is never shown to a helper and taken away.
 // ⚠️ NOTHING ON *HOY* IS EDITED IN PLACE: correcting a count is in *Tus ofertas*.
 // *Así te ven los vecinos* left *Hoy* for *Mi cocina* (his direction).
 //
@@ -94,6 +103,10 @@ function HoyDe({ kitchen }: { kitchen: Kitchen }) {
   const listings = useListings(kitchen.id);
   const apartados = useApartados(kitchen.id);
   const ahora = useAhora(CADA_MEDIO_MINUTO);
+  // `10.9b-ii`: what is the owner's is drawn for the owner alone — not while her role is unread.
+  const rol = useSuRol(kitchen.id).data;
+  const duena = esDuena(rol);
+  const ayudante = rol !== undefined && rol !== null && !duena;
   // `10.9a-iii`: her page's line ended with its ✕ — the key her page's door kept since `10.5-v-c-i`.
   const [cerrada, setCerrada] = usePuertaCerrada(kitchen.id);
   const [memoria, cambiar] = useMemoria(kitchen.id);
@@ -133,7 +146,7 @@ function HoyDe({ kitchen }: { kitchen: Kitchen }) {
   const vista =
     listings.data === undefined
       ? null
-      : verHoy(memoria, { listings: listings.data, estado, loQueUsa: servicios.data ?? null, paginaCerrada: cerrada, ahora });
+      : verHoy(memoria, { listings: listings.data, estado, loQueUsa: servicios.data ?? null, paginaCerrada: cerrada, ahora, duena });
   // Today's marks — the glow's day, the line's day — once each time what they mark changes.
   const marca = vista?.marca ?? null;
   useEffect(() => {
@@ -141,7 +154,7 @@ function HoyDe({ kitchen }: { kitchen: Kitchen }) {
     // `marca` names everything `registrar` marks; the function itself is new on every render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [marca, cambiar]);
-  const mosaicos = mosaicosDe(servicios.data);
+  const mosaicos = mosaicosPara(mosaicosDe(servicios.data), duena);
 
   function abrirLinea(linea: Linea) {
     router.push(linea.abre);
@@ -159,7 +172,7 @@ function HoyDe({ kitchen }: { kitchen: Kitchen }) {
 
   return (
     <View style={{ flex: 1, backgroundColor: PALETTE.fondo }}>
-      <Banda titulo={kitchen.displayName} antetitulo={trade ?? ES.cocina.antetitulo} />
+      <Banda titulo={kitchen.displayName} antetitulo={ayudante ? ES.ayudante.antetitulo : (trade ?? ES.cocina.antetitulo)} />
       <ScrollView contentContainerStyle={{ padding: SIZE.space * 1.5, paddingBottom: SIZE.space * 8, gap: SIZE.space * 1.5 }}>
         <SinSenal sinSenal={apartados.sinSenal} leidoEn={apartados.leidoEn} porEnviar={apartados.porEnviar} ahora={ahora} />
         <Llega i={0}>
@@ -250,7 +263,7 @@ function HoyDe({ kitchen }: { kitchen: Kitchen }) {
           </Llega>
         )}
 
-        {recordatorio.propuesta !== null && preguntar(recordatorio.guardado, recordatorio.propuesta) && (
+        {duena && recordatorio.propuesta !== null && preguntar(recordatorio.guardado, recordatorio.propuesta) && (
           <Llega i={4}>
             <PreguntaRecordatorio
               propuesta={recordatorio.propuesta}
@@ -262,7 +275,7 @@ function HoyDe({ kitchen }: { kitchen: Kitchen }) {
           </Llega>
         )}
 
-        {cuentanosEnHoy(servicios.data, menuCerrado) && (
+        {duena && cuentanosEnHoy(servicios.data, menuCerrado) && (
           <Llega i={5}>
             <LineaCuentanos
               onAbrir={() => setHojaMenu(true)}

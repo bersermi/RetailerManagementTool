@@ -22,6 +22,7 @@ bash docs/checks/10.5-i-a-kitchen-photos-contract.sh   # the same stack WITH Sto
 bash docs/checks/10.5b-iv-a-handover-contract.sh      # the same stack: her kitchen's reservations, who reserved each, the handover and her thumb, by apartados.ts's names — and her queue's claims, by cola.ts's
 bash docs/checks/10.5b-iv-c-settings-contract.sh      # the same stack: her settings, her stars, each dish's ways, − and +, and the read before a deletion, by ajustes.ts', calificaciones.ts', listing.ts' and account.ts' names
 bash docs/checks/10.9a-i-features-contract.sh         # the same stack: what her kitchen uses, Wera's switch, Cuéntanos, and the door's word on it, by servicios.ts' names and Itacate's
+bash docs/checks/10.9b-ii-team-contract.sh            # the same stack: her role, who works at her kitchen, Quitar and Salir, by equipo.ts' names — as a real owner and a real helper
 bash store/cocina-itacate/render.sh giros         # the nine trades' drawings, from brand/giros.svg into src/marca/giros/ — and nothing else
 TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic is local time, and the Mac is UTC−6
 ```
@@ -67,7 +68,9 @@ TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic i
   `docs/checks/10.5b-iv-c-settings-contract.sh` and its falsifier (its own job, `cocina-settings`). ⚠️ **Since `10.9a-i`, `src/api/servicios.ts`** —
   `0081`'s `my_kitchen_features`, `set_kitchen_features` and `send_menu_request`, every argument and key of their one answer, the four features,
   the three states and `TD024` — is asked by `docs/checks/10.9a-i-features-contract.sh` and its falsifier (its own job, `cocina-features`), with
-  the door's `features` by Itacate's names. Her choices are **per kitchen, never per phone**: every member reads them, only the owner writes them
+  the door's `features` by Itacate's names. ⚠️ **Since `10.9b-ii`, `src/api/equipo.ts`** — her role (`my_role`), the memberships' table, its
+  columns and the filters the owner's list and *Quitar a …* send, and `leave_kitchen` with `TD025` — is asked by `docs/checks/10.9b-ii-team-contract.sh`
+  and its falsifier (its own job, `cocina-team`), as a real owner and a real helper (the section *Helpers* below). Her choices are **per kitchen, never per phone**: every member reads them, only the owner writes them
   and what she tells Wera about the menu; a feature Wera has switched off (`available`) is offered nowhere and refused `on`; a feature or a state
   this build does not know is left out (`loQueUsaFrom`). Read by `useServicios`; written since `10.9a-ii` by `useElegirServicios` and `useContarMenu` (the section *Her choices* below). ⚠️ **And a kitchen's place is read by the kitchen's id**
   (`firstPlace`): the walls show a shop's owner her shop's store too, and an unfiltered read's first
@@ -374,7 +377,7 @@ follows it, as `itacate/CLAUDE.md`'s does:
   she uses, in a fixed order, and *Tu página · 4 de 5* gives way to one quiet nudge line (`10.9a`, built by `10.9a-iii`); *Mi cocina* gains *Lo que
   usas* and *Quién trabaja aquí* (`10.9a`, `10.9b`); **a helper — the database's *staff* — publishes and hands over**
   (`10.9b`; the database lets her since `0082`, `10.9b-i`: `publish_listing`, `withdraw_listing`, `set_listing_quantity` ask `staff` at a
-  kitchen, and `leave_kitchen` is *Salir de esta cocina*; her screens are `10.9b-ii`, joining by a code `10.9b-iii` — ruled 2026-11-18: a code for one person, good for 24 hours, no address asked, joining at once); a camera module to scan, and printing and sharing for the counter poster, arrive with a new store build
+  kitchen, and `leave_kitchen` is *Salir de esta cocina*; her screens built by `10.9b-ii` — the section *Helpers* below —, joining by a code `10.9b-iii` — ruled 2026-11-18: a code for one person, good for 24 hours, no address asked, joining at once); a camera module to scan, and printing and sharing for the counter poster, arrive with a new store build
   (`10.9c`). A service never lives in two places: its tile on *Hoy* opens its one screen. ⚠️ **`10.9a` split in three on 2026-11-17**: the database
   and both apps' claims (`10.9a-i`, built — `@/api/servicios`), the first run's third step and *Lo que usas* (`10.9a-ii`, built — the section *Her
   choices* below), *Hoy*'s tiles and the nudges (`10.9a-iii`, built — the section *The nudges and the firsts* below).
@@ -473,9 +476,9 @@ and *Así la ven*'s what-is-left are `10.5b-iv-c`'s (the section after it).
 The owner's questions 7–10 of 2026-11-05: *"it works without signal (today's reservations saved on her phone)"*. ADR-035 §2.6's
 *Offline* paragraph, amended for this app: reads from the phone with visible staleness, writes queued and drawn at once.
 
-- **Three reads are kept on the phone** (`@/api/persist`, pinned by `test/persist.test.ts`): her kitchens, her offers and her
+- **Her reads kept on the phone** (`@/api/persist`, pinned by `test/persist.test.ts`): her kitchens, her offers and her
   reservations — today's and later's, the 30 days before, who reserved each (the neighbour's short name and score, while the order
-  waits or waits for its thumb). Nothing else. ⚠️ **TanStack's own `hydrate` as the client is built**, from the phone's synchronous
+  waits or waits for its thumb) — ⚠️ and since `10.9b-ii` a fourth, her role at each kitchen (`['cocina','rol']`). Nothing else. ⚠️ **TanStack's own `hydrate` as the client is built**, from the phone's synchronous
   store (`@/api/QueryProvider`), never Wera's persister library: the first frame already has her kitchen, so a cold start with no
   signal goes straight to *Hoy*, and no dependency was added (an install here can move Wera's runtime). Saved at most every three
   seconds, at once when the app leaves the front, and at once when a queued send lands. Wera's rules kept: a refresh that failed is
@@ -614,3 +617,36 @@ by `test/empujones.test.ts` against a calendar in Mexico City's zone.
   sampling a band round the button (the first frames after a return come about a second apart). The tiles, *Así funciona* and a feature's
   line need the local switches on and a local edit of `PANTALLA_DE` (never committed); "two weeks on" is the phone's record edited —
   `adb exec-out run-as mx.wera.cocina cat files/SQLite/ExpoSQLiteStorage`, `desde` moved back with `sqlite3`, pushed back with the app stopped.
+
+## Helpers — what a helper sees, and who works at a kitchen (`10.9b-ii`)
+
+The owner's rulings of 2026-11-16 and 17 (G13 everyone on her own phone; G18 two roles, the owner and a helper — the database's
+`owner` and `staff`, `manager` left free; G19 the owner removes a helper from *Quién trabaja aquí*; G36 a helper publishes too) and
+the family-shell page's *Ayudante*. No migration: `my_role` (`0001`), the owner's update policy on `workspace_member` (`0001`) and
+`leave_kitchen` (`0082`) answer everything. The claims are `@/api/equipo`; what each role sees, `@/lib/ayudante`.
+
+- **Her role, per kitchen, kept on the phone** (`useSuRol`, `my_role`): ⚠️ **unread or `null`, nobody is the owner** (`esDuena`) — what is
+  the owner's fades in, and is never shown to a helper and taken away; a role this build does not know reads as a helper's (`rolFrom`).
+  *Mi cocina* is the owner's, a helper's, or a wheel with her way out while the role is unread (`miCocinaPara`).
+- **A helper's *Hoy*:** *Ayudas en esta cocina*, the day's card, *Lo que sigue*, *Publicar* and *Repetir* — and the invitation and
+  *Publicar*'s glow, which are publishing's. ⚠️ **Never** the nudge line (`verHoy`'s `duena`), the owner's tiles (`mosaicosPara`: the card's
+  alone, drawn by `10.9e` with *Sellar*), the reminder's question or *Cuéntanos*. `test/ayudante.test.ts` reads each gate out of the screen.
+- **A helper's *Mi cocina*** (`MiCocinaDeAyudante`): her name, address and how she signs in (`@/auth/quien`' `cuentaDe`); the kitchen with
+  *Ayudas aquí* — ⚠️ **true today**, *entregas y publicas ofertas*; *das sellos y premios* only once her kitchen uses the card this build
+  carries (`conTarjeta`); help; *Salir de esta cocina* behind a sheet (`@/ui/HojaConfirmar`; `leave_kitchen` — her kitchen leaves her
+  list at once, as *Eliminar esta cocina*'s does); *Cerrar sesión*; *Eliminar mi cuenta*, which names nothing (she owns no business —
+  `@/api/account`' `businessesThatGo`, held by both apps' `account.test.ts`) and never offers *Eliminar esta cocina*.
+- **The owner's *Quién trabaja aquí*** (`@/ui/QuienTrabajaAqui`, after her settings): the kitchen's active memberships, read on her phone
+  alone (`useEquipo` — ⚠️ every member MAY read them, `workspace_member_select`; a helper's phone never asks), her own row *Dueña · tú*, a
+  name blank or missing drawn as the role's word. ⚠️ **Drawn only while someone else works there, until `10.9b-iii`'s *Invitar a alguien***.
+  A helper's row opens *¿Quitar a … de tu cocina?*; *Quitar* is the table's own update of `is_active` (`setMemberActive`), asked back with
+  `.single()` (an RLS refusal is a 200 with no row → `PGRST116`), ⚠️ **its filter `role=neq.owner`, so it never ends an owner's
+  membership** (the falsifier's C11: on the wrong column it ends the owner's own); then *Quitaste a …* with *Deshacer* for 8 seconds (the
+  same update, `true`; the toast takes its own words after an undo, `@/lib/NotaProvider`'s `palabras`).
+- ⚠️⚠️ **A helper removed or gone is read as no kitchen — by the walls**: `my_workspaces()` asks `is_active`, so her kitchens read `[]`.
+  Her role answering `null` reads her kitchens again from ONE place (`useSiYaNoEstaAqui`, the tabs' layout), and the guard sends her where
+  a kitchen is made — the next time a read goes out: on a return to the front a minute on.
+- **To see it on the emulator**: the debug build against the local shop (*Apartados*' section); an owner and a helper signed up through
+  GoTrue, the helper's `staff` membership and its `member_location` written as the database's owner (as `redeem_invite` writes them —
+  the contract check's fixture) until `10.9b-iii` builds joining. ⚠️ **Tap *Deshacer* in the same command as *Quitar***: reading a
+  screenshot between the two outlasts the toast's 8 seconds (the first walk's miss).

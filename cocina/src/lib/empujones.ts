@@ -201,6 +201,13 @@ export interface EntradaDeHoy {
   readonly ahora: Date;
   /** The features this build carries (`@/lib/loQueUsas`' `construidos`). */
   readonly hechos?: readonly Elegible[];
+  /**
+   * ⚠️ `10.9b-ii`: SHE IS THE KITCHEN'S OWNER (`@/api/equipo`' `esDuena`). The line is about her
+   * page and her features, both the owner's (G18), so a helper's *Hoy* never draws it — nor while
+   * her role is not read yet. The invitation and the glow are publishing's, and a helper publishes
+   * too (G36), so they stay.
+   */
+  readonly duena: boolean;
 }
 
 /** What *Hoy* draws of the nudges, and what it records of today. */
@@ -238,6 +245,8 @@ function conLaLinea(m: Memoria, linea: Linea | null, hoy: string): Memoria {
 
 /** At most one line: her page's next missing part, else — two weeks in — a feature she did not pick. */
 export function lineaDe(m: Memoria, x: EntradaDeHoy, hoy: string): Linea | null {
+  // `10.9b-ii`: her page and her features are the owner's — a helper is never nudged about them.
+  if (!x.duena) return null;
   // Only on a day she published (the page's `nudgeLine`): she is looking at her offer then.
   if (deHoy(x.listings, x.ahora).length === 0) return null;
   // Every read the line counts, or none yet: never a line that changes under her thumb.
