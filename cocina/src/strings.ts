@@ -963,15 +963,19 @@ export const ES = {
     noSePudoQuitar: 'Solo la dueña de la cocina puede quitar a alguien.',
     /** `10.9b-iii`: the row that opens *Invitar a alguien* (the drawing's, without the camera until `10.9c`). */
     invitar: 'Invitar a alguien',
-    invitarDetalle: 'Con un código para su teléfono',
+    /** The drawing's words, since `10.9c` draws the QR she scans. */
+    invitarDetalle: 'Con un código que escanea',
   },
   /**
    * `10.9b-iii` — *Invitar a alguien*, the owner's sheet (the family-shell page's `invitarSheet`): a code for
-   * one person, good for 24 hours (his ruling of 2026-11-18). Typed until a camera can scan it (`10.9c`).
+   * one person, good for 24 hours (his ruling of 2026-11-18). Since `10.9c` a QR of it above the typed code,
+   * as the drawing has it (*… y escanee esto*): she scans it, or types it under the QR.
    */
   invitar: {
     titulo: 'Invitar a alguien',
-    texto: 'Que abra Wera Cocina en su teléfono, toque Unirme a una cocina y escriba este código.',
+    texto: 'Que abra Wera Cocina en su teléfono, toque Unirme a una cocina y escanee este código.',
+    /** The QR, to a screen reader: the code itself is read out under it. */
+    qr: 'El código para escanear',
     haciendo: 'Haciendo el código…',
     /** When it stops working: always tomorrow, at this hour. */
     vale: (hora: string) => `Sirve para una persona, hasta mañana a las ${hora}.`,
@@ -1002,8 +1006,20 @@ export const ES = {
     antetitulo: 'Wera Cocina',
     titulo: 'Unirme a una cocina',
     volver: 'Volver',
-    texto: 'Pídele a la dueña que abra Mi cocina › Invitar a alguien y te dé su código.',
-    codigo: 'El código',
+    texto: 'Pídele a la dueña que abra Mi cocina › Invitar a alguien y escanea su código.',
+    /**
+     * `10.9c` — the camera over the typed box (`@/ui/Escaner`): asked the first time she taps; refused, the
+     * typed box is the way.
+     */
+    escaner: {
+      boton: 'Escanear su código',
+      apunta: 'Apunta a su código',
+      sinPermiso: 'Sin la cámara no se puede escanear. Escribe su código aquí abajo.',
+      ajustes: 'Permitir la cámara en Ajustes',
+      noEs: 'Ese no es el código para unirte a una cocina.',
+      noAbre: 'La cámara no abrió. Escribe su código aquí abajo.',
+    },
+    codigo: 'O escribe su código',
     /** A hint in muted ink: how many, never a code. */
     codigoEjemplo: '16 letras y números',
     buscando: 'Buscando la cocina…',

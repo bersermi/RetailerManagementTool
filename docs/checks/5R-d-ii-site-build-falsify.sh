@@ -14,6 +14,13 @@
 #   F3  a <script src="https://…">           → refused, naming the script
 #   F4  a link to a page that does not exist → refused, naming the link
 #   F5  a value holding <b>                  → built, and the page shows &lt;b&gt;
+#   ⚠️ `10.9c` — a kitchen's address, and the files that hand it to Itacate:
+#   F6  an inline <script> on another page   → refused, naming the page
+#   F7  cocina/'s script asking the network  → refused, naming fetch
+#   F8  a second script on cocina/           → refused, one at most
+#   F9  .well-known/ missing                 → refused, naming the file
+#   F10 assetlinks.json with a broken key    → refused, naming the file
+#   F11 the iPhone's file not JSON           → refused, naming the file
 #
 # It needs no secret, so CI runs it on every pull request that touches site/.
 #
@@ -80,6 +87,30 @@ elif grep -q 'Calle &lt;b&gt;Falsa&lt;/b&gt; 123' "$TMP/f5.out/privacidad/index.
   pass "F5 a value with markup goes in escaped"
 else fail "F5 a value with markup went in raw"; fi
 
+copy f6; printf '<script>var a = 1;</script>\n' >>"$TMP/f6/eliminar-cuenta/index.html"
+run f6 'Nombre Prueba' 'Calle Falsa 123, CDMX'
+expect_refused $? "F6 an inline script on a page other than cocina/ is refused" f6 'eliminar-cuenta/index.html carries a <script>'
+
+copy f7; perl -0pi -e 's/\(function \(\) \{/(function () { fetch("\/x");/' "$TMP/f7/cocina/index.html"
+run f7 'Nombre Prueba' 'Calle Falsa 123, CDMX'
+expect_refused $? "F7 cocina/'s script asking the network is refused" f7 "script uses fetch"
+
+copy f8; perl -0pi -e 's#</body>#<script>var b = 2;</script>\n</body>#' "$TMP/f8/cocina/index.html"
+run f8 'Nombre Prueba' 'Calle Falsa 123, CDMX'
+expect_refused $? "F8 a second script on cocina/ is refused" f8 'carries 2 scripts'
+
+copy f9; rm -rf "$TMP/f9/.well-known"
+run f9 'Nombre Prueba' 'Calle Falsa 123, CDMX'
+expect_refused $? "F9 the association files missing are refused" f9 '.well-known/apple-app-site-association is not in the output'
+
+copy f10; perl -0pi -e 's/"0B:6D/"0b:6d/' "$TMP/f10/.well-known/assetlinks.json"
+run f10 'Nombre Prueba' 'Calle Falsa 123, CDMX'
+expect_refused $? "F10 a key Android cannot read is refused" f10 'assetlinks.json is not what Android reads'
+
+copy f11; printf '{ "applinks": ' >"$TMP/f11/.well-known/apple-app-site-association"
+run f11 'Nombre Prueba' 'Calle Falsa 123, CDMX'
+expect_refused $? "F11 an iPhone file that is not JSON is refused" f11 'apple-app-site-association is not what an iPhone reads'
+
 echo
 if [[ $fails -gt 0 ]]; then echo "$fails case(s) failed."; exit 1; fi
-echo "all 6 cases behave."
+echo "all 12 cases behave."

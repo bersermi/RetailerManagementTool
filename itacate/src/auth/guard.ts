@@ -46,3 +46,17 @@ export function groupOf(segments: readonly string[]): RouteGroup {
       return null;
   }
 }
+
+/**
+ * ⚠️ `10.9c` — A KITCHEN'S PAGE SHE WAS SENT AWAY FROM, TO OPEN ONCE SHE IS IN. A kitchen's link on
+ * tu-wera.com opens Itacate on her page (`@/lib/enlaces`); signed out, the rule above sends her to
+ * *Entrar* first, and this is the route to go on to instead of `/` once she signs in — a kitchen's page
+ * alone, never the tabs or a dish (a dish's page reads a reservation's state that may be gone by then).
+ */
+export function paraDespues(segments: readonly string[], id: string | readonly string[] | undefined): `/cocina/${string}` | null {
+  if (segments.join('/') !== '(vecino)/cocina/[id]') return null;
+  const valor = Array.isArray(id) ? id[0] : id;
+  return typeof valor === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(valor)
+    ? `/cocina/${valor.toLowerCase()}`
+    : null;
+}

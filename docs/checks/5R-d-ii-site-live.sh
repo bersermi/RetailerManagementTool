@@ -26,6 +26,14 @@
 #   7. http:// redirects to https://.
 #   8. tu-wera.com has MX records, so privacidad@ and ayuda@ can receive mail.
 #      ⚠️ It cannot prove the mail is FORWARDED — only a test email can.
+#   9. ⚠️ `10.9c` — a kitchen's address (/cocina/, in 3–5) and the two files that
+#      hand it to Itacate: /.well-known/apple-app-site-association and
+#      /.well-known/assetlinks.json answer 200 with no redirect, byte for byte this
+#      checkout's — and, what the phones themselves read, Apple's CDN holds the
+#      iPhone's file (it fetches on its own schedule: red for some hours after a
+#      change is not a broken site) and Google's Digital Asset Links API reads
+#      Itacate's package from Android's. Neither proves a phone opens Itacate: a
+#      phone's `pm get-app-links` (Android) or a tap on the link (an iPhone) does.
 #
 # ⚠️ IT ASKS A PUBLIC RESOLVER (1.1.1.1), NOT THIS MAC'S. Measured 2026-10-13: an
 # hour after the owner changed the records, this Mac's resolver still answered
@@ -80,7 +88,7 @@ else
 fi
 
 # 3, 4 and 5. Each page.
-for path in / /privacidad/ /privacidad/cocina-e-itacate/ /terminos/cocina-e-itacate/ /eliminar-cuenta/ /eliminar-cuenta/cocina/ /eliminar-cuenta/itacate/ /estilo.css; do
+for path in / /privacidad/ /privacidad/cocina-e-itacate/ /terminos/cocina-e-itacate/ /eliminar-cuenta/ /eliminar-cuenta/cocina/ /eliminar-cuenta/itacate/ /cocina/ /estilo.css; do
   name="$(echo "$path" | tr '/' '_')"
   code="$(curl -sS ${PIN[@]+"${PIN[@]}"} -o "$TMP/$name.body" -D "$TMP/$name.head" -w '%{http_code}' "$BASE$path" 2>"$TMP/$name.err")"
   if [[ "$code" != "200" ]]; then
@@ -115,6 +123,23 @@ if [[ "$MODE" != "--before-dns" ]]; then
   mx="$(dig @"$RESOLVER" +short "$DOMAIN" MX | tr '\n' ' ')"
   if [[ -n "$mx" ]]; then ok "$DOMAIN has MX records ($mx) — send a test email to privacidad@ to prove the forwarding"
   else fail "$DOMAIN has no MX records, so privacidad@$DOMAIN cannot receive mail"; fi
+fi
+
+# 9. The files that hand a kitchen's address to Itacate.
+for file in apple-app-site-association assetlinks.json; do
+  code="$(curl -sS ${PIN[@]+"${PIN[@]}"} -o "$TMP/$file" -D "$TMP/$file.head" -w '%{http_code}' "$BASE/.well-known/$file" 2>/dev/null)"
+  if [[ "$code" != "200" ]]; then fail "$BASE/.well-known/$file answered ${code:-nothing} — not 200 (a redirect counts as missing to a phone)"
+  elif cmp -s "$TMP/$file" "site/.well-known/$file"; then ok "$BASE/.well-known/$file answers 200, this checkout's to the byte ($(grep -i '^content-type:' "$TMP/$file.head" | tr -d '\r' | cut -d' ' -f2-))"
+  else fail "$BASE/.well-known/$file is served, but it is not this checkout's"; fi
+done
+if [[ "$MODE" != "--before-dns" ]]; then
+  apple="$(curl -sS -m 20 "https://app-site-association.cdn-apple.com/a/v1/$DOMAIN" 2>/dev/null)"
+  if python3 -c 'import json,sys; a=json.loads(sys.argv[1]); b=json.load(open("site/.well-known/apple-app-site-association")); sys.exit(0 if a==b else 1)' "$apple" 2>/dev/null
+  then ok "Apple's CDN holds this checkout's apple-app-site-association"
+  else fail "Apple's CDN does not hold this checkout's file yet (it answered: $(echo "$apple" | head -c 120))"; fi
+  google="$(curl -sS -m 20 "https://digitalassetlinks.googleapis.com/v1/statements:list?source.web.site=https://$DOMAIN&relation=delegate_permission/common.handle_all_urls" 2>/dev/null)"
+  if echo "$google" | grep -q '"packageName": "mx.wera.vecino"'; then ok "Google's Digital Asset Links API reads Itacate (mx.wera.vecino) from $DOMAIN"
+  else fail "Google's Digital Asset Links API does not read Itacate from $DOMAIN: $(echo "$google" | tr -d '\n' | head -c 160)"; fi
 fi
 
 echo

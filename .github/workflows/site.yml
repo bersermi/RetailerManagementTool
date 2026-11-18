@@ -54,6 +54,11 @@ jobs:
         uses: actions/upload-pages-artifact@v5
         with:
           path: _site
+          # ⚠️ `10.9c`: `.well-known/` holds the two files that hand a kitchen's address
+          # to Itacate (apple-app-site-association, assetlinks.json). This action drops
+          # every dot-folder unless told (read in its action.yml, v5: `--exclude=.[^/]*`),
+          # and nothing would fail — the links would just open the browser.
+          include-hidden-files: true
 
   deploy:
     name: publish to tu-wera.com

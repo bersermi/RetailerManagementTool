@@ -1,12 +1,12 @@
 import { useFonts } from 'expo-font';
-import { Stack, router, useSegments } from 'expo-router';
+import { Stack, router, useGlobalSearchParams, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { QueryProvider } from '@/api/QueryProvider';
 import { AuthProvider, useAuth } from '@/auth/AuthProvider';
-import { groupOf, redirectFor } from '@/auth/guard';
+import { groupOf, paraDespues, redirectFor } from '@/auth/guard';
 import { DistanciasProvider } from '@/lib/DistanciasProvider';
 import { DondeBuscarProvider } from '@/lib/DondeBuscarProvider';
 import { FUENTES } from '@/theme/letra';
@@ -59,15 +59,23 @@ export default function RootLayout() {
 // nothing: redirecting from inside a screen means every screen has to remember
 // to, and from the Stack's own render is a navigation during a render. ⚠️ NO
 // CHECK CAN SEE THAT IT FIRES (ADR-035 §2.11): the phone is its instrument.
+// ⚠️ `10.9c`: A KITCHEN'S LINK OPENED WHILE SIGNED OUT is remembered as she is sent
+// to *Entrar* (`paraDespues`) and opened, once, when she is in — in memory only.
 // ============================================================================
 function Gate() {
   const { session, ready } = useAuth();
   const segments = useSegments();
+  const { id } = useGlobalSearchParams<{ id?: string }>();
+  const despues = useRef<string | null>(null);
 
   useEffect(() => {
     const to = redirectFor({ ready, hasSession: session !== null, group: groupOf(segments) });
-    if (to !== null) router.replace(to);
-  }, [ready, session, segments]);
+    if (to === null) return;
+    if (to === '/entrar') despues.current = paraDespues(segments, id);
+    const destino = to === '/' && despues.current !== null ? despues.current : to;
+    if (to === '/') despues.current = null;
+    router.replace(destino as typeof to);
+  }, [ready, session, segments, id]);
 
   return null;
 }

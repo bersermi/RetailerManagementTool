@@ -9,13 +9,14 @@ import { ES } from '@/strings';
 import { TITULO } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
 import { BotonLleno } from '@/ui/BotonLleno';
+import { CodigoQR } from '@/ui/CodigoQR';
 
 // ============================================================================
 // *INVITAR A ALGUIEN* — THE OWNER'S SHEET. Plan task `10.9b-iii`, the owner's ruling of 2026-11-18 (a
 // code for one person, good for 24 hours, sixteen characters, no address asked) and the family-shell
-// page's `invitarSheet`, said for a typed code until a camera can scan one (`10.9c`, which adds the QR
-// above it): *Que abra Wera Cocina en su teléfono, toque Unirme a una cocina y escriba este código*, the
-// code in four groups, until when it works, what she will do there, and *Compartir el código* — React
+// page's `invitarSheet`: *Que abra Wera Cocina en su teléfono, toque Unirme a una cocina y escanee este
+// código*, a QR of the code (since `10.9c`, drawn with no native module — `@/ui/CodigoQR`) and the code in
+// four groups under it for typing, until when it works, what she will do there, and *Compartir el código* — React
 // Native's own `Share`, as Wera's invitation is shared (`app/src/app/ajustes.tsx`): an owner retyping
 // sixteen characters is a step this app need not ask.
 //
@@ -78,12 +79,14 @@ export function HojaInvitar({
                 style={{
                   alignItems: 'center',
                   paddingVertical: SIZE.space * 1.5,
+                  gap: SIZE.rowGap,
                   borderRadius: 16,
                   borderWidth: 1,
                   borderColor: PALETTE.linea,
                   backgroundColor: PALETTE.superficie,
                 }}
               >
+                <CodigoQR texto={invitacion.codigo} lado={176} etiqueta={ES.invitar.qr} />
                 <Text
                   selectable
                   accessibilityLabel={invitacion.codigo.split('').join(' ')}

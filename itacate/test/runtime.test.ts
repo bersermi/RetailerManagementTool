@@ -34,8 +34,9 @@ import { afterAll, describe, expect, it } from 'vitest';
 // would prove nothing.
 //
 // ⚠️ AND PINNED TO THE FIELD: each platform's runtime must be the one Itacate's test
-// build on that platform carries — Android's `2b638d21` (plan `10.2b`; pinned by
-// `10.5-iv-a-i`) and the iPhone's `282cfb7d`, its first (`10.5-iv-b-ii`) — because a
+// build on that platform carries — since `10.9c` (the camera module, `applinks:` and the
+// link filter) Android's `d56bd2cc` and the iPhone's build made from the same commit
+// (before them, `2b638d21` and `282cfb7d`) — because a
 // change that moves either strands every update to that platform until a new build,
 // and `ship-an-update.sh` then leaves it out without failing, as
 // `docs/checks/wera-runtime.sh` holds Wera's. A new build moves its pin, in the PR
@@ -47,15 +48,18 @@ const FIREBASE = join(ROOT, 'google-services.json');
 const STAND_IN_KEY = 'clave-de-prueba-10-2a';
 const STAND_IN_IOS_KEY = 'clave-de-prueba-10-5-iv-a-i';
 
-/** The runtime of build `2b638d21`, Itacate's Android test build — read off the update that reached it (`10.5-iii-b`). */
-const RUNTIME_DE_SU_BUILD_ANDROID = '4de35b0b452e9511322b8cd61b27f70508aa8d3d';
+/**
+ * The runtime of build `d56bd2cc`, Itacate's Android test build of `10.9c` — computed on this Mac and by EAS for the
+ * build, the same (2026-11-18). Before it, `2b638d21`'s `4de35b0b…`.
+ */
+const RUNTIME_DE_SU_BUILD_ANDROID = '09c70deda1bbdab406dfca8d183c60ecf0dc355e';
 
 /**
- * The runtime of build `282cfb7d`, Itacate's first iPhone test build (1.0.0 build 2, from
- * `785299b`) — read inside it (`EXUpdates.bundle/fingerprint`) and asked of EAS by
- * `ship-an-update.sh --check`, 2026-11-09 (`10.5-iv-b-ii`).
+ * The runtime of Itacate's iPhone test build of `10.9c` — computed on this Mac and by EAS from the same commit
+ * (2026-11-18; the first try, `ab888164`, stopped at signing: its profile had no Associated Domains, which only an
+ * Apple sign-in adds). Before it, `282cfb7d`'s `a46650e4…`.
  */
-const RUNTIME_DE_SU_BUILD_IOS = 'a46650e4f82ec3cc449c889691c14027409f6f7f';
+const RUNTIME_DE_SU_BUILD_IOS = 'f3ddd6883919bf584573e8fae6bc95e458982161';
 
 function npx(args: string[], withSecrets: boolean): string {
   const env = { ...process.env };

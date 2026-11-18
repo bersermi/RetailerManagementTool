@@ -14,12 +14,22 @@
 #   2. ⚠️ Anything left in `{{ … }}` after filling. A page that says `{{DOMICILIO}}`
 #      to a shopkeeper is a published aviso that names nobody.
 #   3. A placeholder filled fewer times than the source holds it.
-#   4. Anything that loads from another site: a <script>, or a src / stylesheet href
-#      that leaves the page. The pages promise *"Este sitio no usa cookies ni
+#   4. Anything that loads from another site: a <script src>, or a src / stylesheet
+#      href that leaves the page. The pages promise *"Este sitio no usa cookies ni
 #      herramientas de analítica"*, and a third-party load is how that becomes false.
+#      ⚠️ Since `10.9c` ONE page may carry ONE inline script — `cocina/index.html`, a
+#      kitchen's address, which reads her name from the link (G40: nothing is
+#      readable without an account) — and that script may only read the address bar:
+#      a request, storage, a cookie or writing HTML into the page is refused.
 #   5. An internal link or #anchor that does not resolve inside the output.
 #   6. No page at the root (the *Wera* mark on every page links there), or
 #      `site/README.md` in the output (it is notes for this repository, not a page).
+#   7. ⚠️ `10.9c`: the two files that hand a kitchen's address to Itacate —
+#      `.well-known/apple-app-site-association` (no extension: the iPhone asks for
+#      that name) and `.well-known/assetlinks.json` — missing from the output, or not
+#      JSON of the shape each phone reads. `.well-known/` is the one dot-folder copied;
+#      `site.yml` uploads it with `include-hidden-files`, which GitHub's upload drops
+#      without.
 #
 # Values are HTML-escaped as they go in.
 #
@@ -69,7 +79,8 @@ if len(values) == 2:
 # Copy everything but this repository's notes and dotfiles, filling the pages.
 expected, filled = {}, {}
 for root, dirs, files in os.walk(src):
-    dirs[:] = [d for d in dirs if not d.startswith(".")]
+    # `.well-known/` alone of the dot-folders (7): the phones' association files.
+    dirs[:] = [d for d in dirs if not d.startswith(".") or (root == src and d == ".well-known")]
     for f in files:
         if f.startswith(".") or (root == src and f == "README.md"):
             continue
@@ -120,14 +131,26 @@ for name in ("RESPONSABLE", "DOMICILIO"):
 # 4 and 5. What each page loads and links to.
 class Refs(HTMLParser):
     def __init__(self):
-        super().__init__(); self.refs = []; self.ids = set(); self.scripts = 0
+        super().__init__(); self.refs = []; self.ids = set(); self.scripts = 0; self.code = []; self._in = False
     def handle_starttag(self, tag, attrs):
         a = dict(attrs)
         if "id" in a: self.ids.add(a["id"])
-        if tag == "script": self.scripts += 1
+        if tag == "script":
+            self.scripts += 1; self._in = True
         for k in ("src", "href"):
             if a.get(k) is not None:
                 self.refs.append((tag, k, a[k], a.get("rel", "")))
+    def handle_endtag(self, tag):
+        if tag == "script": self._in = False
+    def handle_data(self, data):
+        if self._in: self.code.append(data)
+
+# 4. The one page that may carry a script, and what its script may never do.
+SCRIPT_PAGES = {os.path.join("cocina", "index.html")}
+FORBIDDEN_IN_SCRIPT = re.compile(
+    r"\b(fetch|XMLHttpRequest|sendBeacon|WebSocket|EventSource|cookie|localStorage|sessionStorage|"
+    r"indexedDB|caches|serviceWorker|import|eval|Function|innerHTML|outerHTML|insertAdjacentHTML|write|open|"
+    r"postMessage|location\.(href|assign|replace))\b")
 
 parsed = {}
 for p in pages:
@@ -137,8 +160,17 @@ external = 0
 broken = 0
 for p, r in parsed.items():
     rel = os.path.relpath(p, out)
-    if r.scripts:
+    if r.scripts and rel not in SCRIPT_PAGES:
         fail(f"{rel} carries a <script>"); external += 1
+    elif r.scripts > 1:
+        fail(f"{rel} carries {r.scripts} scripts — one at most"); external += 1
+    elif r.scripts:
+        bad = sorted(set(m.group(0) for m in FORBIDDEN_IN_SCRIPT.finditer("".join(r.code))))
+        if bad:
+            fail(f"{rel}'s script uses {', '.join(bad)} — it may only read the address bar"); external += 1
+    for tag, k, v, relattr in r.refs:
+        if tag == "script" and k == "src":
+            fail(f"{rel} loads a script from {v} — the one script is inline"); external += 1
     for tag, k, v, relattr in r.refs:
         leaves = re.match(r"^(https?:)?//", v) is not None
         if leaves and (k == "src" or tag == "link"):
@@ -155,9 +187,38 @@ for p, r in parsed.items():
         elif frag and target.endswith(".html") and frag not in parsed[target].ids:
             fail(f"{rel} links to {v}, and that page has no id {frag!r}"); broken += 1
 if not external:
-    ok("nothing loads from another site, and no page carries a script")
+    ok("nothing loads from another site, and no page but cocina/ carries a script — its one reads only the address bar")
 if not broken:
     ok("every internal link and #anchor resolves inside the output")
+
+# 7. The phones' association files.
+import json
+aasa = os.path.join(out, ".well-known", "apple-app-site-association")
+links = os.path.join(out, ".well-known", "assetlinks.json")
+for path, name in ((aasa, "apple-app-site-association"), (links, "assetlinks.json")):
+    if not os.path.isfile(path):
+        fail(f".well-known/{name} is not in the output — a kitchen's address would open the browser, never Itacate")
+try:
+    d = json.load(open(aasa, encoding="utf-8")) if os.path.isfile(aasa) else None
+    if d is not None:
+        det = d["applinks"]["details"]
+        assert det and all(x["appIDs"] and x["components"] for x in det)
+        ok(f".well-known/apple-app-site-association is JSON with {sum(len(x['appIDs']) for x in det)} app id(s)")
+except Exception as e:
+    fail(f".well-known/apple-app-site-association is not what an iPhone reads: {e!r}")
+try:
+    d = json.load(open(links, encoding="utf-8")) if os.path.isfile(links) else None
+    if d is not None:
+        assert isinstance(d, list) and d
+        fp = re.compile(r"^([0-9A-F]{2}:){31}[0-9A-F]{2}$")
+        for x in d:
+            t = x["target"]
+            assert "delegate_permission/common.handle_all_urls" in x["relation"] and t["namespace"] == "android_app"
+            assert t["package_name"] and t["sha256_cert_fingerprints"]
+            assert all(fp.match(f) for f in t["sha256_cert_fingerprints"]), "a fingerprint is not 32 upper-case hex pairs"
+        ok(f".well-known/assetlinks.json is JSON with {sum(len(x['target']['sha256_cert_fingerprints']) for x in d)} key(s)")
+except Exception as e:
+    fail(f".well-known/assetlinks.json is not what Android reads: {e!r}")
 
 print()
 if fails:

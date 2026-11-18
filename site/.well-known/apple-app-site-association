@@ -1,0 +1,12 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["RGWA74UM3G.mx.wera.vecino"],
+        "components": [
+          { "/": "/cocina/*", "comment": "La página de una cocina abre Itacate (plan 10.9c)." }
+        ]
+      }
+    ]
+  }
+}
