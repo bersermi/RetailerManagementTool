@@ -374,3 +374,12 @@ longer does (it never named *Te lo compro*); *Data safety* keeps its ten types a
 *Photos* and *Address* rows above say why); the content rating, the target audience, the ads and the
 app access answers are unchanged. The screenshots stay 1.0's of 2026-10-21 — not compared screen by
 screen with 1.1's; new ones, styled, are `5R-q`'s (his word, 2026-11-18), taken by `README.md`'s recipe.
+
+**Play's warning on *Publishing overview*, seen by him with 1.1 on 2026-11-18** — *Required hardware feature
+declarations are restricting your app's availability*: `android.hardware.screen.portrait` and
+`android.hardware.wifi`. Neither is declared; Android implies both — the first from the portrait lock
+(`"orientation": "portrait"` in `app/app.json`), the second from `ACCESS_WIFI_STATE`. 1.0 carries the
+same two (its bundle read with `aapt2` the same day: no `uses-feature` line, the same permission and
+orientation), so 1.1 restricts no device 1.0 did not. A warning, not a refusal: the release goes ahead.
+Marking them optional is a manifest change, so a native build — worth it only if a device a shop uses
+is ever refused.
