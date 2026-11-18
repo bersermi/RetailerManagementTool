@@ -651,8 +651,9 @@ select public.chk('9.3 a line with nothing reserved goes to zero; the soup, one 
 select public.chk('9.4 a half, a thousand and a line the offer lacks are each 22023',
   :'qty_half' = '22023' and :'qty_big' = '22023' and :'qty_no_line' = '22023',
   format('%s %s %s', :'qty_half', :'qty_big', :'qty_no_line'));
-select public.chk('9.5 a cook cannot, another kitchen''s owner cannot (42501), and a withdrawn offer is not on offer (TD015)',
-  :'qty_cook' = '42501' and :'qty_not_hers' = '42501' and :'qty_withdrawn' = 'TD015',
+-- ⚠️ 0082 (`10.9b-i`, G36): a cook — a helper — says how many are left too.
+select public.chk('9.5 a cook may too since 0082 (G36); another kitchen''s owner cannot (42501), and a withdrawn offer is not on offer (TD015)',
+  :'qty_cook' = 'ok' and :'qty_not_hers' = '42501' and :'qty_withdrawn' = 'TD015',
   format('%s %s %s', :'qty_cook', :'qty_not_hers', :'qty_withdrawn'));
 
 -- ---- 10. the fonda's read, under the ordinary walls --------------------------------------

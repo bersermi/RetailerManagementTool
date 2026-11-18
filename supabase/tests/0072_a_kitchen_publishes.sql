@@ -287,12 +287,14 @@ select public._try(format('select public.publish_listing(%L, %L, %L, %L, %L)', :
 reset role;
 select public.chk('4.4 a manager publishes (question 3)',
   :'mgr_pub' = 'ok' and exists (select 1 from public.listing where id = :p2), :'mgr_pub');
-select public.chk('4.5 ⚠️ a cook does not — 42501, nothing written',
-  :'staff_pub' = '42501' and not exists (select 1 from public.listing where id = :p3), :'staff_pub');
-select public.chk('4.6 ⚠️ a shop does not publish until Ofrecer — TD013, nothing written',
-  :'shop_pub' = 'TD013' and not exists (select 1 from public.listing where id = :p3), :'shop_pub');
+-- ⚠️ 0082 (`10.9b-i`, the owner's ruling G36 of 2026-11-17): a cook — a helper, `staff` —
+-- publishes too. Until 0082 this check said she did not (question 3, 2026-10-28).
+select public.chk('4.5 ⚠️ a cook publishes too, since 0082 (G36) — the publication is hers',
+  :'staff_pub' = 'ok' and exists (select 1 from public.listing where id = :p3 and created_by = :cocinera), :'staff_pub');
+select public.chk('4.6 ⚠️ a shop does not publish until Ofrecer — TD013, nothing of the shop''s written',
+  :'shop_pub' = 'TD013' and not exists (select 1 from public.listing where created_by = :tendera), :'shop_pub');
 select public.chk('4.7 ⚠️ nor at a kitchen that is not hers — 42501',
-  :'shop_at_kitchen' = '42501' and not exists (select 1 from public.listing where id = :p3), :'shop_at_kitchen');
+  :'shop_at_kitchen' = '42501' and not exists (select 1 from public.listing where created_by = :tendera), :'shop_at_kitchen');
 
 select set_config('request.jwt.claims', format('{"sub":"%s","role":"authenticated"}', :otra), true);
 set local role authenticated;
@@ -344,9 +346,9 @@ select public.chk('4.11 half a comida, a usual price not above the price, a tag 
 select public.chk('4.12 a window that has ended, lasts over twelve hours, starts over a day ahead, or runs backwards — 22023',
   :'m_ended' = '22023' and :'m_long' = '22023' and :'m_far' = '22023' and :'m_backwards' = '22023',
   format('%s %s %s %s', :'m_ended', :'m_long', :'m_far', :'m_backwards'));
-select public.chk('4.13 and none of those wrote anything',
+select public.chk('4.13 and none of those wrote anything — the kitchen holds the owner''s, the manager''s and, since 0082, the cook''s',
   not exists (select 1 from public.listing where id = :pz)
-  and (select count(*) = 2 from public.listing where workspace_id = :'ws_c'));
+  and (select count(*) = 3 from public.listing where workspace_id = :'ws_c'));
 
 select set_config('request.jwt.claims', format('{"sub":"%s","role":"authenticated"}', :fonda), true);
 set local role authenticated;
@@ -392,12 +394,12 @@ reset role;
 select (select count(*) from public.listing where workspace_id = :'ws_c') as all_l,
        (select count(*) from public.listing_line where workspace_id = :'ws_c') as all_ll \gset
 select public.chk('5.1 the owner reads every publication of her kitchens, and every line',
-  :own_l = :all_l and :own_ll = :all_ll and :all_l = 4 and :all_ll = 5,
+  :own_l = :all_l and :own_ll = :all_ll and :all_l = 5 and :all_ll = 6,  -- the cook's one-line offer since 0082
   format('owner %s/%s of %s/%s', :own_l, :own_ll, :all_l, :all_ll));
 select public.chk('5.2 so does a manager',
   :mgr_l = :all_l and :mgr_ll = :all_ll, format('%s/%s', :mgr_l, :mgr_ll));
 select public.chk('5.3 ⚠️ a cook reads her own kitchen''s and none of the other branch''s',
-  :c1_l = 3 and :c1_ll = 4 and :c1_other = 0, format('%s/%s, other branch %s', :c1_l, :c1_ll, :c1_other));
+  :c1_l = 4 and :c1_ll = 5 and :c1_other = 0, format('%s/%s, other branch %s', :c1_l, :c1_ll, :c1_other));
 select public.chk('5.4 ⚠️ and the other branch''s cook reads only hers',
   :c2_l = 1 and :c2_ll = 1, format('%s/%s', :c2_l, :c2_ll));
 select public.chk('5.5 ⚠️ a shop''s owner reads nothing of a kitchen''s',
@@ -416,8 +418,9 @@ select public._try(format('select public.withdraw_listing(%L)', :p1)) as shop_wd
 select set_config('request.jwt.claims', format('{"sub":"%s","role":"authenticated"}', :gerente), true);
 select public._try(format('select public.withdraw_listing(%L)', :p1)) as mgr_wd \gset
 reset role;
-select public.chk('6.1 ⚠️ a cook cannot take a publication down — 42501',
-  :'staff_wd' = '42501', :'staff_wd');
+-- ⚠️ 0082 (G36): taking down what is published (*Deshacer*, *Ya se terminó*) is publishing's.
+select public.chk('6.1 ⚠️ a cook takes a publication down too, since 0082 (G36)',
+  :'staff_wd' = 'ok', :'staff_wd');
 select public.chk('6.2 ⚠️ nor can a shop''s owner — 42501',
   :'shop_wd' = '42501', :'shop_wd');
 select public.chk('6.3 a manager takes it down',

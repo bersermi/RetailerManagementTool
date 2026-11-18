@@ -654,9 +654,10 @@ describe('`10.5b-iv-c`: a count of zero, and − and +', () => {
     expect(listingsFrom([zero]).map((l) => l.lines[0].count)).toEqual([0]);
   });
 
-  it('names the function and its arguments as `0079` writes them; the answer’s two keys', () => {
+  // ⚠️ `0082` (`10.9b-i`) re-made it with `create or replace`, its arguments and its answer unchanged.
+  it('names the function and its arguments as the migration that makes it last writes them; the answer’s two keys', () => {
     expect(SET_LISTING_QUANTITY).toBe('set_listing_quantity');
-    expect(SET).toMatch(/create function public\.set_listing_quantity\(\s*p_listing_id uuid,\s*p_line_no\s+integer,\s*p_quantity\s+numeric\s*\)/);
+    expect(SET).toMatch(/create (or replace )?function public\.set_listing_quantity\(\s*p_listing_id uuid,\s*p_line_no\s+integer,\s*p_quantity\s+numeric\s*\)/);
     expect(Object.keys(setQuantityArgs('l', 2, 3))).toEqual(['p_listing_id', 'p_line_no', 'p_quantity']);
     expect(SET).toContain("return jsonb_build_object('quantity', p_quantity::numeric(12,3)::text,");
     expect(SET).toContain("'taken', v_taken::numeric(12,3)::text);");

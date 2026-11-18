@@ -373,7 +373,8 @@ follows it, as `itacate/CLAUDE.md`'s does:
   (`10.9a`, `10.9b`); **three tabs for every kitchen**, *Clientes* gone (`10.9a`); *Hoy* gains a half-width tile per feature
   she uses, in a fixed order, and *Tu página · 4 de 5* gives way to one quiet nudge line (`10.9a`, built by `10.9a-iii`); *Mi cocina* gains *Lo que
   usas* and *Quién trabaja aquí* (`10.9a`, `10.9b`); **a helper — the database's *staff* — publishes and hands over**
-  (`10.9b`); a camera module to scan, and printing and sharing for the counter poster, arrive with a new store build
+  (`10.9b`; the database lets her since `0082`, `10.9b-i`: `publish_listing`, `withdraw_listing`, `set_listing_quantity` ask `staff` at a
+  kitchen, and `leave_kitchen` is *Salir de esta cocina*; her screens are `10.9b-ii`, joining by a code `10.9b-iii`, which waits on his ruling); a camera module to scan, and printing and sharing for the counter poster, arrive with a new store build
   (`10.9c`). A service never lives in two places: its tile on *Hoy* opens its one screen. ⚠️ **`10.9a` split in three on 2026-11-17**: the database
   and both apps' claims (`10.9a-i`, built — `@/api/servicios`), the first run's third step and *Lo que usas* (`10.9a-ii`, built — the section *Her
   choices* below), *Hoy*'s tiles and the nudges (`10.9a-iii`, built — the section *The nudges and the firsts* below).
