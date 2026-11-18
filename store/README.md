@@ -154,8 +154,8 @@ which has one store, so its owner sees *Cobrar*.
   section on the store build is replaced by what that bundle says, read the same way.
 - **The mark or a colour**: edit `brand/wera-mark.svg` or `brand/render-icons.sh`, run the
   script, and make new builds; an icon cannot go over the air.
-- **`8g`** (the owner's review): new screenshots, and the descriptions read again. That is
-  `5R-d-iv-c`.
+- **New screenshots, styled, and the descriptions read again with him**: `5R-q` (his word,
+  2026-11-18; the descriptions were `5R-d-iv-c`'s). The pictures are taken by the recipe above.
   Google's *account creation methods* stay *OAuth*.
 - **The ⛔ question about the daily count**: ruled the other way, *Analytics* comes off the
   purchase history in both stores' forms.
