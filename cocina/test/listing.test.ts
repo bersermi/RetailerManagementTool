@@ -525,15 +525,16 @@ describe('the screens’ wiring, read as text', () => {
     expect(repetir).toMatch(/if \(kitchen === null \|\| busyId !== null\) return;/);
   });
 
+  // ⚠️ `10.9a-iii`: her very first is *¡Ya te ven en Itacate!* in the green — with the same *Deshacer*.
   it('published, she goes back with Publicaste … and Deshacer, which takes that publication down', () => {
     const screen = code('app/(cocina)/publicar.tsx');
     const sent = screen.indexOf('await publish(publishArgs(attempt.current, body)');
-    const told = screen.indexOf('avisarPublicada(ES.nota.publicaste(nombreDe({ lines: body.p_lines })), kitchen.id, id)');
+    const told = screen.indexOf('avisarPublicada(estreno ? ES.festejo.oferta : ES.nota.publicaste(nombreDe({ lines: body.p_lines })), kitchen.id, id, estreno)');
     expect(sent).toBeGreaterThan(-1);
     expect(told).toBeGreaterThan(sent);
     expect(screen.indexOf('salir();', told)).toBeGreaterThan(told);
     expect(screen).toMatch(/const id = attempt\.current\.id;/);
-    expect(code('lib/NotaProvider.tsx')).toMatch(/avisarPublicada: \(texto, kitchenId, listingId\) => mostrar\(texto, \(\) => quitar\(kitchenId, listingId\)\)/);
+    expect(code('lib/NotaProvider.tsx')).toMatch(/avisarPublicada: \(texto, kitchenId, listingId, festejo = false\) => mostrar\(texto, \(\) => quitar\(kitchenId, listingId\), festejo\)/);
     expect(code('api/hooks.ts')).toMatch(/mutationFn: \(input: \{ kitchenId: string; id: string \}\) => withdrawListing\(\{ p_id: input\.id \}\)/);
   });
 });

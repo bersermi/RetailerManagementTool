@@ -9,6 +9,8 @@ import { MENU_MAXIMO, NADA, SERVICIOS, type LoQueUsa } from '@/api/servicios';
 import {
   ICONO_DE,
   PANTALLA_DE,
+  PASOS_DE,
+  mosaicosDe,
   PREPARAR,
   construidos,
   cuentanosEnHoy,
@@ -229,8 +231,48 @@ describe('the words — the ruled ones, and the drawing’s', () => {
     expect(ES.cuentanos).toMatchObject({ titulo: 'Cuéntanos cómo necesitas tu menú', gracias: 'Gracias, lo leemos todo' });
   });
 
-  it('every feature’s picture is in the icon set the app draws with', () => {
+  it('every feature’s picture is in the icon set the app draws with — and `10.9a-iii`’s three per *Así funciona*', () => {
     for (const s of SERVICIOS) expect(GLYPHS[ICONO_DE[s]], ICONO_DE[s]).toBeTypeOf('number');
+    for (const icono of Object.values(PASOS_DE).flat()) expect(GLYPHS[icono], icono).toBeTypeOf('number');
+    for (const [s, pasos] of Object.entries(ES.asiFunciona.pasos)) expect(PASOS_DE[s as Elegible]).toHaveLength(pasos.length);
+  });
+});
+
+describe('`10.9a-iii`: *Hoy*’s tiles — one per feature she uses that this build carries, in the fixed order', () => {
+  const pantallas: Pantallas = { tarjeta: '/tarjeta' as never, numeros: '/numeros' as never };
+  const usa = (...on: Elegible[]): LoQueUsa =>
+    loQueUsa({
+      ofrecidos: ['tarjeta', 'promociones', 'numeros'],
+      elecciones: Object.fromEntries(on.map((s) => [s, { estado: 'on', desde: DESDE }])),
+    });
+
+  it('none today: nothing is built; none unread', () => {
+    expect(mosaicosDe(usa('tarjeta', 'promociones', 'numeros'))).toEqual([]);
+    expect(mosaicosDe(undefined, {}, pantallas)).toEqual([]);
+  });
+
+  it('only what she uses AND this build carries, card before numbers whatever she picked first; first-time until its row hands its words', () => {
+    expect(mosaicosDe(usa('numeros', 'tarjeta', 'promociones'), {}, pantallas)).toEqual([
+      { servicio: 'tarjeta', abre: '/tarjeta', vivo: null },
+      { servicio: 'numeros', abre: '/numeros', vivo: null },
+    ]);
+    const vivo = { valor: '6 sellos hoy', detalle: '2 premios por entregar', porHacer: true };
+    expect(mosaicosDe(usa('tarjeta'), { tarjeta: vivo }, pantallas)).toEqual([{ servicio: 'tarjeta', abre: '/tarjeta', vivo }]);
+    // Off, *interesada*, or switched off by Wera: no tile.
+    const apagada = loQueUsa({ ofrecidos: ['numeros'], elecciones: { tarjeta: { estado: 'on', desde: DESDE }, numeros: { estado: 'off', desde: DESDE } } });
+    expect(mosaicosDe(apagada, {}, pantallas)).toEqual([]);
+  });
+
+  it('a feature picked and not set up says what it asks — the page’s words', () => {
+    expect(ES.mosaicos.primera).toEqual({
+      tarjeta: ['Prepara tu tarjeta', 'Tu premio y cuántos sellos'],
+      promociones: ['Crea tu primera promoción', 'Algo nuevo, de temporada o tu día'],
+      numeros: ['Empiezan con tu primera entrega', 'Se llenan solos'],
+    });
+    const tile = code('ui/Mosaicos.tsx');
+    expect(tile).toMatch(/onPress=\{\(\) => router\.push\(mosaico\.abre\)\}/);
+    expect(tile).toMatch(/borderStyle: primera \? 'dashed' : 'solid'/);
+    expect(code('app/(cocina)/(tabs)/index.tsx')).toMatch(/const mosaicos = mosaicosDe\(servicios\.data\);/);
   });
 });
 

@@ -3,6 +3,7 @@ import { Tabs } from 'expo-router/js-tabs';
 import { useApartadosAlDia, useKitchen, usePlace } from '@/api/hooks';
 import { ordenesDe, porCalificar } from '@/lib/apartados';
 import { RecordatorioProvider } from '@/lib/RecordatorioProvider';
+import { useFestejos } from '@/lib/useFestejos';
 import { useAhora } from '@/lib/useAhora';
 import { useDondeEstaSuCocina } from '@/lib/useGoogle';
 import { EN_USO } from '@/navigation/pestanas';
@@ -39,11 +40,16 @@ import { Pestanas } from '@/ui/Pestanas';
 // one sheet both open, what her phone schedules and a tap that opens *Publicar* are held
 // above the two. When the tabs leave — she signed out, her kitchen was deleted — her
 // reminders are cancelled with them.
+//
+// ⚠️ `10.9a-iii`: AND HER FIRST RESERVATION AND FIRST HANDOVER ARE CELEBRATED HERE (`@/lib/useFestejos`),
+// on the same read — once, on this phone, from any tab or screen over them.
 // ============================================================================
 export default function TabsDeCocina() {
   useRefrescoDeSuPunto();
   const kitchen = useKitchen();
-  const cuentas = useCuentas(kitchen?.id ?? null);
+  const apartados = useApartadosAlDia(kitchen?.id ?? null);
+  const cuentas = useCuentas(apartados.data);
+  useFestejos(kitchen?.id ?? null, apartados.data?.reservas);
   return (
     <RecordatorioProvider kitchenId={kitchen?.id ?? null}>
       <Tabs screenOptions={{ headerShown: false }} tabBar={(props) => <Pestanas {...props} cuentas={cuentas} />}>
@@ -60,10 +66,8 @@ export default function TabsDeCocina() {
  * calificar with a count on the tab*). Read here, always mounted, from the same query the tab
  * reads — one request — and with the clock, so a window's end adds to it on its own.
  */
-function useCuentas(kitchenId: string | null): { readonly apartados: number } {
-  const apartados = useApartadosAlDia(kitchenId);
+function useCuentas(datos: ReturnType<typeof useApartadosAlDia>['data']): { readonly apartados: number } {
   const ahora = useAhora(60_000);
-  const datos = apartados.data;
   return { apartados: datos === undefined ? 0 : porCalificar(ordenesDe(datos.reservas, datos.vecinos, ahora), ahora) };
 }
 

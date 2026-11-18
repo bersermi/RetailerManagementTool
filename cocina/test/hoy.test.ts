@@ -16,7 +16,6 @@ import {
   deshecha,
   diaDe,
   estadoDe,
-  faltaDeLaPagina,
   faltaTexto,
   faltanDe,
   fraccionDe,
@@ -344,11 +343,16 @@ describe('Tu página en Itacate — its checklist, five things', () => {
     expect(faltanDe(estadoDe({ ...todo, listings: [deshecha] }))).toEqual(['oferta']);
   });
 
-  it('the door’s line names one or two, and counts three or more', () => {
-    expect(faltaDeLaPagina(['portada'])).toBe('Falta tu foto de portada');
-    expect(faltaDeLaPagina(['frase', 'portada'])).toBe('Faltan tu frase y tu foto de portada');
-    expect(faltaDeLaPagina(['direccion', 'frase', 'portada'])).toBe('Faltan 3 cosas');
-    expect(ES.pendientes.cuenta(3, 5)).toBe('3 de 5');
+  it('⚠️ `10.9a-iii`: no count anywhere — each part missing is a *Falta* row in *Mi cocina*, opening where it is done', () => {
+    // *Tu página · N de 5* and every count of what she has not done went (his ruling of 2026-11-17).
+    expect(Object.keys(ES.pendientes).sort()).toEqual(['falta', 'item', 'paraTuPagina']);
+    expect([ES.pendientes.falta, ES.pendientes.paraTuPagina]).toEqual(['Falta', 'Para tu página en Itacate']);
+    const falta = code('ui/Falta.tsx');
+    expect(falta).toMatch(/\{faltan\.map\(\(pendiente, i\) => \{/);
+    expect(falta).toMatch(/onPress=\{\(\) => router\.push\(DONDE_SE_HACE\[pendiente\]\)\}/);
+    expect(falta).not.toMatch(/PENDIENTES|width: `/);
+    const mi = code('app/(cocina)/(tabs)/mi-cocina.tsx');
+    expect(mi).toMatch(/\{faltan\.length > 0 && \(\s*<Llega i=\{1\}>\s*<Falta faltan=\{faltan\} \/>/);
   });
 });
 
@@ -410,8 +414,8 @@ const code = (path: string) =>
 describe('Hoy — a hub: a number and a door in each zone, nothing edited in place', () => {
   const hoy = code('app/(cocina)/(tabs)/index.tsx');
 
-  it('the day’s card first, opening Tus ofertas; then Lo que sigue; then Publicar with Repetir; then the doors', () => {
-    const order = ['<DiaDeHoy', '<LoQueSigue', 'ES.publicar.abrir', 'chips.map(', '<Puertas'].map((s) => hoy.indexOf(s));
+  it('the day’s card first, opening Tus ofertas; its one line; then Lo que sigue; then Publicar with Repetir; then the tiles', () => {
+    const order = ['<DiaDeHoy', '<LineaEmpujon', '<LoQueSigue', 'ES.publicar.abrir', 'chips.map(', '<Mosaicos'].map((s) => hoy.indexOf(s));
     expect(order.every((at) => at > 0)).toBe(true);
     expect([...order].sort((a, b) => a - b)).toEqual(order);
     // `10.5b-iv-a`: the card is handed what is taken once her reservations are read, and `null` until then.
@@ -427,10 +431,12 @@ describe('Hoy — a hub: a number and a door in each zone, nothing edited in pla
     expect(hoy).not.toMatch(/useWithdraw|TextInput|<Campo|<Portada|<Salidas/);
   });
 
-  it('the page’s door waits for every read it counts, and its ✕ closes it with Deshacer', () => {
-    expect(hoy).toMatch(/if \(!cerrada && listings\.data !== undefined && place\.data !== undefined && page\.data !== undefined\)/);
-    expect(hoy).toMatch(/onCerrar: \(\) => \{\s*setCerrada\(true\);\s*avisar\(ES\.nota\.paginaCerrada, \(\) => setCerrada\(false\)\);\s*\}/);
-    expect(hoy).toMatch(/onPress: \(\) => router\.navigate\('\/mi-cocina'\)/);
+  it('⚠️ `10.9a-iii`: no door with a count; her page’s line waits for every read it counts, and its ✕ ends it with Deshacer', () => {
+    expect(hoy).not.toMatch(/<Puertas|ES\.pendientes|faltaDeLaPagina/);
+    expect(hoy).toMatch(/place\.data === undefined \|\| page\.data === undefined \|\| listings\.data === undefined\s*\?\s*null/);
+    expect(hoy).toMatch(/if \(linea\.kind === 'pagina'\) \{\s*setCerrada\(true\);\s*avisar\(ES\.nota\.paginaCerrada, \(\) => setCerrada\(false\)\);\s*return;\s*\}/);
+    // Until her first offer the invitation takes the day's card's place, and opens Publicar.
+    expect(hoy).toMatch(/\{vista\?\.invitacion \? \(\s*<Invitacion onPress=\{\(\) => router\.push\('\/publicar'\)\} \/>\s*\) : listings\.data !== undefined \? \(/);
   });
 });
 

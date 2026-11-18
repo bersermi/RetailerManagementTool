@@ -1,31 +1,35 @@
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { router } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 
 import { useApartados, useContarMenu, useKitchen, useKitchenGiros, useListings, usePage, usePlace, useServicios } from '@/api/hooks';
 import { giroLabel, type Kitchen } from '@/api/kitchen';
 import { addressComplete } from '@/api/place';
 import { entregadosHoy, loQueSigue, ordenesDe, tomadosDe } from '@/lib/apartados';
-import { chipDe, diaDe, estadoDe, faltaDeLaPagina, faltanDe, nombreDe, repetibles, PENDIENTES } from '@/lib/hoy';
-import { cuentanosEnHoy } from '@/lib/loQueUsas';
+import { cerrarServicio, useMemoria, verHoy, type Linea } from '@/lib/empujones';
+import { chipDe, diaDe, estadoDe, ICONO_DE_PENDIENTE, nombreDe, repetibles } from '@/lib/hoy';
+import { cuentanosEnHoy, ICONO_DE, mosaicosDe } from '@/lib/loQueUsas';
 import { useNota } from '@/lib/NotaProvider';
 import { useRecordatorio } from '@/lib/RecordatorioProvider';
 import { preguntar } from '@/lib/recordatorio';
 import { usePuertaCerrada } from '@/lib/puerta';
 import { useAhora } from '@/lib/useAhora';
+import { useAlAbrir } from '@/lib/useGoogle';
 import { useRepetir } from '@/lib/useRepetir';
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
 import { Banda } from '@/ui/Banda';
 import { BotonLleno } from '@/ui/BotonLleno';
+import { Brillo } from '@/ui/Brillo';
 import { HojaCuentanos, LineaCuentanos } from '@/ui/Cuentanos';
-import { DiaDeHoy } from '@/ui/DiaDeHoy';
+import { DiaDeHoy, Invitacion } from '@/ui/DiaDeHoy';
 import { LeyendoCocina } from '@/ui/LeyendoCocina';
+import { LineaEmpujon } from '@/ui/LineaEmpujon';
 import { Llega } from '@/ui/Llega';
 import { LoQueSigue } from '@/ui/LoQueSigue';
+import { Mosaicos } from '@/ui/Mosaicos';
 import { PreguntaRecordatorio } from '@/ui/PreguntaRecordatorio';
-import { Puertas, type PuertaDeHoy } from '@/ui/Puertas';
 import { SinSenal } from '@/ui/SinSenal';
 
 // ============================================================================
@@ -34,16 +38,21 @@ import { SinSenal } from '@/ui/SinSenal';
 // for them to easily reach the main actions with some indicators such as remaining
 // items"*. Every launch opens here. Top to bottom, each zone a number and a door:
 //   1. THE DAY (`@/ui/DiaDeHoy`) — what is on offer, until when, the time left; the
-//      whole card opens *Tus ofertas*;
+//      whole card opens *Tus ofertas*. ⚠️ `10.9a-iii`: until her first offer, the invitation
+//      instead — *¿Tienes alguna oferta? Publícala y tus vecinos la verán* — opening *Publicar*;
+//   1b. `10.9a-iii`: UNDER IT, AT MOST ONE QUIET LINE (`@/ui/LineaEmpujon`) — her page's next
+//      missing part, or a feature she did not pick; only on a day she published; ✕ with *Deshacer*;
 //   2. *LO QUE SIGUE* (`@/ui/LoQueSigue`, `10.5b-iv-a`) — the next handover, its hour, its
 //      code and what to charge, with *Entregar*, and how many more; drawn only while something
 //      is still to hand over. Since the same row the day's card says what is LEFT, *Quedan 4
 //      de 8*, and how many she handed over, from her reservations (`useApartados`, the same
 //      query the tab reads);
 //   3. THE ONE ACTION — *Publicar una oferta*, and her last day's offers as *Repetir*
-//      chips, one tap each, with *Deshacer* (`@/lib/useRepetir`);
-//   4. THE DOORS (`@/ui/Puertas`) — *Tu página · 3 de 5*, which she closes with its ✕
-//      (*Deshacer* in the toast); the services' cards join as each ships;
+//      chips, one tap each, with *Deshacer* (`@/lib/useRepetir`). `10.9a-iii`: until her first
+//      offer it glows once each time she opens the app, on her first three days (`@/ui/Brillo`);
+//   4. `10.9a-iii`: THE TILES (`@/ui/Mosaicos`) — one per feature she uses, in the fixed order,
+//      each opening its one screen; dashed until set up. NONE TODAY: no feature is built. They
+//      took the place of *Tu página · 3 de 5*, gone with every count of what she has not done;
 //   5. HER REMINDER'S QUESTION, ONCE (`@/ui/PreguntaRecordatorio`, `10.5-v-c-ii`) — after
 //      her third offer, while the rule finds her hour and her days; either answer and it
 //      is gone from this phone, the reminder kept in *Mi cocina*.
@@ -53,6 +62,9 @@ import { SinSenal } from '@/ui/SinSenal';
 //   0. `10.5b-iv-b`: ABOVE THEM, WITH NO SIGNAL OR WHILE ANYTHING WAITS (`@/ui/SinSenal`) — when what
 //      she sees was read, and what is still on the phone to send. Her kitchen, her offers and her
 //      orders are the phone's copy then (`@/api/persist`), so *Lo que sigue* works with no signal.
+// ⚠️ `10.9a-iii`: WHAT THE NUDGES SAY IS `@/lib/empujones`' (`verHoy`), PURE, pinned by
+// `test/empujones.test.ts`; what was seen is kept on this phone, per kitchen, marked once a day
+// from an effect (`registrar`). *Cuéntanos* is a *Próximamente*, not a nudge line.
 // ⚠️ NOTHING ON *HOY* IS EDITED IN PLACE: correcting a count is in *Tus ofertas*.
 // *Así te ven los vecinos* left *Hoy* for *Mi cocina* (his direction).
 //
@@ -66,6 +78,7 @@ import { SinSenal } from '@/ui/SinSenal';
 
 /** How often the clock is read again while *Hoy* is up. */
 const CADA_MEDIO_MINUTO = 30_000;
+
 
 export default function Hoy() {
   const kitchen = useKitchen();
@@ -81,7 +94,10 @@ function HoyDe({ kitchen }: { kitchen: Kitchen }) {
   const listings = useListings(kitchen.id);
   const apartados = useApartados(kitchen.id);
   const ahora = useAhora(CADA_MEDIO_MINUTO);
+  // `10.9a-iii`: her page's line ended with its ✕ — the key her page's door kept since `10.5-v-c-i`.
   const [cerrada, setCerrada] = usePuertaCerrada(kitchen.id);
+  const [memoria, cambiar] = useMemoria(kitchen.id);
+  const abierto = useAlAbrir();
   const { avisar } = useNota();
   const { repetir, busyId } = useRepetir(kitchen);
   const recordatorio = useRecordatorio();
@@ -103,31 +119,42 @@ function HoyDe({ kitchen }: { kitchen: Kitchen }) {
       : { tomados: tomadosDe(apartados.data.reservas), entregados: entregadosHoy(ordenes, ahora) };
   const sigue = ordenes === null ? null : loQueSigue(ordenes, ahora);
 
-  const puertas: PuertaDeHoy[] = [];
-  if (!cerrada && listings.data !== undefined && place.data !== undefined && page.data !== undefined) {
-    const faltan = faltanDe(
-      estadoDe({
-        giro: kitchen.giroPrincipal,
-        direccionCompleta: addressComplete(place.data),
-        frase: page.data.sentence,
-        portada: page.data.cover,
-        listings: listings.data,
-      }),
-    );
-    if (faltan.length > 0) {
-      puertas.push({
-        key: 'pagina',
-        icono: 'storefront-outline',
-        titulo: ES.puertas.pagina,
-        valor: ES.pendientes.cuenta(PENDIENTES.length - faltan.length, PENDIENTES.length),
-        detalle: faltaDeLaPagina(faltan),
-        onPress: () => router.navigate('/mi-cocina'),
-        onCerrar: () => {
-          setCerrada(true);
-          avisar(ES.nota.paginaCerrada, () => setCerrada(false));
-        },
-      });
+  // ⚠️ `10.9a-iii`: the nudges — each waits for the reads it counts.
+  const estado =
+    place.data === undefined || page.data === undefined || listings.data === undefined
+      ? null
+      : estadoDe({
+          giro: kitchen.giroPrincipal,
+          direccionCompleta: addressComplete(place.data),
+          frase: page.data.sentence,
+          portada: page.data.cover,
+          listings: listings.data,
+        });
+  const vista =
+    listings.data === undefined
+      ? null
+      : verHoy(memoria, { listings: listings.data, estado, loQueUsa: servicios.data ?? null, paginaCerrada: cerrada, ahora });
+  // Today's marks — the glow's day, the line's day — once each time what they mark changes.
+  const marca = vista?.marca ?? null;
+  useEffect(() => {
+    if (vista !== null) cambiar(vista.registrar);
+    // `marca` names everything `registrar` marks; the function itself is new on every render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [marca, cambiar]);
+  const mosaicos = mosaicosDe(servicios.data);
+
+  function abrirLinea(linea: Linea) {
+    router.push(linea.abre);
+  }
+
+  function cerrarLinea(linea: Linea) {
+    if (linea.kind === 'pagina') {
+      setCerrada(true);
+      avisar(ES.nota.paginaCerrada, () => setCerrada(false));
+      return;
     }
+    cambiar((m) => cerrarServicio(m, linea.servicio, true));
+    avisar(ES.empujon.servicioQuitado, () => cambiar((m) => cerrarServicio(m, linea.servicio, false)));
   }
 
   return (
@@ -136,7 +163,9 @@ function HoyDe({ kitchen }: { kitchen: Kitchen }) {
       <ScrollView contentContainerStyle={{ padding: SIZE.space * 1.5, paddingBottom: SIZE.space * 8, gap: SIZE.space * 1.5 }}>
         <SinSenal sinSenal={apartados.sinSenal} leidoEn={apartados.leidoEn} porEnviar={apartados.porEnviar} ahora={ahora} />
         <Llega i={0}>
-          {listings.data !== undefined ? (
+          {vista?.invitacion ? (
+            <Invitacion onPress={() => router.push('/publicar')} />
+          ) : listings.data !== undefined ? (
             <DiaDeHoy dia={diaDe(listings.data, ahora, cuentas)} ahora={ahora} onPress={() => router.push('/ofertas')} />
           ) : listings.isError ? (
             <View style={{ gap: SIZE.rowGap }}>
@@ -151,6 +180,15 @@ function HoyDe({ kitchen }: { kitchen: Kitchen }) {
           )}
         </Llega>
 
+        {vista?.linea != null && (
+          <LineaEmpujon
+            icono={vista.linea.kind === 'pagina' ? ICONO_DE_PENDIENTE[vista.linea.pendiente] : ICONO_DE[vista.linea.servicio]}
+            texto={vista.linea.kind === 'pagina' ? ES.empujon.pagina[vista.linea.pendiente] : ES.empujon.servicio[vista.linea.servicio]}
+            onPress={() => abrirLinea(vista.linea as Linea)}
+            onCerrar={() => cerrarLinea(vista.linea as Linea)}
+          />
+        )}
+
         {sigue !== null && (
           <Llega i={1}>
             <LoQueSigue
@@ -164,7 +202,9 @@ function HoyDe({ kitchen }: { kitchen: Kitchen }) {
         )}
 
         <Llega i={2} style={{ gap: SIZE.rowGap + 2 }}>
-          <BotonLleno variante="principal" icon="plus" label={ES.publicar.abrir} onPress={() => router.push('/publicar')} />
+          <Brillo activo={vista?.brilla === true} vez={abierto}>
+            <BotonLleno variante="principal" icon="plus" label={ES.publicar.abrir} onPress={() => router.push('/publicar')} />
+          </Brillo>
           {chips.length > 0 && (
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: SIZE.rowGap, alignItems: 'center' }}>
               <Text style={{ fontSize: SIZE.smallSize, fontWeight: '600', color: PALETTE.tintaApagada }}>{ES.hoy.repetir}</Text>
@@ -204,9 +244,9 @@ function HoyDe({ kitchen }: { kitchen: Kitchen }) {
           )}
         </Llega>
 
-        {puertas.length > 0 && (
+        {mosaicos.length > 0 && (
           <Llega i={3}>
-            <Puertas puertas={puertas} />
+            <Mosaicos mosaicos={mosaicos} />
           </Llega>
         )}
 

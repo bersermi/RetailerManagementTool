@@ -612,7 +612,7 @@ describe('the tab — read again every minute, and its count', () => {
 
   it('the count on Apartados is what waits for her thumb, from the query the tab reads', () => {
     const layout = code('app/(cocina)/(tabs)/_layout.tsx');
-    expect(layout).toMatch(/const apartados = useApartadosAlDia\(kitchenId\);/);
+    expect(layout).toMatch(/const apartados = useApartadosAlDia\(kitchen\?\.id \?\? null\);\s*const cuentas = useCuentas\(apartados\.data\);/);
     expect(layout).toMatch(/porCalificar\(ordenesDe\(datos\.reservas, datos\.vecinos, ahora\), ahora\)/);
     expect(code('ui/Pestanas.tsx')).toMatch(/const cuenta = cuentas\[pestana\.ruta\] \?\? 0;/);
   });

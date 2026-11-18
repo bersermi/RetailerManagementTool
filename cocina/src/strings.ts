@@ -569,20 +569,67 @@ export const ES = {
     yMas: (primero: string, otros: number) => `${primero} y ${otros} más`,
   },
 
-  /** `10.5-v-c-i`: a door on *Hoy*, with its number (the family-shell page's zone 4). */
-  puertas: {
-    pagina: 'Tu página',
-    /** ✕ on a door she may close. */
+  /**
+   * ⚠️ `10.9a-iii`: THE NUDGES (the owner's rulings of 2026-11-16 and 17, round 6 of the grill: *"attractive but
+   * not invasive"*; the family-shell page, round 7). The invitation is his words; the first offer's, the first
+   * reservation's, a feature's lines and the photo's line are the page's drawing; her page's other parts and the
+   * first handover's, decided in this row (the plan's status entry).
+   */
+  invitacion: {
+    titulo: '¿Tienes alguna oferta?',
+    texto: 'Publícala y tus vecinos la verán.',
+  },
+  /** One small celebration per first — the toast in the kitchen's green, with the cow. */
+  festejo: {
+    oferta: '¡Ya te ven en Itacate!',
+    apartado: '¡Tu primer apartado!',
+    entrega: '¡Tu primera entrega!',
+  },
+  /** The one quiet line under the day's card: her page's next missing part, or a feature she did not pick. */
+  empujon: {
+    pagina: {
+      nombreGiro: 'Di qué es tu cocina',
+      direccion: 'Completa tu dirección',
+      frase: 'Escribe la frase de tu página',
+      portada: 'Agrega una foto de tu cocina',
+    },
+    servicio: {
+      tarjeta: '¿Quieres que regresen? Prueba la tarjeta de lealtad',
+      promociones: '¿Algo nuevo que contar? Prueba las promociones',
+      numeros: '¿Quieres saber cómo te va? Mira tus números',
+    },
+    /** Its ✕. */
     quitar: 'Quitar de Hoy',
+    /** The toast after a feature's ✕, with *Deshacer*. */
+    servicioQuitado: 'Lo encuentras en Mi cocina › Lo que usas',
+  },
+  /** *Hoy*'s tiles, one per feature she uses: a feature not set up yet, in its first-time state. */
+  mosaicos: {
+    primera: {
+      tarjeta: ['Prepara tu tarjeta', 'Tu premio y cuántos sellos'],
+      promociones: ['Crea tu primera promoción', 'Algo nuevo, de temporada o tu día'],
+      numeros: ['Empiezan con tu primera entrega', 'Se llenan solos'],
+    },
+    /** What a screen reader says of the dot. */
+    porHacer: 'Por hacer',
+  },
+  /** *Así funciona*, three pictures, the first time she opens a feature (the page's `STRIP`). */
+  asiFunciona: {
+    titulo: 'Así funciona',
+    cerrar: 'Cerrar',
+    pasos: {
+      tarjeta: ['Eliges tu premio y cuántos sellos', 'Te enseñan su código, o escanean el tuyo', 'Al completarla, le das su premio'],
+      promociones: ['Escribes qué ofreces y hasta cuándo', 'Sale en tu página de Itacate', 'Tus ofertas de esos días llevan su marca'],
+      numeros: ['Cada entrega cuenta', 'Ves tus días y tus horas fuertes', 'Y cuántos vecinos regresan'],
+    },
   },
 
   /**
-   * `10.5-v-c-i`: *TU PÁGINA EN ITACATE*'S CHECKLIST — five things, the page's (`pageCard`):
-   * in *Mi cocina* under her page until all five are done, and their count on *Hoy*'s door.
+   * `10.5-v-c-i`: *TU PÁGINA EN ITACATE* — five things, the page's (`pageCard`). ⚠️ Since `10.9a-iii` no count:
+   * *Tu página · N de 5* and every count of what she has not done went (his ruling of 2026-11-17); each part
+   * missing is a row in *Mi cocina* with *Falta* (the page's `faltaRows`), and one quiet line on *Hoy*.
    */
   pendientes: {
-    titulo: 'Tu página en Itacate',
-    cuenta: (hechos: number, de: number) => `${hechos} de ${de}`,
     item: {
       nombreGiro: 'Nombre y giro',
       direccion: 'Tu dirección',
@@ -590,19 +637,8 @@ export const ES = {
       oferta: 'Tu primera oferta',
       portada: 'Foto de portada',
     },
-    /** The same five inside a sentence: *Falta tu foto de portada*. */
-    corto: {
-      nombreGiro: 'qué es tu cocina',
-      direccion: 'tu dirección',
-      frase: 'tu frase',
-      oferta: 'tu primera oferta',
-      portada: 'tu foto de portada',
-    },
-    falta: (que: string) => `Falta ${que}`,
-    faltan: (una: string, otra: string) => `Faltan ${una} y ${otra}`,
-    faltanVarias: (n: number) => `Faltan ${n} cosas`,
-    /** What a screen reader says of one done. */
-    hecho: (que: string) => `${que}: listo`,
+    falta: 'Falta',
+    paraTuPagina: 'Para tu página en Itacate',
   },
 
   /**

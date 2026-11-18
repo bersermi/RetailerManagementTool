@@ -11,7 +11,8 @@
 //     form opens filled in (`planDeRepetir`);
 //   - *TUS OFERTAS* — today's (`deHoy`), then *Anteriores*, one row per offer she made,
 //     the newest first (`anteriores`);
-//   - HER PAGE'S CHECKLIST — five things, the door's count on *Hoy* (`pendientesDe`).
+//   - HER PAGE'S CHECKLIST — five things (`faltanDe`): since `10.9a-iii` no count anywhere — a *Falta* row
+//     in *Mi cocina* for each part missing, and one quiet line on *Hoy* (`@/lib/empujones`).
 //
 // ⚠️ NOTHING NEW IS READ: her last publications (`@/api/listing`'s list, 60 since `10.5-v-c-ii`), her
 // place, her page and her trade, which the app already holds. `test/hoy.test.ts`
@@ -24,6 +25,9 @@
 // ⚠️ "TODAY" IS THE PHONE'S DAY, as the window's is (`@/lib/ventana`): the phone is in
 // her kitchen.
 // ============================================================================
+
+import type MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import type { ComponentProps } from 'react';
 
 import {
   checkLines,
@@ -333,13 +337,14 @@ export function faltanDe(estado: Estado): Pendiente[] {
   return PENDIENTES.filter((p) => !hecho[p]);
 }
 
-/** The door's line: *Falta tu foto de portada*, *Faltan tu frase y tu foto de portada*, *Faltan 3 cosas*. */
-export function faltaDeLaPagina(faltan: readonly Pendiente[]): string {
-  const dichos = faltan.map((p) => ES.pendientes.corto[p]);
-  if (dichos.length === 1) return ES.pendientes.falta(dichos[0]);
-  if (dichos.length === 2) return ES.pendientes.faltan(dichos[0], dichos[1]);
-  return ES.pendientes.faltanVarias(dichos.length);
-}
+/** Each one's picture — her page's line on *Hoy* and its *Falta* row in *Mi cocina* (`10.9a-iii`). */
+export const ICONO_DE_PENDIENTE: Readonly<Record<Pendiente, ComponentProps<typeof MaterialCommunityIcons>['name']>> = {
+  nombreGiro: 'storefront-outline',
+  direccion: 'map-marker-outline',
+  frase: 'format-quote-open',
+  oferta: 'plus-circle-outline',
+  portada: 'camera-outline',
+};
 
 /** Where each one is done. */
 export const DONDE_SE_HACE: Readonly<Record<Pendiente, '/giro' | '/direccion' | '/pagina' | '/publicar'>> = {

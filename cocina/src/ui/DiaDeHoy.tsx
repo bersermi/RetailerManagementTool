@@ -107,6 +107,34 @@ export function DiaDeHoy({ dia, ahora, onPress }: { dia: Dia; ahora: Date; onPre
   );
 }
 
+/**
+ * ⚠️ `10.9a-iii`: UNTIL HER FIRST OFFER THE DAY'S CARD IS THE INVITATION (the owner's nudges, ruled
+ * 2026-11-17; his words): *¿Tienes alguna oferta? Publícala y tus vecinos la verán.* — dashed in the
+ * green, opening *Publicar*. Never a counter, never again after her first offer (`@/lib/empujones`'
+ * `invitacion`): it takes the place of *Hoy todavía no has publicado*, so it takes no space of its own.
+ */
+export function Invitacion({ onPress }: { onPress: () => void }) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={oraciones(ES.invitacion.titulo, ES.invitacion.texto)}
+      onPress={onPress}
+      style={({ pressed }) => ({
+        gap: 4,
+        padding: SIZE.space * 1.25,
+        borderRadius: SIZE.space * 1.25,
+        borderWidth: 1.5,
+        borderStyle: 'dashed',
+        borderColor: PALETTE.accion,
+        backgroundColor: pressed ? PALETTE.superficie : PALETTE.accionSuave,
+      })}
+    >
+      <Text style={{ fontSize: SIZE.bodySize + 2, fontWeight: '800', color: PALETTE.tinta }}>{ES.invitacion.titulo}</Text>
+      <Text style={{ fontSize: SIZE.bodySize - 1, lineHeight: 21, color: PALETTE.tinta }}>{ES.invitacion.texto}</Text>
+    </Pressable>
+  );
+}
+
 /** What a screen reader says: each part a sentence, its period added only when it has none. */
 function oraciones(...partes: string[]): string {
   return partes.map((parte) => (/[.!?]$/.test(parte) ? parte : `${parte}.`)).join(' ');

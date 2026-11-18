@@ -296,10 +296,10 @@ describe('the wiring, read as text', () => {
     expect(provider).toMatch(/\}, \[guardado, abierta\]\);/);
   });
 
-  it('the question on *Hoy*, under the doors; the row in *Mi cocina*, under her trade', () => {
+  it('the question on *Hoy*, under the tiles (the doors until `10.9a-iii`); the row in *Mi cocina*, under her trade', () => {
     const hoy = code('app/(cocina)/(tabs)/index.tsx');
-    expect(hoy.indexOf('<Puertas')).toBeGreaterThan(0);
-    expect(hoy.indexOf('<PreguntaRecordatorio')).toBeGreaterThan(hoy.indexOf('<Puertas'));
+    expect(hoy.indexOf('<Mosaicos')).toBeGreaterThan(0);
+    expect(hoy.indexOf('<PreguntaRecordatorio')).toBeGreaterThan(hoy.indexOf('<Mosaicos'));
     expect(hoy).toMatch(/preguntar\(recordatorio\.guardado, recordatorio\.propuesta\)/);
     const mi = code('app/(cocina)/(tabs)/mi-cocina.tsx');
     expect(mi.indexOf('titulo={ES.recordatorio.titulo}')).toBeGreaterThan(mi.indexOf('titulo={ES.miCocina.giro}'));

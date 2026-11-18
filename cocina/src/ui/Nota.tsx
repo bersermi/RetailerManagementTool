@@ -1,6 +1,6 @@
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useEffect } from 'react';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Image, Pressable, Text, View } from 'react-native';
 import Animated, { Easing, ReduceMotion, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -19,7 +19,11 @@ import { PALETTE, SIZE } from '@/theme/palette';
 // ⚠️ IT RISES 12 PX AS IT FADES IN, ONCE, WHEN IT MOUNTS — `transform` and `opacity`
 // only (ADR-035 §2.11), from an effect, and at once on a phone set to reduce motion
 // (`@/theme/movimiento`'s `NOTA`). A new toast is a new one (keyed), so it arrives again.
+// ⚠️ `10.9a-iii`: A FIRST IS CELEBRATED IN THE SAME STRIP (`festejo`): the kitchen's green, and
+// Wera's cream cow (`@/marca/vaca-crema.png`, the opening's, untinted) where the check was.
 // ============================================================================
+
+const VACA = require('@/marca/vaca-crema.png') as number;
 
 /** The tab bar's height over the bottom inset — `@/ui/Pestanas`: its padding, the pill, the word. */
 const SOBRE_LA_BARRA = 72;
@@ -29,12 +33,16 @@ export function Nota({
   conDeshacer,
   deshaciendo,
   onDeshacer,
+  festejo = false,
 }: {
   texto: string;
   conDeshacer: boolean;
   deshaciendo: boolean;
   onDeshacer: () => void;
+  festejo?: boolean;
 }) {
+  const tinta = festejo ? PALETTE.sobreAccion : PALETTE.fondo;
+  const deshacerColor = festejo ? PALETTE.sobreAccion : PALETTE.sobreAccionApagada;
   const insets = useSafeAreaInsets();
   const llegada = useSharedValue(0);
 
@@ -64,11 +72,24 @@ export function Nota({
           paddingLeft: SIZE.space,
           paddingRight: conDeshacer ? SIZE.rowGap : SIZE.space,
           borderRadius: SIZE.space,
-          backgroundColor: PALETTE.tinta,
+          backgroundColor: festejo ? PALETTE.accion : PALETTE.tinta,
         }}
       >
-        <MaterialCommunityIcons name="check-circle" size={20} color={PALETTE.sobreAccionApagada} />
-        <Text style={{ flex: 1, paddingVertical: SIZE.rowGap, fontSize: SIZE.bodySize - 1, lineHeight: 20, color: PALETTE.fondo }}>
+        {festejo ? (
+          <Image source={VACA} accessibilityIgnoresInvertColors style={{ width: 26, height: 26 }} resizeMode="contain" />
+        ) : (
+          <MaterialCommunityIcons name="check-circle" size={20} color={PALETTE.sobreAccionApagada} />
+        )}
+        <Text
+          style={{
+            flex: 1,
+            paddingVertical: SIZE.rowGap,
+            fontSize: SIZE.bodySize - 1,
+            lineHeight: 20,
+            fontWeight: festejo ? '700' : '400',
+            color: tinta,
+          }}
+        >
           {texto}
         </Text>
         {conDeshacer && (
@@ -82,9 +103,9 @@ export function Nota({
             style={{ minHeight: SIZE.tapTarget, minWidth: SIZE.tapTarget, justifyContent: 'center', paddingHorizontal: SIZE.rowGap }}
           >
             {deshaciendo ? (
-              <ActivityIndicator color={PALETTE.sobreAccionApagada} />
+              <ActivityIndicator color={deshacerColor} />
             ) : (
-              <Text style={{ fontSize: SIZE.bodySize, fontWeight: '700', color: PALETTE.sobreAccionApagada }}>{ES.nota.deshacer}</Text>
+              <Text style={{ fontSize: SIZE.bodySize, fontWeight: '700', color: deshacerColor }}>{ES.nota.deshacer}</Text>
             )}
           </Pressable>
         )}

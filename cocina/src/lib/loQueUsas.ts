@@ -3,7 +3,7 @@ import type { Href } from 'expo-router';
 import type { ComponentProps } from 'react';
 
 import { apiErrorMessage } from '@/api/errors';
-import { NO_SE_OFRECE, SERVICIOS, type Estado, type LoQueUsa, type Servicio } from '@/api/servicios';
+import { NO_SE_OFRECE, SERVICIOS, enUso, type Estado, type LoQueUsa, type Servicio } from '@/api/servicios';
 import { ES } from '@/strings';
 
 // ============================================================================
@@ -49,8 +49,8 @@ export const PANTALLA_DE: Pantallas = {};
 export const PREPARAR: Pantallas = {};
 
 /**
- * Each feature's picture — its row in *Lo que usas*, its *Activar*, *Cuéntanos*' line, and later its
- * tile (`10.9a-iii`). `test/loQueUsas.test.ts` holds each to the icon set's glyph map: a name not in
+ * Each feature's picture — its row in *Lo que usas*, its *Activar*, *Cuéntanos*' line, its tile on *Hoy*
+ * and its line there (`10.9a-iii`). `test/loQueUsas.test.ts` holds each to the icon set's glyph map: a name not in
  * it is a blank square.
  */
 export const ICONO_DE: Readonly<Record<Servicio, ComponentProps<typeof MaterialCommunityIcons>['name']>> = {
@@ -59,6 +59,19 @@ export const ICONO_DE: Readonly<Record<Servicio, ComponentProps<typeof MaterialC
   numeros: 'chart-bar',
   menu: 'book-open-variant',
 };
+
+/**
+ * ⚠️ `10.9a-iii`: *ASÍ FUNCIONA*'S THREE PICTURES PER FEATURE (the family-shell page's `STRIP`) — the
+ * strip each feature's own screen draws the first time she opens it (`@/ui/AsiFunciona`). Its words
+ * are `ES.asiFunciona.pasos`, in the same order. Held to the glyph map with `ICONO_DE`.
+ */
+export const PASOS_DE: Readonly<Record<Elegible, readonly [IconoDeServicio, IconoDeServicio, IconoDeServicio]>> = {
+  tarjeta: ['gift-outline', 'qrcode', 'stamper'],
+  promociones: ['creation', 'storefront-outline', 'tag-outline'],
+  numeros: ['ticket-outline', 'chart-bar', 'account-group-outline'],
+};
+
+type IconoDeServicio = ComponentProps<typeof MaterialCommunityIcons>['name'];
 
 /** A feature she can pick: every one but the menu, which is *Próximamente* until its own session. */
 export type Elegible = Exclude<Servicio, 'menu'>;
@@ -117,6 +130,48 @@ export function filasDe(loQueUsa: LoQueUsa, pantallas: Pantallas = PANTALLA_DE):
     const usa = loQueUsa.elecciones[servicio]?.estado === 'on';
     return { servicio, usa, abre: usa ? (pantallas[servicio] ?? null) : null };
   });
+}
+
+// ----------------------------------------------------------------------------
+// `10.9a-iii`: *Hoy*'s tiles — one per feature she uses
+// ----------------------------------------------------------------------------
+
+/**
+ * What a feature's own row says on its tile once it is set up — *6 sellos hoy*, *2 premios por
+ * entregar* — and whether something waits for her (the dot: urgency is a dot, never a tile moving).
+ */
+export interface EnVivo {
+  readonly valor: string;
+  readonly detalle: string;
+  readonly porHacer: boolean;
+}
+
+/** One tile on *Hoy*: its feature, the one screen it opens, and its live words — `null` while not set up. */
+export interface Mosaico {
+  readonly servicio: Elegible;
+  readonly abre: Href;
+  readonly vivo: EnVivo | null;
+}
+
+/**
+ * ⚠️ *HOY*'S TILES (his arrangement A, ruled 2026-11-16): one per feature she uses (`enUso`) that this
+ * build carries (`PANTALLA_DE`), in the fixed order — card, promotions, numbers — each opening the
+ * feature's one screen. A feature she picked and has not set up is drawn in its first-time state
+ * (*Prepara tu tarjeta*, dashed) until its row hands `vivos` its words. Unread, none: a tile is never
+ * drawn and then taken away. EMPTY TODAY — no feature is built.
+ */
+export function mosaicosDe(
+  loQueUsa: LoQueUsa | undefined,
+  vivos: Readonly<Partial<Record<Elegible, EnVivo>>> = {},
+  pantallas: Pantallas = PANTALLA_DE,
+): Mosaico[] {
+  if (loQueUsa === undefined) return [];
+  return enUso(loQueUsa)
+    .filter(esElegible)
+    .flatMap((servicio) => {
+      const abre = pantallas[servicio];
+      return abre === undefined ? [] : [{ servicio, abre, vivo: vivos[servicio] ?? null }];
+    });
 }
 
 /** *Tu menú · Próximamente* in *Lo que usas*: drawn while every *Próximamente* may show; *Anotado* once she said *Me interesa*. */
