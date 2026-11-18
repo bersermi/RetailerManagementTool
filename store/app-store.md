@@ -8,11 +8,11 @@ record, *Wera: tu tienda* (`6825377325`), under another bundle id. The build can
 again) and the other is removed. Its SKU is **`WERA-IOS-001`**, not `wera-mx` (he read it
 2026-10-21) — typed by a person, so the record predates the upload; it cannot change and is
 never shown.
-⚠️ **Not pinned in `app/eas.json`:** an `ascAppId` there CHANGES THE UPDATE RUNTIME (measured
-2026-10-21: iOS `d308ba9f…` → `0588fb66…`, Android `5a4a7a5d…` → `1d7f904c…`), and no update would
-reach a build already installed. Once the other record is removed, `eas submit` finds this one by
-its bundle id. The record, the screenshots and the submission are `5R-d-iv-c` and
-`5R-e`, after your review (`8g`) and the site (`5R-m`). Sign in with Apple (`5R-k`) is built;
+⚠️ **Pinned in `app/eas.json` since `5R-o`** (`ascAppId`, so `eas submit` needs no terminal): an
+`ascAppId` there CHANGES THE UPDATE RUNTIME (measured 2026-10-21: iOS `d308ba9f…` → `0588fb66…`,
+Android `5a4a7a5d…` → `1d7f904c…`), so it went in only with 1.1, whose runtime was moving anyway.
+The record, the screenshots and the submission were `5R-d-iv-c` and `5R-e`, after your review
+(`8g`) and the site (`5R-m`); the next screenshots are `5R-q`'s. Sign in with Apple (`5R-k`) is built;
 it works on a phone once the steps in the handbook's *Turning on Entrar con Apple* are done. Why
 each answer is what it is: [`README.md`](README.md), *What each answer stands on*.
 

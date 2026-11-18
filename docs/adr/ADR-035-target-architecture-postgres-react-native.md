@@ -74,8 +74,9 @@
     migration (a rule about who may do what — ruled), and `manager` stays free for a third role he left open. Wera's matrix is
     untouched. ✅ **Built by `0082` (`10.9b-i`):** `publish_listing`, `withdraw_listing` and `set_listing_quantity` ask `staff` at a
     kitchen and `manager` anywhere else, the location wall (`my_locations()`) unchanged; `leave_kitchen` ends a helper's own
-    membership (*Salir de esta cocina*), never the owner's (`TD025`). ⚠️ **How a helper joins — the invitation's code — waits on
-    his ruling** (the plan's decisions block, 2026-11-18): `workspace_invite.email` is `NOT NULL`.
+    membership (*Salir de esta cocina*), never the owner's (`TD025`). ✅ **How a helper joins — the invitation's code — ruled by
+    him 2026-11-18**: a code for one person, good for 24 hours, no address asked, joining at once (`10.9b-iii`, which makes
+    `workspace_invite.email` optional for a kitchen's helper — today it is `NOT NULL`).
   - **§2.9's k ≥ 5 floor** is the cross-workspace analytics schema's, and **does not govern a kitchen's own numbers**, read by its
     owner alone from its own rows (`10.9f`). For those he ruled a floor of his own: figures about people (distinct neighbours, how
     many came back) only from five in the period; plates handed over and visits from the first.
