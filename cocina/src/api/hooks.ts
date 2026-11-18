@@ -52,6 +52,7 @@ import {
 import { CALIFICACIONES_FRESCAS_MS, calificacionesKey } from '@/api/calificaciones';
 import {
   EQUIPO_KEY,
+  ROL_KEY,
   equipoKey,
   esDuena,
   quitarErrorMessage,
@@ -61,6 +62,7 @@ import {
   type MemberRow,
   type Rol,
 } from '@/api/equipo';
+import { codigoErrorMessage, codigoKey, esRechazoDelCodigo } from '@/api/invitar';
 import { SERVICIOS_KEY, serviciosKey, type Estado, type LoQueUsa, type Servicio } from '@/api/servicios';
 import {
   accountOwners,
@@ -72,6 +74,9 @@ import {
   kitchenGiros,
   kitchenCalls,
   kitchenTeam,
+  inviteHelper,
+  joinWithCode,
+  kitchenOfCode,
   leaveKitchen,
   myRole,
   setMemberActive,
@@ -1168,4 +1173,81 @@ export function useSalirDeLaCocina(kitchenId: string | null) {
   }
 
   return { salir, busy: mutation.isPending };
+}
+
+// ----------------------------------------------------------------------------
+// `10.9b-iii` — a helper's code: *Invitar a alguien*, *Unirme a …*, joining
+// ----------------------------------------------------------------------------
+
+/**
+ * *Invitar a alguien* — the owner asks for a code, each time her sheet opens (`invite_helper`): a
+ * code for ONE person, so a second helper gets a second code, and an earlier one keeps its 24 hours.
+ * Online only: a code is the database's, and nothing is queued. `problema` is the sentence to show.
+ */
+export function useInvitar(kitchenId: string | null) {
+  const mutation = useMutation({ mutationFn: (id: string) => inviteHelper(id) });
+  const { mutate, reset } = mutation;
+  const pedir = useCallback(() => {
+    if (kitchenId !== null) mutate(kitchenId);
+  }, [kitchenId, mutate]);
+  return {
+    pedir,
+    olvidar: reset,
+    invitacion: mutation.data ?? null,
+    problema: mutation.isError ? apiErrorMessage(mutation.error) : null,
+    busy: mutation.isPending,
+  };
+}
+
+/**
+ * The kitchen a code she typed would join (`kitchen_of_code`), asked once the code is whole
+ * (`codigo` not `null`). ⚠️ THE DATABASE'S REFUSAL IS ITS LAST WORD on that code — `TD005`, `TD003`,
+ * `22023` are never retried; a dead link is, as every read is. Not kept on the phone.
+ */
+export function useCocinaDelCodigo(codigo: string | null) {
+  const { session, ready } = useAuth();
+  const userId = session?.user.id ?? null;
+  return useQuery({
+    queryKey: codigoKey(userId, codigo),
+    queryFn: () => kitchenOfCode(codigo as string),
+    enabled: ready && userId !== null && codigo !== null,
+    retry: (failures, error) => failures < 2 && !esRechazoDelCodigo(error),
+  });
+}
+
+/**
+ * *Unirme a Fonda Doña Mari* — joining with the code (`redeem_invite`): her helper's membership, at
+ * once. Answers `null`, or the sentence to show. ⚠️ ON SUCCESS THE KITCHEN GOES INTO HER LIST AT
+ * ONCE, so the guard takes her to *Hoy* without waiting for the re-read (`useMakeKitchen`'s rule);
+ * ⚠️ ON SETTLED, NOT ONLY ON SUCCESS, HER KITCHENS ARE READ AGAIN: a reply lost after she joined
+ * fails here while she is in — the re-read finds the kitchen and the guard moves her, and a second
+ * tap would be her own code, which answers the same (`redeem_invite` is idempotent for her).
+ */
+export function useUnirme() {
+  const queries = useQueryClient();
+  const { session } = useAuth();
+  const userId = session?.user.id ?? null;
+  const mutation = useMutation({
+    mutationFn: (codigo: string) => joinWithCode(codigo),
+    onSettled: () => {
+      void queries.invalidateQueries({ queryKey: KITCHENS_KEY });
+      void queries.invalidateQueries({ queryKey: ROL_KEY });
+    },
+  });
+
+  async function unirme(codigo: string): Promise<string | null> {
+    if (mutation.isPending) return null;
+    try {
+      const unida = await mutation.mutateAsync(codigo);
+      queries.setQueryData<Kitchen[]>(kitchensKey(userId), (kitchens) => [
+        ...(kitchens ?? []).filter((kitchen) => kitchen.id !== unida.kitchenId),
+        { id: unida.kitchenId, displayName: unida.nombre, giroPrincipal: null },
+      ]);
+      return null;
+    } catch (thrown) {
+      return codigoErrorMessage(thrown);
+    }
+  }
+
+  return { unirme, busy: mutation.isPending };
 }

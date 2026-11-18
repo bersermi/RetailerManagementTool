@@ -7,7 +7,8 @@
 # argument's, a role, the owner's role, the table, a column, a key of a row, a filter, the refusal's
 # code), points the check at it, and requires red WITH THE SENTENCE that names that claim: red for
 # the wrong reason is a failure here too. The control, unedited, must be green. ⚠️ C11 is the one
-# that matters most: *Quitar*'s guard on the wrong column ends the OWNER's own membership.
+# that matters most: *Quitar*'s guard on the wrong column ends the OWNER's own membership. ⚠️ Since
+# `10.9b-iii` the J fixtures break `cocina/src/api/invitar.ts` instead — joining by a code.
 #
 # Run:  supabase start && supabase db reset && bash docs/checks/10.9b-ii-team-contract-falsify.sh
 # Exit: 0 every fixture behaved; 1 otherwise.
@@ -16,7 +17,8 @@ set -uo pipefail
 
 CHECK="docs/checks/10.9b-ii-team-contract.sh"
 EQUIPO="cocina/src/api/equipo.ts"
-for f in "$CHECK" "$EQUIPO"; do
+INVITAR="cocina/src/api/invitar.ts"
+for f in "$CHECK" "$EQUIPO" "$INVITAR"; do
   [[ -r "$f" ]] || { echo "FAIL: run this from the repository root"; exit 1; }
 done
 
@@ -25,16 +27,18 @@ trap 'rm -rf "$TMP"' EXIT
 pass=0
 fail=0
 
-run() { # name want phrase sed-program
-  local name="$1" want="$2" phrase="$3" program="$4"
+run() { # name want phrase sed-program [file: equipo | invitar]
+  local name="$1" want="$2" phrase="$3" program="$4" which="${5:-equipo}"
+  local real="$EQUIPO"; [[ "$which" == invitar ]] && real="$INVITAR"
   local copy="$TMP/$name.ts"
-  sed "$program" "$EQUIPO" > "$copy"
-  if [[ "$program" != "" ]] && cmp -s "$copy" "$EQUIPO"; then
+  sed "$program" "$real" > "$copy"
+  if [[ "$program" != "" ]] && cmp -s "$copy" "$real"; then
     echo "  ✗ $name — THE MUTATION CHANGED NOTHING: a fixture that edits nothing tests the control twice."
     fail=$((fail+1)); return
   fi
   local out rc
-  out="$(bash "$CHECK" "$copy" 2>&1)"; rc=$?
+  if [[ "$which" == invitar ]]; then out="$(bash "$CHECK" "$EQUIPO" "$copy" 2>&1)"; rc=$?
+  else out="$(bash "$CHECK" "$copy" 2>&1)"; rc=$?; fi
   local got=red; (( rc == 0 )) && got=green
   if [[ "$got" != "$want" ]]; then
     echo "  ✗ $name — expected $want, got $got"
@@ -109,10 +113,34 @@ echo "C14 the owner's refusal read under another code — she would read the gen
 run C14 red "the app reads 'TD024'" \
   "s/^export const OWNER_STAYS_CODE = 'TD025';/export const OWNER_STAYS_CODE = 'TD024';/"
 
+echo "J1  Invitar asked of a misspelt function — the owner's sheet never shows a code"
+run J1 red "FAIL: invite_helpr answered 404" \
+  "s/^export const INVITE_HELPER = 'invite_helper';/export const INVITE_HELPER = 'invite_helpr';/" invitar
+
+echo "J2  a key of the code's answer misspelt — the sheet draws no code"
+run J2 red "not the app's {token,expira}" \
+  '/^export interface InviteAnswer {/,/^}/s/^  readonly expires_at: string;/  readonly expira: string;/' invitar
+
+echo "J3  the kitchen's name asked of a misspelt function — Unirme never says whose kitchen"
+run J3 red "kitchen_of_cod answered 404" \
+  "s/^export const KITCHEN_OF_CODE = 'kitchen_of_code';/export const KITCHEN_OF_CODE = 'kitchen_of_cod';/" invitar
+
+echo "J4  the code's argument misspelt — PostgREST finds neither function"
+run J4 red "kitchen_of_code answered 404" \
+  '/^export interface CodeArgs {/,/^}/s/^  readonly p_token: string;/  readonly p_codigo: string;/' invitar
+
+echo "J5  a key of the join's answer misspelt — her kitchen never enters her list"
+run J5 red "without the app's ['nombre']" \
+  '/^export interface JoinAnswer {/,/^}/s/^  readonly workspace_name: string;/  readonly nombre: string;/' invitar
+
+echo "J6  a dead code read under another code — she would read the generic sentence, not to ask for another"
+run J6 red "the app reads 'TD004'" \
+  "s/^export const CODE_DEAD = 'TD005';/export const CODE_DEAD = 'TD004';/" invitar
+
 echo
 echo "$pass passed, $fail failed."
-if (( pass + fail < 15 )); then
-  echo "FAIL: only $((pass + fail)) fixtures ran, expected 15."
+if (( pass + fail < 21 )); then
+  echo "FAIL: only $((pass + fail)) fixtures ran, expected 21."
   exit 1
 fi
 (( fail == 0 )) || exit 1

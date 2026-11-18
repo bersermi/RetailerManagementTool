@@ -24,6 +24,14 @@
 // those screens are *Paso 3 de 3*, *¿Qué más quieres usar?* (`/que-mas`), while this build
 // carries a feature to pick (`@/lib/loQueUsas`' `pasos`, the same count *Paso 1 de N* drew),
 // else her page as her neighbours see it at once (`/ya-estas`). *¿Qué ofreces hoy?* is gone.
+//
+// ⚠️ `10.9b-iii` (G19, and the owner's ruling of 2026-11-18 on a helper's code): A LOGIN WITH NO
+// KITCHEN IS SENT TO THE FORK (`/empezar`, *¿Qué quieres hacer?*) — *Registrar mi cocina* or *Unirme a
+// una cocina* — never straight to the form. And a kitchen that appears while she is in the sign-up
+// goes on to the first run's last screens ONLY when she made it there: on the screen where *Registrar
+// mi cocina* is tapped (`DONDE_SE_REGISTRA`). Anywhere else in it — she joined with a code (`/unirme`),
+// or her owner's *Deshacer* gave her kitchen back while she sat on the fork — she goes to *Hoy*: a
+// helper skips the kitchen's set-up.
 // ============================================================================
 
 import type { Membership } from '@/api/kitchen';
@@ -33,7 +41,13 @@ import { pasos } from '@/lib/loQueUsas';
 export type RouteGroup = 'auth' | 'onboarding' | 'cocina' | null;
 
 /** Where the app is told to go, or `null` for "stay where you are". */
-export type Redirect = '/hola' | '/registro' | '/que-mas' | '/ya-estas' | '/' | null;
+export type Redirect = '/hola' | '/empezar' | '/que-mas' | '/ya-estas' | '/' | null;
+
+/**
+ * The sign-up's screen where *Registrar mi cocina* makes her kitchen (`(onboarding)/donde`): a kitchen
+ * that appears there was made there. ⚠️ `test/guard.test.ts` reads it out of the file it names.
+ */
+export const DONDE_SE_REGISTRA = 'donde';
 
 export interface GuardState {
   /** Has the stored session been looked for yet? False on every cold start. */
@@ -41,6 +55,8 @@ export interface GuardState {
   readonly hasSession: boolean;
   readonly membership: Membership;
   readonly group: RouteGroup;
+  /** The screen inside the group — the route's second segment — or `null`. */
+  readonly screen?: string | null;
 }
 
 /**
@@ -51,13 +67,21 @@ export interface GuardState {
  * so she is sent where a kitchen is made, exactly as a new fonda is — her shop
  * stays Wera's.
  */
-export function redirectFor({ ready, hasSession, membership, group }: GuardState): Redirect {
+export function redirectFor({ ready, hasSession, membership, group, screen = null }: GuardState): Redirect {
   if (!ready) return null;
   if (!hasSession) return group === 'auth' ? null : '/hola';
   if (membership === 'unknown') return null;
-  if (membership === 'none') return group === 'onboarding' ? null : '/registro';
-  if (group === 'onboarding') return pasos() === 3 ? '/que-mas' : '/ya-estas';
+  if (membership === 'none') return group === 'onboarding' ? null : '/empezar';
+  if (group === 'onboarding') {
+    if (screen !== DONDE_SE_REGISTRA) return '/';
+    return pasos() === 3 ? '/que-mas' : '/ya-estas';
+  }
   return group === 'auth' ? '/' : null;
+}
+
+/** The screen a set of Expo Router segments is on — the second segment, or `null`. */
+export function screenOf(segments: readonly string[]): string | null {
+  return segments[1] ?? null;
 }
 
 /** The group a set of Expo Router segments is in — the first segment, nothing else. */

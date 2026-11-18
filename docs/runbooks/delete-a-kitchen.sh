@@ -17,8 +17,9 @@
 # It does EXACTLY what *Eliminar esta cocina* does: it calls `delete_my_business`
 # (`0077`) as that person, with the kitchen and the name typed, so the kitchen
 # goes with everything in it — its place, its page, what it published, since
-# `0081` what it uses and what it told Wera about its menu, and since `0082` its
-# helpers' memberships (their logins stay, as hers does) — and her login and
+# `0081` what it uses and what it told Wera about its menu, since `0082` its
+# helpers' memberships (their logins stay, as hers does) and since `0083` its
+# helpers' codes, used or not — and her login and
 # every other business she owns stay. There is no second deletion path to keep in
 # step with the first.
 #

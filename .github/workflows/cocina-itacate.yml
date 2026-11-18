@@ -95,6 +95,11 @@ on:
       # machine, copied (`cocina/src/api/connectivity.ts`), and its suite holds the copy to Wera's
       # file code for code (`cocina/test/senal.test.ts`).
       - "app/src/api/connectivity.ts"
+      # ⚠️ `10.9b-iii`, A HELPER JOINS BY A CODE: the code is Wera's invitation token — sixteen characters,
+      # normalised and grouped as Wera does (`normalizeCredential`, `TOKEN_LENGTH`, `groupedToken`) — and
+      # Wera Cocina's suite holds its copies to these two files code for code (`cocina/test/invitar.test.ts`).
+      - "app/src/api/redeem.ts"
+      - "app/src/api/invites.ts"
       - "package.json"
       - "package-lock.json"
       - ".github/workflows/cocina-itacate.yml"

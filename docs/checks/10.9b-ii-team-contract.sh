@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # 10.9b-ii-team-contract — does Wera Cocina read her role, read who works at her kitchen, remove a
 # helper and let a helper leave, by the names the database answers — as a real owner and a real
-# helper? And does her *Eliminar mi cuenta* read name nothing for a helper?
+# helper? And does her *Eliminar mi cuenta* read name nothing for a helper? And — since `10.9b-iii` —
+# does the owner get a helper's code, and does the helper read the kitchen's name and JOIN with it, by
+# the names `cocina/src/api/invitar.ts` sends?
 #
 # WHY THIS EXISTS. `cocina/src/api/equipo.ts` is Wera Cocina's claim about `0001` and `0082`: her
 # role (`my_role` and its argument), the memberships' table, its columns and the filters the list
@@ -12,8 +14,13 @@
 # all pass over each one.
 #
 # WHAT IT ASSERTS, over HTTP against a real GoTrue and PostgREST:
-#   1. The claim is read OUT OF `equipo.ts` (and the owners read out of `account.ts`, the kitchen's
-#      making out of `kitchen.ts`): nothing retyped.
+#   1. The claim is read OUT OF `equipo.ts` and `invitar.ts` (and the owners read out of `account.ts`,
+#      the kitchen's making out of `kitchen.ts`): nothing retyped.
+#   J. ⚠️ `10.9b-iii`, JOINING, as the two phones do it (`0083`, `0028`): the owner's code, its answer
+#      carrying exactly the app's keys; the helper reads the kitchen's name with it (exactly the app's
+#      key) and joins with it (`redeem_invite`, the app's keys: this kitchen, a helper's role); the
+#      same code again names nothing (the app's `CODE_DEAD`), nor does an expired one (`CODE_EXPIRED`,
+#      moved back a day as the database's owner) or a made-up one; and the helper may not invite.
 #   2. Her role: the owner reads the app's owner, the helper a role the app knows that is not it.
 #   3. The owner's list: the kitchen's two active memberships, each carrying exactly the app's keys.
 #   4. The helper's *Eliminar mi cuenta* read, as Cocina asks it: no row of it is hers, so nothing
@@ -28,24 +35,25 @@
 #   9. Signed out, nothing is answered.
 #
 # ⚠️ WHAT IT DOES NOT ASSERT: the database's own rules (`supabase/tests/0082_…`: who may leave, her
-# name kept, the deletions), how a helper JOINS (`10.9b-iii` — here her membership is written as the
-# database's owner, as `redeem_invite` writes it), or what a screen does with an answer
-# (`cocina/test/equipo.test.ts`, `ayudante.test.ts`).
+# name kept, the deletions; `supabase/tests/0083_…`: 24 hours, one person, the code as typed, a shop
+# refused), or what a screen does with an answer (`cocina/test/equipo.test.ts`, `ayudante.test.ts`,
+# `invitar.test.ts`). Until `10.9b-iii` the helper's membership here was written as the database's owner.
 #
 # ⚠️ NO `mapfile`, NO `declare -A`: macOS ships bash 3.2. ⚠️ TWO ACCOUNTS A RUN: GoTrue allows 30
 # sign-ups in 5 minutes, and the falsifier runs this a dozen times.
 #
 # Run:  supabase start && supabase db reset && bash docs/checks/10.9b-ii-team-contract.sh
-# With: $1 equipo.ts — how the falsifier points it at a broken copy.
+# With: $1 equipo.ts, $2 invitar.ts — how the falsifier points it at a broken copy.
 # Exit: 0 every assertion holds; 1 otherwise.
 
 set -uo pipefail
 
 EQUIPO_TS="${1:-cocina/src/api/equipo.ts}"
+INVITAR_TS="${2:-cocina/src/api/invitar.ts}"
 ACCOUNT_TS="cocina/src/api/account.ts"
 KITCHEN_TS="cocina/src/api/kitchen.ts"
 CREDENTIALS_TS="cocina/src/auth/credentials.ts"
-for f in "$EQUIPO_TS" "$ACCOUNT_TS" "$KITCHEN_TS" "$CREDENTIALS_TS"; do
+for f in "$EQUIPO_TS" "$INVITAR_TS" "$ACCOUNT_TS" "$KITCHEN_TS" "$CREDENTIALS_TS"; do
   [[ -r "$f" ]] || { echo "FAIL: cannot read $f (run this from the repository root)"; exit 1; }
 done
 
@@ -90,6 +98,16 @@ KIND="$(const COCINA_KIND "$KITCHEN_TS")"
 ONBOARD="$(const ONBOARD_WORKSPACE "$KITCHEN_TS")"
 ONBOARD_ARGS="$(fields_of "$KITCHEN_TS" OnboardArgs 'p_')"
 NAME_KEY="$(const FULL_NAME_KEY "$CREDENTIALS_TS")"
+INVITE="$(const INVITE_HELPER "$INVITAR_TS")"
+INVITE_ARGS="$(fields_of "$INVITAR_TS" InviteArgs 'p_')"
+INVITE_KEYS="$(fields_of "$INVITAR_TS" InviteAnswer '')"
+NAMEOF="$(const KITCHEN_OF_CODE "$INVITAR_TS")"
+CODE_ARGS="$(fields_of "$INVITAR_TS" CodeArgs 'p_')"
+NAMEOF_KEYS="$(fields_of "$INVITAR_TS" KitchenOfCode '')"
+REDEEM="$(const REDEEM_INVITE "$INVITAR_TS")"
+JOIN_KEYS="$(fields_of "$INVITAR_TS" JoinAnswer '')"
+DEAD="$(const CODE_DEAD "$INVITAR_TS")"
+EXPIRED="$(const CODE_EXPIRED "$INVITAR_TS")"
 
 for pair in "MY_ROLE:$MY_ROLE" "RoleArgs:$ROLE_ARGS" "ROLES:$ROLES" "DUENA:$OWNER" "MEMBERS_TABLE:$TABLE" \
             "MEMBER_COLUMNS:$COLUMNS" "MEMBER_KITCHEN_COLUMN:$KITCHEN_COL" "MEMBER_ACTIVE_COLUMN:$ACTIVE_COL" \
@@ -97,7 +115,10 @@ for pair in "MY_ROLE:$MY_ROLE" "RoleArgs:$ROLE_ARGS" "ROLES:$ROLES" "DUENA:$OWNE
             "LeaveArgs:$LEAVE_ARGS" "OWNER_STAYS_CODE:$STAYS" "OWNERS_TABLE:$OWNERS_TABLE" "OWNER_COLUMNS:$OWNER_COLUMNS" \
             "OWNER_ROLE_COLUMN:$OWNER_ROLE_COL" "OWNER_ROLE:$OWNER_ROLE" "OWNER_ACTIVE_COLUMN:$OWNER_ACTIVE_COL" \
             "WORKSPACE_TABLE:$WORKSPACE" "KITCHEN_COLUMNS:$KITCHEN_COLUMNS" "KIND_COLUMN:$KIND_COL" "COCINA_KIND:$KIND" \
-            "ONBOARD_WORKSPACE:$ONBOARD" "OnboardArgs:$ONBOARD_ARGS" "FULL_NAME_KEY:$NAME_KEY"; do
+            "ONBOARD_WORKSPACE:$ONBOARD" "OnboardArgs:$ONBOARD_ARGS" "FULL_NAME_KEY:$NAME_KEY" \
+            "INVITE_HELPER:$INVITE" "InviteArgs:$INVITE_ARGS" "InviteAnswer:$INVITE_KEYS" "KITCHEN_OF_CODE:$NAMEOF" \
+            "CodeArgs:$CODE_ARGS" "KitchenOfCode:$NAMEOF_KEYS" "REDEEM_INVITE:$REDEEM" "JoinAnswer:$JOIN_KEYS" \
+            "CODE_DEAD:$DEAD" "CODE_EXPIRED:$EXPIRED"; do
   if [[ -z "${pair#*:}" ]]; then
     echo "FAIL: could not read ${pair%%:*} out of the app's source"
     echo "      This check asserts the app's own claim. Without it there is nothing to"
@@ -108,6 +129,7 @@ done
 ok "read from Wera Cocina: $MY_ROLE($ROLE_ARGS) → one of $ROLES, the owner '$OWNER'"
 ok "the list: $TABLE?select=$COLUMNS, $KITCHEN_COL=eq, $ACTIVE_COL=eq.true → {$ROW_KEYS}; Quitar by $USER_COL, $ROLE_COL=neq.$OWNER"
 ok "Salir: $LEAVE($LEAVE_ARGS), refused $STAYS for an owner; the deletion's read: $OWNERS_TABLE?select=$OWNER_COLUMNS"
+ok "joining: $INVITE($INVITE_ARGS) → {$INVITE_KEYS}; $NAMEOF($CODE_ARGS) → {$NAMEOF_KEYS}; $REDEEM($CODE_ARGS) → {$JOIN_KEYS}; refused $DEAD / $EXPIRED"
 
 # --- the local stack -------------------------------------------------------
 STATUS="$(supabase status -o env 2>/dev/null)"
@@ -218,6 +240,28 @@ def code(a, want):
 def empty(a):
     return None if a == [] else 'answered %r, not []' % (a,)
 
+def keys(a, keys_csv):
+    """An answer carrying every key the app reads."""
+    if not isinstance(a, dict):
+        return 'answered %r, not an object' % (a,)
+    missing = [k for k in keys_csv.split(',') if k not in a]
+    return None if not missing else 'answered %s, without the app\'s %s' % (sorted(a), missing)
+
+def exactly(a, keys_csv):
+    if not isinstance(a, dict) or sorted(a) != sorted(keys_csv.split(',')):
+        return 'answered %r, not the app\'s {%s}' % (a, keys_csv)
+    return None
+
+def joined(a, keys_csv, kitchen, name, roles_csv, owner):
+    why = keys(a, keys_csv)
+    if why:
+        return why
+    if a.get('workspace_id') != kitchen or a.get('workspace_name') != name:
+        return 'joined %r (%r), not this kitchen' % (a.get('workspace_id'), a.get('workspace_name'))
+    if a.get('role') not in roles_csv.split(',') or a.get('role') == owner:
+        return 'joined as %r — the app would not draw a helper' % (a.get('role'),)
+    return None
+
 def kitchens(a, kitchen):
     if not isinstance(a, list) or not any(isinstance(k, dict) and k.get('id') == kitchen for k in a):
         return 'her kitchens read %r — her kitchen is not on it' % (a,)
@@ -245,14 +289,36 @@ TOKEN="$MARI"
 out="$(api POST "/rest/v1/rpc/$ONBOARD" "$(by_names "$ONBOARD_ARGS" "\"$NAME\"" "\"$KIND\"")")"
 A="$(tr -d '"' <<< "$(body "$out")")"
 [[ "$A" =~ ^[0-9a-f-]{36}$ ]] || { echo "FAIL: her kitchen could not be made: $(status "$out") $(body "$out" | head -c 200)"; exit 1; }
-# Lupita joins as a helper — written as the database's owner, as `redeem_invite` writes it (`0028`):
-# a `staff` membership with her name, and its kitchen's one place.
-joined="$(as_owner "with m as (insert into public.workspace_member (workspace_id, user_id, role, display_name)
-    values ('$A', '$LUPITA_ID', 'staff', 'Lupita $RUN') returning id)
-  insert into public.member_location (workspace_id, member_id, location_id)
-    select '$A', m.id, l.id from m, public.location l where l.workspace_id = '$A' returning 1")"
-[[ "$joined" == 1 ]] || { echo "FAIL: Lupita could not be made a helper ($joined)"; exit 1; }
-ok "a fonda and her kitchen made through Wera Cocina's names ($ONBOARD); Lupita a helper there, as an invitation makes one"
+ok "a fonda and her kitchen made through Wera Cocina's names ($ONBOARD)"
+
+# --- J. joining, as the two phones do it (`10.9b-iii`) ------------------------------
+# Mari asks for a code; Lupita reads the kitchen's name with it and joins.
+TOKEN="$MARI"; out="$(api POST "/rest/v1/rpc/$INVITE" "$(by_names "$INVITE_ARGS" "\"$A\"")")"; save "$out" j1
+if [[ "$(status "$out")" == 200 ]]; then check "Invitar a alguien, by the owner: a code, exactly the app's keys" exactly "$SCRATCH/j1.json" "$INVITE_KEYS"
+else echo "FAIL: $INVITE answered $(status "$out"): $(body "$out" | head -c 200)"; exit 1; fi
+CODE="$(pick token "$(body "$out")")"
+[[ "$CODE" =~ ^[0-9A-Z]{16}$ ]] || { echo "FAIL: no code to join with (the answer: $(body "$out" | head -c 120))"; exit 1; }
+CODE_BODY="$(by_names "$CODE_ARGS" "\"$CODE\"")"
+TOKEN="$LUPITA"; out="$(api POST "/rest/v1/rpc/$NAMEOF" "$CODE_BODY")"; save "$out" j2
+if [[ "$(status "$out")" == 200 ]]; then check "Unirme a …: the kitchen's name, before she joins — exactly the app's key" exactly "$SCRATCH/j2.json" "$NAMEOF_KEYS"
+else fail "$NAMEOF answered $(status "$out"): $(body "$out" | head -c 200)"; fi
+[[ "$(pick kitchen_name "$(body "$out")")" == "$NAME" ]] && ok "and it is her kitchen's: $NAME" || fail "the name came back as $(body "$out" | head -c 120), not $NAME"
+out="$(api POST "/rest/v1/rpc/$REDEEM" "$CODE_BODY")"; save "$out" j3
+if [[ "$(status "$out")" == 200 ]]; then check "she joins with it, at once: this kitchen, a helper's role, the app's keys" joined "$SCRATCH/j3.json" "$JOIN_KEYS" "$A" "$NAME" "$ROLES" "$OWNER"
+else echo "FAIL: $REDEEM answered $(status "$out"): $(body "$out" | head -c 200)"; exit 1; fi
+TOKEN="$MARI"; out="$(api POST "/rest/v1/rpc/$NAMEOF" "$CODE_BODY")"; save "$out" j4
+check "the same code again names nothing: a code for one person (the app's $DEAD)" code "$SCRATCH/j4.json" "$DEAD"
+out="$(api POST "/rest/v1/rpc/$NAMEOF" "$(by_names "$CODE_ARGS" '"ZZZZZZZZZZZZZZZZ"')")"; save "$out" j5
+check "a made-up code names nothing either" code "$SCRATCH/j5.json" "$DEAD"
+out="$(api POST "/rest/v1/rpc/$INVITE" "$(by_names "$INVITE_ARGS" "\"$A\"")")"
+OLD="$(pick token "$(body "$out")")"
+moved="$(as_owner "update public.workspace_invite set created_at = now() - interval '25 hours', expires_at = now() - interval '1 hour'
+                   where token_hash = public.hash_invite_token('$OLD') returning 1")"
+[[ "$moved" == 1 ]] || fail "could not move a code back a day ($moved)"
+out="$(api POST "/rest/v1/rpc/$NAMEOF" "$(by_names "$CODE_ARGS" "\"$OLD\"")")"; save "$out" j6
+check "a code a day old names nothing: it expired (the app's $EXPIRED)" code "$SCRATCH/j6.json" "$EXPIRED"
+TOKEN="$LUPITA"; out="$(api POST "/rest/v1/rpc/$INVITE" "$(by_names "$INVITE_ARGS" "\"$A\"")")"; save "$out" j7
+check "the helper may not invite: inviting is the owner's (G18)" code "$SCRATCH/j7.json" 42501
 
 MEMBERS="/rest/v1/$TABLE?select=$(q "$COLUMNS")&$KITCHEN_COL=eq.$A&$ACTIVE_COL=eq.true"
 ROW="/rest/v1/$TABLE?$KITCHEN_COL=eq.$A&$USER_COL=eq.$LUPITA_ID&$ROLE_COL=neq.$OWNER&select=$USER_COL"
@@ -329,10 +395,14 @@ out="$(api GET "$MEMBERS")"
 [[ "$(status "$out")" == 401 || "$(status "$out")" == 403 ]] && ok "signed out, the list is refused ($(status "$out"))" || fail "signed out, the list answered $(status "$out"): $(body "$out" | head -c 120)"
 out="$(api POST "/rest/v1/rpc/$LEAVE" "$LEAVE_BODY")"
 [[ "$(status "$out")" == 401 || "$(status "$out")" == 403 ]] && ok "signed out, Salir is refused ($(status "$out"))" || fail "signed out, $LEAVE answered $(status "$out")"
+out="$(api POST "/rest/v1/rpc/$INVITE" "$(by_names "$INVITE_ARGS" "\"$A\"")")"
+[[ "$(status "$out")" == 401 || "$(status "$out")" == 403 ]] && ok "signed out, Invitar is refused ($(status "$out"))" || fail "signed out, $INVITE answered $(status "$out")"
+out="$(api POST "/rest/v1/rpc/$NAMEOF" "$CODE_BODY")"
+[[ "$(status "$out")" == 401 || "$(status "$out")" == 403 ]] && ok "signed out, a code names nothing ($(status "$out"))" || fail "signed out, $NAMEOF answered $(status "$out")"
 
 echo
 if (( fails > 0 )); then
   echo "$fails assertion(s) failed."
   exit 1
 fi
-echo "every assertion held: her role, who works at her kitchen, Quitar and Salir are the names the database answers."
+echo "every assertion held: joining by a code, her role, who works at her kitchen, Quitar and Salir are the names the database answers."

@@ -5,7 +5,8 @@
 #
 # `0076` makes the bucket where a kitchen's cover, logo and dish photos live.
 # The owner's ruling of 2026-11-01 sets its walls — written by the kitchen's
-# owner and managers in her own folder, read by anyone signed in, never by
+# owner and managers in her own folder (⚠️ and since `0083`, `10.9b-iii`, by her
+# helper too: G36, a helper publishes), read by anyone signed in, never by
 # anyone signed out — and `0076` keeps two promises of its own: only while the
 # kitchen exists (Wera's aviso promises a deleted shop's photos leave
 # everyone's reach at once), and pictures only. A policy's text is not its
@@ -14,7 +15,7 @@
 #    1. the bucket as Storage reports it: private, 2 MB a file, JPEG/PNG/WebP;
 #    2. the owner puts both files of a picture into her folder (again: 409);
 #    3. a manager puts one;
-#    4. the cook may not;
+#    4. the cook — a helper, `staff` — puts one too (`0083`; she was refused until then);
 #    5. everyone signed in reads it — the owner, the cook, a shop's owner, a
 #       neighbour who belongs to nothing, another kitchen's owner — byte for byte;
 #    6. nobody signed out reads it, by the private path or the public one;
@@ -226,13 +227,13 @@ else
   fail "the manager's upload answered $(status "$UP_M") $(body "$UP_M" | head -c 200) — the ruling gives the owner and managers the folder"
 fi
 
-# --- 4. the cook may not ---------------------------------------------------------------
+# --- 4. the cook puts one too (`0083`, `10.9b-iii` — G36: a helper publishes, her dish's photo with it)
 note
 UP_S="$(put "$WS_C/$(uuid)/$LARGE" "$SCRATCH/$LARGE" "$COCINERA")"
-if refused "$UP_S"; then
-  ok "the cook may not put one there ($(status "$UP_S"), row-level security)"
+if [[ "$(status "$UP_S")" == "200" ]]; then
+  ok "the cook — a helper — puts one into her kitchen's folder too"
 else
-  fail "the cook's upload answered $(status "$UP_S") $(body "$UP_S" | head -c 160) — only the owner and managers write"
+  fail "the cook's upload answered $(status "$UP_S") $(body "$UP_S" | head -c 160) — since 0083 every member of the kitchen writes in its folder"
 fi
 
 # --- 5. everyone signed in reads it, byte for byte ------------------------------------
@@ -405,7 +406,7 @@ if (( fails == 0 && ran < 15 )); then
 fi
 if (( fails == 0 )); then
   echo "all $ran assertion groups passed — the bucket $BUCKET holds 0076's walls over the real APIs:"
-  echo "a kitchen's owner and managers write in her folder, anyone signed in reads while the"
+  echo "every member of a kitchen writes in her folder (her helper since 0083), anyone signed in reads while the"
   echo "kitchen exists, nobody signed out, pictures only, nothing overwritten or deleted by a"
   echo "phone — and a deleted kitchen's photos by the runbook, the aviso's hand."
   exit 0

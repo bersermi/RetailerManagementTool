@@ -43,3 +43,8 @@ export function ayudasAqui(loQueUsa: LoQueUsa | undefined, hechos: readonly Eleg
 export function quitarTexto(loQueUsa: LoQueUsa | undefined, hechos: readonly Elegible[] = construidos()): string {
   return conTarjeta(loQueUsa, hechos) ? ES.equipo.quitarTextoConTarjeta : ES.equipo.quitarTexto;
 }
+
+/** What *Invitar a alguien* tells the owner her helper will do (`10.9b-iii`): stamps and rewards only with the card. */
+export function podraTexto(loQueUsa: LoQueUsa | undefined, hechos: readonly Elegible[] = construidos()): string {
+  return conTarjeta(loQueUsa, hechos) ? ES.invitar.podraConTarjeta : ES.invitar.podra;
+}
