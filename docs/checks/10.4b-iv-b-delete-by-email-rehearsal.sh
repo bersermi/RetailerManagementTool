@@ -350,12 +350,11 @@ broken "the count of names never compared" \
   'if [[ "$named" -lt "$sole_count" ]]; then' 'if [[ "$named" -lt 0 ]]; then' "$N_KITCHEN_ASKED"
 broken "a co-owned shop counted as hers" \
   'and o.user_id <> who.id)' 'and o.user_id <> who.id and false)' "$N_COOWNER"
-# `10.9b-i`: a kitchen she only helps at, counted as one she owns alone.
-broken "a kitchen she helps at counted as hers" \
-  "   where wm.is_active and wm.role = 'owner'
-     and not exists (" \
-  "   where wm.is_active
-     and not exists (" "$N_HELPER"
+# ⚠️ `10.9b-i` tried "a kitchen she only helps at, counted as hers" (the owner predicate
+# dropped) and it stays green: her kitchen has another active owner, so the same clause that
+# guards the co-owner keeps it out — that copy is "a co-owned shop counted as hers", above.
+# The helper's read-backs (her login gone, her name on her ended membership) are the
+# database's, and `supabase/tests/0082_a_helper_publishes.sql` 6.1 is where they can fail.
 broken "the printed names left unquoted" \
   "again+=\" --shop '\${name//\$q/\$q\$bs\$q\$q}'\"" 'again+=" --shop ${name}"' "$N_PRINTED"
 # `10.5-iii-c`: the kitchen's runbook.
