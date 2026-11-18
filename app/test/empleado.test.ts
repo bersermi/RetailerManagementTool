@@ -16,6 +16,7 @@ import {
   loQueRegistro,
   veTodoElInicio,
 } from '@/navigation/inicio';
+import { ES } from '@/strings';
 
 // ============================================================================
 // AN EMPLEADO SEES ONLY HER WORK — plan task `5R-n`, the owner's ruling of
@@ -79,6 +80,10 @@ describe('her doors', () => {
       expect(doorsFor('tarjeta', role).map((d) => d.key), String(role)).toEqual(['vender', 'comprar', 'desperdicio']);
       expect(doorsFor('mas', role).map((d) => d.key), String(role)).toEqual(['documentos', 'ajustes']);
     }
+  });
+
+  it('is described to the owner who invites her by the three she records — `5R-o`, his yes of 2026-11-18', () => {
+    expect(ES.invite.roleHelp.staff).toBe('Registra ventas, compras y merma en las sucursales que le asignes.');
   });
 
   it('never opens one of her doors onto a room she is sent back from', () => {

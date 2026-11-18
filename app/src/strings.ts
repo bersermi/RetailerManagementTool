@@ -446,6 +446,11 @@ export const ES = {
       },
       listo: { title: 'Listo. Haz tu primera venta', line: 'Lo vuelves a ver cuando quieras en Ajustes.' },
       venderEmpleado: { title: 'Vende en segundos', line: 'Toca + en cada producto y desliza Cobrar.' },
+      /** ⚠️ `5R-o`, the owner's yes of 2026-11-18: Comprar became hers on 2026-11-17. */
+      comprarEmpleado: {
+        title: 'Cuando llega el proveedor',
+        line: 'En Comprar anotas lo que te entregó y cuánto costó. Wera recuerda el último precio.',
+      },
       sinSenal: {
         title: 'Sin señal, sigues vendiendo',
         line: 'La venta se guarda en el teléfono y se envía sola cuando vuelve el internet.',
@@ -727,7 +732,8 @@ export const ES = {
      */
     roleHelp: {
       manager: 'Ve toda la tienda y puede invitar a otros.',
-      staff: 'Registra ventas y compras en las sucursales que le asignes.',
+      /** ⚠️ `5R-o`, the owner's yes of 2026-11-18: Merma has been hers since `8l`. */
+      staff: 'Registra ventas, compras y merma en las sucursales que le asignes.',
     },
     locationLabel: '¿En qué sucursal va a trabajar?',
     submit: 'Crear invitación',
