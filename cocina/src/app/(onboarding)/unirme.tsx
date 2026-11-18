@@ -11,15 +11,22 @@ import { PALETTE, SIZE } from '@/theme/palette';
 import { Banda } from '@/ui/Banda';
 import { BotonLleno } from '@/ui/BotonLleno';
 import { Campo } from '@/ui/Campo';
+import { Escaner } from '@/ui/Escaner';
 import { Formulario } from '@/ui/Formulario';
 
 // ============================================================================
 // *UNIRME A UNA COCINA* — A HELPER JOINS WITH THE CODE SHE WAS GIVEN. Plan task `10.9b-iii`, the
 // owner's ruling of 2026-11-18: a code for one person, good for 24 hours, sixteen characters in four
 // groups, no address asked, and she joins as a helper AT ONCE — no one confirms her by name; the
-// owner removes her from *Quién trabaja aquí* if she must. Typed until a camera can scan it (`10.9c`).
+// owner removes her from *Quién trabaja aquí* if she must.
 //
-// She types it, or pastes the whole message *Compartir el código* sent her: the box finds the code in
+// ⚠️ SINCE `10.9c` SHE SCANS IT: the owner's *Invitar a alguien* shows it as a QR, and the box above the
+// typed one is the camera (`@/ui/Escaner`) — asked for the first time she taps it; refused, the typed box
+// is the way. What it reads goes through the typed box's own rule (`codigoAlEscribir`), so a scan is
+// exactly what typing it would have been; a QR that is not a whole code says so and the camera stays open,
+// and once the code is whole the camera closes — clearing the box opens it again.
+//
+// Or she types it, or pastes the whole message *Compartir el código* sent her: the box finds the code in
 // it, groups it as she goes and reads `I`/`L` as `1` and `O` as `0`, as the database does
 // (`@/api/invitar`, Wera's normaliser). No `maxLength`: it would cut a pasted message before the code.
 // Once it is whole the database is asked the kitchen's name (`kitchen_of_code`) and the button says
@@ -63,6 +70,17 @@ export default function Unirme() {
         }}
       >
         <Text style={{ fontSize: SIZE.bodySize, lineHeight: 22, color: PALETTE.tinta }}>{ES.unirme.texto}</Text>
+        <Escaner
+          textos={ES.unirme.escaner}
+          activo={codigo === null}
+          onLeido={(leido) => {
+            const visto = codigoAlEscribir(leido);
+            if (codigoCompleto(visto) === null) return false;
+            setProblema(null);
+            setEscrito(visto);
+            return true;
+          }}
+        />
         <Campo
           label={ES.unirme.codigo}
           placeholder={ES.unirme.codigoEjemplo}

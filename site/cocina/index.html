@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="es-MX">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Una cocina en Itacate</title>
+  <meta name="description" content="Una cocina de tu barrio está en Itacate: ve lo que ofrece hoy y aparta tu platillo.">
+  <link rel="stylesheet" href="../estilo.css">
+</head>
+<body>
+<header><a class="marca" href="../">Wera</a></header>
+<main>
+
+<!-- Plan 10.9c (G40): the address of one kitchen, https://tu-wera.com/cocina/?k=<her id>&n=<her name>.
+     With Itacate on the phone, the phone opens Itacate on her page instead of this one (.well-known/).
+     Without it, this page: her name read from the link — nothing is readable without an account — and
+     the stores. The script below is the site's only one, and the build check holds it to this page and
+     to reading the address bar: no request, no storage, no cookie. -->
+
+<h1 id="nombre">Una cocina de tu barrio</h1>
+<p class="fecha">está en Itacate</p>
+
+<p>En Itacate ves lo que esta cocina ofrece hoy, apartas tu platillo y pasas por él a la hora que
+elijas. Para usarla entras con una cuenta.</p>
+
+<p id="abrir" hidden><a class="boton" id="abrir-enlace" href="#abrir">Ya tengo Itacate: abrir esta cocina</a></p>
+
+<h2 id="descargar">Descarga Itacate</h2>
+<ul class="tiendas">
+  <li><a href="https://play.google.com/store/apps/details?id=mx.wera.vecino">Itacate en Google Play</a>, para Android.</li>
+  <li>En iPhone, Itacate todavía no está en el App Store.</li>
+</ul>
+
+</main>
+<footer>
+  <a href="../privacidad/cocina-e-itacate/#itacate">Aviso de privacidad</a>
+  <a href="../terminos/cocina-e-itacate/">Términos de uso</a>
+</footer>
+<script>
+(function () {
+  var q = new URLSearchParams(window.location.search);
+  var nombre = (q.get('n') || '').replace(/[\u0000-\u001f\u007f]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 60);
+  if (nombre) {
+    document.getElementById('nombre').textContent = nombre;
+    document.title = nombre + ' · Itacate';
+  }
+  var id = (q.get('k') || '').toLowerCase();
+  if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(id)) {
+    document.getElementById('abrir-enlace').setAttribute('href', 'mx.wera.vecino://cocina/' + id);
+    document.getElementById('abrir').hidden = false;
+  }
+})();
+</script>
+</body>
+</html>

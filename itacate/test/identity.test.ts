@@ -14,8 +14,9 @@ import { describe, expect, it } from 'vitest';
 // dashboard must also hold. This reads `app.json` and requires one string.
 //
 // And what this app may ask the person for: her location only while the app is
-// open (to show what is near), and notifications. Never in the background,
-// never the camera.
+// open (to show what is near), notifications, and — since `10.9c` — the camera,
+// to scan a kitchen's code (the loyalty card, `10.9e`: nothing asks it until
+// then). Never in the background, never the microphone, never her photos.
 // ============================================================================
 
 const app = JSON.parse(readFileSync(new URL('../app.json', import.meta.url), 'utf8')).expo;
@@ -49,8 +50,15 @@ describe('what it may ask for', () => {
     expect(app.android.blockedPermissions).toContain('android.permission.ACCESS_BACKGROUND_LOCATION');
   });
 
-  it('notifications, and never the camera', () => {
+  it('notifications, and never her photos', () => {
     expect(named('expo-notifications')).toBeTruthy();
     expect(named('expo-image-picker')).toBeUndefined();
+  });
+
+  it('`10.9c`: the camera, to scan a kitchen’s code — a Spanish reason, no microphone, no recording', () => {
+    const [, camera] = named('expo-camera') as [string, Record<string, unknown>];
+    expect(camera.cameraPermission).toBe('Itacate usa la cámara para escanear el código de la cocina.');
+    expect(camera.microphonePermission).toBe(false);
+    expect(camera.recordAudioAndroid).toBe(false);
   });
 });

@@ -52,9 +52,17 @@
       [
         "expo-image-picker",
         {
-          "cameraPermission": "Wera Cocina usa la cámara para tomar las fotos de lo que publicas.",
+          "cameraPermission": "Wera Cocina usa la cámara para tomar las fotos de lo que publicas y para escanear el código de una cocina o de tu cliente.",
           "photosPermission": false,
           "microphonePermission": false
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Wera Cocina usa la cámara para tomar las fotos de lo que publicas y para escanear el código de una cocina o de tu cliente.",
+          "microphonePermission": false,
+          "recordAudioAndroid": false
         }
       ],
       [

@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "mx.wera.vecino",
+      "sha256_cert_fingerprints": [
+        "0B:6D:44:CC:65:01:E4:00:33:DE:89:F2:39:13:DF:59:99:66:56:81:B0:D1:3F:D1:CA:D8:19:42:60:38:EA:03"
+      ]
+    }
+  }
+]
