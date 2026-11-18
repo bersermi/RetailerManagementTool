@@ -25,7 +25,10 @@
 # login goes and her kitchen keeps her name on her ended membership, as a
 # co-owner's shop does — no name to type; since `0083` the code she joined with
 # (an invitation with no address) goes with her, and a code nobody used goes with
-# the kitchen it was for. There is no second deletion path to keep in step with
+# the kitchen it was for. Since `0084` a neighbour's follows of kitchens and the
+# names of those she followed that left go with her account; a kitchen that goes
+# with its owner's account takes its follows, each follower keeping its name for
+# 30 days (*dejó Itacate*). There is no second deletion path to keep in step with
 # the first.
 #
 # ⚠️ ONE `--shop` FOR EACH BUSINESS SHE ALONE OWNS, a shop's name or a kitchen's

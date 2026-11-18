@@ -68,7 +68,13 @@
     reads *how many* follow it and, of its card, counts — a name only at the moment it scans her code or hands her a reward, as at a
     handover. What she reads of a kitchen's services (which it uses, its card's terms, its promotions) comes through **the one door**,
     re-made with defaulted fields — **not a second door**: no business reads another business's rows. ✅ *Which it uses* is built by
-    `0081` (`10.9a-i`, the door's row below).
+    `0081` (`10.9a-i`, the door's row below). ✅ **Her follows are built by `0084` (`10.9d-i`)**: `servicio.follow` (her plain id, `0053`'s
+    rule; following and the bell, two switches, the bell stored and rung by nothing until `10.9h`) and `servicio.kitchen_gone` (a kitchen
+    she followed, once deleted: its name and the moment, 30 days — a trigger on every deletion of a kitchen, a nightly job after), read and
+    written only by `set_my_follow` and `my_follows`, keyed on `auth.uid()`; a kitchen's every member reads `kitchen_followers`, a count
+    and never who. ⚠️ **Chosen there:** her list reads every kitchen she follows, not only those the door sends today (a kitchen quiet for
+    two weeks is still hers), with its name, trade, colonia and page — her own rows with the kitchen's public name, as `my_reservations`
+    sends it — so it is not a second door.
   - **§2.7, roles in Wera Cocina.** Two roles for now: the **owner** and a **helper**, who is the database's `staff` and publishes,
     hands over and gives stamps and rewards; the functions that ask for `manager` there today are lowered to `staff` by `10.9b`'s
     migration (a rule about who may do what — ruled), and `manager` stays free for a third role he left open. Wera's matrix is

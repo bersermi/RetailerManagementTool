@@ -94,6 +94,9 @@ signed_in (proname) as (values
   -- a helper joins by a code (`0083`, plan `10.9b-iii`): its owner asks for one, and
   -- whoever holds a live one is told the kitchen's name before she joins
   ('invite_helper'), ('kitchen_of_code'),
+  -- following (`0084`, plan `10.9d-i`): her two, keyed on her own id — following and
+  -- the bell, and her list — and the kitchen's count, read by every member, never who
+  ('set_my_follow'), ('my_follows'), ('kitchen_followers'),
   -- what a policy, a check or a computed column runs as the caller
   ('catalog_image_path'), ('has_role'), ('merma_path_ok'), ('my_locations'),
   ('my_role'), ('my_workspaces'), ('normalize_name'), ('photo_folder_ok'),

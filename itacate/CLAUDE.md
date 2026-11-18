@@ -22,6 +22,7 @@ bash docs/checks/5R-k-apple-revoke-contract.sh      # the same stack: the functi
 bash docs/checks/10.5-iv-a-door-contract.sh         # the same stack: the one door, every key the list reads, asked as a neighbour
 bash docs/checks/10.5b-iii-a-reserving-contract.sh  # the same stack: reserving, giving back, collecting, her stars and her standing, by apartados.ts's names
 bash docs/checks/10.9a-i-features-contract.sh       # the same stack: the door's `features`, by cocinas.ts's key and names, beside Wera Cocina's servicios.ts
+bash docs/checks/10.9d-i-following-contract.sh      # the same stack: Seguir, the bell and her list by siguiendo.ts's names, and Te siguen N by Wera Cocina's seguidores.ts
 TZ=UTC npm --prefix itacate test          # CI's zone: the list's days and windows are local time, and the Mac is UTC−6
 bash store/cocina-itacate/render.sh itacate-icono   # the iPhone's icon, the cow on the blue — and nothing else (native on the iPhone)
 ```
@@ -106,6 +107,11 @@ from `itacate/` with the two local `EXPO_PUBLIC_SUPABASE_` values in the shell, 
   rows) — every argument and key read,
   the states drawn, the refusals turned into sentences — asked as a neighbour against a real PostgREST by
   `docs/checks/10.5b-iii-a-reserving-contract.sh` (its own job in `db.yml`, `itacate-reserving`; its falsifier breaks the file).
+  ⚠️ **Following's claim is `src/api/siguiendo.ts`** (`10.9d-i`): `0084`'s `set_my_follow` (following and the bell, two switches, either
+  `null` to leave it) and `my_follows` (her kitchens — **every one she follows, not only those the door sends today** — and those that left
+  in 30 days, *dejó Itacate*), every argument and key, and `TD026` — asked as a neighbour by `docs/checks/10.9d-i-following-contract.sh`
+  (its own job, `itacate-following`; its falsifier breaks the file), held to `0084`'s text by `test/siguiendo.test.ts`. **No screen reads it
+  until `10.9d-ii`**; the bell is stored and rung by nothing until `10.9h`.
 - **Sign-in leans on two settings outside this repository**, both made by the owner's one command,
   `bash docs/runbooks/set-itacate-sign-in.sh` (a session's write to either is refused), and read
   back by `--check`: the three values its bundle reads in this EAS project's `preview` and, since

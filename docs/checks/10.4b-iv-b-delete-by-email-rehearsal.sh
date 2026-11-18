@@ -23,7 +23,11 @@
 # membership goes with it, her login stays. ⚠️ Since `10.9b-iii` (`0083`) each helper JOINS by her
 # owner's code, as the phones do, and an invitation with no address is read back: the code a helper
 # joined with goes with her account, and a code nobody used goes with its kitchen — deleted with
-# its account, or alone.
+# its account, or alone. ⚠️ Since `10.9d-i` (`0084`) a neighbour follows three kitchens, as
+# Itacate does (`set_my_follow`): a kitchen deleted, with its account or alone, takes its follows
+# and leaves her its name (*dejó Itacate*); the kept kitchen keeps hers; and the person who owns
+# nothing follows one before deleting her account — her follows and the kitchens she followed
+# that left go with her.
 #
 # WHY IT EXISTS. The runbook is the only way out without the app, and the aviso
 # and both deletion pages promise it (Google requires one). It is run by hand,
@@ -94,8 +98,10 @@ business() { # user-id name kind
 users_with() { sql "select count(*)::text as n from auth.users where lower(email) = lower('$1');" n; }
 business_left() { sql "select count(*)::text as n from public.workspace where id = '$1';" n; }
 # `10.9a-i`: what a kitchen uses and what it told Wera about its menu (`0081`), rows of its own.
+# Since `10.9d-i`, the neighbours who follow it or ring its bell (`0084`) too.
 servicio_left() { sql "select ((select count(*) from servicio.kitchen_feature where workspace_id = '$1')
-                             + (select count(*) from servicio.menu_request where workspace_id = '$1'))::text as n;" n; }
+                             + (select count(*) from servicio.menu_request where workspace_id = '$1')
+                             + (select count(*) from servicio.follow where workspace_id = '$1'))::text as n;" n; }
 # A choice and a request about the menu, written as the database's owner: a deletion must take both.
 uses() { # kitchen-id
   sql "with f as (insert into servicio.kitchen_feature (workspace_id, feature, state) values ('$1', 'menu', 'interesada') returning 1),
@@ -123,6 +129,18 @@ helper() { # kitchen-id user-id
          select set_config('request.jwt.claims',
                   json_build_object('sub', '$2', 'role', 'authenticated')::text, true) as c)
        select (public.redeem_invite('$code') ->> 'location_count') as n from as_them;" n
+}
+# `10.9d-i`: a neighbour follows a kitchen through her own function, as Itacate does (`0084`).
+follows() { # user-id kitchen-id
+  sql "with as_them as (
+         select set_config('request.jwt.claims',
+                  json_build_object('sub', '$1', 'role', 'authenticated')::text, true) as c)
+       select (public.set_my_follow('$2', p_following => true) ->> 'following') as f from as_them;" f
+}
+# Her own rows: what she follows, and the kitchens she followed that left (one, or every one).
+follows_of() { sql "select count(*)::text as n from servicio.follow where user_id = '$1';" n; }
+gone_for() { # user-id [kitchen-id]
+  sql "select count(*)::text as n from servicio.kitchen_gone where user_id = '$1' ${2:+and workspace_id = '$2'};" n
 }
 memberships_of() { sql "select count(*)::text as n from public.workspace_member where user_id = '$1';" n; }
 # `10.9b-iii`: every invitation of a kitchen, used or not; and the ones a person joined with.
@@ -181,6 +199,11 @@ fixtures() {
   u_h2="$(login ayudante-gabi)" && [[ "$(helper "$k_g" "$u_h2")" == 1 ]] || return 1
   # `10.9b-iii`: a code nobody used at the kitchen deleted with its account and at the one deleted alone.
   [[ -n "$(code_at "$k_b")" && -n "$(code_at "$k_g")" ]] || return 1
+  # `10.9d-i`: a neighbour follows the kitchen deleted with its account, the one deleted alone and
+  # the one kept; the person who owns nothing follows the first, then deletes her account.
+  u_v="$(login vecina)" || return 1
+  [[ "$(follows "$u_v" "$k_b")" == true && "$(follows "$u_v" "$k_g")" == true && "$(follows "$u_v" "$k_g2")" == true ]] || return 1
+  [[ "$(follows "$u_f" "$k_b")" == true ]] || return 1
 }
 
 # One case: the runbook's exit code, a sentence it printed, and what the
@@ -205,17 +228,17 @@ N_KITCHEN_ASKED="a kitchen alone, asked for without its name, is refused and nam
 N_BOTH_ASKED="a shop and a kitchen, asked for without names, are both named, and nothing changes"
 N_ONE_OF_TWO="one name of two is refused before the database is asked, and nothing changes"
 N_ONE_WRONG="two names, one of them wrong, is refused by the database itself, and nothing changes"
-N_PRINTED="the command it printed, run as printed, deletes the login, the shop and the kitchen — with what the kitchen uses and told Wera, and a code nobody used"
+N_PRINTED="the command it printed, run as printed, deletes the login, the shop and the kitchen — with what the kitchen uses and told Wera, a code nobody used and its follows, its follower keeping its name"
 N_APOSTROPHE="a kitchen's name with an apostrophe, typed in another case and spacing, deletes it"
 N_SHOP_ALONE="a shop alone and one --shop, as before this row, deletes both"
 N_COOWNER="a co-owner needs no name: her login goes, the shop stays, her name stays on it"
-N_NOTHING="an account with no business goes with no name, its email typed in capitals"
+N_NOTHING="an account with no business goes with no name, its email typed in capitals — her follows and the kitchen she followed that left with it"
 N_HELPER="a kitchen's helper needs no name: her login goes, the kitchen stays, her name stays on her ended membership, the code she joined with goes"
 K_NOBODY="the kitchen's runbook: an email with no account is refused, and nothing changes"
 K_ASKED="no kitchen named: her two kitchens listed, never her shop, and nothing changes"
 K_SHOP="her shop's name is no kitchen's: refused, and nothing changes"
 K_ACCENT="her kitchen's name with an accent added: refused — accents count — and nothing changes"
-K_PRINTED="the line it printed for one kitchen, run as printed: that kitchen gone with what it uses and told Wera, its helper's membership and its codes, her login, her shop, her other kitchen and the helper's login kept, its own kept"
+K_PRINTED="the line it printed for one kitchen, run as printed: that kitchen gone with what it uses and told Wera, its follows, its helper's membership and its codes, its follower keeping its name; her login, her shop, her other kitchen and the helper's login kept, its own kept"
 K_AGAIN="the same line again: refused — no kitchen of hers is called that any more — and nothing else changes"
 
 # ⚠️ `part` is `all`, `account` or `kitchen`: a broken copy of ONE runbook runs that
@@ -255,7 +278,7 @@ cases() { # account-runbook kitchen-runbook [part]
   else
     run "${args[@]}"
   fi
-  check "$N_PRINTED" 0 "Done on the LOCAL database" "users_with $(mail ambas); business_left $s_b; business_left $k_b; servicio_left $k_b; codes_left $k_b" "0 0 0 0 0"
+  check "$N_PRINTED" 0 "Done on the LOCAL database" "users_with $(mail ambas); business_left $s_b; business_left $k_b; servicio_left $k_b; codes_left $k_b; gone_for $u_v $k_b" "0 0 0 0 0 1"
 
   run "$(mail solo-cocina)" --shop "fonda  d'lupe $tag" --local
   check "$N_APOSTROPHE" 0 "businesses deleted: 1" "users_with $(mail solo-cocina); business_left $k_a" "0 0"
@@ -268,7 +291,7 @@ cases() { # account-runbook kitchen-runbook [part]
     "users_with $(mail socia); business_left $s_d; sql \"select (count(*) filter (where not is_active and display_name = 'Rehearsal socia'))::text as n from public.workspace_member where workspace_id = '$s_d' and user_id = '$u_d';\" n" "0 1 1"
 
   run "$(mail nada | tr '[:lower:]' '[:upper:]')" --local
-  check "$N_NOTHING" 0 "businesses deleted: 0" "users_with $(mail nada)" "0"
+  check "$N_NOTHING" 0 "businesses deleted: 0" "users_with $(mail nada); follows_of $u_f; gone_for $u_f" "0 0 0"
 
   run "$(mail ayudante)" --local
   check "$N_HELPER" 0 "businesses deleted: 0, businesses it left: 1" \
@@ -301,7 +324,7 @@ cases() { # account-runbook kitchen-runbook [part]
   else
     run_kitchen "${args[@]}"
   fi
-  check "$K_PRINTED" 0 "Done on the LOCAL database" "$everything; servicio_left $k_g; servicio_left $k_g2; memberships_of $u_h2; users_with $(mail ayudante-gabi); codes_left $k_g" "1 0 1 1 0 2 0 1 0"
+  check "$K_PRINTED" 0 "Done on the LOCAL database" "$everything; servicio_left $k_g; servicio_left $k_g2; memberships_of $u_h2; users_with $(mail ayudante-gabi); codes_left $k_g; gone_for $u_v $k_g" "1 0 1 1 0 3 0 1 0 1"
 
   if [[ -n "$again" ]] && eval "args=($again)"; then run_kitchen "${args[@]}"; else out="(no line)"; code=99; fi
   check "$K_AGAIN" 1 "no kitchen $(mail tres) alone owns is called" "$everything" "1 0 1 1"
