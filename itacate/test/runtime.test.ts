@@ -35,8 +35,8 @@ import { afterAll, describe, expect, it } from 'vitest';
 //
 // ⚠️ AND PINNED TO THE FIELD: each platform's runtime must be the one Itacate's test
 // build on that platform carries — since `10.9c` (the camera module, `applinks:` and the
-// link filter) Android's `d56bd2cc` and the iPhone's build made from the same commit
-// (before them, `2b638d21` and `282cfb7d`) — because a
+// link filter) Android's `d56bd2cc` and the iPhone's `de2ae178` (before them, `2b638d21`
+// and `282cfb7d`) — because a
 // change that moves either strands every update to that platform until a new build,
 // and `ship-an-update.sh` then leaves it out without failing, as
 // `docs/checks/wera-runtime.sh` holds Wera's. A new build moves its pin, in the PR
@@ -55,9 +55,9 @@ const STAND_IN_IOS_KEY = 'clave-de-prueba-10-5-iv-a-i';
 const RUNTIME_DE_SU_BUILD_ANDROID = '09c70deda1bbdab406dfca8d183c60ecf0dc355e';
 
 /**
- * The runtime of Itacate's iPhone test build of `10.9c` — computed on this Mac and by EAS from the same commit
- * (2026-11-18; the first try, `ab888164`, stopped at signing: its profile had no Associated Domains, which only an
- * Apple sign-in adds). Before it, `282cfb7d`'s `a46650e4…`.
+ * The runtime of build `de2ae178`, Itacate's iPhone test build of `10.9c` (from `8cf5944`, made by the owner's
+ * Terminal on 2026-11-18 — the first try, `ab888164`, stopped at signing: its profile had no Associated Domains,
+ * which only an Apple sign-in adds) — read inside it (`EXUpdates.bundle/fingerprint`). Before it, `282cfb7d`'s `a46650e4…`.
  */
 const RUNTIME_DE_SU_BUILD_IOS = 'f3ddd6883919bf584573e8fae6bc95e458982161';
 
