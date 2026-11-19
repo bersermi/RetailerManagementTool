@@ -18,8 +18,10 @@
 # (`0077`) as that person, with the kitchen and the name typed, so the kitchen
 # goes with everything in it — its place, its page, what it published, since
 # `0081` what it uses and what it told Wera about its menu, since `0082` its
-# helpers' memberships (their logins stay, as hers does) and since `0083` its
-# helpers' codes, used or not — and her login and
+# helpers' memberships (their logins stay, as hers does), since `0083` its
+# helpers' codes, used or not, and since `0084` the neighbours' follows of it —
+# each neighbour who followed it keeps its name for 30 days, so her *Mis cocinas*
+# says it left Itacate (the owner's ruling G23) — and her login and
 # every other business she owns stay. There is no second deletion path to keep in
 # step with the first.
 #

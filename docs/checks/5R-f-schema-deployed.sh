@@ -38,6 +38,10 @@
 #      nightly `pg_cron` job is scheduled and active, nothing is older, and its last
 #      run, once it has had a night, succeeded. CI proves the job clears what it
 #      should; only the shop proves it is there and running.
+#   9. No deleted kitchen's name is kept past 30 days there (plan `10.9d-i`, `0084`):
+#      the nightly job that forgets them is scheduled and active, nothing is older,
+#      and its last run, once it has had a night, succeeded — group 8's shape, for
+#      the owner's ruling G23 (*dejó Itacate* for 30 days).
 #
 # ⚠️⚠️ IT IS DELIBERATELY NOT IN ANY WORKFLOW, AND THAT WAS THE FIRST DECISION THIS
 # TASK MADE. `supabase migration list --linked` needs a Supabase ACCESS TOKEN, and
@@ -371,11 +375,47 @@ else
   rm -f "$GP_ERR"
 fi
 
+# --- 9. a deleted kitchen's name kept under 30 days there (plan 10.9d-i, 0084) --
+# ⚠️ HIS RULING G23: a kitchen that leaves reads *dejó Itacate* in its followers'
+# *Mis cocinas* for 30 days — its name kept in `servicio.kitchen_gone`, and deleted
+# by a nightly job inside the hosted database, where nothing else watches it.
+# Group 8's three questions, one statement that always answers one row.
+note
+if (( link_ok == 0 )); then
+  fail "the kitchens that left were not read: group 2 did not accept the link."
+else
+  KG_ERR="$(mktemp)"
+  KG_OUT="$(supabase db query --linked -o csv --workdir "$ROOT" "select
+      (select count(*) from cron.job where jobname = 'forget-gone-kitchens' and active
+          and schedule = '19 9 * * *' and command = 'select servicio.forget_gone_kitchens()')::text as job,
+      (select count(*) from servicio.kitchen_gone where gone_at <= now() - interval '31 days')::text as old,
+      coalesce((select d.status from cron.job_run_details d join cron.job j on j.jobid = d.jobid
+                 where j.jobname = 'forget-gone-kitchens' order by d.start_time desc limit 1), 'none') as last_run" 2>"$KG_ERR")"
+  KG_RC=$?
+  KG_ROW="$(printf '%s\n' "$KG_OUT" | grep -v '^job,' | grep . | tail -1 | tr -d '\r')"
+  KG_JOB="${KG_ROW%%,*}"; KG_REST="${KG_ROW#*,}"; KG_OLD="${KG_REST%%,*}"; KG_LAST="${KG_REST#*,}"
+  if (( KG_RC != 0 )) || ! [[ "$KG_JOB" =~ ^[0-9]+$ && "$KG_OLD" =~ ^[0-9]+$ ]]; then
+    fail "the kitchens that left could not be read on the hosted project (exit $KG_RC). What it said:"
+    { printf '%s\n' "$KG_OUT"; cat "$KG_ERR"; } | grep -v '^Initialising\|^Connecting' | sed 's/^/        /' | head -6
+  elif [[ "$KG_JOB" != 1 ]]; then
+    fail "the nightly job that forgets the kitchens that left is not scheduled there ($KG_JOB found):"
+    echo "      0084 schedules it — has it been pushed? supabase db push"
+  elif [[ "$KG_OLD" != 0 ]]; then
+    fail "$KG_OLD kitchen name(s) kept for a follower more than a day past their 30 — the ruling says"
+    echo "      30 days. The job runs at 09:19 UTC: read cron.job_run_details for why it did not."
+  elif [[ "$KG_LAST" != none && "$KG_LAST" != succeeded ]]; then
+    fail "the job's last run there did not succeed (status: $KG_LAST)."
+  else
+    ok "a deleted kitchen's name is forgotten after its 30 days there — the nightly job scheduled and active, its last run: $KG_LAST"
+  fi
+  rm -f "$KG_ERR"
+fi
+
 echo ""
 if (( fails == 0 )); then
   echo "all $ran assertion groups passed — the hosted project $EXPECTED_REF is"
   echo "carrying exactly the migrations this repository has merged, keeps the"
-  echo "walls, and keeps no Google point past 30 days."
+  echo "walls, and keeps no Google point and no deleted kitchen's name past 30 days."
   exit 0
 fi
 echo "$ran assertion groups ran, $fails failed — the deployed schema and this"

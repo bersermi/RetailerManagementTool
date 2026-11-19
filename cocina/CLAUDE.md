@@ -23,6 +23,7 @@ bash docs/checks/10.5b-iv-a-handover-contract.sh      # the same stack: her kitc
 bash docs/checks/10.5b-iv-c-settings-contract.sh      # the same stack: her settings, her stars, each dish's ways, − and +, and the read before a deletion, by ajustes.ts', calificaciones.ts', listing.ts' and account.ts' names
 bash docs/checks/10.9a-i-features-contract.sh         # the same stack: what her kitchen uses, Wera's switch, Cuéntanos, and the door's word on it, by servicios.ts' names and Itacate's
 bash docs/checks/10.9b-ii-team-contract.sh            # the same stack: a helper joining by her owner's code (invitar.ts' names), her role, who works at her kitchen, Quitar and Salir (equipo.ts') — as a real owner and a real helper
+bash docs/checks/10.9d-i-following-contract.sh        # the same stack: Te siguen N by seguidores.ts' names, as the fonda, beside Itacate's following
 bash store/cocina-itacate/render.sh giros         # the nine trades' drawings, from brand/giros.svg into src/marca/giros/ — and nothing else
 TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic is local time, and the Mac is UTC−6
 ```
@@ -72,7 +73,10 @@ TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic i
   columns and the filters the owner's list and *Quitar a …* send, and `leave_kitchen` with `TD025` — is asked by `docs/checks/10.9b-ii-team-contract.sh`
   and its falsifier (its own job, `cocina-team`), as a real owner and a real helper (the section *Helpers* below) — ⚠️ and since `10.9b-iii`
   `src/api/invitar.ts` too (`0083`'s `invite_helper` and `kitchen_of_code`, `redeem_invite`, every argument and key of their answers, `TD005`
-  and `TD003`), the same check's second file: the helper joins by her owner's code. Her choices are **per kitchen, never per phone**: every member reads them, only the owner writes them
+  and `TD003`), the same check's second file: the helper joins by her owner's code. ⚠️ **Since `10.9d-i`, `src/api/seguidores.ts`** — `0084`'s
+  `kitchen_followers` (*Te siguen N*: any member reads it, a count of followers and never who) — is asked as the fonda by
+  `docs/checks/10.9d-i-following-contract.sh` beside Itacate's `siguiendo.ts` (its own job, `itacate-following`); no screen reads it until
+  `10.9d-ii`. Her choices are **per kitchen, never per phone**: every member reads them, only the owner writes them
   and what she tells Wera about the menu; a feature Wera has switched off (`available`) is offered nowhere and refused `on`; a feature or a state
   this build does not know is left out (`loQueUsaFrom`). Read by `useServicios`; written since `10.9a-ii` by `useElegirServicios` and `useContarMenu` (the section *Her choices* below). ⚠️ **And a kitchen's place is read by the kitchen's id**
   (`firstPlace`): the walls show a shop's owner her shop's store too, and an unfiltered read's first
