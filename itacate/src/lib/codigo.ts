@@ -17,7 +17,10 @@
 // ⚠️ THE QR CARRIES MORE THAN THE SIX DIGITS: which side shows it, the phone's key and the code
 // (`WERA1:c:<key>:<code>` for a kitchen's phone, `WERA1:v:<key>:<code>` for a neighbour's), so a
 // scan names its one phone (`p_key`) and six digits typed are tried against every phone of that
-// side.
+// side. ⚠️ `10.9e-ii`: HER *COBRAS: …* CODE NAMES THE REWARD SHE CHOSE as a fifth part
+// (`WERA1:v:<key>:<code>:<reward>`, a neighbour's alone), so the kitchen's scan gives that one at
+// once (`give_reward`'s `p_reward_id`) — with no signal too, from its queue. Six digits typed name
+// no reward: the kitchen picks (*¿Cuál le das?*).
 // ============================================================================
 
 /** How long a code lives on the screen: one minute (G16). The database's `code_minute`. */
@@ -167,20 +170,24 @@ export interface CodigoLeido {
   readonly lado: Lado;
   readonly key: string;
   readonly code: string;
+  /** The reward her *Cobras: …* screen names — a neighbour's QR alone, and only then. */
+  readonly premio?: string;
 }
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
-/** What the QR says: the side, the phone's key and the code. */
-export function textoDelQR(lado: Lado, key: string, code: string): string {
-  return `WERA1:${lado}:${key}:${code}`;
+/** What the QR says: the side, the phone's key and the code — and, on her *Cobras: …*, the reward she chose. */
+export function textoDelQR(lado: Lado, key: string, code: string, premio: string | null = null): string {
+  return premio === null || lado !== 'v' ? `WERA1:${lado}:${key}:${code}` : `WERA1:${lado}:${key}:${code}:${premio}`;
 }
 
 /** A scanned QR read back; null for anything that is not one of ours. */
 export function leerQR(text: string): CodigoLeido | null {
   const parts = text.trim().split(':');
-  if (parts.length !== 4 || parts[0] !== 'WERA1') return null;
-  const [, lado, key, code] = parts;
+  if ((parts.length !== 4 && parts.length !== 5) || parts[0] !== 'WERA1') return null;
+  const [, lado, key, code, premio] = parts;
   if ((lado !== 'c' && lado !== 'v') || !UUID.test(key) || !/^[0-9]{6}$/.test(code)) return null;
-  return { lado, key, code };
+  if (premio === undefined) return { lado, key, code };
+  if (lado !== 'v' || !UUID.test(premio)) return null;
+  return { lado, key, code, premio };
 }

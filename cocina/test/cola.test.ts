@@ -16,6 +16,11 @@ import {
   desenlaceDe,
   encolar,
   entregaEsperando,
+  NO_ES_SU_COCINA_DE_TARJETA,
+  esDeTarjeta,
+  escaneosEnCola,
+  noDio,
+  rechazosDeTarjeta,
   escribirCola,
   leerCola,
   llamadaDe,
@@ -295,7 +300,8 @@ function banco(responde: (llamada: Llamada, n: number) => unknown | Promise<unkn
   return { store, enviadas, llegadas, puertos, encola, login, drenaje: crearDrenaje(puertos) };
 }
 
-const quien = (l: Llamada) => `${l.tipo}:${'p_id' in l.args ? l.args.p_id : l.args.p_reservation_id}`;
+const quien = (l: Llamada) =>
+  `${l.tipo}:${'p_id' in l.args ? l.args.p_id : 'p_reservation_id' in l.args ? l.args.p_reservation_id : l.args.p_code}`;
 
 describe('the drain', () => {
   it('sends in the order she made them and empties the queue — `drained`', async () => {
@@ -436,5 +442,116 @@ describe('the wiring — what no node suite can run, held by its text', () => {
   it('the queue is one key of its own in the phone’s store — never the session’s, never the cache’s', () => {
     expect(COLA_KEY).toBe('cocina.cola');
     expect(code('auth/AuthProvider.tsx')).not.toMatch(/COLA_KEY|cocina\.cola/);
+  });
+});
+
+// ----------------------------------------------------------------------------
+// `10.9e-ii` — the card's scans that had no signal: a stamp and a reward, at the scan's moment
+// ----------------------------------------------------------------------------
+
+describe('⚠️ `10.9e-ii`: the card’s two kinds — a scan the phone could not send', () => {
+  const sello = (id: string, min = 0, codigo = '731904'): Nuevo => ({ tipo: 'sello', usuario: 'u1', cocina: 'k1', reserva: id, en: at(min), codigo, llave: 'L1' });
+  const premio = (id: string, min = 0): Nuevo => ({
+    tipo: 'premio',
+    usuario: 'u1',
+    cocina: 'k1',
+    reserva: id,
+    en: at(min),
+    codigo: '731904',
+    llave: null,
+    premio: 'R1',
+  });
+  const cola = (...nuevos: Nuevo[]) => nuevos.reduce(encolar, VACIA);
+
+  it('the same scan twice is one send; two scans, two', () => {
+    expect(cola(sello('a'), sello('a', 1)).envios).toHaveLength(1);
+    expect(cola(sello('a'), sello('b'), premio('c')).envios.map((e) => e.tipo)).toEqual(['sello', 'sello', 'premio']);
+  });
+
+  it('each goes with the scan’s moment — `give_stamp` and `give_reward`’s own arguments', () => {
+    const [s1, p1] = cola(sello('a', 2), premio('c', 3)).envios;
+    expect(llamadaDe(s1)).toEqual({ tipo: 'sello', args: { p_workspace_id: 'k1', p_code: '731904', p_key: 'L1', p_at: at(2).toISOString() } });
+    expect(llamadaDe(p1)).toEqual({
+      tipo: 'premio',
+      args: { p_workspace_id: 'k1', p_code: '731904', p_reward_id: 'R1', p_key: null, p_at: at(3).toISOString() },
+    });
+  });
+
+  it('about no order: never drawn over her reservations, counted apart on the counter’s line', () => {
+    const envios = cola(sello('a'), premio('c'), entrega('r1')).envios;
+    expect(escaneosEnCola(envios).map((e) => e.tipo)).toEqual(['sello', 'premio']);
+    expect(envios.filter(esDeTarjeta)).toHaveLength(2);
+    expect(vecinosConCola({}, envios, [])).toEqual({});
+    expect(porEnviarTexto(envios)).toBe('1 entrega, 1 sello y 1 premio por enviar');
+    expect(ES.cola.seEnvian(3, false)).toBe('Todavía están en este teléfono. Se envían cuando vuelve la señal.');
+  });
+
+  it('kept across a restart, read back whole', () => {
+    const store = memoria();
+    escribirCola(store, cola(sello('a'), premio('c')), T0);
+    expect(leerCola(store).envios).toEqual(cola(sello('a'), premio('c')).envios);
+  });
+
+  it('⚠️ a scan is ANSWERED: a landed answer that gave nothing is drawn as a refusal, with her name and the scan’s moment', async () => {
+    const b = banco((l) => (l.tipo === 'sello' ? { result: 'no_valido' } : { result: 'ya_hoy', name: 'Ana R.', stamps: 3, of: 8 }));
+    b.encola(sello('a', 1), sello('b', 2, '111111'));
+    expect(await b.drenaje.drenar()).toMatchObject({ stop: 'drained', llegaron: 2, rechazados: 2 });
+    const rechazos = rechazosDeTarjeta(leerCola(b.store), 'u1', 'k1', T0);
+    expect(rechazos.map((r) => [r.reserva, r.resultado, r.escaneo])).toEqual([
+      ['a', 'no_valido', at(1).toISOString()],
+      ['b', 'no_valido', at(2).toISOString()],
+    ]);
+    expect(noDio(leerCola(b.store).envios[0] ?? ({ tipo: 'sello' } as Envio), { result: 'sello' })).toBeNull();
+  });
+
+  it('a stamp or a reward that landed leaves no refusal', async () => {
+    const b = banco((l) => (l.tipo === 'sello' ? { result: 'gano', name: 'Ana R.' } : { result: 'cobrado', name: 'Ana R.', claimed: 'Café' }));
+    b.encola(sello('a'), premio('c'));
+    expect(await b.drenaje.drenar()).toMatchObject({ stop: 'drained', llegaron: 2, rechazados: 0 });
+    expect(leerCola(b.store)).toEqual(VACIA);
+  });
+
+  it('⚠️ a queued reward answered *ya cobrado* gave nothing — claimed elsewhere first — and is drawn: the meal may have gone twice', async () => {
+    const b = banco(() => ({ result: 'ya_cobrado', name: 'Ana R.', claimed: 'Café' }));
+    b.encola(premio('c', 5));
+    expect(await b.drenaje.drenar()).toMatchObject({ llegaron: 1, rechazados: 1 });
+    expect(rechazosDeTarjeta(leerCola(b.store), 'u1', 'k1', T0)[0]).toMatchObject({ tipo: 'premio', resultado: 'ya_cobrado', nombre: 'Ana R.' });
+  });
+
+  it('⚠️ which failures wait: too many tries waits; the card switched off, not her reward, or not her kitchen are final', () => {
+    expect(desenlaceDe({ code: 'TD028', message: 'too many' })).toEqual({ tipo: 'esperar' });
+    expect(desenlaceDe({ code: 'TD024' })).toEqual({ tipo: 'final', falla: 'otra' });
+    expect(desenlaceDe({ code: 'TD027' })).toEqual({ tipo: 'final', falla: 'otra' });
+    expect(desenlaceDe({ code: '22023', message: 'give_stamp: a scan more than 7 days old' })).toEqual({ tipo: 'final', falla: 'cambio' });
+    // Its own pattern: the handover's is read word for word by its contract check and falsifier.
+    expect(NO_ES_DE_SU_COCINA.test('give_stamp: that kitchen is not one of yours')).toBe(false);
+    expect(NO_ES_SU_COCINA_DE_TARJETA.test('give_stamp: that kitchen is not one of yours')).toBe(true);
+    expect(NO_ES_DE_SU_COCINA.source).toBe('reservation is not at one of your kitchens');
+    expect(desenlaceDe({ code: '42501', message: 'give_stamp: that kitchen is not one of yours' })).toEqual({ tipo: 'final', falla: 'sesion' });
+    // No session at all is still her sign-in, never the scan's refusal.
+    expect(desenlaceDe({ code: '42501', message: 'permission denied for function give_stamp' })).toEqual({ tipo: 'sesion' });
+  });
+
+  it('a refusal for good is drawn on Sellar with the scan’s moment — and the database’s code and words, so it says why', async () => {
+    const b = banco(() => ({ code: '22023', message: 'give_stamp: a scan more than 7 days old' }));
+    b.encola(sello('a', 4));
+    expect(await b.drenaje.drenar()).toMatchObject({ rechazados: 1 });
+    expect(rechazosDeTarjeta(leerCola(b.store), 'u1', 'k1', T0)[0]).toMatchObject({
+      tipo: 'sello',
+      escaneo: at(4).toISOString(),
+      codigo: '22023',
+      mensaje: 'give_stamp: a scan more than 7 days old',
+    });
+    // Kept across a restart.
+    expect(leerCola(b.store).rechazos[0]).toMatchObject({ codigo: '22023' });
+    expect(rechazosDeTarjeta(leerCola(b.store), 'u1', 'k1', new Date(T0.getTime() + RECHAZO_MS))).toEqual([]);
+  });
+
+  it('the wiring: the drain sends each kind to its function, and a drain that landed reads her card again', () => {
+    const SRC = fileURLToPath(new URL('../src', import.meta.url));
+    const text = (path: string) => readFileSync(join(SRC, path), 'utf8');
+    expect(text('lib/cola.ts')).toMatch(/case 'sello':\s*return giveStamp\(llamada\.args\);\s*case 'premio':\s*return giveReward\(llamada\.args\);/);
+    expect(text('lib/ColaProvider.tsx')).toContain('void client.invalidateQueries({ queryKey: TARJETA_KEY });');
+    expect(text('api/llegada.ts')).toContain('if (esDeTarjeta(envio)) return;');
   });
 });

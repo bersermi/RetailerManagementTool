@@ -16,8 +16,9 @@ import { PALETTE, SIZE } from '@/theme/palette';
 //     dashed in the green, *Prepara tu tarjeta* and what it asks (`ES.mosaicos.primera`);
 //   - SET UP, its own row's words — *6 sellos hoy* — and, when something waits for her, a DOT:
 //     urgency is a dot, never a tile moving.
-// ⚠️ NONE TODAY: no feature is built (`PANTALLA_DE` is empty until `10.9e`). Each feature's row hands
-// its live words and may draw more on its tile (the card's *Sellar*).
+// Each feature's row hands its live words and may draw a button of its own on its tile (`accion`):
+// ⚠️ `10.9e-ii`, the card's *Sellar* (the page's `tsell`) — a second tap target under the words, so the
+// counter's most used door is one tap from *Hoy*.
 // ============================================================================
 
 export function Mosaicos({ mosaicos }: { mosaicos: readonly Mosaico[] }) {
@@ -37,6 +38,33 @@ export function Mosaicos({ mosaicos }: { mosaicos: readonly Mosaico[] }) {
 }
 
 function Tesela({ mosaico }: { mosaico: Mosaico }) {
+  const accion = mosaico.vivo?.accion ?? null;
+  if (accion === null) return <Cara mosaico={mosaico} />;
+  return (
+    <View style={{ flex: 1, gap: 6 }}>
+      <Cara mosaico={mosaico} />
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={accion.etiqueta}
+        onPress={() => router.push(accion.abre)}
+        style={({ pressed }) => ({
+          minHeight: SIZE.tapTarget - 4,
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 6,
+          borderRadius: 999,
+          backgroundColor: pressed ? PALETTE.tinta : PALETTE.accion,
+        })}
+      >
+        <MaterialCommunityIcons name="qrcode" size={16} color={PALETTE.superficie} />
+        <Text style={{ fontSize: SIZE.smallSize, fontWeight: '800', color: PALETTE.superficie }}>{accion.etiqueta}</Text>
+      </Pressable>
+    </View>
+  );
+}
+
+function Cara({ mosaico }: { mosaico: Mosaico }) {
   const nombre = ES.loQueUsas.nombre[mosaico.servicio];
   const primera = mosaico.vivo === null;
   const [valor, detalle] = mosaico.vivo === null ? ES.mosaicos.primera[mosaico.servicio] : [mosaico.vivo.valor, mosaico.vivo.detalle];

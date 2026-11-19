@@ -2,6 +2,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, type ReactNode } from 'react';
 
 import { APARTADOS_KEY } from '@/api/apartados';
+import { TARJETA_KEY } from '@/api/tarjeta';
 import { dibujarLlegada } from '@/api/llegada';
 import { guardarYa } from '@/api/persist';
 import { useAuth } from '@/auth/AuthProvider';
@@ -36,7 +37,11 @@ export function ColaProvider({ children }: { children: ReactNode }) {
       guardarYa();
     });
     const sinDrenaje = onDrain((drenado) => {
-      if (drenado.landed > 0) void client.invalidateQueries({ queryKey: APARTADOS_KEY });
+      if (drenado.landed > 0) {
+        void client.invalidateQueries({ queryKey: APARTADOS_KEY });
+        // ⚠️ `10.9e-ii`: a scan sent late changed her card's counts and today's lines.
+        void client.invalidateQueries({ queryKey: TARJETA_KEY });
+      }
     });
     const parar = start(drenarCola);
     return () => {

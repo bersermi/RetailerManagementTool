@@ -63,16 +63,17 @@ function loQueUsa(over: Partial<LoQueUsa> = {}): LoQueUsa {
 /** A build that carries every feature but the menu — the screens' paths are only names here. */
 const TODO: Pantallas = { tarjeta: '/', promociones: '/', numeros: '/' };
 
-describe('what this build carries — nothing today, so the first run is two steps', () => {
-  it('no feature has a screen yet, and no setup: the card (`10.9e`), her numbers (`10.9f`) and promotions (`10.9g`) add theirs', () => {
-    expect(PANTALLA_DE).toEqual({});
-    expect(PREPARAR).toEqual({});
-    expect(construidos()).toEqual([]);
+describe('what this build carries — the card since `10.9e-ii`, so the first run is three steps', () => {
+  it('the card’s screen and its setup; her numbers (`10.9f`) and promotions (`10.9g`) add theirs', () => {
+    expect(PANTALLA_DE).toEqual({ tarjeta: '/tarjeta' });
+    expect(PREPARAR).toEqual({ tarjeta: '/preparar-tarjeta' });
+    expect(construidos()).toEqual(['tarjeta']);
   });
 
-  it('the count is the build’s: 2 today, 3 the day a feature is built — never the menu, which is Próximamente', () => {
-    expect(pasos()).toBe(2);
-    expect([pasoDe(1), pasoDe(2)]).toEqual(['Paso 1 de 2', 'Paso 2 de 2']);
+  it('the count is the build’s: 3 with a feature built, 2 with none — never the menu, which is Próximamente', () => {
+    expect(pasos()).toBe(3);
+    expect([pasoDe(1), pasoDe(2), pasoDe(3)]).toEqual(['Paso 1 de 3', 'Paso 2 de 3', 'Paso 3 de 3']);
+    expect(pasos([])).toBe(2);
     expect(pasos(construidos(TODO))).toBe(3);
     expect(pasoDe(3, construidos(TODO))).toBe('Paso 3 de 3');
     expect(construidos({ menu: '/' } as unknown as Pantallas)).toEqual([]);
@@ -88,7 +89,9 @@ describe('what she may pick — offered by Wera now AND built here', () => {
     const hechos = construidos({ tarjeta: '/', numeros: '/' });
     expect(elegibles(loQueUsa({ ofrecidos: ['tarjeta', 'promociones', 'numeros'] }), hechos)).toEqual(['tarjeta', 'numeros']);
     expect(elegibles(loQueUsa({ ofrecidos: ['promociones'] }), hechos)).toEqual([]);
-    expect(elegibles(loQueUsa({ ofrecidos: ['tarjeta', 'numeros'] }))).toEqual([]);
+    // This build: the card alone — her numbers, switched on, are offered nowhere until `10.9f` builds them.
+    expect(elegibles(loQueUsa({ ofrecidos: ['tarjeta', 'numeros'] }))).toEqual(['tarjeta']);
+    expect(elegibles(loQueUsa({ ofrecidos: ['numeros'] }))).toEqual([]);
   });
 
   it('never the menu, even switched on', () => {
@@ -163,9 +166,11 @@ describe('*Lo que usas* — each feature offered, with its state', () => {
     expect(menuDe(loQueUsa({ proximamente: true, elecciones: { menu: elegido('off') } }))).toEqual({ anotado: false });
   });
 
-  it('nothing to draw, nothing drawn — which is every kitchen today: every switch off, nothing built', () => {
+  it('nothing to draw, nothing drawn — which is every kitchen while Wera’s switches are off', () => {
     expect(hayLoQueUsas(NADA)).toBe(false);
-    expect(hayLoQueUsas(loQueUsa({ ofrecidos: ['tarjeta', 'promociones', 'numeros'] }))).toBe(false);
+    expect(hayLoQueUsas(loQueUsa({ ofrecidos: ['promociones', 'numeros'] }))).toBe(false);
+    // `10.9e-ii`: the card is built, so the day its switch goes on (`10.9e-iii`) it is offered.
+    expect(hayLoQueUsas(loQueUsa({ ofrecidos: ['tarjeta', 'promociones', 'numeros'] }))).toBe(true);
     expect(hayLoQueUsas(loQueUsa({ ofrecidos: ['tarjeta'] }), pantallas)).toBe(true);
     expect(hayLoQueUsas(loQueUsa({ proximamente: true }))).toBe(true);
   });
@@ -246,9 +251,21 @@ describe('`10.9a-iii`: *Hoy*’s tiles — one per feature she uses that this bu
       elecciones: Object.fromEntries(on.map((s) => [s, { estado: 'on', desde: DESDE }])),
     });
 
-  it('none today: nothing is built; none unread', () => {
-    expect(mosaicosDe(usa('tarjeta', 'promociones', 'numeros'))).toEqual([]);
+  it('this build: the card’s alone; none unread', () => {
+    expect(mosaicosDe(usa('tarjeta', 'promociones', 'numeros'))).toEqual([{ servicio: 'tarjeta', abre: '/tarjeta', vivo: null }]);
     expect(mosaicosDe(undefined, {}, pantallas)).toEqual([]);
+  });
+
+  it('⚠️ `10.9e-ii`: a feature turned off that still has work here — the card closed, its 30 days running — keeps its tile, in its place', () => {
+    const vivo = { valor: '0 sellos hoy', detalle: 'Cerrada · la completan hasta el 18 de diciembre', porHacer: false };
+    // Off in her choices: no tile — unless the screen says it still has work.
+    expect(mosaicosDe(usa('numeros'), { tarjeta: vivo }, pantallas)).toEqual([{ servicio: 'numeros', abre: '/numeros', vivo: null }]);
+    expect(mosaicosDe(usa('numeros'), { tarjeta: vivo }, pantallas, ['tarjeta'])).toEqual([
+      { servicio: 'tarjeta', abre: '/tarjeta', vivo },
+      { servicio: 'numeros', abre: '/numeros', vivo: null },
+    ]);
+    // Never for a feature this build does not carry.
+    expect(mosaicosDe(usa(), {}, { numeros: '/numeros' } as unknown as Pantallas, ['tarjeta'])).toEqual([]);
   });
 
   it('only what she uses AND this build carries, card before numbers whatever she picked first; first-time until its row hands its words', () => {
@@ -272,7 +289,7 @@ describe('`10.9a-iii`: *Hoy*’s tiles — one per feature she uses that this bu
     const tile = code('ui/Mosaicos.tsx');
     expect(tile).toMatch(/onPress=\{\(\) => router\.push\(mosaico\.abre\)\}/);
     expect(tile).toMatch(/borderStyle: primera \? 'dashed' : 'solid'/);
-    expect(code('app/(cocina)/(tabs)/index.tsx')).toMatch(/const mosaicos = mosaicosPara\(mosaicosDe\(servicios\.data\), duena\);/);
+    expect(code('app/(cocina)/(tabs)/index.tsx')).toMatch(/const mosaicos = mosaicosPara\(mosaicosDe\(servicios\.data, vivosDe\(tarjetaDeHoy, ahora\), PANTALLA_DE, ademasDe\(tarjetaDeHoy, ahora\)\), duena\)/);
   });
 });
 

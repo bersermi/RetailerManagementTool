@@ -24,7 +24,7 @@
 import type { QueryClient } from '@tanstack/react-query';
 
 import { apartadosKey, type Pulgar, type Reserva, type SobreElVecino } from '@/api/apartados';
-import { reservasConCola, vecinosConCola, type Envio } from '@/api/cola';
+import { esDeTarjeta, reservasConCola, vecinosConCola, type Envio } from '@/api/cola';
 import { unir } from '@/lib/apartados';
 
 /** `rateNeighbour`'s answer, read by `@/api/calls` into a `Pulgar`. */
@@ -33,6 +33,8 @@ function esPulgar(value: unknown): value is Pulgar {
 }
 
 export async function dibujarLlegada(client: QueryClient, envio: Envio, respuesta: unknown): Promise<void> {
+  // ⚠️ `10.9e-ii`: a card's scan is about no order — the drain's end reads her card again (`@/lib/ColaProvider`).
+  if (esDeTarjeta(envio)) return;
   await client.cancelQueries({ queryKey: apartadosKey(envio.usuario, envio.cocina) });
   const clave = (lectura: string) => apartadosKey(envio.usuario, envio.cocina, lectura);
   const suEdad = (lectura: string) => ({ updatedAt: client.getQueryState(clave(lectura))?.dataUpdatedAt });

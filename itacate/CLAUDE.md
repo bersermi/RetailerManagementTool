@@ -119,6 +119,8 @@ from `itacate/` with the two local `EXPO_PUBLIC_SUPABASE_` values in the shell, 
   first stamp come through THE DOOR (`on_offer_now`'s `card`, declared in `src/api/cocinas.ts`'s `KitchenRow`, parsed by
   `10.9e-iii`), never a function of their own (ADR-035 §2.7). A scan is ANSWERED with a `result`. Asked against a real PostgREST by `docs/checks/10.9e-i-card-contract.sh` (its own job, `loyalty-card`), held to `0085`'s text by `test/tarjeta.test.ts`.
   *Mi código* is `src/lib/codigo.ts`, a copy of Wera Cocina's held to it by `test/gemelos.test.ts` and to the RFCs by `test/codigo.test.ts`.
+  ⚠️ **Since `10.9e-ii` her *Cobras: …* QR names the reward she chose** — `textoDelQR('v', key, code, rewardId)`, a fifth part — and
+  Wera Cocina's scan gives that one at once (`give_reward`); *Mi código* without a chosen reward writes four parts.
   **Nothing draws either yet** — `10.9e-iii`, which also asks for the camera (the aviso's section 10 and both stores' answers change then).
 - **Sign-in leans on two settings outside this repository**, both made by the owner's one command,
   `bash docs/runbooks/set-itacate-sign-in.sh` (a session's write to either is refused), and read

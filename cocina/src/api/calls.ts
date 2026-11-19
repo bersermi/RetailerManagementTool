@@ -11,14 +11,15 @@
 // `10.5b-iv-c` (her settings, her stars, − and +, and the read before Apple is told),
 // `10.9a-i` (what her kitchen uses, and what she tells Wera about the menu), `10.9b-ii`
 // (her role, who works at her kitchen, *Quitar a …* and *Salir de esta cocina*) and `10.9b-iii`
-// (a helper's code: *Invitar a alguien*, the kitchen's name before she joins, and joining).
+// (a helper's code: *Invitar a alguien*, the kitchen's name before she joins, and joining) and `10.9e-ii`
+// (the loyalty card: its terms, closing it, its counts, this phone's key, a neighbour's code scanned).
 //
 // ⚠️ THE IMPURE HALF OF `src/api/` (ADR-035 §2.11): the only module here that
 // imports the live client, so no node suite can load it; every name it sends is
 // a constant from a pure module beside it (`@/api/kitchen`, `@/api/place`,
 // `@/api/account`, `@/api/listing`, `@/api/pagina`, `@/api/fotos`,
 // `@/api/apartados`, `@/api/ajustes`, `@/api/calificaciones`, `@/api/servicios`, `@/api/equipo`,
-// `@/api/invitar`), which the
+// `@/api/invitar`, `@/api/tarjeta`), which the
 // suite and the contract checks read. Screens reach these through `@/api/hooks`.
 // ============================================================================
 
@@ -200,6 +201,26 @@ import {
   type SetPageArgs,
 } from '@/api/pagina';
 import type { KitchenCalls } from '@/api/registro';
+import {
+  CARD_OF_CODE,
+  CLOSE_CARD,
+  GIVE_REWARD,
+  GIVE_STAMP,
+  KITCHEN_CARD,
+  REGISTER_KITCHEN_KEY,
+  SET_CARD_TERMS,
+  cardFrom,
+  keyFrom,
+  kitchenArgs,
+  kitchenCardFrom,
+  type CardRow,
+  type CodeArgs,
+  type KeyRow,
+  type KitchenCardRow,
+  type RewardArgs,
+  type StampArgs,
+  type TermsArgs,
+} from '@/api/tarjeta';
 import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL, supabase } from '@/lib/supabase';
 
 /**
@@ -649,4 +670,74 @@ export async function kitchenFollowers(kitchenId: string): Promise<number> {
   const n = teSiguenFrom(data);
   if (n === null) throw new TypeError(`${KITCHEN_FOLLOWERS}: an answer this build cannot read`);
   return n;
+}
+
+// ----------------------------------------------------------------------------
+// `10.9e-ii` — the loyalty card (`0085`): its terms, closing it, its counts and today's lines, this
+// phone's key, and a neighbour's code scanned. ⚠️ EVERY ONE A POST (supabase-js's `rpc`, no `get`):
+// a code is never checked in a read-only call (`25006`), and `kitchen_card` is read the same way.
+// ⚠️ AN ANSWER THIS BUILD CANNOT READ IS AN ERROR, never zeros or a card drawn empty.
+// ----------------------------------------------------------------------------
+
+/** *Activar* / *Guardar* (`set_card_terms`) — the owner's; it answers the card as the database left it. */
+export async function setCardTerms(args: TermsArgs): Promise<KitchenCardRow> {
+  const { data, error } = await supabase.rpc(SET_CARD_TERMS, args);
+  if (error) throw error;
+  const card = kitchenCardFrom(data);
+  if (card === null) throw new TypeError(`${SET_CARD_TERMS}: an answer this build cannot read`);
+  return card;
+}
+
+/** *Cerrar la tarjeta* (`close_card`) — the owner's; nobody starts a new one, those started finish for 30 days. */
+export async function closeCard(kitchenId: string): Promise<KitchenCardRow> {
+  const { data, error } = await supabase.rpc(CLOSE_CARD, kitchenArgs(kitchenId));
+  if (error) throw error;
+  const card = kitchenCardFrom(data);
+  if (card === null) throw new TypeError(`${CLOSE_CARD}: an answer this build cannot read`);
+  return card;
+}
+
+/** The card's screen, *Hoy*'s tile and *Sellar*'s lines (`kitchen_card`) — any member. */
+export async function kitchenCard(kitchenId: string): Promise<KitchenCardRow> {
+  const { data, error } = await supabase.rpc(KITCHEN_CARD, kitchenArgs(kitchenId));
+  if (error) throw error;
+  const card = kitchenCardFrom(data);
+  if (card === null) throw new TypeError(`${KITCHEN_CARD}: an answer this build cannot read`);
+  return card;
+}
+
+/** This phone's *Sellar* key and secret, handed once (`register_kitchen_key`) — any member. */
+export async function registerKitchenKey(kitchenId: string): Promise<KeyRow> {
+  const { data, error } = await supabase.rpc(REGISTER_KITCHEN_KEY, kitchenArgs(kitchenId));
+  if (error) throw error;
+  const key = keyFrom(data);
+  if (key === null) throw new TypeError(`${REGISTER_KITCHEN_KEY}: an answer this build cannot read`);
+  return key;
+}
+
+/** Whose code it is, and her card here (`card_of_code`) — writes nothing but a miss. */
+export async function cardOfCode(args: CodeArgs): Promise<CardRow> {
+  const { data, error } = await supabase.rpc(CARD_OF_CODE, args);
+  if (error) throw error;
+  const card = cardFrom(data);
+  if (card === null) throw new TypeError(`${CARD_OF_CODE}: an answer this build cannot read`);
+  return card;
+}
+
+/** *Dar sello* (`give_stamp`), at the scan's moment — from the screen, or from the queue. */
+export async function giveStamp(args: StampArgs): Promise<CardRow> {
+  const { data, error } = await supabase.rpc(GIVE_STAMP, args);
+  if (error) throw error;
+  const card = cardFrom(data);
+  if (card === null) throw new TypeError(`${GIVE_STAMP}: an answer this build cannot read`);
+  return card;
+}
+
+/** *Entregar premio* (`give_reward`), at the scan's moment — from the screen, or from the queue. */
+export async function giveReward(args: RewardArgs): Promise<CardRow> {
+  const { data, error } = await supabase.rpc(GIVE_REWARD, args);
+  if (error) throw error;
+  const card = cardFrom(data);
+  if (card === null) throw new TypeError(`${GIVE_REWARD}: an answer this build cannot read`);
+  return card;
 }

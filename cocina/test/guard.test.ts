@@ -66,9 +66,9 @@ describe('signed in with a kitchen', () => {
     expect(at(true, true, 'member', 'onboarding', DONDE_SE_REGISTRA)).toBe(pasos() === 3 ? '/que-mas' : '/ya-estas');
   });
 
-  it('today no feature is built here, so the first run is two steps and goes on to her page', () => {
-    expect(pasos()).toBe(2);
-    expect(at(true, true, 'member', 'onboarding', DONDE_SE_REGISTRA)).toBe('/ya-estas');
+  it('⚠️ `10.9e-ii`: the card is built here, so the first run is three steps and goes on to *¿Qué más quieres usar?*', () => {
+    expect(pasos()).toBe(3);
+    expect(at(true, true, 'member', 'onboarding', DONDE_SE_REGISTRA)).toBe('/que-mas');
   });
 
   // ⚠️ `10.9b-iii`: a helper skips the kitchen's set-up. A kitchen that appears anywhere else in the

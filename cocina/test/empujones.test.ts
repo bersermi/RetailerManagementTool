@@ -133,6 +133,7 @@ describe('the record — this phone’s, one per kitchen, nothing sent anywhere'
         servicio: { tarjeta: { dia: '2026-11-30', cerrado: true }, menu: { dia: '2026-11-30' } },
         apartado: 'cero',
         entrega: 'quizá',
+        sello: 'hecha',
         vistos: ['tarjeta', 'menu'],
       }),
     );
@@ -144,6 +145,7 @@ describe('the record — this phone’s, one per kitchen, nothing sent anywhere'
       oferta: false,
       apartado: 'cero',
       entrega: null,
+      sello: 'hecha',
       vistos: ['tarjeta'],
     });
   });
@@ -332,10 +334,16 @@ describe('a feature she did not pick — off Hoy two weeks, then one line each, 
     expect(usa.vistos).toEqual(['numeros', null]);
   });
 
-  it('⚠️ never in this build: no feature is built, so nothing is offered however long she waits', () => {
+  it('⚠️ a build that carries no feature offers nothing, however long she waits', () => {
+    const x = entrada({ ahora: nov(30, 18), listings: [oferta('a', 30)], loQueUsa: ofrece(), hechos: [] });
+    expect(verHoy({ ...MEMORIA_VACIA, desde: '2026-11-01' }, x).linea).toBeNull();
+  });
+
+  it('⚠️ `10.9e-ii`: this build carries the card — offered once Wera’s switch is on, two weeks in', () => {
     const x = entrada({ ahora: nov(30, 18), listings: [oferta('a', 30)], loQueUsa: ofrece() });
-    const { hechos: _ignorado, ...sinHechos } = x;
-    expect(verHoy({ ...MEMORIA_VACIA, desde: '2026-11-01' }, sinHechos).linea).toBeNull();
+    const { hechos: _ignorado, ...conLaDeEsteBuild } = x;
+    const linea = verHoy({ ...MEMORIA_VACIA, desde: '2026-11-01' }, conLaDeEsteBuild).linea;
+    expect(linea?.kind === 'servicio' ? linea.servicio : null).toBe('tarjeta');
   });
 
   it('her page comes first: at most one line on Hoy', () => {

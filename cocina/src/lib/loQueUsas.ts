@@ -22,15 +22,16 @@ import { ES } from '@/strings';
 // `PANTALLA_DE` names the screen of each feature built into it, and a feature with none is
 // offered nowhere (`elegibles`), even with its switch on — so a phone still on an older
 // update never offers a feature whose screens it does not carry (each feature ships over
-// the air, and a phone takes an update a launch late). EMPTY UNTIL THE CARD (`10.9e`):
-// every feature's own row adds its screen here, and its setup to `PREPARAR` if it has one.
+// the air, and a phone takes an update a launch late). ⚠️ THE CARD SINCE `10.9e-ii` (`/tarjeta`,
+// its setup `/preparar-tarjeta`); every other feature's own row adds its screen here, and its
+// setup to `PREPARAR` if it has one.
 //
 // ⚠️ THE FIRST RUN'S STEP COUNT IS THE BUILD'S (`pasos`): *Paso 1 de N* is drawn before her
 // kitchen exists, and the database answers what is offered only to a kitchen's member. So
-// the count is 3 when this build carries a feature to pick, else 2 — today 2 (the
-// recommendation `10.9a-i` left this row, decision (i)). The day a feature is built and its
-// switch is still off for everyone, the count says 3 and the third step goes straight on
-// (`elegibles` empty): the row that builds a feature turns its switch on with it.
+// the count is 3 when this build carries a feature to pick, else 2 — ⚠️ 3 SINCE `10.9e-ii` (the
+// card). While Wera's switch is still off for everyone, the count says 3 and the third step goes
+// straight on (`elegibles` empty) — the card's switch goes on with Itacate's half (`10.9e-iii`),
+// and until then only his test builds carry this one.
 //
 // ⚠️ PER KITCHEN, NEVER PER PHONE — her choices, *Me interesa* and whether she told us about
 // the menu are the database's; only *Cuéntanos* closed with its ✕ is this phone's
@@ -39,14 +40,14 @@ import { ES } from '@/strings';
 
 /**
  * ⚠️ THE FEATURES BUILT INTO THIS BUILD, AND THE ONE SCREEN EACH OPENS — its tile on *Hoy* and
- * its row in *Lo que usas* (the shell's rule: a service never lives in two places). Empty
- * until `10.9e` (the card), `10.9f` (her numbers), `10.9g` (promotions). Never the menu,
- * which is *Próximamente* until its own session.
+ * its row in *Lo que usas* (the shell's rule: a service never lives in two places). The card's
+ * since `10.9e-ii`; her numbers' with `10.9f`, promotions' with `10.9g`. Never the menu, which
+ * is *Próximamente* until its own session.
  */
-export const PANTALLA_DE: Pantallas = {};
+export const PANTALLA_DE: Pantallas = { tarjeta: '/tarjeta' };
 
-/** A feature's setup, opened by *Activar* before *Listo* — only the card has one (`10.9e`). */
-export const PREPARAR: Pantallas = {};
+/** A feature's setup, opened by *Activar* before *Listo* — only the card has one (`10.9e-ii`). */
+export const PREPARAR: Pantallas = { tarjeta: '/preparar-tarjeta' };
 
 /**
  * Each feature's picture — its row in *Lo que usas*, its *Activar*, *Cuéntanos*' line, its tile on *Hoy*
@@ -144,6 +145,8 @@ export interface EnVivo {
   readonly valor: string;
   readonly detalle: string;
   readonly porHacer: boolean;
+  /** ⚠️ `10.9e-ii`: a button of its own on the tile — the card's *Sellar* (the page's `tsell`). */
+  readonly accion?: { readonly etiqueta: string; readonly abre: Href };
 }
 
 /** One tile on *Hoy*: its feature, the one screen it opens, and its live words — `null` while not set up. */
@@ -158,16 +161,20 @@ export interface Mosaico {
  * build carries (`PANTALLA_DE`), in the fixed order — card, promotions, numbers — each opening the
  * feature's one screen. A feature she picked and has not set up is drawn in its first-time state
  * (*Prepara tu tarjeta*, dashed) until its row hands `vivos` its words. Unread, none: a tile is never
- * drawn and then taken away. EMPTY TODAY — no feature is built.
+ * drawn and then taken away. ⚠️ `10.9e-ii`: `ademas` — a feature she turned off that still has work on
+ * this phone: the card closed, while those who started it may finish it for 30 days (G12) — its tile and
+ * *Sellar* stay, in their place in the order.
  */
 export function mosaicosDe(
   loQueUsa: LoQueUsa | undefined,
   vivos: Readonly<Partial<Record<Elegible, EnVivo>>> = {},
   pantallas: Pantallas = PANTALLA_DE,
+  ademas: readonly Elegible[] = [],
 ): Mosaico[] {
   if (loQueUsa === undefined) return [];
-  return enUso(loQueUsa)
-    .filter(esElegible)
+  const usados = enUso(loQueUsa);
+  return SERVICIOS.filter(esElegible)
+    .filter((servicio) => usados.includes(servicio) || ademas.includes(servicio))
     .flatMap((servicio) => {
       const abre = pantallas[servicio];
       return abre === undefined ? [] : [{ servicio, abre, vivo: vivos[servicio] ?? null }];

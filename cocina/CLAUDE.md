@@ -83,8 +83,8 @@ TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic i
   a scan is ANSWERED with a `result`, never refused. Asked against a real PostgREST by `docs/checks/10.9e-i-card-contract.sh` beside
   Itacate's (its own job, `loyalty-card`; its falsifier breaks the file), held to `0085`'s text by `test/tarjeta.test.ts`. The code on
   *Sellar* is `src/lib/codigo.ts` — HOTP over the minute in plain TypeScript (no crypto package: a dependency moves Wera's runtime),
-  held to RFC 4226 and RFC 6238 by `test/codigo.test.ts`, and Itacate's copy to it by `itacate/test/gemelos.test.ts`. **Nothing draws
-  either yet** — `10.9e-ii`. ⚠️ **Drawn since
+  held to RFC 4226 and RFC 6238 by `test/codigo.test.ts`, and Itacate's copy to it by `itacate/test/gemelos.test.ts`. **Drawn since
+  `10.9e-ii`** — the section *The loyalty card* below. ⚠️ **Drawn since
   `10.9d-ii`** (`useSeguidores`, never on the phone's disk): *Te siguen 38 vecinos* on *Hoy*'s day's card, on offer or not, from the first
   follower (`@/ui/DiaDeHoy`' `teSiguen` — `null` while unread or with no signal draws nothing, never a 0 that is not one); and before
   *Eliminar esta cocina* — and *Eliminar mi cuenta* when the kitchen open here goes with it — *Te siguen 12 vecinos en Itacate. Dejarán de
@@ -419,7 +419,7 @@ follows it, as `itacate/CLAUDE.md`'s does:
   to *Hoy*** — since `10.9a-ii` (G32, ruled 2026-11-17: no first offer inside the first run) to *Paso 3 de 3*, *¿Qué más quieres
   usar?* (`/que-mas`), while this build carries a feature to pick, else at once to `/ya-estas`, her page as Itacate draws it
   (titled *Tu cocina ya está en Itacate* only while the door would send her), then *Ir a Hoy*. ⚠️ **N is the build's** (`@/lib/
-  loQueUsas`' `pasos`): 2 until a feature is built (the section *Her choices*). *¿Qué ofreces hoy?* (`/que-ofreces`) was the third
+  loQueUsas`' `pasos`): 3 since the card was built (`10.9e-ii`; 2 before — the section *Her choices*). *¿Qué ofreces hoy?* (`/que-ofreces`) was the third
   step from `10.5-v-d` to `10.9a-ii`. Android's back on the last two leaves for *Hoy*; nothing of the first run is kept on the
   phone, so a restart opens *Hoy*.
 - **The tab bar is *Hoy · Apartados · Mi cocina*, the same for every kitchen** (his arrangement A, 2026-11-16; it said *Hoy · Apartados · Clientes ·
@@ -506,7 +506,9 @@ The owner's questions 7–10 of 2026-11-05: *"it works without signal (today's r
 
 - **Her reads kept on the phone** (`@/api/persist`, pinned by `test/persist.test.ts`): her kitchens, her offers and her
   reservations — today's and later's, the 30 days before, who reserved each (the neighbour's short name and score, while the order
-  waits or waits for its thumb) — ⚠️ and since `10.9b-ii` a fourth, her role at each kitchen (`['cocina','rol']`). Nothing else. ⚠️ **TanStack's own `hydrate` as the client is built**, from the phone's synchronous
+  waits or waits for its thumb) — ⚠️ and since `10.9b-ii` a fourth, her role at each kitchen (`['cocina','rol']`); ⚠️ since `10.9e-ii`
+  what her kitchen uses (`['cocina','servicios']`) and her card's counts and today's lines (`['cocina','tarjeta']`) — the card's tile on
+  *Hoy* is the door to *Sellar*, whose code works with no signal. Nothing else. ⚠️ **TanStack's own `hydrate` as the client is built**, from the phone's synchronous
   store (`@/api/QueryProvider`), never Wera's persister library: the first frame already has her kitchen, so a cold start with no
   signal goes straight to *Hoy*, and no dependency was added (an install here can move Wera's runtime). Saved at most every three
   seconds, at once when the app leaves the front, and at once when a queued send lands. Wera's rules kept: a refresh that failed is
@@ -583,12 +585,12 @@ The owner's rulings of 2026-11-16 and 17 (G32, G33, G44, G45; the family-shell p
 migration. The rules are `@/lib/loQueUsas`, pure, pinned by `test/loQueUsas.test.ts`.
 
 - ⚠️⚠️ **Two gates decide what she is offered**: Wera's switch for everyone (`available`, the database's) AND this build —
-  `PANTALLA_DE` names the screen of each feature built into it, `PREPARAR` its setup (only the card's). **Both empty until the card
-  (`10.9e`)**; each feature's row adds its own. A feature with no screen here is offered nowhere even with its switch on, so a phone
+  `PANTALLA_DE` names the screen of each feature built into it, `PREPARAR` its setup (only the card's). **The card's since `10.9e-ii`**
+  (`/tarjeta`, `/preparar-tarjeta`); each feature's row adds its own. A feature with no screen here is offered nowhere even with its switch on, so a phone
   still on an older update never offers what it cannot open. The menu is never picked: *Próximamente* until its own session.
 - ⚠️ **The first run's step count is the build's** (`pasos`): *Paso 1 de N* is drawn before her kitchen exists, and the database
-  answers what is offered only to a member. 2 today; 3 the day a feature is built — and if its switch is still off for everyone, the
-  third step goes straight on (`elegibles` empty), so **the row that builds a feature turns its switch on with it**.
+  answers what is offered only to a member. **3 since `10.9e-ii`** (the card) — and while its switch is still off for everyone, the third
+  step goes straight on (`elegibles` empty): until `10.9e-iii` turns the card's switch on, *Paso 1 de 3* and two steps.
 - ***¿Qué más quieres usar?*** (`(cocina)/que-mas`): her need first and the feature under it, nothing pre-checked; *Tu menú a la mano ·
   Próximamente* greyed while `proximamente` is on. ⚠️ ***Seguir* is ONE `set_kitchen_features` call** — `on` for what she picked, `off`
   for the rest she was shown (`eleccionesDe`) — and waits for it; *Decidir después* sends nothing. Then `/ya-estas`. The card's setup is
@@ -626,7 +628,8 @@ by `test/empujones.test.ts` against a calendar in Mexico City's zone.
   *¡Ya te ven en Itacate!*, read BEFORE it is sent (`ofertaDeEstreno`) and keeping its *Deshacer* — and her first reservation and first
   handover, watched once from the tabs' layout on the read it already makes (`@/lib/useFestejos`). ⚠️ **A first is celebrated only if
   this phone saw her history read with none** (`primerasDe`, `'cero'`): a phone that meets a reservation already there says nothing.
-  Her history is the 30 days the phone reads. The stamp's and the promotion's are their rows' (`10.9e`, `10.9g`).
+  Her history is the 30 days the phone reads. ⚠️ The stamp's — *Diste tu primer sello* — since `10.9e-ii` (`useFestejoDelSello`, the
+  zero seen in `kitchen_card`'s counts); the promotion's is `10.9g`'s.
 - **At most one quiet line under the day's card** (`@/ui/LineaEmpujon`, `lineaDe`), only on a day she published, and only once every read it
   counts is in: her page's next missing part (her first offer never — it is the invitation's), on three days she publishes each, then the
   next — ✕ ends them for good (`@/lib/puerta`'s `'pagina'`, the key her page's door kept since `10.5-v-c-i`), with *Deshacer*; else a
@@ -636,9 +639,9 @@ by `test/empujones.test.ts` against a calendar in Mexico City's zone.
   where it is done (`DONDE_SE_HACE`).
 - **The tiles** (`@/ui/Mosaicos`, `@/lib/loQueUsas`' `mosaicosDe`): one per feature she uses that this build carries, in the fixed order,
   each opening its screen; dashed in its first-time state (*Prepara tu tarjeta*) until its row hands `vivos` its words (`EnVivo`), with a
-  dot for what waits. ⚠️ **None today** — `PANTALLA_DE` is empty until `10.9e`.
+  dot for what waits. ⚠️ **The card's since `10.9e-ii`**, with *Sellar* on it (`EnVivo`'s `accion`) — the next section.
 - ***Así funciona*** (`@/ui/AsiFunciona`, `useAsiFunciona`): three pictures (`PASOS_DE`) at the top of a feature's one screen the first time
-  she opens it, gone when she uses it (`usado`) or closes it. **Built here, drawn by each feature's row** — nothing draws it today.
+  she opens it, gone when she uses it (`usado`) or closes it. **Built here, drawn by each feature's row** — the card's since `10.9e-ii`.
 - **To see it on the emulator**: the debug build against the local shop (*Apartados*' section), Metro **without** `CI=1` (with it Metro does
   not watch files, so an edit never reaches the phone); a fonda signed up through the app; a neighbour reserving through `give_my_yes` and
   `reserve_plate` with her own token (the handover check's way). The glow lasts under four seconds: read it from a burst of raw `screencap`s
@@ -688,7 +691,7 @@ owner removes her from *Quién trabaja aquí*. G18: inviting is the owner's. `00
 - ***Invitar a alguien*** (`@/ui/HojaInvitar`, from *Quién trabaja aquí*): ⚠️ **a new code each time the sheet opens** (`useInvitar`,
   `invite_helper`) — one per person; an earlier one keeps its 24 hours, and the code is shown once (only its hash is kept). The sheet:
   *Que abra Wera Cocina…*, the code in four groups, *Sirve para una persona, hasta mañana a las …*, what she will do there (`@/lib/
-  ayudante`' `podraTexto` — true today: no stamps until the card), and ***Compartir el código*** — React Native's own `Share`, as Wera's
+  ayudante`' `podraTexto` — true today: stamps and rewards once her kitchen uses the card), and ***Compartir el código*** — React Native's own `Share`, as Wera's
   invitation is shared: no module, no native change. With no signal it says so, with *Intentar de nuevo*. ⚠️ **Since `10.9c`
   the code is a QR above the typed code** (`@/ui/CodigoQR`, the next section): the sixteen the database hashed, never the
   grouped rendering.
@@ -720,7 +723,7 @@ G16 and the row: a camera module in the first public build, asked the first time
   four-square quiet zone, the square rounded to whole pixels. A code of Crockford's alphabet goes in QR's alphanumeric mode — 21 × 21 at
   level M; anything else (a link) as bytes. ⚠️ **`test/qr.test.ts` READS THE DRAWING BACK with a real decoder** — `zxing-wasm` (the
   reader `expo-camera`'s web half carries, a dev dependency pinned to the lockfile's copy, its WASM loaded from disk) — so a grid that
-  would not scan is red. The poster (`10.9e`, `expo-print` takes HTML) draws the same grid as `<rect>`s.
+  would not scan is red. The poster (`10.9e-ii`, `@/lib/cartel` — `expo-print` takes HTML) draws the same grid as SVG `<rect>`s.
 - **The camera is `@/ui/Escaner`**: a box on the screen, `CameraView` reading QR codes alone, the four corners and *Apunta a su código*
   over it. **What it shows is `@/lib/escaner`' `cajaDelEscaner`, a pure rule of the phone's answer**: never asked → a button (the tap
   asks); allowed — here or by *Tomar foto*, the same permission — → the camera at once; refused while the phone will ask again → why, and
@@ -736,3 +739,53 @@ G16 and the row: a camera module in the first public build, asked the first time
   reads. ⚠️ `adb exec-out screencap` draws the camera's box BLACK — `adb emu screenrecord screenshot <file>` shows what the camera sees.
   The QR to hang there is the owner's own screen: a screenshot of *Invitar a alguien*, cropped (`sips --cropOffset`). Then *Unirme*
   reads it, the box fills, and the database names the kitchen.
+
+## The loyalty card — Wera Cocina's half (`10.9e-ii`)
+
+The owner's rulings G4–G19, G23, G34–G36 and G41 of 2026-11-16 and 17, as the family-shell page draws stage 3 (`cTarjeta`, `cSetup`,
+`cSellar`, `cFscan`, `cFres`, `cCartel`, `tcerrarSheet`, `cardTile`), on `0085`'s functions (`@/api/tarjeta`, the section *Measure*).
+No migration. What every screen says is `@/lib/tarjeta`, pure, pinned with `@/lib/llave` and `@/lib/cartel` by `test/tarjetaCocina.test.ts`
+in Mexico City's zone. ⚠️ **Wera's switch `tarjeta` stays off until `10.9e-iii`**: nothing of this shows on a phone before it.
+
+- **Its one screen** (`(cocina)/tarjeta`, `PANTALLA_DE`): *Así funciona* the first time; the card as her neighbours see it — her page's
+  colour and logo (`@/ui/TarjetaDeLealtad`, G41); three counts (`kitchen_card`); *Sellar*; then the owner's (G18) — *Tu cartel para el
+  mostrador*, *Cambiar el premio, los sellos o cuándo se borran* (new cards only, G12), *Cerrar la tarjeta* behind a sheet. Not set up,
+  the owner is sent to the setup and a helper reads that it is not. ⚠️ **Closed, it stays while its 30 days run** (`tarjetaGuardada`, and
+  `mosaicosDe`' `ademas` keeps its tile though her choice is off): those who started it still finish and claim, and need *Sellar* for it;
+  *Abrirla otra vez* opens the setup.
+- **The setup** (`(cocina)/preparar-tarjeta`, `PREPARAR`): the reward (60), 4–12 stamps, *Nunca*/15/30/45/60 — **nothing pre-chosen**, the
+  8 dashed as a hint (`@/ui/Fichas`) — the card and its conditions naming her kitchen and its address (`condicionesDe`, the words Itacate
+  shows before her first stamp, `10.9e-iii`); *Activar* → *Listo, ya está en tu Hoy* with her tile; *Guardar*; awaited (`set_card_terms`).
+- **The tile on *Hoy***: *6 sellos hoy*, *1 premio por entregar* with its dot (else the cards going, or *Cerrada · la completan hasta el …*),
+  and *Sellar* on it. A helper sees it only once set up (`@/lib/ayudante`' `mosaicosPara`). ⚠️ **A copy read on another day says nothing
+  of today** (`deHoy`): `kitchen_card` is kept on the phone, and yesterday's names and counts are not today's.
+- ***Sellar*** (`(cocina)/sellar`): this phone's key — ⚠️ **asked ONCE and kept per login per kitchen** (`@/lib/llave`, in the phone's store
+  beside her session: no keychain module, which is a native build) — never on each open, which would drop her other phones' codes (three a
+  member); *¿A tus clientes no les sirve tu código? Pide uno nuevo* asks again on her tap (a helper removed and invited again lost hers).
+  The QR (`WERA1:c:<key>:<code>`) and its six digits worked out on the phone every second, *Cambia en 0:42*, ⚠️ **with no signal too**.
+  Today's lines read every five seconds **only while it is in front** (`useIsFocused`), a new one of the last two minutes said in a toast;
+  then the scans waiting on the phone and the ones that went late and gave nothing.
+- ***Escanear a tu cliente*** (`(cocina)/escanear`, `@/ui/Escaner`): her QR (`WERA1:v:…`) or her six digits typed. With signal,
+  `card_of_code` → *Ana R. · 5 de 8 · 2 premios*, *Dar sello* / *Ya tiene su sello de hoy*, *Entregar premio* → *¿Cuál le das?*. ⚠️ **Her
+  *Cobras: …* code names its reward** (a fifth part, `@/lib/codigo`, both apps) **and is given at once**. ⚠️ **Each call checked at the scan's
+  moment**: by the database's clock within a minute of the scan, by the scan's own after (`momentoDeLaLlamada` — a phone whose clock is off
+  does not miss). ⚠️ **One reward a scan** (`0085`): once given, *Entregar premio* goes. ⚠️ **One neighbour at a time** (`turno`).
+- ⚠️⚠️ **With no signal** whose code it is cannot be read: *Dar sello sin señal* — and a *Cobras* code's reward — go to her queue
+  (`@/api/cola`'s kinds `sello` and `premio`, about no order: `reserva` is the scan's id) with the scan's moment; the same scan again is
+  *ya está guardado* and goes once — a reward is not handed over twice. ⚠️ **A scan is ANSWERED, not refused**: a landed answer that gave
+  nothing (`no_valido`, `ya_hoy`, and a queued reward's `ya_cobrado` — claimed elsewhere first) is drawn on *Sellar* for a day, with her name
+  and the reason; a refusal keeps the database's code and words. ⚠️ **The card's `42501` has its own pattern** (`NO_ES_SU_COCINA_DE_TARJETA`):
+  `NO_ES_DE_SU_COCINA` is read word for word by the handover's contract check and its falsifier.
+- **The counter poster** (`(cocina)/cartel`, `@/lib/cartel`, G35): her colour, her circle (her logo fetched with her token as a data URI, else
+  her initials), her name, *Junta 4 sellos y llévate …*, ⚠️ **a QR of her kitchen's address** (`direccionDeCocina`, held to Itacate's reading
+  of it — never *Sellar*'s code, which changes every minute), *Escanéalo con tu cámara*, her address, *en Itacate* small, *Wera* nowhere.
+  *Imprimir* (`printAsync`) and *Mandarlo como PDF* (`printToFileAsync`, A4, then `expo-sharing`). The owner's.
+- **Before *Eliminar esta cocina*** (G23): *5 vecinos juntan sellos en tu tarjeta y hay 1 premio por entregar. Con la cocina se borran sus
+  sellos y sus premios.* — warned, never blocked (`avisoAlEliminar`).
+- **To see it on the emulator**: a NEW debug build (camera and printing since `10.9c`: `expo prebuild -p android`, the proxy's cert, `gradlew
+  :app:assembleDebug`); the local switch on (`update servicio.feature_switch set is_on = true where name = 'tarjeta'`, off after); people made
+  through the apps' functions — a neighbour's key with `register_my_key`, her code at any moment by RFC 6238 (`10.9e-i-card-contract.sh`'s
+  `code_at`). ⚠️ **`uiautomator dump` never settles on *Sellar*** (its code ticks every second) — a stale `/sdcard/ui.xml` reads as the
+  screen before: tap it by coordinates. ⚠️ **A *Cobras* QR for the camera is a code for one coming minute**: once the camera is allowed it
+  opens on arrival and reads at once, so time the arrival into the code's minute.
+

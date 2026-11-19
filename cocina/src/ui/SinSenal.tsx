@@ -2,7 +2,7 @@ import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { Text, View } from 'react-native';
 
 import type { Envio } from '@/api/cola';
-import { porEnviarTexto, sinSenalTexto } from '@/lib/apartados';
+import { porEnviarTexto, sinSenalTexto, todasFemeninas } from '@/lib/apartados';
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
 
@@ -55,7 +55,7 @@ export function SinSenal({
           <MaterialCommunityIcons name="cloud-upload-outline" size={18} color={PALETTE.tintaApagada} style={{ marginTop: 1 }} />
           <View style={{ flex: 1, gap: 2 }}>
             <Text style={{ ...quiet, fontWeight: '600', color: PALETTE.tinta }}>{espera}</Text>
-            <Text style={quiet}>{ES.cola.seEnvian(porEnviar.length)}</Text>
+            <Text style={quiet}>{ES.cola.seEnvian(porEnviar.length, todasFemeninas(porEnviar))}</Text>
           </View>
         </View>
       )}

@@ -1,5 +1,6 @@
 // ============================================================================
-// THE QUEUE OF HER HANDOVERS AND THUMBS, BOUND TO THE PHONE. Plan task `10.5b-iv-b`.
+// THE QUEUE OF HER HANDOVERS AND THUMBS — AND, SINCE `10.9e-ii`, THE CARD'S SCANS THAT HAD NO
+// SIGNAL — BOUND TO THE PHONE. Plan task `10.5b-iv-b`.
 // Everything with a right answer is `@/api/cola` (pinned by `test/cola.test.ts`);
 // what is left here is the store, a copy of it in memory for the screens, the two
 // calls, and the wire to the signal (`@/lib/connectivityMonitor`).
@@ -15,7 +16,7 @@
 
 import { useSyncExternalStore } from 'react';
 
-import { handOverReservation, rateNeighbour } from '@/api/calls';
+import { giveReward, giveStamp, handOverReservation, rateNeighbour } from '@/api/calls';
 import {
   crearDrenaje,
   encolar,
@@ -83,7 +84,19 @@ export async function drenarCola(): Promise<{ stop: Drenado['stop']; landed: num
       leer: actual,
       escribir,
       usuario: () => (alLlegar === null ? null : usuario),
-      enviar: (llamada) => (llamada.tipo === 'entrega' ? handOverReservation(llamada.args) : rateNeighbour(llamada.args)),
+      enviar: (llamada) => {
+        switch (llamada.tipo) {
+          case 'entrega':
+            return handOverReservation(llamada.args);
+          case 'pulgar':
+            return rateNeighbour(llamada.args);
+          // ⚠️ `10.9e-ii`: a scan of her code the phone could not send, at its moment.
+          case 'sello':
+            return giveStamp(llamada.args);
+          case 'premio':
+            return giveReward(llamada.args);
+        }
+      },
       llego: (envio, respuesta) => alLlegar?.(envio, respuesta),
       ahora: () => new Date(),
     });

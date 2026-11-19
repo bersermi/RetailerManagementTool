@@ -38,6 +38,17 @@
 //
 // Nothing here talks: the sends, the store and the clock are handed in
 // (`PuertosDeCola`); `@/lib/cola` binds them.
+//
+// ⚠️⚠️ `10.9e-ii` — THE CARD'S TWO KINDS: A STAMP (`give_stamp`) AND A REWARD (`give_reward`) FROM A
+// SCAN OF HER CODE THE PHONE COULD NOT SEND (G16: the kitchen's side works with no signal). Each is
+// sent with the scan's moment (`p_at`) — the database checks her code at that moment, up to 7 days
+// back (`0085`) — and is ABOUT NO ORDER: its `reserva` holds the scan's own id (`@/lib/tarjeta`'s
+// `escaneoId`), so the same code read twice is one send, and a stamp waits behind nothing. Unlike
+// a handover, ONLY WHAT HAD NO SIGNAL GOES HERE: with signal the screen asks at once, because what
+// the database answers — *ganó*, *ya tiene su sello de hoy* — is what the kitchen tells her at the
+// counter. ⚠️ A SCAN IS ANSWERED, NOT REFUSED (`0085`): a code that no longer fits, or a stamp she
+// already had, LANDS — so a landed answer that gave nothing is drawn as a refusal (`resultado`,
+// with her name), on *Sellar*, for a day.
 // ============================================================================
 
 import {
@@ -55,6 +66,7 @@ import {
   type Reserva,
   type SobreElVecino,
 } from '@/api/apartados';
+import { cardFrom, rewardArgs, stampArgs, type RewardArgs, type StampArgs } from '@/api/tarjeta';
 import { readKey, writeKey, type DeviceStore } from '@/lib/store';
 
 /** The one key the queue is written under. ⚠️ Namespaced: the store is shared with the session and the cache. */
@@ -75,7 +87,10 @@ interface EnvioBase {
   readonly usuario: string;
   /** Her kitchen, so a screen counts and draws only the open kitchen's. */
   readonly cocina: string;
-  /** The reservation it is about. With `tipo`, its identity: one of each per order. */
+  /**
+   * The reservation it is about. With `tipo`, its identity: one of each per order. ⚠️ `10.9e-ii`: for a
+   * stamp or a reward, the scan's own id — no order.
+   */
   readonly reserva: string;
   /** When she tapped, ISO — sent as `p_at`, the moment it happened. */
   readonly en: string;
@@ -95,7 +110,26 @@ export interface PulgarEnCola extends EnvioBase {
   readonly etiquetas: readonly Etiqueta[];
 }
 
-export type Envio = EntregaEnCola | PulgarEnCola;
+/** `10.9e-ii`: *Dar sello* on her code, scanned with no signal — `give_stamp` at the scan's moment. */
+export interface SelloEnCola extends EnvioBase {
+  readonly tipo: 'sello';
+  readonly codigo: string;
+  /** The phone her QR named; `null` when she typed six digits. */
+  readonly llave: string | null;
+}
+
+/** `10.9e-ii`: her *Cobras: …* code, scanned with no signal — `give_reward` for the reward it names. */
+export interface PremioEnCola extends EnvioBase {
+  readonly tipo: 'premio';
+  readonly codigo: string;
+  readonly llave: string | null;
+  readonly premio: string;
+}
+
+export type Envio = EntregaEnCola | PulgarEnCola | SelloEnCola | PremioEnCola;
+
+/** Whether a send is the card's — about a scan, not an order. */
+export const esDeTarjeta = (e: { readonly tipo: Envio['tipo'] }): boolean => e.tipo === 'sello' || e.tipo === 'premio';
 
 /** A send the database refused for good, drawn on its order until she acts on it again or a day passes. */
 export interface Rechazo {
@@ -105,6 +139,15 @@ export interface Rechazo {
   readonly tipo: Envio['tipo'];
   readonly falla: Falla;
   readonly en: string;
+  /** ⚠️ `10.9e-ii`: a card's send that LANDED and gave nothing — `0085`'s result (`no_valido`, `ya_hoy`, …). */
+  readonly resultado?: string;
+  /** Her name as the answer gave it, when it gave one. */
+  readonly nombre?: string;
+  /** When the scan was made — what *Sellar* says it was. */
+  readonly escaneo?: string;
+  /** ⚠️ A card's send refused for good: the database's code and message, so *Sellar* says why (`tarjetaErrorMessage`). */
+  readonly codigo?: string;
+  readonly mensaje?: string;
 }
 
 /** Everything the key holds. */
@@ -118,6 +161,25 @@ export const VACIA: EstadoDeCola = { envios: [], rechazos: [] };
 /** What a screen asks to queue. */
 export type Nuevo =
   | { readonly tipo: 'entrega'; readonly usuario: string; readonly cocina: string; readonly reserva: string; readonly en: Date }
+  | {
+      readonly tipo: 'sello';
+      readonly usuario: string;
+      readonly cocina: string;
+      readonly reserva: string;
+      readonly en: Date;
+      readonly codigo: string;
+      readonly llave: string | null;
+    }
+  | {
+      readonly tipo: 'premio';
+      readonly usuario: string;
+      readonly cocina: string;
+      readonly reserva: string;
+      readonly en: Date;
+      readonly codigo: string;
+      readonly llave: string | null;
+      readonly premio: string;
+    }
   | {
       readonly tipo: 'pulgar';
       readonly usuario: string;
@@ -145,6 +207,16 @@ function etiquetasDe(arriba: boolean, etiquetas: readonly string[]): Etiqueta[] 
  */
 export function encolar(estado: EstadoDeCola, nuevo: Nuevo): EstadoDeCola {
   const rechazos = estado.rechazos.filter((r) => !mismo(r, nuevo));
+  if (nuevo.tipo === 'sello' || nuevo.tipo === 'premio') {
+    // The same scan twice is one send: the database would answer the second `ya_hoy` or `ya_usado`.
+    if (estado.envios.some((e) => mismo(e, nuevo))) return { envios: estado.envios, rechazos };
+    const base = { usuario: nuevo.usuario, cocina: nuevo.cocina, reserva: nuevo.reserva, en: nuevo.en.toISOString(), version: 1 };
+    const envio: Envio =
+      nuevo.tipo === 'sello'
+        ? { tipo: 'sello', ...base, codigo: nuevo.codigo, llave: nuevo.llave }
+        : { tipo: 'premio', ...base, codigo: nuevo.codigo, llave: nuevo.llave, premio: nuevo.premio };
+    return { envios: [...estado.envios, envio], rechazos };
+  }
   if (nuevo.tipo === 'entrega') {
     if (estado.envios.some((e) => mismo(e, nuevo))) return { envios: estado.envios, rechazos };
     const envios = estado.envios.filter((e) => !(esNoSePresento(e) && e.reserva === nuevo.reserva && e.usuario === nuevo.usuario));
@@ -182,10 +254,16 @@ export function encolar(estado: EstadoDeCola, nuevo: Nuevo): EstadoDeCola {
 /** What one send asks of the database: its function's arguments, with her phone's moment. */
 export type Llamada =
   | { readonly tipo: 'entrega'; readonly args: HandOverArgs }
-  | { readonly tipo: 'pulgar'; readonly args: RateNeighbourArgs };
+  | { readonly tipo: 'pulgar'; readonly args: RateNeighbourArgs }
+  | { readonly tipo: 'sello'; readonly args: StampArgs }
+  | { readonly tipo: 'premio'; readonly args: RewardArgs };
 
 export function llamadaDe(envio: Envio): Llamada {
   const at = new Date(envio.en);
+  if (envio.tipo === 'sello') return { tipo: 'sello', args: stampArgs(envio.cocina, envio.codigo, envio.llave, envio.en) };
+  if (envio.tipo === 'premio') {
+    return { tipo: 'premio', args: rewardArgs(envio.cocina, envio.codigo, envio.premio, envio.llave, envio.en) };
+  }
   if (envio.tipo === 'entrega') return { tipo: 'entrega', args: handOverArgs(envio.reserva, at) };
   return {
     tipo: 'pulgar',
@@ -238,6 +316,7 @@ export function vecinosConCola(
 ): Record<string, SobreElVecino> {
   const out: Record<string, SobreElVecino> = { ...vecinos };
   for (const e of envios) {
+    if (e.tipo === 'sello' || e.tipo === 'premio') continue;
     const sobre = out[e.reserva];
     if (e.tipo === 'entrega') {
       if (sobre === undefined) continue;
@@ -275,6 +354,19 @@ export function rechazoDe(estado: EstadoDeCola, usuario: string | null, reserva:
   return vivos.length === 0 ? null : vivos[vivos.length - 1];
 }
 
+/** ⚠️ `10.9e-ii`: her scans still on the phone — *Sellar* draws each, the oldest first. */
+export function escaneosEnCola(envios: readonly Envio[]): readonly (SelloEnCola | PremioEnCola)[] {
+  return envios.filter((e): e is SelloEnCola | PremioEnCola => e.tipo === 'sello' || e.tipo === 'premio');
+}
+
+/** ⚠️ `10.9e-ii`: the card's refusals of the last day at one kitchen — a scan that went late and gave nothing. */
+export function rechazosDeTarjeta(estado: EstadoDeCola, usuario: string | null, cocina: string | null, now: Date): readonly Rechazo[] {
+  if (usuario === null || cocina === null) return [];
+  return estado.rechazos.filter(
+    (r) => r.usuario === usuario && r.cocina === cocina && esDeTarjeta(r) && now.getTime() - new Date(r.en).getTime() < RECHAZO_MS,
+  );
+}
+
 /** Whether her handover of this order is still on the phone. */
 export function entregaEsperando(envios: readonly Envio[], reserva: string): boolean {
   return envios.some((e) => e.tipo === 'entrega' && e.reserva === reserva);
@@ -296,6 +388,13 @@ export function entregaEsperando(envios: readonly Envio[], reserva: string): boo
  */
 export const NO_ES_DE_SU_COCINA = /reservation is not at one of your kitchens/;
 
+/**
+ * ⚠️ `10.9e-ii`: THE CARD'S FUNCTIONS' OWN `42501` (`0085`: `give_stamp: that kitchen is not one of yours`) — she
+ * no longer works there; final, as the handover's is. Its own pattern: the one above is read by the handover's
+ * contract check and its falsifier, word for word.
+ */
+export const NO_ES_SU_COCINA_DE_TARJETA = /that kitchen is not one of yours/;
+
 /** The codes PostgREST answers when the token itself was refused — her sign-in, not the send. */
 export const CODIGOS_DE_SESION: readonly string[] = ['PGRST301', 'PGRST302', 'PGRST303'];
 
@@ -307,7 +406,28 @@ export const FINALES: Readonly<Record<string, Falla>> = {
   TD022: 'yaNoSeCalifica',
   // A value the function cannot read — never sent by this app; waiting would not change it.
   '22P02': 'otra',
+  // ⚠️ `10.9e-ii`, the card's: Wera switched the card off; a shop; a reward that is not hers there.
+  // (`TD028`, too many codes that fitted nothing, is NOT final: it waits, and the ladder tries again.)
+  TD024: 'otra',
+  TD013: 'otra',
+  TD027: 'otra',
 };
+
+/**
+ * ⚠️ `10.9e-ii`: what a card's send that landed must have answered to have given what it was for. ⚠️ A REWARD
+ * FROM THE QUEUE ANSWERED `ya_cobrado` GAVE NOTHING: it was claimed elsewhere first (her code shown at a second
+ * phone, or again a minute later) — and the kitchen, told *Entrégaselo* with no signal, may have handed the meal
+ * over twice. It is drawn on *Sellar* (the review of `10.9e-ii`), never counted as given.
+ */
+export const DIO: readonly string[] = ['primer', 'sello', 'gano', 'cobrado'];
+
+/** A card's landed answer that gave nothing — her result and name — or `null` when it gave (or is not the card's). */
+export function noDio(envio: Envio, respuesta: unknown): { readonly resultado: string; readonly nombre: string | null } | null {
+  if (!esDeTarjeta(envio)) return null;
+  const card = cardFrom(respuesta);
+  if (card === null || DIO.includes(card.result)) return null;
+  return { resultado: card.result, nombre: card.name ?? null };
+}
 
 /**
  * What a failed send means for the queue:
@@ -330,7 +450,8 @@ export function desenlaceDe(error: unknown): Desenlace {
   const message = (error as { message?: unknown }).message;
   if (typeof code === 'string' && CODIGOS_DE_SESION.includes(code)) return { tipo: 'sesion' };
   if (code === '42501') {
-    return typeof message === 'string' && NO_ES_DE_SU_COCINA.test(message) ? { tipo: 'final', falla: 'sesion' } : { tipo: 'sesion' };
+    const suya = typeof message === 'string' && (NO_ES_DE_SU_COCINA.test(message) || NO_ES_SU_COCINA_DE_TARJETA.test(message));
+    return suya ? { tipo: 'final', falla: 'sesion' } : { tipo: 'sesion' };
   }
   if (typeof code === 'string' && code in FINALES) return { tipo: 'final', falla: FINALES[code] };
   return { tipo: 'esperar' };
@@ -350,6 +471,9 @@ function envioOf(v: unknown): Envio | null {
   const version = typeof e.version === 'number' && Number.isInteger(e.version) && e.version > 0 ? e.version : 1;
   const base = { usuario: e.usuario, cocina: e.cocina, reserva: e.reserva, en: e.en, version };
   if (e.tipo === 'entrega') return { tipo: 'entrega', ...base };
+  const llave = typeof e.llave === 'string' && e.llave !== '' ? e.llave : null;
+  if (e.tipo === 'sello' && texto(e.codigo)) return { tipo: 'sello', ...base, codigo: e.codigo, llave };
+  if (e.tipo === 'premio' && texto(e.codigo) && texto(e.premio)) return { tipo: 'premio', ...base, codigo: e.codigo, llave, premio: e.premio };
   if (e.tipo === 'pulgar' && typeof e.arriba === 'boolean' && Array.isArray(e.etiquetas)) {
     return { tipo: 'pulgar', ...base, arriba: e.arriba, etiquetas: etiquetasDe(e.arriba, e.etiquetas.filter(texto)) };
   }
@@ -358,13 +482,28 @@ function envioOf(v: unknown): Envio | null {
 
 const FALLAS: readonly Falla[] = ['sesion', 'cambio', 'yaNoSeCalifica', 'sinSenal', 'otra'];
 
+/** A refusal's SQLSTATE and message, as strings, when it has them. */
+function codigoYMensaje(error: unknown): { codigo?: string; mensaje?: string } {
+  if (typeof error !== 'object' || error === null) return {};
+  const { code, message } = error as { code?: unknown; message?: unknown };
+  return { ...(typeof code === 'string' ? { codigo: code } : {}), ...(typeof message === 'string' ? { mensaje: message } : {}) };
+}
+
 function rechazoOf(v: unknown): Rechazo | null {
   if (typeof v !== 'object' || v === null) return null;
   const r = v as Record<string, unknown>;
   if (!texto(r.usuario) || !texto(r.cocina) || !texto(r.reserva) || !momento(r.en)) return null;
-  if (r.tipo !== 'entrega' && r.tipo !== 'pulgar') return null;
+  if (r.tipo !== 'entrega' && r.tipo !== 'pulgar' && r.tipo !== 'sello' && r.tipo !== 'premio') return null;
   if (typeof r.falla !== 'string' || !(FALLAS as readonly string[]).includes(r.falla)) return null;
-  return { usuario: r.usuario, cocina: r.cocina, reserva: r.reserva, tipo: r.tipo, falla: r.falla as Falla, en: r.en };
+  const base: Rechazo = { usuario: r.usuario, cocina: r.cocina, reserva: r.reserva, tipo: r.tipo, falla: r.falla as Falla, en: r.en };
+  return {
+    ...base,
+    ...(texto(r.resultado) ? { resultado: r.resultado } : {}),
+    ...(texto(r.nombre) ? { nombre: r.nombre } : {}),
+    ...(momento(r.escaneo) ? { escaneo: r.escaneo } : {}),
+    ...(texto(r.codigo) ? { codigo: r.codigo } : {}),
+    ...(texto(r.mensaje) ? { mensaje: r.mensaje } : {}),
+  };
 }
 
 /**
@@ -495,6 +634,7 @@ export function crearDrenaje(puertos: PuertosDeCola): { drenar(): Promise<Drenad
             tipo: envio.tipo,
             falla: desenlace.falla,
             en: puertos.ahora().toISOString(),
+            ...(esDeTarjeta(envio) ? { escaneo: envio.en, ...codigoYMensaje(error) } : {}),
           };
           puertos.escribir({
             envios: ahora.envios.filter((e) => e !== actual),
@@ -511,7 +651,27 @@ export function crearDrenaje(puertos: PuertosDeCola): { drenar(): Promise<Drenad
         const ahora = puertos.leer();
         const actual = ahora.envios.find((e) => mismo(e, envio));
         if (actual !== undefined && actual.version === envio.version) {
-          puertos.escribir({ ...ahora, envios: ahora.envios.filter((e) => e !== actual) });
+          // ⚠️ `10.9e-ii`: a scan answered with nothing given — drawn on *Sellar* as a refusal, for a day.
+          const nada = noDio(envio, respuesta);
+          const rechazos =
+            nada === null
+              ? ahora.rechazos
+              : [
+                  ...ahora.rechazos.filter((r) => !mismo(r, envio)),
+                  {
+                    usuario: envio.usuario,
+                    cocina: envio.cocina,
+                    reserva: envio.reserva,
+                    tipo: envio.tipo,
+                    falla: 'otra' as const,
+                    en: puertos.ahora().toISOString(),
+                    resultado: nada.resultado,
+                    escaneo: envio.en,
+                    ...(nada.nombre !== null ? { nombre: nada.nombre } : {}),
+                  },
+                ];
+          if (nada !== null) rechazados += 1;
+          puertos.escribir({ envios: ahora.envios.filter((e) => e !== actual), rechazos });
         }
       }
       const restan = puertos.leer().envios.some((e) => e.usuario === usuario);
