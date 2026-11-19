@@ -54,7 +54,9 @@ export default function TusNumeros() {
   // A read from another day is read again — never yesterday's week drawn as this one. ⚠️ Not while a read
   // failed: the screen says so and offers to try again, rather than ask again for ever with no signal.
   const hoy = numeros.data !== undefined && leidoHoy(numeros.dataUpdatedAt, ahora) ? numeros.data : undefined;
-  const otraVez = numeros.data !== undefined && hoy === undefined && !numeros.isFetching && !numeros.isError;
+  // ⚠️ With no signal the read PAUSES (TanStack's online mode) rather than fail: said, never *Leyendo* for ever.
+  const sinLeer = numeros.isError || numeros.fetchStatus === 'paused';
+  const otraVez = numeros.data !== undefined && hoy === undefined && !numeros.isFetching && !sinLeer;
   const { refetch } = numeros;
   useEffect(() => {
     if (otraVez) void refetch();
@@ -84,7 +86,7 @@ export default function TusNumeros() {
             <AsiFunciona servicio="numeros" onCerrar={asi.cerrar} />
           </Llega>
         )}
-        <Text style={{ fontSize: SIZE.smallSize, lineHeight: 19, color: PALETTE.tintaApagada }}>{subtituloDe(conTarjeta(servicios.data))}</Text>
+        <Text style={{ fontSize: SIZE.smallSize, lineHeight: 19, color: PALETTE.tintaApagada }}>{subtituloDe(conTarjeta(servicios.data), hoy)}</Text>
         <Segmento<Periodo>
           mitades={PERIODOS.map((p) => ({ valor: p, label: ES.numeros.periodos[p] }))}
           valor={periodo}
@@ -112,7 +114,7 @@ export default function TusNumeros() {
               <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada }}>{ES.numeros.sinNombres}</Text>
             </>
           )
-        ) : numeros.isError ? (
+        ) : sinLeer ? (
           <View style={{ gap: SIZE.space }}>
             <Text style={{ fontSize: SIZE.bodySize, color: PALETTE.tinta }}>{ES.numeros.sinLeer}</Text>
             <BotonLleno label={ES.numeros.otraVez} busy={numeros.isFetching} onPress={() => void numeros.refetch()} />

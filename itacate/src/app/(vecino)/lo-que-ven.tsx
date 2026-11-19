@@ -18,8 +18,8 @@ import { Llega } from '@/ui/Llega';
 // kitchen where she reserved in her last 30 days or holds a card, and what reaches it of her TODAY — her name
 // when she reserves, gets a stamp or claims; her score when she reserves; her stamps and rewards there when she
 // shows her code or scans its; following, only a count; where she is, nothing (`@/lib/tarjeta`'s `loQueVenDe`).
-// ⚠️ `10.9f`: and her visits in its *Tus números*, counts with no name — said with *si*, as Itacate cannot know
-// which kitchens use them.
+// ⚠️ `10.9f`: and her visits in its *Tus números*, counts with no name — said of every kitchen: its owner's
+// database read answers whether or not she chose them.
 // ⚠️ WORDED AS WHAT IS TRUE TODAY, WITH NO *NUNCA* ABOUT FOLLOWING — his words: *"don't make strict the 'never
 // that she follows it' in case we wan't to enable it in the future"*. NO CHECK CAN SEE THIS SCREEN (ADR-035 §2.11).
 // ============================================================================

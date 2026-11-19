@@ -159,7 +159,7 @@ select public.chk('1.1 the one door: the signed-in may call it, nobody signed ou
   and not has_function_privilege('anon', 'public.kitchen_numbers(uuid)', 'execute'));
 select public.chk('1.2 the three that count are granted to nobody — never a door of their own',
   not has_function_privilege('authenticated', 'servicio.kitchen_events(uuid, text)', 'execute')
-  and not has_function_privilege('authenticated', 'servicio.numbers_in(uuid, text, date, date)', 'execute')
+  and not has_function_privilege('authenticated', 'servicio.numbers_in(servicio.kitchen_event[], text, date, date, boolean)', 'execute')
   and not has_function_privilege('authenticated', 'servicio.kitchen_numbers_at(uuid, timestamptz)', 'execute')
   and not has_function_privilege('anon', 'servicio.kitchen_numbers_at(uuid, timestamptz)', 'execute'));
 select public.chk('1.3 security definer, stable, its search_path empty — and no new table',
@@ -184,11 +184,15 @@ select public.chk('1.4 a kitchen with nothing yet: no first visit, every count 0
 --   Wed 09-30 23:30  gil                 handed over (UTC Oct 1 05:30)      1       65.00   23   ← September, not October
 --   Thu 10-01 00:30  dani                walk-in stamp (UTC Oct 1 06:30)    0        0.00    0
 --   Fri 10-30 14:00  fer                 handed over                        1       65.00   14
+--   Sat 10-31 14:20  eli                 the counter scanned her code, and  1       65.00   14   ← ONE visit, on the 31st:
+--                                        she swiped Ya lo tengo on Sun 11-01 at 09:00, after          her swipe counts at her
+--                                        her window (14:00-15:00) had ended                           window's end, not the 1st
 --   Fri 11-13 12:00  ana                 handed over                        2      130.00   12
 --   Sat 11-14 16:00  beto                walk-in stamp                      0        0.00   16
 --   Sun 11-15 13:00  eli                 she swiped Ya lo tengo only        1       60.00   13
 --   Mon 11-16 12:40  fer                 a stamp first, at the counter      0        0.00   12   ← her visit starts here,
---   Mon 11-16 13:45  fer                 then handed over, 3 × 60.00        3      180.00         and is no walk-in
+--   Mon 11-16 13:45  fer                 then handed over, 3 × 60.00        3      180.00         and is no walk-in;
+--   Mon 11-16 15:10  fer                 and a second plate, 1 × 60.00      1       60.00         one visit still
 --   Mon 11-16 14:10  carla               handed over + its stamp            1       65.00   14   ← one visit
 --   Tue 11-17 18:30  beto                handed over, 1 × 70 (UTC Wed)      1       70.00   18
 --   Tue 11-17 23:30  dani                walk-in stamp (UTC Wed 05:30)      0        0.00   23
@@ -200,15 +204,21 @@ select public.chk('1.4 a kitchen with nothing yet: no first visit, every count 0
 --   Thu 11-19 14:20  carla               walk-in stamp                      0        0.00   14
 --   and NOT counted: dani's cancelled today, eli's still waiting today, one of ana's
 --   at OTRA's kitchen today, and one never collected last week.
+--   OTRA's kitchen is in Tijuana's zone (two hours behind): ana's 4 × 90.00 at 13:30
+--   Mexico City time today, and beto's 1 × 90.00 at 23:30 on Wednesday THERE (01:30
+--   Thursday in Mexico City) — Wednesday's, in Otra's numbers.
 select public._r(gen_random_uuid(), :gil,  :'ws_m', :lm, :'line_m', 101, public._mx('2026-09-30 23:30'), public._mx('2026-09-30 23:30'), null, null, 1, 65, null);
 select public._s(:'ws_m', :dani, public._mx('2026-10-01 00:30'), 'su_codigo', null);
 select public._r(gen_random_uuid(), :fer,  :'ws_m', :lm, :'line_m', 102, public._mx('2026-10-30 14:00'), public._mx('2026-10-30 14:00'), null, null, 1, 65, null);
+select public._r(gen_random_uuid(), :eli,  :'ws_m', :lm, :'line_m', 116, public._mx('2026-10-31 14:00'), null, public._mx('2026-11-01 09:00'), null, 1, 65, null);
+select public._s(:'ws_m', :eli, public._mx('2026-10-31 14:20'), 'su_codigo', null);
 select public._r(gen_random_uuid(), :ana,  :'ws_m', :lm, :'line_m', 103, public._mx('2026-11-13 12:00'), public._mx('2026-11-13 12:00'), null, null, 2, 65, null);
 select public._s(:'ws_m', :beto, public._mx('2026-11-14 16:00'), 'codigo_cocina', null);
 select public._r(gen_random_uuid(), :eli,  :'ws_m', :lm, :'line_m', 104, public._mx('2026-11-15 13:00'), null, public._mx('2026-11-15 13:00'), null, 1, 60, null);
 select public._r(gen_random_uuid(), :dani, :'ws_m', :lm, :'line_m', 105, public._mx('2026-11-12 13:00'), null, null, null, 1, 65, null);
 select public._r(gen_random_uuid(), :fer,  :'ws_m', :lm, :'line_m', 106, public._mx('2026-11-16 13:45'), public._mx('2026-11-16 13:45'), null, null, 3, 60, null);
 select public._s(:'ws_m', :fer, public._mx('2026-11-16 12:40'), 'su_codigo', null);
+select public._r(gen_random_uuid(), :fer,  :'ws_m', :lm, :'line_m', 117, public._mx('2026-11-16 15:10'), public._mx('2026-11-16 15:10'), null, null, 1, 60, null);
 select public._r('0086cccc-0000-4000-8000-000000000001', :carla, :'ws_m', :lm, :'line_m', 107, public._mx('2026-11-16 14:10'), public._mx('2026-11-16 14:10'), null, null, 1, 65, null);
 select public._s(:'ws_m', :carla, public._mx('2026-11-16 14:10'), 'entrega', '0086cccc-0000-4000-8000-000000000001');
 select public._r(gen_random_uuid(), :beto, :'ws_m', :lm, :'line_m', 108, public._mx('2026-11-17 18:30'), public._mx('2026-11-17 18:30'), null, null, 1, 70, null);
@@ -223,7 +233,9 @@ select public._r(gen_random_uuid(), :beto, :'ws_m', :lm, :'line_m', 112, public.
 select public._s(:'ws_m', :carla, public._mx('2026-11-19 14:20'), 'su_codigo', null);
 select public._r(gen_random_uuid(), :dani, :'ws_m', :lm, :'line_m', 113, public._mx('2026-11-19 13:00'), null, null, public._mx('2026-11-19 10:00'), 1, 65, null);
 select public._r(gen_random_uuid(), :eli,  :'ws_m', :lm, :'line_m', 114, public._mx('2026-11-19 17:00'), null, null, null, 1, 65, null);
+update public.location set timezone = 'America/Tijuana' where id = :'loc_o';
 select public._r(gen_random_uuid(), :ana,  :'ws_o', :lo, :'line_o', 115, public._mx('2026-11-19 13:30'), public._mx('2026-11-19 13:30'), null, null, 4, 90, null);
+select public._r(gen_random_uuid(), :beto, :'ws_o', :lo, :'line_o', 118, public._mx('2026-11-19 01:30'), public._mx('2026-11-19 01:30'), null, null, 1, 90, null);
 
 select public._n(:'ws_m', '2026-11-19 14:30') as now_answer \gset
 
@@ -260,12 +272,12 @@ select public.chk('3.6 the period before carries no returning, no days, no hours
   not (:'now_answer'::jsonb -> 'dia' -> 'prev' ?| array['returning', 'days', 'hours', 'prev'])
   and not (:'now_answer'::jsonb -> 'semana' -> 'prev' ?| array['returning', 'days', 'hours', 'prev']));
 
-select public.chk('3.7 THIS WEEK (Mon 11-16 to Thu 11-19): 10 visits, 3 of them walk-ins; 10 plates; $650',
+select public.chk('3.7 THIS WEEK (Mon 11-16 to Thu 11-19): 10 visits, 3 of them walk-ins; 11 plates (fer''s two one visit); $710',
   (:'now_answer'::jsonb -> 'semana' ->> 'from') = '2026-11-16' and (:'now_answer'::jsonb -> 'semana' ->> 'to') = '2026-11-19'
   and (:'now_answer'::jsonb -> 'semana' ->> 'visits')::int = 10
   and (:'now_answer'::jsonb -> 'semana' ->> 'walk_ins')::int = 3
-  and (:'now_answer'::jsonb -> 'semana' ->> 'plates')::numeric = 10
-  and (:'now_answer'::jsonb -> 'semana' ->> 'cents')::bigint = 65000,
+  and (:'now_answer'::jsonb -> 'semana' ->> 'plates')::numeric = 11
+  and (:'now_answer'::jsonb -> 'semana' ->> 'cents')::bigint = 71000,
   (:'now_answer'::jsonb -> 'semana')::text);
 select public.chk('3.8 this week''s people: five — fer, carla, beto, dani, ana (the account gone is nobody) — and four had come before: ana, beto, fer, dani',
   (:'now_answer'::jsonb -> 'semana' ->> 'neighbours')::int = 5
@@ -287,26 +299,26 @@ select public.chk('3.11 LAST WEEK (Mon 11-09 to Sun 11-15): 3 visits — ana, be
   and :'now_answer'::jsonb -> 'semana' -> 'prev' -> 'neighbours' = 'null'::jsonb,
   (:'now_answer'::jsonb -> 'semana' -> 'prev')::text);
 
-select public.chk('3.12 THIS MONTH (Nov 1 to 19): 13 visits, 4 walk-ins; 13 plates; $840',
+select public.chk('3.12 THIS MONTH (Nov 1 to 19): 13 visits, 4 walk-ins; 14 plates; $900 — and nothing on the 1st: eli''s late swipe is October''s',
   (:'now_answer'::jsonb -> 'mes' ->> 'from') = '2026-11-01' and (:'now_answer'::jsonb -> 'mes' ->> 'to') = '2026-11-19'
   and (:'now_answer'::jsonb -> 'mes' ->> 'visits')::int = 13
   and (:'now_answer'::jsonb -> 'mes' ->> 'walk_ins')::int = 4
-  and (:'now_answer'::jsonb -> 'mes' ->> 'plates')::numeric = 13
-  and (:'now_answer'::jsonb -> 'mes' ->> 'cents')::bigint = 84000,
+  and (:'now_answer'::jsonb -> 'mes' ->> 'plates')::numeric = 14
+  and (:'now_answer'::jsonb -> 'mes' ->> 'cents')::bigint = 90000,
   (:'now_answer'::jsonb -> 'mes')::text);
-select public.chk('3.13 this month''s people: six (eli too), and two had come before November — fer and dani',
+select public.chk('3.13 this month''s people: six (eli too), and three had come before November — fer, dani and eli',
   (:'now_answer'::jsonb -> 'mes' ->> 'neighbours')::int = 6
-  and (:'now_answer'::jsonb -> 'mes' ->> 'returning')::int = 2);
+  and (:'now_answer'::jsonb -> 'mes' ->> 'returning')::int = 3);
 select public.chk('3.14 this month''s days, Monday first: Mon 2, Tue 2, Wed 3, Thu 3, Fri 1, Sat 1, Sun 1',
   :'now_answer'::jsonb -> 'mes' -> 'days' = '[2,2,3,3,1,1,1]'::jsonb,
   (:'now_answer'::jsonb -> 'mes' -> 'days')::text);
-select public.chk('3.15 LAST MONTH (Oct 1 to 31): 2 visits — dani''s walk-in at 00:30 on the 1st and fer''s; gil''s at 23:30 on Sept 30 is not October''s',
+select public.chk('3.15 LAST MONTH (Oct 1 to 31): 3 visits — dani''s walk-in at 00:30 on the 1st, fer''s, and eli''s on the 31st, ONE visit with its stamp though she swiped the next morning; gil''s at 23:30 on Sept 30 is not October''s',
   (:'now_answer'::jsonb -> 'mes' -> 'prev' ->> 'from') = '2026-10-01'
   and (:'now_answer'::jsonb -> 'mes' -> 'prev' ->> 'to') = '2026-10-31'
-  and (:'now_answer'::jsonb -> 'mes' -> 'prev' ->> 'visits')::int = 2
+  and (:'now_answer'::jsonb -> 'mes' -> 'prev' ->> 'visits')::int = 3
   and (:'now_answer'::jsonb -> 'mes' -> 'prev' ->> 'walk_ins')::int = 1
-  and (:'now_answer'::jsonb -> 'mes' -> 'prev' ->> 'plates')::numeric = 1
-  and (:'now_answer'::jsonb -> 'mes' -> 'prev' ->> 'cents')::bigint = 6500,
+  and (:'now_answer'::jsonb -> 'mes' -> 'prev' ->> 'plates')::numeric = 2
+  and (:'now_answer'::jsonb -> 'mes' -> 'prev' ->> 'cents')::bigint = 13000,
   (:'now_answer'::jsonb -> 'mes' -> 'prev')::text);
 
 select public.chk('3.16 every set of bars adds up to its period''s visits',
@@ -315,10 +327,13 @@ select public.chk('3.16 every set of bars adds up to its period''s visits',
   and (select sum(x::int) from jsonb_array_elements_text(:'now_answer'::jsonb -> 'semana' -> 'hours') x) = 10
   and (select sum(x::int) from jsonb_array_elements_text(:'now_answer'::jsonb -> 'mes' -> 'days') x) = 13
   and (select sum(x::int) from jsonb_array_elements_text(:'now_answer'::jsonb -> 'mes' -> 'hours') x) = 13);
-select public.chk('3.17 Otra''s kitchen counts only its own: ana''s 4 plates today, nothing of Mari''s',
-  (public._n(:'ws_o', '2026-11-19 14:30') -> 'dia' ->> 'plates')::numeric = 4
-  and (public._n(:'ws_o', '2026-11-19 14:30') -> 'semana' ->> 'visits')::int = 1
-  and (public._n(:'ws_o', '2026-11-19 14:30') -> 'mes' ->> 'cents')::bigint = 36000);
+select public.chk('3.17 Otra''s kitchen counts only its own, on ITS calendar: ana''s 4 plates today; beto''s 01:30 Thursday in Mexico City is 23:30 Wednesday in Tijuana — yesterday''s',
+  (public._n(:'ws_o', '2026-11-19 14:30') ->> 'day') = '2026-11-19'
+  and (public._n(:'ws_o', '2026-11-19 14:30') -> 'dia' ->> 'plates')::numeric = 4
+  and (public._n(:'ws_o', '2026-11-19 14:30') -> 'dia' -> 'prev' ->> 'plates')::numeric = 1
+  and (public._n(:'ws_o', '2026-11-19 14:30') -> 'semana' ->> 'visits')::int = 2
+  and (public._n(:'ws_o', '2026-11-19 14:30') -> 'mes' ->> 'cents')::bigint = 45000,
+  (public._n(:'ws_o', '2026-11-19 14:30') -> 'dia')::text);
 select public.chk('3.18 the answer names nobody: no id, no name, no code anywhere in it',
   :'now_answer' !~* '(0086aaaa|0086bbbb|0086cccc|rodr|p[eé]rez|d[ií]az|"code"|"name"|"id")', :'now_answer');
 

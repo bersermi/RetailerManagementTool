@@ -28,8 +28,9 @@ export function veSusNumeros(loQueUsa: LoQueUsa | undefined, duena: boolean, hec
 }
 
 /**
- * The words of a first's celebration: her first handover says her numbers start today when she sees them
- * (the page's `firstToast('entrega', …)`); every other first, its own.
+ * The words of a first's celebration: her first handover says it counts in her numbers when she sees them (the
+ * page's `firstToast('entrega', …)` — its *empiezan hoy* is false when a walk-in's stamp came first, so not those
+ * words); every other first, its own.
  */
 export function palabrasDelFestejo(festejo: Festejo, conNumeros: boolean): string {
   return festejo === 'entrega' && conNumeros ? ES.festejo.entregaConNumeros : ES.festejo[festejo];
@@ -146,9 +147,14 @@ export function horasFuertes(numeros: Numeros, periodo: Periodo): Barra[] {
   return horas.slice(primera, ultima + 1).map((valor, i) => ({ etiqueta: ES.numeros.hora(primera + i), valor }));
 }
 
-/** Under the title, true today: the stamps only while her kitchen uses the card. */
-export function subtituloDe(conTarjeta: boolean): string {
-  return conTarjeta ? ES.numeros.subtitulo : ES.numeros.subtituloSinTarjeta;
+/**
+ * Under the title, true today: the stamps named while her kitchen uses the card — or while the numbers still count
+ * stamps it gave before she closed it (*N sin apartar, con su sello* on the screen).
+ */
+export function subtituloDe(conTarjeta: boolean, numeros?: Numeros): string {
+  const conSellos =
+    numeros !== undefined && (['dia', 'semana', 'mes'] as const).some((p) => numeros[p].walk_ins > 0 || numeros[p].prev.walk_ins > 0);
+  return conTarjeta || conSellos ? ES.numeros.subtitulo : ES.numeros.subtituloSinTarjeta;
 }
 
 /**
@@ -159,8 +165,10 @@ export function subtituloDe(conTarjeta: boolean): string {
  */
 export function leidoHoy(leidoEn: number | null, ahora: Date): boolean {
   if (leidoEn === null || leidoEn <= 0) return false;
-  const leido = new Date(leidoEn);
-  return leido.getFullYear() === ahora.getFullYear() && leido.getMonth() === ahora.getMonth() && leido.getDate() === ahora.getDate();
+  // ⚠️ From the start of `ahora`'s day, never "the same day as `ahora`": `ahora` ticks every half minute, and a
+  // read that lands at 00:00:01 while it still says 23:59:40 is not yesterday's — asked again, it would be asked
+  // again and again until the clock ticked (the review of `10.9f`).
+  return leidoEn >= new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate()).getTime();
 }
 
 /**

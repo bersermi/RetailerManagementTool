@@ -293,8 +293,11 @@ TOKEN="$FONDA"
 out="$(api POST "/rest/v1/rpc/$HAND_OVER" "$(by_names "$HAND_OVER_ARGS" "\"$R1\"" "\"$(iso 0)\"")")"
 [[ "$(status "$out")" == 200 ]] || { echo "FAIL: she could not hand it over: $(status "$out") $(body "$out" | head -c 160)"; exit 1; }
 STAMPS="$(as_owner "select count(*) from servicio.card_stamp where workspace_id = '$A' and reservation_id = '$R1' and via = 'entrega'")"
-[[ "$STAMPS" == 1 ]] || fail "the handover did not stamp her card ($STAMPS stamps) — the visit below would not be tested as one"
-ok "she set up her card ($TERMS), published a \$60 plate ($PUBLISH); the neighbour reserved one ($RESERVE); she handed it over ($HAND_OVER) — and the handover stamped the card"
+if [[ "$STAMPS" == 1 ]]; then
+  ok "she set up her card ($TERMS), published a \$60 plate ($PUBLISH); the neighbour reserved one ($RESERVE); she handed it over ($HAND_OVER) — and the handover stamped the card"
+else
+  fail "the handover did not stamp her card ($STAMPS stamps) — the visit below would not be tested as one"
+fi
 if call n1 "$NUMBERS" "$(by_names "$NUMBERS_ARGS" "\"$A\"")"; then
   check "one plate today, this week and this month — ONE visit (her reservation and its stamp are one), no walk-in, \$60, nobody shown under five" counts "$SCRATCH/n1.json" "$PERIODS" 1 1 0 6000 set
 fi

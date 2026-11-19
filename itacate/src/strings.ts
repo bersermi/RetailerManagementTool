@@ -853,9 +853,10 @@ export const ES = {
     sellos: 'Tus sellos y tus premios de aquí, cuando le enseñas tu código o escaneas el suyo',
     /**
      * ⚠️ `10.9f`: her visits in a kitchen's *Tus números* — counts, with no name, the people only from five
-     * (`0086`). Itacate cannot know which kitchens use them (the door never says), so the line says *si*.
+     * (`0086`). Said of every kitchen: the database answers any kitchen's owner (`kitchen_numbers`), and the door
+     * never says which use them — so no *si*, which the review of `10.9f` found a promise only an app keeps.
      */
-    cuentas: 'Si usa sus números: tus visitas van en sus cuentas, sin tu nombre',
+    cuentas: 'Tus visitas, en las cuentas que ve su dueña, sin tu nombre',
     sigues: 'Si la sigues: hoy solo ve cuántas personas la siguen',
     ubicacion: 'Dónde estás: no le llega',
     ninguna: 'Todavía no apartas en ninguna cocina.',

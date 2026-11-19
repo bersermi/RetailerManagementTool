@@ -613,7 +613,7 @@ export const ES = {
     apartado: '¡Tu primer apartado!',
     entrega: '¡Tu primera entrega!',
     /** `10.9f`: her first handover once she uses her numbers — the page's `firstToast('entrega', …)`. */
-    entregaConNumeros: '¡Tu primera entrega! Tus números empiezan hoy',
+    entregaConNumeros: '¡Tu primera entrega! Ya cuenta en tus números',
   },
   /** The one quiet line under the day's card: her page's next missing part, or a feature she did not pick. */
   empujon: {
@@ -1434,8 +1434,8 @@ export const ES = {
     /** The tile on *Hoy*: this week's plates against the whole week before. */
     platos: (n: string, uno: boolean) => (uno ? `${n} plato` : `${n} platos`),
     estaSemana: (contra: string) => `entregados esta semana · ${contra}`,
-    /** The tile with no signal: its read failed, so it says so — never a first-time state that is not one. */
-    tileSinLeer: ['—', 'Sin señal: ábrelos para leerlos'],
+    /** The tile when its read failed or waits for a signal: it says so — never a first-time state that is not one. */
+    tileSinLeer: ['—', 'No se pudieron leer'],
     volver: 'Hoy',
   },
   /**

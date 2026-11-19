@@ -8,6 +8,9 @@
 # periods it reads, the refusal's code), points the check at it, and requires red WITH THE SENTENCE
 # that names that claim: red for the wrong reason is a failure here too. The control, unedited, must
 # be green.
+# ⚠️ And one fixture breaks the DATABASE instead (D1, the review of `10.9f`): `kitchen_events` re-made for its
+# run with a handover's stamp as a visit of its own, so the check's *one visit* verdict is seen red too — then
+# put back from `0086`'s own text, and the check run once more to show it green.
 #
 # Run:  supabase start && supabase db reset && bash docs/checks/10.9f-numbers-contract-falsify.sh
 # Exit: 0 every fixture behaved; 1 otherwise.
@@ -89,10 +92,39 @@ echo "C9  not-her-owner read under another code — she would read the generic s
 run C9 red "the app reads 'TD013'" \
   "s/^export const NO_ES_LA_DUENA = '42501';/export const NO_ES_LA_DUENA = 'TD013';/"
 
+echo "D1  a handover's stamp counted as a visit of its own — her one visit drawn as two, one a walk-in"
+MIGRATION="supabase/migrations/0086_her_numbers.sql"
+python3 - "$MIGRATION" "$TMP/good.sql" "$TMP/bad.sql" <<'PY'
+import sys
+text = open(sys.argv[1]).read()
+start = text.index('create function servicio.kitchen_events(')
+end = text.index('$$;', text.index('$$', start) + 2) + 3
+good = text[start:end].replace('create function', 'create or replace function', 1)
+bad = good.replace("coalesce(s.user_id::text, 'r' || s.reservation_id::text, 's' || s.id::text)", "'s' || s.id::text")
+assert bad != good, 'the mutation changed nothing'
+open(sys.argv[2], 'w').write(good)
+open(sys.argv[3], 'w').write(bad)
+PY
+put_back() { supabase db query --local -f "$TMP/good.sql" > /dev/null 2>&1; }
+if supabase db query --local -f "$TMP/bad.sql" > /dev/null 2>&1; then
+  out="$(bash "$CHECK" 2>&1)"; rc=$?
+  put_back
+  phrase="came back plates, visits, walk-ins, cents = (1, 2, 1, 6000), not (1, 1, 0, 6000)"
+  if (( rc == 0 )); then echo "  ✗ D1 — expected red, got green"; fail=$((fail+1))
+  elif ! grep -qF "$phrase" <<< "$out"; then
+    echo "  ✗ D1 — red, but for the wrong reason. Wanted: $phrase"; sed 's/^/        /' <<< "$out" | grep FAIL | head -3; fail=$((fail+1))
+  else echo "  ✓ D1 — red"; pass=$((pass+1)); fi
+else
+  put_back
+  echo "  ✗ D1 — could not re-make kitchen_events for its run"; fail=$((fail+1))
+fi
+echo "D1b the control again, kitchen_events put back"
+if bash "$CHECK" > /dev/null 2>&1; then echo "  ✓ D1b — green"; pass=$((pass+1)); else echo "  ✗ D1b — red: D1 left the database broken"; fail=$((fail+1)); fi
+
 echo
 echo "$pass passed, $fail failed."
-if (( pass + fail < 10 )); then
-  echo "FAIL: only $((pass + fail)) fixtures ran, expected 10."
+if (( pass + fail < 12 )); then
+  echo "FAIL: only $((pass + fail)) fixtures ran, expected 12."
   exit 1
 fi
 (( fail == 0 )) || exit 1

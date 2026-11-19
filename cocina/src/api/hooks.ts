@@ -1307,7 +1307,8 @@ export function useSeguidores(kitchenId: string | null) {
  * ⚠️ *TUS NÚMEROS* (`kitchen_numbers`, `0086`; G24–G27) — its screen and its tile on *Hoy*. THE OWNER'S: asked
  * only on her phone (`activa`: she is the owner, she uses them and this build carries them), never a helper's.
  * Keyed on the login and the kitchen; ⚠️ NOT on the phone's disk (`@/api/persist`'s list is unchanged): a count
- * read on another day is not today's, so with no signal the tile says it could not read them.
+ * read on another day is not today's. With no signal the read PAUSES (online mode) — the tile and the screen read
+ * `fetchStatus === 'paused'` as a read that could not be made and say so.
  */
 export function useNumeros(kitchenId: string | null, { activa = true }: { activa?: boolean } = {}) {
   const { session, ready } = useAuth();

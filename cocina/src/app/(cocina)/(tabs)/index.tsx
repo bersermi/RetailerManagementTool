@@ -169,8 +169,9 @@ function HoyDe({ kitchen }: { kitchen: Kitchen }) {
   const numerosDeHoy =
     numerosLeidos.data !== undefined && leidoHoy(numerosLeidos.dataUpdatedAt, ahora) ? numerosLeidos.data : undefined;
   // A read from another day is read again (`leidoHoy`) — not while one failed, which the tile says.
-  const numerosOtraVez =
-    numerosLeidos.data !== undefined && numerosDeHoy === undefined && !numerosLeidos.isFetching && !numerosLeidos.isError;
+  // ⚠️ With no signal the read PAUSES rather than fail — the tile says it could not read them either way.
+  const numerosSinLeer = numerosLeidos.isError || numerosLeidos.fetchStatus === 'paused';
+  const numerosOtraVez = numerosLeidos.data !== undefined && numerosDeHoy === undefined && !numerosLeidos.isFetching && !numerosSinLeer;
   const { refetch: releerNumeros } = numerosLeidos;
   useEffect(() => {
     if (numerosOtraVez) void releerNumeros();
@@ -211,7 +212,8 @@ function HoyDe({ kitchen }: { kitchen: Kitchen }) {
     // `marca` names everything `registrar` marks; the function itself is new on every render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [marca, cambiar]);
-  const numerosVivos = numerosLeidos.isError ? null : numerosDeHoy;
+  // Today's read wins over a later refetch that failed; with none, a failed or paused read is said (`null`).
+  const numerosVivos = numerosDeHoy ?? (numerosSinLeer ? null : undefined);
   const mosaicos = mosaicosPara(mosaicosDe(servicios.data, vivosDe(tarjetaDeHoy, numerosVivos, ahora), PANTALLA_DE, ademasDe(tarjetaDeHoy, ahora)), duena)
     // ⚠️ The card's tile waits for its read: never *Prepara tu tarjeta* drawn and then taken away.
     .filter((m) => m.servicio !== 'tarjeta' || tarjetaDeHoy !== undefined || tarjetaLeida.isError)
