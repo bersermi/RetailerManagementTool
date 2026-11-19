@@ -9,7 +9,7 @@ import { useApartados, useCocinas, useSiguiendo, useTarjetas } from '@/api/hooks
 import type { MyCardRow } from '@/api/tarjeta';
 import { useAuth } from '@/auth/AuthProvider';
 import { leerLlave } from '@/lib/llave';
-import { cocinaDeSeguida, detalleDe, fijadoDe, misCocinasDe, type FilaSeguida } from '@/lib/misCocinas';
+import { cocinaDeSeguida, detalleDe, fijadoDe, misCocinasDe, promocionesDeMisCocinas, type FilaSeguida, type LineaDePromocion } from '@/lib/misCocinas';
 import { deviceStore } from '@/lib/store';
 import { ayudaDeTarjeta, bitsDeTarjeta, cocinaDeTarjeta, colorDeTarjeta, conPremios, hayTarjetas, porCocina } from '@/lib/tarjeta';
 import { useAhora } from '@/lib/useAhora';
@@ -17,6 +17,7 @@ import { ES } from '@/strings';
 import { HUES } from '@/theme/colores';
 import { PALETTE, SIZE } from '@/theme/palette';
 import { ApartadoFijado } from '@/ui/ApartadoFijado';
+import { MarcaPromocion } from '@/ui/BandaPromocion';
 import { BotonLleno } from '@/ui/BotonLleno';
 import { Cabeza } from '@/ui/Cabeza';
 import { Circulo } from '@/ui/Circulo';
@@ -41,6 +42,9 @@ import { Llega } from '@/ui/Llega';
 // switch off, never) —, a row per kitchen where she has rewards (*2 premios por cobrar*, opening *Tus premios en …*),
 // and in *Tus cocinas* the kitchens whose card she holds beside those she follows, with *5/8 · 2 premios*. Her
 // cards are `my_cards`' (`useTarjetas`); the rules `@/lib/tarjeta`'s, pinned by `test/tarjetaVecina.test.ts`.
+// ⚠️ SINCE `10.9g-iii` A LINE PER PROMOTION of the kitchens in *Tus cocinas*, under them (the page's `pline`): its mark,
+// *Jueves pozolero en Fonda Doña Mari, hasta el 17 de diciembre*, opening her page — from the door
+// (`@/lib/misCocinas`' `promocionesDeMisCocinas`), so only what a neighbour sees now.
 // NO CHECK CAN SEE THIS SCREEN (ADR-035 §2.11): the phone is its instrument.
 // ============================================================================
 
@@ -60,7 +64,8 @@ export default function MisCocinas() {
   async function refrescar() {
     setJalando(true);
     try {
-      await Promise.all([siguiendo.refetch(), apartados.refetch(), tarjetas.refetch()]);
+      // `10.9g-iii`: the door too — her kitchens' promotion lines are its answer.
+      await Promise.all([siguiendo.refetch(), apartados.refetch(), tarjetas.refetch(), cocinas.refetch()]);
     } finally {
       setJalando(false);
     }
@@ -75,6 +80,7 @@ export default function MisCocinas() {
   // The kitchens whose card she holds and does not follow — after those she follows, most recent first.
   const soloTarjeta = (tarjetas.data ?? []).filter((card) => !seguidas.has(card.id));
   const premios = conPremios(tarjetas.data);
+  const promociones = promocionesDeMisCocinas([...filas.map((fila) => fila.seguida.id), ...soloTarjeta.map((card) => card.id)], cocinas.data);
   const conTarjeta = hayTarjetas(cocinas.data, tarjetas.data, userId !== null && leerLlave(deviceStore(), userId) !== null);
   // The head — *Escanear* and *Mi código*, her pinned reservation — arrives first, then each section after.
   const arriba = conTarjeta || fijado !== null;
@@ -167,6 +173,9 @@ export default function MisCocinas() {
               ))}
             </Grupo>
           )}
+          {promociones.map((linea) => (
+            <LineaPromocion key={linea.key} linea={linea} onPress={() => abrir(linea.cocinaId)} />
+          ))}
         </Llega>
 
         <Llega i={desde + 2}>
@@ -213,6 +222,24 @@ function RenglonSeguida({
       </View>
       {seguida.campana && <MaterialCommunityIcons name="bell" size={16} color={PALETTE.tintaApagada} />}
       <MaterialCommunityIcons name="chevron-right" size={20} color={PALETTE.tintaApagada} />
+    </Pressable>
+  );
+}
+
+/** `10.9g-iii`: a promotion of one of her kitchens (the page's `pline`) — its mark and its line, on the band's tint. */
+function LineaPromocion({ linea, onPress }: { linea: LineaDePromocion; onPress: () => void }) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={`${linea.marca.ayuda}. ${linea.texto}`}
+      onPress={onPress}
+      style={({ pressed }) => [styles.promocion, { opacity: pressed ? 0.75 : 1 }]}
+    >
+      <MarcaPromocion icono={linea.marca.icono} texto={linea.marca.texto} chica />
+      <Text style={styles.promocionTexto}>
+        <Text style={{ fontWeight: '700' }}>{linea.loQue}</Text>
+        {linea.resto}
+      </Text>
     </Pressable>
   );
 }
@@ -304,4 +331,15 @@ const styles = StyleSheet.create({
     borderColor: PALETTE.linea,
   },
   regalo: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
+  promocion: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    gap: SIZE.rowGap,
+    paddingHorizontal: SIZE.space - 2,
+    paddingVertical: SIZE.rowGap,
+    borderRadius: 10,
+    backgroundColor: PALETTE.marcaSuave,
+  },
+  promocionTexto: { flexShrink: 1, fontSize: SIZE.smallSize - 0.5, lineHeight: 18, color: PALETTE.tinta },
 });

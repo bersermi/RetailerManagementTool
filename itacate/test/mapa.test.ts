@@ -68,7 +68,7 @@ function plato(lineNo: number): Dish {
   return { lineNo, name: `Plato ${lineNo}`, description: null, tags: [], priceCentavos: 5500, count: 3, surprise: false, usualCentavos: 9000, photo: null, llevar: true, aqui: false };
 }
 function oferta(id: string, desde: Date, hasta: Date): Offer {
-  return { id, start: desde, end: hasta, dishes: [plato(1)], desechableCentavos: null };
+  return { id, start: desde, end: hasta, dishes: [plato(1)], desechableCentavos: null, promocion: null };
 }
 function cocina(id: string, point: Punto | null, offers: Offer[], giro: string | null = 'giro-fonda'): Kitchen {
   return {
@@ -87,6 +87,7 @@ function cocina(id: string, point: Punto | null, offers: Offer[], giro: string |
     estrellas: null,
     servicios: [],
     tarjeta: null,
+    promociones: [],
   };
 }
 function pin(id: string, punto: Punto, enOferta = true): Pin {

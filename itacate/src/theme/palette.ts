@@ -14,7 +14,7 @@
 // value. `accionSuave` is the page's tint of it — the active tab's pill, a chosen row.
 // In Itacate the kitchens bring the colour (each one's own, `@/theme/colores`), so its
 // chrome stays cream, ink and this blue; `marca`, Wera's terracotta, is the brand's
-// line and the *Sorpresa* tag — never an action.
+// line, the *Sorpresa* tag and since `10.9g-iii` a promotion's mark and band — never an action.
 // ============================================================================
 
 export const PALETTE = {
@@ -28,6 +28,11 @@ export const PALETTE = {
   accionSuave: '#E3EAF2',
   error: '#A32218',
   marca: '#A9501C',
+  /**
+   * ⚠️ `10.9g-iii`: A PROMOTION'S BAND — the terracotta's tint, Wera Cocina's value (`cocina/src/theme/palette.ts`),
+   * so the band a fonda was shown is the one her neighbour sees (`@/ui/BandaPromocion`, a copy of hers).
+   */
+  marcaSuave: '#F7E7DC',
   /**
    * ⚠️ `10.5b-iii-b`: A KITCHEN'S STARS, the family-shell page's amber (`.stars button.on`), and
    * a star not given (`.stars button`). Itacate's, and Wera Cocina's for its copies of the pages.

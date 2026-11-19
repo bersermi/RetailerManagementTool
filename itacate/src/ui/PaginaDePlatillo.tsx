@@ -1,17 +1,18 @@
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import type { ComponentProps, ReactNode } from 'react';
+import { useState, type ComponentProps, type ReactNode } from 'react';
 import { ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import type { Dish, Kitchen, Offer } from '@/api/cocinas';
 import { colorOf, defaultsFor } from '@/api/pagina';
 import { ventanaTexto } from '@/lib/lista';
-import { alergiaDe, calleDe, comerTexto, comoLlegarUrl, etiquetasDe, pagosTexto } from '@/lib/paginas';
+import { alergiaDe, bandaVistaDe, calleDe, comerTexto, comoLlegarUrl, etiquetasDe, pagosTexto, promocionDe } from '@/lib/paginas';
 import { ES } from '@/strings';
 import { HUES } from '@/theme/colores';
 import { TITULO } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
 import { Atras } from '@/ui/Atras';
+import { BandaPromocion } from '@/ui/BandaPromocion';
 import { Dibujo } from '@/ui/Dibujo';
 import { Enlace } from '@/ui/Enlace';
 import { FilaCocina } from '@/ui/FilaCocina';
@@ -26,7 +27,8 @@ import { Precio, Quedan, Sorpresa } from '@/ui/Precio';
 // bag; the price with the *vale* and the saving; the window and *Quedan N*; where, and
 // *Cómo llegar*. ⚠️ SINCE `10.5b-iii-a` (SHE RESERVES): under the window, that she picks
 // her hour; how it is eaten; how she pays at the kitchen — the family-shell page's stage
-// 2. ⚠️ ITS BUTTON IS NOT THE PAGE'S: Itacate's route hands it a foot (`pie`), drawn below
+// 2. ⚠️ SINCE `10.9g-iii` A DISH THAT JOINED ONE OF HER PROMOTIONS CARRIES ITS BAND before the price (the family-shell
+// page's dish, stage 4), *Condiciones* opening hers under it. ⚠️ ITS BUTTON IS NOT THE PAGE'S: Itacate's route hands it a foot (`pie`), drawn below
 // the page as it scrolls; Wera Cocina's preview hands none, since a fonda does not reserve.
 //
 // ⚠️ TAKEN OUT OF ITS ROUTE BY `10.5-v-c-ii`, UNCHANGED: the same screen is Wera Cocina's
@@ -70,6 +72,9 @@ export function PaginaDePlatillo({
   const calle = calleDe(cocina.address);
   const llegar = comoLlegarUrl(cocina);
   const comer = comerTexto(platillo);
+  const promocion = promocionDe(cocina, oferta);
+  const banda = promocion === null ? null : bandaVistaDe(promocion);
+  const [condiciones, setCondiciones] = useState(false);
 
   return (
     <View style={{ flex: 1, backgroundColor: PALETTE.fondo }}>
@@ -136,6 +141,25 @@ export function PaginaDePlatillo({
             >
               {alergia}
             </Text>
+          )}
+
+          {banda !== null && (
+            <View style={{ gap: SIZE.rowGap / 2 }}>
+              <BandaPromocion
+                icono={banda.icono}
+                marca={banda.marca}
+                hasta={banda.hasta}
+                loQue={banda.loQue}
+                mas={banda.mas}
+                condiciones={condiciones ? ES.pagina.ocultarCondiciones : ES.pagina.condiciones}
+                onCondiciones={() => setCondiciones((antes) => !antes)}
+              />
+              {condiciones && (
+                <Text style={{ paddingHorizontal: SIZE.space, fontSize: SIZE.smallSize, lineHeight: 19, color: PALETTE.tintaApagada }}>
+                  {banda.condiciones}
+                </Text>
+              )}
+            </View>
           )}
 
           <Precio platillo={platillo} color={color} grande />

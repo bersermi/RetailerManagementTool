@@ -190,7 +190,7 @@ describe('each screen hands on to the next', () => {
 
   it('her page: Itacate’s, from her own rows; its title true of her kitchen now; then *Hoy*', () => {
     const ya = code('app/(cocina)/ya-estas.tsx');
-    expect(ya).toMatch(/const seVe = seVeEnItacate\(listings\.data, ahora\);/);
+    expect(ya).toMatch(/const seVe = seVeEnItacate\(listings\.data, ahora, loQueVen\.promociones\);/);
     expect(ya).toMatch(/\{seVe \? ES\.primera\.yaEsta : ES\.primera\.asiTeVeran\}/);
     expect(ya).toMatch(/\{seVe \? ES\.primera\.asiTeVen : ES\.vista\.noSeVe\}/);
     expect(ya).toMatch(/cocinaComoLaVen\(\{ kitchen, place: place\.data, page: page\.data, listings: listings\.data, now: ahora, \.\.\.loQueVen \}\)/);

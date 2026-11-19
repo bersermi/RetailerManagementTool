@@ -3,8 +3,10 @@ import { Pressable, Text, View } from 'react-native';
 import type { Dish, Kitchen, Offer } from '@/vecinos/cocinas';
 import { colorOf, defaultsFor } from '@/api/pagina';
 import { ventanaTexto } from '@/vecinos/lista';
+import { marcaDeOferta } from '@/vecinos/paginas';
 import { HUES } from '@/theme/colores';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { MarcaPromocion } from '@/ui/BandaPromocion';
 import { Dibujo } from '@/ui/Dibujo';
 import { Foto } from '@/vecinos/ui/Foto';
 import { Precio, Quedan, Sorpresa } from '@/vecinos/ui/Precio';
@@ -35,10 +37,11 @@ export function RenglonPlatillo({
   onPress: () => void;
 }) {
   const color = colorOf(cocina.page, cocina.giro);
+  const promocion = marcaDeOferta(cocina, oferta);
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={platillo.name}
+      accessibilityLabel={promocion === null ? platillo.name : `${platillo.name}. ${promocion.ayuda}`}
       onPress={onPress}
       style={({ pressed }) => ({
         flexDirection: 'row',
@@ -54,6 +57,7 @@ export function RenglonPlatillo({
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: SIZE.rowGap }}>
           <Text style={{ flexShrink: 1, fontSize: SIZE.bodySize, fontWeight: '700', color: PALETTE.tinta }}>{platillo.name}</Text>
           {platillo.surprise && <Sorpresa />}
+          {promocion !== null && <MarcaPromocion icono={promocion.icono} texto={promocion.texto} chica />}
         </View>
         <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada }}>{ventanaTexto(oferta, ahora)}</Text>
         <Precio platillo={platillo} color={color} />

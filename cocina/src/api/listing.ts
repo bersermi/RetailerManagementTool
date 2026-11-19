@@ -90,9 +90,10 @@ export const LINES_TABLE = 'listing_line';
 /**
  * What this app reads: the window, whether it was withdrawn, and every line.
  * Named, never `*`; the embed is `LINES_TABLE`'s. ⚠️ ONE LINE: the contract
- * check reads it with one `sed`.
+ * check reads it with one `sed`. ⚠️ Since `10.9g-iii` the promotion each joined
+ * (`promotion_id`, `0087`), so her previews wear its mark as Itacate draws it.
  */
-export const LISTING_COLUMNS = 'id,location_id,pickup_start,pickup_end,created_at,withdrawn_at,container_price,listing_line(line_no,name,description,tags,unit_price,quantity,surprise,usual_price,image_path,para_llevar,para_aqui)';
+export const LISTING_COLUMNS = 'id,location_id,pickup_start,pickup_end,created_at,withdrawn_at,container_price,promotion_id,listing_line(line_no,name,description,tags,unit_price,quantity,surprise,usual_price,image_path,para_llevar,para_aqui)';
 
 /** ⚠️ The column the list is filtered on — the open kitchen's id. See the header. */
 export const LISTING_OWNER_COLUMN = 'workspace_id';
@@ -156,6 +157,8 @@ export interface ListingRow {
   readonly withdrawn_at: string | null;
   /** `10.5b-iv-c`: the *desechable*'s price as her kitchen stated it when this was published (`0079`). */
   readonly container_price?: number | string | null;
+  /** `10.9g-iii`: the promotion it joined (`0087`), or `null`. */
+  readonly promotion_id?: string | null;
   readonly listing_line: readonly LineRow[] | null;
 }
 
@@ -195,6 +198,11 @@ export interface Listing {
   readonly withdrawnAt: Date | null;
   /** `10.5b-iv-c`: the *desechable* copied when it was published, or `null` — no charge. */
   readonly desechableCentavos: number | null;
+  /**
+   * `10.9g-iii`: the promotion it joined (*¿Es parte de una promoción?*), or `null` — what her previews draw its
+   * mark from. Absent on a copy a build before `10.9g-iii` kept: read as none.
+   */
+  readonly promocion?: string | null;
   readonly lines: readonly Line[];
 }
 
@@ -236,6 +244,7 @@ export function toListing(row: ListingRow): Listing {
     createdAt: new Date(row.created_at),
     withdrawnAt: row.withdrawn_at === null ? null : new Date(row.withdrawn_at),
     desechableCentavos: desechableOf(row.container_price),
+    promocion: typeof row.promotion_id === 'string' && row.promotion_id !== '' ? row.promotion_id : null,
     lines: lines.map((line) => ({
       name: line.name,
       description: line.description === null || line.description.trim() === '' ? null : line.description,
@@ -595,6 +604,7 @@ export function listingFrom(args: PublishArgs, at: Date = new Date()): Listing {
     withdrawnAt: null,
     // The kitchen's copy lands with the re-read; until then it is drawn with none.
     desechableCentavos: null,
+    promocion: args.p_promotion_id ?? null,
     lines: args.p_lines.map((line) => ({
       name: line.name,
       description: line.description,

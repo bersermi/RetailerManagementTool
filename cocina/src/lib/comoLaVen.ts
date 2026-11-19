@@ -40,6 +40,11 @@
 // Until a read answers, its part is the door's own default (`SIN_AJUSTES`: cash only, *para
 // llevar* only, everyone, no stars; nothing taken) — `test/comoLaVen.test.ts` holds them to the
 // door's `coalesce`s, and every rule above to its text.
+// ⚠️⚠️ SINCE `10.9g-iii` HER PROMOTIONS (`0087`), as the door sends them: those a neighbour sees now — the
+// database's own `shown` in her `kitchen_promotions`, running ones newest first, the door's order
+// (`promocionesVistas`) — and each offer's mark while its promotion is one of them (her list's
+// `promotion_id`). And SEEN IN ITACATE gains the door's third reason: a promotion shown, though she
+// published nothing in 14 days (`seVeEnItacate`).
 // ============================================================================
 
 import { comeresDe, pagosDe, type Ajustes } from '@/api/ajustes';
@@ -47,8 +52,9 @@ import type { Kitchen as SuCocina } from '@/api/kitchen';
 import type { Line, Listing } from '@/api/listing';
 import type { Page } from '@/api/pagina';
 import { toMilliseconds, type Place } from '@/api/place';
+import type { PromotionRow, PromotionsRow } from '@/api/promociones';
 import { claveDePlato } from '@/lib/apartados';
-import type { Dish, Estrellas, Kitchen, Offer, Point, Repeat, ServicioVisto, Summary } from '@/vecinos/cocinas';
+import type { Dish, Estrellas, Kitchen, Offer, Point, Promocion, Repeat, ServicioVisto, Summary } from '@/vecinos/cocinas';
 
 const DIA_MS = 86_400_000;
 
@@ -144,7 +150,23 @@ export function ofertasDe(listings: readonly Listing[], now: Date, tomados: Toma
         .map(({ line, i, quedan }) => platilloDe(line, i, quedan)),
       // ⚠️ `?? null`: a copy kept by the build before `10.5b-iv-c` has none, and the page formats a number.
       desechableCentavos: listing.desechableCentavos ?? null,
+      promocion: listing.promocion ?? null,
     }));
+}
+
+/**
+ * ⚠️ `10.9g-iii`: HER PROMOTIONS AS THE DOOR SENDS THEM — those a neighbour sees now (the database's `shown`:
+ * running, Wera's switch and her choice on, *Para tus clientes* with her card open), running ones newest first
+ * (`kitchen_promotions`' order, the door's `order by p.created_at desc, p.id`). Unread, none.
+ */
+export function promocionesVistas(row: PromotionsRow | null | undefined): Promocion[] {
+  if (row === null || row === undefined) return [];
+  return row.promotions.filter((p) => p.state === 'activa' && p.shown).map(promocionVistaDe);
+}
+
+/** One of her promotions in the door's shape — what Itacate's band and mark are drawn from. */
+export function promocionVistaDe(p: PromotionRow): Promocion {
+  return { id: p.id, tipo: p.kind, loQue: p.what, mas: p.more, dias: p.days, hasta: p.ends_on, condiciones: p.conditions };
 }
 
 /** Her point as the door sends it: her own pin wins; else Google's copy while under 29 days old; else none. */
@@ -237,9 +259,11 @@ export function resumenDe(listings: readonly Listing[], now: Date): Summary {
 /**
  * ⚠️ NOT WHAT IS LEFT: the door sends her kitchen while an offer is not withdrawn and its window
  * not over — taken or not — or for 14 days after a publication (`((li.withdrawn_at is null and
- * li.pickup_end > now()) or li.created_at >= now() - interval '14 days')`).
+ * li.pickup_end > now()) or li.created_at >= now() - interval '14 days')`) — ⚠️ or, since `0087`, while a
+ * promotion of hers is shown (`promocionesVistas`), though she published nothing for longer.
  */
-export function seVeEnItacate(listings: readonly Listing[], now: Date): boolean {
+export function seVeEnItacate(listings: readonly Listing[], now: Date, promociones: readonly Promocion[] = []): boolean {
+  if (promociones.length > 0) return true;
   const desde = now.getTime() - DIAS_A_LA_VISTA * DIA_MS;
   return listings.some((listing) => vigente(listing, now) || listing.createdAt.getTime() >= desde);
 }
@@ -260,10 +284,17 @@ export function cocinaComoLaVen(input: {
   readonly tomados?: Tomados;
   /** `10.9a-i`: what the door says she uses (`@/api/servicios`' `enLaPuerta`) — none while unread. */
   readonly servicios?: readonly ServicioVisto[];
+  /** `10.9g-iii`: her promotions a neighbour sees now (`promocionesVistas`) — none while unread. */
+  readonly promociones?: readonly Promocion[];
 }): Kitchen {
   const { kitchen, place, page, listings, now } = input;
   const ajustes = input.ajustes ?? null;
   const tomados = input.tomados ?? null;
+  const promociones = input.promociones ?? [];
+  // The door's rule (`'promotion_id', (select p.id … and servicio.promotion_shown(p))`): a mark only while it is shown.
+  const ofertas = ofertasDe(listings, now, tomados).map((o) =>
+    o.promocion === null || promociones.some((p) => p.id === o.promocion) ? o : { ...o, promocion: null },
+  );
   return {
     id: kitchen.id,
     name: kitchen.displayName,
@@ -272,7 +303,7 @@ export function cocinaComoLaVen(input: {
     directions: place?.directions ?? null,
     point: puntoDe(place, now),
     page,
-    offers: ofertasDe(listings, now, tomados),
+    offers: ofertas,
     summary: resumenDe(listings, now),
     pagos: ajustes === null ? SIN_AJUSTES.pagos : pagosDe(ajustes),
     comeres: ajustes === null ? SIN_AJUSTES.comeres : comeresDe(ajustes),
@@ -280,5 +311,6 @@ export function cocinaComoLaVen(input: {
     estrellas: input.estrellas ?? SIN_AJUSTES.estrellas,
     servicios: input.servicios ?? [],
     tarjeta: null,
+    promociones,
   };
 }

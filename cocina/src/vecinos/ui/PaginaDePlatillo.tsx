@@ -1,17 +1,18 @@
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import type { ComponentProps, ReactNode } from 'react';
+import { useState, type ComponentProps, type ReactNode } from 'react';
 import { ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import type { Dish, Kitchen, Offer } from '@/vecinos/cocinas';
 import { colorOf, defaultsFor } from '@/api/pagina';
 import { ventanaTexto } from '@/vecinos/lista';
-import { alergiaDe, calleDe, comerTexto, comoLlegarUrl, etiquetasDe, pagosTexto } from '@/vecinos/paginas';
+import { alergiaDe, bandaVistaDe, calleDe, comerTexto, comoLlegarUrl, etiquetasDe, pagosTexto, promocionDe } from '@/vecinos/paginas';
 import { VECINOS as ES } from '@/strings';
 import { HUES } from '@/theme/colores';
 import { TITULO } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
 import { Atras } from '@/vecinos/ui/Atras';
+import { BandaPromocion } from '@/ui/BandaPromocion';
 import { Dibujo } from '@/ui/Dibujo';
 import { Enlace } from '@/vecinos/ui/Enlace';
 import { FilaCocina } from '@/vecinos/ui/FilaCocina';
@@ -62,6 +63,9 @@ export function PaginaDePlatillo({
   const calle = calleDe(cocina.address);
   const llegar = comoLlegarUrl(cocina);
   const comer = comerTexto(platillo);
+  const promocion = promocionDe(cocina, oferta);
+  const banda = promocion === null ? null : bandaVistaDe(promocion);
+  const [condiciones, setCondiciones] = useState(false);
 
   return (
     <View style={{ flex: 1, backgroundColor: PALETTE.fondo }}>
@@ -128,6 +132,25 @@ export function PaginaDePlatillo({
             >
               {alergia}
             </Text>
+          )}
+
+          {banda !== null && (
+            <View style={{ gap: SIZE.rowGap / 2 }}>
+              <BandaPromocion
+                icono={banda.icono}
+                marca={banda.marca}
+                hasta={banda.hasta}
+                loQue={banda.loQue}
+                mas={banda.mas}
+                condiciones={condiciones ? ES.pagina.ocultarCondiciones : ES.pagina.condiciones}
+                onCondiciones={() => setCondiciones((antes) => !antes)}
+              />
+              {condiciones && (
+                <Text style={{ paddingHorizontal: SIZE.space, fontSize: SIZE.smallSize, lineHeight: 19, color: PALETTE.tintaApagada }}>
+                  {banda.condiciones}
+                </Text>
+              )}
+            </View>
           )}
 
           <Precio platillo={platillo} color={color} grande />

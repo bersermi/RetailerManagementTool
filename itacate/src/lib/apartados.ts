@@ -178,5 +178,6 @@ export function cocinaDe(apartado: Apartado, puerta: Kitchen | undefined): Kitch
     estrellas: null,
     servicios: [],
     tarjeta: null,
+    promociones: [],
   };
 }

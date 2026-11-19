@@ -8,11 +8,12 @@
 // Itacate's parts and words live under `@/vecinos/` and `VECINOS` here.
 // ============================================================================
 
-import type { Address, Dish, Estrellas, Kitchen, Offer, Pago, Summary } from '@/vecinos/cocinas';
+import type { Address, Dish, Estrellas, Kitchen, Offer, Pago, Promocion, Summary, Tipo } from '@/vecinos/cocinas';
 import { mapsLinkOk, type Page } from '@/api/pagina';
 import { formatMXN } from '@/format/mxn';
 import { preguntaDeSuDireccion } from '@/vecinos/google';
 import { diasAtras, patronDe, publicoTexto, vigentes } from '@/vecinos/lista';
+import { ICONO_DE_TIPO, bandaDe } from '@/lib/promociones';
 import { VECINOS as ES } from '@/strings';
 
 // ----------------------------------------------------------------------------
@@ -191,6 +192,71 @@ export function calificacionDe(cocina: Kitchen): Calificacion {
     ayuda: ES.pagina.estrellasAyuda(estrellas.promedio, estrellas.cuantas),
     etiquetas: estrellas.etiquetas.map((etiqueta) => ES.pagina.etiqueta[etiqueta]),
   };
+}
+
+// ----------------------------------------------------------------------------
+// Her promotions — the band, and the mark an offer wears (`0087`, `10.9g-iii`)
+// ----------------------------------------------------------------------------
+
+/** A promotion as `@/ui/BandaPromocion` draws it: the kind's picture and mark, *hasta el …*, what, more — and its conditions. */
+export interface BandaVista {
+  readonly key: string;
+  readonly icono: (typeof ICONO_DE_TIPO)[Tipo];
+  readonly marca: string;
+  readonly hasta: string | null;
+  readonly loQue: string;
+  readonly mas: string | null;
+  /** As she wrote them — opened under the band by *Condiciones*. */
+  readonly condiciones: string;
+}
+
+/** One promotion's band, in Wera Cocina's words (`bandaDe`): what she was shown is what her neighbour reads. */
+export function bandaVistaDe(p: Promocion): BandaVista {
+  const banda = bandaDe({ tipo: p.tipo, dias: p.dias, hasta: p.hasta, loQue: p.loQue, mas: p.mas });
+  return {
+    key: p.id,
+    icono: ICONO_DE_TIPO[p.tipo],
+    marca: banda.marca,
+    hasta: banda.hasta,
+    loQue: banda.loQue,
+    mas: banda.mas,
+    condiciones: p.condiciones,
+  };
+}
+
+/** Her page's bands, the newest first (the door's order): the first drawn, the others behind *y N más* (G29). */
+export function bandasDe(cocina: Kitchen): readonly BandaVista[] {
+  return cocina.promociones.map(bandaVistaDe);
+}
+
+/** The promotion an offer joined, while it is one of hers the door sends — else `null`. */
+export function promocionDe(cocina: Kitchen, oferta: Offer): Promocion | null {
+  if (oferta.promocion === null) return null;
+  return cocina.promociones.find((p) => p.id === oferta.promocion) ?? null;
+}
+
+/** A promotion's mark on a card or a row: its picture, its word, and what a screen reader says. */
+export interface MarcaVista {
+  readonly icono: (typeof ICONO_DE_TIPO)[Tipo];
+  readonly texto: string;
+  readonly ayuda: string;
+}
+
+function marcaVistaDe(p: Promocion): MarcaVista {
+  const { marca } = bandaVistaDe(p);
+  return { icono: ICONO_DE_TIPO[p.tipo], texto: marca, ayuda: ES.cerca.promocionAyuda(marca) };
+}
+
+/** The mark an offer wears (*Los jueves*), or `null`. ⚠️ Drawn, never ordered by: no list reads it. */
+export function marcaDeOferta(cocina: Kitchen, oferta: Offer): MarcaVista | null {
+  const p = promocionDe(cocina, oferta);
+  return p === null ? null : marcaVistaDe(p);
+}
+
+/** A kitchen's newest promotion's mark — on a quiet kitchen's card, where no dish wears one — or `null`. */
+export function marcaDeSuPromocion(cocina: Kitchen): MarcaVista | null {
+  const p = cocina.promociones[0];
+  return p === undefined ? null : marcaVistaDe(p);
 }
 
 // ----------------------------------------------------------------------------

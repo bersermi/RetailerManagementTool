@@ -3,9 +3,10 @@ import { Pressable, Text, View } from 'react-native';
 
 import { distanciaTexto } from '@/lib/distancia';
 import { cuandoPublica, type Tarjeta } from '@/lib/lista';
-import { distanciaYEstrellas } from '@/lib/paginas';
+import { distanciaYEstrellas, marcaDeSuPromocion } from '@/lib/paginas';
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { MarcaPromocion } from '@/ui/BandaPromocion';
 import { Circulo } from '@/ui/Circulo';
 
 // ============================================================================
@@ -21,6 +22,9 @@ import { Circulo } from '@/ui/Circulo';
 // stands out. ⚠️ SINCE `10.5-iv-a-ii` IT OPENS HER PAGE (`onPress`, the list's), where
 // her pattern and *Lo que suele ofrecer* are. ⚠️ NO CHECK CAN SEE IT (ADR-035 §2.11):
 // the phone is its instrument.
+// ⚠️ SINCE `10.9g-iii` A KITCHEN WITH A PROMOTION AND NOTHING ON OFFER (`0087` keeps her in the door, though quiet
+// two weeks or more) WEARS HER NEWEST PROMOTION'S MARK under its line (G38: with her card's *5/8*, two marks at
+// most) — so a card with no pattern to say still says why she is here. Her place in the list does not change.
 // ============================================================================
 
 /** How faded — enough to read, clearly not on offer. */
@@ -40,12 +44,13 @@ export function TarjetaCocina({
 }) {
   const { cocina, metros } = tarjeta;
   const linea = cuandoPublica(cocina.summary, ahora);
+  const promocion = marcaDeSuPromocion(cocina);
   // ⚠️ `10.5b-iii-b`: her stars beside the distance, from five ratings (*350 m · ★ 4.8*).
   const derecha = distanciaYEstrellas(metros === null ? null : distanciaTexto(metros), cocina.estrellas);
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={marca === null ? ES.cerca.abrirCocina(cocina.name) : `${ES.cerca.abrirCocina(cocina.name)}. ${marca.ayuda}`}
+      accessibilityLabel={[ES.cerca.abrirCocina(cocina.name), promocion?.ayuda, marca?.ayuda].filter(Boolean).join('. ')}
       onPress={onPress}
       style={({ pressed }) => ({
         opacity: pressed ? APAGADA * 0.75 : APAGADA,
@@ -65,6 +70,7 @@ export function TarjetaCocina({
           {cocina.name}
         </Text>
         {linea !== null && <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada }}>{linea}</Text>}
+        {promocion !== null && <MarcaPromocion icono={promocion.icono} texto={promocion.texto} chica />}
         {marca !== null && (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
             <MaterialCommunityIcons name="stamper" size={13} color={PALETTE.accion} />

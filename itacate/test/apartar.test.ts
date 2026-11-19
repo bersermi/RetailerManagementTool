@@ -68,6 +68,7 @@ const oferta = (start: Date, end: Date, over: Partial<Offer> = {}): Offer => ({
   end,
   dishes: [plato()],
   desechableCentavos: 500,
+  promocion: null,
   ...over,
 });
 function cocina(over: Partial<Kitchen> = {}): Kitchen {
@@ -87,6 +88,7 @@ function cocina(over: Partial<Kitchen> = {}): Kitchen {
     estrellas: null,
     servicios: [],
     tarjeta: null,
+    promociones: [],
     ...over,
   };
 }

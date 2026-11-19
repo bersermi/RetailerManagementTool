@@ -11,6 +11,7 @@ import { EMPTY_PAGE } from '@/api/pagina';
 import { OFERTA_PREVIA, platilloPrevio, previaDe, recienTomadas } from '@/lib/vistaPrevia';
 import { ES } from '@/strings';
 import { precioTexto, quedanTexto } from '@/vecinos/lista';
+import { marcaDeOferta } from '@/vecinos/paginas';
 
 // ============================================================================
 // THE CARD AT THE FOOT OF *TU OFERTA DE HOY* — plan task `10.5-v-d`. What it shows for each
@@ -98,8 +99,19 @@ describe('the card’s kitchen and offer', () => {
     const ventana = { start: new Date('2026-11-07T23:00:00Z'), end: new Date('2026-11-08T01:00:00Z') };
     const previa = previaDe({ kitchen, place: null, page: EMPTY_PAGE, lines: [line(), line({ key: 'k2', surprise: true })], ventana, now: new Date('2026-11-07T22:00:00Z') });
     expect(previa.cocina).toMatchObject({ id: kitchen.id, name: 'Fonda Doña Mari', giro: 'giro-fonda', offers: [] });
-    expect(previa.oferta).toEqual({ id: OFERTA_PREVIA, start: ventana.start, end: ventana.end, dishes: previa.platillos, desechableCentavos: null });
+    expect(previa.oferta).toEqual({ id: OFERTA_PREVIA, start: ventana.start, end: ventana.end, dishes: previa.platillos, desechableCentavos: null, promocion: null });
     expect(previa.platillos.map((p) => p.lineNo)).toEqual([1, 2]);
+    expect(previa.cocina.promociones).toEqual([]);
+  });
+
+  it('`10.9g-iii`: the promotion she picked — the card wears its mark, as Itacate’s list will draw it', () => {
+    const ventana = { start: new Date('2026-11-19T23:00:00Z'), end: new Date('2026-11-20T01:00:00Z') };
+    const promocion = { id: 'p1', tipo: 'dia', loQue: 'Jueves pozolero', mas: null, dias: [4], hasta: '2026-12-17', condiciones: 'Los jueves…' } as const;
+    const previa = previaDe({ kitchen, place: null, page: EMPTY_PAGE, lines: [line()], ventana, now: new Date('2026-11-19T22:00:00Z'), promocion });
+    expect(previa.oferta.promocion).toBe('p1');
+    expect(previa.cocina.promociones).toEqual([promocion]);
+    expect(marcaDeOferta(previa.cocina, previa.oferta)).toMatchObject({ texto: 'Los jueves', icono: 'calendar-star' });
+    expect(marcaDeOferta(previaDe({ kitchen, place: null, page: EMPTY_PAGE, lines: [line()], ventana, now: ventana.start }).cocina, previa.oferta)).toBeNull();
   });
 });
 
@@ -121,7 +133,9 @@ describe('the form draws it — read as text', () => {
 
   it('made from what she typed, her new photos handed over, opening nothing and measuring no distance', () => {
     // ⚠️ `10.5b-iv-c`: with her settings and her stars, once read.
-    expect(screen).toMatch(/previaDe\(\{ kitchen, place, page: page\.data \?\? EMPTY_PAGE, lines, ventana, now: ahora, ajustes, estrellas \}\)/);
+    // ⚠️ `10.9g-iii`: and the promotion she picked in *¿Es parte de una promoción?*, as Itacate draws its mark.
+    expect(screen).toMatch(/previaDe\(\{\s*kitchen,\s*place,\s*page: page\.data \?\? EMPTY_PAGE,\s*lines,\s*ventana,\s*now: ahora,\s*ajustes,\s*estrellas,\s*promocion: elegida === undefined \? null : promocionVistaDe\(elegida\),\s*\}\)/);
+    expect(screen).toMatch(/const elegida = ofrecidas\.find\(\(p\) => p\.id === promoElegida\);/);
     expect(screen).toMatch(/<RecienTomadas\.Provider value=\{recienTomadas\(lines\)\}>/);
     expect(screen).toMatch(/<View pointerEvents="none"/);
     expect(screen).toMatch(/<TarjetaPlatillo[\s\S]*?distancia=\{null\}[\s\S]*?onPress=\{\(\) => \{\}\}/);

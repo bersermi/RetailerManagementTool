@@ -65,7 +65,7 @@ function plato(lineNo: number, over: Partial<Dish> = {}): Dish {
   };
 }
 
-const oferta = (id: string, start: Date, end: Date, dishes: Dish[]): Offer => ({ id, start, end, dishes, desechableCentavos: null });
+const oferta = (id: string, start: Date, end: Date, dishes: Dish[]): Offer => ({ id, start, end, dishes, desechableCentavos: null, promocion: null });
 
 const SIN_RESUMEN: Summary = { weekdays: [0, 0, 0, 0, 0, 0, 0], usualHour: null, lastDay: null, repeats: [] };
 
@@ -86,6 +86,7 @@ function cocina(over: Partial<Kitchen> = {}): Kitchen {
     estrellas: null,
     servicios: [],
     tarjeta: null,
+    promociones: [],
     ...over,
   };
 }

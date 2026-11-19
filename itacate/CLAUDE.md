@@ -101,7 +101,8 @@ from `itacate/` with the two local `EXPO_PUBLIC_SUPABASE_` values in the shell, 
   `stars` (from five ratings, good tags only: `estrellasOf`; its keys held to the door's text by `test/calificar.test.ts`, the
   door check asking for the key itself). ⚠️ **Since `10.9a-i` the door's `features`** (`0081`): the services a kitchen uses that a neighbour
   sees — `SERVICIOS_VISTOS`, the card and promotions, in that order — read into `Kitchen.servicios` by `serviciosOf`, ⚠️ **a name this build does
-  not know ignored, never an error**, so a build in her hand survives the service after it; drawn by nothing until `10.9e` and `10.9g`. Asked by
+  not know ignored, never an error**, so a build in her hand survives the service after it — the card and promotions are drawn from their own keys
+  (`card`, `promotions`) since `10.9e-iii` and `10.9g-iii`. Asked by
   `docs/checks/10.9a-i-features-contract.sh` (its own job in `db.yml`, `cocina-features`) by this file's key, beside Wera Cocina's names; a kitchen
   built from `my_reservations` (`cocinaDe`) uses none. ⚠️ **Reserving's
   claim is `src/api/apartados.ts`** (`10.5b-iii-a`): `0079`'s `reserve_plate`, `my_reservations`, `cancel_my_reservation`,
@@ -124,8 +125,9 @@ from `itacate/` with the two local `EXPO_PUBLIC_SUPABASE_` values in the shell, 
   kitchen's promotions shown now, newest first, `DoorPromotionRow`'s nine keys (kind, what, more, photo, ISO weekdays, its first and last
   day, the conditions) — and `OfferRow.promotion_id`, the offer's mark while its promotion is shown. Declared so the door's checks hold
   every key (`10.5-iv-a-door-contract.sh` by presence, `docs/checks/10.9g-i-promotions-contract.sh` exactly — its own job, `promotions`);
-  read and drawn by `10.9g-iii` (her page's band with *y 2 más*, *Condiciones*, the mark in *Cerca* and on a dish), never moving a dish up
-  the list. No function of hers: she belongs to no kitchen (ADR-035 §2.7).
+  ✅ **read and drawn since `10.9g-iii`** — `promocionesOf` into `Kitchen.promociones` (a kind this build does not know is left out, never the
+  kitchen) and `Offer.promocion` (only while its promotion is one of hers — a mark with no band is never drawn); the section *Promotions* below.
+  Never moving a dish up the list: no order reads it (`test/promocionesVecina.test.ts` sorts the same kitchens with and without). No function of hers: she belongs to no kitchen (ADR-035 §2.7).
   ⚠️ **Since `10.9e-ii` her *Cobras: …* QR names the reward she chose** — `textoDelQR('v', key, code, rewardId)`, a fifth part — and
   Wera Cocina's scan gives that one at once (`give_reward`); *Mi código* without a chosen reward writes four parts.
   **Drawn since `10.9e-iii`** — the section *The loyalty card* below; the calls are `@/api/calls`' four, the reads and writes
@@ -331,7 +333,8 @@ from `itacate/` with the two local `EXPO_PUBLIC_SUPABASE_` values in the shell, 
   colours, each trade's colour and drawing, the initials), `@/api/fotos` (the photos' names and how a
   phone asks for one), `@/theme/colores`, `@/theme/dibujos` with `src/marca/giros/` (the nine PNGs, byte
   for byte), `@/format/mxn` (Wera's, through Wera Cocina's), `@/lib/ventana` (a window's words),
-  `@/lib/zona`, `@/ui/Dibujo`, `@/ui/Iniciales`, and `@/lib/google`'s shared code. `test/gemelos.test.ts`
+  `@/lib/zona`, `@/ui/Dibujo`, `@/ui/Iniciales`, `@/lib/google`'s shared code, and since `10.9g-iii` `@/ui/BandaPromocion`, `@/lib/promociones`
+and the promotions' kinds and days in `@/api/cocinas`. `test/gemelos.test.ts`
   holds each to the TWIN'S FILE: it runs the twin where it loads under this app's `@/`, compares the code
   block by block where it cannot, and the drawings by their bytes — a re-drawing in Wera Cocina is copied
   here in the same PR, or that test is red.
@@ -403,7 +406,7 @@ follows it, as `cocina/CLAUDE.md`'s does:
   lands**; what is still to change here: a kitchen's page shows the services that kitchen uses — a promotion's band, her loyalty
   card in the kitchen's colours (`10.9e`, `10.9g`); **a feature the app does not know is ignored**, so its builds in the field
   survive what comes later (`10.9a-i`, built 2026-11-17: `serviciosOf`). **Built by `10.9d-ii`: the three tabs and following** — the
-  next two bullets; **by `10.9e-iii`: the loyalty card** — the bullet after them. Promotions' band waits for `10.9g`.
+  next two bullets; **by `10.9e-iii`: the loyalty card** — the bullet after them; **by `10.9g-iii`: promotions** — the bullet after the card's.
 - **The tab bar is *Cerca · Mis cocinas · Tú* since `10.9d-ii`** (his ruling G39 of 2026-11-17; *Cerca · Apartados · Tú* from `10.5b-iii-a`) — four tabs at most, each
   with its word; the two ends never move; a slot stays free for later. Wera's JavaScript tabs, not native tabs. ⚠️ **Built by `10.5-v-b`**:
   the tabs are data (`@/navigation/pestanas` — a tab not yet in use would name the row that brings it), the bar is drawn by
@@ -460,6 +463,23 @@ follows it, as `cocina/CLAUDE.md`'s does:
   (`-camera-back imagefile:<png>`, the QR at 6 px a module on a white 2133 × 1600): the emulator reads the file when the camera OPENS, so
   write the image before the camera starts. ⚠️ Removing `adb reverse` does not cut a keep-alive connection already open: restart the app
   to see *no signal*.
+- **Promotions** (`10.9g-iii`; calls 23–25 and G28–G30, G38, as the family-shell page draws stage 4 — `promoBand` on her page and a dish,
+  `.badge-promo` on the list's card, `.ptag` on her rows, `pline` in *Mis cocinas*). From the door alone (`Kitchen.promociones`, newest first;
+  `Offer.promocion`), so only what Wera's switch, her choice and her card let a neighbour see; every rule is `@/lib/paginas`' (`bandasDe`,
+  `promocionDe`, `marcaDeOferta`, `marcaDeSuPromocion`) and `@/lib/misCocinas`' (`promocionesDeMisCocinas`), pinned by
+  `test/promocionesVecina.test.ts`. ⚠️ **The band, the mark and their words are Wera Cocina's** — `@/ui/BandaPromocion` and `@/lib/promociones`
+  are copies `test/gemelos.test.ts` holds to `cocina/src/ui/BandaPromocion.tsx` and `cocina/src/lib/promociones.ts` (code for code; the kinds
+  and days block for block; `ES.promociones` value for value; `PALETTE.marcaSuave`): what she was shown in *Así la verán en tu página* is what
+  a neighbour reads. **Her page** (`@/ui/PaginaDeCocina`): after *Seguir*, *Promoción* and the newest band — *y 2 más* shows the others —
+  each band's *Condiciones* opening hers under it (line breaks kept); **a dish's page**: its band before the price when its offer joined one;
+  **her rows under *Hoy*** and **the list's card** wear the mark — on the card's photo as the drawing's white chip with terracotta words (⚠️ the
+  solid mark vanished on a kitchen's warm colour, seen on the emulator); **a quiet kitchen's card** — ⚠️ one with a promotion and nothing
+  published is in the door since `0087` — her newest's mark, faded with the card; ***Mis cocinas***: a line per promotion of the kitchens in
+  *Tus cocinas*, what she offers in bold, a tap opening her page. Two marks at most with the card's *5/8* (G38); terracotta, never the
+  action's colour. Wera Cocina's copies of the two pages and the card draw hers from her own rows. **Nothing about her is kept** by seeing
+  one (the aviso's section 10). ⚠️ **To see it**: the debug build against the local shop with the local switch on (`update
+  servicio.feature_switch set is_on = true where name = 'promociones'`, off after) and promotions made through `create_promotion` with a fonda's
+  token; the newest band is the last one made.
 - **No word that makes the food sound left over** where a fonda or a neighbour reads (*lo que sobra*, *sobrante*,
   *restos*, *desperdicio*): *Publicar una oferta*, *Tu oferta de hoy*, *aprovechar*, *Por hoy ya se terminó*, *Se liberó*.
   `test/palabras.test.ts` refuses them in `src/strings.ts` since `10.5-v-a` — Wera's *Merma* only in the one line

@@ -185,6 +185,7 @@ export function cocinaDeTarjeta(card: MyCardRow, puerta: Kitchen | null): Kitche
     estrellas: null,
     servicios: [],
     tarjeta: null,
+    promociones: [],
   };
 }
 

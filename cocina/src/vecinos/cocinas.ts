@@ -4,7 +4,9 @@
 // those pages are drawn from this shape. ⚠️ ITACATE'S TYPES, block for block
 // (`itacate/src/api/cocinas.ts`, held by `test/vecinos.test.ts`); the reading of the
 // door's answer is not copied, because Wera Cocina never asks the door — her own rows
-// are made into this shape by `@/lib/comoLaVen`.
+// are made into this shape by `@/lib/comoLaVen`. ⚠️ Since `10.9g-iii` a kitchen's promotions and the one each offer
+// joined (`Promocion`, `Kitchen.promociones`, `Offer.promocion`), whose kinds and days are Wera Cocina's own
+// (`@/api/promociones`), which Itacate copied.
 //
 // ⚠️ NOT IN `src/api/`: a module there is a claim about the applied schema (`db.yml`),
 // and this one names no table, column or function.
@@ -12,6 +14,9 @@
 
 import type { Tag } from '@/api/listing';
 import type { Page } from '@/api/pagina';
+import type { Dia, Tipo } from '@/api/promociones';
+
+export type { Dia, Tipo };
 
 /** Whose point the door sends (`0078`): her own pin, or Google's copy for her address. */
 export const POINT_SOURCES = ['pin', 'google'] as const;
@@ -87,6 +92,23 @@ export interface Offer {
   readonly dishes: readonly Dish[];
   /** The *desechable* in centavos, added when she takes it away — `null`, no charge. */
   readonly desechableCentavos: number | null;
+  /** `0087`: the promotion it joined — its mark — while that promotion is among her kitchen's; else `null`. */
+  readonly promocion: string | null;
+}
+
+/** `0087`: one promotion a neighbour sees now — her page's band, the mark on the offers that joined it. */
+export interface Promocion {
+  readonly id: string;
+  readonly tipo: Tipo;
+  /** What she offers — *Jueves pozolero*. */
+  readonly loQue: string;
+  readonly mas: string | null;
+  /** Its weekdays, Monday first; all seven is *Todos*. */
+  readonly dias: readonly Dia[];
+  /** Its last day, `YYYY-MM-DD` in her kitchen's zone — *hasta el 17 de diciembre*. */
+  readonly hasta: string;
+  /** As her phone wrote them, with her kitchen's name and address — line breaks kept. */
+  readonly condiciones: string;
 }
 
 /** A dish she repeats. */
@@ -131,6 +153,8 @@ export interface Kitchen {
   readonly servicios: readonly ServicioVisto[];
   /** `0085`: her loyalty card's terms while it is open (G12) — what a first stamp starts on — else `null`. */
   readonly tarjeta: TarjetaDeCocina | null;
+  /** `0087`: her promotions a neighbour sees now, newest first (the door's order) — none, `[]`. */
+  readonly promociones: readonly Promocion[];
 }
 
 /** `0085`: a kitchen's loyalty card as a neighbour reads it before her first stamp (G12, G34). */

@@ -4,6 +4,7 @@ import { Pressable, Text, View } from 'react-native';
 import type { Dish, Kitchen, Offer } from '@/vecinos/cocinas';
 import { colorOf, defaultsFor } from '@/api/pagina';
 import { ventanaTexto } from '@/vecinos/lista';
+import { marcaDeOferta } from '@/vecinos/paginas';
 import { VECINOS as ES } from '@/strings';
 import { HUES } from '@/theme/colores';
 import { PALETTE, SIZE } from '@/theme/palette';
@@ -47,10 +48,11 @@ export function TarjetaPlatillo({
   marca?: { readonly texto: string; readonly ayuda: string } | null;
 }) {
   const color = colorOf(cocina.page, cocina.giro);
+  const promocion = marcaDeOferta(cocina, oferta);
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={marca === null ? ES.cerca.abrirPlatillo(platillo.name, cocina.name) : `${ES.cerca.abrirPlatillo(platillo.name, cocina.name)}. ${marca.ayuda}`}
+      accessibilityLabel={[ES.cerca.abrirPlatillo(platillo.name, cocina.name), promocion?.ayuda, marca?.ayuda].filter(Boolean).join('. ')}
       onPress={onPress}
       style={({ pressed }) => ({
         borderWidth: 1,
@@ -64,6 +66,28 @@ export function TarjetaPlatillo({
       <View style={{ width: '100%', aspectRatio: FRANJA, overflow: 'hidden', backgroundColor: HUES[color] }}>
         <Dibujo dibujo={defaultsFor(cocina.giro).dibujo} color={color} modo="portada" />
         <Foto path={platillo.photo} cocinaId={cocina.id} size="grande" />
+        {promocion !== null && (
+          <View
+            style={{
+              position: 'absolute',
+              top: SIZE.rowGap,
+              left: SIZE.rowGap,
+              maxWidth: '80%',
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 4,
+              paddingHorizontal: 7,
+              paddingVertical: 4,
+              borderRadius: 6,
+              backgroundColor: PALETTE.superficie,
+            }}
+          >
+            <MaterialCommunityIcons name={promocion.icono} size={13} color={PALETTE.marca} />
+            <Text numberOfLines={1} style={{ fontSize: SIZE.smallSize - 2, fontWeight: '700', color: PALETTE.marca }}>
+              {promocion.texto}
+            </Text>
+          </View>
+        )}
         <View
           style={{
             position: 'absolute',

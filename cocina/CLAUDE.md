@@ -260,7 +260,10 @@ switch `promociones` keeps them off for everyone. The code on
   ignores what is left); **her settings** — payment, ways, who may reserve — and each dish's own ways and each offer's *desechable*; **her
   stars** from five (`@/api/calificaciones`' `estrellasDe`: the door's three most given good tags, worked out from her own
   `my_kitchen_ratings`, never the door); ⚠️ and since `10.9a-i` **what the door says she uses** (`servicios`: `@/api/servicios`' `enLaPuerta`,
-  from her own `my_kitchen_features` — the card and promotions she uses, never her numbers — `[]` while unread). Unread, each part is the door's default (`SIN_AJUSTES`, held to its `coalesce`s by
+  from her own `my_kitchen_features` — the card and promotions she uses, never her numbers — `[]` while unread); ⚠️ and since `10.9g-iii`
+  **her promotions a neighbour sees** (`promocionesVistas`: her own `kitchen_promotions`' running and `shown`, newest first — the door's
+  order; read only while she uses them, `seLeen`), each offer's mark from her list's `promotion_id` while its promotion is one of them, and
+  *seen* while one is shown though she published nothing in 14 days (`seVeEnItacate`'s third argument, `0087`'s door). Unread, each part is the door's default (`SIN_AJUSTES`, held to its `coalesce`s by
   `test/comoLaVen.test.ts`). ⚠️ **Since `10.5b-iii-a` the dish page takes a foot (`pie`) that only Itacate's route fills** — the
   preview draws none, so no *Apartar* here. The copies draw the stars and *Cómo pagas aquí* in Itacate's amber (`estrella`,
   `estrellaApagada`).
@@ -850,7 +853,7 @@ at most; conditions written for her with her kitchen's name and address; a live 
 and G36 of 2026-11-16 and 17, as the family-shell page draws stage 4 (`cPromos`, `promoForm`, `promoSheet`, `promoBand`, the tile), on
 `0087`'s functions (`@/api/promociones`, the section *Measure*). No migration. What every screen says is `@/lib/promociones`, pure, pinned
 by `test/promocionesCocina.test.ts` against a calendar in Mexico City's zone. ⚠️ **Wera's switch `promociones` stays off until his product
-analyst rules** (`10.9g-iii` parks the question): nothing of this shows on a phone before it.
+analyst rules** (the plan's decisions block, since `10.9g-iii`): nothing of this shows on a phone before it.
 
 - **Its one screen** (`(cocina)/promociones`, `PANTALLA_DE`): *Así funciona* the first time — ⚠️ marked on THIS screen once any promotion
   exists (the form's copy of the phone's record is not this screen's: the first walk found the strip still drawn after her first); every
@@ -877,7 +880,9 @@ analyst rules** (`10.9g-iii` parks the question): nothing of this shows on a pho
   the window's day (`activasEl`); *No* chosen at first; the pick in terracotta, dropped when the window leaves its days; sent as `publishBody`'s
   `p_promotion_id`. `TD031` (it ended meanwhile) is said in words and her promotions are read again (`usePublish`).
 - ⚠️ **The band and the mark are written to be copied** (`@/ui/BandaPromocion`: every word and its picture from its caller; terracotta,
-  never the action's colour): Itacate draws them by `10.9g-iii` from a copy its `test/gemelos.test.ts` holds to this file.
+  never the action's colour): ✅ Itacate draws them since `10.9g-iii` from a copy its `test/gemelos.test.ts` holds to this file — a change
+  here is copied there in the same PR. ⚠️ **And her previews show them** (`10.9g-iii`): *Ver como la ven* her band and her dishes' marks
+  (`@/lib/comoLaVen`, her list reading `promotion_id`), *Publicar*'s card the mark of the one she picked (`@/lib/vistaPrevia`'s `promocion`).
 - ⚠️ **Not *Avisar a quienes te siguen*** — the alert is `10.9h`'s, his product analyst's; the suite refuses the words.
 - **To see it on the emulator**: the debug build against the local shop (*Apartados*' section), Metro from `cocina/` on 8082 with the local
   values; the local switch on (`update servicio.feature_switch set is_on = true where name in ('promociones', 'tarjeta')`, off after); a fonda

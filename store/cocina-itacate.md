@@ -310,6 +310,10 @@ database counts, when the owner opens it, the reservations and stamps already de
 her counts with no name (the people only from five); the phone keeps none of it past closing the app. If Google's form asks what
 data is used for, *Analytics* is the honest answer for a NEIGHBOUR's reservations and stamps (counted for the kitchen she visited)
 — to be ticked with `10.5b-vi`'s rewrite, beside *App functionality*.
+✅ **Read again by `10.9g-iii` (2026-11-19), promotions in both apps:** nothing new to tick in either. A fonda's promotion —
+its kind, what, more, days, last day and the conditions her phone writes with her kitchen's name and address — is what she
+publishes, *Other user-generated content*; its photo is *Photos*, cut and stripped as a dish's is; it holds no person, not
+even who made it. Itacate shows it and keeps nothing of the neighbour who sees it — no data type there.
 
 ### Data safety — Itacate
 

@@ -784,6 +784,8 @@ export function useElegirServicios(kitchenId: string | null) {
     mutationFn: (choices: Readonly<Partial<Record<Servicio, Estado>>>) => setKitchenFeatures(kitchenId as string, choices),
     onSuccess: (loQueUsa) => {
       queries.setQueryData<LoQueUsa>(serviciosKey(userId, kitchenId), loQueUsa);
+      // ⚠️ `10.9g-iii`: her *off* ends her running promotions (`0087`'s trigger) — read again, so no preview keeps them.
+      void queries.invalidateQueries({ queryKey: PROMOCIONES_KEY });
     },
     onError: () => {
       void queries.invalidateQueries({ queryKey: SERVICIOS_KEY });

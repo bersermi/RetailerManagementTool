@@ -26,7 +26,7 @@ import { PaginaDeCocina } from '@/vecinos/ui/PaginaDeCocina';
 // `@/vecinos/ui/PaginaDeCocina`, Itacate's file held code for code, fed from her own rows
 // (`@/lib/comoLaVen`), with no way back over her cover, her dishes not opening and no
 // distance. ⚠️ ITS TITLE IS TRUE OF HER KITCHEN NOW: *Tu cocina ya está en Itacate* only
-// while the door would send it (`seVeEnItacate` — something on offer, or a publication in
+// while the door would send it (`seVeEnItacate` — something on offer, a promotion shown, or a publication in
 // the last 14 days, as `0078` counts them, *Deshacer*'s included); after *Después* it is
 // what they will see, with the line *Ver como la ven* shows. ⚠️ *IR A HOY* AND ANDROID'S BACK
 // BOTH OPEN *HOY* in place of this screen — the first run is over. NO CHECK CAN SEE THIS
@@ -91,7 +91,7 @@ export default function YaEstas() {
     );
   }
 
-  const seVe = seVeEnItacate(listings.data, ahora);
+  const seVe = seVeEnItacate(listings.data, ahora, loQueVen.promociones);
   const cocina = cocinaComoLaVen({ kitchen, place: place.data, page: page.data, listings: listings.data, now: ahora, ...loQueVen });
   return (
     <View style={{ flex: 1, backgroundColor: PALETTE.fondo }}>
