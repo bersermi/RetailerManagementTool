@@ -4,7 +4,7 @@ import { ActivityIndicator, FlatList, Keyboard, Pressable, RefreshControl, Text,
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { apiErrorMessage } from '@/api/errors';
-import { useCocinas } from '@/api/hooks';
+import { useApartados, useCocinas } from '@/api/hooks';
 import { useAuth } from '@/auth/AuthProvider';
 import { SIN_DISTANCIAS, usePonerDistancias } from '@/lib/DistanciasProvider';
 import { distanciaTexto } from '@/lib/distancia';
@@ -20,6 +20,7 @@ import {
   posicionesDe,
   type Nivel,
 } from '@/lib/mapa';
+import { fijadoDe } from '@/lib/misCocinas';
 import { motivoDe, origenDe, puntoDeOrigen, type Codigo, type Origen } from '@/lib/ubicacion';
 import { useAhora } from '@/lib/useAhora';
 import { usePuntosBuscados } from '@/lib/useGoogle';
@@ -27,6 +28,7 @@ import { useDondeEstoy } from '@/lib/useUbicacion';
 import { ES } from '@/strings';
 import { TITULO } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ApartadoFijado } from '@/ui/ApartadoFijado';
 import { BotonLleno } from '@/ui/BotonLleno';
 import { Cabeza } from '@/ui/Cabeza';
 import { CodigoPostal } from '@/ui/CodigoPostal';
@@ -55,6 +57,9 @@ import { TarjetaPlatillo } from '@/ui/TarjetaPlatillo';
 //     top, so Google's logo stays in sight above the list (`paddingDelMapa`).
 //   A pin she taps puts that kitchen's cards first, under *En el mapa*, with *Quitar*,
 //   and brings the sheet half-way; a tap on the map's ground lets go of it — as drawn.
+// ⚠️ `10.9d-ii` (G39): HER RESERVATION IS PINNED IN THE SHEET'S HEAD (`@/ui/ApartadoFijado`), under
+//   where the list is measured from, so it shows at every height of the list; a tap opens
+//   *Apartados*, which is no longer a tab.
 //
 // ⚠️ WHAT IT CARRIES OUT, EVERY RULE ELSEWHERE AND PINNED:
 //   - where she is — her location while the app is open, never sent anywhere
@@ -101,8 +106,11 @@ export default function Cerca() {
   // asked for her location over *Crear cuenta*. Signed in, she is asked here, on *Cerca*.
   const { donde, otraVez, usarUbicacion } = useDondeEstoy(codigo === null && session !== null);
   const cocinas = useCocinas();
+  // ⚠️ `10.9d-ii`: her reservation, pinned in the sheet's head (G39) — shown at every height of the list.
+  const apartados = useApartados();
   const buscados = usePuntosBuscados(cocinas.data);
   const ahora = useAhora(CADA_MINUTO);
+  const fijado = fijadoDe(apartados.data, ahora);
   const insets = useSafeAreaInsets();
   const [jalando, setJalando] = useState(false);
   const [orden, setOrden] = useState<Orden>(ORDEN_INICIAL);
@@ -220,6 +228,16 @@ export default function Cerca() {
               derecha={hayLista && tarjetas.length > 1 ? <Ordenar orden={orden} onOrden={setOrden} /> : null}
             >
               {hayLista && <Desde origen={origen} onCambiar={() => router.push('/donde')} />}
+              {fijado !== null && (
+                <View style={{ paddingTop: SIZE.rowGap / 2 }}>
+                  <ApartadoFijado
+                    fijado={fijado}
+                    puerta={cocinas.data?.find((cocina) => cocina.id === fijado.apartado.cocina.id)}
+                    ahora={ahora}
+                    onPress={() => router.push('/apartados')}
+                  />
+                </View>
+              )}
             </Cabeza>
           }
         >

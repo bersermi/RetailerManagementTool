@@ -5,16 +5,19 @@ import { ES } from '@/strings';
 
 // ============================================================================
 // ITACATE'S TAB BAR, AS DATA. Plan task `10.5-v-b`, the owner's ruling of 2026-11-05
-// (the family-shell page's calls 1 and 4): *Cerca · Apartados · Mis cocinas · Tú* —
-// four tabs at most, each with its word, and THE TWO ENDS NEVER MOVE; a tab appears
-// only when its feature ships, and a new feature arrives first as a card on *Cerca*.
+// (the family-shell page's calls 1 and 4) — four tabs at most, each with its word, and
+// THE TWO ENDS NEVER MOVE; a new feature arrives first as a card on *Cerca* — re-ruled
+// on 2026-11-17 (G39) and built by `10.9d-ii`: **three tabs, *Cerca · Mis cocinas · Tú***.
+// *Apartados* is no longer a tab: her reservation is pinned on *Cerca* and heads *Mis
+// cocinas*, whose tab carries a dot while it lasts (`@/lib/misCocinas`' `hayPunto`), and
+// its screen opens over the tabs at the same address, `/apartados`, so every link to it
+// lands. A slot stays free for later (G39).
 //
 // ⚠️ DATA AND NOT JSX, as Wera's tabs are (`app/src/navigation/tabs.ts`): the suite
 // reads the order, the words and the glyphs (`test/pestanas.test.ts`) — a misspelt
-// glyph is a blank square on the bar, which nothing else would see. The two tabs that
-// are not here yet name the row that brings them; the bar draws only `EN_USO`, and the
-// folder `(vecino)/(tabs)/` holds exactly their screens, so no route appears as a tab
-// by accident.
+// glyph is a blank square on the bar, which nothing else would see. A tab not here yet
+// would name the row that brings it; the bar draws only `EN_USO`, and the folder
+// `(vecino)/(tabs)/` holds exactly their screens, so no route appears as a tab by accident.
 // ============================================================================
 
 /** A glyph of the icon set the bar draws with. */
@@ -22,7 +25,7 @@ type Glifo = ComponentProps<typeof MaterialCommunityIcons>['name'];
 
 export interface Pestana {
   /** The screen's file in `(vecino)/(tabs)/`, without `.tsx`. */
-  readonly ruta: 'index' | 'apartados' | 'mis-cocinas' | 'tu';
+  readonly ruta: 'index' | 'mis-cocinas' | 'tu';
   readonly label: string;
   readonly icono: Glifo;
   /** The plan row that brings it, or `null` once it has shipped. */
@@ -32,10 +35,8 @@ export interface Pestana {
 export const PESTANAS: readonly Pestana[] = [
   // A pin: the kitchens close to her — the map's pin when the map comes (`10.5-iv-b`).
   { ruta: 'index', label: ES.pestanas.cerca, icono: 'map-marker-outline', llega: null },
-  // A ticket: what she reserved, with its code — since reserving shipped (`10.5b-iii-a`).
-  { ruta: 'apartados', label: ES.pestanas.apartados, icono: 'ticket-confirmation-outline', llega: null },
-  // A heart: the kitchens she follows, with the stamp card (the services, `10.9`).
-  { ruta: 'mis-cocinas', label: ES.pestanas.misCocinas, icono: 'heart-outline', llega: '10.9' },
+  // A heart: the kitchens she follows (`10.9d-ii`), and her loyalty cards with `10.9e`.
+  { ruta: 'mis-cocinas', label: ES.pestanas.misCocinas, icono: 'heart-outline', llega: null },
   // A person: her account, where to search, the aviso, help and her way out.
   { ruta: 'tu', label: ES.pestanas.tu, icono: 'account-circle-outline', llega: null },
 ];

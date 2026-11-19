@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
 import { KITCHEN_FOLLOWERS, SEGUIDORES_KEY, followersArgs, seguidoresKey, teSiguenFrom } from '@/api/seguidores';
+import { ES } from '@/strings';
 
 // ============================================================================
 // HOW MANY FOLLOW HER KITCHEN, AS WERA COCINA READS IT. Plan task `10.9d-i`, on `0084`.
@@ -60,5 +61,52 @@ describe('the answer read', () => {
   it('cached under the login and the kitchen', () => {
     expect(seguidoresKey('u', 'k')).toEqual([...SEGUIDORES_KEY, 'u', 'k']);
     expect(seguidoresKey(null, null)).toEqual([...SEGUIDORES_KEY, '', '']);
+  });
+});
+
+// ============================================================================
+// `10.9d-ii` — WHERE *TE SIGUEN N* IS DRAWN: the day's card on *Hoy*, and before *Eliminar esta
+// cocina* (G22, G23). What the phone shows is the phone's to judge (ADR-035 §2.11); this pins the
+// words, the floor (from the first follower), and that a count not known is never drawn as 0.
+// ============================================================================
+
+describe('`10.9d-ii` — Te siguen N, drawn', () => {
+  const SRC_10_9D = fileURLToPath(new URL('../src', import.meta.url));
+  const texto = (path: string) =>
+    readFileSync(join(SRC_10_9D, path), 'utf8')
+      .replace(/^\s*\/\/.*$/gm, '')
+      .replace(/\/\*[\s\S]*?\*\//g, '');
+
+  it('its words — one vecino, many vecinos — and the deletion’s warning with the 30 days', () => {
+    expect(ES.hoy.teSiguen).toBe('Te siguen');
+    expect(ES.hoy.vecinos(1)).toBe('1 vecino');
+    expect(ES.hoy.vecinos(38)).toBe('38 vecinos');
+    expect(ES.kitchenDeletion.followers(1)).toBe(
+      'Te sigue 1 vecino en Itacate. Dejarán de ver tu cocina, y durante 30 días su lista dirá que dejó Itacate.',
+    );
+    expect(ES.kitchenDeletion.followers(12)).toMatch(/^Te siguen 12 vecinos en Itacate\./);
+    // The 30 days are `0084`'s and Itacate's (`DIAS_QUE_SE_VE_QUE_SE_FUE`).
+    expect(readFileSync(join(SRC_10_9D, '../../itacate/src/api/siguiendo.ts'), 'utf8')).toMatch(
+      /export const DIAS_QUE_SE_VE_QUE_SE_FUE = 30;/,
+    );
+  });
+
+  it('on the day’s card from the first follower — on offer or not — and nothing while unread', () => {
+    const dia = texto('ui/DiaDeHoy.tsx');
+    expect(dia).toMatch(/const siguen = teSiguen !== null && teSiguen > 0 \? ES\.hoy\.vecinos\(teSiguen\) : null;/);
+    // Both cards draw it: the white one with nothing on offer, and the green one.
+    expect(dia.match(/\{siguen !== null && \(/g)?.length).toBe(2);
+  });
+
+  it('before Eliminar esta cocina — warned, never blocked: the confirm never waits on the count', () => {
+    const salidas = texto('ui/Salidas.tsx');
+    expect(salidas).toMatch(/useSeguidores\(open !== null && alone !== null \? alone\.id : null\)/);
+    expect(salidas).toMatch(/\{avisoSeguidores !== null && <Text style=\{words\}>\{avisoSeguidores\}<\/Text>\}/);
+    expect(salidas).toMatch(/const kitchenReady = alone !== null && nameMatches\(kitchenTyped, alone\.name\);/);
+    expect(salidas).not.toMatch(/kitchenReady[^\n]*seguidores/);
+  });
+
+  it('never kept on the phone’s disk — a count read days ago is never shown as today’s', () => {
+    expect(readFileSync(join(SRC_10_9D, 'api/persist.ts'), 'utf8')).not.toMatch(/SEGUIDORES_KEY/);
   });
 });

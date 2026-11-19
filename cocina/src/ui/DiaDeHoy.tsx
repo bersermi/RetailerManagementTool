@@ -16,19 +16,34 @@ import { PALETTE, SIZE } from '@/theme/palette';
 // ⚠️ THE WHOLE CARD IS ONE DOOR, TO *TUS OFERTAS* — nothing on it is edited in place
 // (his direction: *"for them to easily reach the main actions"*); correcting a count is
 // one tap further, in *Tus ofertas* (the page's argument against, told to him).
+// ⚠️ `10.9d-ii` (G22): *TE SIGUEN 38 VECINOS* — how many neighbours follow her kitchen, never who —
+// a line of the card, on offer or not, from the first follower (`teSiguen`, `null` while unread or
+// with no signal: then no line, never a 0 that is not one). Her helpers see it too.
 // ⚠️ STATE FIRST, then the door's word (ADR-035 §2.8). What it says is `@/lib/hoy`'s,
 // pinned by `test/hoy.test.ts`; the bar's length is drawn, never animated — it is
 // shorter each time the clock is read again (`useAhora`), with no movement of its own.
 // ============================================================================
 
-export function DiaDeHoy({ dia, ahora, onPress }: { dia: Dia; ahora: Date; onPress: () => void }) {
+export function DiaDeHoy({
+  dia,
+  ahora,
+  teSiguen = null,
+  onPress,
+}: {
+  dia: Dia;
+  ahora: Date;
+  /** How many neighbours follow her kitchen (`kitchen_followers`), or `null` while it is not known. */
+  teSiguen?: number | null;
+  onPress: () => void;
+}) {
+  const siguen = teSiguen !== null && teSiguen > 0 ? ES.hoy.vecinos(teSiguen) : null;
   if (dia.kind !== 'oferta') {
     const [titulo, detalle] =
       dia.kind === 'terminado' ? [ES.hoy.terminado, ES.hoy.terminadoDetalle] : [ES.hoy.nada, ultimaTexto(dia.ultima, ahora)];
     return (
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={oraciones(titulo, detalle, ES.hoy.verOfertas)}
+        accessibilityLabel={oraciones(titulo, detalle, ...(siguen === null ? [] : [`${ES.hoy.teSiguen} ${siguen}`]), ES.hoy.verOfertas)}
         onPress={onPress}
         style={({ pressed }) => ({
           flexDirection: 'row',
@@ -44,6 +59,12 @@ export function DiaDeHoy({ dia, ahora, onPress }: { dia: Dia; ahora: Date; onPre
         <View style={{ flex: 1, gap: 2 }}>
           <Text style={{ fontSize: SIZE.bodySize + 1, fontWeight: '700', color: PALETTE.tinta }}>{titulo}</Text>
           <Text style={{ fontSize: SIZE.smallSize, lineHeight: 19, color: PALETTE.tintaApagada }}>{detalle}</Text>
+          {siguen !== null && (
+            <Text style={{ fontSize: SIZE.smallSize, lineHeight: 19, color: PALETTE.tintaApagada }}>
+              {`${ES.hoy.teSiguen} `}
+              <Text style={{ fontWeight: '700', color: PALETTE.tinta }}>{siguen}</Text>
+            </Text>
+          )}
         </View>
         <Puerta color={PALETTE.accion} />
       </Pressable>
@@ -60,7 +81,13 @@ export function DiaDeHoy({ dia, ahora, onPress }: { dia: Dia; ahora: Date; onPre
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={oraciones(`${ES.hoy.enItacate}, ${hasta}`, grande, falta, ES.hoy.verOfertas)}
+      accessibilityLabel={oraciones(
+        `${ES.hoy.enItacate}, ${hasta}`,
+        grande,
+        ...(siguen === null ? [] : [`${ES.hoy.teSiguen} ${siguen}`]),
+        falta,
+        ES.hoy.verOfertas,
+      )}
       onPress={onPress}
       style={({ pressed }) => ({
         gap: SIZE.rowGap + 2,
@@ -97,6 +124,12 @@ export function DiaDeHoy({ dia, ahora, onPress }: { dia: Dia; ahora: Date; onPre
         ))}
         {quedan > 0 && (
           <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.sobreAccionApagada }}>{ES.hoy.masRenglones(quedan)}</Text>
+        )}
+        {siguen !== null && (
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: SIZE.space }}>
+            <Text style={{ flex: 1, fontSize: SIZE.bodySize - 1, color: PALETTE.sobreAccion }}>{ES.hoy.teSiguen}</Text>
+            <Text style={{ fontSize: SIZE.bodySize - 1, fontWeight: '700', color: PALETTE.sobreAccion }}>{siguen}</Text>
+          </View>
         )}
       </View>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: SIZE.rowGap }}>

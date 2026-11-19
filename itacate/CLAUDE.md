@@ -110,8 +110,8 @@ from `itacate/` with the two local `EXPO_PUBLIC_SUPABASE_` values in the shell, 
   ⚠️ **Following's claim is `src/api/siguiendo.ts`** (`10.9d-i`): `0084`'s `set_my_follow` (following and the bell, two switches, either
   `null` to leave it) and `my_follows` (her kitchens — **every one she follows, not only those the door sends today** — and those that left
   in 30 days, *dejó Itacate*), every argument and key, and `TD026` — asked as a neighbour by `docs/checks/10.9d-i-following-contract.sh`
-  (its own job, `itacate-following`; its falsifier breaks the file), held to `0084`'s text by `test/siguiendo.test.ts`. **No screen reads it
-  until `10.9d-ii`**; the bell is stored and rung by nothing until `10.9h`.
+  (its own job, `itacate-following`; its falsifier breaks the file), held to `0084`'s text by `test/siguiendo.test.ts`. **Drawn since
+  `10.9d-ii`** (`useSiguiendo`, `useSeguir` — the next section's *Following*); the bell is stored and rung by nothing until `10.9h`.
 - **Sign-in leans on two settings outside this repository**, both made by the owner's one command,
   `bash docs/runbooks/set-itacate-sign-in.sh` (a session's write to either is refused), and read
   back by `--check`: the three values its bundle reads in this EAS project's `preview` and, since
@@ -240,7 +240,8 @@ from `itacate/` with the two local `EXPO_PUBLIC_SUPABASE_` values in the shell, 
   phone** (`@/lib/ids`), new for each changed choice, so a tap sent again after a lost answer is the same reservation — and so
   **her code's hour is the one the database kept under that id**, never only the chip she tapped. ⚠️ **The sheet keeps the dish
   it opened on**: once the LAST plate is hers the door stops sending the dish, and the page must not take her code with it.
-  *Apartados* (`(vecino)/(tabs)/apartados`, `@/ui/BoletoApartado`, `@/lib/apartados`): her tickets, a kitchen's cancel while its
+  *Apartados* (`(vecino)/apartados` — a tab until `10.9d-ii`, now pushed over the tabs at the same address; `@/ui/BoletoApartado`,
+  `@/lib/apartados`): her tickets, a kitchen's cancel while its
   window is open, ⚠️ **a plate that *se liberó* less than a day ago, which keeps its swipe** (`confirm_my_pickup` takes *Ya lo
   tengo* for that day, and it keeps the clock's *No se presentó* off her score), and *Anteriores*. Her reservations are read
   every minute while one is pending, and ⚠️ **her standing (`my_standing`) again whenever what is pending changes** — a handover
@@ -380,18 +381,34 @@ follows it, as `cocina/CLAUDE.md`'s does:
 
 - ⚠️⚠️ **RE-RULED 2026-11-16 AND 17 — THE MVP RUNS THROUGH THE FAMILY SHELL'S STAGE 4, BUILT BY `10.9a`–`10.9h`**
   (`docs/PLAN.md`; the family-shell page redrawn the same day). **The bullets below describe what is built until each row
-  lands**; what changes here: **three tabs, *Cerca · Mis cocinas · Tú*** — *Apartados* stops being a tab: an active
-  reservation pinned at the top of *Cerca* and heading *Mis cocinas*, a dot on that tab while it lasts, past ones at its foot
-  (`10.9d`); a kitchen's page shows only the services that kitchen uses — *Seguir* and a bell, a promotion's band, her loyalty
-  card in the kitchen's colours (`10.9d`, `10.9e`, `10.9g`); **a feature the app does not know is ignored**, so its builds in
-  the field survive what comes later (`10.9a-i`, built 2026-11-17: `serviciosOf`); *Escanear* and *Mi código* at the top of *Mis cocinas* (`10.9e`).
-- **The tab bar is *Cerca · Apartados · Tú* today, *Cerca · Mis cocinas · Tú* from `10.9d`** (his ruling of 2026-11-17) — four tabs at most, each
-  with its word; the two ends never move; a new feature arrives first as a card on *Cerca*. Wera's JavaScript tabs, not native tabs. ⚠️ **Built by `10.5-v-b`**:
-  the tabs are data (`@/navigation/pestanas` — a tab not yet in use names the row that brings it: *Apartados* is in use since `10.5b-iii-a` and leaves the bar with `10.9d`, *Mis cocinas* waits for `10.9d`), the bar is drawn by
+  lands**; what is still to change here: a kitchen's page shows the services that kitchen uses — a promotion's band, her loyalty
+  card in the kitchen's colours (`10.9e`, `10.9g`); **a feature the app does not know is ignored**, so its builds in the field
+  survive what comes later (`10.9a-i`, built 2026-11-17: `serviciosOf`); *Escanear* and *Mi código* at the top of *Mis cocinas*
+  (`10.9e`). **Built by `10.9d-ii`: the three tabs and following** — the next two bullets.
+- **The tab bar is *Cerca · Mis cocinas · Tú* since `10.9d-ii`** (his ruling G39 of 2026-11-17; *Cerca · Apartados · Tú* from `10.5b-iii-a`) — four tabs at most, each
+  with its word; the two ends never move; a slot stays free for later. Wera's JavaScript tabs, not native tabs. ⚠️ **Built by `10.5-v-b`**:
+  the tabs are data (`@/navigation/pestanas` — a tab not yet in use would name the row that brings it), the bar is drawn by
   `@/ui/Pestanas` on `expo-router/js-tabs` (the tab in use: blue, a heavier word and a pill of the blue's tint — ⚠️ the other pills the bar's
   white, never `transparent`, since `10.5-v-c-i`: Android squared every pill after the first switch), and `(vecino)/(tabs)/` holds
   exactly the tabs in use — `test/pestanas.test.ts` refuses a screen there that is not one. A tab draws `@/ui/Cabeza` (no *Volver*: a tab is
   never closed); a kitchen's page, a dish's and *Dónde buscar* are pushed over the tabs from the root's stack, with `@/ui/Banda`'s *Volver*.
+- **Following, and her reservation pinned** (`10.9d-ii`; G20–G23 and G39, as the family-shell page draws stage 3). Every rule is
+  `@/lib/misCocinas`', pure, pinned by `test/misCocinas.test.ts`. **Her reservation is pinned** (`@/ui/ApartadoFijado`) in *Cerca*'s
+  sheet head — so it shows at every height of the list — and heading *Mis cocinas*; a tap opens *Apartados* over the tabs. What is pinned
+  is what *Apartados* would show her first: a cancel by the kitchen, else the soonest still to collect, else a plate that *se liberó*
+  less than a day ago, with *y 1 más*; while one is, **a dot on *Mis cocinas*' tab** (`@/ui/Pestanas`, `hayPunto`, in the drawing's red
+  for what is live, `PALETTE.error`'s value). ***Mis cocinas*** (`(vecino)/(tabs)/mis-cocinas`): *Tus cocinas*, **only those she follows**
+  (a bell alone is no row — G21 as drawn), those that published for today first (*Publicó hoy* in that red), then the most recent; a
+  kitchen that left as *dejó Itacate* for 30 days; *Tus apartados anteriores* at the foot. ⚠️ **A row is `my_follows`', never the
+  door's**, and a followed kitchen the door no longer sends (quiet two weeks) opens `@/ui/PaginaSeguida` — what that row knows, with
+  *Seguir* — never her full page, which would say *Todavía sin calificaciones* of a kitchen that has stars. ***Seguir* and the bell**
+  (`@/ui/Seguir`) on her page, after *Cómo pagas aquí*, handed in by the route as `PaginaDeCocina`'s `seguir` slot (Wera Cocina's copy
+  carries the slot and hands nothing): two switches, either alone, each drawn only once the database answers (`useSeguir`); ⚠️ **the
+  bell is stored and rings nothing until `10.9h`**, asks the phone nothing, and starts off — drawn now because nobody but his test builds
+  holds Itacate until `10.5b-vi`, which waits for `10.9h`. ***¿Seguir a …?*** (`@/ui/PreguntaSeguir`, G20) on *Apartados*, under *Ya lo
+  tienes* and under that plate in *Anteriores*: the FIRST plate she collected at a kitchen she does not follow, while its rating window
+  lasts (`rate_until`, rated or not) — nothing kept on the phone, so a second plate there never asks again. ⚠️ **What it cannot know**: a
+  first plate that left her 30 days (`my_reservations`) makes a later one her "first" again.
 - **No word that makes the food sound left over** where a fonda or a neighbour reads (*lo que sobra*, *sobrante*,
   *restos*, *desperdicio*): *Publicar una oferta*, *Tu oferta de hoy*, *aprovechar*, *Por hoy ya se terminó*, *Se liberó*.
   `test/palabras.test.ts` refuses them in `src/strings.ts` since `10.5-v-a` — Wera's *Merma* only in the one line

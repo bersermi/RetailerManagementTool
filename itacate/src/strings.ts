@@ -23,13 +23,12 @@ export const ES = {
   lema: 'La comida del día de tu colonia, a mejor precio',
 
   /**
-   * ⚠️ `10.5-v-b`: THE TAB BAR — *Cerca · Apartados · Mis cocinas · Tú*, the owner's ruling
-   * of 2026-11-05 (the family-shell page's call 4). *Apartados* is drawn since reserving
-   * (`10.5b-iii-a`); *Mis cocinas* waits for the stamp card (`10.9`) (`@/navigation/pestanas`).
+   * ⚠️ `10.5-v-b`: THE TAB BAR — since `10.9d-ii` *Cerca · Mis cocinas · Tú*, the owner's ruling
+   * G39 of 2026-11-17 (`@/navigation/pestanas`). *Apartados* is no longer a tab: her reservation is
+   * pinned on *Cerca* and on *Mis cocinas*, and its screen opens over the tabs.
    */
   pestanas: {
     cerca: 'Cerca',
-    apartados: 'Apartados',
     misCocinas: 'Mis cocinas',
     tu: 'Tú',
   },
@@ -368,14 +367,78 @@ export const ES = {
   },
 
   /**
-   * ⚠️ `10.5b-iii-a`: *APARTADOS*, THE SECOND TAB — her code, her hour, what to pay and how, the
+   * ⚠️ `10.9d-ii`: *MIS COCINAS*, THE SECOND TAB (the owner's rulings G21–G23 and G39 of 2026-11-17, as
+   * the family-shell page draws it): the kitchens she follows, whether each published today, a kitchen
+   * that left as *dejó Itacate* for 30 days, and her past reservations at its foot. The loyalty card
+   * (*Escanear*, *Mi código*, her stamps) joins it with `10.9e`, and the head's line with it.
+   */
+  misCocinas: {
+    titulo: 'Mis cocinas',
+    detalle: 'Las que sigues',
+    cargando: 'Buscando tus cocinas…',
+    tusCocinas: 'Tus cocinas',
+    vacio: 'Sigue una cocina desde su página',
+    vacioDetalle: 'Aquí verás si publicó hoy.',
+    /** A kitchen she follows that published nothing in four weeks — said where *Publicó …* would be. */
+    sinOfertas: 'Sin ofertas en las últimas 4 semanas',
+    /** G23, the owner's words. */
+    dejoItacate: 'dejó Itacate',
+    /** A screen reader's word for the bell beside a row. */
+    conCampana: 'Te avisamos cuando publica',
+    anteriores: 'Tus apartados anteriores',
+  },
+
+  /**
+   * ⚠️ `10.9d-ii`: *SEGUIR* AND ITS BELL on a kitchen's page, and *¿Seguir a …?* once after her first
+   * pickup there (G20, G21). ⚠️ THE BELL IS STORED AND RUNG BY NOTHING UNTIL `10.9h` — its message, and
+   * its default, are his product analyst's (the plan's decisions block); it starts off.
+   */
+  seguir: {
+    seguir: 'Seguir',
+    laSigues: 'La sigues',
+    seguirAyuda: (nombre: string) => `Seguir a ${nombre}`,
+    dejarAyuda: (nombre: string) => `Dejar de seguir a ${nombre}`,
+    campanaOn: 'Te avisamos cuando publica',
+    campanaOff: 'Avísame cuando publique',
+    pregunta: (nombre: string) => `¿Seguir a ${nombre}?`,
+    preguntaDetalle: 'La verás en Mis cocinas, con lo que publique cada día.',
+    si: 'Seguir',
+    ahoraNo: 'Ahora no',
+    /** A kitchen she follows that the door no longer sends — quiet for more than two weeks. */
+    callada: 'No ha publicado en las últimas dos semanas.',
+    fallas: {
+      /** `TD026`. */
+      yaNoEsta: 'Esta cocina ya no está en Itacate.',
+      otra: 'No se pudo. Revisa tu conexión e intenta de nuevo.',
+    },
+  },
+
+  /**
+   * ⚠️ `10.9d-ii`: HER RESERVATION, PINNED at the top of *Cerca* and of *Mis cocinas* (G39) — a tap
+   * opens *Apartados* over the tabs.
+   */
+  fijado: {
+    tuApartado: (cuando: string) => `Tu apartado · ${cuando}`,
+    /** *hoy a las 17:45* — tomorrow and later are *Apartados*' own words. */
+    hoy: (aLas: string) => `hoy ${aLas}`,
+    detalle: (cocina: string, codigo: string) => `${cocina} · código ${codigo}`,
+    aviso: 'La cocina canceló tu apartado',
+    porConfirmar: '¿Ya lo recogiste?',
+    /** *y 1 más* — how many more she holds. */
+    mas: (n: number) => `y ${n} más`,
+    ayuda: 'Ver tus apartados',
+  },
+
+  /**
+   * ⚠️ `10.5b-iii-a`: *APARTADOS* — a tab until `10.9d-ii`, then a screen over the tabs — her code, her hour, what to pay and how, the
    * address with *Cómo llegar*, *Ya lo tengo* as a swipe, and *¿Cambio de planes?* (the family-shell
    * page, stage 2, call 15: *Cancelar* until an hour before her hour, then *No voy a poder ir*).
    * *Se liberó* is the ruled word for a plate nobody came for (`10.5-v-a`).
    */
   apartados: {
     titulo: 'Apartados',
-    detalle: 'Lo que apartaste',
+    /** `10.9d-ii`: its way back, now that it opens over the tabs. */
+    volver: 'Volver',
     cargando: 'Buscando tus apartados…',
     vacio: 'Aparta un platillo y aquí verás tu código',
     vacioDetalle: 'Lo dices en la cocina, pagas y listo.',

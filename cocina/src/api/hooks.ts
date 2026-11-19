@@ -64,6 +64,7 @@ import {
 } from '@/api/equipo';
 import { codigoErrorMessage, codigoKey, esRechazoDelCodigo } from '@/api/invitar';
 import { SERVICIOS_KEY, serviciosKey, type Estado, type LoQueUsa, type Servicio } from '@/api/servicios';
+import { seguidoresKey } from '@/api/seguidores';
 import {
   accountOwners,
   deleteMyAccount,
@@ -101,6 +102,7 @@ import {
   setPlacePin,
   uploadPictures,
   withdrawListing,
+  kitchenFollowers,
 } from '@/api/calls';
 import { deLaCocina, rechazoDe, reservasConCola, vecinosConCola, type Envio } from '@/api/cola';
 import { guardarSuDireccion, type Escritura } from '@/api/direccion';
@@ -1250,4 +1252,24 @@ export function useUnirme() {
   }
 
   return { unirme, busy: mutation.isPending };
+}
+
+// ----------------------------------------------------------------------------
+// `10.9d-ii` — *Te siguen N*
+// ----------------------------------------------------------------------------
+
+/**
+ * ⚠️ `10.9d-ii`: HOW MANY NEIGHBOURS FOLLOW HER KITCHEN (`kitchen_followers`, `0084`; G22) — on the
+ * day's card on *Hoy* and before *Eliminar esta cocina*. Any member reads it, her helpers too. Keyed on
+ * the login and the kitchen; ⚠️ NOT on the phone's disk (`@/api/persist`'s list is unchanged): with no
+ * signal the card simply leaves the line out, and a count read days ago is never shown as today's.
+ */
+export function useSeguidores(kitchenId: string | null) {
+  const { session, ready } = useAuth();
+  const userId = session?.user.id ?? null;
+  return useQuery({
+    queryKey: seguidoresKey(userId, kitchenId),
+    queryFn: () => kitchenFollowers(kitchenId as string),
+    enabled: ready && userId !== null && kitchenId !== null,
+  });
 }

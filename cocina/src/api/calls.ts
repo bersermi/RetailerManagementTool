@@ -93,6 +93,7 @@ import {
   type LoQueUsa,
   type Servicio,
 } from '@/api/servicios';
+import { KITCHEN_FOLLOWERS, followersArgs, teSiguenFrom } from '@/api/seguidores';
 import type { DireccionCalls } from '@/api/direccion';
 import {
   LEAVE_KITCHEN,
@@ -632,4 +633,20 @@ export async function joinWithCode(codigo: string): Promise<{ readonly kitchenId
   const unida = unidaFrom(data);
   if (unida === null) throw new Error(`${REDEEM_INVITE} answered no kitchen`);
   return unida;
+}
+
+// ----------------------------------------------------------------------------
+// `10.9d-ii` — how many neighbours follow her kitchen
+// ----------------------------------------------------------------------------
+
+/**
+ * *Te siguen N* (`kitchen_followers`, `0084`): how many neighbours follow her kitchen — any member,
+ * never who. ⚠️ An answer that is not a count is an error, never a 0 that is not one.
+ */
+export async function kitchenFollowers(kitchenId: string): Promise<number> {
+  const { data, error } = await supabase.rpc(KITCHEN_FOLLOWERS, followersArgs(kitchenId));
+  if (error) throw error;
+  const n = teSiguenFrom(data);
+  if (n === null) throw new TypeError(`${KITCHEN_FOLLOWERS}: an answer this build cannot read`);
+  return n;
 }

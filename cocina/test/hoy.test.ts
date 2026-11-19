@@ -419,7 +419,11 @@ describe('Hoy — a hub: a number and a door in each zone, nothing edited in pla
     expect(order.every((at) => at > 0)).toBe(true);
     expect([...order].sort((a, b) => a - b)).toEqual(order);
     // `10.5b-iv-a`: the card is handed what is taken once her reservations are read, and `null` until then.
-    expect(hoy).toMatch(/<DiaDeHoy dia=\{diaDe\(listings\.data, ahora, cuentas\)\} ahora=\{ahora\} onPress=\{\(\) => router\.push\('\/ofertas'\)\} \/>/);
+    // `10.9d-ii` (G22): and how many neighbours follow her kitchen — `null` until read, never a 0 that is not one.
+    expect(hoy).toMatch(
+      /<DiaDeHoy\s+dia=\{diaDe\(listings\.data, ahora, cuentas\)\}\s+ahora=\{ahora\}\s+teSiguen=\{seguidores\.data \?\? null\}\s+onPress=\{\(\) => router\.push\('\/ofertas'\)\}\s+\/>/,
+    );
+    expect(hoy).toMatch(/const seguidores = useSeguidores\(kitchen\.id\);/);
     expect(hoy).toMatch(/apartados\.data === undefined \|\| ordenes === null\s*\?\s*null/);
     // *Lo que sigue* is drawn only while something is still to hand over; *Entregar* opens the code.
     expect(hoy).toMatch(/\{sigue !== null && \(/);

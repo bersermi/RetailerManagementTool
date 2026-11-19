@@ -1,5 +1,5 @@
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { RefreshControl, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -57,6 +57,7 @@ export function PaginaDeCocina({
   onPlatillo,
   onRefrescar,
   atras = true,
+  seguir = null,
 }: {
   cocina: Kitchen;
   /** Her trade's name, `kitchen_giros()`'s, or `null` while it is not known. */
@@ -69,6 +70,12 @@ export function PaginaDeCocina({
   onRefrescar?: () => Promise<unknown>;
   /** The way back over her cover — none where a bar above the page closes it. */
   atras?: boolean;
+  /**
+   * `10.9d-ii`: *Seguir* and its bell, after how she takes payment — the route's to hand it (Itacate's
+   * `@/ui/Seguir`, which reads her follows), so this page still reads nothing; none in Wera Cocina's
+   * *Ver como la ven*: a preview, with nothing to follow.
+   */
+  seguir?: ReactNode;
 }) {
   const insets = useSafeAreaInsets();
   const [jalando, setJalando] = useState(false);
@@ -159,6 +166,7 @@ export function PaginaDeCocina({
             ))}
           </View>
         </View>
+        {seguir}
       </View>
 
       {(calle !== null || cocina.directions !== null || llegar !== null) && (
