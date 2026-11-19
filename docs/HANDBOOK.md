@@ -63,6 +63,8 @@ listings do not say *inventario*; the home page of tu-wera.com still does.
 
 ## What is on your phone
 
+⏳ **19 November, morning: the loyalty card's half in Itacate, sent over the air** (*Itacate: la tarjeta de lealtad — Escanear, Mi código, tus premios (10.9e-iii)*) to the test builds of **Itacate and Wera Cocina — your iPhone's included**, with nothing to reinstall. ⚠️ **Nothing of the card shows on either until you say yes to turning it on** — the one new thing waiting on you (the plan's decisions block); with the switch off both apps look as they did. **Once it is on:** in Itacate, *Mis cocinas* opens on ***Escanear*** and ***Mi código***, and what to look at is *What only you can judge* → *Itacate → the loyalty card*. Tried end to end on a test Android against a test copy of the database with the switch on there; both updates were then seen downloaded and running on a test Android. Nothing changes in Wera.
+
 ⏳ **19 November, later: the loyalty card's half in Wera Cocina, sent over the air** (*Wera Cocina: la tarjeta de lealtad — Sellar,
 escanear a tu cliente, el cartel (10.9e-ii)*) to Wera Cocina's test builds — **your iPhone's included**, with nothing to reinstall.
 ⚠️ **Nothing of the card shows yet: your switch for it stays off until Itacate's half (`10.9e-iii`)**, because a fonda's card is no use
