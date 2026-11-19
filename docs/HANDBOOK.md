@@ -63,6 +63,17 @@ listings do not say *inventario*; the home page of tu-wera.com still does.
 
 ## What is on your phone
 
+⏳ **19 November, evening: promotions in Itacate (`10.9g-iii`) — merged. Wera Cocina's update is sent to its test builds, your iPhone's included,
+with nothing to reinstall: it carries her numbers (`10.9f`, below) and promotions' screens (`10.9g-ii`) too. ⚠️ Itacate's was refused by the
+session's permission check — one line of yours, typed in this Claude session:**
+
+`! cd ~/RetailerToolDev/RetailerManagementTool && git fetch -q origin && git worktree add --detach /tmp/wera-10.9g-iii origin/main && cd /tmp/wera-10.9g-iii && npm ci --no-audit --no-fund && bash docs/runbooks/ship-an-update.sh preview "Itacate: las promociones de cada cocina; lo que cada cocina ve de ti (10.9f, 10.9g-iii)" --app itacate`
+
+— or tell the next session *"send Itacate's update"*. Then, on the phone: open Itacate, wait ten seconds, close it completely and open it
+again. **Nothing new shows until the switches are on** (the plan's decisions block: the card and her numbers are yours to say yes to;
+promotions, your analyst's). Once they are: *What only you can judge* → *Itacate → promotions*, *Wera Cocina → promotions*, *Wera Cocina →
+her numbers*. ⚠️ **Wera Cocina's line in the 10.9f paragraph below is no longer needed** — this update carries it.
+
 ⏳ **19 November, afternoon: her numbers, *Tus números* (`10.9f`) — merged and on the live database, but NOT yet sent to your phones.** The session's
 permission check refused publishing the update. Nothing would show anyway until you say yes to the switches (the plan's decisions block), so
 it waits for you. **Two lines, typed in this Claude session** (the `!` runs them here, and the output lands in the conversation):
