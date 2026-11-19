@@ -7,6 +7,8 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import * as fotos from '@/api/fotos';
 import * as codigo from '@/lib/codigo';
+import * as escaner from '@/lib/escaner';
+import * as qr from '@/lib/qr';
 import { DIBUJOS, kitchenInitials } from '@/api/pagina';
 import { formatMXN } from '@/format/mxn';
 import { clockOf, dayOf, daysFrom, momentOf, slotOf } from '@/lib/ventana';
@@ -15,6 +17,8 @@ import { ES } from '@/strings';
 import { HUES } from '@/theme/colores';
 import * as fotosDeCocina from '../../cocina/src/api/fotos';
 import * as codigoDeCocina from '../../cocina/src/lib/codigo';
+import * as escanerDeCocina from '../../cocina/src/lib/escaner';
+import * as qrDeCocina from '../../cocina/src/lib/qr';
 import * as ventanaDeCocina from '../../cocina/src/lib/ventana';
 import { ES as COCINA } from '../../cocina/src/strings';
 import { HUES as HUES_DE_COCINA } from '../../cocina/src/theme/colores';
@@ -286,5 +290,63 @@ describe('the loyalty card’s codes — `cocina/src/lib/codigo.ts`, code for co
     }
     const key = '0085aaaa-0000-4000-8000-000000000001';
     expect(codigo.leerQR(codigoDeCocina.textoDelQR('c', key, '482190'))).toEqual({ lado: 'c', key, code: '482190' });
+  });
+});
+
+describe('the loyalty card’s scanner and QR — Wera Cocina’s files, code for code (`10.9e-iii`)', () => {
+  // ⚠️ One camera box and one QR drawing across the two apps: her *Escanear* is the kitchen's *Escanear a tu
+  // cliente*, and her *Mi código* draws its grid as *Sellar* does. Each copy names its twin in its header.
+  const sinComentarios = (text: string) =>
+    fold(text.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, ''));
+
+  for (const file of ['lib/escaner.ts', 'ui/Escaner.tsx', 'lib/qr.ts', 'ui/CodigoQR.tsx']) {
+    it(`${file} is cocina/src/${file}`, () => {
+      expect(sinComentarios(itacate(file))).toBe(sinComentarios(cocina(file)));
+      expect(itacate(file)).toContain(`cocina/src/${file}`);
+    });
+  }
+
+  it('the same box for the same permission', () => {
+    const permisos = [
+      null,
+      { granted: true, status: 'granted', canAskAgain: true },
+      { granted: false, status: 'undetermined', canAskAgain: true },
+      { granted: false, status: 'undetermined', canAskAgain: false },
+      { granted: false, status: 'denied', canAskAgain: true },
+      { granted: false, status: 'denied', canAskAgain: false },
+    ] as const;
+    for (const permiso of permisos) expect(escaner.cajaDelEscaner(permiso)).toBe(escanerDeCocina.cajaDelEscaner(permiso));
+  });
+
+  it('the same grid for the same code', () => {
+    const texto = 'WERA1:v:0085aaaa-0000-4000-8000-000000000001:482190:0085aaaa-0000-4000-8000-000000000009';
+    expect(qr.tramosQR(qr.matrizQR(texto))).toEqual(qrDeCocina.tramosQR(qrDeCocina.matrizQR(texto)));
+  });
+});
+
+describe('the card’s conditions — what a fonda set up is what her neighbour accepts (G12, `10.9e-iii`)', () => {
+  const ours = itacate('lib/tarjeta.ts');
+  const theirs = cocina('lib/tarjeta.ts');
+  for (const inicio of ['export function enFrase(', 'export function condicionesDe(', 'export function direccionCorta(', 'export function diaDe(', 'export function diaDeTexto(']) {
+    it(inicio, () => {
+      expect(bloque(ours, inicio)).toBe(bloque(theirs, inicio));
+    });
+  }
+
+  it('the words, value for value', () => {
+    expect(ES.condiciones.junta(8, 'Fonda Doña Mari', 'una comida corrida')).toBe(COCINA.condiciones.junta(8, 'Fonda Doña Mari', 'una comida corrida'));
+    expect(ES.condiciones.uno).toBe(COCINA.condiciones.uno);
+    expect(ES.condiciones.seBorran(30)).toBe(COCINA.condiciones.seBorran(30));
+    expect(ES.condiciones.noSeBorran).toBe(COCINA.condiciones.noSeBorran);
+    expect(ES.condiciones.promesa('Fonda Doña Mari', 'Sabino 52, Santa María la Ribera')).toBe(COCINA.condiciones.promesa('Fonda Doña Mari', 'Sabino 52, Santa María la Ribera'));
+    expect(ES.condiciones.promesa('Fonda Doña Mari', null)).toBe(COCINA.condiciones.promesa('Fonda Doña Mari', null));
+    expect([...ES.fechas.meses]).toEqual([...COCINA.fechas.meses]);
+    expect(ES.fechas.delMes(18, 'diciembre')).toBe(COCINA.fechas.delMes(18, 'diciembre'));
+  });
+
+  it('her card’s words where both apps draw it: its name, the count, what it gives', () => {
+    expect(ES.tarjeta.nombre).toBe(COCINA.tarjeta.nombre);
+    expect(ES.tarjeta.cuenta(3, 8)).toBe(COCINA.tarjeta.cuenta(3, 8));
+    expect(ES.tarjeta.igual(8, 'una comida corrida')).toBe(COCINA.tarjeta.igual(8, 'una comida corrida'));
   });
 });

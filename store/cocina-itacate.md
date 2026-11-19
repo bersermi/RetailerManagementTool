@@ -299,6 +299,12 @@ the picker are asked for images only. Approximate location, contacts, files, mes
 web browsing — none read. ⚠️ **Since `10.9c` the camera also SCANS a code** (*Escanear su código*, a helper
 joining): the picture is read on the phone and never leaves it — only the code's text is sent, to name the kitchen and
 join it — so it adds no data type here; *Photos* stays the photos she uploads.
+✅ **Read again by `10.9e-iii` (2026-11-19), the loyalty card in both apps:** for a fonda nothing new to tick. Her card's
+terms (a reward she writes, stamps, days) are what she publishes — *Other user-generated content*; each phone's *Sellar*
+key is a per-install secret — *Device or other IDs*; *Escanear a tu cliente* reads a code, as joining does — no photo. What
+the card records of a NEIGHBOUR (her name in the day's lines, her stamps and rewards) is Itacate's to declare, below; the
+stamps and rewards a helper gave carry who gave them, as a handover does — declared with `10.5b`'s reservations when
+`10.5b-vi` rewrites both forms before the public release.
 
 ### Data safety — Itacate
 
@@ -385,8 +391,14 @@ page does not say which it is for its own SDK. **Not ticked for Itacate:** *Prec
 her location never leaves her phone (`10.5-iv-a-i`); phone number, photos — the kitchens' photos
 are theirs, and Itacate asks for no camera or picture of hers —, financial info, messages,
 contacts, files, health. ⚠️ **Since `10.9c` Itacate's build carries the camera** (Android's manifest lists
-`CAMERA`), and nothing asks for it until the loyalty card's *Escanear* (`10.9e`), which reads a kitchen's code on her
-phone and sends only its text — no photo, no data type; that row re-reads these answers.
+`CAMERA`), ✅ **and since `10.9e-iii` (2026-11-19) she is asked for it when she taps *Escanear su código*** (the loyalty
+card): it reads a kitchen's code on her phone and sends only its text — no photo, no data type. ⚠️ **What the card DOES
+add for Itacate, for `10.5b-vi`'s rewrite of this form** (with the reservations, ratings and follows already built and not
+yet declared — his testers wait for `10.5b-vi`, his ruling of 2026-11-18, so no store version carries any of them): her
+stamps and rewards at each kitchen, with their moments and who at the kitchen gave them — *App activity → Other actions*,
+App functionality; her phone's *Mi código* key, a per-install secret kept on the phone and on the server — *Device or other
+IDs* (ticked already), App functionality; her name, shown to the kitchen that stamps her — *Name* (ticked), its sharing
+question re-read then: the aviso's section 10 says the kitchen sees it.
 
 ### Government apps · Financial features · Health · Advertising ID
 

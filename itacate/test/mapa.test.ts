@@ -86,6 +86,7 @@ function cocina(id: string, point: Punto | null, offers: Offer[], giro: string |
     minScore: null,
     estrellas: null,
     servicios: [],
+    tarjeta: null,
   };
 }
 function pin(id: string, punto: Punto, enOferta = true): Pin {

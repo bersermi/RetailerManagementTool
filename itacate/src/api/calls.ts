@@ -3,8 +3,9 @@
 // way out: what goes with her account, the deletion, Apple), `10.5-iv-a-i` (the
 // door, and the kitchens' photos), `10.5-iv-a-ii` (the trades' names) and
 // `10.5b-iii-a` (her reservations: reserving, cancelling, *Ya lo tengo*, her yes and
-// her standing), `10.5b-iii-b` (her stars about the kitchen) and `10.9d-ii` (the kitchens
-// she follows, and *Seguir* with its bell — `0084`, claimed by `10.9d-i`).
+// her standing), `10.5b-iii-b` (her stars about the kitchen), `10.9d-ii` (the kitchens
+// she follows, and *Seguir* with its bell — `0084`, claimed by `10.9d-i`) and `10.9e-iii`
+// (her loyalty cards: her phone's key, her cards, a scan, a claim — `0085`, claimed by `10.9e-i`).
 //
 // ⚠️ THE IMPURE HALF OF `src/api/` (ADR-035 §2.11), as Wera's and Wera Cocina's
 // (`app/src/api/calls.ts`, `cocina/src/api/calls.ts`): the only module here that
@@ -69,6 +70,20 @@ import {
   type Siguiendo,
   type Switches,
 } from '@/api/siguiendo';
+import {
+  CLAIM_WITH_CODE,
+  MY_CARDS,
+  REGISTER_MY_KEY,
+  STAMP_WITH_CODE,
+  claimWithCodeArgs,
+  keyFrom,
+  myCardsFrom,
+  scanFrom,
+  stampWithCodeArgs,
+  type KeyRow,
+  type MyCardRow,
+  type ScanRow,
+} from '@/api/tarjeta';
 import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL, supabase } from '@/lib/supabase';
 
 /**
@@ -240,4 +255,51 @@ export async function setMyFollow(kitchenId: string, cambio: Cambio): Promise<Sw
   const switches = switchesFrom(data);
   if (switches === null) throw new TypeError(`${SET_MY_FOLLOW}: an answer this build cannot read`);
   return switches;
+}
+
+/**
+ * ⚠️ `10.9e-iii`: *MI CÓDIGO* ON THIS PHONE (`register_my_key`, `0085`) — a new secret, handed once; her
+ * phone works her six digits out of it every minute from then on. Asked once per login (`@/lib/llave`):
+ * her fourth phone drops her oldest.
+ */
+export async function registerMyKey(): Promise<KeyRow> {
+  const { data, error } = await supabase.rpc(REGISTER_MY_KEY);
+  if (error) throw error;
+  const row = keyFrom(data);
+  if (row === null) throw new TypeError(`${REGISTER_MY_KEY}: an answer this build cannot read`);
+  return row;
+}
+
+/**
+ * ⚠️ `10.9e-iii`: HER LOYALTY CARDS (`my_cards`, `0085`) — every kitchen where she has stamps going or a
+ * reward to claim. An answer it cannot read is an error, never *no cards*.
+ */
+export async function myCards(): Promise<MyCardRow[]> {
+  const { data, error } = await supabase.rpc(MY_CARDS);
+  if (error) throw error;
+  const cards = myCardsFrom(data);
+  if (cards === null) throw new TypeError(`${MY_CARDS}: an answer this build cannot read`);
+  return cards;
+}
+
+/**
+ * ⚠️ `10.9e-iii`: *ESCANEAR* — the kitchen's code, scanned or typed (`stamp_with_code`, `0085`). ⚠️ A POST,
+ * never a GET: a code is never checked in a read-only call (`25006`). ANSWERED, not refused: a code that
+ * fits nothing is `no_valido`, and the database keeps the miss.
+ */
+export async function stampWithCode(code: string, kitchenId: string | null, key: string | null): Promise<ScanRow> {
+  const { data, error } = await supabase.rpc(STAMP_WITH_CODE, stampWithCodeArgs(code, kitchenId, key));
+  if (error) throw error;
+  const scan = scanFrom(data);
+  if (scan === null) throw new TypeError(`${STAMP_WITH_CODE}: an answer this build cannot read`);
+  return scan;
+}
+
+/** ⚠️ `10.9e-iii`: one of her rewards — the one she chose — claimed with the kitchen's code (`claim_with_code`, `0085`). */
+export async function claimWithCode(rewardId: string, code: string, key: string | null): Promise<ScanRow> {
+  const { data, error } = await supabase.rpc(CLAIM_WITH_CODE, claimWithCodeArgs(rewardId, code, key));
+  if (error) throw error;
+  const scan = scanFrom(data);
+  if (scan === null) throw new TypeError(`${CLAIM_WITH_CODE}: an answer this build cannot read`);
+  return scan;
 }

@@ -13,6 +13,7 @@ import { ES } from '@/strings';
 import { PaginaDeCocina } from '@/ui/PaginaDeCocina';
 import { PaginaSeguida } from '@/ui/PaginaSeguida';
 import { PaginaVacia } from '@/ui/PaginaVacia';
+import { SeccionTarjeta } from '@/ui/SeccionTarjeta';
 import { Seguir } from '@/ui/Seguir';
 
 // ============================================================================
@@ -20,7 +21,8 @@ import { Seguir } from '@/ui/Seguir';
 // ruling of 2026-11-01), opened from the list — a quiet kitchen's card — or from a
 // dish's page, and since `10.9d-ii` from *Mis cocinas*. What it draws is
 // `@/ui/PaginaDeCocina`'s since `10.5-v-c-ii`, the same screen Wera Cocina's *Ver como la
-// ven* draws — with, since `10.9d-ii`, *Seguir* and its bell handed to it (`@/ui/Seguir`).
+// ven* draws — with, since `10.9d-ii`, *Seguir* and its bell handed to it (`@/ui/Seguir`), and since
+// `10.9e-iii` her loyalty card there or the kitchen's invitation (`@/ui/SeccionTarjeta`).
 //
 // ⚠️ THE KITCHEN IS THE LIST'S, found by her id in the door's answer (in memory); a pull asks
 // the door again, as the list's does. Her trade's name is `kitchen_giros()`'s. The distance is
@@ -69,6 +71,7 @@ export default function PaginaDeLaCocina() {
       ahora={ahora}
       onRefrescar={() => Promise.all([cocinas.refetch(), siguiendo.refetch()])}
       seguir={<Seguir cocinaId={cocina.id} nombre={cocina.name} />}
+      tarjeta={<SeccionTarjeta cocina={cocina} />}
       onPlatillo={(oferta, platillo) =>
         router.push({
           pathname: '/platillo/[cocina]/[oferta]/[linea]',

@@ -1,3 +1,4 @@
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { Pressable, Text, View } from 'react-native';
 
 import { distanciaTexto } from '@/lib/distancia';
@@ -29,10 +30,13 @@ export function TarjetaCocina({
   tarjeta,
   ahora,
   onPress,
+  marca = null,
 }: {
   tarjeta: Extract<Tarjeta, { kind: 'cocina' }>;
   ahora: Date;
   onPress: () => void;
+  /** `10.9e-iii` (G38): her progress on its loyalty card — *5/8* — under its line (the page's `smark`). */
+  marca?: { readonly texto: string; readonly ayuda: string } | null;
 }) {
   const { cocina, metros } = tarjeta;
   const linea = cuandoPublica(cocina.summary, ahora);
@@ -61,6 +65,12 @@ export function TarjetaCocina({
           {cocina.name}
         </Text>
         {linea !== null && <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada }}>{linea}</Text>}
+        {marca !== null && (
+          <View accessible accessibilityLabel={marca.ayuda} style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+            <MaterialCommunityIcons name="stamper" size={13} color={PALETTE.accion} />
+            <Text style={{ fontSize: SIZE.smallSize - 1, fontWeight: '700', color: PALETTE.accion }}>{marca.texto}</Text>
+          </View>
+        )}
       </View>
       {derecha !== null && <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada }}>{derecha}</Text>}
     </Pressable>

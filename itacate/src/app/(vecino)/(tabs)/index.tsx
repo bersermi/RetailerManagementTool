@@ -4,7 +4,7 @@ import { ActivityIndicator, FlatList, Keyboard, Pressable, RefreshControl, Text,
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { apiErrorMessage } from '@/api/errors';
-import { useApartados, useCocinas } from '@/api/hooks';
+import { useApartados, useCocinas, useTarjetas } from '@/api/hooks';
 import { useAuth } from '@/auth/AuthProvider';
 import { SIN_DISTANCIAS, usePonerDistancias } from '@/lib/DistanciasProvider';
 import { distanciaTexto } from '@/lib/distancia';
@@ -23,6 +23,7 @@ import {
 import { fijadoDe } from '@/lib/misCocinas';
 import { motivoDe, origenDe, puntoDeOrigen, type Codigo, type Origen } from '@/lib/ubicacion';
 import { useAhora } from '@/lib/useAhora';
+import { marcaDeCocina, porCocina } from '@/lib/tarjeta';
 import { usePuntosBuscados } from '@/lib/useGoogle';
 import { useDondeEstoy } from '@/lib/useUbicacion';
 import { ES } from '@/strings';
@@ -108,6 +109,9 @@ export default function Cerca() {
   const cocinas = useCocinas();
   // ⚠️ `10.9d-ii`: her reservation, pinned in the sheet's head (G39) — shown at every height of the list.
   const apartados = useApartados();
+  // ⚠️ `10.9e-iii`: her progress on each kitchen's loyalty card, as a mark on its cards (G38) — the order unchanged.
+  const misCards = useTarjetas().data;
+  const misTarjetas = useMemo(() => porCocina(misCards), [misCards]);
   const buscados = usePuntosBuscados(cocinas.data);
   const ahora = useAhora(CADA_MINUTO);
   const fijado = fijadoDe(apartados.data, ahora);
@@ -188,6 +192,7 @@ export default function Cerca() {
         platillo={item.platillo}
         distancia={item.metros === null ? null : distanciaTexto(item.metros)}
         ahora={ahora}
+        marca={marcaDeCocina(misTarjetas, item.cocina.id)}
         onPress={() =>
           router.push({
             pathname: '/platillo/[cocina]/[oferta]/[linea]',
@@ -199,6 +204,7 @@ export default function Cerca() {
       <TarjetaCocina
         tarjeta={item}
         ahora={ahora}
+        marca={marcaDeCocina(misTarjetas, item.cocina.id)}
         onPress={() => router.push({ pathname: '/cocina/[id]', params: { id: item.cocina.id } })}
       />
     );

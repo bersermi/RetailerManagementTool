@@ -46,7 +46,9 @@
 // read and kept, and drawn by nothing until `10.9e` and `10.9g`; a name it does not know is ignored.
 // ⚠️ SINCE `10.9e-i` `0085`'s `card` — a kitchen's loyalty card's current terms while it is open and Wera
 // has it switched on, what she starts on before her first stamp — declared here so the door's contract
-// check holds every key, and parsed by nothing until `10.9e-iii` draws its invitation.
+// check holds every key; ⚠️ SINCE `10.9e-iii` read into `Kitchen.tarjeta` (`tarjetaOf`), which her page's
+// invitation and the conditions before her first stamp draw. Terms this build cannot read are none —
+// no invitation — never an error: her first stamp at the counter still works.
 // ============================================================================
 
 import { SCALE, parseDecimal } from '@tienda/money';
@@ -300,6 +302,18 @@ export interface Kitchen {
   readonly estrellas: Estrellas | null;
   /** `0081`: the services she uses that a neighbour sees, in `SERVICIOS_VISTOS`' order — none yet drawn. */
   readonly servicios: readonly ServicioVisto[];
+  /** `0085`: her loyalty card's terms while it is open (G12) — what a first stamp starts on — else `null`. */
+  readonly tarjeta: TarjetaDeCocina | null;
+}
+
+/** `0085`: a kitchen's loyalty card as a neighbour reads it before her first stamp (G12, G34). */
+export interface TarjetaDeCocina {
+  /** What she gives at the last stamp — *Una comida corrida*. */
+  readonly premio: string;
+  /** How many stamps, 4 to 12. */
+  readonly sellos: number;
+  /** The days without a stamp before hers are erased — 15, 30, 45 or 60; `0` is *Nunca*. */
+  readonly dias: number;
 }
 
 /** A kitchen's stars, as the cards and her page draw them. */
@@ -470,6 +484,23 @@ export function serviciosOf(value: unknown): ServicioVisto[] {
   return SERVICIOS_VISTOS.filter((servicio) => dichos.includes(servicio));
 }
 
+/**
+ * ⚠️ `0085`: the door's `card` — terms she could start on — or `null`: no card, or terms this build
+ * cannot read (`0085`'s ranges: a reward of up to 60 characters, 4 to 12 stamps, *Nunca* or 15, 30, 45
+ * or 60 days). A card closed, or chosen and not yet set up, arrives as `null` and draws nothing.
+ */
+export function tarjetaOf(value: unknown): TarjetaDeCocina | null {
+  const c = object(value);
+  if (c === null) return null;
+  const premio = text(c.reward);
+  const sellos = c.stamps;
+  const dias = c.expiry_days === null ? 0 : c.expiry_days;
+  if (premio === '' || premio.length > 60) return null;
+  if (typeof sellos !== 'number' || !Number.isInteger(sellos) || sellos < 4 || sellos > 12) return null;
+  if (typeof dias !== 'number' || ![0, 15, 30, 45, 60].includes(dias)) return null;
+  return { premio, sellos, dias };
+}
+
 /** Who may reserve by score — a whole per cent, else everyone (`null`). */
 export function minScoreOf(value: unknown): number | null {
   return typeof value === 'number' && Number.isInteger(value) && value > 0 && value < 100 ? value : null;
@@ -536,6 +567,7 @@ export function toKitchen(row: KitchenRow): Kitchen {
     minScore: minScoreOf(k.min_score),
     estrellas: estrellasOf(k.stars),
     servicios: serviciosOf(k.features),
+    tarjeta: tarjetaOf(k.card),
   };
 }
 

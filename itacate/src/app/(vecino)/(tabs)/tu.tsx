@@ -37,7 +37,8 @@ import { Salidas } from '@/ui/Salidas';
 // design of 2026-11-10): *Tu calificación como vecina*, *👍 92%* from her third thumb or
 // *Nueva en Itacate* before it, each of the five labels' count, never which kitchen or
 // when, and *¿Algo no cuadra? Escríbenos* — her way to a person (LFPDPPP Art. 26), on a
-// build that carries the owner's number. NO CHECK CAN SEE THIS SCREEN (§2.11): the phone
+// build that carries the owner's number. ⚠️ SINCE `10.9e-iii` *LO QUE CADA COCINA VE DE TI* (G42), after
+// *Dónde buscar*, as the drawing orders it. NO CHECK CAN SEE THIS SCREEN (§2.11): the phone
 // is its instrument.
 // ============================================================================
 
@@ -99,6 +100,12 @@ export default function Tu() {
               titulo={ES.tu.dondeBuscar}
               detalle={codigo === null ? ES.tu.miUbicacion : ES.tu.codigoPostal(codigo.cp)}
               onPress={() => router.push('/donde')}
+            />
+            <Fila
+              icono="eye-outline"
+              titulo={ES.loQueVen.fila}
+              detalle={ES.loQueVen.filaDetalle}
+              onPress={() => router.push('/lo-que-ven')}
             />
             <Fila
               icono="shield-lock-outline"

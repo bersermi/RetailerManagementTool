@@ -44,6 +44,7 @@ export function TarjetaPlatillo({
   distancia,
   ahora,
   onPress,
+  marca = null,
 }: {
   cocina: Kitchen;
   oferta: Offer;
@@ -51,6 +52,11 @@ export function TarjetaPlatillo({
   distancia: string | null;
   ahora: Date;
   onPress: () => void;
+  /**
+   * `10.9e-iii` (G38): her progress on that kitchen's loyalty card — *5/8* — at the window's right, in words a
+   * screen reader says; the list's to hand it (Itacate's `@/lib/tarjeta`' `marcaDeCocina`), none in Wera Cocina.
+   */
+  marca?: { readonly texto: string; readonly ayuda: string } | null;
 }) {
   const color = colorOf(cocina.page, cocina.giro);
   return (
@@ -114,7 +120,20 @@ export function TarjetaPlatillo({
           <View style={{ flex: 1 }} />
           <Quedan platillo={platillo} />
         </View>
-        <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada }}>{ventanaTexto(oferta, ahora)}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: SIZE.rowGap }}>
+          <Text style={{ flexShrink: 1, fontSize: SIZE.smallSize, color: PALETTE.tintaApagada }}>{ventanaTexto(oferta, ahora)}</Text>
+          <View style={{ flex: 1 }} />
+          {marca !== null && (
+            <View
+              accessible
+              accessibilityLabel={marca.ayuda}
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}
+            >
+              <MaterialCommunityIcons name="stamper" size={13} color={PALETTE.accion} />
+              <Text style={{ fontSize: SIZE.smallSize - 1, fontWeight: '700', color: PALETTE.accion }}>{marca.texto}</Text>
+            </View>
+          )}
+        </View>
       </View>
     </Pressable>
   );

@@ -2,7 +2,8 @@
 // HOW A SCREEN REACHES THE DATABASE. Plan tasks `10.5-iii-b` (her way out),
 // `10.5-iv-a-i` (the kitchens close to her, and their photos), `10.5-iv-a-ii`
 // (the trades' names, for a kitchen's page), `10.5b-iii-a` (her reservations),
-// `10.5b-iii-b` (her stars about a kitchen) and `10.9d-ii` (the kitchens she follows).
+// `10.5b-iii-b` (her stars about a kitchen), `10.9d-ii` (the kitchens she follows) and
+// `10.9e-iii` (her loyalty cards, her phone's code, a scan and a claim).
 //
 // ⚠️ A SCREEN NEVER CALLS `@/api/calls` ITSELF — Wera's R12, as in Wera Cocina
 // (`cocina/src/api/hooks.ts`, whose two deletion hooks these are, copied): a
@@ -13,7 +14,7 @@
 // ============================================================================
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import {
   OWNERS_KEY,
@@ -53,7 +54,16 @@ import {
   reservePlate,
   revokeApple,
   setMyFollow,
+  claimWithCode,
+  myCards,
+  registerMyKey,
+  stampWithCode,
 } from '@/api/calls';
+import { apiErrorKey } from '@/api/errors';
+import { TARJETAS_KEY, tarjetasKey, type MyCardRow, type ScanRow } from '@/api/tarjeta';
+import { guardarLlave, leerLlave, type Llave } from '@/lib/llave';
+import { deviceStore } from '@/lib/store';
+import { tarjetaErrorMessage } from '@/lib/tarjeta';
 import { COCINAS_KEY, cocinasKey, girosKey, type Giro, type Kitchen } from '@/api/cocinas';
 import { hayPendientes, pendientesDe } from '@/lib/apartados';
 import { NO_ES_COCINA, SIGUIENDO_KEY, siguiendoKey, type Cambio, type Siguiendo, type Switches } from '@/api/siguiendo';
@@ -420,4 +430,158 @@ export function useSeguir() {
     }
   }
   return { cambiar, busy: mutation.isPending };
+}
+
+// ----------------------------------------------------------------------------
+// Her loyalty cards — `10.9e-iii`
+// ----------------------------------------------------------------------------
+
+/** While *Mi código* is on the screen her cards are read this often: the kitchen's scan of it tells her phone nothing. */
+const MI_CODIGO_CADA_MS = 5_000;
+
+/**
+ * ⚠️ `10.9e-iii`: HER CARDS (`my_cards`, `0085`) — *Mis cocinas*, her card on a kitchen's page, *Cerca*'s mark,
+ * the celebration. Keyed on the login, in memory only, as every read here; read again when the app comes back
+ * to the front once a minute old (`@/api/QueryProvider`) — which is how *¡Ganaste!* shows at her next open —
+ * and after every scan. `vivo`: every five seconds, while *Mi código* is in front.
+ */
+export function useTarjetas({ vivo = false }: { vivo?: boolean } = {}) {
+  const { session, ready } = useAuth();
+  const userId = session?.user.id ?? null;
+  return useQuery<MyCardRow[]>({
+    queryKey: tarjetasKey(userId),
+    queryFn: myCards,
+    enabled: ready && userId !== null,
+    refetchInterval: vivo ? MI_CODIGO_CADA_MS : false,
+  });
+}
+
+/** Where her phone's code stands: ready, being asked, waiting for signal, or why not. */
+export type EstadoDeLlave =
+  | { readonly tipo: 'lista'; readonly llave: Llave }
+  | { readonly tipo: 'preparando' }
+  | { readonly tipo: 'sinSenal' }
+  | { readonly tipo: 'fallo'; readonly problema: string };
+
+const SIN_SENAL = 'sinSenal';
+
+/**
+ * ⚠️ `10.9e-iii`: HER PHONE'S KEY FOR *MI CÓDIGO* (`register_my_key`, `0085`) — Wera Cocina's `useLlaveSellar`,
+ * cut to one key per login. Kept on the phone (`@/lib/llave`) and ASKED ONCE: the first time *Mi código* opens
+ * with signal; from then on her code is worked out with none. A call that fails for want of signal says so, and
+ * *Intentar otra vez* asks again. `renovar` asks for a new key — the way back when the database dropped this
+ * phone's (her fourth phone drops her oldest).
+ */
+export function useMiLlave(): {
+  estado: EstadoDeLlave;
+  reintentar: () => void;
+  renovar: () => void;
+  renovando: boolean;
+  /** Why *Pide uno nuevo* did not land — `'sinSenal'`, or a sentence — while the kept key still draws her code. */
+  renovarFallo: string | null;
+} {
+  const { session } = useAuth();
+  const userId = session?.user.id ?? null;
+  const [llave, setLlave] = useState<Llave | null>(() => (userId === null ? null : leerLlave(deviceStore(), userId)));
+  const [problema, setProblema] = useState<string | null>(null);
+  const [intento, setIntento] = useState(0);
+  const [renovando, setRenovando] = useState(false);
+  const pidiendo = useRef(false);
+  const aqui = useRef(true);
+  useEffect(() => {
+    aqui.current = true;
+    return () => {
+      aqui.current = false;
+    };
+  }, []);
+
+  const pedir = useCallback(
+    (nueva: boolean) => {
+      if (userId === null || pidiendo.current) return;
+      pidiendo.current = true;
+      setProblema(null);
+      if (nueva) setRenovando(true);
+      void registerMyKey()
+        .then((row) => {
+          const guardada = guardarLlave(deviceStore(), userId, row);
+          if (aqui.current) setLlave(guardada);
+        })
+        .catch((thrown: unknown) => {
+          if (aqui.current) setProblema(apiErrorKey(thrown) === 'offline' ? SIN_SENAL : tarjetaErrorMessage(thrown));
+        })
+        .finally(() => {
+          pidiendo.current = false;
+          if (aqui.current) setRenovando(false);
+        });
+    },
+    [userId],
+  );
+
+  useEffect(() => {
+    if (userId === null) return;
+    const kept = leerLlave(deviceStore(), userId);
+    if (kept !== null) {
+      setLlave(kept);
+      return;
+    }
+    pedir(false);
+  }, [userId, intento, pedir]);
+
+  const estado: EstadoDeLlave =
+    llave !== null
+      ? { tipo: 'lista', llave }
+      : problema === SIN_SENAL
+        ? { tipo: 'sinSenal' }
+        : problema !== null
+          ? { tipo: 'fallo', problema }
+          : { tipo: 'preparando' };
+  return {
+    estado,
+    reintentar: () => setIntento((n) => n + 1),
+    renovar: () => pedir(true),
+    renovando,
+    renovarFallo: llave !== null ? problema : null,
+  };
+}
+
+/** What a scan came back with: the database's answer, or a refusal in words. */
+export type Escaneo = { readonly ok: true; readonly scan: ScanRow } | { readonly ok: false; readonly problema: string };
+
+/**
+ * ⚠️ `10.9e-iii`: *ESCANEAR* AND *COBRAR* WITH THE KITCHEN'S CODE (`stamp_with_code`, `claim_with_code`, `0085`).
+ * Her phone needs signal for this — the kitchen's does not (G16). The screen waits for the answer: what it says is
+ * what she reads at the counter. Her cards are read again after every answer, so *Mis cocinas*, her page and the
+ * celebration (`@/lib/Festejos`) follow. One call at a time.
+ */
+export function useEscanearCodigo() {
+  const queries = useQueryClient();
+  const sello = useMutation({
+    mutationFn: ({ code, kitchenId, key }: { code: string; kitchenId: string | null; key: string | null }) => stampWithCode(code, kitchenId, key),
+  });
+  const cobro = useMutation({
+    mutationFn: ({ rewardId, code, key }: { rewardId: string; code: string; key: string | null }) => claimWithCode(rewardId, code, key),
+  });
+  const ocupado = sello.isPending || cobro.isPending;
+
+  async function sellar(code: string, kitchenId: string | null, key: string | null): Promise<Escaneo> {
+    try {
+      return { ok: true, scan: await sello.mutateAsync({ code, kitchenId, key }) };
+    } catch (thrown) {
+      return { ok: false, problema: tarjetaErrorMessage(thrown) };
+    } finally {
+      void queries.invalidateQueries({ queryKey: TARJETAS_KEY });
+    }
+  }
+
+  async function cobrar(rewardId: string, code: string, key: string | null): Promise<Escaneo> {
+    try {
+      return { ok: true, scan: await cobro.mutateAsync({ rewardId, code, key }) };
+    } catch (thrown) {
+      return { ok: false, problema: tarjetaErrorMessage(thrown) };
+    } finally {
+      void queries.invalidateQueries({ queryKey: TARJETAS_KEY });
+    }
+  }
+
+  return { sellar, cobrar, busy: ocupado };
 }
