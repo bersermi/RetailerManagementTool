@@ -43,7 +43,7 @@ export function DiaDeHoy({
     return (
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={oraciones(titulo, detalle, ...(siguen === null ? [] : [`${ES.hoy.teSiguen} ${siguen}`]), ES.hoy.verOfertas)}
+        accessibilityLabel={oraciones(titulo, detalle, ...(siguen === null ? [] : [`${ES.hoy.teSiguen(teSiguen ?? 0)} ${siguen}`]), ES.hoy.verOfertas)}
         onPress={onPress}
         style={({ pressed }) => ({
           flexDirection: 'row',
@@ -61,7 +61,7 @@ export function DiaDeHoy({
           <Text style={{ fontSize: SIZE.smallSize, lineHeight: 19, color: PALETTE.tintaApagada }}>{detalle}</Text>
           {siguen !== null && (
             <Text style={{ fontSize: SIZE.smallSize, lineHeight: 19, color: PALETTE.tintaApagada }}>
-              {`${ES.hoy.teSiguen} `}
+              {`${ES.hoy.teSiguen(teSiguen ?? 0)} `}
               <Text style={{ fontWeight: '700', color: PALETTE.tinta }}>{siguen}</Text>
             </Text>
           )}
@@ -84,7 +84,7 @@ export function DiaDeHoy({
       accessibilityLabel={oraciones(
         `${ES.hoy.enItacate}, ${hasta}`,
         grande,
-        ...(siguen === null ? [] : [`${ES.hoy.teSiguen} ${siguen}`]),
+        ...(siguen === null ? [] : [`${ES.hoy.teSiguen(teSiguen ?? 0)} ${siguen}`]),
         falta,
         ES.hoy.verOfertas,
       )}
@@ -127,7 +127,7 @@ export function DiaDeHoy({
         )}
         {siguen !== null && (
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: SIZE.space }}>
-            <Text style={{ flex: 1, fontSize: SIZE.bodySize - 1, color: PALETTE.sobreAccion }}>{ES.hoy.teSiguen}</Text>
+            <Text style={{ flex: 1, fontSize: SIZE.bodySize - 1, color: PALETTE.sobreAccion }}>{ES.hoy.teSiguen(teSiguen ?? 0)}</Text>
             <Text style={{ fontSize: SIZE.bodySize - 1, fontWeight: '700', color: PALETTE.sobreAccion }}>{siguen}</Text>
           </View>
         )}

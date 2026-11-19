@@ -20,7 +20,7 @@ import { Formulario } from '@/ui/Formulario';
 import { Grupo } from '@/ui/Grupo';
 import { Hoja } from '@/ui/Hoja';
 import { Llega } from '@/ui/Llega';
-import { PreguntaSeguir } from '@/ui/PreguntaSeguir';
+import { PreguntaSeguir, marcarRespondida, respondida as yaRespondida } from '@/ui/PreguntaSeguir';
 
 // ============================================================================
 // *APARTADOS*. Plan task `10.5b-iii-a` — the second tab from `10.5-v-b`, filled as the
@@ -106,14 +106,20 @@ export default function Apartados() {
   /** Whether to ask *¿Seguir a …?* under a plate — read from the list as it is now, never the copy she swiped. */
   const pregunta = (id: string) => {
     const apartado = lista?.find((a) => a.id === id);
-    return apartado !== undefined && !respondidas.has(id) && preguntarSeguir(apartado, lista ?? [], siguiendo.data, ahora);
+    return apartado !== undefined && !respondidas.has(id) && !yaRespondida(id) && preguntarSeguir(apartado, lista ?? [], siguiendo.data, ahora);
   };
-  const respondida = (id: string) => setRespondidas((antes) => new Set(antes).add(id));
+  const respondida = (id: string) => {
+    marcarRespondida(id);
+    setRespondidas((antes) => new Set(antes).add(id));
+  };
   const hoja = cambio !== null && puedeCancelar(cambio, ahora) ? ES.apartados.hojaCancelar : ES.apartados.hojaNoVoy;
 
   return (
     <View style={styles.pantalla}>
-      <Banda titulo={ES.apartados.titulo} volver={{ label: ES.apartados.volver, onPress: () => router.back() }} />
+      <Banda
+        titulo={ES.apartados.titulo}
+        volver={{ label: ES.apartados.volver, onPress: () => (router.canGoBack() ? router.back() : router.replace('/')) }}
+      />
       <Formulario
         contentContainerStyle={styles.cuerpo}
         refreshControl={

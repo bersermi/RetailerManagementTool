@@ -25,15 +25,19 @@ import { PALETTE, SIZE } from '@/theme/palette';
 export function Seguir({ cocinaId, nombre }: { cocinaId: string; nombre: string }) {
   const siguiendo = useSiguiendo();
   const { cambiar, busy } = useSeguir();
-  /** The database's last answer to her tap, until her list is read again with it. */
-  const [ultimo, setUltimo] = useState<Switches | null>(null);
+  /**
+   * The database's last answer to her tap, and when it came — drawn until her list is read again after it
+   * (`dataUpdatedAt`), then the list wins: another page of the same kitchen may have changed it since.
+   */
+  const [ultimo, setUltimo] = useState<{ readonly valor: Switches; readonly at: number } | null>(null);
   const [cual, setCual] = useState<'seguir' | 'campana' | null>(null);
   const [falla, setFalla] = useState<FallaDeSeguir | null>(null);
 
   // ⚠️ Not read yet, nothing to tap: a *Seguir* drawn before her list is known could undo a follow.
-  if (siguiendo.data === undefined && ultimo === null) return null;
+  const vigente = ultimo !== null && siguiendo.dataUpdatedAt <= ultimo.at ? ultimo.valor : null;
+  if (siguiendo.data === undefined && vigente === null) return null;
   const leidos = switchesDe(siguiendo.data, cocinaId);
-  const ahora = ultimo ?? leidos;
+  const ahora = vigente ?? leidos;
 
   async function tocar(que: 'seguir' | 'campana') {
     if (busy) return;
@@ -42,7 +46,7 @@ export function Seguir({ cocinaId, nombre }: { cocinaId: string; nombre: string 
     setFalla(null);
     const resultado = await cambiar(cocinaId, cambio);
     setCual(null);
-    if (resultado.ok) setUltimo(resultado.valor);
+    if (resultado.ok) setUltimo({ valor: resultado.valor, at: Date.now() });
     else setFalla(resultado.falla);
   }
 

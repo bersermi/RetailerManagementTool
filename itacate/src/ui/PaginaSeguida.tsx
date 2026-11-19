@@ -3,7 +3,7 @@ import { Text, View } from 'react-native';
 import type { Seguida } from '@/api/siguiendo';
 import { queYDondeDe } from '@/lib/paginas';
 import { cocinaDeSeguida } from '@/lib/misCocinas';
-import { publicoTexto } from '@/lib/lista';
+import { diasAtras, publicoTexto } from '@/lib/lista';
 import { ES } from '@/strings';
 import { TITULO } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
@@ -22,18 +22,25 @@ import { Seguir } from '@/ui/Seguir';
 // NO CHECK CAN SEE THIS (ADR-035 §2.11): the phone is its instrument.
 // ============================================================================
 
+/** The door keeps a quiet kitchen 14 days after it last published (`0078`). */
+const DIAS_EN_LA_PUERTA = 14;
+
 export function PaginaSeguida({ seguida, giroNombre, ahora }: { seguida: Seguida; giroNombre: string | null; ahora: Date }) {
   const queYDonde = queYDondeDe(giroNombre, cocinaDeSeguida(seguida, null).address);
   const cuando = seguida.ultimoDia === null ? null : publicoTexto(seguida.ultimoDia, ahora);
+  const atras = seguida.ultimoDia === null ? null : diasAtras(seguida.ultimoDia, ahora);
+  // ⚠️ *No ha publicado …* only when it is true: a list read before her newest publication can send
+  // her here for a moment while `my_follows` already knows the day (the review of `10.9d-ii`).
+  const callada = atras === null || DIAS_EN_LA_PUERTA < atras;
   return (
-    <PaginaVacia texto={ES.seguir.callada}>
+    <PaginaVacia texto={callada ? ES.seguir.callada : (cuando ?? '')}>
       <View style={{ alignItems: 'center', gap: SIZE.rowGap }}>
         <Circulo cocina={cocinaDeSeguida(seguida, null)} size={72} />
         <Text accessibilityRole="header" style={{ fontSize: SIZE.titleSize - 2, ...TITULO, color: PALETTE.tinta, textAlign: 'center' }}>
           {seguida.nombre}
         </Text>
         {queYDonde !== null && <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada, textAlign: 'center' }}>{queYDonde}</Text>}
-        {cuando !== null && <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada, textAlign: 'center' }}>{cuando}</Text>}
+        {callada && cuando !== null && <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada, textAlign: 'center' }}>{cuando}</Text>}
       </View>
       <Seguir cocinaId={seguida.id} nombre={seguida.nombre} />
     </PaginaVacia>

@@ -383,8 +383,8 @@ export const ES = {
     sinOfertas: 'Sin ofertas en las últimas 4 semanas',
     /** G23, the owner's words. */
     dejoItacate: 'dejó Itacate',
-    /** A screen reader's word for the bell beside a row. */
-    conCampana: 'Te avisamos cuando publica',
+    /** A screen reader's word for the bell beside a row — it rings nothing until `10.9h`, so it promises nothing. */
+    conCampana: 'con la campana encendida',
     anteriores: 'Tus apartados anteriores',
   },
 
@@ -398,10 +398,11 @@ export const ES = {
     laSigues: 'La sigues',
     seguirAyuda: (nombre: string) => `Seguir a ${nombre}`,
     dejarAyuda: (nombre: string) => `Dejar de seguir a ${nombre}`,
-    campanaOn: 'Te avisamos cuando publica',
-    campanaOff: 'Avísame cuando publique',
+    /** The bell's switch, for a screen reader — what it is, never a promise: it rings nothing until `10.9h`. */
+    campanaOn: 'Campana encendida',
+    campanaOff: 'Campana apagada',
     pregunta: (nombre: string) => `¿Seguir a ${nombre}?`,
-    preguntaDetalle: 'La verás en Mis cocinas, con lo que publique cada día.',
+    preguntaDetalle: 'La verás en Mis cocinas, con el día en que publicó.',
     si: 'Seguir',
     ahoraNo: 'Ahora no',
     /** A kitchen she follows that the door no longer sends — quiet for more than two weeks. */

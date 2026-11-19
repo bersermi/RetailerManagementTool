@@ -402,8 +402,9 @@ export const ES = {
      * first follower; with none, nothing stays and nothing is said.
      */
     followers: (n: number) =>
-      `${n === 1 ? 'Te sigue 1 vecino' : `Te siguen ${n} vecinos`} en Itacate. Dejarán de ver tu cocina, ` +
-      'y durante 30 días su lista dirá que dejó Itacate.',
+      n === 1
+        ? 'Te sigue 1 vecino en Itacate. Dejará de ver tu cocina, y durante 30 días su lista dirá que dejó Itacate.'
+        : `Te siguen ${n} vecinos en Itacate. Dejarán de ver tu cocina, y durante 30 días su lista dirá que dejó Itacate.`,
     confirm: 'Eliminar esta cocina',
     errors: {
       /** `0077`'s `TD007`: the kitchen's name changed after the screen read it. */
@@ -581,7 +582,7 @@ export const ES = {
      * ⚠️ `10.9d-ii`: *TE SIGUEN 38 VECINOS* on the day's card (G22, the family-shell page's drawing) — how
      * many, never who; from the first follower (none, no line).
      */
-    teSiguen: 'Te siguen',
+    teSiguen: (n: number) => (n === 1 ? 'Te sigue' : 'Te siguen'),
     vecinos: (n: number) => (n === 1 ? '1 vecino' : `${n} vecinos`),
   },
 

@@ -142,6 +142,9 @@ describe('the reservation pinned at the top of Cerca and of Mis cocinas (G39)', 
     expect(fijadoTextos(dos, AHORA).detalle).toBe('Fonda Doña Lupe · código 347 · y 1 más');
     const manana = new Date(AHORA.getTime() + 86_400_000);
     expect(cuandoTexto(manana, AHORA).startsWith('mañana a ')).toBe(true);
+    // A window past midnight still holds yesterday's hour: its time alone, never *hoy*.
+    const ayer = new Date(AHORA.getTime() - 86_400_000);
+    expect(cuandoTexto(ayer, AHORA).startsWith('a ')).toBe(true);
     const aviso = fijadoDe([fila({ state: 'cancelado_cocina' })], AHORA);
     if (aviso === null) throw new Error('pinned');
     expect(fijadoTextos(aviso, AHORA)).toEqual({ titulo: 'La cocina canceló tu apartado', detalle: 'Fonda Doña Lupe · Mole con arroz · 1 · para llevar' });
@@ -250,6 +253,10 @@ describe('¿Seguir a …? — once, after her first pickup at a kitchen (G20)', 
     expect(tab).toMatch(/\{recogido\?\.id !== apartado\.id && pregunta\(apartado\.id\) && \(/);
     // Seguir follows and leaves the bell as it is (`0084` stores it off).
     expect(code('ui/PreguntaSeguir.tsx')).toMatch(/cambiar\(cocinaId, \{ siguiendo: true \}\)/);
+    // *Ahora no* outlives the screen while the app runs — memory only.
+    expect(tab).toMatch(/!yaRespondida\(id\)/);
+    expect(tab).toMatch(/marcarRespondida\(id\);/);
+    expect(code('ui/PreguntaSeguir.tsx')).not.toMatch(/AsyncStorage|SecureStore|expo-sqlite|@\/lib\/store/);
   });
 });
 
@@ -258,7 +265,9 @@ describe('Seguir and its bell on a kitchen’s page (G21) — and a followed kit
     const seguir = code('ui/Seguir.tsx');
     expect(seguir).toMatch(/que === 'seguir' \? \{ siguiendo: !ahora\.siguiendo \} : \{ campana: !ahora\.campana \}/);
     // Not read yet, nothing to tap: a Seguir drawn before her list is known could undo a follow.
-    expect(seguir).toMatch(/if \(siguiendo\.data === undefined && ultimo === null\) return null;/);
+    expect(seguir).toMatch(/if \(siguiendo\.data === undefined && vigente === null\) return null;/);
+    // ⚠️ Her tap's answer gives way to the next read of her list (another page of the kitchen may change it).
+    expect(seguir).toMatch(/const vigente = ultimo !== null && siguiendo\.dataUpdatedAt <= ultimo\.at \? ultimo\.valor : null;/);
     // The page takes it as the route hands it; Wera Cocina's copy hands nothing.
     expect(code('app/(vecino)/cocina/[id].tsx')).toMatch(/seguir=\{<Seguir cocinaId=\{cocina\.id\} nombre=\{cocina\.name\} \/>\}/);
     expect(code('ui/PaginaDeCocina.tsx')).toMatch(/\{seguir\}/);
@@ -268,6 +277,11 @@ describe('Seguir and its bell on a kitchen’s page (G21) — and a followed kit
     const ruta = code('app/(vecino)/cocina/[id].tsx');
     expect(ruta.indexOf('<PaginaSeguida')).toBeGreaterThan(-1);
     expect(ruta.indexOf('<PaginaSeguida')).toBeLessThan(ruta.indexOf('ES.pagina.yaNoEsta'));
+    // ⚠️ Kept once seen — she may stop following it there — and a failed read said as itself.
+    expect(ruta).toMatch(/const seguida = leida \?\? vista;/);
+    expect(ruta).toMatch(/siguiendo\.isError\) return <PaginaVacia texto=\{apiErrorMessage\(siguiendo\.error\)\} \/>;/);
+    // *No ha publicado …* only when it is true.
+    expect(code('ui/PaginaSeguida.tsx')).toMatch(/const callada = atras === null \|\| DIAS_EN_LA_PUERTA < atras;/);
     // ⚠️ Its full page would say *Todavía sin calificaciones* of a kitchen that has stars.
     expect(code('ui/PaginaSeguida.tsx')).not.toMatch(/<PaginaDeCocina/);
     const seguida = follows([sigue({ last_day: AYER })]).cocinas[0];

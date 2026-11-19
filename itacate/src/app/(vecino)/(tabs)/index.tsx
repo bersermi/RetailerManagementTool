@@ -170,7 +170,8 @@ export default function Cerca() {
     setJalando(true);
     otraVez();
     try {
-      await cocinas.refetch();
+      // `10.9d-ii`: her reservations too — the pin sits in this sheet's head.
+      await Promise.all([cocinas.refetch(), apartados.refetch()]);
     } finally {
       setJalando(false);
     }

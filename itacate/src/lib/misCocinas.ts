@@ -10,8 +10,9 @@
 // ⚠️ NOTHING HERE IS KEPT ON THE PHONE: *¿Seguir a …?* is asked "once, after her first pickup"
 // (G20) with no memory of its own — the first plate she collected at a kitchen she does not
 // follow, while that plate can still be rated (`rate_until`, the database's clock). A second
-// plate there is not her first, so *Ahora no* is never asked again; a first plate that left
-// her 30 days (`my_reservations`) is the one way it could be.
+// plate there is not her first, so it is never asked there again; *Ahora no* under the same plate
+// is kept in memory while the app runs (`@/ui/PreguntaSeguir`); a first plate that left her 30 days
+// (`my_reservations`) makes a later one "first" again.
 // ⚠️ A KITCHEN SHE FOLLOWS NEED NOT BE IN THE DOOR (one quiet for two weeks is not), so a page of
 // its own (`@/ui/PaginaSeguida`) is drawn from `my_follows`' row when the door does not send it.
 // ============================================================================
@@ -53,11 +54,13 @@ export function fijadoDe(apartados: readonly Apartado[] | undefined, ahora: Date
   return null;
 }
 
-/** Her hour as the pinned row says it: *hoy a las 17:45*, *mañana a las 9:00*, *el Lun 27 a las 9:00*. */
+/** Her hour as the pinned row says it: *hoy a las 17:45*, *mañana a las 9:00*, *el Lun 27 a las 9:00*; yesterday's, *a las 23:30*. */
 export function cuandoTexto(hora: Date, ahora: Date): string {
   const dias = daysFrom(ahora, hora);
   const aLas = aLasDe(hora);
-  if (dias <= 0) return ES.fijado.hoy(aLas);
+  // An hour already gone yesterday (a window past midnight still holds her plate): its time alone, as `pasaTexto`.
+  if (dias < 0) return aLas;
+  if (dias === 0) return ES.fijado.hoy(aLas);
   if (dias === 1) return ES.apartados.manana(aLas);
   return ES.apartados.elDia(dayOf(hora, ahora), aLas);
 }

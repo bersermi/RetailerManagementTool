@@ -13,9 +13,22 @@ import { BotonLleno } from '@/ui/BotonLleno';
 // *Anteriores* while it can still be rated — so a plate the kitchen handed over by typing her code
 // asks too. WHEN is `@/lib/misCocinas`' `preguntarSeguir`, pure and pinned: nothing is kept on the
 // phone, and a second plate there is never her first. *Seguir* follows (the bell stays off,
-// `0084`); *Ahora no* only hides it while she stays on the screen.
+// `0084`). ⚠️ *Ahora no* is kept IN MEMORY while the app runs (`respondida`), so leaving *Apartados*
+// and coming back does not ask again under the same plate (found by the review of `10.9d-ii`);
+// nothing goes to the phone's disk, so a fresh open may ask once more while the plate's window lasts.
 // NO CHECK CAN SEE THIS (ADR-035 §2.11): the phone is its instrument.
 // ============================================================================
+
+/** Plates whose question she answered while the app runs — memory only. */
+const RESPONDIDAS = new Set<string>();
+
+export function respondida(id: string): boolean {
+  return RESPONDIDAS.has(id);
+}
+
+export function marcarRespondida(id: string): void {
+  RESPONDIDAS.add(id);
+}
 
 export function PreguntaSeguir({ cocinaId, nombre, onListo }: { cocinaId: string; nombre: string; onListo: () => void }) {
   const { cambiar, busy } = useSeguir();

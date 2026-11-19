@@ -407,8 +407,9 @@ follows it, as `cocina/CLAUDE.md`'s does:
   bell is stored and rings nothing until `10.9h`**, asks the phone nothing, and starts off — drawn now because nobody but his test builds
   holds Itacate until `10.5b-vi`, which waits for `10.9h`. ***¿Seguir a …?*** (`@/ui/PreguntaSeguir`, G20) on *Apartados*, under *Ya lo
   tienes* and under that plate in *Anteriores*: the FIRST plate she collected at a kitchen she does not follow, while its rating window
-  lasts (`rate_until`, rated or not) — nothing kept on the phone, so a second plate there never asks again. ⚠️ **What it cannot know**: a
-  first plate that left her 30 days (`my_reservations`) makes a later one her "first" again.
+  lasts (`rate_until`, rated or not) — a second plate there never asks again, and *Ahora no* is kept in memory while the app runs (never
+  on the disk). ⚠️ **What it cannot know**: a first plate that left her 30 days (`my_reservations`) makes a later one her "first" again.
+  ⚠️ **Found on the emulator**: Android hears a pull only when a `ScrollView`'s content fills the screen — `flexGrow: 1` on *Mis cocinas*'.
 - **No word that makes the food sound left over** where a fonda or a neighbour reads (*lo que sobra*, *sobrante*,
   *restos*, *desperdicio*): *Publicar una oferta*, *Tu oferta de hoy*, *aprovechar*, *Por hoy ya se terminó*, *Se liberó*.
   `test/palabras.test.ts` refuses them in `src/strings.ts` since `10.5-v-a` — Wera's *Merma* only in the one line

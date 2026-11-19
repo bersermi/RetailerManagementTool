@@ -1,8 +1,10 @@
 import { router, useLocalSearchParams } from 'expo-router';
+import { useEffect, useState } from 'react';
 
 import { giroLabel } from '@/api/cocinas';
 import { apiErrorMessage } from '@/api/errors';
 import { useCocinas, useGiros, useSiguiendo } from '@/api/hooks';
+import type { Seguida } from '@/api/siguiendo';
 import { distanciaTexto } from '@/lib/distancia';
 import { useDistancia } from '@/lib/DistanciasProvider';
 import { cocinaDe, parametro } from '@/lib/paginas';
@@ -25,7 +27,10 @@ import { Seguir } from '@/ui/Seguir';
 // the list's (`useDistancia`): this screen never learns where the neighbour is.
 // ⚠️ `10.9d-ii`: A KITCHEN SHE FOLLOWS THAT THE DOOR NO LONGER SENDS (quiet for more than two
 // weeks) opens a page of its own from `my_follows`' row (`@/ui/PaginaSeguida`), never *Esta
-// cocina ya no está en Itacate*. NO CHECK CAN SEE THIS SCREEN (ADR-035 §2.11).
+// cocina ya no está en Itacate* — and ⚠️ KEEPS IT once seen: she may stop following it from that page,
+// and her list read again no longer holds it, yet the kitchen is still in Itacate (found by the review
+// of `10.9d-ii`). A read of her list that fails is said as itself, never *ya no está*.
+// NO CHECK CAN SEE THIS SCREEN (ADR-035 §2.11).
 // ============================================================================
 
 /** How often the page is made again while she reads, so an ended window drops from *Hoy*. */
@@ -38,14 +43,21 @@ export default function PaginaDeLaCocina() {
   const siguiendo = useSiguiendo();
   const ahora = useAhora(CADA_MINUTO);
   const metros = useDistancia(id);
+  const leida = siguiendo.data?.cocinas.find((s) => s.id === id);
+  /** The followed row last seen for this kitchen — kept while she stays on its page. */
+  const [vista, setVista] = useState<Seguida | null>(null);
+  useEffect(() => {
+    if (leida !== undefined) setVista(leida);
+  }, [leida]);
 
   const cocina = cocinaDe(cocinas.data, id);
   if (cocina === null) {
     if (cocinas.data === undefined && cocinas.isPending) return <PaginaVacia texto={ES.pagina.cargando} esperando />;
     if (cocinas.data === undefined && cocinas.isError) return <PaginaVacia texto={apiErrorMessage(cocinas.error)} />;
-    const seguida = siguiendo.data?.cocinas.find((s) => s.id === id);
-    if (seguida !== undefined) return <PaginaSeguida seguida={seguida} giroNombre={giroLabel(giros.data, seguida.giro)} ahora={ahora} />;
+    const seguida = leida ?? vista;
+    if (seguida !== null) return <PaginaSeguida seguida={seguida} giroNombre={giroLabel(giros.data, seguida.giro)} ahora={ahora} />;
     if (siguiendo.data === undefined && siguiendo.isPending) return <PaginaVacia texto={ES.pagina.cargando} esperando />;
+    if (siguiendo.data === undefined && siguiendo.isError) return <PaginaVacia texto={apiErrorMessage(siguiendo.error)} />;
     return <PaginaVacia texto={ES.pagina.yaNoEsta} />;
   }
 

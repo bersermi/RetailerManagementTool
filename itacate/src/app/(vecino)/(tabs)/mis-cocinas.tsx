@@ -151,7 +151,8 @@ function RenglonSeguida({ fila, puerta, onPress }: { fila: FilaSeguida; puerta: 
 const styles = StyleSheet.create({
   pantalla: { flex: 1, backgroundColor: PALETTE.fondo },
   detalle: { fontSize: SIZE.smallSize, color: PALETTE.tintaApagada },
-  cuerpo: { padding: SIZE.space * 1.5, paddingBottom: SIZE.space * 3, gap: SIZE.space * 1.5 },
+  // ⚠️ `flexGrow: 1`: on Android a pull is heard only when the content fills the screen (found on the emulator).
+  cuerpo: { flexGrow: 1, padding: SIZE.space * 1.5, paddingBottom: SIZE.space * 3, gap: SIZE.space * 1.5 },
   seccion: { gap: SIZE.rowGap },
   titulo: { fontSize: SIZE.smallSize, fontWeight: '700', color: PALETTE.tintaApagada },
   centro: { alignItems: 'center', gap: SIZE.space, paddingVertical: SIZE.space * 2 },
