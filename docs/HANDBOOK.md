@@ -63,6 +63,17 @@ listings do not say *inventario*; the home page of tu-wera.com still does.
 
 ## What is on your phone
 
+⏳ **19 November, afternoon: her numbers, *Tus números* (`10.9f`) — merged and on the live database, but NOT yet sent to your phones.** The session's
+permission check refused publishing the update. Nothing would show anyway until you say yes to the switches (the plan's decisions block), so
+it waits for you. **Two lines, typed in this Claude session** (the `!` runs them here, and the output lands in the conversation):
+
+`! cd ~/RetailerToolDev/RetailerManagementTool && git fetch -q origin && git worktree add --detach /tmp/wera-10.9f origin/main && cd /tmp/wera-10.9f && npm ci --no-audit --no-fund && bash docs/runbooks/ship-an-update.sh preview "Wera Cocina: tus números — Día, Semana, Mes (10.9f)" --app cocina`
+
+`! cd /tmp/wera-10.9f && bash docs/runbooks/ship-an-update.sh preview "Itacate: lo que cada cocina ve de ti, sus cuentas (10.9f)" --app itacate`
+
+— or tell the next session *"send 10.9f's updates"*. Then, on each phone: open the app, wait ten seconds, close it completely and open it
+again. **What to look at once the switch is on:** *What only you can judge* → *Wera Cocina → her numbers*.
+
 ⏳ **19 November, morning: the loyalty card's half in Itacate, sent over the air** (*Itacate: la tarjeta de lealtad — Escanear, Mi código, tus premios (10.9e-iii)*) to the test builds of **Itacate and Wera Cocina — your iPhone's included**, with nothing to reinstall. ⚠️ **Nothing of the card shows on either until you say yes to turning it on** — the one new thing waiting on you (the plan's decisions block); with the switch off both apps look as they did. **Once it is on:** in Itacate, *Mis cocinas* opens on ***Escanear*** and ***Mi código***, and what to look at is *What only you can judge* → *Itacate → the loyalty card*. Tried end to end on a test Android against a test copy of the database with the switch on there; both updates were then seen downloaded and running on a test Android. Nothing changes in Wera.
 
 ⏳ **19 November, later: the loyalty card's half in Wera Cocina, sent over the air** (*Wera Cocina: la tarjeta de lealtad — Sellar,
