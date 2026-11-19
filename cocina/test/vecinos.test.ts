@@ -126,6 +126,8 @@ const EN_PARTE: Readonly<Record<string, { readonly de: string; readonly bloques:
       'export interface Kitchen {',
       // `10.9e-iii`: a kitchen's loyalty card, before her first stamp (`0085`'s `card`).
       'export interface TarjetaDeCocina {',
+      // `10.9g-iii`: her promotions and the one an offer joined (`0087`'s `promotions`, `promotion_id`).
+      'export interface Promocion {',
     ],
   },
   'vecinos/lista.ts': {
@@ -319,11 +321,18 @@ describe('where the two previews open, and how they differ from Itacate’s page
       expect(screen).toMatch(/const loQueVen = useLoQueVen\(kitchen\?\.id \?\? null\);/);
       expect(screen).not.toMatch(/on_offer_now|useCocinas/);
     }
-    expect(como).toMatch(/!seVeEnItacate\(listings\.data, ahora\) && \(/);
+    // ⚠️ `10.9g-iii`: a promotion shown keeps her in the door though she published nothing for longer (`0087`).
+    expect(como).toMatch(/!seVeEnItacate\(listings\.data, ahora, loQueVen\.promociones\) && \(/);
     const lo = cocina('lib/useLoQueVen.ts');
     expect(lo).toMatch(/useAjustes\(kitchenId\)/);
     expect(lo).toMatch(/estrellas: estrellasDe\(calificaciones\.data \?\? null\)/);
     expect(lo).toMatch(/tomadosDe\(apartados\.data\.reservas\)/);
+    // ⚠️ `10.9g-iii`: her promotions a neighbour sees — read only while she uses them, as *Publicar* reads them.
+    expect(lo).toMatch(/const usa = seLeen\(servicios\.data\);\s*const promociones = usePromociones\(kitchenId, \{ activa: usa \}\);/);
+    // A query switched off still hands its last answer: once she stops using them, none.
+    expect(lo).toMatch(/promociones: usa \? promocionesVistas\(promociones\.data\) : \[\]/);
+    // And her choice changed reads them again — her *off* ended them (`0087`).
+    expect(cocina('api/hooks.ts')).toMatch(/export function useElegirServicios[\s\S]*?onSuccess: \(loQueUsa\) => \{[\s\S]*?invalidateQueries\(\{ queryKey: PROMOCIONES_KEY \}\);[\s\S]*?onError/);
     expect(lo).not.toMatch(/on_offer_now|useCocinas/);
   });
 

@@ -1,17 +1,18 @@
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useState, type ReactNode } from 'react';
-import { RefreshControl, ScrollView, Text, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import type { Dish, Kitchen, Offer } from '@/api/cocinas';
 import { ratioOf } from '@/api/fotos';
 import { colorOf, defaultsFor } from '@/api/pagina';
-import { calificacionDe, calleDe, comoLlegarUrl, hoyDe, pagosDe, queYDondeDe, repetidosDe, verEnMapsUrl } from '@/lib/paginas';
+import { bandasDe, calificacionDe, calleDe, comoLlegarUrl, hoyDe, pagosDe, queYDondeDe, repetidosDe, verEnMapsUrl } from '@/lib/paginas';
 import { ES } from '@/strings';
 import { HUES } from '@/theme/colores';
 import { TITULO } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
 import { Atras } from '@/ui/Atras';
+import { BandaPromocion } from '@/ui/BandaPromocion';
 import { Circulo } from '@/ui/Circulo';
 import { Dibujo } from '@/ui/Dibujo';
 import { Enlace } from '@/ui/Enlace';
@@ -36,7 +37,10 @@ import { RenglonPlatillo } from '@/ui/RenglonPlatillo';
 // word is `@/lib/paginas`'. ⚠️ SINCE `10.5b-iii-b` her stars under her name — *★ 4.8 (23
 // calificaciones)* and her most given good tags, else *Todavía sin calificaciones* — and
 // *Cómo pagas aquí* with a chip per way she takes payment, after her sentence (the
-// family-shell page's call 20).
+// family-shell page's call 20). ⚠️ SINCE `10.9g-iii` HER PROMOTION (G29, the family-shell page's `promoBand` on
+// her page, stage 4): after *Seguir*, *Promoción* and the newest band — the others behind *y 2 más* — each with
+// *Condiciones* opening hers under it; and each dish under *Hoy* wears its mark (`@/ui/RenglonPlatillo`). From the
+// door's answer, like the rest (`bandasDe`); Wera Cocina's copy draws hers from her own rows.
 //
 // ⚠️ IT READS NOTHING: the kitchen, her trade's name, the distance and the clock are its
 // route's to hand it, so it never learns where the neighbour is (`test/donde.test.ts`).
@@ -86,6 +90,10 @@ export function PaginaDeCocina({
 }) {
   const insets = useSafeAreaInsets();
   const [jalando, setJalando] = useState(false);
+  // `10.9g-iii`: *y 2 más* tapped, and the bands whose *Condiciones* are open.
+  const [todas, setTodas] = useState(false);
+  const [abiertas, setAbiertas] = useState<readonly string[]>([]);
+  const alternar = (key: string) => setAbiertas((antes) => (antes.includes(key) ? antes.filter((k) => k !== key) : [...antes, key]));
 
   async function refrescar() {
     if (onRefrescar === undefined) return;
@@ -106,6 +114,7 @@ export function PaginaDeCocina({
   const repetidos = repetidosDe(cocina.summary);
   const calificacion = calificacionDe(cocina);
   const pagos = pagosDe(cocina);
+  const bandas = bandasDe(cocina);
   const titulo = { fontSize: SIZE.smallSize, fontWeight: '800', letterSpacing: 1, textTransform: 'uppercase', color: HUES[color] } as const;
 
   return (
@@ -175,6 +184,43 @@ export function PaginaDeCocina({
         </View>
         {seguir}
       </View>
+
+      {bandas.length > 0 && (
+        <View style={{ marginTop: SIZE.space * 1.5, paddingHorizontal: MARGEN, gap: SIZE.rowGap }}>
+          <Text accessibilityRole="header" style={titulo}>
+            {ES.pagina.promocion}
+          </Text>
+          {(todas ? bandas : bandas.slice(0, 1)).map((banda) => (
+            <View key={banda.key} style={{ gap: SIZE.rowGap / 2 }}>
+              <BandaPromocion
+                icono={banda.icono}
+                marca={banda.marca}
+                hasta={banda.hasta}
+                loQue={banda.loQue}
+                mas={banda.mas}
+                condiciones={abiertas.includes(banda.key) ? ES.pagina.ocultarCondiciones : ES.pagina.condiciones}
+                onCondiciones={() => alternar(banda.key)}
+              />
+              {abiertas.includes(banda.key) && (
+                <Text style={{ paddingHorizontal: SIZE.space, fontSize: SIZE.smallSize, lineHeight: 19, color: PALETTE.tintaApagada }}>
+                  {banda.condiciones}
+                </Text>
+              )}
+            </View>
+          ))}
+          {!todas && bandas.length > 1 && (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={ES.pagina.yMasAyuda(bandas.length - 1)}
+              onPress={() => setTodas(true)}
+              hitSlop={SIZE.rowGap}
+              style={{ alignSelf: 'flex-start' }}
+            >
+              <Text style={{ fontSize: SIZE.smallSize, fontWeight: '700', color: PALETTE.marca }}>{ES.pagina.yMas(bandas.length - 1)}</Text>
+            </Pressable>
+          )}
+        </View>
+      )}
 
       {(calle !== null || cocina.directions !== null || llegar !== null) && (
         <View

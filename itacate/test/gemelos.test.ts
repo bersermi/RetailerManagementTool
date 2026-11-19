@@ -15,6 +15,7 @@ import { clockOf, dayOf, daysFrom, momentOf, slotOf } from '@/lib/ventana';
 import { ZONA_DE_BUSQUEDA } from '@/lib/zona';
 import { ES } from '@/strings';
 import { HUES } from '@/theme/colores';
+import { PALETTE } from '@/theme/palette';
 import * as fotosDeCocina from '../../cocina/src/api/fotos';
 import * as codigoDeCocina from '../../cocina/src/lib/codigo';
 import * as escanerDeCocina from '../../cocina/src/lib/escaner';
@@ -22,6 +23,7 @@ import * as qrDeCocina from '../../cocina/src/lib/qr';
 import * as ventanaDeCocina from '../../cocina/src/lib/ventana';
 import { ES as COCINA } from '../../cocina/src/strings';
 import { HUES as HUES_DE_COCINA } from '../../cocina/src/theme/colores';
+import { PALETTE as PALETA_DE_COCINA } from '../../cocina/src/theme/palette';
 import { formatMXN as weraFormatMXN } from '../../app/src/format/mxn';
 
 // ============================================================================
@@ -348,5 +350,57 @@ describe('the card’s conditions — what a fonda set up is what her neighbour 
     expect(ES.tarjeta.nombre).toBe(COCINA.tarjeta.nombre);
     expect(ES.tarjeta.cuenta(3, 8)).toBe(COCINA.tarjeta.cuenta(3, 8));
     expect(ES.tarjeta.igual(8, 'una comida corrida')).toBe(COCINA.tarjeta.igual(8, 'una comida corrida'));
+  });
+});
+
+describe('a promotion’s band and mark — Wera Cocina’s, what a fonda was shown (`10.9g-iii`)', () => {
+  // ⚠️ *Así la verán en tu página* (`10.9g-ii`) is what her neighbour sees: the band's component code for code, the
+  // words and kinds block for block, every word value for value, and the band's tint.
+  const sinComentarios = (text: string) =>
+    fold(text.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, ''));
+
+  it('ui/BandaPromocion.tsx is cocina/src/ui/BandaPromocion.tsx', () => {
+    expect(sinComentarios(itacate('ui/BandaPromocion.tsx'))).toBe(sinComentarios(cocina('ui/BandaPromocion.tsx')));
+    expect(itacate('ui/BandaPromocion.tsx')).toContain('cocina/src/ui/BandaPromocion.tsx');
+  });
+
+  const ours = itacate('lib/promociones.ts');
+  const theirs = cocina('lib/promociones.ts');
+  it('lib/promociones.ts names its twin', () => {
+    expect(ours).toContain('cocina/src/lib/promociones.ts');
+  });
+  for (const inicio of [
+    'export const ICONO_DE_TIPO:',
+    'export function delMes(',
+    'export function sonTodos(',
+    'export function diasTexto(',
+    'export function marcaDe(',
+    'export function enUnaLinea(',
+    'export interface Banda {',
+    'export function bandaDe(',
+  ]) {
+    it(`lib/promociones.ts ${inicio}`, () => {
+      expect(bloque(ours, inicio)).toBe(bloque(theirs, inicio));
+    });
+  }
+
+  for (const inicio of ['export const TIPOS =', 'export type Tipo =', 'export const DIAS =', 'export type Dia =']) {
+    it(`api/cocinas.ts ${inicio} is cocina/src/api/promociones.ts’`, () => {
+      expect(bloque(itacate('api/cocinas.ts'), inicio)).toBe(bloque(cocina('api/promociones.ts'), inicio));
+    });
+  }
+
+  it('the words, value for value', () => {
+    expect(ES.promociones.marcas).toEqual(COCINA.promociones.marcas);
+    expect(ES.promociones.ejemplos).toEqual(COCINA.promociones.ejemplos);
+    expect(ES.promociones.todosLosDias).toBe(COCINA.promociones.todosLosDias);
+    expect([...ES.promociones.losDias]).toEqual([...COCINA.promociones.losDias]);
+    expect(ES.promociones.los('lunes y jueves')).toBe(COCINA.promociones.los('lunes y jueves'));
+    expect(ES.promociones.hastaEl('17 de diciembre')).toBe(COCINA.promociones.hastaEl('17 de diciembre'));
+  });
+
+  it('the band’s tint is Wera Cocina’s', () => {
+    expect(PALETTE.marcaSuave).toBe(PALETA_DE_COCINA.marcaSuave);
+    expect(PALETTE.marca).toBe(PALETA_DE_COCINA.marca);
   });
 });

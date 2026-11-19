@@ -90,6 +90,7 @@ function kitchen(over: Partial<Kitchen> = {}): Kitchen {
     estrellas: null,
     servicios: [],
     tarjeta: null,
+    promociones: [],
     ...over,
   };
 }

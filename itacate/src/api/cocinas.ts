@@ -52,9 +52,13 @@
 // ⚠️ SINCE `10.9g-i` `0087`'s `promotions` — a kitchen's promotions a neighbour sees now, newest first,
 // three at most (running, Wera's switch and the kitchen's choice on, *Para tus clientes* only while her
 // card is open) — and each offer's `promotion_id` while that promotion is shown, its mark: declared here
-// so the door's contract check holds every key, and read and drawn by `10.9g-iii` (her page's band, *y 2
-// más*, the mark in *Cerca*). A promotion has no count, no price and no code, and never moves a dish up
-// the list. Its own keys are held by `docs/checks/10.9g-i-promotions-contract.sh`.
+// so the door's contract check holds every key. A promotion has no count, no price and no code, and never
+// moves a dish up the list. Its own keys are held by `docs/checks/10.9g-i-promotions-contract.sh`.
+// ⚠️ SINCE `10.9g-iii` READ into `Kitchen.promociones` (`promocionesOf`: its kind, what, more, days, last
+// day and conditions — a kind this build does not know is left out, never an error) and `Offer.promocion`
+// (the id, only while that promotion is among hers — a mark with no band to explain it is never drawn):
+// her page's band, *y 2 más*, the mark on an offer in *Cerca*, on her page and on a dish's, and *Mis
+// cocinas*' lines. Its photo (`image_path`) and first day (`starts_on`) are declared and drawn by nothing.
 // ============================================================================
 
 import { SCALE, parseDecimal } from '@tienda/money';
@@ -119,6 +123,17 @@ export interface DoorPromotionRow {
   readonly ends_on: string;
   readonly conditions: string;
 }
+
+/**
+ * `0087`'s four kinds, each the mark neighbours see (call 25) — Wera Cocina's (`cocina/src/api/promociones.ts`,
+ * held block for block by `test/gemelos.test.ts`). *Para tus clientes* only while her card is open.
+ */
+export const TIPOS = ['nuevo', 'temporada', 'dia', 'clientes'] as const;
+export type Tipo = (typeof TIPOS)[number];
+
+/** A promotion's days: ISO weekdays, 1 Monday to 7 Sunday; all seven is *Todos* — Wera Cocina's. */
+export const DIAS = [1, 2, 3, 4, 5, 6, 7] as const;
+export type Dia = (typeof DIAS)[number];
 
 /** `0085`: a kitchen's loyalty card as the door sends it — the terms a neighbour's first stamp starts on. */
 export interface DoorCardRow {
@@ -287,6 +302,23 @@ export interface Offer {
   readonly dishes: readonly Dish[];
   /** The *desechable* in centavos, added when she takes it away — `null`, no charge. */
   readonly desechableCentavos: number | null;
+  /** `0087`: the promotion it joined — its mark — while that promotion is among her kitchen's; else `null`. */
+  readonly promocion: string | null;
+}
+
+/** `0087`: one promotion a neighbour sees now — her page's band, the mark on the offers that joined it. */
+export interface Promocion {
+  readonly id: string;
+  readonly tipo: Tipo;
+  /** What she offers — *Jueves pozolero*. */
+  readonly loQue: string;
+  readonly mas: string | null;
+  /** Its weekdays, Monday first; all seven is *Todos*. */
+  readonly dias: readonly Dia[];
+  /** Its last day, `YYYY-MM-DD` in her kitchen's zone — *hasta el 17 de diciembre*. */
+  readonly hasta: string;
+  /** As her phone wrote them, with her kitchen's name and address — line breaks kept. */
+  readonly condiciones: string;
 }
 
 /** A dish she repeats. */
@@ -331,6 +363,8 @@ export interface Kitchen {
   readonly servicios: readonly ServicioVisto[];
   /** `0085`: her loyalty card's terms while it is open (G12) — what a first stamp starts on — else `null`. */
   readonly tarjeta: TarjetaDeCocina | null;
+  /** `0087`: her promotions a neighbour sees now, newest first (the door's order) — none, `[]`. */
+  readonly promociones: readonly Promocion[];
 }
 
 /** `0085`: a kitchen's loyalty card as a neighbour reads it before her first stamp (G12, G34). */
@@ -470,7 +504,45 @@ function offerOf(value: unknown): Offer | null {
     end: instantOf(o.pickup_end),
     dishes: dishes.sort((a, b) => a.lineNo - b.lineNo),
     desechableCentavos: desechableOf(o.container_price),
+    promocion: orNull(o.promotion_id),
   };
+}
+
+/** One promotion as the door sends it, or `null` when this build cannot read it — a kind it does not know above all. */
+function promocionOf(value: unknown): Promocion | null {
+  const p = object(value);
+  if (p === null) return null;
+  const id = text(p.id);
+  const loQue = text(p.what);
+  // The conditions keep her line breaks (`0087` allows them): only trimmed, never folded.
+  const condiciones = typeof p.conditions === 'string' ? p.conditions.trim() : '';
+  const hasta = text(p.ends_on);
+  const dias = list(p.days);
+  if (id === '' || loQue === '' || condiciones === '' || !/^\d{4}-\d{2}-\d{2}$/.test(hasta)) return null;
+  if (!(TIPOS as readonly unknown[]).includes(p.kind)) return null;
+  if (dias.length === 0 || !dias.every((d) => (DIAS as readonly unknown[]).includes(d))) return null;
+  return {
+    id,
+    tipo: p.kind as Tipo,
+    loQue,
+    mas: orNull(p.more),
+    dias: DIAS.filter((d) => dias.includes(d)),
+    hasta,
+    condiciones,
+  };
+}
+
+/**
+ * ⚠️ `0087`: her promotions as the door sends them, its order kept (newest first) — one this build cannot
+ * read is left out, never the kitchen: a kind added later is a band this build does not draw.
+ */
+export function promocionesOf(value: unknown): Promocion[] {
+  const promociones: Promocion[] = [];
+  for (const p of list(value)) {
+    const promocion = promocionOf(p);
+    if (promocion !== null && !promociones.some((q) => q.id === promocion.id)) promociones.push(promocion);
+  }
+  return promociones;
 }
 
 /** How she takes payment: cash always, first, then what the door says she takes, in `PAGOS`' order. */
@@ -579,6 +651,11 @@ export function toKitchen(row: KitchenRow): Kitchen {
     }
   }
   offers.sort((a, b) => a.start.getTime() - b.start.getTime() || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+  const promociones = promocionesOf(k.promotions);
+  // An offer wears a mark only while its promotion is one of hers this build reads — never a mark with no band.
+  const marcadas = offers.map((o) =>
+    o.promocion === null || promociones.some((p) => p.id === o.promocion) ? o : { ...o, promocion: null },
+  );
   return {
     id,
     name,
@@ -587,7 +664,7 @@ export function toKitchen(row: KitchenRow): Kitchen {
     directions: orNull(k.directions),
     point: pointOf(k.point),
     page: toPage(object(k.page) ?? null),
-    offers,
+    offers: marcadas,
     summary: summaryOf(k.summary),
     pagos: pagosOf(k.payment),
     comeres: comeresOf(k.eat),
@@ -595,6 +672,7 @@ export function toKitchen(row: KitchenRow): Kitchen {
     estrellas: estrellasOf(k.stars),
     servicios: serviciosOf(k.features),
     tarjeta: tarjetaOf(k.card),
+    promociones,
   };
 }
 

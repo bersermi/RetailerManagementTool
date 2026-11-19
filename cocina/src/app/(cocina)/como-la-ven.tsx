@@ -79,7 +79,7 @@ export default function ComoLaVen() {
   return (
     <View style={{ flex: 1, backgroundColor: PALETTE.fondo }}>
       {barra}
-      {!seVeEnItacate(listings.data, ahora) && (
+      {!seVeEnItacate(listings.data, ahora, loQueVen.promociones) && (
         <Text
           style={{
             fontSize: SIZE.smallSize,

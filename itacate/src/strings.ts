@@ -165,6 +165,8 @@ export const ES = {
     /** `10.5-iv-a-ii`: what a screen reader says for a card, which now opens a page. */
     abrirPlatillo: (platillo: string, cocina: string) => `${platillo}, de ${cocina}`,
     abrirCocina: (cocina: string) => `${cocina}, sin ofertas ahora`,
+    /** `10.9g-iii`: a promotion's mark on a card, for a screen reader — *Promoción: Los jueves*. */
+    promocionAyuda: (marca: string) => `Promoción: ${marca}`,
     /**
      * `10.5-iv-a-iv` — *Ordenar*, her pick of the list's order (the owner's answer 2 of
      * 2026-11-05). The list opens on *Ahora* (his answer 1).
@@ -250,6 +252,16 @@ export const ES = {
     },
     /** ⚠️ `10.5b-iii-b`: how she takes payment, as chips (call 20) — each chip `ES.platillo.pago`'s. */
     comoPagas: 'Cómo pagas aquí',
+    /**
+     * ⚠️ `10.9g-iii`: HER PROMOTION'S BAND (G29, the family-shell page's `promoBand` on her page): the newest, and
+     * *y 2 más* — a tap shows the others; *Condiciones* opens hers under the band. The band's own words are the
+     * promotion's (`ES.promociones`, Wera Cocina's).
+     */
+    promocion: 'Promoción',
+    yMas: (n: number) => `y ${n} más`,
+    yMasAyuda: (n: number) => (n === 1 ? 'Ver la otra promoción' : `Ver las otras ${n} promociones`),
+    condiciones: 'Condiciones',
+    ocultarCondiciones: 'Ocultar condiciones',
   },
 
   /**
@@ -389,6 +401,13 @@ export const ES = {
     /** A screen reader's word for the bell beside a row — it rings nothing until `10.9h`, so it promises nothing. */
     conCampana: 'con la campana encendida',
     anteriores: 'Tus apartados anteriores',
+    /**
+     * ⚠️ `10.9g-iii`: A LINE PER PROMOTION of the kitchens in *Tus cocinas* (the family-shell page's `pline`): its
+     * mark, then ***Jueves pozolero** en Fonda Doña Mari, hasta el 17 de diciembre* — what she offers in bold, as drawn.
+     * A tap opens her page.
+     */
+    promocion: (loQue: string, cocina: string, hasta: string) => `${loQue} en ${cocina}, ${hasta}`,
+    promocionEn: (cocina: string, hasta: string) => ` en ${cocina}, ${hasta}`,
   },
 
   /**
@@ -555,6 +574,26 @@ export const ES = {
     canal: 'Tus apartados',
     titulo: (aLas: string) => `Tu comida estará lista ${aLas}`,
     texto: (cocina: string, codigo: string) => `${cocina} · Tu código: ${codigo}`,
+  },
+
+  /**
+   * ⚠️ `10.9g-iii`: A PROMOTION'S OWN WORDS — WERA COCINA'S (`cocina/src/strings.ts`, `ES.promociones`), the ones
+   * `@/lib/promociones`' copies say: each kind's mark (call 25; *Un día especial*'s is its days), the days, *hasta el
+   * …*, and what the band says of a promotion with no words of its own. `test/gemelos.test.ts` holds each, value for value.
+   */
+  promociones: {
+    marcas: { nuevo: 'Nuevo', temporada: 'De temporada', especial: 'Especial', clientes: 'Con tu tarjeta de lealtad' },
+    ejemplos: {
+      nuevo: 'Enchiladas potosinas',
+      temporada: 'Romeritos con mole',
+      dia: 'Jueves pozolero',
+      clientes: 'Agua de jamaica gratis con tu comida',
+    },
+    todosLosDias: 'Todos los días',
+    /** Each weekday as *los …* says it, Monday first (ISO's order). */
+    losDias: ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábados', 'domingos'],
+    los: (dias: string) => `Los ${dias}`,
+    hastaEl: (dia: string) => `hasta el ${dia}`,
   },
 
   /**

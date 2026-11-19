@@ -18,6 +18,8 @@
 // or *Aquí o para llevar* as the dish will be sent (`@/api/listing`'s `comoSeComeDe`: her choice
 // when her kitchen offers both ways, else the kitchen's), and her kitchen's payment, *desechable*
 // and stars are the ones *Mi cocina* holds; the door's defaults while those are not read.
+// ⚠️ `10.9g-iii`: THE PROMOTION SHE PICKED in *¿Es parte de una promoción?* — the card wears its mark, as
+// Itacate's list will draw it once published; none picked, none worn.
 //
 // ⚠️ PURE: `test/vistaPrevia.test.ts` pins every rule here.
 // ============================================================================
@@ -31,7 +33,7 @@ import type { Place } from '@/api/place';
 import { SIN_AJUSTES, cocinaComoLaVen } from '@/lib/comoLaVen';
 import type { Ventana } from '@/lib/ventana';
 import { ES } from '@/strings';
-import type { Dish, Estrellas, Kitchen, Offer } from '@/vecinos/cocinas';
+import type { Dish, Estrellas, Kitchen, Offer, Promocion } from '@/vecinos/cocinas';
 
 /** The offer the card belongs to, before it has an id of its own. Never sent. */
 export const OFERTA_PREVIA = 'vista-previa';
@@ -102,16 +104,19 @@ export function previaDe(input: {
   /** `10.5b-iv-c`: her settings and her stars, once read. */
   readonly ajustes?: Ajustes | null;
   readonly estrellas?: Estrellas | null;
+  /** `10.9g-iii`: the promotion she picked for this offer, or none. */
+  readonly promocion?: Promocion | null;
 }): Previa {
   const { kitchen, place, page, lines, ventana, now } = input;
+  const promocion = input.promocion ?? null;
   const ajustes = input.ajustes ?? null;
   const platillos = lines.map((line, i) => platilloPrevio(line, i, ajustes));
   const desechableCentavos = ajustes === null ? SIN_AJUSTES.desechableCentavos : ajustes.desechableCentavos;
   return {
     // Her name, trade, colour, logo and stars — nothing else of it is drawn by the card.
-    cocina: cocinaComoLaVen({ kitchen, place, page, listings: [], now, ajustes, estrellas: input.estrellas }),
-    // ⚠️ The *desechable* her kitchen holds now, which publishing copies onto the offer.
-    oferta: { id: OFERTA_PREVIA, start: ventana.start, end: ventana.end, dishes: platillos, desechableCentavos },
+    cocina: cocinaComoLaVen({ kitchen, place, page, listings: [], now, ajustes, estrellas: input.estrellas, promociones: promocion === null ? [] : [promocion] }),
+    // ⚠️ The *desechable* her kitchen holds now, which publishing copies onto the offer; the promotion she picked.
+    oferta: { id: OFERTA_PREVIA, start: ventana.start, end: ventana.end, dishes: platillos, desechableCentavos, promocion: promocion?.id ?? null },
     platillos,
   };
 }

@@ -26,6 +26,7 @@ import {
 import { EMPTY_PAGE, colorOf, defaultsFor } from '@/api/pagina';
 import { activasEl } from '@/api/promociones';
 import type { Place } from '@/api/place';
+import { promocionVistaDe } from '@/lib/comoLaVen';
 import { eleccionDe, recordarEleccion } from '@/lib/eleccion';
 import { cambiarMemoria, leerMemoria, ofertaFestejada, ofertaDeEstreno } from '@/lib/empujones';
 import { elegirFoto, tomarFoto } from '@/lib/foto';
@@ -218,7 +219,19 @@ function Form({ kitchen, place, source }: { kitchen: Kitchen; place: Place; sour
 
   const section = { fontSize: SIZE.bodySize, fontWeight: '700', color: PALETTE.tinta, marginTop: SIZE.space } as const;
   const ahora = new Date();
-  const previa = previaDe({ kitchen, place, page: page.data ?? EMPTY_PAGE, lines, ventana, now: ahora, ajustes, estrellas });
+  // `10.9g-iii`: the promotion she picked, so the card wears its mark as Itacate will draw it.
+  const elegida = ofrecidas.find((p) => p.id === promoElegida);
+  const previa = previaDe({
+    kitchen,
+    place,
+    page: page.data ?? EMPTY_PAGE,
+    lines,
+    ventana,
+    now: ahora,
+    ajustes,
+    estrellas,
+    promocion: elegida === undefined ? null : promocionVistaDe(elegida),
+  });
 
   return (
     <View style={{ flex: 1, backgroundColor: PALETTE.fondo }}>

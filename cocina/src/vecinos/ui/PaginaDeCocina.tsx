@@ -1,17 +1,18 @@
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useState, type ReactNode } from 'react';
-import { RefreshControl, ScrollView, Text, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import type { Dish, Kitchen, Offer } from '@/vecinos/cocinas';
 import { ratioOf } from '@/api/fotos';
 import { colorOf, defaultsFor } from '@/api/pagina';
-import { calificacionDe, calleDe, comoLlegarUrl, hoyDe, pagosDe, queYDondeDe, repetidosDe, verEnMapsUrl } from '@/vecinos/paginas';
+import { bandasDe, calificacionDe, calleDe, comoLlegarUrl, hoyDe, pagosDe, queYDondeDe, repetidosDe, verEnMapsUrl } from '@/vecinos/paginas';
 import { VECINOS as ES } from '@/strings';
 import { HUES } from '@/theme/colores';
 import { TITULO } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
 import { Atras } from '@/vecinos/ui/Atras';
+import { BandaPromocion } from '@/ui/BandaPromocion';
 import { Circulo } from '@/vecinos/ui/Circulo';
 import { Dibujo } from '@/ui/Dibujo';
 import { Enlace } from '@/vecinos/ui/Enlace';
@@ -70,6 +71,10 @@ export function PaginaDeCocina({
 }) {
   const insets = useSafeAreaInsets();
   const [jalando, setJalando] = useState(false);
+  // `10.9g-iii`: *y 2 más* tapped, and the bands whose *Condiciones* are open.
+  const [todas, setTodas] = useState(false);
+  const [abiertas, setAbiertas] = useState<readonly string[]>([]);
+  const alternar = (key: string) => setAbiertas((antes) => (antes.includes(key) ? antes.filter((k) => k !== key) : [...antes, key]));
 
   async function refrescar() {
     if (onRefrescar === undefined) return;
@@ -90,6 +95,7 @@ export function PaginaDeCocina({
   const repetidos = repetidosDe(cocina.summary);
   const calificacion = calificacionDe(cocina);
   const pagos = pagosDe(cocina);
+  const bandas = bandasDe(cocina);
   const titulo = { fontSize: SIZE.smallSize, fontWeight: '800', letterSpacing: 1, textTransform: 'uppercase', color: HUES[color] } as const;
 
   return (
@@ -159,6 +165,43 @@ export function PaginaDeCocina({
         </View>
         {seguir}
       </View>
+
+      {bandas.length > 0 && (
+        <View style={{ marginTop: SIZE.space * 1.5, paddingHorizontal: MARGEN, gap: SIZE.rowGap }}>
+          <Text accessibilityRole="header" style={titulo}>
+            {ES.pagina.promocion}
+          </Text>
+          {(todas ? bandas : bandas.slice(0, 1)).map((banda) => (
+            <View key={banda.key} style={{ gap: SIZE.rowGap / 2 }}>
+              <BandaPromocion
+                icono={banda.icono}
+                marca={banda.marca}
+                hasta={banda.hasta}
+                loQue={banda.loQue}
+                mas={banda.mas}
+                condiciones={abiertas.includes(banda.key) ? ES.pagina.ocultarCondiciones : ES.pagina.condiciones}
+                onCondiciones={() => alternar(banda.key)}
+              />
+              {abiertas.includes(banda.key) && (
+                <Text style={{ paddingHorizontal: SIZE.space, fontSize: SIZE.smallSize, lineHeight: 19, color: PALETTE.tintaApagada }}>
+                  {banda.condiciones}
+                </Text>
+              )}
+            </View>
+          ))}
+          {!todas && bandas.length > 1 && (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={ES.pagina.yMasAyuda(bandas.length - 1)}
+              onPress={() => setTodas(true)}
+              hitSlop={SIZE.rowGap}
+              style={{ alignSelf: 'flex-start' }}
+            >
+              <Text style={{ fontSize: SIZE.smallSize, fontWeight: '700', color: PALETTE.marca }}>{ES.pagina.yMas(bandas.length - 1)}</Text>
+            </Pressable>
+          )}
+        </View>
+      )}
 
       {(calle !== null || cocina.directions !== null || llegar !== null) && (
         <View

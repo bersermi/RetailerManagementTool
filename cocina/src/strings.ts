@@ -1886,6 +1886,8 @@ export const VECINOS = {
     publicoAyer: 'Publicó ayer',
     publicoEl: (dia: string) => `Publicó el ${dia}`,
     publicoFecha: (dia: number, mes: string) => `Publicó el ${dia} de ${mes}`,
+    /** `10.9g-iii`: a promotion's mark on a card, for a screen reader — *Promoción: Los jueves*. */
+    promocionAyuda: (marca: string) => `Promoción: ${marca}`,
   },
 
   pagina: {
@@ -1921,6 +1923,12 @@ export const VECINOS = {
     },
     /** `10.5b-iii-b`: how she takes payment, as chips — each chip `platillo.pago`'s. */
     comoPagas: 'Cómo pagas aquí',
+    /** `10.9g-iii`: her promotion's band — the newest, *y 2 más*, *Condiciones* opening hers under it. */
+    promocion: 'Promoción',
+    yMas: (n: number) => `y ${n} más`,
+    yMasAyuda: (n: number) => (n === 1 ? 'Ver la otra promoción' : `Ver las otras ${n} promociones`),
+    condiciones: 'Condiciones',
+    ocultarCondiciones: 'Ocultar condiciones',
   },
 
   platillo: {

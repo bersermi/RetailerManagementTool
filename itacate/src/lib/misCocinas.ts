@@ -15,6 +15,9 @@
 // (`my_reservations`) makes a later one "first" again.
 // ⚠️ A KITCHEN SHE FOLLOWS NEED NOT BE IN THE DOOR (one quiet for two weeks is not), so a page of
 // its own (`@/ui/PaginaSeguida`) is drawn from `my_follows`' row when the door does not send it.
+// ⚠️ SINCE `10.9g-iii` A LINE PER PROMOTION of the kitchens in *Tus cocinas* (the family-shell page's `pline`,
+// stage 4: *"a band on the kitchen's page, a mark on its offers of those days, a line in Mis cocinas"*) — from
+// the door, so a kitchen it does not send has none (`promocionesDeMisCocinas`).
 // ============================================================================
 
 import type { Apartado } from '@/api/apartados';
@@ -22,6 +25,7 @@ import type { Kitchen } from '@/api/cocinas';
 import { DIAS_QUE_SE_VE_QUE_SE_FUE, switchesDe, type Seguida, type Siguiendo } from '@/api/siguiendo';
 import { aLasDe, platoTexto, seccionesDe } from '@/lib/apartados';
 import { diasAtras, publicoTexto } from '@/lib/lista';
+import { bandaVistaDe, type MarcaVista } from '@/lib/paginas';
 import { dayOf, daysFrom } from '@/lib/ventana';
 import { ES } from '@/strings';
 
@@ -201,5 +205,50 @@ export function cocinaDeSeguida(seguida: Seguida, puerta: Kitchen | null): Kitch
     estrellas: null,
     servicios: [],
     tarjeta: null,
+    promociones: [],
   };
+}
+
+// ----------------------------------------------------------------------------
+// Her kitchens' promotions — a line each, under *Tus cocinas* (`10.9g-iii`)
+// ----------------------------------------------------------------------------
+
+/** One line: the promotion's mark, and *Jueves pozolero en Fonda Doña Mari, hasta el 17 de diciembre*. */
+export interface LineaDePromocion {
+  readonly key: string;
+  /** Whose page a tap opens. */
+  readonly cocinaId: string;
+  readonly marca: MarcaVista;
+  /** The whole line, as a screen reader says it. */
+  readonly texto: string;
+  /** What she offers, drawn in bold — then the rest: *en Fonda Doña Mari, hasta el 17 de diciembre*. */
+  readonly loQue: string;
+  readonly resto: string;
+}
+
+/**
+ * ⚠️ THE PROMOTIONS OF THE KITCHENS IN *TUS COCINAS* — `ids` in that list's order (those she follows, then those
+ * whose card she holds); each kitchen's newest first, the door's order. Read from the door, so only what a
+ * neighbour sees now; a kitchen it does not send has none here. Never a kitchen she keeps nowhere: *Cerca* is
+ * where she finds the others.
+ */
+export function promocionesDeMisCocinas(ids: readonly string[], cocinas: readonly Kitchen[] | undefined): readonly LineaDePromocion[] {
+  if (cocinas === undefined) return [];
+  const lineas: LineaDePromocion[] = [];
+  for (const id of new Set(ids)) {
+    const cocina = cocinas.find((k) => k.id === id);
+    if (cocina === undefined) continue;
+    for (const p of cocina.promociones) {
+      const banda = bandaVistaDe(p);
+      lineas.push({
+        key: p.id,
+        cocinaId: cocina.id,
+        marca: { icono: banda.icono, texto: banda.marca, ayuda: ES.cerca.promocionAyuda(banda.marca) },
+        texto: ES.misCocinas.promocion(banda.loQue, cocina.name, banda.hasta ?? ''),
+        loQue: banda.loQue,
+        resto: ES.misCocinas.promocionEn(cocina.name, banda.hasta ?? ''),
+      });
+    }
+  }
+  return lineas;
 }

@@ -9,6 +9,7 @@ import type { Kitchen as SuCocina } from '@/api/kitchen';
 import type { Line, Listing } from '@/api/listing';
 import { EMPTY_PAGE } from '@/api/pagina';
 import type { Place } from '@/api/place';
+import type { PromotionRow, PromotionsRow } from '@/api/promociones';
 import {
   SIN_AJUSTES,
   DIAS_A_LA_VISTA,
@@ -19,6 +20,7 @@ import {
   cocinaComoLaVen,
   nombreNormal,
   ofertasDe,
+  promocionesVistas,
   puntoDe,
   quedanDe,
   resumenDe,
@@ -336,6 +338,70 @@ describe('seen in Itacate — while something is on offer, or 14 days after a pu
     expect(seVeEnItacate([pub(at(23, 16, 19, 9), at(23, 17, 0, 9), at(23, 19, 0, 9), [linea('Mole')])], now)).toBe(false);
     // Made long ago for a window still open — on offer, so seen.
     expect(seVeEnItacate([pub(at(1, 9, 0, 9), at(6, 15), at(6, 18), [linea('Mole')])], now)).toBe(true);
+  });
+});
+
+describe('`10.9g-iii`: her promotions, as the door sends them', () => {
+  const fila = (id: string, patch: Partial<PromotionRow> = {}): PromotionRow => ({
+    id,
+    kind: 'nuevo',
+    what: `Lo de ${id}`,
+    more: null,
+    image_path: null,
+    days: [1, 2, 3, 4, 5, 6, 7],
+    starts_on: '2026-11-01',
+    ends_on: '2026-11-30',
+    conditions: 'Todos los días…',
+    created_at: '2026-11-01T12:00:00Z',
+    state: 'activa',
+    ended_on: null,
+    shown: true,
+    offers_today: 0,
+    ...patch,
+  });
+  const row = (promotions: PromotionRow[]): PromotionsRow => ({ day: '2026-11-06', max: 3, running: promotions.length, card_open: true, promotions });
+
+  it('those a neighbour sees now — running and `shown`, the database’s own answer — in its order', () => {
+    const vistas = promocionesVistas(
+      row([fila('a', { kind: 'dia', days: [4], more: 'Con tostadas' }), fila('hidden', { shown: false }), fila('b'), fila('ended', { state: 'terminada', shown: false, ended_on: '2026-11-05' })]),
+    );
+    expect(vistas.map((p) => p.id)).toEqual(['a', 'b']);
+    expect(vistas[0]).toEqual({ id: 'a', tipo: 'dia', loQue: 'Lo de a', mas: 'Con tostadas', dias: [4], hasta: '2026-11-30', condiciones: 'Todos los días…' });
+    expect(promocionesVistas(null)).toEqual([]);
+    expect(promocionesVistas(undefined)).toEqual([]);
+  });
+
+  it('her running ones come newest first, as the door sends them — the same order', () => {
+    const { body: puerta } = ultimaQueDefine('on_offer_now');
+    expect(puerta).toContain('order by p.created_at desc, p.id) from servicio.promotion p where p.workspace_id = k.id and servicio.promotion_shown(p)');
+    const { body: suyas } = ultimaQueDefine('kitchen_promotions');
+    expect(suyas).toContain('order by x.running desc, x.sort_at desc, x.id');
+    expect(suyas).toContain('case when servicio.promotion_running(p) then p.created_at');
+  });
+
+  it('an offer wears its mark only while its promotion is shown — the door’s `promotion_id` rule', () => {
+    const { body } = ultimaQueDefine('on_offer_now');
+    expect(body).toContain("'promotion_id', (select p.id from servicio.promotion p where p.id = li.promotion_id and servicio.promotion_shown(p))");
+    const now = ahora();
+    const listings = [
+      pub(at(6, 9), at(6, 15), at(6, 18), [linea('Pozole')], { promocion: 'a' }),
+      pub(at(6, 9, 1), at(6, 15, 1), at(6, 18), [linea('Mole')], { promocion: 'hidden' }),
+      pub(at(6, 9, 2), at(6, 15, 2), at(6, 18), [linea('Arroz')]),
+    ];
+    const promociones = promocionesVistas(row([fila('a'), fila('hidden', { shown: false })]));
+    const k = cocinaComoLaVen({ kitchen: COCINA, place: lugar(), page: EMPTY_PAGE, listings, now, promociones });
+    expect(k.promociones.map((p) => p.id)).toEqual(['a']);
+    expect(k.offers.map((o) => o.promocion)).toEqual(['a', null, null]);
+    // Unread, none — and no mark either.
+    expect(cocinaComoLaVen({ kitchen: COCINA, place: lugar(), page: EMPTY_PAGE, listings, now }).offers.map((o) => o.promocion)).toEqual([null, null, null]);
+  });
+
+  it('⚠️ a promotion shown keeps her in the door though she published nothing in 14 days (`0087`)', () => {
+    const { body } = ultimaQueDefine('on_offer_now');
+    expect(body).toContain('or exists (select 1 from servicio.promotion p where p.workspace_id = w.id and servicio.promotion_shown(p))');
+    expect(seVeEnItacate([], ahora())).toBe(false);
+    expect(seVeEnItacate([], ahora(), promocionesVistas(row([fila('a')])))).toBe(true);
+    expect(seVeEnItacate([], ahora(), promocionesVistas(row([fila('hidden', { shown: false })])))).toBe(false);
   });
 });
 

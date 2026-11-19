@@ -116,7 +116,7 @@ describe('her list, as the app asks for it', () => {
     expect(LISTING_TABLE).toBe('listing');
     expect(LINES_TABLE).toBe('listing_line');
     expect(LISTING_COLUMNS).toBe(
-      'id,location_id,pickup_start,pickup_end,created_at,withdrawn_at,container_price,listing_line(line_no,name,description,tags,unit_price,quantity,surprise,usual_price,image_path,para_llevar,para_aqui)',
+      'id,location_id,pickup_start,pickup_end,created_at,withdrawn_at,container_price,promotion_id,listing_line(line_no,name,description,tags,unit_price,quantity,surprise,usual_price,image_path,para_llevar,para_aqui)',
     );
     expect(LISTING_COLUMNS).not.toContain('*');
     expect(LISTING_COLUMNS).toContain(`${LINES_TABLE}(`);
@@ -402,6 +402,17 @@ describe('her list, read back', () => {
     const later = toListing(row({ id: 'l-later', pickup_start: '2026-11-01T01:00:00Z', pickup_end: '2026-11-01T02:00:00Z' }));
     const ended = toListing(row({ id: 'l-ended', pickup_start: '2026-10-31T20:00:00Z', pickup_end: '2026-10-31T21:00:00Z' }));
     expect(inOrder([ended, later, offer], now).map((l) => l.id)).toEqual(['l-1', 'l-later', 'l-ended']);
+  });
+
+  it('`10.9g-iii`: the promotion it joined, read back — what her previews draw its mark from', () => {
+    expect(toListing(row({ promotion_id: 'p-1' })).promocion).toBe('p-1');
+    expect(toListing(row({ promotion_id: null })).promocion).toBeNull();
+    // A row from before the column was read — a copy kept by an older build — joined none.
+    expect(toListing(row()).promocion).toBeNull();
+    const ventana = { start: new Date('2026-10-31T23:00:00Z'), end: new Date('2026-11-01T00:00:00Z') };
+    const body = publishBody('place-1', [line()], ventana);
+    expect(listingFrom(publishArgs({ id: 'n', sent: '' }, body)).promocion).toBeNull();
+    expect(listingFrom({ ...publishArgs({ id: 'n', sent: '' }, body), p_promotion_id: 'p-1' }).promocion).toBe('p-1');
   });
 
   it('a made one goes in front at once, a retry adds nothing, and a withdrawal keeps its first moment', () => {
