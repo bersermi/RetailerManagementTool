@@ -1439,6 +1439,154 @@ export const ES = {
     volver: 'Hoy',
   },
   /**
+   * ⚠️ `10.9g-ii`: PROMOTIONS IN WERA COCINA — the owner's rulings of 2026-11-05 (calls 23–25) and G18, G28–G30
+   * and G36 of 2026-11-16 and 17, as the family-shell page draws stage 4 (`cPromos`, `promoForm`, `promoSheet`,
+   * `promoBand`, the tile). The drawn words are the page's; the rest is this row's, each said in the plan's
+   * status entry. ⚠️ NOTHING HERE PROMISES A MESSAGE: *Avisar a quienes te siguen* is the analyst's (`10.9h`),
+   * so the drawing's switch is not written.
+   */
+  promociones: {
+    titulo: 'Promociones',
+    volver: 'Hoy',
+    /** Under the title, while any runs: *2 activas · hasta tres a la vez*. */
+    activas: (n: number) => `${n} ${n === 1 ? 'activa' : 'activas'} · hasta tres a la vez`,
+    crear: 'Crear promoción',
+    tresActivas: 'Tienes tres activas. Termina una para crear otra.',
+    queEs: 'Una promoción no se aparta ni lleva cantidad: eso es una oferta. Tus ofertas de esos días pueden llevar su marca.',
+    activa: 'Activa',
+    termino: 'Terminó',
+    filaActiva: (tipo: string, dias: string, hasta: string) => `${tipo} · ${dias} · hasta el ${hasta}`,
+    filaTerminada: (tipo: string, dia: string) => `${tipo} · terminó el ${dia}`,
+    leyendo: 'Leyendo tus promociones…',
+    sinLeer: 'No pudimos leer tus promociones. Revisa tu conexión a internet.',
+    otraVez: 'Intentar de nuevo',
+    /** Off, from its own screen (the shell's rule). ⚠️ Her running ones end with it (`0087`), so it asks first. */
+    dejar: 'Dejar de usar promociones',
+    dejando: 'Quitando…',
+    dejarTitulo: '¿Dejar de usar promociones?',
+    dejarTexto: (n: number) =>
+      n === 1 ? 'Tu promoción activa termina hoy y ya no se ve en Itacate.' : `Tus ${n} promociones activas terminan hoy y ya no se ven en Itacate.`,
+    dejarSi: 'Dejar de usarlas',
+    dejarNo: 'Seguir con ellas',
+    dejadas: 'Quitaste las promociones de tu Hoy. Están en Mi cocina › Lo que usas',
+    /** After *Deshacer* — only when none was running, so nothing ended. */
+    deshechoDejar: 'Las promociones están otra vez en tu Hoy',
+    noSeDeshizoDejar: (porque: string) => `No volvieron a tu Hoy. ${porque}`,
+    /** The four kinds (call 25) and what each tile says under its name. */
+    tipos: { nuevo: 'Platillo nuevo', temporada: 'De temporada', dia: 'Un día especial', clientes: 'Para tus clientes' },
+    tiposDetalle: {
+      nuevo: 'Algo que no habías ofrecido',
+      temporada: 'Lo que solo hay en esta época',
+      dia: 'Jueves pozolero, viernes de pescado',
+      clientes: 'Con tu tarjeta de lealtad',
+    },
+    /** The mark her offers wear and her band carries — *Un día especial*'s is its days, *Especial* before she picks one. */
+    marcas: { nuevo: 'Nuevo', temporada: 'De temporada', especial: 'Especial', clientes: 'Con tu tarjeta de lealtad' },
+    /** The muted hint in *¿Qué ofreces?*, and the band's words until she types hers. */
+    ejemplos: {
+      nuevo: 'Enchiladas potosinas',
+      temporada: 'Romeritos con mole',
+      dia: 'Jueves pozolero',
+      clientes: 'Agua de jamaica gratis con tu comida',
+    },
+    todosLosDias: 'Todos los días',
+    /** Each weekday as *los …* says it, Monday first (ISO's order). */
+    losDias: ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábados', 'domingos'],
+    los: (dias: string) => `Los ${dias}`,
+    /** Each weekday alone, Monday first — *Hasta el lunes 30 de noviembre*. */
+    diaDeSemana: ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo'],
+    /** The day chips, Monday first, and what a screen reader says of each. */
+    diasCortos: ['Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sá', 'Do'],
+    hastaEl: (dia: string) => `hasta el ${dia}`,
+    mesDe: (mes: string, anio: number) => `${mes} ${anio}`,
+    /** The conditions, written for her (the drawing's `condTxt`). */
+    conTarjeta: 'Con tu tarjeta de lealtad.',
+    periodo: (desde: string, hasta: string) => `del ${desde} al ${hasta}`,
+    desde: (desde: string) => `desde el ${desde}`,
+    conAnio: (dia: string, anio: string) => `${dia} de ${anio}`,
+    en: (cocina: string, direccion: string | null) => (direccion === null ? `en ${cocina}.` : `en ${cocina}, ${direccion}.`),
+    /** *Tu promoción* — the sheet a row opens. */
+    tuPromocion: 'Tu promoción',
+    seVe: 'Se ve en tu página.',
+    noSeVe: 'Ahora no se ve en Itacate.',
+    ofertasHoy: (n: number) => (n === 1 ? 'Una oferta de hoy lleva su marca.' : `${n} ofertas de hoy llevan su marca.`),
+    terminada: 'Ya no se ve en Itacate.',
+    terminar: 'Terminarla hoy',
+    terminando: 'Terminando…',
+    seguir: 'Seguir con ella',
+    usarla: 'Usarla otra vez',
+    cerrar: 'Cerrar',
+    condiciones: 'Condiciones',
+    /** ⚠️ No *Deshacer*: `0087` has no way back for an ended promotion — *Usarla otra vez* makes a new one. */
+    terminaste: (que: string) => `Terminaste ${que}. Tus ofertas de hoy siguen.`,
+    /** After *Publicar promoción*, with *Deshacer* for 8 seconds — her first, as a celebration. */
+    publicaste: (que: string) => `Publicaste ${que}`,
+    primera: 'Tu primera promoción ya se ve en tu página',
+    deshecha: 'Listo: la promoción ya no está.',
+    noSeDeshizo: (porque: string) => `No se pudo deshacer. ${porque}`,
+    /** The tile on *Hoy* once she made one: the newest running, *y 1 más*; or none now. */
+    tileHasta: (dia: string, mas: number) => (mas > 0 ? `Hasta el ${dia} · y ${mas} más` : `Hasta el ${dia}`),
+    ninguna: ['Ninguna ahora', 'Crea una cuando quieras'],
+    tileSinLeer: ['—', 'No se pudieron leer'],
+    /** *¿Es parte de una promoción?* in *Publicar* (G30) — asked only while one runs that day. */
+    parte: '¿Es parte de una promoción?',
+    no: 'No',
+    parteNota: 'Si lo es, tu oferta lleva su marca en Itacate.',
+  },
+  /** *Nueva promoción* — the form, top to bottom (the family-shell page's *Crear promoción*). */
+  nuevaPromocion: {
+    titulo: 'Nueva promoción',
+    otraVez: 'Usarla otra vez',
+    subtitulo: 'Para que tus vecinos vuelvan. No se aparta ni lleva cantidad.',
+    volver: 'Volver',
+    tipo: '¿Qué tipo?',
+    que: '¿Qué ofreces?',
+    mas: 'Cuéntales más (si quieres)',
+    masEjemplo: 'Rojo o verde, grande, con tostadas',
+    foto: 'Una foto (si quieres)',
+    cuenta: (n: number, max: number) => `${n} de ${max}`,
+    dias: '¿Qué días?',
+    todos: 'Todos',
+    eligeTuDia: 'Elige tu día: los jueves, por ejemplo.',
+    hasta: '¿Hasta cuándo?',
+    hastas: { semana: 'Esta semana', dos: 'Dos semanas', mes: 'Fin de mes', otra: 'Otra fecha…' },
+    hastaNota: (dia: string) => `Hasta el ${dia}. Ese día termina sola.`,
+    hastaSinElegir: 'Hasta ocho semanas. Ese día termina sola.',
+    calendario: 'Elige su último día',
+    calendarioCerrar: 'Cerrar',
+    /** *Para tus clientes* (G28): seen by all, marked; shown in Itacate to get it, no scan. */
+    clientes: 'La ven todos, con la marca Con tu tarjeta de lealtad',
+    clientesDetalle: 'La usan quienes juntan sellos en tu tarjeta: la enseñan en Itacate.',
+    condiciones: 'Condiciones · las verán tus vecinos',
+    cambiar: 'Cambiar',
+    /** Back to the conditions written from the fields, after she changed them. */
+    escribirlas: 'Que se escriban solas',
+    asiLaVeran: 'Así la verán en tu página',
+    marcaNota: 'Y tus ofertas de esos días llevan la marca',
+    publicar: 'Publicar promoción',
+    publicando: 'Publicando…',
+    /** *De temporada*'s hint, from 1 November to 24 December — a hint, never a default. */
+    posadas: 'Ya vienen las posadas, del 16 al 24 de diciembre:',
+    posadasEjemplos: ['Romeritos con mole', 'Bacalao a la vizcaína', 'Ponche de frutas'],
+    errores: {
+      que: 'Escribe qué ofreces.',
+      dia: 'Elige qué día es tu día especial.',
+      hasta: 'Elige hasta cuándo.',
+      plazo: 'Elige un último día de aquí a ocho semanas.',
+      condiciones: 'Escribe las condiciones.',
+      condicionesLargas: 'Las condiciones son muy largas: hasta 400 letras. Toca Cambiar y acórtalas.',
+    },
+  },
+  /** A promotion's call refused, in words (`0087`'s codes; `@/lib/promociones`' `promocionErrorMessage`). */
+  promocionErrores: {
+    soloLaDuena: 'Solo la dueña de la cocina crea y termina promociones.',
+    noDisponible: 'Las promociones todavía no están disponibles.',
+    tres: 'Tienes tres activas. Termina una para crear otra.',
+    sinTarjeta: 'Para tus clientes necesita tu tarjeta de lealtad abierta.',
+    noSeUne: 'Esa promoción no corre ese día. Elige otra, o publica sin promoción.',
+    yaNoSeDeshace: 'Ya no se puede deshacer: termínala hoy en Promociones.',
+  },
+  /**
    * ⚠️ `10.9e-ii`: THE LOYALTY CARD IN WERA COCINA — the owner's rulings G4–G19, G23, G34 and G35 of
    * 2026-11-16 and 17, as the family-shell page draws stage 3 (`cTarjeta`, `cSetup`, `cSellar`, `cFres`,
    * `cCartel`, `tcerrarSheet`). The drawn words are the page's; the rest is this row's, each said in the

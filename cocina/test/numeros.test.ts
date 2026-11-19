@@ -356,7 +356,7 @@ describe('the wiring, read as text', () => {
 
   it('*Hoy*’s tile waits for its read — never *Empiezan con tu primera entrega* over a kitchen that has some', () => {
     const hoy = code('app/(cocina)/(tabs)/index.tsx');
-    expect(hoy).toContain(".filter((m) => m.servicio !== 'numeros' || numerosVivos !== undefined);");
+    expect(hoy).toContain(".filter((m) => m.servicio !== 'numeros' || numerosVivos !== undefined)");
     // Today's read wins over a later refetch that failed; with none, a failed or paused read is said.
     expect(hoy).toContain('const numerosVivos = numerosDeHoy ?? (numerosSinLeer ? null : undefined);');
   });

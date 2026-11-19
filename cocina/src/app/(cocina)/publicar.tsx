@@ -1,11 +1,12 @@
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useRef, useState } from 'react';
-import { ActivityIndicator, Keyboard, Text, View } from 'react-native';
+import { useRef, useState, type ComponentProps } from 'react';
+import { ActivityIndicator, Keyboard, Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { estrellasDe } from '@/api/calificaciones';
 import { newPicturePath } from '@/api/fotos';
-import { useAjustes, useCalificaciones, useKitchen, useListings, usePage, usePlace, usePublish } from '@/api/hooks';
+import { useAjustes, useCalificaciones, useKitchen, useListings, usePage, usePlace, usePromociones, usePublish, useServicios } from '@/api/hooks';
 import type { Kitchen } from '@/api/kitchen';
 import {
   MAX_LINES,
@@ -23,6 +24,7 @@ import {
   type Listing,
 } from '@/api/listing';
 import { EMPTY_PAGE, colorOf, defaultsFor } from '@/api/pagina';
+import { activasEl } from '@/api/promociones';
 import type { Place } from '@/api/place';
 import { eleccionDe, recordarEleccion } from '@/lib/eleccion';
 import { cambiarMemoria, leerMemoria, ofertaFestejada, ofertaDeEstreno } from '@/lib/empujones';
@@ -30,6 +32,7 @@ import { elegirFoto, tomarFoto } from '@/lib/foto';
 import { nombreDe } from '@/lib/hoy';
 import { newId } from '@/lib/ids';
 import { useNota } from '@/lib/NotaProvider';
+import { ICONO_DE_TIPO, hoyDe, seLeen } from '@/lib/promociones';
 import { deviceStore } from '@/lib/store';
 import { checkVentana, firstVentana, type Ventana } from '@/lib/ventana';
 import { previaDe, recienTomadas } from '@/lib/vistaPrevia';
@@ -94,6 +97,12 @@ import { TarjetaPlatillo } from '@/vecinos/ui/TarjetaPlatillo';
 // `cocina`); *Repetir* keeps each dish's ways, narrowed to what her kitchen offers now. The card at
 // the foot shows her payment, *desechable* and stars. Her settings unread, nothing is asked and each
 // dish is sent as the kitchen's own — the database's `coalesce`.
+//
+// ⚠️ `10.9g-ii`: *¿ES PARTE DE UNA PROMOCIÓN?* (G30) — asked only while one of her kitchen's runs on the day of
+// its window (`@/api/promociones`' `activasEl`: running, shown, and one of its days by the window's day), a
+// helper too (G36); *No* chosen at first. Picked, the offer joins it (`publish_listing`'s `p_promotion_id`) and
+// wears its mark in Itacate (`10.9g-iii`). A window moved to a day it does not run drops the pick. `TD031` — it
+// ended meanwhile — is said in words, and her promotions are read again (`usePublish`).
 // ============================================================================
 
 const PAD = 'publicar-numeros';
@@ -155,6 +164,12 @@ function Form({ kitchen, place, source }: { kitchen: Kitchen; place: Place; sour
   const [ventana, setVentana] = useState<Ventana>(() => start?.ventana ?? firstVentana(new Date()));
   const [problem, setProblem] = useState<string | null>(null);
   const attempt = useRef<Attempt | null>(null);
+  // `10.9g-ii`: the promotions running on the window's day, asked only while her kitchen uses them.
+  const servicios = useServicios(kitchen.id);
+  const promociones = usePromociones(kitchen.id, { activa: seLeen(servicios.data) });
+  const [promo, setPromo] = useState<string | null>(null);
+  const ofrecidas = activasEl(promociones.data ?? null, hoyDe(ventana.start));
+  const promoElegida = ofrecidas.some((p) => p.id === promo) ? promo : null;
 
   function change(key: string, update: (line: LineDraft) => Partial<LineDraft>) {
     setLines((now) => now.map((line) => (line.key === key ? { ...line, ...update(line), key } : line)));
@@ -184,7 +199,7 @@ function Form({ kitchen, place, source }: { kitchen: Kitchen; place: Place; sour
     if (issue !== null) return setProblem(issueSentence(issue, lines));
     const late = checkVentana(ventana, new Date());
     if (late !== null) return setProblem(ES.publicar.errores.ventana[late]);
-    const body = publishBody(placeId, lines, ventana, ajustes);
+    const body = publishBody(placeId, lines, ventana, ajustes, promoElegida);
     attempt.current = attemptFor(attempt.current, body, newId);
     const id = attempt.current.id;
     // ⚠️ `10.9a-iii`: HER FIRST OFFER, READ BEFORE IT IS SENT — never published, never celebrated on this phone.
@@ -244,6 +259,19 @@ function Form({ kitchen, place, source }: { kitchen: Kitchen; place: Place; sour
           />
         )}
 
+        {ofrecidas.length > 0 && (
+          <View style={{ gap: SIZE.rowGap }}>
+            <Text style={section}>{ES.promociones.parte}</Text>
+            <View accessibilityRole="radiogroup" accessibilityLabel={ES.promociones.parte} style={{ flexDirection: 'row', flexWrap: 'wrap', gap: SIZE.rowGap }}>
+              {ofrecidas.map((p) => (
+                <Opcion key={p.id} icono={ICONO_DE_TIPO[p.kind]} texto={p.what} on={promoElegida === p.id} marca onPress={() => setPromo(p.id)} />
+              ))}
+              <Opcion texto={ES.promociones.no} on={promoElegida === null} onPress={() => setPromo(null)} />
+            </View>
+            <Text style={{ fontSize: SIZE.smallSize - 0.6, color: PALETTE.tintaApagada }}>{ES.promociones.parteNota}</Text>
+          </View>
+        )}
+
         <Text style={section}>{ES.publicar.cuando}</Text>
         <Horario ventana={ventana} onChange={(move) => setVentana(move)} disabled={busy} />
 
@@ -274,5 +302,44 @@ function Form({ kitchen, place, source }: { kitchen: Kitchen; place: Place; sour
       </Formulario>
       <TecladoListo padId={PAD} label={ES.publicar.listo} />
     </View>
+  );
+}
+
+/** One answer to *¿Es parte de una promoción?*: a promotion, in terracotta when picked (never the action's colour), or *No*. */
+function Opcion({
+  texto,
+  on,
+  onPress,
+  icono,
+  marca = false,
+}: {
+  texto: string;
+  on: boolean;
+  onPress: () => void;
+  icono?: ComponentProps<typeof MaterialCommunityIcons>['name'];
+  marca?: boolean;
+}) {
+  const color = marca ? PALETTE.marca : PALETTE.accion;
+  return (
+    <Pressable
+      accessibilityRole="radio"
+      accessibilityState={{ checked: on }}
+      accessibilityLabel={texto}
+      onPress={onPress}
+      style={({ pressed }) => ({
+        minHeight: SIZE.tapTarget - 4,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+        paddingHorizontal: SIZE.space,
+        borderRadius: 999,
+        borderWidth: on ? 1.5 : 1,
+        borderColor: on ? color : PALETTE.linea,
+        backgroundColor: on ? (marca ? PALETTE.marcaSuave : PALETTE.accionSuave) : pressed ? PALETTE.fondo : PALETTE.superficie,
+      })}
+    >
+      {icono !== undefined && <MaterialCommunityIcons name={icono} size={16} color={on ? color : PALETTE.tintaApagada} />}
+      <Text style={{ fontSize: SIZE.smallSize + 0.4, fontWeight: '700', color: on ? color : PALETTE.tinta }}>{texto}</Text>
+    </Pressable>
   );
 }

@@ -222,6 +222,17 @@ import {
   type StampArgs,
   type TermsArgs,
 } from '@/api/tarjeta';
+import {
+  CREATE_PROMOTION,
+  END_PROMOTION,
+  KITCHEN_PROMOTIONS,
+  UNDO_PROMOTION,
+  kitchenArgs as promotionsKitchenArgs,
+  promocionesFrom,
+  type CreateArgs,
+  type PromotionArgs,
+  type PromotionsRow,
+} from '@/api/promociones';
 import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL, supabase } from '@/lib/supabase';
 
 /**
@@ -757,4 +768,44 @@ export async function giveReward(args: RewardArgs): Promise<CardRow> {
   const card = cardFrom(data);
   if (card === null) throw new TypeError(`${GIVE_REWARD}: an answer this build cannot read`);
   return card;
+}
+
+// ----------------------------------------------------------------------------
+// `10.9g-ii` — promotions (`0087`): her kitchen's, and the owner's three writes. Every write answers
+// her list as the database left it. ⚠️ AN ANSWER THIS BUILD CANNOT READ IS AN ERROR, never an empty
+// list drawn as hers.
+// ----------------------------------------------------------------------------
+
+function promociones(name: string, data: unknown): PromotionsRow {
+  const row = promocionesFrom(data);
+  if (row === null) throw new TypeError(`${name}: an answer this build cannot read`);
+  return row;
+}
+
+/** *Promociones*, *Hoy*'s tile and *¿Es parte de una promoción?* (`kitchen_promotions`) — any member. */
+export async function kitchenPromotions(kitchenId: string): Promise<PromotionsRow> {
+  const { data, error } = await supabase.rpc(KITCHEN_PROMOTIONS, promotionsKitchenArgs(kitchenId));
+  if (error) throw error;
+  return promociones(KITCHEN_PROMOTIONS, data);
+}
+
+/** *Publicar promoción* (`create_promotion`) — the owner's; a retry under the same id is the same promotion. */
+export async function createPromotion(args: CreateArgs): Promise<PromotionsRow> {
+  const { data, error } = await supabase.rpc(CREATE_PROMOTION, args);
+  if (error) throw error;
+  return promociones(CREATE_PROMOTION, data);
+}
+
+/** *Terminarla hoy* (`end_promotion`) — the owner's, at once. */
+export async function endPromotion(args: PromotionArgs): Promise<PromotionsRow> {
+  const { data, error } = await supabase.rpc(END_PROMOTION, args);
+  if (error) throw error;
+  return promociones(END_PROMOTION, data);
+}
+
+/** *Deshacer* (`undo_promotion`) — the owner's, within two minutes of its making (`TD032` after). */
+export async function undoPromotion(args: PromotionArgs): Promise<PromotionsRow> {
+  const { data, error } = await supabase.rpc(UNDO_PROMOTION, args);
+  if (error) throw error;
+  return promociones(UNDO_PROMOTION, data);
 }

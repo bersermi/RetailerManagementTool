@@ -68,6 +68,7 @@ import { codigoErrorMessage, codigoKey, esRechazoDelCodigo } from '@/api/invitar
 import { SERVICIOS_KEY, serviciosKey, type Estado, type LoQueUsa, type Servicio } from '@/api/servicios';
 import { seguidoresKey } from '@/api/seguidores';
 import { NUMEROS_KEY, numerosKey } from '@/api/numeros';
+import { PROMOCIONES_KEY, promocionesKey, promotionArgs, type CreateArgs, type PromotionsRow } from '@/api/promociones';
 import {
   TARJETA_KEY,
   codeArgs,
@@ -125,6 +126,10 @@ import {
   kitchenCard,
   registerKitchenKey,
   setCardTerms,
+  createPromotion,
+  endPromotion,
+  kitchenPromotions,
+  undoPromotion,
 } from '@/api/calls';
 import { deLaCocina, rechazoDe, reservasConCola, vecinosConCola, type Envio } from '@/api/cola';
 import { guardarSuDireccion, type Escritura } from '@/api/direccion';
@@ -171,6 +176,7 @@ import { guardarLlave, leerLlave, type Llave } from '@/lib/llave';
 import { escaneoId, momentoDeLaLlamada, tarjetaErrorMessage, type Escaneo } from '@/lib/tarjeta';
 import { deviceStore } from '@/lib/store';
 import { servicioErrorMessage } from '@/lib/loQueUsas';
+import { noSeUne, promocionErrorMessage } from '@/lib/promociones';
 import { useAhora } from '@/lib/useAhora';
 import { useSenal } from '@/lib/useSenal';
 
@@ -401,6 +407,11 @@ export function usePublish(kitchenId: string | null) {
       await mutation.mutateAsync({ args, fotos });
       return null;
     } catch (thrown) {
+      // ⚠️ `10.9g-ii`: the promotion it joined cannot take it (`TD031`) — said so, and her promotions read again.
+      if (noSeUne(thrown)) {
+        void queries.invalidateQueries({ queryKey: PROMOCIONES_KEY });
+        return promocionErrorMessage(thrown);
+      }
       return apiErrorMessage(thrown);
     }
   }
@@ -1318,6 +1329,119 @@ export function useNumeros(kitchenId: string | null, { activa = true }: { activa
     queryFn: () => kitchenNumbers(kitchenId as string),
     enabled: ready && userId !== null && kitchenId !== null && activa,
   });
+}
+
+// ----------------------------------------------------------------------------
+// `10.9g-ii` — promotions (`0087`)
+// ----------------------------------------------------------------------------
+
+/**
+ * ⚠️ HER KITCHEN'S PROMOTIONS (`kitchen_promotions`, `0087`) — *Promociones*, its tile on *Hoy* and *¿Es parte de una
+ * promoción?* in *Publicar*. Any member (a helper publishes). ⚠️ ASKED ONLY WHILE SHE USES THEM (`activa`:
+ * `@/lib/promociones`' `seLeen`) — with her choice off none runs, so there is nothing to ask. Keyed on the login and
+ * the kitchen; not on the phone's disk. With no signal the read PAUSES (online mode): the tile and the screen say they
+ * could not read them (`fetchStatus === 'paused'`), as her numbers' do.
+ */
+export function usePromociones(kitchenId: string | null, { activa = true }: { activa?: boolean } = {}) {
+  const { session, ready } = useAuth();
+  const userId = session?.user.id ?? null;
+  return useQuery({
+    queryKey: promocionesKey(userId, kitchenId),
+    queryFn: () => kitchenPromotions(kitchenId as string),
+    enabled: ready && userId !== null && kitchenId !== null && activa,
+  });
+}
+
+/** What a press of *Publicar promoción* answers: her list as the database left it, or the sentence to show. */
+export type Creada = { readonly row: PromotionsRow; readonly problema: null } | { readonly row: null; readonly problema: string };
+
+/**
+ * *Publicar promoción* (`create_promotion`) — the owner's. ⚠️ ITS PHOTO GOES UP FIRST, under the path made when it
+ * was taken, so a retry sends the same one; a failed upload makes nothing. ⚠️ A RETRY UNDER THE SAME ID IS THE SAME
+ * PROMOTION (the form keeps the id while nothing changes). ⚠️ NOT DRAWN BEFORE IT LANDS: her list is the database's
+ * answer, and her choices are read again (making one turns them `on`).
+ */
+export function useCrearPromocion(kitchenId: string | null) {
+  const queries = useQueryClient();
+  const { session } = useAuth();
+  const userId = session?.user.id ?? null;
+  const mutation = useMutation({
+    mutationFn: async (input: { args: CreateArgs; fotos: readonly FotoNueva[] }) => {
+      await uploadPictures(input.fotos);
+      return createPromotion(input.args);
+    },
+    onSuccess: (row) => {
+      queries.setQueryData<PromotionsRow>(promocionesKey(userId, kitchenId), row);
+    },
+    onSettled: () => {
+      void queries.invalidateQueries({ queryKey: PROMOCIONES_KEY });
+      void queries.invalidateQueries({ queryKey: SERVICIOS_KEY });
+    },
+  });
+
+  async function crear(args: CreateArgs, fotos: readonly FotoNueva[]): Promise<Creada> {
+    if (kitchenId === null) return { row: null, problema: apiErrorMessage(null) };
+    try {
+      return { row: await mutation.mutateAsync({ args, fotos }), problema: null };
+    } catch (thrown) {
+      return { row: null, problema: promocionErrorMessage(thrown) };
+    }
+  }
+
+  return { crear, busy: mutation.isPending };
+}
+
+/** *Terminarla hoy* (`end_promotion`) — the owner's, at once. Her list is the database's answer. */
+export function useTerminarPromocion(kitchenId: string | null) {
+  const queries = useQueryClient();
+  const { session } = useAuth();
+  const userId = session?.user.id ?? null;
+  const mutation = useMutation({
+    mutationFn: (id: string) => endPromotion(promotionArgs(kitchenId as string, id)),
+    onSuccess: (row) => {
+      queries.setQueryData<PromotionsRow>(promocionesKey(userId, kitchenId), row);
+    },
+    onSettled: () => {
+      void queries.invalidateQueries({ queryKey: PROMOCIONES_KEY });
+    },
+  });
+
+  async function terminar(id: string): Promise<string | null> {
+    if (kitchenId === null || mutation.isPending) return null;
+    try {
+      await mutation.mutateAsync(id);
+      return null;
+    } catch (thrown) {
+      return promocionErrorMessage(thrown);
+    }
+  }
+
+  return { terminar, busy: mutation.isPending };
+}
+
+/**
+ * *Deshacer* after *Publicar promoción* (`undo_promotion`, within two minutes; `TD032` after). ⚠️ THE KITCHEN AND THE
+ * ID TRAVEL WITH THE CALL and nothing here belongs to a screen: the toast lives at the root (`@/lib/NotaProvider`)
+ * and outlives the form that made it — so a plain call, its answer written into her list.
+ */
+export function useDeshacerPromocion(): (kitchenId: string, id: string) => Promise<string | null> {
+  const queries = useQueryClient();
+  const { session } = useAuth();
+  const userId = session?.user.id ?? null;
+  return useCallback(
+    async (kitchenId: string, id: string): Promise<string | null> => {
+      try {
+        const row = await undoPromotion(promotionArgs(kitchenId, id));
+        queries.setQueryData<PromotionsRow>(promocionesKey(userId, kitchenId), row);
+        return null;
+      } catch (thrown) {
+        return promocionErrorMessage(thrown);
+      } finally {
+        void queries.invalidateQueries({ queryKey: PROMOCIONES_KEY });
+      }
+    },
+    [queries, userId],
+  );
 }
 
 // ----------------------------------------------------------------------------

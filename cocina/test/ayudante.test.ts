@@ -45,7 +45,9 @@ describe('a helper’s Hoy', () => {
     expect(hoy).toContain('const rol = useSuRol(kitchen.id).data;');
     expect(hoy).toContain('const duena = esDuena(rol);');
     expect(hoy).toContain('paginaCerrada: cerrada, ahora, duena }');
-    expect(hoy).toContain('const mosaicos = mosaicosPara(mosaicosDe(servicios.data, vivosDe(tarjetaDeHoy, numerosVivos, ahora), PANTALLA_DE, ademasDe(tarjetaDeHoy, ahora)), duena)');
+    expect(hoy).toContain('const mosaicos = mosaicosPara(mosaicosDe(servicios.data, vivosDe(tarjetaDeHoy, numerosVivos, promocionesVivas, ahora), PANTALLA_DE, ademasDe(tarjetaDeHoy, ahora)), duena)');
+    // `10.9g-ii`: promotions are read on the owner's phone alone for her tile — a helper's *Hoy* never asks.
+    expect(hoy).toContain('const promocionesLeidas = usePromociones(kitchen.id, { activa: duena && seLeenPromociones(servicios.data) });');
     // `10.9f`: her numbers are read on the owner's phone alone — a helper's never asks.
     expect(hoy).toContain('const numerosLeidos = useNumeros(kitchen.id, { activa: veSusNumeros(servicios.data, duena) });');
     expect(hoy).toContain('{duena && recordatorio.propuesta !== null && preguntar(');
