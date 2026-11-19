@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync } from 'node:fs';
+import { readdirSync, readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -182,7 +182,8 @@ describe('her stars about the kitchen — `rate_kitchen`, by `0080`’s names an
     expect(calificar).toMatch(/if \(await enviar\(estrellas, etiquetas, nota\)\) setGracias\(true\);/);
     expect(calificar).toMatch(/maxLength=\{NOTA_MAXIMA\}/);
     expect(calificar).toMatch(/etiquetasPara\(estrellas\)\.map/);
-    const tab = code('app/(vecino)/(tabs)/apartados.tsx');
+    // ⚠️ `10.9d-ii`: *Apartados* opens over the tabs, at the same address.
+    const tab = code('app/(vecino)/apartados.tsx');
     // Under *Ya lo tienes*, and under a past plate she may still rate.
     expect(tab).toMatch(/<Calificar key=\{recogido\.id\} apartado=\{recogido\}/);
     expect(tab).toMatch(/porCalificar\(apartado, ahora\)/);
@@ -318,11 +319,13 @@ describe('her reminder, 15 minutes before her hour — scheduled by her own phon
     expect(porVenir([d], d.cuando.getTime())).toEqual([]);
   });
 
-  it('a tap on one of hers opens *Apartados* — a tab in use — and on anything else nothing', () => {
+  it('a tap on one of hers opens *Apartados* — a screen at that address — and on anything else nothing', () => {
     expect(rutaDelToque(`${PREFIJO}r-1`)).toBe(RUTA);
     expect(rutaDelToque('recordatorio:1:16:00')).toBeNull();
     expect(RUTA).toBe('/apartados');
-    expect(EN_USO.map((p) => p.ruta)).toContain('apartados');
+    // ⚠️ `10.9d-ii` (G39): no longer a tab — the screen sits over the tabs, so `/apartados` still lands.
+    expect(EN_USO.map((p) => p.ruta)).not.toContain('apartados');
+    expect(existsSync(join(SRC, 'app/(vecino)/apartados.tsx'))).toBe(true);
   });
 
   it('the one module that imports `expo-notifications`: asked while the phone lets it, never a push token, a dated trigger', () => {

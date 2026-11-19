@@ -5,24 +5,26 @@ import { ActivityIndicator, Pressable, RefreshControl, StyleSheet, Text, View } 
 
 import { porCalificar, type Apartado } from '@/api/apartados';
 import { apiErrorMessage } from '@/api/errors';
-import { useApartados, useCancelarApartado, useCocinas, useYaLoTengo } from '@/api/hooks';
+import { useApartados, useCancelarApartado, useCocinas, useSiguiendo, useYaLoTengo } from '@/api/hooks';
 import { anteriorTexto, pasaTexto, platoTexto, porConfirmarTexto, puedeCancelar, razonTexto, seccionesDe } from '@/lib/apartados';
+import { preguntarSeguir } from '@/lib/misCocinas';
 import { useAhora } from '@/lib/useAhora';
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { Banda } from '@/ui/Banda';
 import { BoletoApartado } from '@/ui/BoletoApartado';
 import { BotonLleno } from '@/ui/BotonLleno';
-import { Cabeza } from '@/ui/Cabeza';
 import { Calificar, Estrellas } from '@/ui/Calificar';
 import { Deslizar } from '@/ui/Deslizar';
 import { Formulario } from '@/ui/Formulario';
 import { Grupo } from '@/ui/Grupo';
 import { Hoja } from '@/ui/Hoja';
 import { Llega } from '@/ui/Llega';
+import { PreguntaSeguir, marcarRespondida, respondida as yaRespondida } from '@/ui/PreguntaSeguir';
 
 // ============================================================================
-// *APARTADOS*, THE SECOND TAB. Plan task `10.5b-iii-a` — the tab drawn since `10.5-v-b`,
-// filled as the family-shell page's stage 2 draws it (the owner's rulings of 2026-11-05):
+// *APARTADOS*. Plan task `10.5b-iii-a` — the second tab from `10.5-v-b`, filled as the
+// family-shell page's stage 2 draws it (the owner's rulings of 2026-11-05):
 // each reservation still to collect as a whole ticket (`@/ui/BoletoApartado`), soonest
 // first; a cancel by the kitchen while its window is open (`0080`'s, switched off — read
 // correctly the day it turns on); and *Anteriores*, her last 30 days.
@@ -40,6 +42,13 @@ import { Llega } from '@/ui/Llega';
 // its window (`rate_until`) — *Calificar* opens them under its row; once given, her stars stay on
 // the row. The screen is a `Formulario`, so her note stays above the keyboard. NO CHECK CAN SEE
 // THIS SCREEN (ADR-035 §2.11).
+// ⚠️⚠️ SINCE `10.9d-ii` NOT A TAB (the owner's ruling G39 of 2026-11-17): a screen pushed OVER the
+// tabs at the same address, `/apartados` — so her reminder's tap (`@/lib/recordatorio`' `RUTA`)
+// and *Ver tu apartado* after reserving still land — with *Volver*. It is reached from her
+// reservation pinned on *Cerca* and *Mis cocinas* (`@/ui/ApartadoFijado`) and from *Tus apartados
+// anteriores* at the foot of *Mis cocinas*. ⚠️ AND *¿SEGUIR A …?* (G20, `@/ui/PreguntaSeguir`): once,
+// after her first pickup at a kitchen she does not follow — under *Ya lo tienes*, and under that
+// plate in *Anteriores* while it can still be rated (`@/lib/misCocinas`' `preguntarSeguir`).
 // ============================================================================
 
 /** The clock this screen reads — *faltan 25 min*, and *Cancelar* turning into *No voy a poder ir*. */
@@ -48,6 +57,7 @@ const CADA_MEDIO_MINUTO = 30_000;
 export default function Apartados() {
   const apartados = useApartados();
   const cocinas = useCocinas();
+  const siguiendo = useSiguiendo();
   const ahora = useAhora(CADA_MEDIO_MINUTO);
   const { cancelar, busy: cancelando } = useCancelarApartado();
   const { confirmar } = useYaLoTengo();
@@ -57,6 +67,8 @@ export default function Apartados() {
   const [calificando, setCalificando] = useState<string | null>(null);
   const [cambio, setCambio] = useState<Apartado | null>(null);
   const [falla, setFalla] = useState<string | null>(null);
+  /** Plates whose *¿Seguir a …?* she answered while on this screen. */
+  const [respondidas, setRespondidas] = useState<ReadonlySet<string>>(new Set());
 
   // What she just collected is said while she stays; leaving the tab clears it.
   useFocusEffect(
@@ -91,13 +103,23 @@ export default function Apartados() {
 
   const lista = apartados.data;
   const secciones = lista === undefined ? null : seccionesDe(lista, ahora);
+  /** Whether to ask *¿Seguir a …?* under a plate — read from the list as it is now, never the copy she swiped. */
+  const pregunta = (id: string) => {
+    const apartado = lista?.find((a) => a.id === id);
+    return apartado !== undefined && !respondidas.has(id) && !yaRespondida(id) && preguntarSeguir(apartado, lista ?? [], siguiendo.data, ahora);
+  };
+  const respondida = (id: string) => {
+    marcarRespondida(id);
+    setRespondidas((antes) => new Set(antes).add(id));
+  };
   const hoja = cambio !== null && puedeCancelar(cambio, ahora) ? ES.apartados.hojaCancelar : ES.apartados.hojaNoVoy;
 
   return (
     <View style={styles.pantalla}>
-      <Cabeza titulo={ES.apartados.titulo}>
-        <Text style={styles.detalle}>{ES.apartados.detalle}</Text>
-      </Cabeza>
+      <Banda
+        titulo={ES.apartados.titulo}
+        volver={{ label: ES.apartados.volver, onPress: () => (router.canGoBack() ? router.back() : router.replace('/')) }}
+      />
       <Formulario
         contentContainerStyle={styles.cuerpo}
         refreshControl={
@@ -123,6 +145,9 @@ export default function Apartados() {
                 <Text style={styles.recogidoTitulo}>{ES.apartados.yaLoTienes}</Text>
                 <Text style={styles.nota}>{`${recogido.cocina.nombre} · ${platoTexto(recogido)}`}</Text>
                 <Calificar key={recogido.id} apartado={recogido} onListo={() => setRecogido(null)} />
+                {pregunta(recogido.id) && (
+                  <PreguntaSeguir cocinaId={recogido.cocina.id} nombre={recogido.cocina.nombre} onListo={() => respondida(recogido.id)} />
+                )}
               </Llega>
             )}
 
@@ -213,6 +238,11 @@ export default function Apartados() {
                           <Text style={styles.calificarTexto}>{ES.apartados.calificar.calificar}</Text>
                         </Pressable>
                       ) : null}
+                      {recogido?.id !== apartado.id && pregunta(apartado.id) && (
+                        <View style={styles.calificando}>
+                          <PreguntaSeguir cocinaId={apartado.cocina.id} nombre={apartado.cocina.nombre} onListo={() => respondida(apartado.id)} />
+                        </View>
+                      )}
                     </View>
                   ))}
                 </Grupo>
@@ -234,7 +264,6 @@ export default function Apartados() {
 
 const styles = StyleSheet.create({
   pantalla: { flex: 1, backgroundColor: PALETTE.fondo },
-  detalle: { fontSize: SIZE.smallSize, color: PALETTE.tintaApagada },
   cuerpo: { padding: SIZE.space * 1.5, paddingBottom: SIZE.space * 3, gap: SIZE.space * 1.5 },
   centro: { alignItems: 'center', gap: SIZE.space, paddingTop: SIZE.space * 3 },
   nota: { fontSize: SIZE.smallSize, lineHeight: 19, color: PALETTE.tintaApagada, textAlign: 'center' },

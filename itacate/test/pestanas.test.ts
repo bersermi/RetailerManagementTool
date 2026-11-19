@@ -15,7 +15,7 @@ import { PALETTE } from '@/theme/palette';
 
 // ============================================================================
 // ITACATE'S SHELL. Plan task `10.5-v-b`, the owner's rulings of 2026-11-05 (the
-// family-shell page): the tab bar *Cerca · Apartados · Mis cocinas · Tú*, *Tú*'s rows,
+// family-shell page): the tab bar — *Cerca · Mis cocinas · Tú* since `10.9d-ii` (G39) — *Tú*'s rows,
 // Nunito titles, Itacate's blue for actions, one staggered entrance per screen on
 // Reanimated, transform and opacity only (ADR-035 §2.11).
 //
@@ -51,20 +51,27 @@ const GLYPHS = JSON.parse(
   ),
 ) as Record<string, number>;
 
-describe('the tab bar — Cerca · Apartados · Mis cocinas · Tú (the ruling of 2026-11-05)', () => {
-  it('four tabs at most, in the ruled order, each with its word', () => {
-    expect(PESTANAS.map((p) => p.label)).toEqual(['Cerca', 'Apartados', 'Mis cocinas', 'Tú']);
+describe('the tab bar — Cerca · Mis cocinas · Tú (the ruling of 2026-11-05, re-ruled G39 on 2026-11-17)', () => {
+  it('three tabs, in the ruled order, each with its word — four at most', () => {
+    expect(PESTANAS.map((p) => p.label)).toEqual(['Cerca', 'Mis cocinas', 'Tú']);
     expect(PESTANAS.length).toBeLessThanOrEqual(4);
   });
 
-  it('the two ends never move; Apartados is drawn since reserving shipped (`10.5b-iii-a`), Mis cocinas waits for the stamp card', () => {
+  it('the two ends never move; Apartados is no tab since `10.9d-ii`, and Mis cocinas is drawn', () => {
     expect(PESTANAS[0].ruta).toBe('index');
     expect(PESTANAS[PESTANAS.length - 1].ruta).toBe('tu');
-    expect(EN_USO.map((p) => p.label)).toEqual(['Cerca', 'Apartados', 'Tú']);
-    expect(PESTANAS.filter((p) => p.llega !== null).map((p) => [p.label, p.llega])).toEqual([['Mis cocinas', '10.9']]);
+    expect(EN_USO.map((p) => p.label)).toEqual(['Cerca', 'Mis cocinas', 'Tú']);
+    expect(PESTANAS.filter((p) => p.llega !== null)).toEqual([]);
     expect(pestanaDe('tu')?.label).toBe('Tú');
-    expect(pestanaDe('apartados')?.label).toBe('Apartados');
-    expect(pestanaDe('mis-cocinas')).toBeNull();
+    expect(pestanaDe('mis-cocinas')?.label).toBe('Mis cocinas');
+    expect(pestanaDe('apartados')).toBeNull();
+  });
+
+  it('a dot on Mis cocinas while a reservation is pinned — drawn by the bar, from `hayPunto`', () => {
+    const bar = code('ui/Pestanas.tsx');
+    expect(bar).toMatch(/const punto = hayPunto\(apartados\.data, ahora\);/);
+    expect(bar).toMatch(/\{punto && pestana\.ruta === CON_PUNTO && \(/);
+    expect(bar).toMatch(/const CON_PUNTO = 'mis-cocinas';/);
   });
 
   it('every glyph is in the icon set the bar draws with', () => {
@@ -178,7 +185,7 @@ describe('one staggered entrance per screen, transform and opacity only (ADR-035
   });
 
   it('every screen of the shell arrives — the three tabs, Dónde buscar and the way in', () => {
-    for (const path of ['app/(vecino)/(tabs)/index.tsx', 'app/(vecino)/(tabs)/apartados.tsx', 'app/(vecino)/(tabs)/tu.tsx', 'app/(vecino)/donde.tsx', 'app/(auth)/entrar.tsx']) {
+    for (const path of ['app/(vecino)/(tabs)/index.tsx', 'app/(vecino)/(tabs)/mis-cocinas.tsx', 'app/(vecino)/(tabs)/tu.tsx', 'app/(vecino)/apartados.tsx', 'app/(vecino)/donde.tsx', 'app/(auth)/entrar.tsx']) {
       expect(code(path), path).toMatch(/<Llega i=\{0\}/);
     }
     // The list's cards arrive in their order; a new order is not a second arrival (keyed cards).

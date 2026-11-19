@@ -4,7 +4,18 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 
 import { esDuena } from '@/api/equipo';
-import { useApartados, useContarMenu, useKitchen, useKitchenGiros, useListings, usePage, usePlace, useServicios, useSuRol } from '@/api/hooks';
+import {
+  useApartados,
+  useContarMenu,
+  useKitchen,
+  useKitchenGiros,
+  useListings,
+  usePage,
+  usePlace,
+  useSeguidores,
+  useServicios,
+  useSuRol,
+} from '@/api/hooks';
 import { giroLabel, type Kitchen } from '@/api/kitchen';
 import { addressComplete } from '@/api/place';
 import { entregadosHoy, loQueSigue, ordenesDe, tomadosDe } from '@/lib/apartados';
@@ -40,7 +51,8 @@ import { SinSenal } from '@/ui/SinSenal';
 // for them to easily reach the main actions with some indicators such as remaining
 // items"*. Every launch opens here. Top to bottom, each zone a number and a door:
 //   1. THE DAY (`@/ui/DiaDeHoy`) — what is on offer, until when, the time left; the
-//      whole card opens *Tus ofertas*. ⚠️ `10.9a-iii`: until her first offer, the invitation
+//      whole card opens *Tus ofertas*. ⚠️ `10.9d-ii` (G22): and *Te siguen 38 vecinos*, how many
+//      neighbours follow her kitchen, never who (`useSeguidores`) — her helpers see it too. ⚠️ `10.9a-iii`: until her first offer, the invitation
 //      instead — *¿Tienes alguna oferta? Publícala y tus vecinos la verán* — opening *Publicar*;
 //   1b. `10.9a-iii`: UNDER IT, AT MOST ONE QUIET LINE (`@/ui/LineaEmpujon`) — her page's next
 //      missing part, or a feature she did not pick; only on a day she published; ✕ with *Deshacer*;
@@ -102,6 +114,7 @@ function HoyDe({ kitchen }: { kitchen: Kitchen }) {
   const page = usePage(kitchen.id);
   const listings = useListings(kitchen.id);
   const apartados = useApartados(kitchen.id);
+  const seguidores = useSeguidores(kitchen.id);
   const ahora = useAhora(CADA_MEDIO_MINUTO);
   // `10.9b-ii`: what is the owner's is drawn for the owner alone — not while her role is unread.
   const rol = useSuRol(kitchen.id).data;
@@ -179,7 +192,12 @@ function HoyDe({ kitchen }: { kitchen: Kitchen }) {
           {vista?.invitacion ? (
             <Invitacion onPress={() => router.push('/publicar')} />
           ) : listings.data !== undefined ? (
-            <DiaDeHoy dia={diaDe(listings.data, ahora, cuentas)} ahora={ahora} onPress={() => router.push('/ofertas')} />
+            <DiaDeHoy
+              dia={diaDe(listings.data, ahora, cuentas)}
+              ahora={ahora}
+              teSiguen={seguidores.data ?? null}
+              onPress={() => router.push('/ofertas')}
+            />
           ) : listings.isError ? (
             <View style={{ gap: SIZE.rowGap }}>
               <Text style={{ fontSize: SIZE.bodySize, color: PALETTE.tinta }}>{ES.publicaciones.sinLeer}</Text>

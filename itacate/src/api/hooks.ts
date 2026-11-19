@@ -1,8 +1,8 @@
 // ============================================================================
 // HOW A SCREEN REACHES THE DATABASE. Plan tasks `10.5-iii-b` (her way out),
 // `10.5-iv-a-i` (the kitchens close to her, and their photos), `10.5-iv-a-ii`
-// (the trades' names, for a kitchen's page), `10.5b-iii-a` (her reservations) and
-// `10.5b-iii-b` (her stars about a kitchen).
+// (the trades' names, for a kitchen's page), `10.5b-iii-a` (her reservations),
+// `10.5b-iii-b` (her stars about a kitchen) and `10.9d-ii` (the kitchens she follows).
 //
 // ⚠️ A SCREEN NEVER CALLS `@/api/calls` ITSELF — Wera's R12, as in Wera Cocina
 // (`cocina/src/api/hooks.ts`, whose two deletion hooks these are, copied): a
@@ -43,6 +43,7 @@ import {
   deleteMyAccount,
   giveMyYes,
   kitchenGiros,
+  myFollows,
   myReservations,
   myStanding,
   onOfferNow,
@@ -51,9 +52,11 @@ import {
   rateKitchen,
   reservePlate,
   revokeApple,
+  setMyFollow,
 } from '@/api/calls';
 import { COCINAS_KEY, cocinasKey, girosKey, type Giro, type Kitchen } from '@/api/cocinas';
 import { hayPendientes, pendientesDe } from '@/lib/apartados';
+import { NO_ES_COCINA, SIGUIENDO_KEY, siguiendoKey, type Cambio, type Siguiendo, type Switches } from '@/api/siguiendo';
 import { FILE_OF, isPicturePath, type PhotoSize } from '@/api/fotos';
 import { releaseStep } from '@/auth/apple';
 import { useAuth } from '@/auth/AuthProvider';
@@ -363,4 +366,58 @@ export function useCalificar() {
     }
   }
   return { calificar, busy: mutation.isPending };
+}
+
+// ----------------------------------------------------------------------------
+// The kitchens she follows — `10.9d-ii`
+// ----------------------------------------------------------------------------
+
+/**
+ * ⚠️ `10.9d-ii`: HER KITCHENS (`my_follows`, `0084`) — *Mis cocinas*, *Seguir*'s state on a kitchen's
+ * page and *¿Seguir a …?*. Keyed on the login, in memory only, as every read here; read again when the
+ * app comes back to the front once a minute old (`@/api/QueryProvider`), and after each of her taps.
+ */
+export function useSiguiendo() {
+  const { session, ready } = useAuth();
+  const userId = session?.user.id ?? null;
+  return useQuery<Siguiendo>({
+    queryKey: siguiendoKey(userId),
+    queryFn: myFollows,
+    enabled: ready && userId !== null,
+  });
+}
+
+/** Why a tap on *Seguir* or the bell did not land: the kitchen left (`TD026`), or anything else. */
+export type FallaDeSeguir = 'yaNoEsta' | 'otra';
+
+/**
+ * ⚠️ `10.9d-ii`: *SEGUIR* AND THE BELL (`set_my_follow`, `0084`). ⚠️ DRAWN ONLY ONCE IT LANDS: the
+ * button waits busy and then shows the database's answer, written into her list at once
+ * (`setQueryData`) — so *La sigues* is never shown for a follow that failed — and her list is read
+ * again, for *Mis cocinas*' order and *publicó hoy*. ONE TAP AT A TIME.
+ */
+export function useSeguir() {
+  const queries = useQueryClient();
+  const { session } = useAuth();
+  const userId = session?.user.id ?? null;
+  const mutation = useMutation({
+    mutationFn: ({ kitchenId, cambio }: { kitchenId: string; cambio: Cambio }) => setMyFollow(kitchenId, cambio),
+  });
+  async function cambiar(kitchenId: string, cambio: Cambio): Promise<{ readonly ok: true; readonly valor: Switches } | { readonly ok: false; readonly falla: FallaDeSeguir }> {
+    try {
+      const valor = await mutation.mutateAsync({ kitchenId, cambio });
+      queries.setQueryData<Siguiendo>(siguiendoKey(userId), (antes) => {
+        if (antes === undefined) return antes;
+        const cocinas = antes.cocinas.map((c) => (c.id === kitchenId ? { ...c, ...valor } : c));
+        return { ...antes, cocinas };
+      });
+      return { ok: true, valor };
+    } catch (thrown) {
+      const code = typeof thrown === 'object' && thrown !== null ? (thrown as { code?: unknown }).code : undefined;
+      return { ok: false, falla: code === NO_ES_COCINA ? 'yaNoEsta' : 'otra' };
+    } finally {
+      void queries.invalidateQueries({ queryKey: SIGUIENDO_KEY });
+    }
+  }
+  return { cambiar, busy: mutation.isPending };
 }

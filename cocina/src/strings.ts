@@ -396,6 +396,15 @@ export const ES = {
       'su página en Itacate y lo que publicó. No se puede deshacer.',
     /** What stays: the login, which is the same in the three apps. */
     keeps: 'Tu cuenta sigue: entras con ella a Wera Cocina, a Itacate y a Wera, y puedes registrar otra cocina.',
+    /**
+     * ⚠️ `10.9d-ii` (G23): HOW MANY FOLLOW HER — warned, never blocked — and the one thing that stays:
+     * her kitchen's name, 30 days, in the *Mis cocinas* of those who followed it (`0084`). From the
+     * first follower; with none, nothing stays and nothing is said.
+     */
+    followers: (n: number) =>
+      n === 1
+        ? 'Te sigue 1 vecino en Itacate. Dejará de ver tu cocina, y durante 30 días su lista dirá que dejó Itacate.'
+        : `Te siguen ${n} vecinos en Itacate. Dejarán de ver tu cocina, y durante 30 días su lista dirá que dejó Itacate.`,
     confirm: 'Eliminar esta cocina',
     errors: {
       /** `0077`'s `TD007`: the kitchen's name changed after the screen read it. */
@@ -569,6 +578,12 @@ export const ES = {
     chipAyuda: (que: string) => `Repetir ${que}`,
     /** An offer of several dishes, named by its first: *Comida corrida y 2 más*. */
     yMas: (primero: string, otros: number) => `${primero} y ${otros} más`,
+    /**
+     * ⚠️ `10.9d-ii`: *TE SIGUEN 38 VECINOS* on the day's card (G22, the family-shell page's drawing) — how
+     * many, never who; from the first follower (none, no line).
+     */
+    teSiguen: (n: number) => (n === 1 ? 'Te sigue' : 'Te siguen'),
+    vecinos: (n: number) => (n === 1 ? '1 vecino' : `${n} vecinos`),
   },
 
   /**

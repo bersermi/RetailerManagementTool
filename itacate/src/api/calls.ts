@@ -3,7 +3,8 @@
 // way out: what goes with her account, the deletion, Apple), `10.5-iv-a-i` (the
 // door, and the kitchens' photos), `10.5-iv-a-ii` (the trades' names) and
 // `10.5b-iii-a` (her reservations: reserving, cancelling, *Ya lo tengo*, her yes and
-// her standing) and `10.5b-iii-b` (her stars about the kitchen).
+// her standing), `10.5b-iii-b` (her stars about the kitchen) and `10.9d-ii` (the kitchens
+// she follows, and *Seguir* with its bell — `0084`, claimed by `10.9d-i`).
 //
 // ⚠️ THE IMPURE HALF OF `src/api/` (ADR-035 §2.11), as Wera's and Wera Cocina's
 // (`app/src/api/calls.ts`, `cocina/src/api/calls.ts`): the only module here that
@@ -58,6 +59,16 @@ import {
 } from '@/api/apartados';
 import { KITCHEN_GIROS, ON_OFFER_NOW, girosFrom, kitchensFrom, type Giro, type Kitchen } from '@/api/cocinas';
 import { photoHeaders, photoUrl, type PhotoSize } from '@/api/fotos';
+import {
+  MY_FOLLOWS,
+  SET_MY_FOLLOW,
+  followArgs,
+  siguiendoFrom,
+  switchesFrom,
+  type Cambio,
+  type Siguiendo,
+  type Switches,
+} from '@/api/siguiendo';
 import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL, supabase } from '@/lib/supabase';
 
 /**
@@ -203,4 +214,30 @@ export async function rateKitchen(id: string, calificacion: Calificacion): Promi
   const { data, error } = await supabase.rpc(RATE_KITCHEN, rateArgs(id, calificacion));
   if (error) throw error;
   return calificadoFrom(data);
+}
+
+/**
+ * ⚠️ `10.9d-ii`: THE KITCHENS SHE FOLLOWS OR RINGS (`my_follows`, `0084`) — every one, not only those
+ * the door sends today — and those that left in 30 days. Hers alone, keyed on her login in the database.
+ * ⚠️ An answer it cannot read at all is an error, never *none followed*: *Mis cocinas* must not say
+ * she follows nothing when it could not read.
+ */
+export async function myFollows(): Promise<Siguiendo> {
+  const { data, error } = await supabase.rpc(MY_FOLLOWS);
+  if (error) throw error;
+  const siguiendo = siguiendoFrom(data);
+  if (siguiendo === null) throw new TypeError(`${MY_FOLLOWS}: an answer this build cannot read`);
+  return siguiendo;
+}
+
+/**
+ * ⚠️ `10.9d-ii`: *Seguir* and the bell on one kitchen (`set_my_follow`, `0084`) — either switch, or both;
+ * it answers both as the database now holds them. `TD026`: not a kitchen in Itacate.
+ */
+export async function setMyFollow(kitchenId: string, cambio: Cambio): Promise<Switches> {
+  const { data, error } = await supabase.rpc(SET_MY_FOLLOW, followArgs(kitchenId, cambio));
+  if (error) throw error;
+  const switches = switchesFrom(data);
+  if (switches === null) throw new TypeError(`${SET_MY_FOLLOW}: an answer this build cannot read`);
+  return switches;
 }
