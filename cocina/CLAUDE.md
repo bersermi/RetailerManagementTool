@@ -26,6 +26,7 @@ bash docs/checks/10.9b-ii-team-contract.sh            # the same stack: a helper
 bash docs/checks/10.9d-i-following-contract.sh        # the same stack: Te siguen N by seguidores.ts' names, as the fonda, beside Itacate's following
 bash docs/checks/10.9e-i-card-contract.sh             # the same stack: the loyalty card by tarjeta.ts' names — Activar, a phone's code, a scan, a stamp, a reward, Cerrar — beside Itacate's
 bash docs/checks/10.9f-numbers-contract.sh            # the same stack: her numbers by numeros.ts' names, as the owner, after a plate reserved in Itacate and handed over here — one visit
+bash docs/checks/10.9g-i-promotions-contract.sh       # the same stack: promotions by promociones.ts' names — made, three at once, ended, undone — an offer joining one by listing.ts', the door's band by Itacate's
 bash store/cocina-itacate/render.sh giros         # the nine trades' drawings, from brand/giros.svg into src/marca/giros/ — and nothing else
 TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic is local time, and the Mac is UTC−6
 ```
@@ -86,7 +87,14 @@ TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic i
 `src/api/numeros.ts`** — `0086`'s `kitchen_numbers` (the owner's: `42501` for anyone else, `TD013` a shop), its argument and every key of its
 answer at three levels — is asked by `docs/checks/10.9f-numbers-contract.sh` and its falsifier (its own job, `cocina-numbers`), after a plate
 reserved through Itacate's names and handed over through this app's, its stamp and its reservation one visit; held to `0086`'s text by
-`test/numeros.test.ts` (the section *Her numbers* below). The code on
+`test/numeros.test.ts` (the section *Her numbers* below). ⚠️ **Since `10.9g-i`, `src/api/promociones.ts`** — `0087`'s four for
+promotions: `kitchen_promotions` (any member: a helper publishes and *Publicar* asks her which runs), `create_promotion`, `end_promotion`
+(*Terminarla hoy*) and `undo_promotion` (*Deshacer*, two minutes) — the owner's, `42501` for a helper — every argument and key of their one
+answer, `TD029` (three at once), `TD030` (*Para tus clientes* with no card), `TD032` (too late to undo) — ending or undoing one not there answers her list; and `src/api/listing.ts`'
+optional `p_promotion_id`, sent only when she picks one (`publish_listing`'s sixth, defaulted; `TD031` when it cannot join). Asked against
+a real PostgREST by `docs/checks/10.9g-i-promotions-contract.sh` beside Itacate's door (its own job, `promotions`; its falsifier breaks the
+three files), held to `0087`'s text by `test/promociones.test.ts`. Drawn by `10.9g-ii`: until then no screen asks for them, and Wera's
+switch `promociones` keeps them off for everyone. The code on
   *Sellar* is `src/lib/codigo.ts` — HOTP over the minute in plain TypeScript (no crypto package: a dependency moves Wera's runtime),
   held to RFC 4226 and RFC 6238 by `test/codigo.test.ts`, and Itacate's copy to it by `itacate/test/gemelos.test.ts`. **Drawn since
   `10.9e-ii`** — the section *The loyalty card* below. ⚠️ **Drawn since

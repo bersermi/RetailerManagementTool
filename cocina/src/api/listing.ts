@@ -470,6 +470,14 @@ export interface PublishArgs {
   readonly p_pickup_start: string;
   readonly p_pickup_end: string;
   readonly p_lines: readonly LineBody[];
+  /**
+   * `0087` (`10.9g-i`): the promotion this offer joins — *¿Es parte de una promoción?* (G30) — SENT
+   * ONLY WHEN SHE PICKED ONE; the database's default is none, so a body without it is today's, byte
+   * for byte, and so is its retry's id (`attemptFor`). ⚠️ OPTIONAL ON PURPOSE: the five checks that
+   * publish read the five names above, in order, and `docs/checks/10.9g-i-promotions-contract.sh`
+   * reads this one by its own name. `TD031` when it cannot join (`@/api/promociones`).
+   */
+  readonly p_promotion_id?: string;
 }
 
 /**
@@ -530,13 +538,23 @@ export function lineBody(line: LineDraft, cocina: ComoSeCome | null = null): Lin
 /** Everything but the id — what `attemptFor` compares. */
 export type PublishBody = Omit<PublishArgs, 'p_id'>;
 
-/** The body for checked lines and a checked window at her kitchen's place, with her kitchen's ways when read. */
-export function publishBody(placeId: string, lines: readonly LineDraft[], ventana: Ventana, cocina: ComoSeCome | null = null): PublishBody {
+/**
+ * The body for checked lines and a checked window at her kitchen's place, with her kitchen's ways when
+ * read — and, since `0087`, the promotion it joins when she picked one (never a key for none).
+ */
+export function publishBody(
+  placeId: string,
+  lines: readonly LineDraft[],
+  ventana: Ventana,
+  cocina: ComoSeCome | null = null,
+  promotionId: string | null = null,
+): PublishBody {
   return {
     p_location_id: placeId,
     p_pickup_start: ventana.start.toISOString(),
     p_pickup_end: ventana.end.toISOString(),
     p_lines: lines.map((line) => lineBody(line, cocina)),
+    ...(promotionId === null ? {} : { p_promotion_id: promotionId }),
   };
 }
 

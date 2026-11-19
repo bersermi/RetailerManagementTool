@@ -225,8 +225,10 @@ select public.chk('1.5 the states, read from the moments: recogido, cancelado, n
   and public.reservation_state(now(), null, null, now() + interval '3 hours', now() + interval '1 hour') = 'no_va'
   and public.reservation_state(null, null, null, now(), now() - interval '1 hour') = 'liberado'
   and public.reservation_state(null, null, null, now() + interval '1 minute', now()) = 'apartado');
+-- ⚠️ Since `0087` (`10.9g-i`) `publish_listing` takes a sixth argument, defaulted (`p_promotion_id`):
+-- dropped and made again, never an overload, so its grant is read under the signature it has now.
 select public.chk('1.6 the re-created doors keep their signatures and their grants',
-  has_function_privilege('authenticated', 'public.publish_listing(uuid, uuid, timestamptz, timestamptz, jsonb)', 'execute')
+  has_function_privilege('authenticated', 'public.publish_listing(uuid, uuid, timestamptz, timestamptz, jsonb, uuid)', 'execute')
   and has_function_privilege('authenticated', 'public.set_kitchen_page(uuid, jsonb)', 'execute')
   and has_function_privilege('authenticated', 'public.on_offer_now()', 'execute')
   and has_function_privilege('authenticated', 'public.delete_my_business(uuid, text)', 'execute')

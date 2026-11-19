@@ -154,6 +154,13 @@ on:
       # owner after a plate reserved in Itacate and handed over in Wera Cocina, its job `cocina-numbers`.
       - "docs/checks/10.9f-numbers-contract.sh"
       - "docs/checks/10.9f-numbers-contract-falsify.sh"
+      # ⚠️ `10.9g-i`, PROMOTIONS: Wera Cocina's `promociones.ts` (under `cocina/src/api/**` above) names
+      # `0087`'s four — her kitchen's promotions, making one, *Terminarla hoy*, *Deshacer* — every argument
+      # and key of their answer and the refusals it reads; its `listing.ts` the argument an offer joins one
+      # by; Itacate's `cocinas.ts` (under `itacate/src/api/**`) the door's `promotions`, each one's keys and
+      # each offer's mark. Its own job, `promotions`, below.
+      - "docs/checks/10.9g-i-promotions-contract.sh"
+      - "docs/checks/10.9g-i-promotions-contract-falsify.sh"
       # ⚠️⚠️ AND THE ROSTER'S, as of plan task 5b-ii-a. `app/src/api/members.ts`
       # is a second claim about the applied schema — two column lists — and it
       # carries something `workspace.ts` does not: a claim about a POLICY. The
@@ -2750,6 +2757,47 @@ jobs:
 
       - name: Contract — can the numbers check still fail (its own fixtures; the runner counts them)
         run: bash docs/checks/10.9f-numbers-contract-falsify.sh
+
+      - name: Stop
+        if: always()
+        run: supabase stop --no-backup
+
+  # ===========================================================================
+  # PROMOTIONS (plan `10.9g-i`, `0087`): Wera Cocina's `cocina/src/api/promociones.ts` — her kitchen's
+  # promotions, *Publicar promoción*, *Terminarla hoy*, *Deshacer* — and `listing.ts`' argument an offer
+  # joins one by; Itacate's `itacate/src/api/cocinas.ts` — the door's `promotions` and each offer's mark.
+  # Every key of every answer exactly, three at once, *Para tus clientes* with no card and an offer on
+  # the wrong weekday refused with the codes the app reads, and nothing signed out. It turns Wera's
+  # switch for promotions on for its run and back after. The database's own rules are
+  # `supabase/tests/0087_promotions.sql`'s, in the reset job. Its own job for `cocina-handover`'s
+  # reason: the falsifier runs the check fifteen times, two sign-ups each.
+  # ===========================================================================
+  promotions:
+    name: promotions, against Wera Cocina's and Itacate's own names
+    runs-on: ubuntu-latest
+    # ⚠️ Fifteen runs of two sign-ups each, and GoTrue allows 30 in five minutes: a run that spends
+    # them waits out the window (`signup`'s retries).
+    timeout-minutes: 35
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: 2.114.0
+
+      - name: Start Postgres, GoTrue and PostgREST
+        run: supabase start -x realtime,storage-api,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
+
+      - name: Apply migrations from scratch
+        run: supabase db reset
+
+      - name: Contract — do cocina/src/api/promociones.ts, listing.ts and itacate/src/api/cocinas.ts make, join, read and end a promotion by the names 0087 answers (plan 10.9g-i)
+        run: bash docs/checks/10.9g-i-promotions-contract.sh
+
+      - name: Contract — can the promotions check still fail (its own fixtures; the runner counts them)
+        run: bash docs/checks/10.9g-i-promotions-contract-falsify.sh
 
       - name: Stop
         if: always()

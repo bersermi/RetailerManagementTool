@@ -107,6 +107,11 @@ signed_in (proname) as (values
   -- her numbers (`0086`, plan `10.9f`): the owner's counts of what passed through Itacate
   -- at her kitchen — never a name, an id or an order
   ('kitchen_numbers'),
+  -- promotions (`0087`, plan `10.9g-i`): her kitchen's, read by every member (a helper
+  -- publishes, and *Publicar* asks which runs), made, ended and undone by the owner; a
+  -- neighbour reads them through the door, `on_offer_now`, and an offer joins one through
+  -- `publish_listing`, both already on this list
+  ('kitchen_promotions'), ('create_promotion'), ('end_promotion'), ('undo_promotion'),
   -- what a policy, a check or a computed column runs as the caller
   ('catalog_image_path'), ('has_role'), ('merma_path_ok'), ('my_locations'),
   ('my_role'), ('my_workspaces'), ('normalize_name'), ('photo_folder_ok'),
