@@ -97,6 +97,13 @@ signed_in (proname) as (values
   -- following (`0084`, plan `10.9d-i`): her two, keyed on her own id — following and
   -- the bell, and her list — and the kitchen's count, read by every member, never who
   ('set_my_follow'), ('my_follows'), ('kitchen_followers'),
+  -- the loyalty card (`0085`, plan `10.9e-i`): the kitchen's seven — its terms and closing
+  -- the owner's, its counts, a phone's key, a neighbour's code read, a stamp and a reward
+  -- given any member's — and her four, keyed on her own id (a kitchen's terms reach her through
+  -- the door, `on_offer_now`, already on this list)
+  ('set_card_terms'), ('close_card'), ('kitchen_card'), ('register_kitchen_key'),
+  ('card_of_code'), ('give_stamp'), ('give_reward'),
+  ('register_my_key'), ('my_cards'), ('stamp_with_code'), ('claim_with_code'),
   -- what a policy, a check or a computed column runs as the caller
   ('catalog_image_path'), ('has_role'), ('merma_path_ok'), ('my_locations'),
   ('my_role'), ('my_workspaces'), ('normalize_name'), ('photo_folder_ok'),

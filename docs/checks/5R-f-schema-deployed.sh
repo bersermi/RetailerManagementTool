@@ -42,6 +42,11 @@
 #      the nightly job that forgets them is scheduled and active, nothing is older,
 #      and its last run, once it has had a night, succeeded — group 8's shape, for
 #      the owner's ruling G23 (*dejó Itacate* for 30 days).
+#  10. No loyalty card kept past its days there, and no reward nobody claimed kept past
+#      a closed card's 30 (plan `10.9e-i`, `0085`): the nightly job that erases them is
+#      scheduled and active, nothing is more than a day older, and its last run, once
+#      it has had a night, succeeded — group 8's shape, for the owner's rulings G12 and
+#      G15.
 #
 # ⚠️⚠️ IT IS DELIBERATELY NOT IN ANY WORKFLOW, AND THAT WAS THE FIRST DECISION THIS
 # TASK MADE. `supabase migration list --linked` needs a Supabase ACCESS TOKEN, and
@@ -411,11 +416,52 @@ else
   rm -f "$KG_ERR"
 fi
 
+# --- 10. no loyalty card kept past its days there (plan 10.9e-i, 0085) ------------
+# ⚠️ HIS RULINGS G15 AND G12: her stamps are erased after the days the kitchen chose
+# without a visit, and 30 days after a kitchen closes its card the cards going there and
+# the rewards nobody claimed go — deleted by a nightly job inside the hosted database,
+# where nothing else watches it. Group 8's three questions, one statement, one row.
+note
+if (( link_ok == 0 )); then
+  fail "the loyalty cards were not read: group 2 did not accept the link."
+else
+  LC_ERR="$(mktemp)"
+  LC_OUT="$(supabase db query --linked -o csv --workdir "$ROOT" "select
+      (select count(*) from cron.job where jobname = 'forget-cards' and active
+          and schedule = '21 9 * * *' and command = 'select servicio.forget_cards()')::text as job,
+      ((select count(*) from servicio.loyalty_card c join servicio.card_terms t on t.id = c.terms_id
+         where t.expiry_days is not null and c.last_stamp_at + make_interval(days => t.expiry_days + 1) <= now())
+       + (select count(*) from servicio.card_reward r
+            join servicio.card_terms t on t.workspace_id = r.workspace_id and t.replaced_at is null
+           where r.claimed_at is null and t.closed_at <= now() - interval '31 days'))::text as old,
+      coalesce((select d.status from cron.job_run_details d join cron.job j on j.jobid = d.jobid
+                 where j.jobname = 'forget-cards' order by d.start_time desc limit 1), 'none') as last_run" 2>"$LC_ERR")"
+  LC_RC=$?
+  LC_ROW="$(printf '%s\n' "$LC_OUT" | grep -v '^job,' | grep . | tail -1 | tr -d '\r')"
+  LC_JOB="${LC_ROW%%,*}"; LC_REST="${LC_ROW#*,}"; LC_OLD="${LC_REST%%,*}"; LC_LAST="${LC_REST#*,}"
+  if (( LC_RC != 0 )) || ! [[ "$LC_JOB" =~ ^[0-9]+$ && "$LC_OLD" =~ ^[0-9]+$ ]]; then
+    fail "the loyalty cards could not be read on the hosted project (exit $LC_RC). What it said:"
+    { printf '%s\n' "$LC_OUT"; cat "$LC_ERR"; } | grep -v '^Initialising\|^Connecting' | sed 's/^/        /' | head -6
+  elif [[ "$LC_JOB" != 1 ]]; then
+    fail "the nightly job that erases the loyalty cards is not scheduled there ($LC_JOB found):"
+    echo "      0085 schedules it — has it been pushed? supabase db push"
+  elif [[ "$LC_OLD" != 0 ]]; then
+    fail "$LC_OLD card(s) or reward(s) kept more than a day past their days — the rulings say"
+    echo "      they go. The job runs at 09:21 UTC: read cron.job_run_details for why it did not."
+  elif [[ "$LC_LAST" != none && "$LC_LAST" != succeeded ]]; then
+    fail "the job's last run there did not succeed (status: $LC_LAST)."
+  else
+    ok "no loyalty card is kept past its days there — the nightly job scheduled and active, its last run: $LC_LAST"
+  fi
+  rm -f "$LC_ERR"
+fi
+
 echo ""
 if (( fails == 0 )); then
   echo "all $ran assertion groups passed — the hosted project $EXPECTED_REF is"
   echo "carrying exactly the migrations this repository has merged, keeps the"
-  echo "walls, and keeps no Google point and no deleted kitchen's name past 30 days."
+  echo "walls, and keeps no Google point, no deleted kitchen's name and no loyalty"
+  echo "card past their days."
   exit 0
 fi
 echo "$ran assertion groups ran, $fails failed — the deployed schema and this"

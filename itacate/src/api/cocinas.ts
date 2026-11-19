@@ -44,6 +44,9 @@
 // her three most given good tags — which the cards and both pages draw. ⚠️ SINCE `10.9a-i`
 // `0081`'s `features` — the services she uses that a neighbour sees (the card, promotions) —
 // read and kept, and drawn by nothing until `10.9e` and `10.9g`; a name it does not know is ignored.
+// ⚠️ SINCE `10.9e-i` `0085`'s `card` — a kitchen's loyalty card's current terms while it is open and Wera
+// has it switched on, what she starts on before her first stamp — declared here so the door's contract
+// check holds every key, and parsed by nothing until `10.9e-iii` draws its invitation.
 // ============================================================================
 
 import { SCALE, parseDecimal } from '@tienda/money';
@@ -86,6 +89,16 @@ export interface KitchenRow {
   readonly stars: StarsRow | null;
   /** `0081`: the services a neighbour sees this kitchen use — `tarjeta`, `promociones`; later ones ignored. */
   readonly features: readonly string[] | null;
+  /** `0085`: her loyalty card's current terms while open and switched on — else `null`. */
+  readonly card: DoorCardRow | null;
+}
+
+/** `0085`: a kitchen's loyalty card as the door sends it — the terms a neighbour's first stamp starts on. */
+export interface DoorCardRow {
+  readonly reward: string;
+  readonly stamps: number;
+  /** The days without a stamp after which hers are erased; `null` is *Nunca*. */
+  readonly expiry_days: number | null;
 }
 
 /** `0080`: her stars, counted the day after, and her three most given good tags. */

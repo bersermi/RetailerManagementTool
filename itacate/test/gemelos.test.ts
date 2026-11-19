@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import * as fotos from '@/api/fotos';
+import * as codigo from '@/lib/codigo';
 import { DIBUJOS, kitchenInitials } from '@/api/pagina';
 import { formatMXN } from '@/format/mxn';
 import { clockOf, dayOf, daysFrom, momentOf, slotOf } from '@/lib/ventana';
@@ -13,6 +14,7 @@ import { ZONA_DE_BUSQUEDA } from '@/lib/zona';
 import { ES } from '@/strings';
 import { HUES } from '@/theme/colores';
 import * as fotosDeCocina from '../../cocina/src/api/fotos';
+import * as codigoDeCocina from '../../cocina/src/lib/codigo';
 import * as ventanaDeCocina from '../../cocina/src/lib/ventana';
 import { ES as COCINA } from '../../cocina/src/strings';
 import { HUES as HUES_DE_COCINA } from '../../cocina/src/theme/colores';
@@ -263,4 +265,26 @@ describe('her trade’s name — `cocina/src/api/kitchen.ts`, block by block (`1
       expect(bloque(ours, inicio)).toBe(bloque(theirs, inicio));
     });
   }
+});
+
+describe('the loyalty card’s codes — `cocina/src/lib/codigo.ts`, code for code (`10.9e-i`)', () => {
+  // ⚠️ The kitchen's phone shows a code and her phone scans it, and the other way round: one
+  // algorithm, or no stamp is ever given. Its code, comments aside, and both run over the same inputs.
+  const sinComentarios = (text: string) =>
+    fold(text.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, ''));
+
+  it('the same code, line for line', () => {
+    expect(sinComentarios(itacate('lib/codigo.ts'))).toBe(sinComentarios(cocina('lib/codigo.ts')));
+  });
+
+  it('the same six digits, minute after minute, for the same secret', () => {
+    const secret = codigo.secretoDe('00112233445566778899aabbccddeeff00112233') as Uint8Array;
+    const start = Date.parse('2026-11-19T17:00:00Z');
+    for (let minute = 0; minute < 120; minute += 1) {
+      const ms = start + minute * 60_000;
+      expect(codigo.codigoEn(secret, ms)).toBe(codigoDeCocina.codigoEn(secret, ms));
+    }
+    const key = '0085aaaa-0000-4000-8000-000000000001';
+    expect(codigo.leerQR(codigoDeCocina.textoDelQR('c', key, '482190'))).toEqual({ lado: 'c', key, code: '482190' });
+  });
 });

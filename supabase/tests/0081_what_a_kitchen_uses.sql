@@ -348,9 +348,11 @@ reset role;
 select public.chk('5.5 off from her side: the door sends nothing for her',
   :'promos_off' = 'ok' and public._kitchen('door-4', :'ws_m') -> 'features' = '[]'::jsonb,
   coalesce((public._kitchen('door-4', :'ws_m') -> 'features')::text, :'promos_off'));
-select public.chk('5.6 every key the door sent before 0081 is still sent, and one more',
+-- ⚠️ Since `0085` (`10.9e-i`) the door sends `card` too — the loyalty card's terms — so the set is
+-- every key before `0081`, `features`, and `card`; a later migration adding one more names it here.
+select public.chk('5.6 every key the door sent before 0081 is still sent, and one more (and, since 0085, card)',
   (select array_agg(k order by k) from jsonb_object_keys(public._kitchen('door-4', :'ws_m')) k)
-    = array['address', 'directions', 'eat', 'features', 'giro', 'id', 'min_score', 'name', 'on_offer', 'page',
+    = array['address', 'card', 'directions', 'eat', 'features', 'giro', 'id', 'min_score', 'name', 'on_offer', 'page',
             'payment', 'point', 'stars', 'summary'],
   (select string_agg(k, ',' order by k) from jsonb_object_keys(public._kitchen('door-4', :'ws_m')) k));
 
