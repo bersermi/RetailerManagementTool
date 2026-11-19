@@ -63,6 +63,14 @@ listings do not say *inventario*; the home page of tu-wera.com still does.
 
 ## What is on your phone
 
+⏳ **19 November: following, sent over the air** (*Itacate: Cerca · Mis cocinas · Tú — tu apartado fijo, Seguir y su
+campana, ¿Seguir a …?* and *Wera Cocina: Te siguen N en Hoy y antes de eliminar tu cocina*, `10.9d-ii`) to the test builds of
+**Itacate and Wera Cocina — your iPhone's included**, with nothing to reinstall. On each phone: open the app, wait ten seconds, **close
+it completely** and open it again. **First sign it arrived:** Itacate's bar reads ***Cerca · Mis cocinas · Tú***. **What to look at:**
+*What only you can judge* → *Itacate → following, and its three tabs*. Itacate was seen first on a test Android against a test copy of
+the database; both updates were then seen downloaded and running on a test Android. ⚠️ **Wera Cocina's *Te sigue · 1 vecino* has been
+seen only by its tests** — yours is the first look. Nothing changes in Wera.
+
 ⏳ **18 November: new test builds of Wera Cocina and Itacate — a camera that scans, and Itacate's links** (`10.9c`). ⚠️ **These replace the test builds on your phones, and from now on Wera Cocina's and Itacate's fixes reach only the new ones** — the camera is a change inside the app, which no update can bring. **Wera Cocina, both phones:** open its build page on the phone and install — iPhone: https://expo.dev/accounts/wera-app/projects/cocina/builds/751a7872-883e-4c4e-9836-b9df241c2949 ; Android: https://expo.dev/accounts/wera-app/projects/cocina/builds/2aa9d25f-00d0-4997-b313-35322663f355 (Android asks once to allow installing from your browser). It installs over the one you have, keeping your sign-in. **Itacate, Android:** https://expo.dev/accounts/wera-app/projects/itacate/builds/d56bd2cc-f236-46b9-8919-7126464c61f8 . **Itacate, iPhone** (made by your command, 18 November): https://expo.dev/accounts/wera-app/projects/itacate/builds/de2ae178-b973-447e-94c3-fed9a1234278 . Copies are kept on the Mac in `~/RetailerToolDev/wera-builds/` (EAS lists these until 2 December). ⚠️ **Wera Cocina takes one update after you install it** (sent 18 November, the words *Con un código que escanea*): open it, wait ten seconds, close it completely and open it again — seen arriving on a test Android. **What to look at:** *What only you can judge* → *Wera Cocina → a helper scans your code* and *Itacate → a kitchen's address*. Nothing changes in Wera.
 
 ⏳ **18 November, evening: Wera Cocina's team, sent over the air** (*Wera Cocina: tu equipo — Invitar a alguien, Unirme a una
