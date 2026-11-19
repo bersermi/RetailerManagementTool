@@ -93,7 +93,7 @@ promotions: `kitchen_promotions` (any member: a helper publishes and *Publicar* 
 answer, `TD029` (three at once), `TD030` (*Para tus clientes* with no card), `TD032` (too late to undo) — ending or undoing one not there answers her list; and `src/api/listing.ts`'
 optional `p_promotion_id`, sent only when she picks one (`publish_listing`'s sixth, defaulted; `TD031` when it cannot join). Asked against
 a real PostgREST by `docs/checks/10.9g-i-promotions-contract.sh` beside Itacate's door (its own job, `promotions`; its falsifier breaks the
-three files), held to `0087`'s text by `test/promociones.test.ts`. Drawn by `10.9g-ii`: until then no screen asks for them, and Wera's
+three files), held to `0087`'s text by `test/promociones.test.ts`. **Drawn since `10.9g-ii`** — the section *Promotions* below; Wera's
 switch `promociones` keeps them off for everyone. The code on
   *Sellar* is `src/lib/codigo.ts` — HOTP over the minute in plain TypeScript (no crypto package: a dependency moves Wera's runtime),
   held to RFC 4226 and RFC 6238 by `test/codigo.test.ts`, and Itacate's copy to it by `itacate/test/gemelos.test.ts`. **Drawn since
@@ -602,7 +602,7 @@ migration. The rules are `@/lib/loQueUsas`, pure, pinned by `test/loQueUsas.test
 
 - ⚠️⚠️ **Two gates decide what she is offered**: Wera's switch for everyone (`available`, the database's) AND this build —
   `PANTALLA_DE` names the screen of each feature built into it, `PREPARAR` its setup (only the card's). **The card's since `10.9e-ii`**
-  (`/tarjeta`, `/preparar-tarjeta`); each feature's row adds its own. A feature with no screen here is offered nowhere even with its switch on, so a phone
+  (`/tarjeta`, `/preparar-tarjeta`), her numbers' since `10.9f` (`/numeros`), promotions' since `10.9g-ii` (`/promociones`) — no setup for either. A feature with no screen here is offered nowhere even with its switch on, so a phone
   still on an older update never offers what it cannot open. The menu is never picked: *Próximamente* until its own session.
 - ⚠️ **The first run's step count is the build's** (`pasos`): *Paso 1 de N* is drawn before her kitchen exists, and the database
   answers what is offered only to a member. **3 since `10.9e-ii`** (the card) — and while its switch is still off for everyone, the third
@@ -646,7 +646,8 @@ by `test/empujones.test.ts` against a calendar in Mexico City's zone.
   handover, watched once from the tabs' layout on the read it already makes (`@/lib/useFestejos`). ⚠️ **A first is celebrated only if
   this phone saw her history read with none** (`primerasDe`, `'cero'`): a phone that meets a reservation already there says nothing.
   Her history is the 30 days the phone reads. ⚠️ The stamp's — *Diste tu primer sello* — since `10.9e-ii` (`useFestejoDelSello`, the
-  zero seen in `kitchen_card`'s counts); the promotion's is `10.9g`'s.
+  zero seen in `kitchen_card`'s counts); the promotion's — *Tu primera promoción ya se ve en tu página* — since `10.9g-ii`, keeping its
+  *Deshacer*, and only when the database says it is shown (the section *Promotions*).
 - **At most one quiet line under the day's card** (`@/ui/LineaEmpujon`, `lineaDe`), only on a day she published, and only once every read it
   counts is in: her page's next missing part (her first offer never — it is the invitation's), on three days she publishes each, then the
   next — ✕ ends them for good (`@/lib/puerta`'s `'pagina'`, the key her page's door kept since `10.5-v-c-i`), with *Deshacer*; else a
@@ -842,3 +843,44 @@ database's own answer at the suite's calendar (`RESPUESTA`, copied from `supabas
   ⚠️ **Airplane mode does NOT cut the local shop** (it is `adb reverse`): to see the tile with no signal, `adb reverse --remove tcp:54443`,
   close and reopen the app, then `adb reverse tcp:54443 tcp:54443`.
 
+## Promotions — Wera Cocina's half (`10.9g-ii`)
+
+The owner's rulings of 2026-11-05 (calls 23–25: an offer and a promotion are two records; four kinds; an end date required, eight weeks
+at most; conditions written for her with her kitchen's name and address; a live preview; *Deshacer*; *Terminarla hoy*) and G18, G28–G30
+and G36 of 2026-11-16 and 17, as the family-shell page draws stage 4 (`cPromos`, `promoForm`, `promoSheet`, `promoBand`, the tile), on
+`0087`'s functions (`@/api/promociones`, the section *Measure*). No migration. What every screen says is `@/lib/promociones`, pure, pinned
+by `test/promocionesCocina.test.ts` against a calendar in Mexico City's zone. ⚠️ **Wera's switch `promociones` stays off until his product
+analyst rules** (`10.9g-iii` parks the question): nothing of this shows on a phone before it.
+
+- **Its one screen** (`(cocina)/promociones`, `PANTALLA_DE`): *Así funciona* the first time — ⚠️ marked on THIS screen once any promotion
+  exists (the form's copy of the phone's record is not this screen's: the first walk found the strip still drawn after her first); every
+  promotion as the database orders them, *Activa* or *Terminó*; *Crear promoción*, or *Tienes tres activas…* (`row.running >= row.max`);
+  what a promotion is against an offer; *Dejar de usar promociones* — ⚠️ **her own *off* ends the running ones** (`0087`'s trigger), so
+  while any runs it asks first (`@/ui/HojaConfirmar`) and offers no *Deshacer*; with none, her numbers' way, *Deshacer* for 8 seconds.
+- ***Nueva promoción*** (`(cocina)/nueva-promocion`, `?de=<id>` for *Usarla otra vez*): the four kinds (`tiposDe(card_open)` — *Para tus
+  clientes* only while her card is open), what (40), more (80), a square photo (a dish's `CampoFoto`), *Todos* or her days (`tocarDia`),
+  *Esta semana · Dos semanas · Fin de mes · Otra fecha…* — ⚠️ **a calendar drawn in JavaScript** (`@/ui/Calendario`, `calendarioDe`: no
+  date-picker module, which would be a native build), the conditions written for her (`condicionesDe`) with *Cambiar* (her own text kept
+  when the fields change; *Que se escriban solas* puts them back), *Así la verán en tu página* — the band and the mark (`@/ui/BandaPromocion`).
+  ⚠️ **Every rule checked before anything is sent** (`revisar`), conditions over 400 included (*Toca Cambiar y acórtalas* — never cut).
+  ⚠️ **A retry is the same promotion**: the id is kept while what it sends is unchanged. Its photo goes up first (`useCrearPromocion`).
+- ***Deshacer*, 8 seconds, at the root** (`undo_promotion`, the database's two minutes for a slow signal; `TD032` after says *termínala hoy*):
+  ⚠️ `useDeshacerPromocion` is a plain call with the kitchen and the id — never a screen's mutation — because the form is gone by then. Her
+  first is celebrated in the green and keeps its *Deshacer* (`NotaProvider`'s `avisar(…, festejo)`).
+- ***Tu promoción*** (`@/ui/HojaPromocion`): the band, *Condiciones* opening its words, *Se ve en tu página. Una oferta de hoy lleva su marca.*
+  (`offers_today`, the database's — only while shown). ⚠️ ***Terminarla hoy* has no *Deshacer*** — `0087` keeps no way back; *Usarla otra vez*
+  fills a new form (kind, what, more, photo, days — never its end or conditions; *Para tus clientes* with her card closed starts as *Platillo nuevo*).
+- **The tile on *Hoy*** (`enVivoDe`): dashed *Crea tu primera promoción* until her first ever; then the newest running — *Pozole verde · Hasta
+  el 17 de diciembre · y 2 más* — or *Ninguna ahora*; a failed or paused read says *— · No se pudieron leer*; unread, it waits. ⚠️ **The
+  owner's alone** (G18): asked only on her phone (`duena && seLeen`); a helper has no tile (`mosaicosPara`) and the screen sends her to *Hoy*.
+- ***¿Es parte de una promoción?*** in *Publicar* (G30, G36 — a helper too): asked only while her kitchen uses them (`seLeen`) and one runs on
+  the window's day (`activasEl`); *No* chosen at first; the pick in terracotta, dropped when the window leaves its days; sent as `publishBody`'s
+  `p_promotion_id`. `TD031` (it ended meanwhile) is said in words and her promotions are read again (`usePublish`).
+- ⚠️ **The band and the mark are written to be copied** (`@/ui/BandaPromocion`: every word and its picture from its caller; terracotta,
+  never the action's colour): Itacate draws them by `10.9g-iii` from a copy its `test/gemelos.test.ts` holds to this file.
+- ⚠️ **Not *Avisar a quienes te siguen*** — the alert is `10.9h`'s, his product analyst's; the suite refuses the words.
+- **To see it on the emulator**: the debug build against the local shop (*Apartados*' section), Metro from `cocina/` on 8082 with the local
+  values; the local switch on (`update servicio.feature_switch set is_on = true where name in ('promociones', 'tarjeta')`, off after); a fonda
+  made through the apps' functions (`onboard_workspace`, `set_store_address`, `set_card_terms` for *Para tus clientes*); more than one running
+  is quickest through `create_promotion` with her token. ⚠️ **Tap *Deshacer* in the same command as *Publicar promoción*** — reading a
+  screenshot between them outlasts the toast. ⚠️ *Publicar*'s number boxes move when one takes focus: read the boxes back before publishing.

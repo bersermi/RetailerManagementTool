@@ -13,6 +13,7 @@ import {
   useNumeros,
   usePage,
   usePlace,
+  usePromociones,
   useSeguidores,
   useServicios,
   useSuRol,
@@ -20,6 +21,7 @@ import {
 } from '@/api/hooks';
 import { giroLabel, type Kitchen } from '@/api/kitchen';
 import type { Numeros } from '@/api/numeros';
+import type { PromotionsRow } from '@/api/promociones';
 import { addressComplete } from '@/api/place';
 import { entregadosHoy, loQueSigue, ordenesDe, tomadosDe } from '@/lib/apartados';
 import { mosaicosPara } from '@/lib/ayudante';
@@ -28,6 +30,7 @@ import { chipDe, diaDe, estadoDe, ICONO_DE_PENDIENTE, nombreDe, repetibles } fro
 import { cuentanosEnHoy, ICONO_DE, mosaicosDe, PANTALLA_DE, type Elegible, type EnVivo } from '@/lib/loQueUsas';
 import { useNota } from '@/lib/NotaProvider';
 import { enVivoDe as numerosEnVivo, leidoHoy, veSusNumeros } from '@/lib/numeros';
+import { enVivoDe as promocionesEnVivo, seLeen as seLeenPromociones } from '@/lib/promociones';
 import { useRecordatorio } from '@/lib/RecordatorioProvider';
 import { preguntar } from '@/lib/recordatorio';
 import { usePuertaCerrada } from '@/lib/puerta';
@@ -76,7 +79,9 @@ import { SinSenal } from '@/ui/SinSenal';
 //      *1 premio por entregar* with its dot, and *Sellar* on it (`kitchen_card`, kept on the phone so it
 //      draws with no signal); closed, it stays while its 30 days run; unread, it waits. ⚠️ `10.9f`: HER
 //      NUMBERS' — this week's plates against the whole week before (`kitchen_numbers`, the owner's alone),
-//      *Empiezan con tu primera entrega* dashed until her first visit; unread, it waits; a failed read says so;
+//      *Empiezan con tu primera entrega* dashed until her first visit; unread, it waits; a failed read says so.
+//      ⚠️ `10.9g-ii`: PROMOTIONS' — the newest running, *Hasta el 30 de noviembre · y 1 más*, or *Ninguna ahora*;
+//      *Crea tu primera promoción* dashed until her first (`kitchen_promotions`, the owner's tile); unread, it waits;
 //   5. HER REMINDER'S QUESTION, ONCE (`@/ui/PreguntaRecordatorio`, `10.5-v-c-ii`) — after
 //      her third offer, while the rule finds her hour and her days; either answer and it
 //      is gone from this phone, the reminder kept in *Mi cocina*.
@@ -112,14 +117,22 @@ const CADA_MEDIO_MINUTO = 30_000;
 
 /**
  * `10.9e-ii`: the card's live words, with *Sellar* on its tile (the page's `cardTile`). ⚠️ `10.9f`: and her
- * numbers' — `undefined` while unread (no words: the tile waits), `null` when the read failed.
+ * numbers' — `undefined` while unread (no words: the tile waits), `null` when the read failed. ⚠️ `10.9g-ii`: and
+ * promotions', the same way.
  */
-function vivosDe(card: Parameters<typeof enVivoDe>[0], numeros: Numeros | null | undefined, ahora: Date): Partial<Record<Elegible, EnVivo>> {
+function vivosDe(
+  card: Parameters<typeof enVivoDe>[0],
+  numeros: Numeros | null | undefined,
+  promociones: PromotionsRow | null | undefined,
+  ahora: Date,
+): Partial<Record<Elegible, EnVivo>> {
   const vivos: Partial<Record<Elegible, EnVivo>> = {};
   const vivo = enVivoDe(card, ahora);
   if (vivo !== null) vivos.tarjeta = { ...vivo, accion: { etiqueta: ES.tarjeta.sellar, abre: '/sellar' } };
   const cuentas = numeros === undefined ? null : numerosEnVivo(numeros);
   if (cuentas !== null) vivos.numeros = cuentas;
+  const corren = promociones === undefined ? null : promocionesEnVivo(promociones);
+  if (corren !== null) vivos.promociones = corren;
   return vivos;
 }
 
@@ -176,6 +189,11 @@ function HoyDe({ kitchen }: { kitchen: Kitchen }) {
   useEffect(() => {
     if (numerosOtraVez) void releerNumeros();
   }, [numerosOtraVez, releerNumeros]);
+  // ⚠️ `10.9g-ii`: promotions' tile — the owner's, asked only while she uses them and this build carries them.
+  const promocionesLeidas = usePromociones(kitchen.id, { activa: duena && seLeenPromociones(servicios.data) });
+  const promocionesSinLeer = promocionesLeidas.isError || promocionesLeidas.fetchStatus === 'paused';
+  // Read wins over a later refetch that failed; with none, a failed or paused read is said (`null`).
+  const promocionesVivas = promocionesLeidas.data ?? (promocionesSinLeer ? null : undefined);
   const [hojaMenu, setHojaMenu] = useState(false);
 
   const trade = giroLabel(giros.data, kitchen.giroPrincipal);
@@ -214,11 +232,13 @@ function HoyDe({ kitchen }: { kitchen: Kitchen }) {
   }, [marca, cambiar]);
   // Today's read wins over a later refetch that failed; with none, a failed or paused read is said (`null`).
   const numerosVivos = numerosDeHoy ?? (numerosSinLeer ? null : undefined);
-  const mosaicos = mosaicosPara(mosaicosDe(servicios.data, vivosDe(tarjetaDeHoy, numerosVivos, ahora), PANTALLA_DE, ademasDe(tarjetaDeHoy, ahora)), duena)
+  const mosaicos = mosaicosPara(mosaicosDe(servicios.data, vivosDe(tarjetaDeHoy, numerosVivos, promocionesVivas, ahora), PANTALLA_DE, ademasDe(tarjetaDeHoy, ahora)), duena)
     // ⚠️ The card's tile waits for its read: never *Prepara tu tarjeta* drawn and then taken away.
     .filter((m) => m.servicio !== 'tarjeta' || tarjetaDeHoy !== undefined || tarjetaLeida.isError)
     // ⚠️ `10.9f`: and so does her numbers' — never *Empiezan con tu primera entrega* over a kitchen that has some.
-    .filter((m) => m.servicio !== 'numeros' || numerosVivos !== undefined);
+    .filter((m) => m.servicio !== 'numeros' || numerosVivos !== undefined)
+    // ⚠️ `10.9g-ii`: and promotions' — never *Crea tu primera promoción* over a kitchen that has one running.
+    .filter((m) => m.servicio !== 'promociones' || promocionesVivas !== undefined);
 
   function abrirLinea(linea: Linea) {
     router.push(linea.abre);

@@ -52,8 +52,11 @@ interface NotaViva {
 }
 
 interface Notas {
-  /** A toast with nothing to undo, or with a *Deshacer* of her screen's own (her door, closed) — and its own words after it. */
-  readonly avisar: (texto: string, deshacer?: Deshacer, palabras?: PalabrasDeDeshacer) => void;
+  /**
+   * A toast with nothing to undo, or with a *Deshacer* of her screen's own (her door, closed) — and its own words after it.
+   * ⚠️ `10.9g-ii`: `festejo` — a first in the green that keeps its *Deshacer* (her first promotion), as her first offer's does.
+   */
+  readonly avisar: (texto: string, deshacer?: Deshacer, palabras?: PalabrasDeDeshacer, festejo?: boolean) => void;
   /** *Publicaste …*, whose *Deshacer* takes that offer down again — her first, as a celebration (`festejo`). */
   readonly avisarPublicada: (texto: string, kitchenId: string, listingId: string, festejo?: boolean) => void;
   /** `10.9a-iii`: a first — *¡Tu primer apartado!* — in the green, with nothing to undo. */
@@ -87,7 +90,7 @@ export function NotaProvider({ children }: { children: ReactNode }) {
 
   const notas = useMemo<Notas>(
     () => ({
-      avisar: (texto, deshacer, palabras) => mostrar(texto, deshacer ?? null, false, palabras),
+      avisar: (texto, deshacer, palabras, festejo = false) => mostrar(texto, deshacer ?? null, festejo, palabras),
       avisarPublicada: (texto, kitchenId, listingId, festejo = false) => mostrar(texto, () => quitar(kitchenId, listingId), festejo),
       festejar: (texto) => mostrar(texto, null, true),
     }),
