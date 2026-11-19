@@ -25,6 +25,7 @@ bash docs/checks/10.9a-i-features-contract.sh         # the same stack: what her
 bash docs/checks/10.9b-ii-team-contract.sh            # the same stack: a helper joining by her owner's code (invitar.ts' names), her role, who works at her kitchen, Quitar and Salir (equipo.ts') — as a real owner and a real helper
 bash docs/checks/10.9d-i-following-contract.sh        # the same stack: Te siguen N by seguidores.ts' names, as the fonda, beside Itacate's following
 bash docs/checks/10.9e-i-card-contract.sh             # the same stack: the loyalty card by tarjeta.ts' names — Activar, a phone's code, a scan, a stamp, a reward, Cerrar — beside Itacate's
+bash docs/checks/10.9f-numbers-contract.sh            # the same stack: her numbers by numeros.ts' names, as the owner, after a plate reserved in Itacate and handed over here — one visit
 bash store/cocina-itacate/render.sh giros         # the nine trades' drawings, from brand/giros.svg into src/marca/giros/ — and nothing else
 TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic is local time, and the Mac is UTC−6
 ```
@@ -81,7 +82,11 @@ TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic i
   `kitchen_card` (the counts and today's lines), `register_kitchen_key` (this phone's secret, handed once), `card_of_code`, `give_stamp`
   and `give_reward` (any member; a scan from the queue carries its moment, `p_at`, up to 7 days back) — every argument and key, `TD027`;
   a scan is ANSWERED with a `result`, never refused. Asked against a real PostgREST by `docs/checks/10.9e-i-card-contract.sh` beside
-  Itacate's (its own job, `loyalty-card`; its falsifier breaks the file), held to `0085`'s text by `test/tarjeta.test.ts`. The code on
+  Itacate's (its own job, `loyalty-card`; its falsifier breaks the file), held to `0085`'s text by `test/tarjeta.test.ts`. ⚠️ **Since `10.9f`,
+`src/api/numeros.ts`** — `0086`'s `kitchen_numbers` (the owner's: `42501` for anyone else, `TD013` a shop), its argument and every key of its
+answer at three levels — is asked by `docs/checks/10.9f-numbers-contract.sh` and its falsifier (its own job, `cocina-numbers`), after a plate
+reserved through Itacate's names and handed over through this app's, its stamp and its reservation one visit; held to `0086`'s text by
+`test/numeros.test.ts` (the section *Her numbers* below). The code on
   *Sellar* is `src/lib/codigo.ts` — HOTP over the minute in plain TypeScript (no crypto package: a dependency moves Wera's runtime),
   held to RFC 4226 and RFC 6238 by `test/codigo.test.ts`, and Itacate's copy to it by `itacate/test/gemelos.test.ts`. **Drawn since
   `10.9e-ii`** — the section *The loyalty card* below. ⚠️ **Drawn since
@@ -793,4 +798,39 @@ in Mexico City's zone. ⚠️ **Wera's switch `tarjeta` was off until `10.9e-iii
   `code_at`). ⚠️ **`uiautomator dump` never settles on *Sellar*** (its code ticks every second) — a stale `/sdcard/ui.xml` reads as the
   screen before: tap it by coordinates. ⚠️ **A *Cobras* QR for the camera is a code for one coming minute**: once the camera is allowed it
   opens on arrival and reads at once, so time the arrival into the code's minute.
+
+## Her numbers — *Tus números* (`10.9f`)
+
+The owner's rulings G24–G27 of 2026-11-17, as the family-shell page draws stage 4 (`cNumeros`, the tile's `41 platos`), on `0086`'s
+`kitchen_numbers` (`@/api/numeros`). What each question says is `@/lib/numeros`, pure, pinned by `test/numeros.test.ts` against the
+database's own answer at the suite's calendar (`RESPUESTA`, copied from `supabase/tests/0086_her_numbers.sql`'s run, never written by hand).
+
+- **What is counted is the database's** (`0086`): plates and pesos of reservations *recogido* (the kitchen's *Entregar* OR her *Ya lo tengo*),
+  visits — one person one day, a reservation and its stamp one; her swipe counted no later than her window's end — walk-ins (a stamp and no reservation that day), and, ⚠️ **only from five
+  neighbours in the period, `neighbours` and `returning`** — under five they arrive `null` and the screen says *Aparece desde cinco vecinos*.
+  ⚠️ **The floor is the database's, never this app's**: a phone never holds a number it must not show. Someone whose account is gone is a
+  visit still, never one of *vecinos*.
+- **Its one screen** (`(cocina)/numeros`, `PANTALLA_DE`): *Así funciona* the first time; what is counted, true today (*y quienes juntan
+  sellos* only while her kitchen uses the card — `@/lib/ayudante`' `conTarjeta`); *Día · Semana · Mes* (`@/ui/Segmento`), *Semana* first;
+  the five questions, each against the WHOLE period before (*Esta semana · la anterior, 36*; a period before under five reads *menos de
+  cinco*); *Tus días fuertes* for a week or a month, *Tus horas fuertes* from her first hour with a visit to her last (`@/ui/Barras`, every
+  count written beside its bar); *Cuentas de tus entregas, sin nombres.*; *Dejar de ver tus números* — one `set_kitchen_features` with
+  `numeros: off`, back to *Hoy*, *Deshacer* for 8 seconds. Before her first visit ever (`since` null): *Empiezan con tu primera entrega*.
+- **The tile on *Hoy***: *12 platos · entregados esta semana · la anterior, 6* — said as the screen says it, never *N más* (on a Tuesday that
+  weighs two days against seven); dashed *Empiezan con tu primera entrega* until her first visit; it WAITS for its read, and a failed read
+  says *— · No se pudieron leer* — never a first time that is not one; ⚠️ with no signal the read PAUSES (TanStack's
+  online mode) instead of failing, and `fetchStatus === 'paused'` is read the same; a later refetch that fails never replaces today's read.
+- ⚠️ **The owner's alone** (G18): asked only on her phone (`veSusNumeros`: the owner, using them, this build carrying them); a helper has no
+  tile (`mosaicosPara`) and one who reaches the screen is sent to *Hoy*; the database refuses anyone else.
+- ⚠️ **Never on the phone's disk** (`@/api/persist`'s list unchanged): a read from another day is read again (`leidoHoy`, by the phone's own
+  calendar, from the start of `ahora`'s day — ⚠️ never the answer's `day` against the phone's, which a phone in another zone would never
+  match, and never "the same day as `ahora`", which a read landing at 00:00:01 while `ahora` still says 23:59 would miss: both ask for
+  ever), and not while a read failed or waits for a signal. A handover or a stamp that lands reads them again (`ColaProvider`, `useEscaneo`), so the tile never lags *¡Tu primera
+  entrega! Ya cuenta en tus números* — the first handover's words once she sees her numbers (`palabrasDelFestejo`, the tabs' layout).
+- **To see it on the emulator**: the debug build against the local shop (*Apartados*' section), the local switch on (`update
+  servicio.feature_switch set is_on = true where name in ('numeros', 'tarjeta')`), *Mi cocina › Lo que usas › Tus números › Activar*; a
+  week of visits written as the database's owner the suite's way (`_r`/`_s`), then away from the app a minute and back (the reads' 60
+  seconds). ⚠️ **Tap *Deshacer* in the same command as *Dejar de ver tus números*** — reading a screenshot between them outlasts the toast.
+  ⚠️ **Airplane mode does NOT cut the local shop** (it is `adb reverse`): to see the tile with no signal, `adb reverse --remove tcp:54443`,
+  close and reopen the app, then `adb reverse tcp:54443 tcp:54443`.
 

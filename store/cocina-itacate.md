@@ -305,6 +305,11 @@ key is a per-install secret — *Device or other IDs*; *Escanear a tu cliente* r
 the card records of a NEIGHBOUR (her name in the day's lines, her stamps and rewards) is Itacate's to declare, below; the
 stamps and rewards a helper gave carry who gave them, as a handover does — declared with `10.5b`'s reservations when
 `10.5b-vi` rewrites both forms before the public release.
+✅ **Read again by `10.9f` (2026-11-19), *Tus números*:** nothing new to tick in either app. Nothing is collected for it — the
+database counts, when the owner opens it, the reservations and stamps already declared above and in Itacate's form, and sends
+her counts with no name (the people only from five); the phone keeps none of it past closing the app. If Google's form asks what
+data is used for, *Analytics* is the honest answer for a NEIGHBOUR's reservations and stamps (counted for the kitchen she visited)
+— to be ticked with `10.5b-vi`'s rewrite, beside *App functionality*.
 
 ### Data safety — Itacate
 

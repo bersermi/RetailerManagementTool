@@ -104,6 +104,9 @@ signed_in (proname) as (values
   ('set_card_terms'), ('close_card'), ('kitchen_card'), ('register_kitchen_key'),
   ('card_of_code'), ('give_stamp'), ('give_reward'),
   ('register_my_key'), ('my_cards'), ('stamp_with_code'), ('claim_with_code'),
+  -- her numbers (`0086`, plan `10.9f`): the owner's counts of what passed through Itacate
+  -- at her kitchen — never a name, an id or an order
+  ('kitchen_numbers'),
   -- what a policy, a check or a computed column runs as the caller
   ('catalog_image_path'), ('has_role'), ('merma_path_ok'), ('my_locations'),
   ('my_role'), ('my_workspaces'), ('normalize_name'), ('photo_folder_ok'),

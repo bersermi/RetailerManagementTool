@@ -472,10 +472,11 @@ describe('the wiring', () => {
 
   it('her first reservation and handover are watched once, from the tabs’ layout, on the read it already makes', () => {
     const layout = code('app/(cocina)/(tabs)/_layout.tsx');
-    expect(layout).toMatch(/useFestejos\(kitchen\?\.id \?\? null, apartados\.data\?\.reservas\);/);
+    // ⚠️ `10.9f`: with whether she sees her numbers — the first handover's words say they start today.
+    expect(layout).toMatch(/useFestejos\(kitchen\?\.id \?\? null, apartados\.data\?\.reservas, veSusNumeros\(servicios\.data, duena\)\);/);
     const hook = code('lib/useFestejos.ts');
-    expect(hook).toMatch(/\}, \[kitchenId, apartado, entrega, festejar\]\);/);
-    expect(hook).toMatch(/if \(festejo !== null\) festejar\(ES\.festejo\[festejo\]\);/);
+    expect(hook).toMatch(/\}, \[kitchenId, apartado, entrega, festejar, conNumeros\]\);/);
+    expect(hook).toMatch(/if \(festejo !== null\) festejar\(palabrasDelFestejo\(festejo, conNumeros\)\);/);
   });
 
   it('a celebration is the toast in the green, with the cow', () => {

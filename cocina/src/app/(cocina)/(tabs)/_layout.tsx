@@ -1,8 +1,10 @@
 import { Tabs } from 'expo-router/js-tabs';
 
-import { useApartadosAlDia, useKitchen, usePlace, useSiYaNoEstaAqui } from '@/api/hooks';
+import { esDuena } from '@/api/equipo';
+import { useApartadosAlDia, useKitchen, usePlace, useServicios, useSiYaNoEstaAqui, useSuRol } from '@/api/hooks';
 import { ordenesDe, porCalificar } from '@/lib/apartados';
 import { RecordatorioProvider } from '@/lib/RecordatorioProvider';
+import { veSusNumeros } from '@/lib/numeros';
 import { useFestejos } from '@/lib/useFestejos';
 import { useAhora } from '@/lib/useAhora';
 import { useDondeEstaSuCocina } from '@/lib/useGoogle';
@@ -42,7 +44,9 @@ import { Pestanas } from '@/ui/Pestanas';
 // reminders are cancelled with them.
 //
 // ⚠️ `10.9a-iii`: AND HER FIRST RESERVATION AND FIRST HANDOVER ARE CELEBRATED HERE (`@/lib/useFestejos`),
-// on the same read — once, on this phone, from any tab or screen over them.
+// on the same read — once, on this phone, from any tab or screen over them. ⚠️ `10.9f`: the first handover says
+// *Tus números empiezan hoy* on the owner's phone when she uses them — her role and her choices are the queries
+// *Hoy* reads, so nothing more is asked.
 //
 // ⚠️ `10.9b-ii`: AND HER ROLE IS WATCHED HERE (`useSiYaNoEstaAqui`): a helper the owner removed, or
 // who is gone, reads `null` for her role at this kitchen, and her kitchens are read again — once,
@@ -54,7 +58,9 @@ export default function TabsDeCocina() {
   useSiYaNoEstaAqui(kitchen?.id ?? null);
   const apartados = useApartadosAlDia(kitchen?.id ?? null);
   const cuentas = useCuentas(apartados.data);
-  useFestejos(kitchen?.id ?? null, apartados.data?.reservas);
+  const servicios = useServicios(kitchen?.id ?? null);
+  const duena = esDuena(useSuRol(kitchen?.id ?? null).data);
+  useFestejos(kitchen?.id ?? null, apartados.data?.reservas, veSusNumeros(servicios.data, duena));
   return (
     <RecordatorioProvider kitchenId={kitchen?.id ?? null}>
       <Tabs screenOptions={{ headerShown: false }} tabBar={(props) => <Pestanas {...props} cuentas={cuentas} />}>

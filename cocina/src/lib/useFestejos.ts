@@ -5,6 +5,7 @@ import type { KitchenCardRow } from '@/api/tarjeta';
 import { cambiarMemoria, hayDe, primerSelloDe, primerasDe, type Festejo } from '@/lib/empujones';
 import { useNota } from '@/lib/NotaProvider';
 import { deviceStore } from '@/lib/store';
+import { palabrasDelFestejo } from '@/lib/numeros';
 import { ES } from '@/strings';
 
 // ============================================================================
@@ -20,7 +21,9 @@ import { ES } from '@/strings';
 // celebrates nothing. Re-run only when what it counts changes — never on every minute's read.
 // ============================================================================
 
-export function useFestejos(kitchenId: string | null, reservas: readonly Reserva[] | undefined): void {
+// ⚠️ `10.9f`: her first handover's words say her numbers start today when she sees them (`conNumeros`:
+// the owner, using them, on a build that carries them — `@/lib/numeros`' `veSusNumeros`).
+export function useFestejos(kitchenId: string | null, reservas: readonly Reserva[] | undefined, conNumeros = false): void {
   const { festejar } = useNota();
   const hay = reservas === undefined ? null : hayDe(reservas);
   const apartado = hay?.apartado ?? null;
@@ -33,8 +36,8 @@ export function useFestejos(kitchenId: string | null, reservas: readonly Reserva
       festejo = visto.festejo;
       return visto.memoria;
     });
-    if (festejo !== null) festejar(ES.festejo[festejo]);
-  }, [kitchenId, apartado, entrega, festejar]);
+    if (festejo !== null) festejar(palabrasDelFestejo(festejo, conNumeros));
+  }, [kitchenId, apartado, entrega, festejar, conNumeros]);
 }
 
 /**

@@ -23,8 +23,8 @@ import { ES } from '@/strings';
 // offered nowhere (`elegibles`), even with its switch on — so a phone still on an older
 // update never offers a feature whose screens it does not carry (each feature ships over
 // the air, and a phone takes an update a launch late). ⚠️ THE CARD SINCE `10.9e-ii` (`/tarjeta`,
-// its setup `/preparar-tarjeta`); every other feature's own row adds its screen here, and its
-// setup to `PREPARAR` if it has one.
+// its setup `/preparar-tarjeta`); HER NUMBERS SINCE `10.9f` (`/numeros`, no setup); promotions' row
+// adds its screen here, and its setup to `PREPARAR` if it has one.
 //
 // ⚠️ THE FIRST RUN'S STEP COUNT IS THE BUILD'S (`pasos`): *Paso 1 de N* is drawn before her
 // kitchen exists, and the database answers what is offered only to a kitchen's member. So
@@ -41,10 +41,10 @@ import { ES } from '@/strings';
 /**
  * ⚠️ THE FEATURES BUILT INTO THIS BUILD, AND THE ONE SCREEN EACH OPENS — its tile on *Hoy* and
  * its row in *Lo que usas* (the shell's rule: a service never lives in two places). The card's
- * since `10.9e-ii`; her numbers' with `10.9f`, promotions' with `10.9g`. Never the menu, which
+ * since `10.9e-ii`; her numbers' since `10.9f`; promotions' with `10.9g`. Never the menu, which
  * is *Próximamente* until its own session.
  */
-export const PANTALLA_DE: Pantallas = { tarjeta: '/tarjeta' };
+export const PANTALLA_DE: Pantallas = { tarjeta: '/tarjeta', numeros: '/numeros' };
 
 /** A feature's setup, opened by *Activar* before *Listo* — only the card has one (`10.9e-ii`). */
 export const PREPARAR: Pantallas = { tarjeta: '/preparar-tarjeta' };

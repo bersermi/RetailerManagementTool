@@ -2,6 +2,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, type ReactNode } from 'react';
 
 import { APARTADOS_KEY } from '@/api/apartados';
+import { NUMEROS_KEY } from '@/api/numeros';
 import { TARJETA_KEY } from '@/api/tarjeta';
 import { dibujarLlegada } from '@/api/llegada';
 import { guardarYa } from '@/api/persist';
@@ -41,6 +42,9 @@ export function ColaProvider({ children }: { children: ReactNode }) {
         void client.invalidateQueries({ queryKey: APARTADOS_KEY });
         // ⚠️ `10.9e-ii`: a scan sent late changed her card's counts and today's lines.
         void client.invalidateQueries({ queryKey: TARJETA_KEY });
+        // ⚠️ `10.9f`: and her numbers — a plate handed over, a stamp given — so *Hoy*'s tile is not left
+        // saying *Empiezan con tu primera entrega* beside *¡Tu primera entrega! Tus números empiezan hoy*.
+        void client.invalidateQueries({ queryKey: NUMEROS_KEY });
       }
     });
     const parar = start(drenarCola);

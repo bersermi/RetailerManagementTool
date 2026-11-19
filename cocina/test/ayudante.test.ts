@@ -45,7 +45,9 @@ describe('a helper’s Hoy', () => {
     expect(hoy).toContain('const rol = useSuRol(kitchen.id).data;');
     expect(hoy).toContain('const duena = esDuena(rol);');
     expect(hoy).toContain('paginaCerrada: cerrada, ahora, duena }');
-    expect(hoy).toContain('const mosaicos = mosaicosPara(mosaicosDe(servicios.data, vivosDe(tarjetaDeHoy, ahora), PANTALLA_DE, ademasDe(tarjetaDeHoy, ahora)), duena)');
+    expect(hoy).toContain('const mosaicos = mosaicosPara(mosaicosDe(servicios.data, vivosDe(tarjetaDeHoy, numerosVivos, ahora), PANTALLA_DE, ademasDe(tarjetaDeHoy, ahora)), duena)');
+    // `10.9f`: her numbers are read on the owner's phone alone — a helper's never asks.
+    expect(hoy).toContain('const numerosLeidos = useNumeros(kitchen.id, { activa: veSusNumeros(servicios.data, duena) });');
     expect(hoy).toContain('{duena && recordatorio.propuesta !== null && preguntar(');
     expect(hoy).toContain('{duena && cuentanosEnHoy(servicios.data, menuCerrado) && (');
     expect(hoy).toContain('antetitulo={ayudante ? ES.ayudante.antetitulo : (trade ?? ES.cocina.antetitulo)}');
