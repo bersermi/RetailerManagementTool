@@ -32,8 +32,10 @@
 # still to claim and her phones' codes go with her account, and her stamps and the
 # rewards she claimed stay, pointing to nobody (the visits a kitchen counts, as her
 # reservations stay); a kitchen that goes with its owner's account takes its whole
-# card — its terms, the cards, stamps and rewards there, its phones' codes. There
-# is no second deletion path to keep in step with the first.
+# card — its terms, the cards, stamps and rewards there, its phones' codes — and,
+# since `0087`, its promotions. A promotion names nobody, so an account that owns no
+# kitchen has none to take. There is no second deletion path to keep in step with
+# the first.
 #
 # ⚠️ ONE `--shop` FOR EACH BUSINESS SHE ALONE OWNS, a shop's name or a kitchen's
 # (`10.4b-iv-b`). `0073` asks every such business for its own typed name, so one

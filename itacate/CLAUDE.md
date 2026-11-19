@@ -24,6 +24,7 @@ bash docs/checks/10.5b-iii-a-reserving-contract.sh  # the same stack: reserving,
 bash docs/checks/10.9a-i-features-contract.sh       # the same stack: the door's `features`, by cocinas.ts's key and names, beside Wera Cocina's servicios.ts
 bash docs/checks/10.9d-i-following-contract.sh      # the same stack: Seguir, the bell and her list by siguiendo.ts's names, and Te siguen N by Wera Cocina's seguidores.ts
 bash docs/checks/10.9e-i-card-contract.sh           # the same stack: her loyalty cards by tarjeta.ts's names — her phone's code, a kitchen's card, her scan, her claim — beside Wera Cocina's
+bash docs/checks/10.9g-i-promotions-contract.sh     # the same stack: the door's promotions and each offer's mark by cocinas.ts's names, beside Wera Cocina's promociones.ts
 TZ=UTC npm --prefix itacate test          # CI's zone: the list's days and windows are local time, and the Mac is UTC−6
 bash store/cocina-itacate/render.sh itacate-icono   # the iPhone's icon, the cow on the blue — and nothing else (native on the iPhone)
 ```
@@ -119,6 +120,12 @@ from `itacate/` with the two local `EXPO_PUBLIC_SUPABASE_` values in the shell, 
   first stamp come through THE DOOR (`on_offer_now`'s `card`, declared in `src/api/cocinas.ts`'s `KitchenRow`, parsed by
   `10.9e-iii`), never a function of their own (ADR-035 §2.7). A scan is ANSWERED with a `result`. Asked against a real PostgREST by `docs/checks/10.9e-i-card-contract.sh` (its own job, `loyalty-card`), held to `0085`'s text by `test/tarjeta.test.ts`.
   *Mi código* is `src/lib/codigo.ts`, a copy of Wera Cocina's held to it by `test/gemelos.test.ts` and to the RFCs by `test/codigo.test.ts`.
+  ⚠️ **Promotions reach her through THE DOOR too** (`10.9g-i`, `0087`): `src/api/cocinas.ts` declares `KitchenRow.promotions` — each
+  kitchen's promotions shown now, newest first, `DoorPromotionRow`'s nine keys (kind, what, more, photo, ISO weekdays, its first and last
+  day, the conditions) — and `OfferRow.promotion_id`, the offer's mark while its promotion is shown. Declared so the door's checks hold
+  every key (`10.5-iv-a-door-contract.sh` by presence, `docs/checks/10.9g-i-promotions-contract.sh` exactly — its own job, `promotions`);
+  read and drawn by `10.9g-iii` (her page's band with *y 2 más*, *Condiciones*, the mark in *Cerca* and on a dish), never moving a dish up
+  the list. No function of hers: she belongs to no kitchen (ADR-035 §2.7).
   ⚠️ **Since `10.9e-ii` her *Cobras: …* QR names the reward she chose** — `textoDelQR('v', key, code, rewardId)`, a fifth part — and
   Wera Cocina's scan gives that one at once (`give_reward`); *Mi código* without a chosen reward writes four parts.
   **Drawn since `10.9e-iii`** — the section *The loyalty card* below; the calls are `@/api/calls`' four, the reads and writes

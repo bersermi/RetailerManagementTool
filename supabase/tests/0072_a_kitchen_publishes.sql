@@ -448,13 +448,15 @@ select public.chk('7.1 a kitchen''s owner deletes her account: the kitchen, its 
   and not exists (select 1 from public.listing_line where workspace_id = :'ws_o'), :'otra_deleted');
 
 -- ---- 8. the walls -----------------------------------------------------------------
+-- ⚠️ Since `0087` (`10.9g-i`) `publish_listing` takes a sixth argument, defaulted (`p_promotion_id`):
+-- its grants are read under the signature it has now.
 select public.chk('8.1 the four doors answer a signed-in person and nobody signed out',
   has_function_privilege('authenticated', 'public.kitchen_giros()', 'execute')
   and has_function_privilege('authenticated', 'public.set_store_pin(uuid, numeric, numeric, text)', 'execute')
-  and has_function_privilege('authenticated', 'public.publish_listing(uuid, uuid, timestamptz, timestamptz, jsonb)', 'execute')
+  and has_function_privilege('authenticated', 'public.publish_listing(uuid, uuid, timestamptz, timestamptz, jsonb, uuid)', 'execute')
   and has_function_privilege('authenticated', 'public.withdraw_listing(uuid)', 'execute')
   and not has_function_privilege('anon', 'public.set_store_pin(uuid, numeric, numeric, text)', 'execute')
-  and not has_function_privilege('anon', 'public.publish_listing(uuid, uuid, timestamptz, timestamptz, jsonb)', 'execute')
+  and not has_function_privilege('anon', 'public.publish_listing(uuid, uuid, timestamptz, timestamptz, jsonb, uuid)', 'execute')
   and not has_function_privilege('anon', 'public.withdraw_listing(uuid)', 'execute'));
 select public.chk('8.2 the two trigger functions are executable by no client',
   not has_function_privilege('authenticated', 'public.workspace_kind_never_changes()', 'execute')

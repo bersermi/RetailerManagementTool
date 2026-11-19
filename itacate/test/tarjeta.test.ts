@@ -85,7 +85,8 @@ describe('keyed on her, held to `0085`', () => {
 
   it('a kitchen’s terms before her first stamp come through the one door, its `card` — only while open and switched on (G12, ADR-035 §2.7)', () => {
     const { file, body } = ultimaQueDefine('on_offer_now');
-    expect(file.startsWith('0085_')).toBe(true);
+    // `0085` made it; a later migration re-making the door (`0087`'s promotions) carries it unchanged.
+    expect(Number(file.slice(0, 4))).toBeGreaterThanOrEqual(85);
     expect(body).toContain(
       "'card', (select jsonb_build_object('reward', t.reward, 'stamps', t.stamps, 'expiry_days', t.expiry_days) from servicio.card_terms t where t.workspace_id = k.id and t.replaced_at is null and t.closed_at is null and servicio.card_switched_on()),",
     );

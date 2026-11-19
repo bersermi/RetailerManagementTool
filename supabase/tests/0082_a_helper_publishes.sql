@@ -158,11 +158,13 @@ select public.chk('1.1 leave_kitchen executes for the signed-in alone — never 
   and not exists (select 1 from information_schema.routine_privileges p
                    where p.routine_name = 'leave_kitchen' and p.grantee = 'PUBLIC')
   and (select prosecdef from pg_proc where oid = 'public.leave_kitchen(uuid)'::regprocedure));
+-- ⚠️ Since `0087` (`10.9g-i`) `publish_listing` takes a sixth argument, defaulted (`p_promotion_id`):
+-- read under the signature it has now.
 select public.chk('1.2 the three re-made keep their signatures, their grants and security definer',
   (select bool_and(p.prosecdef and has_function_privilege('authenticated', p.oid, 'execute')
                    and not has_function_privilege('anon', p.oid, 'execute'))
      from pg_proc p
-    where p.oid in ('public.publish_listing(uuid, uuid, timestamptz, timestamptz, jsonb)'::regprocedure,
+    where p.oid in ('public.publish_listing(uuid, uuid, timestamptz, timestamptz, jsonb, uuid)'::regprocedure,
                     'public.withdraw_listing(uuid)'::regprocedure,
                     'public.set_listing_quantity(uuid, integer, numeric)'::regprocedure)));
 select public.chk('1.3 an invitation naming the kitchen''s place makes a helper of a kitchen — staff, active, at its place',

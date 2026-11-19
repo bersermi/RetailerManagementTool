@@ -421,11 +421,13 @@ select public._try(format('update public.listing_line set image_path = %L where 
 select public.chk('5.4 the line keeps its own rule as the database''s owner too — another kitchen''s picture is 23514',
   :'line_otra' = '23514', :'line_otra');
 
-select public.chk('5.5 publish_listing''s signature as it was: one function, five arguments, its owner''s rights and an empty search path',
+-- ⚠️ Since `0087` (`10.9g-i`) it takes a sixth argument, defaulted (`p_promotion_id`) — dropped and made
+-- again, never an overload — so the five every build sends are read under the six it has now.
+select public.chk('5.5 publish_listing''s signature as it was: one function, five arguments (and since 0087 a sixth, defaulted), its owner''s rights and an empty search path',
   (select count(*) = 1 from pg_proc where pronamespace = 'public'::regnamespace and proname = 'publish_listing')
-  and to_regprocedure('public.publish_listing(uuid, uuid, timestamptz, timestamptz, jsonb)') is not null
+  and to_regprocedure('public.publish_listing(uuid, uuid, timestamptz, timestamptz, jsonb, uuid)') is not null
   and (select prosecdef and proconfig @> array['search_path=""'] from pg_proc
-        where oid = 'public.publish_listing(uuid, uuid, timestamptz, timestamptz, jsonb)'::regprocedure));
+        where oid = 'public.publish_listing(uuid, uuid, timestamptz, timestamptz, jsonb, uuid)'::regprocedure));
 
 -- ---- 6. the bucket's fence ----------------------------------------------------------
 select set_config('request.jwt.claims', format('{"sub":"%s","role":"authenticated"}', :vecina), true);

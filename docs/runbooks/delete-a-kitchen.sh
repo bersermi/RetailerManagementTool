@@ -21,9 +21,10 @@
 # helpers' memberships (their logins stay, as hers does), since `0083` its
 # helpers' codes, used or not, since `0084` the neighbours' follows of it —
 # each neighbour who followed it keeps its name for 30 days, so her *Mis cocinas*
-# says it left Itacate (the owner's ruling G23) — and since `0085` its whole
+# says it left Itacate (the owner's ruling G23) — since `0085` its whole
 # loyalty card: its terms, every neighbour's card, stamps and rewards there, and
-# its phones' codes — and her login and
+# its phones' codes — and since `0087` its promotions, running or ended (they name
+# nobody) — and her login and
 # every other business she owns stay. There is no second deletion path to keep in
 # step with the first.
 #

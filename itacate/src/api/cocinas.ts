@@ -49,6 +49,12 @@
 // check holds every key; ⚠️ SINCE `10.9e-iii` read into `Kitchen.tarjeta` (`tarjetaOf`), which her page's
 // invitation and the conditions before her first stamp draw. Terms this build cannot read are none —
 // no invitation — never an error: her first stamp at the counter still works.
+// ⚠️ SINCE `10.9g-i` `0087`'s `promotions` — a kitchen's promotions a neighbour sees now, newest first,
+// three at most (running, Wera's switch and the kitchen's choice on, *Para tus clientes* only while her
+// card is open) — and each offer's `promotion_id` while that promotion is shown, its mark: declared here
+// so the door's contract check holds every key, and read and drawn by `10.9g-iii` (her page's band, *y 2
+// más*, the mark in *Cerca*). A promotion has no count, no price and no code, and never moves a dish up
+// the list. Its own keys are held by `docs/checks/10.9g-i-promotions-contract.sh`.
 // ============================================================================
 
 import { SCALE, parseDecimal } from '@tienda/money';
@@ -93,6 +99,25 @@ export interface KitchenRow {
   readonly features: readonly string[] | null;
   /** `0085`: her loyalty card's current terms while open and switched on — else `null`. */
   readonly card: DoorCardRow | null;
+  /** `0087`: her promotions a neighbour sees now, newest first — `[]` when none. */
+  readonly promotions: readonly DoorPromotionRow[] | null;
+}
+
+/**
+ * `0087`: one promotion as the door sends it — what her page's band and its *Condiciones* draw. Its
+ * kind is the mark (`nuevo`, `temporada`, `dia`, `clientes`; a later one ignored), its days ISO
+ * weekdays (1 Monday … 7 Sunday; all seven is *Todos*), its two days YYYY-MM-DD in her zone.
+ */
+export interface DoorPromotionRow {
+  readonly id: string;
+  readonly kind: string;
+  readonly what: string;
+  readonly more: string | null;
+  readonly image_path: string | null;
+  readonly days: readonly number[];
+  readonly starts_on: string;
+  readonly ends_on: string;
+  readonly conditions: string;
 }
 
 /** `0085`: a kitchen's loyalty card as the door sends it — the terms a neighbour's first stamp starts on. */
@@ -144,6 +169,8 @@ export interface OfferRow {
   readonly lines: readonly LineRow[] | null;
   /** `0079`: the *desechable* as she stated it when she published, or `null` — no charge. */
   readonly container_price: string | null;
+  /** `0087`: the promotion it joined while that promotion is shown — its mark — else `null`. */
+  readonly promotion_id: string | null;
 }
 
 /** One dish or surprise bag of it. */
