@@ -29,10 +29,14 @@ const usa = (estado: 'on' | 'off'): LoQueUsa => ({
 const tile = (servicio: Mosaico['servicio']): Mosaico => ({ servicio, abre: `/${servicio}` as Mosaico['abre'], vivo: null });
 
 describe('a helper’s Hoy', () => {
-  it('every tile is the owner’s but the card’s, which a helper stamps with (10.9e)', () => {
-    const todos = [tile('tarjeta'), tile('promociones'), tile('numeros')];
+  it('every tile is the owner’s but the card’s, which a helper stamps with — and only once set up (`10.9e-ii`)', () => {
+    const vivo = { valor: '6 sellos hoy', detalle: '23 tarjetas activas', porHacer: false };
+    const todos = [{ ...tile('tarjeta'), vivo }, tile('promociones'), tile('numeros')];
     expect(mosaicosPara(todos, true)).toEqual(todos);
-    expect(mosaicosPara(todos, false)).toEqual([tile('tarjeta')]);
+    expect(mosaicosPara(todos, false)).toEqual([{ ...tile('tarjeta'), vivo }]);
+    // Its first-time state opens the setup, which is the owner's: a helper never sees it.
+    expect(mosaicosPara([tile('tarjeta')], false)).toEqual([]);
+    expect(mosaicosPara([tile('tarjeta')], true)).toEqual([tile('tarjeta')]);
     expect(DEL_AYUDANTE).toEqual(['tarjeta']);
   });
 
@@ -41,7 +45,7 @@ describe('a helper’s Hoy', () => {
     expect(hoy).toContain('const rol = useSuRol(kitchen.id).data;');
     expect(hoy).toContain('const duena = esDuena(rol);');
     expect(hoy).toContain('paginaCerrada: cerrada, ahora, duena }');
-    expect(hoy).toContain('mosaicosPara(mosaicosDe(servicios.data), duena)');
+    expect(hoy).toContain('const mosaicos = mosaicosPara(mosaicosDe(servicios.data, vivosDe(tarjetaDeHoy, ahora), PANTALLA_DE, ademasDe(tarjetaDeHoy, ahora)), duena)');
     expect(hoy).toContain('{duena && recordatorio.propuesta !== null && preguntar(');
     expect(hoy).toContain('{duena && cuentanosEnHoy(servicios.data, menuCerrado) && (');
     expect(hoy).toContain('antetitulo={ayudante ? ES.ayudante.antetitulo : (trade ?? ES.cocina.antetitulo)}');
@@ -76,7 +80,9 @@ describe('her Mi cocina', () => {
     expect(ayudasAqui(usa('on'), [])).toBe(ES.ayudante.ayudas);
     expect(ayudasAqui(usa('off'), ['tarjeta'])).toBe(ES.ayudante.ayudas);
     expect(ayudasAqui(usa('on'), ['tarjeta'])).toBe('Ayudas aquí: entregas, das sellos y premios, publicas ofertas');
-    expect(conTarjeta(usa('on'))).toBe(false); // this build carries no feature (`PANTALLA_DE` is empty until 10.9e)
+    // `10.9e-ii`: this build carries the card, so the line follows her kitchen's choice.
+    expect(conTarjeta(usa('on'))).toBe(true);
+    expect(conTarjeta(usa('off'))).toBe(false);
   });
 
   it('Quitar tells the owner what happens — her code to stamp only with the card', () => {

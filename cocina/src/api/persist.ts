@@ -22,7 +22,11 @@
 //     sigue*, her thumb;
 //   - ⚠️ `10.9b-ii`: her role at each kitchen (`['cocina', 'rol']`, `my_role`) — a helper's
 //     *Hoy* opened with no signal must not draw what is the owner's, nor an owner's lose
-//     her doors; unread, nobody is the owner (`@/api/equipo`' `esDuena`).
+//     her doors; unread, nobody is the owner (`@/api/equipo`' `esDuena`);
+//   - ⚠️ `10.9e-ii`: what her kitchen uses (`['cocina', 'servicios']`) and her card's counts
+//     (`['cocina', 'tarjeta']`, `kitchen_card`) — together they draw the card's tile on *Hoy*,
+//     the door to *Sellar*, whose code works with no signal (G16). Today's names of those she
+//     stamped come with the counts: what *Sellar* already shows her.
 // Nothing else: her page, her place and the trades are read when she opens them, and
 // none is needed at the counter. ⚠️ WHO RESERVED EACH IS KEPT TOO — the neighbour's
 // short name and score, while the order waits or waits for its thumb (`0080`): what the
@@ -49,6 +53,8 @@ import { APARTADOS_KEY } from '@/api/apartados';
 import { ROL_KEY } from '@/api/equipo';
 import { KITCHENS_KEY } from '@/api/kitchen';
 import { LISTINGS_KEY } from '@/api/listing';
+import { SERVICIOS_KEY } from '@/api/servicios';
+import { TARJETA_KEY } from '@/api/tarjeta';
 import { readKey, removeKey, writeKey, type DeviceStore } from '@/lib/store';
 
 /** The one key the cache is written under. ⚠️ Namespaced: the store holds the session and the queue too. */
@@ -72,9 +78,9 @@ export const CACHE_GC_TIME = Infinity;
 export const CACHE_THROTTLE_MS = 3_000;
 
 /** The reads kept, as key prefixes. Everything else is refused. */
-export const PERSISTED_KEYS: readonly (readonly string[])[] = [KITCHENS_KEY, LISTINGS_KEY, APARTADOS_KEY, ROL_KEY];
+export const PERSISTED_KEYS: readonly (readonly string[])[] = [KITCHENS_KEY, LISTINGS_KEY, APARTADOS_KEY, ROL_KEY, SERVICIOS_KEY, TARJETA_KEY];
 
-/** One of the four — a prefix match, one way: a key shorter than a root never matches. */
+/** One of the six — a prefix match, one way: a key shorter than a root never matches. */
 export function shouldPersistKey(key: readonly unknown[]): boolean {
   return PERSISTED_KEYS.some((root) => root.every((segment, at) => key[at] === segment));
 }

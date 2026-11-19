@@ -125,6 +125,18 @@ describe('what the phone is handed, shows, and reads', () => {
       expect(leerQR(bad), bad).toBeNull();
     }
   });
+
+  it('⚠️ `10.9e-ii`: her *Cobras: …* code names the reward she chose — a neighbour’s alone, a fifth part', () => {
+    const key = '0085aaaa-0000-4000-8000-000000000001';
+    const premio = '0085bbbb-0000-4000-8000-000000000002';
+    expect(textoDelQR('v', key, '731904', premio)).toBe(`WERA1:v:${key}:731904:${premio}`);
+    expect(leerQR(textoDelQR('v', key, '731904', premio))).toEqual({ lado: 'v', key, code: '731904', premio });
+    // A kitchen's code never carries one, written or read; a fifth part that is not a reward is nothing of ours.
+    expect(textoDelQR('c', key, '482190', premio)).toBe(`WERA1:c:${key}:482190`);
+    for (const bad of [`WERA1:c:${key}:482190:${premio}`, `WERA1:v:${key}:731904:nada`, `WERA1:v:${key}:731904:${premio}:x`]) {
+      expect(leerQR(bad), bad).toBeNull();
+    }
+  });
 });
 
 describe('held to `0085`’s text', () => {

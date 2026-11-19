@@ -75,6 +75,8 @@ export interface Memoria {
   readonly oferta: boolean;
   readonly apartado: Primera | null;
   readonly entrega: Primera | null;
+  /** ⚠️ `10.9e-ii`: her card's first stamp — the zero seen in its counts, then done. */
+  readonly sello: Primera | null;
   /** The features whose *Así funciona* she used or closed. */
   readonly vistos: readonly Elegible[];
 }
@@ -87,6 +89,7 @@ export const MEMORIA_VACIA: Memoria = {
   oferta: false,
   apartado: null,
   entrega: null,
+  sello: null,
   vistos: [],
 };
 
@@ -133,6 +136,7 @@ export function memoriaDe(texto: string | null): Memoria {
     servicio,
     oferta: m.oferta === true,
     apartado: primera(m.apartado),
+    sello: primera(m.sello),
     entrega: primera(m.entrega),
     vistos: Array.isArray(m.vistos) ? ELEGIBLES.filter((s) => (m.vistos as unknown[]).includes(s)) : [],
   };
@@ -340,6 +344,20 @@ export function primerasDe(m: Memoria, hay: Hay): { readonly memoria: Memoria; r
   const entrega = primeraDe(m.entrega, hay.entrega);
   const memoria = apartado.ahora === m.apartado && entrega.ahora === m.entrega ? m : { ...m, apartado: apartado.ahora, entrega: entrega.ahora };
   return { memoria, festejo: entrega.festejar ? 'entrega' : apartado.festejar ? 'apartado' : null };
+}
+
+/**
+ * ⚠️ `10.9e-ii`: HER CARD'S FIRST STAMP (*Diste tu primer sello*, the page's `firstToast('sello', …)`) — from
+ * its counts as `kitchen_card` reads them: nothing going, nothing today, nothing to give is the zero; any of
+ * them after it, the first. As her other firsts, only if this phone saw the zero (`primeraDe`).
+ */
+export function primerSelloDe(m: Memoria, cuentas: { readonly cards: number; readonly stamps_today: number; readonly rewards_to_give: number }): {
+  readonly memoria: Memoria;
+  readonly festejar: boolean;
+} {
+  const hay = cuentas.cards > 0 || cuentas.stamps_today > 0 || cuentas.rewards_to_give > 0;
+  const visto = primeraDe(m.sello, hay);
+  return { memoria: visto.ahora === m.sello ? m : { ...m, sello: visto.ahora }, festejar: visto.festejar };
 }
 
 // ----------------------------------------------------------------------------

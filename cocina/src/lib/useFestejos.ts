@@ -1,7 +1,8 @@
 import { useEffect } from 'react';
 
 import type { Reserva } from '@/api/apartados';
-import { cambiarMemoria, hayDe, primerasDe, type Festejo } from '@/lib/empujones';
+import type { KitchenCardRow } from '@/api/tarjeta';
+import { cambiarMemoria, hayDe, primerSelloDe, primerasDe, type Festejo } from '@/lib/empujones';
 import { useNota } from '@/lib/NotaProvider';
 import { deviceStore } from '@/lib/store';
 import { ES } from '@/strings';
@@ -34,4 +35,27 @@ export function useFestejos(kitchenId: string | null, reservas: readonly Reserva
     });
     if (festejo !== null) festejar(ES.festejo[festejo]);
   }, [kitchenId, apartado, entrega, festejar]);
+}
+
+/**
+ * ⚠️ `10.9e-ii`: HER CARD'S FIRST STAMP — *Diste tu primer sello* — once, on this phone, from the counts
+ * `kitchen_card` reads (`primerSelloDe`): on *Hoy* and on *Sellar*, whichever reads them first. Re-run only
+ * when the counts change.
+ */
+export function useFestejoDelSello(kitchenId: string | null, card: KitchenCardRow | undefined): void {
+  const { festejar } = useNota();
+  const cards = card?.cards ?? null;
+  const hoy = card?.stamps_today ?? null;
+  const premios = card?.rewards_to_give ?? null;
+  const puesta = card !== undefined && card.terms !== null;
+  useEffect(() => {
+    if (kitchenId === null || !puesta || cards === null || hoy === null || premios === null) return;
+    let festejar1 = false;
+    cambiarMemoria(deviceStore(), kitchenId, (m) => {
+      const visto = primerSelloDe(m, { cards, stamps_today: hoy, rewards_to_give: premios });
+      festejar1 = visto.festejar;
+      return visto.memoria;
+    });
+    if (festejar1) festejar(ES.tarjeta.primerSello);
+  }, [kitchenId, puesta, cards, hoy, premios, festejar]);
 }

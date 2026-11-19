@@ -15,6 +15,7 @@ import {
   useSeguidores,
   useServicios,
   useSuRol,
+  useTarjeta,
 } from '@/api/hooks';
 import { giroLabel, type Kitchen } from '@/api/kitchen';
 import { addressComplete } from '@/api/place';
@@ -22,12 +23,14 @@ import { entregadosHoy, loQueSigue, ordenesDe, tomadosDe } from '@/lib/apartados
 import { mosaicosPara } from '@/lib/ayudante';
 import { cerrarServicio, useMemoria, verHoy, type Linea } from '@/lib/empujones';
 import { chipDe, diaDe, estadoDe, ICONO_DE_PENDIENTE, nombreDe, repetibles } from '@/lib/hoy';
-import { cuentanosEnHoy, ICONO_DE, mosaicosDe } from '@/lib/loQueUsas';
+import { cuentanosEnHoy, ICONO_DE, mosaicosDe, PANTALLA_DE, type Elegible, type EnVivo } from '@/lib/loQueUsas';
 import { useNota } from '@/lib/NotaProvider';
 import { useRecordatorio } from '@/lib/RecordatorioProvider';
 import { preguntar } from '@/lib/recordatorio';
 import { usePuertaCerrada } from '@/lib/puerta';
+import { deHoy, enVivoDe, seLee, tarjetaGuardada } from '@/lib/tarjeta';
 import { useAhora } from '@/lib/useAhora';
+import { useFestejoDelSello } from '@/lib/useFestejos';
 import { useAlAbrir } from '@/lib/useGoogle';
 import { useRepetir } from '@/lib/useRepetir';
 import { ES } from '@/strings';
@@ -65,8 +68,10 @@ import { SinSenal } from '@/ui/SinSenal';
 //      chips, one tap each, with *Deshacer* (`@/lib/useRepetir`). `10.9a-iii`: until her first
 //      offer it glows once each time she opens the app, on her first three days (`@/ui/Brillo`);
 //   4. `10.9a-iii`: THE TILES (`@/ui/Mosaicos`) — one per feature she uses, in the fixed order,
-//      each opening its one screen; dashed until set up. NONE TODAY: no feature is built. They
-//      took the place of *Tu página · 3 de 5*, gone with every count of what she has not done;
+//      each opening its one screen; dashed until set up. They took the place of *Tu página · 3 de 5*,
+//      gone with every count of what she has not done. ⚠️ `10.9e-ii`: THE CARD'S — *6 sellos hoy*,
+//      *1 premio por entregar* with its dot, and *Sellar* on it (`kitchen_card`, kept on the phone so it
+//      draws with no signal); closed, it stays while its 30 days run; unread, it waits;
 //   5. HER REMINDER'S QUESTION, ONCE (`@/ui/PreguntaRecordatorio`, `10.5-v-c-ii`) — after
 //      her third offer, while the rule finds her hour and her days; either answer and it
 //      is gone from this phone, the reminder kept in *Mi cocina*.
@@ -100,6 +105,17 @@ import { SinSenal } from '@/ui/SinSenal';
 /** How often the clock is read again while *Hoy* is up. */
 const CADA_MEDIO_MINUTO = 30_000;
 
+/** `10.9e-ii`: the card's live words, with *Sellar* on its tile (the page's `cardTile`). */
+function vivosDe(card: Parameters<typeof enVivoDe>[0], ahora: Date): Partial<Record<Elegible, EnVivo>> {
+  const vivo = enVivoDe(card, ahora);
+  return vivo === null ? {} : { tarjeta: { ...vivo, accion: { etiqueta: ES.tarjeta.sellar, abre: '/sellar' } } };
+}
+
+/** `10.9e-ii`: the card closed, while those who started it may finish it — its tile stays (G12). */
+function ademasDe(card: Parameters<typeof enVivoDe>[0], ahora: Date): Elegible[] {
+  return tarjetaGuardada(card, ahora) ? ['tarjeta'] : [];
+}
+
 
 export default function Hoy() {
   const kitchen = useKitchen();
@@ -131,6 +147,11 @@ function HoyDe({ kitchen }: { kitchen: Kitchen }) {
   const servicios = useServicios(kitchen.id);
   const [menuCerrado, setMenuCerrado] = usePuertaCerrada(kitchen.id, 'menu');
   const { enviar, busy: enviando } = useContarMenu(kitchen.id);
+  // `10.9e-ii`: her card's tile — its words, *Sellar* on it, and her first stamp celebrated.
+  const tarjetaLeida = useTarjeta(kitchen.id, { activa: seLee(servicios.data) });
+  // ⚠️ A copy read on another day says nothing of today (`deHoy`).
+  const tarjetaDeHoy = deHoy(tarjetaLeida.data, tarjetaLeida.data === undefined ? null : tarjetaLeida.dataUpdatedAt, ahora);
+  useFestejoDelSello(kitchen.id, tarjetaDeHoy);
   const [hojaMenu, setHojaMenu] = useState(false);
 
   const trade = giroLabel(giros.data, kitchen.giroPrincipal);
@@ -167,7 +188,9 @@ function HoyDe({ kitchen }: { kitchen: Kitchen }) {
     // `marca` names everything `registrar` marks; the function itself is new on every render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [marca, cambiar]);
-  const mosaicos = mosaicosPara(mosaicosDe(servicios.data), duena);
+  const mosaicos = mosaicosPara(mosaicosDe(servicios.data, vivosDe(tarjetaDeHoy, ahora), PANTALLA_DE, ademasDe(tarjetaDeHoy, ahora)), duena)
+    // ⚠️ The card's tile waits for its read: never *Prepara tu tarjeta* drawn and then taken away.
+    .filter((m) => m.servicio !== 'tarjeta' || tarjetaDeHoy !== undefined || tarjetaLeida.isError);
 
   function abrirLinea(linea: Linea) {
     router.push(linea.abre);

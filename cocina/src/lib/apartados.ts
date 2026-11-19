@@ -338,10 +338,15 @@ export function sinSenalTexto(leidoEn: Date, now: Date): string {
 }
 
 /** `10.5b-iv-b`: *2 entregas y 1 calificación por enviar*, or `null` when nothing waits. */
-export function porEnviarTexto(envios: readonly { readonly tipo: 'entrega' | 'pulgar' }[]): string | null {
-  const entregas = envios.filter((e) => e.tipo === 'entrega').length;
-  const pulgares = envios.length - entregas;
-  return envios.length === 0 ? null : ES.cola.porEnviar(entregas, pulgares);
+export function porEnviarTexto(envios: readonly { readonly tipo: 'entrega' | 'pulgar' | 'sello' | 'premio' }[]): string | null {
+  const cuantas = (tipo: string) => envios.filter((e) => e.tipo === tipo).length;
+  // ⚠️ `10.9e-ii`: and the card's scans that waited for signal — *1 sello*, *1 premio*.
+  return envios.length === 0 ? null : ES.cola.porEnviar(cuantas('entrega'), cuantas('pulgar'), cuantas('sello'), cuantas('premio'));
+}
+
+/** Whether *sola* agrees with everything waiting — only handovers and thumbs are feminine (`ES.cola.seEnvian`). */
+export function todasFemeninas(envios: readonly { readonly tipo: string }[]): boolean {
+  return envios.every((e) => e.tipo === 'entrega' || e.tipo === 'pulgar');
 }
 
 /** After the handover, on its screen: *Cobraste $65 en efectivo · 14:31*, or *La serviste a las 14:31*. */

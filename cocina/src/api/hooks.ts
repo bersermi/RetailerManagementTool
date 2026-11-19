@@ -9,8 +9,9 @@
 // reservations, the handover and the fonda's thumb), `10.5b-iv-b` (those
 // reads kept on the phone, and the handover and the thumb queued), `10.5b-iv-c`
 // (her settings, her stars, − and +, and the database asked before Apple), `10.9a-i`
-// (what her kitchen uses), `10.9a-ii` (her choices and *Cuéntanos*, written) and `10.9b-ii`
-// (her role, who works at her kitchen, *Quitar a …* and *Salir de esta cocina*).
+// (what her kitchen uses), `10.9a-ii` (her choices and *Cuéntanos*, written), `10.9b-ii`
+// (her role, who works at her kitchen, *Quitar a …* and *Salir de esta cocina*) and `10.9e-ii`
+// (the loyalty card: its terms, closing it, its counts, this phone's key and a scan).
 //
 // ⚠️ A SCREEN NEVER CALLS `@/api/calls` ITSELF — Wera's R12: a hook here owns
 // the query key, when the read may run, and what it means. Every read waits for
@@ -45,6 +46,7 @@ import {
   desdeDeHoy,
   desdeDia,
   diaTexto,
+  fallaDe,
   type Falla,
   type Reserva,
   type SobreElVecino,
@@ -65,6 +67,17 @@ import {
 import { codigoErrorMessage, codigoKey, esRechazoDelCodigo } from '@/api/invitar';
 import { SERVICIOS_KEY, serviciosKey, type Estado, type LoQueUsa, type Servicio } from '@/api/servicios';
 import { seguidoresKey } from '@/api/seguidores';
+import {
+  TARJETA_KEY,
+  codeArgs,
+  rewardArgs,
+  stampArgs,
+  tarjetaKey,
+  termsArgs,
+  type CardRow,
+  type DiasSinVenir,
+  type KitchenCardRow,
+} from '@/api/tarjeta';
 import {
   accountOwners,
   deleteMyAccount,
@@ -103,11 +116,18 @@ import {
   uploadPictures,
   withdrawListing,
   kitchenFollowers,
+  cardOfCode,
+  closeCard,
+  giveReward,
+  giveStamp,
+  kitchenCard,
+  registerKitchenKey,
+  setCardTerms,
 } from '@/api/calls';
 import { deLaCocina, rechazoDe, reservasConCola, vecinosConCola, type Envio } from '@/api/cola';
 import { guardarSuDireccion, type Escritura } from '@/api/direccion';
 import { apiErrorMessage } from '@/api/errors';
-import { FILE_OF, porSubir, type Foto, type FotoNueva, type PhotoSize } from '@/api/fotos';
+import { FILE_OF, isPicturePath, porSubir, type Foto, type FotoNueva, type PhotoSize } from '@/api/fotos';
 import {
   GIROS_KEY,
   KITCHENS_KEY,
@@ -145,6 +165,9 @@ import { useAuth } from '@/auth/AuthProvider';
 import { releaseStep } from '@/auth/apple';
 import { firmaDeHoy, unir, vivo } from '@/lib/apartados';
 import { encolarEnvio, useCola } from '@/lib/cola';
+import { guardarLlave, leerLlave, type Llave } from '@/lib/llave';
+import { escaneoId, momentoDeLaLlamada, tarjetaErrorMessage, type Escaneo } from '@/lib/tarjeta';
+import { deviceStore } from '@/lib/store';
 import { servicioErrorMessage } from '@/lib/loQueUsas';
 import { useAhora } from '@/lib/useAhora';
 import { useSenal } from '@/lib/useSenal';
@@ -1271,5 +1294,272 @@ export function useSeguidores(kitchenId: string | null) {
     queryKey: seguidoresKey(userId, kitchenId),
     queryFn: () => kitchenFollowers(kitchenId as string),
     enabled: ready && userId !== null && kitchenId !== null,
+  });
+}
+
+// ----------------------------------------------------------------------------
+// `10.9e-ii` — the loyalty card in Wera Cocina (`0085`)
+// ----------------------------------------------------------------------------
+
+/** How often *Sellar* reads its lines while it is up: a neighbour scanning her code shows within seconds. */
+export const SELLAR_CADA_MS = 5_000;
+
+/**
+ * ⚠️ HER KITCHEN'S CARD (`kitchen_card`) — the card's screen, *Hoy*'s tile, *Sellar*'s lines, and the
+ * warning before *Eliminar esta cocina*. Any member. ⚠️ KEPT ON THE PHONE (`@/api/persist`): with no
+ * signal *Hoy* still draws the tile, which is the door to *Sellar*, whose code works with none.
+ * ⚠️ ASKED ONLY WHILE WERA OFFERS THE CARD (`activa`): before its switch is on there is nothing to read.
+ * *Sellar* reads it every five seconds while up (`vivo`); every other screen when it mounts.
+ */
+export function useTarjeta(kitchenId: string | null, { activa = true, vivo = false }: { activa?: boolean; vivo?: boolean } = {}) {
+  const { session, ready } = useAuth();
+  const userId = session?.user.id ?? null;
+  return useQuery({
+    queryKey: tarjetaKey(userId, kitchenId),
+    queryFn: () => kitchenCard(kitchenId as string),
+    enabled: ready && userId !== null && kitchenId !== null && activa,
+    refetchInterval: vivo ? SELLAR_CADA_MS : false,
+  });
+}
+
+/**
+ * *Activar* and *Guardar* on the setup (`set_card_terms`) — the owner's. ⚠️ NOT DRAWN BEFORE IT LANDS:
+ * the terms are what her neighbours start on, so the button waits and the database's answer is drawn.
+ * It also turns her choice of the card on, so her choices are read again.
+ */
+export function useGuardarTerminos(kitchenId: string | null) {
+  const queries = useQueryClient();
+  const { session } = useAuth();
+  const userId = session?.user.id ?? null;
+  const mutation = useMutation({
+    mutationFn: (t: { premio: string; sellos: number; dias: DiasSinVenir }) =>
+      setCardTerms(termsArgs(kitchenId as string, t.premio.trim(), t.sellos, t.dias)),
+    onSuccess: (card) => {
+      queries.setQueryData<KitchenCardRow>(tarjetaKey(userId, kitchenId), card);
+      void queries.invalidateQueries({ queryKey: SERVICIOS_KEY });
+    },
+  });
+
+  async function guardar(t: { premio: string; sellos: number; dias: DiasSinVenir }): Promise<string | null> {
+    if (kitchenId === null || mutation.isPending) return null;
+    try {
+      await mutation.mutateAsync(t);
+      return null;
+    } catch (thrown) {
+      return tarjetaErrorMessage(thrown, 'terminos');
+    }
+  }
+
+  return { guardar, busy: mutation.isPending };
+}
+
+/** *Cerrar la tarjeta* (`close_card`) — the owner's; her choice turns off, so her choices are read again. */
+export function useCerrarTarjeta(kitchenId: string | null) {
+  const queries = useQueryClient();
+  const { session } = useAuth();
+  const userId = session?.user.id ?? null;
+  const mutation = useMutation({
+    mutationFn: () => closeCard(kitchenId as string),
+    onSuccess: (card) => {
+      queries.setQueryData<KitchenCardRow>(tarjetaKey(userId, kitchenId), card);
+      void queries.invalidateQueries({ queryKey: SERVICIOS_KEY });
+    },
+  });
+
+  async function cerrar(): Promise<string | null> {
+    if (kitchenId === null || mutation.isPending) return null;
+    try {
+      await mutation.mutateAsync();
+      return null;
+    } catch (thrown) {
+      return tarjetaErrorMessage(thrown, 'terminos');
+    }
+  }
+
+  return { cerrar, busy: mutation.isPending };
+}
+
+/** What *Sellar* knows of this phone's key. */
+export type EstadoDeLlave =
+  | { readonly tipo: 'lista'; readonly llave: Llave }
+  | { readonly tipo: 'preparando' }
+  | { readonly tipo: 'sinSenal' }
+  | { readonly tipo: 'fallo'; readonly problema: string };
+
+/**
+ * ⚠️ THIS PHONE'S *SELLAR* KEY (`@/lib/llave`): read from the phone; ASKED ONCE (`register_kitchen_key`)
+ * when there is none and there is signal — never on each open, which would drop her other phones'
+ * codes. With no signal and no key, *Sellar* says so and scanning her customer still works.
+ * ⚠️ A KEY THE DATABASE NO LONGER HOLDS — she was removed and invited again, or a fourth phone dropped it —
+ * shows a code that fits nothing: `renovar` asks for a new one, on her tap (*Pedir un código nuevo*).
+ * ⚠️ ONE "STILL HERE" FOR THE SCREEN, NOT ONE PER RUN (the review of `10.9e-ii`): a signal that came back while
+ * the first ask was out re-ran the effect, and that run's answer was dropped — the key kept, never shown.
+ */
+export function useLlaveSellar(kitchenId: string | null): { estado: EstadoDeLlave; reintentar: () => void; renovar: () => void; renovando: boolean } {
+  const { session } = useAuth();
+  const userId = session?.user.id ?? null;
+  const senal = useSenal();
+  const [llave, setLlave] = useState<Llave | null>(() =>
+    userId === null || kitchenId === null ? null : leerLlave(deviceStore(), userId, kitchenId),
+  );
+  const [problema, setProblema] = useState<string | null>(null);
+  const [intento, setIntento] = useState(0);
+  const [renovando, setRenovando] = useState(false);
+  const pidiendo = useRef(false);
+  const aqui = useRef(true);
+  useEffect(() => {
+    aqui.current = true;
+    return () => {
+      aqui.current = false;
+    };
+  }, []);
+
+  const pedir = useCallback(
+    (nueva: boolean) => {
+      if (userId === null || kitchenId === null || pidiendo.current) return;
+      pidiendo.current = true;
+      setProblema(null);
+      if (nueva) setRenovando(true);
+      void registerKitchenKey(kitchenId)
+        .then((row) => {
+          const guardada = guardarLlave(deviceStore(), userId, kitchenId, row);
+          if (aqui.current) setLlave(guardada);
+        })
+        .catch((thrown: unknown) => {
+          if (aqui.current) setProblema(fallaDe(thrown) === 'sinSenal' ? 'sinSenal' : tarjetaErrorMessage(thrown));
+        })
+        .finally(() => {
+          pidiendo.current = false;
+          if (aqui.current) setRenovando(false);
+        });
+    },
+    [userId, kitchenId],
+  );
+
+  useEffect(() => {
+    if (userId === null || kitchenId === null) return;
+    const kept = leerLlave(deviceStore(), userId, kitchenId);
+    if (kept !== null) {
+      setLlave(kept);
+      return;
+    }
+    if (senal === false) return;
+    pedir(false);
+  }, [userId, kitchenId, senal, intento, pedir]);
+
+  const estado: EstadoDeLlave =
+    llave !== null
+      ? { tipo: 'lista', llave }
+      : problema === 'sinSenal' || (problema === null && senal === false)
+        ? { tipo: 'sinSenal' }
+        : problema !== null
+          ? { tipo: 'fallo', problema }
+          : { tipo: 'preparando' };
+  return { estado, reintentar: () => setIntento((n) => n + 1), renovar: () => pedir(true), renovando };
+}
+
+/** What a scan's call came back with: her card, or — with no signal — kept on the phone (or already), or a sentence. */
+export type Respuesta =
+  | { readonly tipo: 'tarjeta'; readonly card: CardRow }
+  | { readonly tipo: 'enCola' }
+  | { readonly tipo: 'yaEnCola' }
+  | { readonly tipo: 'sinSenal' }
+  | { readonly tipo: 'ocupado' }
+  | { readonly tipo: 'problema'; readonly problema: string };
+
+/**
+ * ⚠️ A SCAN OF HER CODE — whose it is (`card_of_code`), *Dar sello* (`give_stamp`), *Entregar premio*
+ * (`give_reward`) — each checked at the scan's moment: by the database's clock within a minute of it, by the
+ * scan's own moment after (`momentoDeLaLlamada`), so a stamp given a minute after the camera read her code
+ * still fits it and a phone whose clock is off does not miss. ⚠️ WITH SIGNAL THE SCREEN WAITS FOR THE ANSWER: what it says is what the kitchen
+ * tells her at the counter (*ganó*, *ya tiene su sello de hoy*). ⚠️ WITH NONE — the signal said so, or
+ * the call failed for want of it — a stamp or a reward goes to her queue (`@/api/cola`) and is sent with
+ * that moment when the signal returns; who she is cannot be read then. Her card's counts are read again
+ * after every answer. One call at a time.
+ */
+export function useEscaneo(kitchenId: string | null) {
+  const queries = useQueryClient();
+  const { session } = useAuth();
+  const userId = session?.user.id ?? null;
+  const senal = useSenal();
+  const [busy, setBusy] = useState(false);
+  const enCurso = useRef(false);
+
+  const cola = useCola();
+  async function llamar(enviar: () => Promise<CardRow>, encolar: { id: string; hacer: () => void } | null): Promise<Respuesta> {
+    if (kitchenId === null || userId === null || enCurso.current) return { tipo: 'ocupado' };
+    const sinSenal = (): Respuesta => {
+      if (encolar === null) return { tipo: 'sinSenal' };
+      // ⚠️ The same scan already on this phone: it goes once — and a reward is NOT handed over again.
+      if (cola.envios.some((e) => e.usuario === userId && e.reserva === encolar.id)) return { tipo: 'yaEnCola' };
+      encolar.hacer();
+      return { tipo: 'enCola' };
+    };
+    if (senal === false) return sinSenal();
+    enCurso.current = true;
+    setBusy(true);
+    try {
+      const card = await enviar();
+      void queries.invalidateQueries({ queryKey: TARJETA_KEY });
+      return { tipo: 'tarjeta', card };
+    } catch (thrown) {
+      if (fallaDe(thrown) === 'sinSenal') return sinSenal();
+      return { tipo: 'problema', problema: tarjetaErrorMessage(thrown) };
+    } finally {
+      enCurso.current = false;
+      setBusy(false);
+    }
+  }
+
+  const base = (e: Escaneo) => ({ usuario: userId as string, cocina: kitchenId as string, reserva: escaneoId(e), en: e.en });
+
+  return {
+    busy,
+    /** Whose code it is, and her card here — with no signal, nothing to read. */
+    buscar: (e: Escaneo) => llamar(() => cardOfCode(codeArgs(kitchenId as string, e.code, e.key)), null),
+    darSello: (e: Escaneo) =>
+      llamar(() => giveStamp(stampArgs(kitchenId as string, e.code, e.key, momentoDeLaLlamada(e, new Date()))), {
+        id: escaneoId(e),
+        hacer: () => encolarEnvio({ tipo: 'sello', ...base(e), codigo: e.code, llave: e.key }),
+      }),
+    darPremio: (e: Escaneo, premio: string) =>
+      llamar(() => giveReward(rewardArgs(kitchenId as string, e.code, premio, e.key, momentoDeLaLlamada(e, new Date()))), {
+        id: escaneoId({ ...e, premio }),
+        hacer: () => encolarEnvio({ tipo: 'premio', ...base({ ...e, premio }), codigo: e.code, llave: e.key, premio }),
+      }),
+  };
+}
+
+/**
+ * ⚠️ `10.9e-ii`: HER LOGO AS A DATA URI, for the counter poster — `expo-print`'s WebView sends no token, so
+ * the picture is fetched here with hers (Storage's private door, `photoRequest`) and written into the
+ * HTML. `null` when she has none, or it could not be read: the poster then wears her initials. Not kept.
+ */
+export function useLogoDelCartel(kitchenId: string | null, logo: string | null) {
+  const { session, ready } = useAuth();
+  const token = session?.access_token ?? null;
+  return useQuery({
+    queryKey: ['cocina', 'logo-del-cartel', kitchenId ?? '', logo ?? ''],
+    enabled: ready && token !== null && kitchenId !== null,
+    staleTime: Infinity,
+    queryFn: async (): Promise<string | null> => {
+      if (logo === null || token === null || kitchenId === null || !isPicturePath(logo, kitchenId)) return null;
+      try {
+        const request = photoRequest(logo, 'grande', token);
+        const answer = await fetch(request.uri, { headers: request.headers });
+        if (!answer.ok) return null;
+        const blob = await answer.blob();
+        return await new Promise<string | null>((resolve) => {
+          const reader = new FileReader();
+          // Her pictures are JPEGs (`@/api/fotos`); a blob with no type reads as octet-stream, which a WebView will not draw.
+          reader.onloadend = () =>
+            resolve(typeof reader.result === 'string' ? reader.result.replace(/^data:application\/octet-stream;/, 'data:image/jpeg;') : null);
+          reader.onerror = () => resolve(null);
+          reader.readAsDataURL(blob);
+        });
+      } catch {
+        return null;
+      }
+    },
   });
 }

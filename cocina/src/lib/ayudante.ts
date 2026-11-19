@@ -24,9 +24,12 @@ import { ES } from '@/strings';
 /** The tiles a helper is shown: the card's alone (`10.9e` draws it with *Sellar*). */
 export const DEL_AYUDANTE: readonly Elegible[] = ['tarjeta'];
 
-/** *Hoy*'s tiles for this role: every one for the owner; the card's alone for a helper. */
+/**
+ * *Hoy*'s tiles for this role: every one for the owner; the card's alone for a helper — ⚠️ `10.9e-ii`: and
+ * only once it is set up (the page's `fLive`), since its first-time state opens a setup that is the owner's.
+ */
 export function mosaicosPara(mosaicos: readonly Mosaico[], duena: boolean): Mosaico[] {
-  return duena ? [...mosaicos] : mosaicos.filter((m) => DEL_AYUDANTE.includes(m.servicio));
+  return duena ? [...mosaicos] : mosaicos.filter((m) => DEL_AYUDANTE.includes(m.servicio) && m.vivo !== null);
 }
 
 /** Her kitchen uses the card AND this build carries it — unread, no. */

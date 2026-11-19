@@ -29,7 +29,9 @@
 // ⚠️ `10.9d-ii` (G23): BEFORE *ELIMINAR ESTA COCINA*, HOW MANY NEIGHBOURS FOLLOW IT — warned, never
 // blocked: *Te siguen 12 vecinos en Itacate. Dejarán de ver tu cocina, y durante 30 días su lista dirá que
 // dejó Itacate.* (`kitchen_followers`, `0084`, read once a panel opens) — and under *Eliminar mi cuenta*
-// too when the kitchen open here goes with it. With none, nothing is said.
+// too when the kitchen open here goes with it. With none, nothing is said. ⚠️ `10.9e-ii` (G23): and who
+// holds her card — *5 vecinos juntan sellos en tu tarjeta y hay 1 premio por entregar. Con la cocina se
+// borran sus sellos y sus premios.* (`kitchen_card`'s counts) — warned the same way, never blocked.
 // ⚠️ `10.5b-iv-c`: A PLATE STILL TO HAND OVER (`TD014`) is said on both — *Eliminar mi cuenta* asks
 // the database about the businesses that go before Apple's sheet opens (`pendingIds`).
 // ============================================================================
@@ -50,8 +52,9 @@ import {
   typedLabel,
   type Typed,
 } from '@/api/account';
-import { useBusinessesThatGo, useDeleteKitchen, useDeleteMyAccount, useSeguidores } from '@/api/hooks';
+import { useBusinessesThatGo, useDeleteKitchen, useDeleteMyAccount, useSeguidores, useTarjeta } from '@/api/hooks';
 import { useAuth } from '@/auth/AuthProvider';
+import { avisoAlEliminar } from '@/lib/tarjeta';
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
 import { BotonLleno } from '@/ui/BotonLleno';
@@ -75,6 +78,8 @@ export function Salidas({ openKitchenId }: { openKitchenId: string | null }) {
   // panel opens; a count not known yet says nothing rather than hold the deletion.
   const seguidores = useSeguidores(open !== null && alone !== null ? alone.id : null).data ?? null;
   const avisoSeguidores = seguidores !== null && seguidores > 0 ? ES.kitchenDeletion.followers(seguidores) : null;
+  // ⚠️ `10.9e-ii` (G23): who holds her card — warned, never blocked; read only once the panel opens.
+  const avisoTarjeta = avisoAlEliminar(useTarjeta(open !== null && alone !== null ? alone.id : null).data);
   // A kitchen no longer hers alone closes its panel rather than leave it empty.
   const panel = open === 'cocina' && alone === null ? null : open;
 
@@ -141,6 +146,7 @@ export function Salidas({ openKitchenId }: { openKitchenId: string | null }) {
         <View style={{ gap: SIZE.rowGap }}>
           <Text style={words}>{ES.kitchenDeletion.warning}</Text>
           {avisoSeguidores !== null && <Text style={words}>{avisoSeguidores}</Text>}
+          {avisoTarjeta !== null && <Text style={words}>{avisoTarjeta}</Text>}
           <Text style={quiet}>{ES.kitchenDeletion.keeps}</Text>
           <Campo
             label={typedLabel(alone)}
@@ -189,6 +195,9 @@ export function Salidas({ openKitchenId }: { openKitchenId: string | null }) {
               {/* ⚠️ `10.9d-ii`: her kitchen goes with her account, so its followers are told the same way. */}
               {avisoSeguidores !== null && deletion.businesses.some((business) => business.id === alone?.id) && (
                 <Text style={words}>{avisoSeguidores}</Text>
+              )}
+              {avisoTarjeta !== null && deletion.businesses.some((business) => business.id === alone?.id) && (
+                <Text style={words}>{avisoTarjeta}</Text>
               )}
               {takesAShop(deletion) && <Text style={quiet}>{ES.account.shopRecords}</Text>}
               {deletion.businesses.map((business) => (
