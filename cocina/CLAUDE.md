@@ -89,7 +89,10 @@ TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic i
   follower (`@/ui/DiaDeHoy`' `teSiguen` — `null` while unread or with no signal draws nothing, never a 0 that is not one); and before
   *Eliminar esta cocina* — and *Eliminar mi cuenta* when the kitchen open here goes with it — *Te siguen 12 vecinos en Itacate. Dejarán de
   ver tu cocina, y durante 30 días su lista dirá que dejó Itacate.* (`@/ui/Salidas`), warned and never blocked (G23). Itacate's kitchen
-  page takes *Seguir* as a slot (`seguir`), and `vecinos/ui/PaginaDeCocina.tsx` carries the slot code for code and hands it nothing. Her choices are **per kitchen, never per phone**: every member reads them, only the owner writes them
+  page takes *Seguir* as a slot (`seguir`), and `vecinos/ui/PaginaDeCocina.tsx` carries the slot code for code and hands it nothing —
+  ⚠️ as, since `10.9e-iii`, the loyalty card's (`tarjeta`, her card or the kitchen's invitation after *Hoy*), the list card's mark of her
+  card (`vecinos/ui/TarjetaPlatillo.tsx`' `marca`, *3/8*) and the door's `Kitchen.tarjeta` (`comoLaVen` sets it `null`): Itacate's to fill,
+  never drawn here — *Así la ven* is the page with no neighbour's card on it, and the card's own screen shows her how it looks. Her choices are **per kitchen, never per phone**: every member reads them, only the owner writes them
   and what she tells Wera about the menu; a feature Wera has switched off (`available`) is offered nowhere and refused `on`; a feature or a state
   this build does not know is left out (`loQueUsaFrom`). Read by `useServicios`; written since `10.9a-ii` by `useElegirServicios` and `useContarMenu` (the section *Her choices* below). ⚠️ **And a kitchen's place is read by the kitchen's id**
   (`firstPlace`): the walls show a shop's owner her shop's store too, and an unfiltered read's first
@@ -590,7 +593,8 @@ migration. The rules are `@/lib/loQueUsas`, pure, pinned by `test/loQueUsas.test
   still on an older update never offers what it cannot open. The menu is never picked: *Próximamente* until its own session.
 - ⚠️ **The first run's step count is the build's** (`pasos`): *Paso 1 de N* is drawn before her kitchen exists, and the database
   answers what is offered only to a member. **3 since `10.9e-ii`** (the card) — and while its switch is still off for everyone, the third
-  step goes straight on (`elegibles` empty): until `10.9e-iii` turns the card's switch on, *Paso 1 de 3* and two steps.
+  step goes straight on (`elegibles` empty): until the card's switch goes on (built by `10.9e-iii`, on with the owner's yes), *Paso 1 de
+  3* and two steps.
 - ***¿Qué más quieres usar?*** (`(cocina)/que-mas`): her need first and the feature under it, nothing pre-checked; *Tu menú a la mano ·
   Próximamente* greyed while `proximamente` is on. ⚠️ ***Seguir* is ONE `set_kitchen_features` call** — `on` for what she picked, `off`
   for the rest she was shown (`eleccionesDe`) — and waits for it; *Decidir después* sends nothing. Then `/ya-estas`. The card's setup is
@@ -745,7 +749,8 @@ G16 and the row: a camera module in the first public build, asked the first time
 The owner's rulings G4–G19, G23, G34–G36 and G41 of 2026-11-16 and 17, as the family-shell page draws stage 3 (`cTarjeta`, `cSetup`,
 `cSellar`, `cFscan`, `cFres`, `cCartel`, `tcerrarSheet`, `cardTile`), on `0085`'s functions (`@/api/tarjeta`, the section *Measure*).
 No migration. What every screen says is `@/lib/tarjeta`, pure, pinned with `@/lib/llave` and `@/lib/cartel` by `test/tarjetaCocina.test.ts`
-in Mexico City's zone. ⚠️ **Wera's switch `tarjeta` stays off until `10.9e-iii`**: nothing of this shows on a phone before it.
+in Mexico City's zone. ⚠️ **Wera's switch `tarjeta` was off until `10.9e-iii` built Itacate's half** — and goes on with the owner's yes
+(the plan's decisions block): nothing of this shows on a phone before it.
 
 - **Its one screen** (`(cocina)/tarjeta`, `PANTALLA_DE`): *Así funciona* the first time; the card as her neighbours see it — her page's
   colour and logo (`@/ui/TarjetaDeLealtad`, G41); three counts (`kitchen_card`); *Sellar*; then the owner's (G18) — *Tu cartel para el
@@ -755,7 +760,7 @@ in Mexico City's zone. ⚠️ **Wera's switch `tarjeta` stays off until `10.9e-i
   *Abrirla otra vez* opens the setup.
 - **The setup** (`(cocina)/preparar-tarjeta`, `PREPARAR`): the reward (60), 4–12 stamps, *Nunca*/15/30/45/60 — **nothing pre-chosen**, the
   8 dashed as a hint (`@/ui/Fichas`) — the card and its conditions naming her kitchen and its address (`condicionesDe`, the words Itacate
-  shows before her first stamp, `10.9e-iii`); *Activar* → *Listo, ya está en tu Hoy* with her tile; *Guardar*; awaited (`set_card_terms`).
+  shows before her first stamp since `10.9e-iii`, held to these by Itacate's `test/gemelos.test.ts`); *Activar* → *Listo, ya está en tu Hoy* with her tile; *Guardar*; awaited (`set_card_terms`).
 - **The tile on *Hoy***: *6 sellos hoy*, *1 premio por entregar* with its dot (else the cards going, or *Cerrada · la completan hasta el …*),
   and *Sellar* on it. A helper sees it only once set up (`@/lib/ayudante`' `mosaicosPara`). ⚠️ **A copy read on another day says nothing
   of today** (`deHoy`): `kitchen_card` is kept on the phone, and yesterday's names and counts are not today's.

@@ -375,10 +375,13 @@ export const ES = {
   misCocinas: {
     titulo: 'Mis cocinas',
     detalle: 'Las que sigues',
+    /** `10.9e-iii`: the drawing's head once the card exists (`iMis`) — only while a card can be held. */
+    detalleConTarjeta: 'Las que sigues y donde juntas sellos',
     cargando: 'Buscando tus cocinas…',
     tusCocinas: 'Tus cocinas',
     vacio: 'Sigue una cocina desde su página',
     vacioDetalle: 'Aquí verás si publicó hoy.',
+    vacioDetalleConTarjeta: 'Aquí verás si publicó hoy, y tus sellos.',
     /** A kitchen she follows that published nothing in four weeks — said where *Publicó …* would be. */
     sinOfertas: 'Sin ofertas en las últimas 4 semanas',
     /** G23, the owner's words. */
@@ -569,6 +572,9 @@ export const ES = {
     dia: (abreviatura: string, numero: number) => `${abreviatura} ${numero}`,
     momento: (dia: string, hora: string) => `${dia} ${hora}`,
     horario: (dia: string, desde: string, hasta: string) => `${dia} · ${desde} a ${hasta}`,
+    /** `10.9e-iii`: *18 de diciembre* — a card's last day, a reward's — `Date.getMonth()`'s order. */
+    meses: ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'],
+    delMes: (dia: number, mes: string) => `${dia} de ${mes}`,
   },
 
   /**
@@ -684,6 +690,172 @@ export const ES = {
       reservaPendiente:
         'Alguien tiene un apartado por recoger en tu cocina. Podrás eliminar tu cuenta cuando se lo entregues o cuando termine su horario.',
     },
+  },
+
+  /**
+   * ⚠️ `10.9e-iii`: THE CARD'S CONDITIONS — WERA COCINA'S WORDS, WORD FOR WORD (`cocina/src/strings.ts`,
+   * `ES.condiciones`; `test/gemelos.test.ts`): what a fonda set up is what her neighbour accepts (G12, G41).
+   */
+  condiciones: {
+    junta: (de: number, cocina: string, premio: string) => `Junta ${de} sellos en ${cocina} y te dan ${premio}.`,
+    uno: 'Un sello por visita, uno al día.',
+    seBorran: (dias: number) => `Tus sellos se borran si pasan ${dias} días sin que vengas.`,
+    noSeBorran: 'Tus sellos no se borran.',
+    promesa: (cocina: string, direccion: string | null) =>
+      direccion === null ? `La promesa es de ${cocina}.` : `La promesa es de ${cocina}, ${direccion}.`,
+  },
+
+  /**
+   * ⚠️ `10.9e-iii`: THE LOYALTY CARD IN ITACATE — the owner's rulings G4–G17, G38, G41 and G42 of 2026-11-16
+   * and 17, as the family-shell page draws stage 3 (`kcardHtml`, `kcardSec`, `iMis`, `iMiCodigo`, `iEscanear`,
+   * `iPremios`, `cobrarSheet`, `iPrimer`, `iGano`, `iVe`). Every word not on the drawing is the plan's status
+   * entry of 2026-11-19 (*decided on his behalf*).
+   */
+  tarjeta: {
+    nombre: 'Tarjeta de lealtad',
+    cuenta: (n: number, de: number) => `${n} de ${de}`,
+    igual: (de: number, premio: string) => `${de} sellos = ${premio}`,
+    vence: (dia: string) => `Vence el ${dia} si no vienes`,
+    premios: (n: number) => (n === 1 ? '1 premio por cobrar' : `${n} premios por cobrar`),
+    /** The first reward's words, and *y más* when there are more (the drawing's `rwd`). */
+    yMas: (premio: string) => `${premio} y más`,
+    escanear: 'Escanear',
+    miCodigo: 'Mi código',
+    /** The invitation on her page before her first stamp (`kcardSec`). */
+    invitacion: (de: number, premio: string) => `Junta ${de} sellos y te dan ${premio}`,
+    invitacionDetalle: 'Tu primer sello, en la cocina: escanea su código',
+    condiciones: 'Condiciones',
+    ocultar: 'Ocultar condiciones',
+    /** Closed by the kitchen, while she may still finish hers and claim (G12). */
+    cerrada: (dia: string) => `Esta cocina cerró su tarjeta: puedes completarla y cobrar tus premios hasta el ${dia}.`,
+    /** *Cerca*'s mark (G38), for a screen reader. */
+    marcaAyuda: (n: number, de: number) => `${n} de ${de} sellos en tu tarjeta`,
+    /** *Mis cocinas*' row, for a screen reader: never the raw *5/8*. */
+    progresoAyuda: (n: number, de: number) => `${n} de ${de} sellos`,
+    /** Her card, for a screen reader. */
+    ayuda: (cocina: string, n: number, de: number, premio: string) => `Tarjeta de lealtad de ${cocina}: ${n} de ${de} sellos. ${de} sellos, ${premio}.`,
+    /** *Mis cocinas*' row for a kitchen whose card she holds: *5/8*, *2 premios*. */
+    progreso: (n: number, de: number) => `${n}/${de}`,
+    premiosCorto: (n: number) => (n === 1 ? '1 premio' : `${n} premios`),
+    laSigues: 'la sigues',
+    /** Before *Eliminar mi cuenta*: what goes with it (her cards' rewards still to claim, her stamps). */
+    alEliminarPremios: (n: number, cocinas: string) =>
+      n === 1 ? `Con tu cuenta se borra tu premio por cobrar en ${cocinas}.` : `Con tu cuenta se borran tus ${n} premios por cobrar en ${cocinas}.`,
+    alEliminarSellos: (cocinas: string) => `Y tus sellos en ${cocinas}.`,
+    soloSellos: (cocinas: string) => `Con tu cuenta se borran tus sellos en ${cocinas}.`,
+    y: (nombres: readonly string[]) =>
+      nombres.length <= 1 ? (nombres[0] ?? '') : `${nombres.slice(0, -1).join(', ')} y ${nombres[nombres.length - 1]}`,
+    errores: {
+      noDisponible: 'La tarjeta de lealtad no está disponible ahora.',
+      demasiados: 'Demasiados códigos que no sirven. Espera unos minutos y vuelve a intentar.',
+      noEsTuPremio: 'Ese premio ya no está entre los tuyos. Revisa tus premios.',
+      codigo: 'Un código son seis números.',
+    },
+  },
+
+  /** `10.9e-iii` (G10, G16): *Mi código* — her code, changing every minute, worked out on her phone with no signal. */
+  miCodigo: {
+    titulo: 'Mi código',
+    detalle: 'Enséñalo en la cocina y te dan tu sello',
+    /** Her *Cobras: …* — the reward she chose, named in the QR (`10.9e-ii`). */
+    cobras: (premio: string) => `Cobras: ${premio}`,
+    cobrasDetalle: (cocina: string) => `En ${cocina}: enséñaselo`,
+    cambia: 'Cambia cada minuto',
+    etiquetaQR: 'Tu código para la tarjeta de lealtad',
+    preparando: 'Preparando tu código…',
+    sinSenal: 'Tu código se prepara la primera vez que hay señal. Después funciona sin ella.',
+    fallo: 'No pudimos preparar tu código.',
+    otraVez: 'Intentar otra vez',
+    volver: 'Volver',
+    /** A key the database dropped (her fourth phone) has no other way back. */
+    renovar: '¿Tu código no funciona? Pide uno nuevo',
+    renovando: 'Pidiendo uno nuevo…',
+    /** Or she scans theirs, for the same reward. */
+    oEscanea: 'O escanea su código',
+    cobraste: (premio: string, cocina: string) => `Cobraste ${premio} en ${cocina}`,
+  },
+
+  /** `10.9e-iii` (G10, G16): *Escanear* — the kitchen's code, read by her camera or typed. */
+  escanear: {
+    titulo: 'Escanea el código de la cocina',
+    cobrarTitulo: (premio: string) => `Cobrar ${premio}`,
+    volver: 'Volver',
+    boton: 'Escanear su código',
+    apunta: 'Apunta al código en el teléfono de la cocina',
+    sinPermiso: 'Sin la cámara, escribe los seis números que ves bajo su código.',
+    ajustes: 'Permitir la cámara en Ajustes',
+    noEs: 'Ese no es el código de una cocina',
+    noAbre: 'La cámara no abrió. Escribe los seis números que ves bajo su código.',
+    escribir: 'Escribir el número',
+    numero: 'Los seis números bajo su código',
+    revisar: 'Listo',
+    revisando: 'Revisando…',
+    otro: 'Escanear otro código',
+    entendido: 'Entendido',
+    resultado: {
+      primer: (cocina: string) => `Tu primer sello en ${cocina}`,
+      sello: (cocina: string, n: number, de: number) => `Sello en ${cocina} · ${n} de ${de}`,
+      gano: (cocina: string) => `Completaste tu tarjeta en ${cocina}`,
+      yaHoy: (cocina: string) => `Hoy ya tienes tu sello en ${cocina}`,
+      cobrado: (premio: string, cocina: string) => `Cobraste ${premio} en ${cocina}. Pídeselo.`,
+      yaCobrado: (premio: string) => `Ya habías cobrado ${premio}.`,
+      cerrada: (cocina: string) => `${cocina} no tiene tarjeta de lealtad ahora.`,
+      cerradaSin: 'Esa cocina no tiene tarjeta de lealtad ahora.',
+      propia: 'Trabajas en esta cocina: aquí no juntas sellos.',
+      noValido: 'Ese código ya no sirve: cambia cada minuto. Escanéalo otra vez.',
+      repite: 'Ese número es de más de un teléfono. Espera a que cambie y escanéalo otra vez.',
+      /** A reward chosen after a stamp, with the kitchen's code already changed: scan it again for that reward. */
+      cambio: 'Su código ya cambió. Escanéalo otra vez para cobrar tu premio.',
+    },
+  },
+
+  /** `10.9e-iii` (round 3: she always chooses which): *¿Cobrar tu premio ahora?* after a stamp, and *Tus premios en …*. */
+  cobrar: {
+    titulo: '¿Cobrar tu premio ahora?',
+    texto: (cocina: string, n: number) => `En ${cocina} tienes ${n === 1 ? 'uno' : n}. Elige cuál:`,
+    ganadoEl: (dia: string) => `Ganado el ${dia}`,
+    ahoraNo: 'Ahora no, solo mi sello',
+    cobrando: 'Cobrando…',
+  },
+
+  premios: {
+    titulo: (cocina: string) => `Tus premios en ${cocina}`,
+    elige: 'Elige cuál cobras',
+    cobrar: 'Cobrar',
+    ninguno: 'Ya cobraste tus premios aquí.',
+    nota: 'Se cobra en la cocina, como un sello: enseñas tu código o escaneas el suyo.',
+    volver: 'Volver',
+  },
+
+  /** `10.9e-iii` (G11, G17): the celebration, on the spot or at her next open. */
+  gano: {
+    titulo: (premio: string) => `¡Ganaste ${premio}!`,
+    detalle: (cocina: string) => `En ${cocina}. Cóbralo cuando quieras: escanea su código o enséñale el tuyo.`,
+    ver: 'Ver mis premios',
+    despues: 'Después',
+  },
+
+  /**
+   * `10.9e-iii` (G42): *Lo que cada cocina ve de ti*, in *Tú* — worded as what is true today, with no
+   * *nunca* about following (his words: *"don't make strict the 'never that she follows it'"*).
+   */
+  loQueVen: {
+    fila: 'Lo que cada cocina ve de ti',
+    filaDetalle: 'Lo que hoy le llega a cada una',
+    titulo: 'Lo que cada cocina ve de ti',
+    detalle: 'Lo que hoy le llega a cada cocina donde apartas',
+    detalleConTarjeta: 'Lo que hoy le llega a cada cocina donde apartas o juntas sellos',
+    volver: 'Tú',
+    nombreApartas: 'Tu nombre, cuando apartas',
+    nombreSello: 'Tu nombre, cuando te dan un sello o cobras un premio',
+    nombreAmbos: 'Tu nombre, cuando apartas, te dan un sello o cobras un premio',
+    calificacion: 'Tu calificación como vecina, cuando apartas',
+    sellos: 'Tus sellos y tus premios de aquí, cuando le enseñas tu código o escaneas el suyo',
+    sigues: 'Si la sigues: hoy solo ve cuántas personas la siguen',
+    ubicacion: 'Dónde estás: no le llega',
+    ninguna: 'Todavía no apartas en ninguna cocina.',
+    ningunaConTarjeta: 'Todavía no apartas ni juntas sellos en ninguna cocina.',
+    ningunaDetalle: 'Cuando lo hagas, aquí verás lo que le llega a cada una.',
   },
 
   /**

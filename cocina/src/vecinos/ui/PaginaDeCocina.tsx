@@ -42,6 +42,7 @@ export function PaginaDeCocina({
   onRefrescar,
   atras = true,
   seguir = null,
+  tarjeta = null,
 }: {
   cocina: Kitchen;
   /** Her trade's name, `kitchen_giros()`'s, or `null` while it is not known. */
@@ -60,6 +61,12 @@ export function PaginaDeCocina({
    * *Ver como la ven*: a preview, with nothing to follow.
    */
   seguir?: ReactNode;
+  /**
+   * `10.9e-iii`: her loyalty card there, or the kitchen's invitation (G41, G12), after *Hoy* — the route's to hand
+   * it (Itacate's `@/ui/SeccionTarjeta`, which reads her cards), so this page still reads nothing; none in Wera
+   * Cocina's *Ver como la ven*: the card's own screen shows her how neighbours see it.
+   */
+  tarjeta?: ReactNode;
 }) {
   const insets = useSafeAreaInsets();
   const [jalando, setJalando] = useState(false);
@@ -213,6 +220,8 @@ export function PaginaDeCocina({
           </View>
         )}
       </View>
+
+      {tarjeta !== null && <View style={{ marginTop: SIZE.space * 2, paddingHorizontal: MARGEN }}>{tarjeta}</View>}
 
       {repetidos.length > 0 && (
         <View style={{ marginTop: SIZE.space * 2, paddingHorizontal: MARGEN }}>

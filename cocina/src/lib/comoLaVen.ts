@@ -279,5 +279,6 @@ export function cocinaComoLaVen(input: {
     minScore: ajustes === null ? SIN_AJUSTES.minScore : ajustes.minScore,
     estrellas: input.estrellas ?? SIN_AJUSTES.estrellas,
     servicios: input.servicios ?? [],
+    tarjeta: null,
   };
 }

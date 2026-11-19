@@ -368,7 +368,7 @@ describe('her way out, on *Tú*, the last tab, one tap from anywhere', () => {
     expect(block).toMatch(/remove\(deleteArgs\(deletion, typed\), pendingIds\(deletion\)\)/);
     expect(block).toMatch(/disabled=\{removing \|\| !ready\}/);
     expect(block).toMatch(/label=\{ES\.auth\.signOut\}/);
-    // Offered once what goes is known.
-    expect(block).toMatch(/deletion\.kind !== 'unknown' && \(/);
+    // Offered once what goes is known — and, since `10.9e-iii`, once her cards are read: the card's line comes first.
+    expect(block).toMatch(/deletion\.kind !== 'unknown' && cardsLeidas && \(/);
   });
 });

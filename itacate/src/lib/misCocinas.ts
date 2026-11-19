@@ -200,5 +200,6 @@ export function cocinaDeSeguida(seguida: Seguida, puerta: Kitchen | null): Kitch
     minScore: null,
     estrellas: null,
     servicios: [],
+    tarjeta: null,
   };
 }

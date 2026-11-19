@@ -129,6 +129,18 @@ export interface Kitchen {
   readonly estrellas: Estrellas | null;
   /** `0081`: the services she uses that a neighbour sees, in `SERVICIOS_VISTOS`' order — none yet drawn. */
   readonly servicios: readonly ServicioVisto[];
+  /** `0085`: her loyalty card's terms while it is open (G12) — what a first stamp starts on — else `null`. */
+  readonly tarjeta: TarjetaDeCocina | null;
+}
+
+/** `0085`: a kitchen's loyalty card as a neighbour reads it before her first stamp (G12, G34). */
+export interface TarjetaDeCocina {
+  /** What she gives at the last stamp — *Una comida corrida*. */
+  readonly premio: string;
+  /** How many stamps, 4 to 12. */
+  readonly sellos: number;
+  /** The days without a stamp before hers are erased — 15, 30, 45 or 60; `0` is *Nunca*. */
+  readonly dias: number;
 }
 
 /** A kitchen's stars, as the cards and her page draw them. */

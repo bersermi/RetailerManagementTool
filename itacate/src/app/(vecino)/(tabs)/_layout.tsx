@@ -1,5 +1,6 @@
 import { Tabs } from 'expo-router/js-tabs';
 
+import { Festejos } from '@/lib/Festejos';
 import { Recordatorios } from '@/lib/Recordatorios';
 import { EN_USO } from '@/navigation/pestanas';
 import { Pestanas } from '@/ui/Pestanas';
@@ -17,11 +18,14 @@ import { Pestanas } from '@/ui/Pestanas';
 // list — and the distances it hands the two pages — while she is on *Tú*.
 // ⚠️ SINCE `10.5b-iii-b` HER REMINDERS LIVE HERE (`@/lib/Recordatorios`, which draws nothing):
 // told again at each read of her reservations, and cancelled when the tabs leave.
+// ⚠️ SINCE `10.9e-iii` HER *¡GANASTE!* TOO (`@/lib/Festejos`, which draws nothing): at each read of her cards, a
+// reward won since the last one celebrated on this phone opens its screen over the tabs — once.
 // ============================================================================
 export default function TabsDeItacate() {
   return (
     <>
       <Recordatorios />
+      <Festejos />
       <Tabs screenOptions={{ headerShown: false }} tabBar={(props) => <Pestanas {...props} />}>
         {EN_USO.map((pestana) => (
           <Tabs.Screen key={pestana.ruta} name={pestana.ruta} options={{ title: pestana.label }} />

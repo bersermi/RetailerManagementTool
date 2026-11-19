@@ -124,6 +124,8 @@ const EN_PARTE: Readonly<Record<string, { readonly de: string; readonly bloques:
       'export interface Repeat {',
       'export interface Summary {',
       'export interface Kitchen {',
+      // `10.9e-iii`: a kitchen's loyalty card, before her first stamp (`0085`'s `card`).
+      'export interface TarjetaDeCocina {',
     ],
   },
   'vecinos/lista.ts': {
@@ -263,10 +265,13 @@ describe('the palette — Itacate’s in every value but the action’s colour',
     }
   });
 
-  it('which is Wera Cocina’s green — *Cómo llegar ›* and a wheel, the only two places the copies use it', () => {
+  it('which is Wera Cocina’s green — *Cómo llegar ›*, a wheel and a mark it never draws, the only places the copies use it', () => {
     expect(PALETTE.accion).toBe('#1C6B4B');
     const users = [...Object.keys(ENTERAS)].filter((ours) => /PALETTE\.accion\b/.test(cocina(ours)));
-    expect(users.sort()).toEqual(['vecinos/ui/Enlace.tsx', 'vecinos/ui/PaginaVacia.tsx']);
+    // `10.9e-iii`: the dish card's mark of her loyalty card (G38) is Itacate's to hand; Wera Cocina hands none,
+    // so its green there is never on a screen.
+    expect(users.sort()).toEqual(['vecinos/ui/Enlace.tsx', 'vecinos/ui/PaginaVacia.tsx', 'vecinos/ui/TarjetaPlatillo.tsx']);
+    expect(cocina('app/(cocina)/publicar.tsx')).not.toMatch(/<TarjetaPlatillo[^>]*marca=/);
   });
 
   it('and the sizes are Itacate’s, one for one', () => {

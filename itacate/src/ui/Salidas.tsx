@@ -17,14 +17,17 @@
 // ⚠️ *ELIMINAR MI CUENTA* IS OFFERED ONCE WHAT GOES IS KNOWN, as Wera's is: the
 // wrong warning is the one that matters, so with no answer yet — or no signal —
 // there is nothing to tap. *Cerrar sesión* is always there.
+// ⚠️ SINCE `10.9e-iii` THE REWARDS SHE WOULD LOSE: her loyalty cards' rewards still to claim and her stamps
+// going, named by kitchen (`@/lib/tarjeta`'s `alEliminarDe`) — said, never a block (`0085` deletes them).
 // ============================================================================
 
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
 import { confirmWords, deleteArgs, deletionFrom, namesReady, pendingIds, takesAShop, typedLabel, type Typed } from '@/api/account';
-import { useBusinessesThatGo, useDeleteMyAccount } from '@/api/hooks';
+import { useBusinessesThatGo, useDeleteMyAccount, useTarjetas } from '@/api/hooks';
 import { useAuth } from '@/auth/AuthProvider';
+import { alEliminarDe } from '@/lib/tarjeta';
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
 import { BotonLleno } from '@/ui/BotonLleno';
@@ -39,6 +42,12 @@ export function Salidas() {
   const [typed, setTyped] = useState<Typed>({});
   const [problem, setProblem] = useState<string | null>(null);
   const deletion = deletionFrom(goes);
+  // `10.9e-iii`: her loyalty cards — what goes with the account of them, said before she confirms (never a block).
+  const tarjetas = useTarjetas();
+  const tarjeta = alEliminarDe(tarjetas.data);
+  // ⚠️ The card's line must be there before she can confirm (the deletion page promises it): *Eliminar mi cuenta* waits
+  // for her cards as it waits for what goes — a read that fails says nothing, and the database answers last.
+  const cardsLeidas = tarjetas.data !== undefined || tarjetas.isError;
   const ready = namesReady(deletion, typed);
 
   async function leave() {
@@ -73,7 +82,7 @@ export function Salidas() {
       <BotonLleno variante="discreto" label={ES.auth.signOut} busy={signingOut} onPress={() => void leave()} />
 
       {!open ? (
-        deletion.kind !== 'unknown' && (
+        deletion.kind !== 'unknown' && cardsLeidas && (
           <Pressable accessibilityRole="button" onPress={() => setOpen(true)} style={row}>
             <Text style={quiet}>{ES.account.open}</Text>
           </Pressable>
@@ -106,6 +115,8 @@ export function Salidas() {
           ) : (
             <Text style={words}>{ES.account.aloneWarning}</Text>
           )}
+
+          {tarjeta !== null && <Text style={quiet}>{tarjeta}</Text>}
 
           {problem !== null && (
             <Text style={{ fontSize: SIZE.bodySize, fontWeight: '600', color: PALETTE.error }}>{problem}</Text>

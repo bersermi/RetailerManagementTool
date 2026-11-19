@@ -121,7 +121,8 @@ from `itacate/` with the two local `EXPO_PUBLIC_SUPABASE_` values in the shell, 
   *Mi código* is `src/lib/codigo.ts`, a copy of Wera Cocina's held to it by `test/gemelos.test.ts` and to the RFCs by `test/codigo.test.ts`.
   ⚠️ **Since `10.9e-ii` her *Cobras: …* QR names the reward she chose** — `textoDelQR('v', key, code, rewardId)`, a fifth part — and
   Wera Cocina's scan gives that one at once (`give_reward`); *Mi código* without a chosen reward writes four parts.
-  **Nothing draws either yet** — `10.9e-iii`, which also asks for the camera (the aviso's section 10 and both stores' answers change then).
+  **Drawn since `10.9e-iii`** — the section *The loyalty card* below; the calls are `@/api/calls`' four, the reads and writes
+  `@/api/hooks`' `useTarjetas`, `useMiLlave` and `useEscanearCodigo`, the door's terms `cocinas.ts`' `tarjetaOf` (`Kitchen.tarjeta`).
 - **Sign-in leans on two settings outside this repository**, both made by the owner's one command,
   `bash docs/runbooks/set-itacate-sign-in.sh` (a session's write to either is refused), and read
   back by `--check`: the three values its bundle reads in this EAS project's `preview` and, since
@@ -145,9 +146,10 @@ from `itacate/` with the two local `EXPO_PUBLIC_SUPABASE_` values in the shell, 
   too, so `10.5-iii-a` added three JavaScript packages at Wera's ranges and neither runtime moved
   (measured). ⚠️ **Since `10.9c` (2026-11-18) the build carries the camera** — `expo-camera` 57.0.6, pinned so Wera's
   runtime never moves; *Itacate usa la cámara para escanear el código de la cocina.*, never the microphone — **and
-  NOTHING ASKS FOR IT YET**: *Escanear* is the loyalty card's (`10.9e`), which copies Wera Cocina's `@/ui/Escaner` and
+  NOTHING ASKED FOR IT UNTIL `10.9e-iii`**: *Escanear* is the loyalty card's (`10.9e`), which copies Wera Cocina's `@/ui/Escaner` and
   `@/lib/escaner` (asked the first time she taps; typing the number is her way out) and changes the aviso's section 10
-  (*no te pide … tu cámara* is true until then) and Play's and Apple's answers with it. **And app links** — the next
+  (*no te pide … tu cámara* is true until then) and Play's and Apple's answers with it — ✅ **asked since `10.9e-iii`**, by those
+  copies (held code for code by `test/gemelos.test.ts`). **And app links** — the next
   bullet. A module missing at the public release waits for the major update (`10.8`); before it, one more build.
 - ⚠️⚠️ **A KITCHEN'S ADDRESS OPENS HER PAGE (`10.9c`, G40)**: `https://tu-wera.com/cocina/?k=<her id>&n=<her name>`.
   Three places hold one host and one path and fail SILENTLY apart — the link just opens the browser — so
@@ -393,8 +395,8 @@ follows it, as `cocina/CLAUDE.md`'s does:
   (`docs/PLAN.md`; the family-shell page redrawn the same day). **The bullets below describe what is built until each row
   lands**; what is still to change here: a kitchen's page shows the services that kitchen uses — a promotion's band, her loyalty
   card in the kitchen's colours (`10.9e`, `10.9g`); **a feature the app does not know is ignored**, so its builds in the field
-  survive what comes later (`10.9a-i`, built 2026-11-17: `serviciosOf`); *Escanear* and *Mi código* at the top of *Mis cocinas*
-  (`10.9e`). **Built by `10.9d-ii`: the three tabs and following** — the next two bullets.
+  survive what comes later (`10.9a-i`, built 2026-11-17: `serviciosOf`). **Built by `10.9d-ii`: the three tabs and following** — the
+  next two bullets; **by `10.9e-iii`: the loyalty card** — the bullet after them. Promotions' band waits for `10.9g`.
 - **The tab bar is *Cerca · Mis cocinas · Tú* since `10.9d-ii`** (his ruling G39 of 2026-11-17; *Cerca · Apartados · Tú* from `10.5b-iii-a`) — four tabs at most, each
   with its word; the two ends never move; a slot stays free for later. Wera's JavaScript tabs, not native tabs. ⚠️ **Built by `10.5-v-b`**:
   the tabs are data (`@/navigation/pestanas` — a tab not yet in use would name the row that brings it), the bar is drawn by
@@ -420,6 +422,35 @@ follows it, as `cocina/CLAUDE.md`'s does:
   lasts (`rate_until`, rated or not) — a second plate there never asks again, and *Ahora no* is kept in memory while the app runs (never
   on the disk). ⚠️ **What it cannot know**: a first plate that left her 30 days (`my_reservations`) makes a later one her "first" again.
   ⚠️ **Found on the emulator**: Android hears a pull only when a `ScrollView`'s content fills the screen — `flexGrow: 1` on *Mis cocinas*'.
+- **The loyalty card** (`10.9e-iii`; G4–G17, G38, G41, G42, as the family-shell page draws stage 3 — `kcardHtml`, `kcardSec`, `iMis`,
+  `iMiCodigo`, `iEscanear`, `iPremios`, `cobrarSheet`, `iPrimer`, `iGano`, `iVe`). Every rule and word is `@/lib/tarjeta`'s, pure, pinned
+  by `test/tarjetaVecina.test.ts`; the conditions are Wera Cocina's `condicionesDe`, copied and held to it. ***Mis cocinas***: *Escanear*
+  and *Mi código* at its top while a kitchen has a card she could start, she holds one, or ⚠️ **her phone keeps its key** (`hayTarjetas`:
+  with no signal at open nothing is read, and her code needs none — found on the emulator); a row per kitchen with rewards (*3 premios por
+  cobrar*); kitchens whose card she holds beside those she follows (*3/8 · 2 premios*). ***Mi código*** (`(vecino)/mi-codigo`): her QR and six
+  digits, *Cambia cada minuto*, from her phone's key (`useMiLlave`: asked ONCE per login and kept in the phone's store — `@/lib/llave`, no
+  keychain module, which is native; *Pide uno nuevo* on her tap), ⚠️ **with no signal too**; `premio` makes it *Cobras: …* (the QR's fifth
+  part). ⚠️ **The kitchen's scan tells her phone nothing**: while it is in front her cards are read every five seconds and compared
+  (`novedadDe`) — *Tu primer sello en …* with its conditions, *Sello en … · 3 de 8*, *Cobraste … en …*. ***Escanear*** (`(vecino)/escanear`,
+  the camera asked the first time she taps; six digits typed, narrowed to the kitchen when opened from its page): `stamp_with_code`'s
+  answer in words, and ***¿Cobrar tu premio ahora?*** (`@/ui/HojaCobrar`) where she has a reward — she chooses which, claimed with the same
+  code (`claim_with_code`; a code changed meanwhile asks her to scan again). ***Tus premios en …*** (`(vecino)/premios/[cocina]`): *Cobrar*
+  opens *Cobras*. Her card (`@/ui/TarjetaDeLealtad`, the kitchen's colour and logo, G41) on a kitchen's page in its `tarjeta` slot
+  (`@/ui/SeccionTarjeta`), else the door's invitation with *Condiciones* — ⚠️ a kitchen quiet two weeks is not in the door, so no
+  invitation there, and her first stamp at its counter still works. *Cerca*'s mark (G38, `marcaDeCocina`, *3/8*) on both cards, the order
+  unchanged. ***¡Ganaste …!*** (`(vecino)/gano/[cocina]`) is opened by `@/lib/Festejos` ALONE, mounted with the tabs: a reward
+  this phone has not celebrated (`@/lib/festejado`, BY ID per login — a reward's `won_at` can reach the database days late
+  from a kitchen's queue), on the spot or at her next open; ⚠️ the screen keeps the ids once open, `Festejos` guards each run in
+  memory (the review of `10.9e-iii`) — ⚠️ **900 ms after her cards
+  are read**: pushed while the first screens mounted, its parts stayed invisible (`@/ui/Llega`'s entrance dropped; found on the emulator).
+  *Tú* → ***Lo que cada cocina ve de ti*** (`(vecino)/lo-que-ven`, G42: what is true today, no *nunca* about following). Before *Eliminar mi
+  cuenta*, what of the card goes (`alEliminarDe`). ⚠️ **Two things of hers on the phone's disk, and only these**: her key and the ids of her rewards it celebrated —
+  her own, not a read of anyone's rows; both outlive *Cerrar sesión*, as her session's does not (the aviso says so).
+  ⚠️ **To see it on the emulator**: a debug build carrying the camera (`10.9c`), the local switch on, a kitchen's code worked out by RFC 6238
+  from the key `register_kitchen_key` handed (as the card's contract check does), and the camera fed an image of its QR
+  (`-camera-back imagefile:<png>`, the QR at 6 px a module on a white 2133 × 1600): the emulator reads the file when the camera OPENS, so
+  write the image before the camera starts. ⚠️ Removing `adb reverse` does not cut a keep-alive connection already open: restart the app
+  to see *no signal*.
 - **No word that makes the food sound left over** where a fonda or a neighbour reads (*lo que sobra*, *sobrante*,
   *restos*, *desperdicio*): *Publicar una oferta*, *Tu oferta de hoy*, *aprovechar*, *Por hoy ya se terminó*, *Se liberó*.
   `test/palabras.test.ts` refuses them in `src/strings.ts` since `10.5-v-a` — Wera's *Merma* only in the one line

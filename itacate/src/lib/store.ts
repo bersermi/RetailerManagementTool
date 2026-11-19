@@ -32,6 +32,19 @@ export function readKey(store: DeviceStore | undefined, key: string): string | n
   }
 }
 
+/**
+ * One key written, with every failure swallowed — `10.9e-iii`: her phone's *Mi código* key
+ * (`@/lib/llave`) and the last reward celebrated (`@/lib/festejado`). Wera's, copied.
+ */
+export function writeKey(store: DeviceStore | undefined, key: string, value: string): void {
+  if (store === undefined) return;
+  try {
+    store.setItem(key, value);
+  } catch {
+    // Nothing to do, and nothing the person holding the phone could do either.
+  }
+}
+
 /** One key removed, with every failure swallowed. */
 export function removeKey(store: DeviceStore | undefined, key: string): void {
   if (store === undefined) return;
