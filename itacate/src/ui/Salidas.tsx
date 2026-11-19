@@ -43,7 +43,11 @@ export function Salidas() {
   const [problem, setProblem] = useState<string | null>(null);
   const deletion = deletionFrom(goes);
   // `10.9e-iii`: her loyalty cards — what goes with the account of them, said before she confirms (never a block).
-  const tarjeta = alEliminarDe(useTarjetas().data);
+  const tarjetas = useTarjetas();
+  const tarjeta = alEliminarDe(tarjetas.data);
+  // ⚠️ The card's line must be there before she can confirm (the deletion page promises it): *Eliminar mi cuenta* waits
+  // for her cards as it waits for what goes — a read that fails says nothing, and the database answers last.
+  const cardsLeidas = tarjetas.data !== undefined || tarjetas.isError;
   const ready = namesReady(deletion, typed);
 
   async function leave() {
@@ -78,7 +82,7 @@ export function Salidas() {
       <BotonLleno variante="discreto" label={ES.auth.signOut} busy={signingOut} onPress={() => void leave()} />
 
       {!open ? (
-        deletion.kind !== 'unknown' && (
+        deletion.kind !== 'unknown' && cardsLeidas && (
           <Pressable accessibilityRole="button" onPress={() => setOpen(true)} style={row}>
             <Text style={quiet}>{ES.account.open}</Text>
           </Pressable>

@@ -78,7 +78,10 @@ export default function PaginaDeLaCocina() {
       ahora={ahora}
       onRefrescar={() => Promise.all([cocinas.refetch(), siguiendo.refetch()])}
       seguir={<Seguir cocinaId={cocina.id} nombre={cocina.name} />}
-      tarjeta={<SeccionTarjeta cocina={cocina} />}
+      tarjeta={
+        // Only when there is a card to draw — an empty slot would leave the page a gap (the review of `10.9e-iii`).
+        cocina.tarjeta !== null || tarjetas.data?.some((card) => card.id === cocina.id) === true ? <SeccionTarjeta cocina={cocina} /> : null
+      }
       onPlatillo={(oferta, platillo) =>
         router.push({
           pathname: '/platillo/[cocina]/[oferta]/[linea]',

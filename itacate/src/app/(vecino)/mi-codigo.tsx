@@ -63,10 +63,14 @@ export default function MiCodigo() {
     }
     const nueva = novedadDe(base.current, data);
     base.current = data;
-    if (nueva === null) return;
+    // ⚠️ ONLY THE SCREEN IN FRONT SPEAKS (the review of `10.9e-iii`): a second *Mi código* under another screen —
+    // *Cobrar* from *Tus premios*, *O escanea su código* — keeps its record and says nothing: never a sheet over
+    // the screen in front, never *Cobraste …* replayed on the way back.
+    if (nueva === null || !enFrente) return;
     if (nueva.kind === 'cobrado') setPremioId(null);
     if (nueva.kind !== 'gano') setNovedad(nueva);
     if ((nueva.kind === 'sello' || nueva.kind === 'primer') && nueva.card.rewards.length > 0) setHoja(nueva.card);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `enFrente` read, not a reason to compare again
   }, [tarjetas.data, tarjetas.dataUpdatedAt]);
 
   const premio = premioId === null ? null : (tarjetas.data ?? []).flatMap((c) => c.rewards.map((r) => ({ r, c }))).find((x) => x.r.id === premioId) ?? null;

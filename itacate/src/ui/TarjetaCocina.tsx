@@ -35,7 +35,7 @@ export function TarjetaCocina({
   tarjeta: Extract<Tarjeta, { kind: 'cocina' }>;
   ahora: Date;
   onPress: () => void;
-  /** `10.9e-iii` (G38): her progress on its loyalty card — *5/8* — under its line (the page's `smark`). */
+  /** `10.9e-iii` (G38): her progress on its loyalty card — *5/8* — under its line (the page's `smark`), its words on the card's label. */
   marca?: { readonly texto: string; readonly ayuda: string } | null;
 }) {
   const { cocina, metros } = tarjeta;
@@ -45,7 +45,7 @@ export function TarjetaCocina({
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={ES.cerca.abrirCocina(cocina.name)}
+      accessibilityLabel={marca === null ? ES.cerca.abrirCocina(cocina.name) : `${ES.cerca.abrirCocina(cocina.name)}. ${marca.ayuda}`}
       onPress={onPress}
       style={({ pressed }) => ({
         opacity: pressed ? APAGADA * 0.75 : APAGADA,
@@ -66,7 +66,7 @@ export function TarjetaCocina({
         </Text>
         {linea !== null && <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada }}>{linea}</Text>}
         {marca !== null && (
-          <View accessible accessibilityLabel={marca.ayuda} style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
             <MaterialCommunityIcons name="stamper" size={13} color={PALETTE.accion} />
             <Text style={{ fontSize: SIZE.smallSize - 1, fontWeight: '700', color: PALETTE.accion }}>{marca.texto}</Text>
           </View>

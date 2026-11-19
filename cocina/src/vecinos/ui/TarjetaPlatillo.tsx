@@ -40,8 +40,9 @@ export function TarjetaPlatillo({
   ahora: Date;
   onPress: () => void;
   /**
-   * `10.9e-iii` (G38): her progress on that kitchen's loyalty card — *5/8* — at the window's right, in words a
-   * screen reader says; the list's to hand it (Itacate's `@/lib/tarjeta`' `marcaDeCocina`), none in Wera Cocina.
+   * `10.9e-iii` (G38): her progress on that kitchen's loyalty card — *5/8* — at the window's right, its words on the
+   * card's own label (a screen reader reads that, never a child's); the list's to hand it (Itacate's `@/lib/tarjeta`'
+   * `marcaDeCocina`), none in Wera Cocina — where the window's line is drawn exactly as before.
    */
   marca?: { readonly texto: string; readonly ayuda: string } | null;
 }) {
@@ -49,7 +50,7 @@ export function TarjetaPlatillo({
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={ES.cerca.abrirPlatillo(platillo.name, cocina.name)}
+      accessibilityLabel={marca === null ? ES.cerca.abrirPlatillo(platillo.name, cocina.name) : `${ES.cerca.abrirPlatillo(platillo.name, cocina.name)}. ${marca.ayuda}`}
       onPress={onPress}
       style={({ pressed }) => ({
         borderWidth: 1,
@@ -107,20 +108,17 @@ export function TarjetaPlatillo({
           <View style={{ flex: 1 }} />
           <Quedan platillo={platillo} />
         </View>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: SIZE.rowGap }}>
-          <Text style={{ flexShrink: 1, fontSize: SIZE.smallSize, color: PALETTE.tintaApagada }}>{ventanaTexto(oferta, ahora)}</Text>
-          <View style={{ flex: 1 }} />
-          {marca !== null && (
-            <View
-              accessible
-              accessibilityLabel={marca.ayuda}
-              style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}
-            >
+        {marca === null ? (
+          <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada }}>{ventanaTexto(oferta, ahora)}</Text>
+        ) : (
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: SIZE.rowGap }}>
+            <Text style={{ flex: 1, fontSize: SIZE.smallSize, color: PALETTE.tintaApagada }}>{ventanaTexto(oferta, ahora)}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
               <MaterialCommunityIcons name="stamper" size={13} color={PALETTE.accion} />
               <Text style={{ fontSize: SIZE.smallSize - 1, fontWeight: '700', color: PALETTE.accion }}>{marca.texto}</Text>
             </View>
-          )}
-        </View>
+          </View>
+        )}
       </View>
     </Pressable>
   );

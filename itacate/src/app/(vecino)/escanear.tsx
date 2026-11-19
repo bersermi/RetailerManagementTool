@@ -9,6 +9,7 @@ import type { RewardRow } from '@/api/tarjeta';
 import { parametro } from '@/lib/paginas';
 import {
   cardDeEscaneo,
+  cocinaDelEscaneo,
   codigoDeCocinaDe,
   condicionesDeSuTarjeta,
   desenlaceDe,
@@ -16,6 +17,7 @@ import {
   enFrase,
   preguntarCobro,
   tecleadoDe,
+  terminaElCobro,
   tituloDe,
   vistaDe,
   type CodigoDeCocina,
@@ -70,14 +72,23 @@ export default function Escanear() {
 
   async function enviar(codigo: CodigoDeCocina) {
     setEstado({ tipo: 'enviando' });
-    const r = premioId !== null ? await cobrar(premioId, codigo.code, codigo.key) : await sellar(codigo.code, cocinaId, codigo.key);
+    // ⚠️ A QR NAMES ITS PHONE: the page's kitchen narrows six digits typed, never a QR — `kitchen_code_owner` ANDs
+    // both, so kitchen B's QR scanned from kitchen A's page was a miss (the review of `10.9e-iii`).
+    const r =
+      premioId !== null
+        ? await cobrar(premioId, codigo.code, codigo.key)
+        : await sellar(codigo.code, cocinaDelEscaneo(codigo, cocinaId), codigo.key);
     if (!r.ok) {
+      // A reward no longer hers (`TD027`) leaves the claim: the next scan is a stamp again.
+      if (r.problema === ES.tarjeta.errores.noEsTuPremio) setPremioId(null);
       setEstado({ tipo: 'problema', problema: r.problema });
       return;
     }
     const d = desenlaceDe(r.scan);
     setEstado({ tipo: 'resultado', desenlace: d });
-    if (d.kind === 'cobrado' || d.kind === 'yaCobrado') setPremioId(null);
+    // ⚠️ A CLAIM ENDS WITH ANY ANSWER but a code that did not fit (`no_valido`, `repite`): after `cerrada` the reward
+    // is gone, and every later scan would have claimed it again (the review of `10.9e-iii`).
+    if (premioId !== null && terminaElCobro(r.scan.result)) setPremioId(null);
     const porCobrar = preguntarCobro(d);
     if (porCobrar.length > 0 && d.kind !== 'nada') setHoja({ cocina: d.cocina.name, premios: porCobrar, codigo });
   }

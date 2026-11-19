@@ -232,6 +232,20 @@ export function tecleadoDe(texto: string): CodigoDeCocina | null {
   return code === null ? null : { code, key: null };
 }
 
+/**
+ * Which kitchen a scan is narrowed to (`p_workspace_id`): the page's, for six digits typed — never for a QR, which
+ * names its phone, and `kitchen_code_owner` asks for both (the review of `10.9e-iii`: kitchen B's QR scanned from
+ * kitchen A's page was a miss).
+ */
+export function cocinaDelEscaneo(codigo: CodigoDeCocina, cocinaDeLaPagina: string | null): string | null {
+  return codigo.key === null ? cocinaDeLaPagina : null;
+}
+
+/** Whether a claim's answer ends the claim: any answer but a code that did not fit (`no_valido`, `repite`). */
+export function terminaElCobro(resultado: ScanRow['result']): boolean {
+  return resultado !== 'no_valido' && resultado !== 'repite';
+}
+
 /** What a scan gave, as a screen draws it. */
 export type Desenlace =
   | { readonly kind: 'primer' | 'sello' | 'gano' | 'yaHoy'; readonly cocina: { readonly id: string; readonly name: string }; readonly card: CardStateRow }
@@ -354,22 +368,27 @@ export function novedadDe(antes: readonly MyCardRow[], despues: readonly MyCardR
 // ---- the celebration, on the spot or at her next open (G17) ----------------------------------
 
 /**
- * The reward to celebrate, or `null`: the newest she has to claim, won after the last one this phone
- * celebrated (`desde`, an instant). ⚠️ NOTHING CELEBRATED ON THIS PHONE YET (`desde` null) celebrates her
- * newest once — a phone she just signed in on shows *¡Ganaste!* for a reward she has not claimed, then never
- * again for it.
+ * The reward to celebrate, or `null`: the newest she has to claim that this phone has not celebrated (`vistos`, by
+ * id), and every such id — all marked at once, so two rewards arriving together are one celebration, the newest's.
+ * ⚠️ NOTHING CELEBRATED ON THIS PHONE YET (`vistos` null) celebrates her newest once — a phone she just signed in on
+ * shows *¡Ganaste!* for a reward she has not claimed, then never again for any she holds then.
  */
-export function festejoDe(cards: readonly MyCardRow[] | undefined, desde: string | null): { readonly cocina: MyCardRow; readonly premio: RewardRow } | null {
+export function festejoDe(
+  cards: readonly MyCardRow[] | undefined,
+  vistos: ReadonlySet<string> | null,
+): { readonly cocina: MyCardRow; readonly premio: RewardRow; readonly ids: readonly string[] } | null {
   let mejor: { cocina: MyCardRow; premio: RewardRow; at: number } | null = null;
-  const limite = desde === null ? Number.NEGATIVE_INFINITY : Date.parse(desde);
+  const ids: string[] = [];
   for (const cocina of cards ?? []) {
     for (const premio of cocina.rewards) {
+      if (vistos !== null && vistos.has(premio.id)) continue;
+      ids.push(premio.id);
       const at = Date.parse(premio.won_at);
-      if (Number.isNaN(at) || !(at > limite)) continue;
-      if (mejor === null || at > mejor.at) mejor = { cocina, premio, at };
+      const cuando = Number.isNaN(at) ? Number.NEGATIVE_INFINITY : at;
+      if (mejor === null || cuando > mejor.at) mejor = { cocina, premio, at: cuando };
     }
   }
-  return mejor === null ? null : { cocina: mejor.cocina, premio: mejor.premio };
+  return mejor === null ? null : { cocina: mejor.cocina, premio: mejor.premio, ids };
 }
 
 // ---- *Mis cocinas* -------------------------------------------------------------------------------
@@ -386,6 +405,15 @@ export function bitsDeTarjeta(card: MyCardRow | undefined): string | null {
   if (card.of !== null && card.stamps > 0) bits.push(ES.tarjeta.progreso(card.stamps, card.of));
   if (card.rewards.length > 0) bits.push(ES.tarjeta.premiosCorto(card.rewards.length));
   return bits.length === 0 ? null : bits.join(' · ');
+}
+
+/** The same row for a screen reader — *3 de 8 sellos, 2 premios por cobrar*, never the raw *3/8*. */
+export function ayudaDeTarjeta(card: MyCardRow | undefined): string | null {
+  if (card === undefined) return null;
+  const partes: string[] = [];
+  if (card.of !== null && card.stamps > 0) partes.push(ES.tarjeta.progresoAyuda(card.stamps, card.of));
+  if (card.rewards.length > 0) partes.push(ES.tarjeta.premios(card.rewards.length));
+  return partes.length === 0 ? null : partes.join(', ');
 }
 
 // ---- *Lo que cada cocina ve de ti* (G42) ---------------------------------------------------------
@@ -433,7 +461,7 @@ export function loQueVenDe(apartados: readonly Apartado[] | undefined, cards: re
 export function alEliminarDe(cards: readonly MyCardRow[] | undefined): string | null {
   const T = ES.tarjeta;
   const conPremio = (cards ?? []).filter((c) => c.rewards.length > 0);
-  const conSellos = (cards ?? []).filter((c) => c.stamps > 0 && c.rewards.length === 0);
+  const conSellos = (cards ?? []).filter((c) => c.stamps > 0);
   const premios = conPremio.reduce((n, c) => n + c.rewards.length, 0);
   if (premios === 0 && conSellos.length === 0) return null;
   if (premios === 0) return T.soloSellos(T.y(conSellos.map((c) => c.name)));

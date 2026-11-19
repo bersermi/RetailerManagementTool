@@ -374,12 +374,14 @@ export const ES = {
    */
   misCocinas: {
     titulo: 'Mis cocinas',
-    /** `10.9e-iii`: the drawing's head once the card exists (`iMis`). */
-    detalle: 'Las que sigues y donde juntas sellos',
+    detalle: 'Las que sigues',
+    /** `10.9e-iii`: the drawing's head once the card exists (`iMis`) — only while a card can be held. */
+    detalleConTarjeta: 'Las que sigues y donde juntas sellos',
     cargando: 'Buscando tus cocinas…',
     tusCocinas: 'Tus cocinas',
     vacio: 'Sigue una cocina desde su página',
-    vacioDetalle: 'Aquí verás si publicó hoy, y tus sellos.',
+    vacioDetalle: 'Aquí verás si publicó hoy.',
+    vacioDetalleConTarjeta: 'Aquí verás si publicó hoy, y tus sellos.',
     /** A kitchen she follows that published nothing in four weeks — said where *Publicó …* would be. */
     sinOfertas: 'Sin ofertas en las últimas 4 semanas',
     /** G23, the owner's words. */
@@ -728,6 +730,8 @@ export const ES = {
     cerrada: (dia: string) => `Esta cocina cerró su tarjeta: puedes completarla y cobrar tus premios hasta el ${dia}.`,
     /** *Cerca*'s mark (G38), for a screen reader. */
     marcaAyuda: (n: number, de: number) => `${n} de ${de} sellos en tu tarjeta`,
+    /** *Mis cocinas*' row, for a screen reader: never the raw *5/8*. */
+    progresoAyuda: (n: number, de: number) => `${n} de ${de} sellos`,
     /** Her card, for a screen reader. */
     ayuda: (cocina: string, n: number, de: number, premio: string) => `Tarjeta de lealtad de ${cocina}: ${n} de ${de} sellos. ${de} sellos, ${premio}.`,
     /** *Mis cocinas*' row for a kitchen whose card she holds: *5/8*, *2 premios*. */
@@ -742,7 +746,7 @@ export const ES = {
     y: (nombres: readonly string[]) =>
       nombres.length <= 1 ? (nombres[0] ?? '') : `${nombres.slice(0, -1).join(', ')} y ${nombres[nombres.length - 1]}`,
     errores: {
-      noDisponible: 'La tarjeta de lealtad todavía no está disponible.',
+      noDisponible: 'La tarjeta de lealtad no está disponible ahora.',
       demasiados: 'Demasiados códigos que no sirven. Espera unos minutos y vuelve a intentar.',
       noEsTuPremio: 'Ese premio ya no está entre los tuyos. Revisa tus premios.',
       codigo: 'Un código son seis números.',
@@ -839,7 +843,8 @@ export const ES = {
     fila: 'Lo que cada cocina ve de ti',
     filaDetalle: 'Lo que hoy le llega a cada una',
     titulo: 'Lo que cada cocina ve de ti',
-    detalle: 'Lo que hoy le llega a cada cocina donde apartas o juntas sellos',
+    detalle: 'Lo que hoy le llega a cada cocina donde apartas',
+    detalleConTarjeta: 'Lo que hoy le llega a cada cocina donde apartas o juntas sellos',
     volver: 'Tú',
     nombreApartas: 'Tu nombre, cuando apartas',
     nombreSello: 'Tu nombre, cuando te dan un sello o cobras un premio',
@@ -848,7 +853,8 @@ export const ES = {
     sellos: 'Tus sellos y tus premios de aquí, cuando le enseñas tu código o escaneas el suyo',
     sigues: 'Si la sigues: hoy solo ve cuántas personas la siguen',
     ubicacion: 'Dónde estás: no le llega',
-    ninguna: 'Todavía no apartas ni juntas sellos en ninguna cocina.',
+    ninguna: 'Todavía no apartas en ninguna cocina.',
+    ningunaConTarjeta: 'Todavía no apartas ni juntas sellos en ninguna cocina.',
     ningunaDetalle: 'Cuando lo hagas, aquí verás lo que le llega a cada una.',
   },
 

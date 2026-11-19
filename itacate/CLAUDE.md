@@ -438,11 +438,13 @@ follows it, as `cocina/CLAUDE.md`'s does:
   opens *Cobras*. Her card (`@/ui/TarjetaDeLealtad`, the kitchen's colour and logo, G41) on a kitchen's page in its `tarjeta` slot
   (`@/ui/SeccionTarjeta`), else the door's invitation with *Condiciones* — ⚠️ a kitchen quiet two weeks is not in the door, so no
   invitation there, and her first stamp at its counter still works. *Cerca*'s mark (G38, `marcaDeCocina`, *3/8*) on both cards, the order
-  unchanged. ***¡Ganaste …!*** (`(vecino)/gano/[cocina]`) is opened by `@/lib/Festejos` ALONE, mounted with the tabs: a reward won after the
-  last one this phone celebrated (`@/lib/festejado`, a moment per login), on the spot or at her next open — ⚠️ **900 ms after her cards
+  unchanged. ***¡Ganaste …!*** (`(vecino)/gano/[cocina]`) is opened by `@/lib/Festejos` ALONE, mounted with the tabs: a reward
+  this phone has not celebrated (`@/lib/festejado`, BY ID per login — a reward's `won_at` can reach the database days late
+  from a kitchen's queue), on the spot or at her next open; ⚠️ the screen keeps the ids once open, `Festejos` guards each run in
+  memory (the review of `10.9e-iii`) — ⚠️ **900 ms after her cards
   are read**: pushed while the first screens mounted, its parts stayed invisible (`@/ui/Llega`'s entrance dropped; found on the emulator).
   *Tú* → ***Lo que cada cocina ve de ti*** (`(vecino)/lo-que-ven`, G42: what is true today, no *nunca* about following). Before *Eliminar mi
-  cuenta*, what of the card goes (`alEliminarDe`). ⚠️ **Two things of hers on the phone's disk, and only these**: her key and that moment —
+  cuenta*, what of the card goes (`alEliminarDe`). ⚠️ **Two things of hers on the phone's disk, and only these**: her key and the ids of her rewards it celebrated —
   her own, not a read of anyone's rows; both outlive *Cerrar sesión*, as her session's does not (the aviso says so).
   ⚠️ **To see it on the emulator**: a debug build carrying the camera (`10.9c`), the local switch on, a kitchen's code worked out by RFC 6238
   from the key `register_kitchen_key` handed (as the card's contract check does), and the camera fed an image of its QR

@@ -11,7 +11,7 @@ import { useAuth } from '@/auth/AuthProvider';
 import { leerLlave } from '@/lib/llave';
 import { cocinaDeSeguida, detalleDe, fijadoDe, misCocinasDe, type FilaSeguida } from '@/lib/misCocinas';
 import { deviceStore } from '@/lib/store';
-import { bitsDeTarjeta, cocinaDeTarjeta, colorDeTarjeta, conPremios, hayTarjetas, porCocina } from '@/lib/tarjeta';
+import { ayudaDeTarjeta, bitsDeTarjeta, cocinaDeTarjeta, colorDeTarjeta, conPremios, hayTarjetas, porCocina } from '@/lib/tarjeta';
 import { useAhora } from '@/lib/useAhora';
 import { ES } from '@/strings';
 import { HUES } from '@/theme/colores';
@@ -83,7 +83,7 @@ export default function MisCocinas() {
   return (
     <View style={styles.pantalla}>
       <Cabeza titulo={ES.misCocinas.titulo}>
-        <Text style={styles.detalle}>{ES.misCocinas.detalle}</Text>
+        <Text style={styles.detalle}>{conTarjeta ? ES.misCocinas.detalleConTarjeta : ES.misCocinas.detalle}</Text>
       </Cabeza>
       <ScrollView
         contentContainerStyle={styles.cuerpo}
@@ -137,7 +137,7 @@ export default function MisCocinas() {
             <View style={styles.vacio}>
               <MaterialCommunityIcons name="heart-outline" size={44} color={PALETTE.linea} />
               <Text style={styles.vacioTitulo}>{ES.misCocinas.vacio}</Text>
-              <Text style={styles.nota}>{ES.misCocinas.vacioDetalle}</Text>
+              <Text style={styles.nota}>{conTarjeta ? ES.misCocinas.vacioDetalleConTarjeta : ES.misCocinas.vacioDetalle}</Text>
             </View>
           ) : (
             <Grupo>
@@ -147,6 +147,7 @@ export default function MisCocinas() {
                   fila={fila}
                   puerta={puertaDe(fila.seguida.id)}
                   tarjeta={bitsDeTarjeta(misTarjetas.get(fila.seguida.id))}
+                  tarjetaAyuda={ayudaDeTarjeta(misTarjetas.get(fila.seguida.id))}
                   onPress={() => abrir(fila.seguida.id)}
                 />
               ))}
@@ -183,11 +184,14 @@ function RenglonSeguida({
   fila,
   puerta,
   tarjeta,
+  tarjetaAyuda,
   onPress,
 }: {
   fila: FilaSeguida;
   puerta: Parameters<typeof cocinaDeSeguida>[1] | undefined;
   tarjeta: string | null;
+  /** The same in words a screen reader says. */
+  tarjetaAyuda: string | null;
   onPress: () => void;
 }) {
   const { seguida, publicoHoy } = fila;
@@ -195,7 +199,7 @@ function RenglonSeguida({
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={[seguida.nombre, detalle, tarjeta, seguida.campana ? ES.misCocinas.conCampana : null].filter(Boolean).join(', ')}
+      accessibilityLabel={[seguida.nombre, detalle, tarjetaAyuda, seguida.campana ? ES.misCocinas.conCampana : null].filter(Boolean).join(', ')}
       onPress={onPress}
       style={({ pressed }) => [styles.fila, { backgroundColor: pressed ? PALETTE.fondo : PALETTE.superficie }]}
     >
@@ -219,7 +223,7 @@ function RenglonTarjeta({ card, puerta, onPress }: { card: MyCardRow; puerta: Ki
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={[card.name, linea].filter(Boolean).join(', ')}
+      accessibilityLabel={[card.name, ayudaDeTarjeta(card) ?? card.colonia].filter(Boolean).join(', ')}
       onPress={onPress}
       style={({ pressed }) => [styles.fila, { backgroundColor: pressed ? PALETTE.fondo : PALETTE.superficie }]}
     >

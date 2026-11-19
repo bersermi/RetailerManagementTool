@@ -3,14 +3,16 @@ import { describe, expect, it } from 'vitest';
 import { tarjetaOf, type Kitchen } from '@/api/cocinas';
 import type { Apartado } from '@/api/apartados';
 import type { MyCardRow, RewardRow, ScanRow } from '@/api/tarjeta';
-import { festejadoHasta, marcarFestejado } from '@/lib/festejado';
+import { festejados, marcarFestejados } from '@/lib/festejado';
 import { guardarLlave, leerLlave, LLAVE_KEY } from '@/lib/llave';
 import type { DeviceStore } from '@/lib/store';
 import {
   alEliminarDe,
   bitsDeTarjeta,
   cardDeEscaneo,
+  ayudaDeTarjeta,
   cocinaDeTarjeta,
+  cocinaDelEscaneo,
   codigoDeCocinaDe,
   colorDeTarjeta,
   condicionesDeCocina,
@@ -29,6 +31,7 @@ import {
   premiosTexto,
   tarjetaErrorMessage,
   tecleadoDe,
+  terminaElCobro,
   tituloDe,
   vistaDe,
 } from '@/lib/tarjeta';
@@ -192,6 +195,9 @@ describe('where the card shows at all — with Wera’s switch off, nowhere', ()
     expect(bitsDeTarjeta(conDos)).toBe('3/8 · 2 premios');
     expect(bitsDeTarjeta(card({ stamps: 0, rewards: [premio('r1')] }))).toBe('1 premio');
     expect(bitsDeTarjeta(undefined)).toBeNull();
+    // For a screen reader, never the raw *3/8*.
+    expect(ayudaDeTarjeta(conDos)).toBe('3 de 8 sellos, 2 premios por cobrar');
+    expect(ayudaDeTarjeta(card())).toBe('3 de 8 sellos');
   });
 
   it('a kitchen the door no longer sends still has a circle: its name, colonia, colour and logo', () => {
@@ -288,31 +294,57 @@ describe('*Mi código*: what the kitchen’s scan did, read from her cards again
 });
 
 describe('the celebration, on the spot or at her next open (G11, G17)', () => {
-  const cards = [card({ rewards: [premio('r1', '2026-11-18T18:00:00Z')] }), card({ id: ESPIGA, name: 'La Espiga', rewards: [premio('r2', '2026-11-19T18:00:00Z', 'Un pan')] })];
+  const R1 = 'aaaa0001-0000-4000-8000-000000000001';
+  const R2 = 'aaaa0002-0000-4000-8000-000000000002';
+  const R3 = 'aaaa0003-0000-4000-8000-000000000003';
+  const cards = [card({ rewards: [premio(R1, '2026-11-18T18:00:00Z')] }), card({ id: ESPIGA, name: 'La Espiga', rewards: [premio(R2, '2026-11-19T18:00:00Z', 'Un pan')] })];
 
-  it('the newest reward won after the last one this phone celebrated', () => {
-    expect(festejoDe(cards, '2026-11-18T12:00:00Z')).toMatchObject({ cocina: { id: ESPIGA }, premio: { id: 'r2' } });
-    expect(festejoDe(cards, '2026-11-19T18:00:00Z')).toBeNull();
-    expect(festejoDe(cards, '2026-11-18T19:00:00Z')?.premio.id).toBe('r2');
+  it('the newest reward this phone has not celebrated — every new one marked with it', () => {
+    expect(festejoDe(cards, new Set([R1]))).toMatchObject({ cocina: { id: ESPIGA }, premio: { id: R2 }, ids: [R2] });
+    expect(festejoDe(cards, new Set([R1, R2]))).toBeNull();
+    expect(festejoDe(cards, new Set())?.ids).toEqual([R1, R2]);
     expect(festejoDe([], null)).toBeNull();
   });
 
-  it('nothing celebrated on this phone yet: her newest, once', () => {
-    expect(festejoDe(cards, null)?.premio.id).toBe('r2');
+  it('⚠️ by id, not by moment: a reward synced late, OLDER than one celebrated, is still celebrated', () => {
+    const tarde = [...cards, card({ id: 'x', name: 'Tacos', rewards: [premio(R3, '2026-11-12T18:00:00Z', 'Tacos')] })];
+    expect(festejoDe(tarde, new Set([R1, R2]))?.premio.id).toBe(R3);
   });
 
-  it('the phone keeps the moment, per login, only ever later', () => {
+  it('nothing celebrated on this phone yet: her newest, once — and all she holds then marked', () => {
+    expect(festejoDe(cards, null)).toMatchObject({ premio: { id: R2 }, ids: [R1, R2] });
+  });
+
+  it('the phone keeps the ids, per login, the last 60', () => {
     const store = memoria();
-    expect(festejadoHasta(store, 'ana')).toBeNull();
-    marcarFestejado(store, 'ana', '2026-11-19T18:00:00Z');
-    marcarFestejado(store, 'ana', '2026-11-18T18:00:00Z');
-    marcarFestejado(store, 'luis', '2026-11-01T18:00:00Z');
-    expect(festejadoHasta(store, 'ana')).toBe('2026-11-19T18:00:00Z');
-    expect(festejadoHasta(store, 'luis')).toBe('2026-11-01T18:00:00Z');
-    marcarFestejado(store, 'ana', 'not a moment');
-    expect(festejadoHasta(store, 'ana')).toBe('2026-11-19T18:00:00Z');
-    // A phone with no store (node, a full disk) celebrates and keeps nothing — never a screen that fails.
-    expect(() => marcarFestejado(undefined, 'ana', '2026-11-19T18:00:00Z')).not.toThrow();
+    expect(festejados(store, 'ana')).toBeNull();
+    marcarFestejados(store, 'ana', [R1]);
+    marcarFestejados(store, 'ana', [R1, R2]);
+    marcarFestejados(store, 'luis', [R3]);
+    expect([...(festejados(store, 'ana') ?? [])]).toEqual([R1, R2]);
+    expect([...(festejados(store, 'luis') ?? [])]).toEqual([R3]);
+    marcarFestejados(store, 'ana', ['not an id']);
+    expect(festejados(store, 'ana')?.size).toBe(2);
+    const muchos = Array.from({ length: 70 }, (_, n) => `bbbb${String(n).padStart(4, '0')}-0000-4000-8000-000000000000`);
+    marcarFestejados(store, 'ana', muchos);
+    expect(festejados(store, 'ana')?.size).toBe(60);
+    expect(festejados(store, 'ana')?.has(muchos[69])).toBe(true);
+    // A phone with no store (node, a full disk) keeps nothing — never a screen that fails; `@/lib/Festejos` guards in memory.
+    expect(() => marcarFestejados(undefined, 'ana', [R1])).not.toThrow();
+  });
+});
+
+describe('a scan’s two rules on *Escanear* (the review of `10.9e-iii`)', () => {
+  it('six digits typed are narrowed to the page’s kitchen; a QR, which names its phone, never is', () => {
+    expect(cocinaDelEscaneo({ code: '482190', key: null }, MARI)).toBe(MARI);
+    expect(cocinaDelEscaneo({ code: '482190', key: LLAVE }, MARI)).toBeNull();
+    expect(cocinaDelEscaneo({ code: '482190', key: null }, null)).toBeNull();
+  });
+
+  it('a claim ends with any answer but a code that did not fit', () => {
+    expect(['cobrado', 'ya_cobrado', 'cerrada', 'propia'].every((r) => terminaElCobro(r as ScanRow['result']))).toBe(true);
+    expect(terminaElCobro('no_valido')).toBe(false);
+    expect(terminaElCobro('repite')).toBe(false);
   });
 });
 
@@ -359,9 +391,11 @@ describe('before *Eliminar mi cuenta*: what goes of the card', () => {
   it('her rewards still to claim, by kitchen, then her stamps — none, nothing said', () => {
     expect(alEliminarDe([])).toBeNull();
     expect(alEliminarDe([card()])).toBe('Con tu cuenta se borran tus sellos en Fonda Doña Mari.');
-    expect(alEliminarDe([card({ rewards: [premio('r1')] })])).toBe('Con tu cuenta se borra tu premio por cobrar en Fonda Doña Mari.');
+    expect(alEliminarDe([card({ stamps: 0, rewards: [premio('r1')] })])).toBe('Con tu cuenta se borra tu premio por cobrar en Fonda Doña Mari.');
+    // Stamps where she also has a reward are named too (the review of `10.9e-iii`).
+    expect(alEliminarDe([card({ rewards: [premio('r1')] })])).toBe('Con tu cuenta se borra tu premio por cobrar en Fonda Doña Mari. Y tus sellos en Fonda Doña Mari.');
     expect(alEliminarDe([card({ rewards: [premio('r1'), premio('r2')] }), card({ id: ESPIGA, name: 'La Espiga', rewards: [premio('r3')] }), card({ id: 'x', name: 'Tacos El Güero' })])).toBe(
-      'Con tu cuenta se borran tus 3 premios por cobrar en Fonda Doña Mari y La Espiga. Y tus sellos en Tacos El Güero.',
+      'Con tu cuenta se borran tus 3 premios por cobrar en Fonda Doña Mari y La Espiga. Y tus sellos en Fonda Doña Mari, La Espiga y Tacos El Güero.',
     );
   });
 });

@@ -1,9 +1,13 @@
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { router, useLocalSearchParams } from 'expo-router';
+import { useEffect } from 'react';
 import { Image, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useCocinas, useTarjetas } from '@/api/hooks';
+import { useAuth } from '@/auth/AuthProvider';
+import { marcarFestejados } from '@/lib/festejado';
+import { deviceStore } from '@/lib/store';
 import { parametro } from '@/lib/paginas';
 import { colorDeTarjeta, enFrase } from '@/lib/tarjeta';
 import { ES } from '@/strings';
@@ -18,7 +22,8 @@ import { Llega } from '@/ui/Llega';
 // G17: on the spot or at her next open; the family-shell page's `iGano`): Wera's cow on the kitchen's colour
 // with a gift, a star and a stamp around it, *¡Ganaste una comida corrida!*, *En Fonda Doña Mari. Cóbralo
 // cuando quieras: escanea su código o enséñale el tuyo.*, *Ver mis premios* and *Después*. Opened by
-// `@/lib/Festejos` alone, once per reward (`@/lib/festejado`).
+// `@/lib/Festejos` alone, once per reward — and it is THIS screen, once open, that keeps the rewards as celebrated
+// (`vistos`, `@/lib/festejado`).
 // ⚠️ THE MOVEMENT IS `@/ui/Llega`'S (one staggered entrance, transform and opacity — ADR-035 §2.11): Reanimated is
 // imported by four modules only (`test/pestanas.test.ts`). NO CHECK CAN SEE THIS SCREEN: the phone is its instrument.
 // ============================================================================
@@ -27,9 +32,16 @@ import { Llega } from '@/ui/Llega';
 const VACA = require('@/marca/vaca-oxido.png') as number;
 
 export default function Gano() {
-  const params = useLocalSearchParams<{ cocina: string; premio?: string }>();
+  const params = useLocalSearchParams<{ cocina: string; premio?: string; vistos?: string }>();
   const cocinaId = parametro(params.cocina);
   const premioId = parametro(params.premio);
+  const vistos = parametro(params.vistos);
+  const { session } = useAuth();
+  const userId = session?.user.id ?? null;
+  // ⚠️ Kept HERE, once the screen is open: a celebration that never reached the screen is not marked as seen.
+  useEffect(() => {
+    if (userId !== null && vistos !== '') marcarFestejados(deviceStore(), userId, vistos.split(','));
+  }, [userId, vistos]);
   const insets = useSafeAreaInsets();
   const tarjetas = useTarjetas();
   const cocinas = useCocinas();

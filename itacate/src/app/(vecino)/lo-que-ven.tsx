@@ -3,7 +3,10 @@ import { router } from 'expo-router';
 import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
 
 import { useApartados, useCocinas, useTarjetas } from '@/api/hooks';
-import { cocinaDeTarjeta, loQueVenDe } from '@/lib/tarjeta';
+import { useAuth } from '@/auth/AuthProvider';
+import { leerLlave } from '@/lib/llave';
+import { deviceStore } from '@/lib/store';
+import { cocinaDeTarjeta, hayTarjetas, loQueVenDe } from '@/lib/tarjeta';
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
 import { Banda } from '@/ui/Banda';
@@ -25,20 +28,24 @@ export default function LoQueVen() {
   const cocinas = useCocinas();
   const listas = apartados.data !== undefined && tarjetas.data !== undefined;
   const kitchens = loQueVenDe(apartados.data, tarjetas.data);
+  // With Wera's switch off nothing of the card is named — not even *juntas sellos* (the review of `10.9e-iii`).
+  const { session } = useAuth();
+  const userId = session?.user.id ?? null;
+  const conTarjeta = hayTarjetas(cocinas.data, tarjetas.data, userId !== null && leerLlave(deviceStore(), userId) !== null);
   const volver = () => (router.canGoBack() ? router.back() : router.replace('/tu'));
 
   return (
     <View style={{ flex: 1, backgroundColor: PALETTE.fondo }}>
       <Banda titulo={ES.loQueVen.titulo} volver={{ label: ES.loQueVen.volver, onPress: volver }} />
       <ScrollView contentContainerStyle={{ padding: SIZE.space * 1.5, paddingBottom: SIZE.space * 6, gap: SIZE.space }}>
-        <Text style={{ fontSize: SIZE.bodySize, lineHeight: 22, color: PALETTE.tintaApagada }}>{ES.loQueVen.detalle}</Text>
+        <Text style={{ fontSize: SIZE.bodySize, lineHeight: 22, color: PALETTE.tintaApagada }}>{conTarjeta ? ES.loQueVen.detalleConTarjeta : ES.loQueVen.detalle}</Text>
         {!listas ? (
           <View style={{ alignItems: 'center', paddingVertical: SIZE.space * 2 }}>
             <ActivityIndicator color={PALETTE.accion} />
           </View>
         ) : kitchens.length === 0 ? (
           <View style={{ gap: SIZE.rowGap, padding: SIZE.space * 1.5, borderRadius: SIZE.space, borderWidth: 1, borderColor: PALETTE.linea, backgroundColor: PALETTE.superficie }}>
-            <Text style={{ fontSize: SIZE.bodySize, fontWeight: '700', color: PALETTE.tinta }}>{ES.loQueVen.ninguna}</Text>
+            <Text style={{ fontSize: SIZE.bodySize, fontWeight: '700', color: PALETTE.tinta }}>{conTarjeta ? ES.loQueVen.ningunaConTarjeta : ES.loQueVen.ninguna}</Text>
             <Text style={{ fontSize: SIZE.smallSize, lineHeight: 19, color: PALETTE.tintaApagada }}>{ES.loQueVen.ningunaDetalle}</Text>
           </View>
         ) : (
