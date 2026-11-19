@@ -18,6 +18,8 @@ import { Llega } from '@/ui/Llega';
 // kitchen where she reserved in her last 30 days or holds a card, and what reaches it of her TODAY — her name
 // when she reserves, gets a stamp or claims; her score when she reserves; her stamps and rewards there when she
 // shows her code or scans its; following, only a count; where she is, nothing (`@/lib/tarjeta`'s `loQueVenDe`).
+// ⚠️ `10.9f`: and her visits in its *Tus números*, counts with no name — said with *si*, as Itacate cannot know
+// which kitchens use them.
 // ⚠️ WORDED AS WHAT IS TRUE TODAY, WITH NO *NUNCA* ABOUT FOLLOWING — his words: *"don't make strict the 'never
 // that she follows it' in case we wan't to enable it in the future"*. NO CHECK CAN SEE THIS SCREEN (ADR-035 §2.11).
 // ============================================================================
@@ -79,10 +81,11 @@ export default function LoQueVen() {
 }
 
 /** Each line's glyph, as the drawing puts one beside each (`vl`). */
-function iconoDe(linea: string): 'account-outline' | 'thumb-up-outline' | 'stamper' | 'heart-outline' | 'map-marker-off-outline' {
+function iconoDe(linea: string): 'account-outline' | 'thumb-up-outline' | 'stamper' | 'chart-bar' | 'heart-outline' | 'map-marker-off-outline' {
   const L = ES.loQueVen;
   if (linea === L.calificacion) return 'thumb-up-outline';
   if (linea === L.sellos) return 'stamper';
+  if (linea === L.cuentas) return 'chart-bar';
   if (linea === L.sigues) return 'heart-outline';
   if (linea === L.ubicacion) return 'map-marker-off-outline';
   return 'account-outline';

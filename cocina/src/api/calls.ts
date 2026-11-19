@@ -95,6 +95,7 @@ import {
   type Servicio,
 } from '@/api/servicios';
 import { KITCHEN_FOLLOWERS, followersArgs, teSiguenFrom } from '@/api/seguidores';
+import { KITCHEN_NUMBERS, numbersArgs, numerosFrom, type Numeros } from '@/api/numeros';
 import type { DireccionCalls } from '@/api/direccion';
 import {
   LEAVE_KITCHEN,
@@ -670,6 +671,22 @@ export async function kitchenFollowers(kitchenId: string): Promise<number> {
   const n = teSiguenFrom(data);
   if (n === null) throw new TypeError(`${KITCHEN_FOLLOWERS}: an answer this build cannot read`);
   return n;
+}
+
+// ----------------------------------------------------------------------------
+// `10.9f` — her numbers (`0086`)
+// ----------------------------------------------------------------------------
+
+/**
+ * *Tus números* (`kitchen_numbers`, `0086`): what passed through Itacate at her kitchen — the owner's. ⚠️ An
+ * answer this build cannot read is an error, never zeros drawn as hers.
+ */
+export async function kitchenNumbers(kitchenId: string): Promise<Numeros> {
+  const { data, error } = await supabase.rpc(KITCHEN_NUMBERS, numbersArgs(kitchenId));
+  if (error) throw error;
+  const numeros = numerosFrom(data);
+  if (numeros === null) throw new TypeError(`${KITCHEN_NUMBERS}: an answer this build cannot read`);
+  return numeros;
 }
 
 // ----------------------------------------------------------------------------

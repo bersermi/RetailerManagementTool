@@ -612,6 +612,8 @@ export const ES = {
     oferta: '¡Ya te ven en Itacate!',
     apartado: '¡Tu primer apartado!',
     entrega: '¡Tu primera entrega!',
+    /** `10.9f`: her first handover once she uses her numbers — the page's `firstToast('entrega', …)`. */
+    entregaConNumeros: '¡Tu primera entrega! Tus números empiezan hoy',
   },
   /** The one quiet line under the day's card: her page's next missing part, or a feature she did not pick. */
   empujon: {
@@ -1378,6 +1380,64 @@ export const ES = {
     quitado: 'Lo encuentras en Mi cocina › Lo que usas',
   },
 
+  /**
+   * ⚠️ `10.9f`: *TUS NÚMEROS* (the owner's rulings G24–G27 of 2026-11-17; the family-shell page's `cNumeros`, round 7):
+   * answers, not indicators — *¿Cuántos platos has entregado?* — for *Día · Semana · Mes*, each against the whole
+   * period before; only what passes through Itacate; the figures about people from five neighbours (the database
+   * sends `null` under it). The questions, the words under them and the bars are the page's drawing; *menos de cinco*
+   * for a period before under the floor, the tile's comparison and the subtitle without the card, this row's.
+   */
+  numeros: {
+    titulo: 'Tus números',
+    /** Under the title — what is counted, true today: the stamps only while her kitchen uses the card. */
+    subtitulo: 'Lo que pasa por Itacate: tus apartados y quienes juntan sellos',
+    subtituloSinTarjeta: 'Lo que pasa por Itacate: tus apartados entregados',
+    periodos: { dia: 'Día', semana: 'Semana', mes: 'Mes' },
+    este: { dia: 'Hoy', semana: 'Esta semana', mes: 'Este mes' },
+    anterior: { dia: 'ayer', semana: 'la anterior', mes: 'el anterior' },
+    preguntas: {
+      platos: '¿Cuántos platos has entregado?',
+      visitas: '¿Cuántas veces vinieron?',
+      vecinos: '¿Cuántos vecinos distintos?',
+      regresan: '¿Cuántos ya habían venido antes?',
+      pesos: '¿Cuánto fue en apartados entregados?',
+    },
+    visitas: (n: string, una: boolean) => (una ? `${n} visita` : `${n} visitas`),
+    sinApartar: (n: string) => `${n} sin apartar, con su sello`,
+    deCuantos: (n: string, de: string) => `${n} de ${de}`,
+    regresan: (porciento: number) => `${porciento}% regresan`,
+    /** A figure about people under the floor of five (G27). */
+    nada: '—',
+    desdeCinco: 'Aparece desde cinco vecinos',
+    menosDeCinco: 'menos de cinco',
+    aPrecioPublicado: 'A precio publicado: lo que cobraste puede variar',
+    /** *la anterior, 36*. */
+    contra: (antes: string, cuanto: string) => `${antes}, ${cuanto}`,
+    junto: (a: string, b: string) => `${a} · ${b}`,
+    diasFuertes: 'Tus días fuertes',
+    horasFuertes: 'Tus horas fuertes',
+    dias: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
+    hora: (h: number) => `${h} h`,
+    sinNombres: 'Cuentas de tus entregas, sin nombres.',
+    /** Off, from its own screen (the shell's rule) — then *Hoy*, with *Deshacer*. */
+    dejar: 'Dejar de ver tus números',
+    dejando: 'Quitando…',
+    dejados: 'Quitaste tus números de tu Hoy. Están en Mi cocina › Lo que usas',
+    /** After *Deshacer*. */
+    deshecho: 'Tus números están otra vez en tu Hoy',
+    noSeDeshizo: (porque: string) => `No volvieron a tu Hoy. ${porque}`,
+    vacioTitulo: 'Empiezan con tu primera entrega',
+    vacioTexto: 'Cada apartado que entregas cuenta.',
+    leyendo: 'Leyendo tus números…',
+    sinLeer: 'No pudimos leer tus números. Revisa tu conexión a internet.',
+    otraVez: 'Intentar de nuevo',
+    /** The tile on *Hoy*: this week's plates against the whole week before. */
+    platos: (n: string, uno: boolean) => (uno ? `${n} plato` : `${n} platos`),
+    estaSemana: (contra: string) => `entregados esta semana · ${contra}`,
+    /** The tile with no signal: its read failed, so it says so — never a first-time state that is not one. */
+    tileSinLeer: ['—', 'Sin señal: ábrelos para leerlos'],
+    volver: 'Hoy',
+  },
   /**
    * ⚠️ `10.9e-ii`: THE LOYALTY CARD IN WERA COCINA — the owner's rulings G4–G19, G23, G34 and G35 of
    * 2026-11-16 and 17, as the family-shell page draws stage 3 (`cTarjeta`, `cSetup`, `cSellar`, `cFres`,

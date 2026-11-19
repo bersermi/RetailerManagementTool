@@ -445,6 +445,7 @@ export function loQueVenDe(apartados: readonly Apartado[] | undefined, cards: re
       aparta && tarjeta ? L.nombreAmbos : aparta ? L.nombreApartas : L.nombreSello,
       ...(aparta ? [L.calificacion] : []),
       ...(tarjeta ? [L.sellos] : []),
+      L.cuentas,
       L.sigues,
       L.ubicacion,
     ];

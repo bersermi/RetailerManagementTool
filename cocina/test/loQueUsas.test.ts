@@ -63,11 +63,11 @@ function loQueUsa(over: Partial<LoQueUsa> = {}): LoQueUsa {
 /** A build that carries every feature but the menu — the screens' paths are only names here. */
 const TODO: Pantallas = { tarjeta: '/', promociones: '/', numeros: '/' };
 
-describe('what this build carries — the card since `10.9e-ii`, so the first run is three steps', () => {
-  it('the card’s screen and its setup; her numbers (`10.9f`) and promotions (`10.9g`) add theirs', () => {
-    expect(PANTALLA_DE).toEqual({ tarjeta: '/tarjeta' });
+describe('what this build carries — the card since `10.9e-ii`, her numbers since `10.9f`, so the first run is three steps', () => {
+  it('the card’s screen and its setup; her numbers’ screen, with no setup (`10.9f`); promotions (`10.9g`) add theirs', () => {
+    expect(PANTALLA_DE).toEqual({ tarjeta: '/tarjeta', numeros: '/numeros' });
     expect(PREPARAR).toEqual({ tarjeta: '/preparar-tarjeta' });
-    expect(construidos()).toEqual(['tarjeta']);
+    expect(construidos()).toEqual(['tarjeta', 'numeros']);
   });
 
   it('the count is the build’s: 3 with a feature built, 2 with none — never the menu, which is Próximamente', () => {
@@ -89,9 +89,10 @@ describe('what she may pick — offered by Wera now AND built here', () => {
     const hechos = construidos({ tarjeta: '/', numeros: '/' });
     expect(elegibles(loQueUsa({ ofrecidos: ['tarjeta', 'promociones', 'numeros'] }), hechos)).toEqual(['tarjeta', 'numeros']);
     expect(elegibles(loQueUsa({ ofrecidos: ['promociones'] }), hechos)).toEqual([]);
-    // This build: the card alone — her numbers, switched on, are offered nowhere until `10.9f` builds them.
-    expect(elegibles(loQueUsa({ ofrecidos: ['tarjeta', 'numeros'] }))).toEqual(['tarjeta']);
-    expect(elegibles(loQueUsa({ ofrecidos: ['numeros'] }))).toEqual([]);
+    // This build: the card and her numbers (`10.9f`) — promotions, switched on, are offered nowhere until `10.9g` builds them.
+    expect(elegibles(loQueUsa({ ofrecidos: ['tarjeta', 'promociones', 'numeros'] }))).toEqual(['tarjeta', 'numeros']);
+    expect(elegibles(loQueUsa({ ofrecidos: ['numeros'] }))).toEqual(['numeros']);
+    expect(elegibles(loQueUsa({ ofrecidos: ['promociones'] }))).toEqual([]);
   });
 
   it('never the menu, even switched on', () => {
@@ -168,7 +169,9 @@ describe('*Lo que usas* — each feature offered, with its state', () => {
 
   it('nothing to draw, nothing drawn — which is every kitchen while Wera’s switches are off', () => {
     expect(hayLoQueUsas(NADA)).toBe(false);
-    expect(hayLoQueUsas(loQueUsa({ ofrecidos: ['promociones', 'numeros'] }))).toBe(false);
+    expect(hayLoQueUsas(loQueUsa({ ofrecidos: ['promociones'] }))).toBe(false);
+    // `10.9f`: her numbers are built, so the day their switch goes on they are offered.
+    expect(hayLoQueUsas(loQueUsa({ ofrecidos: ['promociones', 'numeros'] }))).toBe(true);
     // `10.9e-ii`: the card is built, so the day its switch goes on (`10.9e-iii`) it is offered.
     expect(hayLoQueUsas(loQueUsa({ ofrecidos: ['tarjeta', 'promociones', 'numeros'] }))).toBe(true);
     expect(hayLoQueUsas(loQueUsa({ ofrecidos: ['tarjeta'] }), pantallas)).toBe(true);
@@ -251,8 +254,11 @@ describe('`10.9a-iii`: *Hoy*’s tiles — one per feature she uses that this bu
       elecciones: Object.fromEntries(on.map((s) => [s, { estado: 'on', desde: DESDE }])),
     });
 
-  it('this build: the card’s alone; none unread', () => {
-    expect(mosaicosDe(usa('tarjeta', 'promociones', 'numeros'))).toEqual([{ servicio: 'tarjeta', abre: '/tarjeta', vivo: null }]);
+  it('this build: the card’s and her numbers’ (`10.9f`) — never promotions’ yet; none unread', () => {
+    expect(mosaicosDe(usa('tarjeta', 'promociones', 'numeros'))).toEqual([
+      { servicio: 'tarjeta', abre: '/tarjeta', vivo: null },
+      { servicio: 'numeros', abre: '/numeros', vivo: null },
+    ]);
     expect(mosaicosDe(undefined, {}, pantallas)).toEqual([]);
   });
 
@@ -289,7 +295,7 @@ describe('`10.9a-iii`: *Hoy*’s tiles — one per feature she uses that this bu
     const tile = code('ui/Mosaicos.tsx');
     expect(tile).toMatch(/onPress=\{\(\) => router\.push\(mosaico\.abre\)\}/);
     expect(tile).toMatch(/borderStyle: primera \? 'dashed' : 'solid'/);
-    expect(code('app/(cocina)/(tabs)/index.tsx')).toMatch(/const mosaicos = mosaicosPara\(mosaicosDe\(servicios\.data, vivosDe\(tarjetaDeHoy, ahora\), PANTALLA_DE, ademasDe\(tarjetaDeHoy, ahora\)\), duena\)/);
+    expect(code('app/(cocina)/(tabs)/index.tsx')).toMatch(/const mosaicos = mosaicosPara\(mosaicosDe\(servicios\.data, vivosDe\(tarjetaDeHoy, numerosVivos, ahora\), PANTALLA_DE, ademasDe\(tarjetaDeHoy, ahora\)\), duena\)/);
   });
 });
 

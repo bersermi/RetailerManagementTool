@@ -67,6 +67,7 @@ import {
 import { codigoErrorMessage, codigoKey, esRechazoDelCodigo } from '@/api/invitar';
 import { SERVICIOS_KEY, serviciosKey, type Estado, type LoQueUsa, type Servicio } from '@/api/servicios';
 import { seguidoresKey } from '@/api/seguidores';
+import { NUMEROS_KEY, numerosKey } from '@/api/numeros';
 import {
   TARJETA_KEY,
   codeArgs,
@@ -116,6 +117,7 @@ import {
   uploadPictures,
   withdrawListing,
   kitchenFollowers,
+  kitchenNumbers,
   cardOfCode,
   closeCard,
   giveReward,
@@ -1298,6 +1300,26 @@ export function useSeguidores(kitchenId: string | null) {
 }
 
 // ----------------------------------------------------------------------------
+// `10.9f` — her numbers (`0086`)
+// ----------------------------------------------------------------------------
+
+/**
+ * ⚠️ *TUS NÚMEROS* (`kitchen_numbers`, `0086`; G24–G27) — its screen and its tile on *Hoy*. THE OWNER'S: asked
+ * only on her phone (`activa`: she is the owner, she uses them and this build carries them), never a helper's.
+ * Keyed on the login and the kitchen; ⚠️ NOT on the phone's disk (`@/api/persist`'s list is unchanged): a count
+ * read on another day is not today's, so with no signal the tile says it could not read them.
+ */
+export function useNumeros(kitchenId: string | null, { activa = true }: { activa?: boolean } = {}) {
+  const { session, ready } = useAuth();
+  const userId = session?.user.id ?? null;
+  return useQuery({
+    queryKey: numerosKey(userId, kitchenId),
+    queryFn: () => kitchenNumbers(kitchenId as string),
+    enabled: ready && userId !== null && kitchenId !== null && activa,
+  });
+}
+
+// ----------------------------------------------------------------------------
 // `10.9e-ii` — the loyalty card in Wera Cocina (`0085`)
 // ----------------------------------------------------------------------------
 
@@ -1501,6 +1523,8 @@ export function useEscaneo(kitchenId: string | null) {
     try {
       const card = await enviar();
       void queries.invalidateQueries({ queryKey: TARJETA_KEY });
+      // ⚠️ `10.9f`: a stamp is a visit in her numbers.
+      void queries.invalidateQueries({ queryKey: NUMEROS_KEY });
       return { tipo: 'tarjeta', card };
     } catch (thrown) {
       if (fallaDe(thrown) === 'sinSenal') return sinSenal();

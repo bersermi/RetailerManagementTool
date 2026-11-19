@@ -150,6 +150,10 @@ on:
       # before her first stamp, her scan and her claim — and `TD026`. Its own job, `loyalty-card`, below.
       - "docs/checks/10.9e-i-card-contract.sh"
       - "docs/checks/10.9e-i-card-contract-falsify.sh"
+      # ⚠️ `10.9f`: her numbers (`cocina/src/api/numeros.ts`, under `cocina/src/api/**` above) — read as the
+      # owner after a plate reserved in Itacate and handed over in Wera Cocina, its job `cocina-numbers`.
+      - "docs/checks/10.9f-numbers-contract.sh"
+      - "docs/checks/10.9f-numbers-contract-falsify.sh"
       # ⚠️⚠️ AND THE ROSTER'S, as of plan task 5b-ii-a. `app/src/api/members.ts`
       # is a second claim about the applied schema — two column lists — and it
       # carries something `workspace.ts` does not: a claim about a POLICY. The
@@ -2706,6 +2710,46 @@ jobs:
 
       - name: Contract — can the card's check still fail (its own fixtures; the runner counts them)
         run: bash docs/checks/10.9e-i-card-contract-falsify.sh
+
+      - name: Stop
+        if: always()
+        run: supabase stop --no-backup
+
+  # ===========================================================================
+  # HER NUMBERS (plan `10.9f`, `0086`): Wera Cocina's `cocina/src/api/numeros.ts` — *Tus números*, the
+  # owner's: the answer's keys at its three levels, a kitchen with nothing yet, then one plate reserved
+  # through Itacate's names and handed over through Wera Cocina's with her card on — one visit, its stamp
+  # and its reservation one — the neighbour refused with the code the app reads, and nothing signed out.
+  # It turns Wera's switch for the card on for its run and back after. What the database counts on a
+  # calendar is `supabase/tests/0086_her_numbers.sql`'s, in the reset job. Its own job for
+  # `cocina-handover`'s reason: the falsifier runs the check ten times, two sign-ups each.
+  # ===========================================================================
+  cocina-numbers:
+    name: her numbers, against Wera Cocina's own names
+    runs-on: ubuntu-latest
+    # ⚠️ Ten runs of two sign-ups each, and GoTrue allows 30 in five minutes: a run that spends them
+    # waits out the window (`signup`'s retries).
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: 2.114.0
+
+      - name: Start Postgres, GoTrue and PostgREST
+        run: supabase start -x realtime,storage-api,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
+
+      - name: Apply migrations from scratch
+        run: supabase db reset
+
+      - name: Contract — does cocina/src/api/numeros.ts read her numbers by the names 0086 answers, and is a plate handed over through the apps one visit in them (plan 10.9f)
+        run: bash docs/checks/10.9f-numbers-contract.sh
+
+      - name: Contract — can the numbers check still fail (its own fixtures; the runner counts them)
+        run: bash docs/checks/10.9f-numbers-contract-falsify.sh
 
       - name: Stop
         if: always()
