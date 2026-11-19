@@ -594,10 +594,11 @@ reset role;
 select set_config('request.jwt.claims', format('{"sub":"%s","role":"authenticated"}', :mari), true);
 set local role authenticated;
 select public._call_as_me('wera-off', format('select public.kitchen_promotions(%L)', :'ws_m')) as wera_off \gset
-select public._try(format('select public.end_promotion(%L, %L)', :'ws_m', :p4)) as end_while_off \gset
+-- `p4` runs every day: only the switch can refuse an offer joining it now.
 select public._try(format('select public.publish_listing(%L, %L, %L::timestamptz, %L::timestamptz, %L::jsonb, %L)',
   :lw, :'loc_m', :'q0', (:'q0'::timestamptz + interval '4 hours'),
-  '[{"name": "Pozole", "unit_price": "70.00", "quantity": 3}]', :p1)) as join_while_off \gset
+  '[{"name": "Pozole", "unit_price": "70.00", "quantity": 3}]', :p4)) as join_while_off \gset
+select public._try(format('select public.end_promotion(%L, %L)', :'ws_m', :p4)) as end_while_off \gset
 reset role;
 update servicio.feature_switch set is_on = true where name = 'promociones';
 select public.chk('11.1 Wera''s switch off hides every promotion from the door (her kitchen with nothing on offer leaves it); her list says not shown, still activa',
@@ -608,7 +609,7 @@ select public.chk('11.1 Wera''s switch off hides every promotion from the door (
   coalesce((public._kitchen('door-6', :'ws_m') -> 'promotions')::text, :'door_6'));
 select public.chk('11.2 ending one is always taken, the switch off or on',
   :'end_while_off' = 'ok' and (select ended_at is not null from servicio.promotion where id = :p4), :'end_while_off');
-select public.chk('11.4 while Wera''s switch is off no offer joins one (TD031), and nothing is published',
+select public.chk('11.4 while Wera''s switch is off no offer joins one — one running every day (TD031) — and nothing is published',
   :'join_while_off' = 'TD031' and not exists (select 1 from public.listing where id = :lw), :'join_while_off');
 -- She turns promotions off in *Lo que usas*: the ones running end. ⚠️ Her other phone's promotion
 -- made while this waited on its row is later than this moment (the review of `10.9g-i`): the clock
