@@ -63,6 +63,13 @@ listings do not say *inventario*; the home page of tu-wera.com still does.
 
 ## What is on your phone
 
+⏳ **19 November, later: the loyalty card's half in Wera Cocina, sent over the air** (*Wera Cocina: la tarjeta de lealtad — Sellar,
+escanear a tu cliente, el cartel (10.9e-ii)*) to Wera Cocina's test builds — **your iPhone's included**, with nothing to reinstall.
+⚠️ **Nothing of the card shows yet: your switch for it stays off until Itacate's half (`10.9e-iii`)**, because a fonda's card is no use
+until a neighbour can hold one. The one visible change: a new kitchen's first run counts *Paso 1 de 3* and goes from the second step
+to her page. Tried end to end on a test Android against a test copy of the database with the switch on there; the update was then seen
+downloaded and running on a test Android. Nothing changes in Wera or Itacate.
+
 ⏳ **19 November: following, sent over the air** (*Itacate: Cerca · Mis cocinas · Tú — tu apartado fijo, Seguir y su
 campana, ¿Seguir a …?* and *Wera Cocina: Te siguen N en Hoy y antes de eliminar tu cocina*, `10.9d-ii`) to the test builds of
 **Itacate and Wera Cocina — your iPhone's included**, with nothing to reinstall. On each phone: open the app, wait ten seconds, **close
