@@ -61,12 +61,12 @@ cat > "$WORK/bin/supabase" <<'STUB'
 for a in "$@"; do
   if [ "$a" = "--version" ]; then echo "0.0.0-stub"; exit 0; fi
 done
-# ⚠️ Groups 8 and 9 ask about a nightly job (`0078`'s, `0084`'s) through `db query` too:
+# ⚠️ Groups 8, 9 and 10 ask about a nightly job (`0078`'s, `0084`'s, `0085`'s) through `db query` too:
 # their one row answered here, healthy, so the walls' fixtures stay about the walls. Until
 # `10.9d-i` the stub answered them with the walls' CSV, and the control was red since
 # group 8 (`10.5-i-b-i`) — in no workflow, so nobody saw it.
 case " $* " in
-  *"forget-old-google-points"*|*"forget-gone-kitchens"*)
+  *"forget-old-google-points"*|*"forget-gone-kitchens"*|*"forget-cards"*)
     printf 'job,old,last_run\n1,0,succeeded\n'
     exit 0 ;;
   *" db query "*)
@@ -153,7 +153,7 @@ WALLS_RC=0
 # green — the walls group included.
 build_tree d3 "0001 0002 0003"
 expect "D3" green "a tree that agrees with its remote, and keeps the walls, is GREEN — the control" \
-  "$WORK/d3" "$(json_rows "$ALL_OK")" 0 "all 9 assertion groups passed"
+  "$WORK/d3" "$(json_rows "$ALL_OK")" 0 "all 10 assertion groups passed"
 
 # --- D1: the 2026-09-22 defect ------------------------------------------------
 build_tree d1 "0001 0002 0003"

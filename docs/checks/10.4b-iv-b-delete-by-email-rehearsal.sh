@@ -27,7 +27,11 @@
 # Itacate does (`set_my_follow`): a kitchen deleted, with its account or alone, takes its follows
 # and leaves her its name (*dejó Itacate*); the kept kitchen keeps hers; and the person who owns
 # nothing follows one before deleting her account — her follows and the kitchens she followed
-# that left go with her.
+# that left go with her. ⚠️ Since `10.9e-i` (`0085`) the same neighbour holds a loyalty card at each
+# of the three kitchens, with a stamp and a reward to claim: a kitchen deleted, with its account or
+# alone, takes its whole card — terms, cards, stamps, rewards, its phones' codes — and the kept
+# kitchen keeps hers; the person who owns nothing holds one at the kept kitchen, and her account
+# deleted takes her card, her reward and her phone's code, her stamp staying there, nobody's.
 #
 # WHY IT EXISTS. The runbook is the only way out without the app, and the aviso
 # and both deletion pages promise it (Google requires one). It is run by hand,
@@ -143,6 +147,43 @@ gone_for() { # user-id [kitchen-id]
   sql "select count(*)::text as n from servicio.kitchen_gone where user_id = '$1' ${2:+and workspace_id = '$2'};" n
 }
 memberships_of() { sql "select count(*)::text as n from public.workspace_member where user_id = '$1';" n; }
+# `10.9e-i`: a neighbour's card at a kitchen (`0085`), written as the database's owner — the
+# kitchen's terms and its owner's phone's code, her card, a stamp, a reward to claim and her
+# phone's code. Prints how many of her five rows it wrote.
+card_at() { # kitchen-id user-id
+  sql "with owner as (select wm.user_id from public.workspace_member wm
+                       where wm.workspace_id = '$1' and wm.role = 'owner' and wm.is_active limit 1),
+            t as (insert into servicio.card_terms (workspace_id, reward, stamps, expiry_days, created_by)
+                  select '$1', 'Ensayo', 8, null, owner.user_id from owner
+                  on conflict (workspace_id) where replaced_at is null do update set reward = excluded.reward
+                  returning id),
+            c as (insert into servicio.loyalty_card (user_id, workspace_id, terms_id, stamps, started_at, last_stamp_at)
+                  select '$2', '$1', t.id, 1, now(), now() from t returning 1),
+            s as (insert into servicio.card_stamp (workspace_id, user_id, day, given_at, given_by, via, count_after, of_stamps)
+                  select '$1', '$2', current_date, now(), owner.user_id, 'su_codigo', 1, 8 from owner returning 1),
+            r as (insert into servicio.card_reward (workspace_id, user_id, terms_id, reward, won_at)
+                  select '$1', '$2', t.id, 'Ensayo', now() from t returning 1),
+            kk as (insert into servicio.kitchen_key (workspace_id, user_id, secret)
+                   select '$1', owner.user_id, extensions.gen_random_bytes(20) from owner returning 1),
+            nk as (insert into servicio.neighbour_key (user_id, secret)
+                   values ('$2', extensions.gen_random_bytes(20)) returning 1)
+       select ((select count(*) from c) + (select count(*) from s) + (select count(*) from r)
+               + (select count(*) from kk) + (select count(*) from nk))::text as n;" n
+}
+# A kitchen's whole card: its terms, the cards, stamps and rewards there, its phones' codes.
+card_left() { sql "select ((select count(*) from servicio.card_terms where workspace_id = '$1')
+                         + (select count(*) from servicio.loyalty_card where workspace_id = '$1')
+                         + (select count(*) from servicio.card_stamp where workspace_id = '$1')
+                         + (select count(*) from servicio.card_reward where workspace_id = '$1')
+                         + (select count(*) from servicio.kitchen_key where workspace_id = '$1'))::text as n;" n; }
+# Her card at one kitchen; every row of hers anywhere (cards, rewards, stamps, her phones' codes);
+# the stamps at a kitchen that point to nobody.
+card_of() { sql "select count(*)::text as n from servicio.loyalty_card where user_id = '$1' and workspace_id = '$2';" n; }
+her_card_rows() { sql "select ((select count(*) from servicio.loyalty_card where user_id = '$1')
+                             + (select count(*) from servicio.card_reward where user_id = '$1')
+                             + (select count(*) from servicio.card_stamp where user_id = '$1')
+                             + (select count(*) from servicio.neighbour_key where user_id = '$1'))::text as n;" n; }
+nobodys_stamps() { sql "select count(*)::text as n from servicio.card_stamp where workspace_id = '$1' and user_id is null;" n; }
 # `10.9b-iii`: every invitation of a kitchen, used or not; and the ones a person joined with.
 codes_left() { sql "select count(*)::text as n from public.workspace_invite where workspace_id = '$1';" n; }
 joined_with() { sql "select count(*)::text as n from public.workspace_invite where accepted_by = '$1';" n; }
@@ -204,6 +245,10 @@ fixtures() {
   u_v="$(login vecina)" || return 1
   [[ "$(follows "$u_v" "$k_b")" == true && "$(follows "$u_v" "$k_g")" == true && "$(follows "$u_v" "$k_g2")" == true ]] || return 1
   [[ "$(follows "$u_f" "$k_b")" == true ]] || return 1
+  # `10.9e-i`: her card at the same three kitchens; the person who owns nothing holds one at the
+  # kitchen kept, so what her account takes is read where nothing else deletes it.
+  [[ "$(card_at "$k_b" "$u_v")" == 5 && "$(card_at "$k_g" "$u_v")" == 5 && "$(card_at "$k_g2" "$u_v")" == 5 ]] || return 1
+  [[ "$(card_at "$k_g2" "$u_f")" == 5 ]] || return 1
 }
 
 # One case: the runbook's exit code, a sentence it printed, and what the
@@ -228,17 +273,17 @@ N_KITCHEN_ASKED="a kitchen alone, asked for without its name, is refused and nam
 N_BOTH_ASKED="a shop and a kitchen, asked for without names, are both named, and nothing changes"
 N_ONE_OF_TWO="one name of two is refused before the database is asked, and nothing changes"
 N_ONE_WRONG="two names, one of them wrong, is refused by the database itself, and nothing changes"
-N_PRINTED="the command it printed, run as printed, deletes the login, the shop and the kitchen — with what the kitchen uses and told Wera, a code nobody used and its follows, its follower keeping its name"
+N_PRINTED="the command it printed, run as printed, deletes the login, the shop and the kitchen — with what the kitchen uses and told Wera, a code nobody used, its follows and its whole loyalty card, its follower keeping its name"
 N_APOSTROPHE="a kitchen's name with an apostrophe, typed in another case and spacing, deletes it"
 N_SHOP_ALONE="a shop alone and one --shop, as before this row, deletes both"
 N_COOWNER="a co-owner needs no name: her login goes, the shop stays, her name stays on it"
-N_NOTHING="an account with no business goes with no name, its email typed in capitals — her follows and the kitchen she followed that left with it"
+N_NOTHING="an account with no business goes with no name, its email typed in capitals — her follows, the kitchen she followed that left, her card, her reward and her phone's code with it, her stamp staying, nobody's"
 N_HELPER="a kitchen's helper needs no name: her login goes, the kitchen stays, her name stays on her ended membership, the code she joined with goes"
 K_NOBODY="the kitchen's runbook: an email with no account is refused, and nothing changes"
 K_ASKED="no kitchen named: her two kitchens listed, never her shop, and nothing changes"
 K_SHOP="her shop's name is no kitchen's: refused, and nothing changes"
 K_ACCENT="her kitchen's name with an accent added: refused — accents count — and nothing changes"
-K_PRINTED="the line it printed for one kitchen, run as printed: that kitchen gone with what it uses and told Wera, its follows, its helper's membership and its codes, its follower keeping its name; her login, her shop, her other kitchen and the helper's login kept, its own kept"
+K_PRINTED="the line it printed for one kitchen, run as printed: that kitchen gone with what it uses and told Wera, its follows, its whole loyalty card, its helper's membership and its codes, its follower keeping its name; her login, her shop, her other kitchen and the helper's login kept, its own kept, its card holder's card kept"
 K_AGAIN="the same line again: refused — no kitchen of hers is called that any more — and nothing else changes"
 
 # ⚠️ `part` is `all`, `account` or `kitchen`: a broken copy of ONE runbook runs that
@@ -278,7 +323,7 @@ cases() { # account-runbook kitchen-runbook [part]
   else
     run "${args[@]}"
   fi
-  check "$N_PRINTED" 0 "Done on the LOCAL database" "users_with $(mail ambas); business_left $s_b; business_left $k_b; servicio_left $k_b; codes_left $k_b; gone_for $u_v $k_b" "0 0 0 0 0 1"
+  check "$N_PRINTED" 0 "Done on the LOCAL database" "users_with $(mail ambas); business_left $s_b; business_left $k_b; servicio_left $k_b; codes_left $k_b; gone_for $u_v $k_b; card_left $k_b" "0 0 0 0 0 1 0"
 
   run "$(mail solo-cocina)" --shop "fonda  d'lupe $tag" --local
   check "$N_APOSTROPHE" 0 "businesses deleted: 1" "users_with $(mail solo-cocina); business_left $k_a" "0 0"
@@ -291,7 +336,7 @@ cases() { # account-runbook kitchen-runbook [part]
     "users_with $(mail socia); business_left $s_d; sql \"select (count(*) filter (where not is_active and display_name = 'Rehearsal socia'))::text as n from public.workspace_member where workspace_id = '$s_d' and user_id = '$u_d';\" n" "0 1 1"
 
   run "$(mail nada | tr '[:lower:]' '[:upper:]')" --local
-  check "$N_NOTHING" 0 "businesses deleted: 0" "users_with $(mail nada); follows_of $u_f; gone_for $u_f" "0 0 0"
+  check "$N_NOTHING" 0 "businesses deleted: 0" "users_with $(mail nada); follows_of $u_f; gone_for $u_f; her_card_rows $u_f; nobodys_stamps $k_g2" "0 0 0 0 1"
 
   run "$(mail ayudante)" --local
   check "$N_HELPER" 0 "businesses deleted: 0, businesses it left: 1" \
@@ -324,7 +369,7 @@ cases() { # account-runbook kitchen-runbook [part]
   else
     run_kitchen "${args[@]}"
   fi
-  check "$K_PRINTED" 0 "Done on the LOCAL database" "$everything; servicio_left $k_g; servicio_left $k_g2; memberships_of $u_h2; users_with $(mail ayudante-gabi); codes_left $k_g; gone_for $u_v $k_g" "1 0 1 1 0 3 0 1 0 1"
+  check "$K_PRINTED" 0 "Done on the LOCAL database" "$everything; servicio_left $k_g; servicio_left $k_g2; memberships_of $u_h2; users_with $(mail ayudante-gabi); codes_left $k_g; gone_for $u_v $k_g; card_left $k_g; card_of $u_v $k_g2" "1 0 1 1 0 3 0 1 0 1 0 1"
 
   if [[ -n "$again" ]] && eval "args=($again)"; then run_kitchen "${args[@]}"; else out="(no line)"; code=99; fi
   check "$K_AGAIN" 1 "no kitchen $(mail tres) alone owns is called" "$everything" "1 0 1 1"

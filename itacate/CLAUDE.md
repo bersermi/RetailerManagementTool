@@ -23,6 +23,7 @@ bash docs/checks/10.5-iv-a-door-contract.sh         # the same stack: the one do
 bash docs/checks/10.5b-iii-a-reserving-contract.sh  # the same stack: reserving, giving back, collecting, her stars and her standing, by apartados.ts's names
 bash docs/checks/10.9a-i-features-contract.sh       # the same stack: the door's `features`, by cocinas.ts's key and names, beside Wera Cocina's servicios.ts
 bash docs/checks/10.9d-i-following-contract.sh      # the same stack: Seguir, the bell and her list by siguiendo.ts's names, and Te siguen N by Wera Cocina's seguidores.ts
+bash docs/checks/10.9e-i-card-contract.sh           # the same stack: her loyalty cards by tarjeta.ts's names — her phone's code, a kitchen's card, her scan, her claim — beside Wera Cocina's
 TZ=UTC npm --prefix itacate test          # CI's zone: the list's days and windows are local time, and the Mac is UTC−6
 bash store/cocina-itacate/render.sh itacate-icono   # the iPhone's icon, the cow on the blue — and nothing else (native on the iPhone)
 ```
@@ -112,6 +113,13 @@ from `itacate/` with the two local `EXPO_PUBLIC_SUPABASE_` values in the shell, 
   in 30 days, *dejó Itacate*), every argument and key, and `TD026` — asked as a neighbour by `docs/checks/10.9d-i-following-contract.sh`
   (its own job, `itacate-following`; its falsifier breaks the file), held to `0084`'s text by `test/siguiendo.test.ts`. **Drawn since
   `10.9d-ii`** (`useSiguiendo`, `useSeguir` — the next section's *Following*); the bell is stored and rung by nothing until `10.9h`.
+  ⚠️ **The loyalty card's claim is `src/api/tarjeta.ts`** (`10.9e-i`): `0085`'s `register_my_key` (her phone's secret, handed once),
+  `my_cards` (every kitchen where she has stamps going or a reward to claim, in its colour and logo — her mark in *Cerca*, G38, is read
+  from it by kitchen id), `stamp_with_code` and `claim_with_code` — every argument and key, and `TD027`; a kitchen's terms before her
+  first stamp come through THE DOOR (`on_offer_now`'s `card`, declared in `src/api/cocinas.ts`'s `KitchenRow`, parsed by
+  `10.9e-iii`), never a function of their own (ADR-035 §2.7). A scan is ANSWERED with a `result`. Asked against a real PostgREST by `docs/checks/10.9e-i-card-contract.sh` (its own job, `loyalty-card`), held to `0085`'s text by `test/tarjeta.test.ts`.
+  *Mi código* is `src/lib/codigo.ts`, a copy of Wera Cocina's held to it by `test/gemelos.test.ts` and to the RFCs by `test/codigo.test.ts`.
+  **Nothing draws either yet** — `10.9e-iii`, which also asks for the camera (the aviso's section 10 and both stores' answers change then).
 - **Sign-in leans on two settings outside this repository**, both made by the owner's one command,
   `bash docs/runbooks/set-itacate-sign-in.sh` (a session's write to either is refused), and read
   back by `--check`: the three values its bundle reads in this EAS project's `preview` and, since

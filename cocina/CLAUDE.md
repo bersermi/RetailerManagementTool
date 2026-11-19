@@ -24,6 +24,7 @@ bash docs/checks/10.5b-iv-c-settings-contract.sh      # the same stack: her sett
 bash docs/checks/10.9a-i-features-contract.sh         # the same stack: what her kitchen uses, Wera's switch, Cuéntanos, and the door's word on it, by servicios.ts' names and Itacate's
 bash docs/checks/10.9b-ii-team-contract.sh            # the same stack: a helper joining by her owner's code (invitar.ts' names), her role, who works at her kitchen, Quitar and Salir (equipo.ts') — as a real owner and a real helper
 bash docs/checks/10.9d-i-following-contract.sh        # the same stack: Te siguen N by seguidores.ts' names, as the fonda, beside Itacate's following
+bash docs/checks/10.9e-i-card-contract.sh             # the same stack: the loyalty card by tarjeta.ts' names — Activar, a phone's code, a scan, a stamp, a reward, Cerrar — beside Itacate's
 bash store/cocina-itacate/render.sh giros         # the nine trades' drawings, from brand/giros.svg into src/marca/giros/ — and nothing else
 TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic is local time, and the Mac is UTC−6
 ```
@@ -75,7 +76,15 @@ TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic i
   `src/api/invitar.ts` too (`0083`'s `invite_helper` and `kitchen_of_code`, `redeem_invite`, every argument and key of their answers, `TD005`
   and `TD003`), the same check's second file: the helper joins by her owner's code. ⚠️ **Since `10.9d-i`, `src/api/seguidores.ts`** — `0084`'s
   `kitchen_followers` (*Te siguen N*: any member reads it, a count of followers and never who) — is asked as the fonda by
-  `docs/checks/10.9d-i-following-contract.sh` beside Itacate's `siguiendo.ts` (its own job, `itacate-following`). ⚠️ **Drawn since
+  `docs/checks/10.9d-i-following-contract.sh` beside Itacate's `siguiendo.ts` (its own job, `itacate-following`). ⚠️ **Since `10.9e-i`,
+  `src/api/tarjeta.ts`** — `0085`'s seven for the loyalty card: `set_card_terms` and `close_card` (the owner's, `42501` for a helper),
+  `kitchen_card` (the counts and today's lines), `register_kitchen_key` (this phone's secret, handed once), `card_of_code`, `give_stamp`
+  and `give_reward` (any member; a scan from the queue carries its moment, `p_at`, up to 7 days back) — every argument and key, `TD027`;
+  a scan is ANSWERED with a `result`, never refused. Asked against a real PostgREST by `docs/checks/10.9e-i-card-contract.sh` beside
+  Itacate's (its own job, `loyalty-card`; its falsifier breaks the file), held to `0085`'s text by `test/tarjeta.test.ts`. The code on
+  *Sellar* is `src/lib/codigo.ts` — HOTP over the minute in plain TypeScript (no crypto package: a dependency moves Wera's runtime),
+  held to RFC 4226 and RFC 6238 by `test/codigo.test.ts`, and Itacate's copy to it by `itacate/test/gemelos.test.ts`. **Nothing draws
+  either yet** — `10.9e-ii`. ⚠️ **Drawn since
   `10.9d-ii`** (`useSeguidores`, never on the phone's disk): *Te siguen 38 vecinos* on *Hoy*'s day's card, on offer or not, from the first
   follower (`@/ui/DiaDeHoy`' `teSiguen` — `null` while unread or with no signal draws nothing, never a 0 that is not one); and before
   *Eliminar esta cocina* — and *Eliminar mi cuenta* when the kitchen open here goes with it — *Te siguen 12 vecinos en Itacate. Dejarán de
