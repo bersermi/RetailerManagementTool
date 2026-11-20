@@ -1,13 +1,13 @@
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { router } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { esDuena } from '@/api/equipo';
 import { useGuardarTerminos, useKitchen, usePage, usePlace, useSuRol, useTarjeta } from '@/api/hooks';
 import { colorOf } from '@/api/pagina';
-import { DIAS_SIN_VENIR, PREMIO_MAX, type DiasSinVenir } from '@/api/tarjeta';
+import { DIAS_SIN_VENIR, PREMIO_MAX } from '@/api/tarjeta';
 import { useNota } from '@/lib/NotaProvider';
 import {
   SELLOS,
@@ -16,8 +16,11 @@ import {
   condicionesDe,
   direccionCorta,
   enVivoDe,
+  esOtro,
+  fichaDeDias,
   previaDe,
   revisarBorrador,
+  textoDeDias,
   type Borrador,
 } from '@/lib/tarjeta';
 import { ES } from '@/strings';
@@ -28,6 +31,7 @@ import { BotonLleno } from '@/ui/BotonLleno';
 import { Campo } from '@/ui/Campo';
 import { Fichas } from '@/ui/Fichas';
 import { Formulario } from '@/ui/Formulario';
+import { HojaDias } from '@/ui/HojaDias';
 import { Llega } from '@/ui/Llega';
 import { Mosaicos } from '@/ui/Mosaicos';
 import { TarjetaDeLealtad } from '@/ui/TarjetaDeLealtad';
@@ -38,7 +42,9 @@ import { TarjetaDeLealtad } from '@/ui/TarjetaDeLealtad';
 // tile on *Hoy* through the card's screen, by *Cambiar el premio, los sellos o cuándo se borran*, and
 // by *Abrirla otra vez* once closed.
 //   - *¿Qué les das al completarla?* (up to 60 characters, a hint in the box), *¿Cuántos sellos?* (4 to
-//     12, the 8 dashed as a hint), *¿Cuándo se borran sus sellos si no vuelve?* (*Nunca*, 15, 30, 45, 60);
+//     12, the 8 dashed as a hint), *¿Cuándo se borran sus sellos si no vuelve?* — since `10.9k` (the owner's
+//     rulings of 2026-11-19) *Nunca · 2 semanas · 1 mes · 2 meses · 3 meses · Otro…*, *Otro…* opening a box
+//     she types her days in, 14 to 365 (`@/ui/HojaDias`), then reading *21 días*, chosen;
 //   - *Así la verán tus vecinos*: the card in her kitchen's colour and logo, and its conditions naming her
 //     kitchen and its address (G12, G41) — what Itacate shows before her first stamp (`10.9e-iii`);
 //   - *Activar* the first time — then *Listo, ya está en tu Hoy* with her tile and *Ver mi Hoy*;
@@ -61,6 +67,8 @@ export default function PrepararTarjeta() {
   const [borrador, setBorrador] = useState<Borrador | null>(null);
   const [problema, setProblema] = useState<string | null>(null);
   const [listo, setListo] = useState(false);
+  const [otroAbierto, setOtroAbierto] = useState(false);
+  const cerrarOtro = useCallback(() => setOtroAbierto(false), []);
   const enviando = useRef(false);
 
   // Filled once, from the card as it is read: empty the first time, her terms after (`borradorDe`).
@@ -160,7 +168,7 @@ export default function PrepararTarjeta() {
     const falta = revisarBorrador(borrador);
     if (falta !== null) return setProblema(falta);
     enviando.current = true;
-    const fallo = await guardar({ premio: borrador.premio, sellos: borrador.sellos as number, dias: borrador.dias as DiasSinVenir });
+    const fallo = await guardar({ premio: borrador.premio, sellos: borrador.sellos as number, dias: borrador.dias as number });
     enviando.current = false;
     if (fallo !== null) return setProblema(fallo);
     if (primera) return setListo(true);
@@ -198,9 +206,14 @@ export default function PrepararTarjeta() {
         />
         <Fichas
           titulo={ES.prepararTarjeta.dias}
-          opciones={DIAS_SIN_VENIR.map((d) => ({ valor: d, texto: d === 0 ? ES.prepararTarjeta.nunca : ES.prepararTarjeta.diasN(d) }))}
-          elegida={borrador.dias}
+          opciones={DIAS_SIN_VENIR.map((d) => ({ valor: d as number, texto: textoDeDias(d) }))}
+          elegida={fichaDeDias(borrador.dias)}
           onElegir={(dias) => cambiar({ dias })}
+          otro={{
+            texto: esOtro(borrador.dias) ? textoDeDias(borrador.dias as number) : ES.prepararTarjeta.otro,
+            elegido: esOtro(borrador.dias),
+            onAbrir: () => setOtroAbierto(true),
+          }}
         />
         <View style={{ gap: SIZE.rowGap, padding: SIZE.space, borderRadius: 16, borderWidth: 1, borderColor: PALETTE.linea, backgroundColor: PALETTE.superficie }}>
           <Text style={{ fontSize: SIZE.smallSize, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase', color: PALETTE.tintaApagada }}>
@@ -225,6 +238,15 @@ export default function PrepararTarjeta() {
       <View style={{ paddingHorizontal: SIZE.space * 2, paddingTop: SIZE.space, paddingBottom: insets.bottom + SIZE.space, borderTopWidth: 1, borderTopColor: PALETTE.linea }}>
         <BotonLleno variante="principal" label={etiqueta} busy={busy} onPress={() => void enviar()} />
       </View>
+      <HojaDias
+        visible={otroAbierto}
+        inicial={esOtro(borrador.dias) ? borrador.dias : null}
+        onCerrar={cerrarOtro}
+        onListo={(dias) => {
+          setOtroAbierto(false);
+          cambiar({ dias });
+        }}
+      />
     </View>
   );
 }

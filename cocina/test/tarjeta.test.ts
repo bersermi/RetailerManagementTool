@@ -8,6 +8,8 @@ import {
   CARD_OF_CODE,
   CLOSE_CARD,
   DIAS_AL_CERRAR,
+  DIAS_MAX,
+  DIAS_MIN,
   DIAS_SIN_VENIR,
   GIVE_REWARD,
   GIVE_STAMP,
@@ -21,6 +23,7 @@ import {
   TARJETA_KEY,
   cardFrom,
   codeArgs,
+  diasValidos,
   keyFrom,
   kitchenArgs,
   kitchenCardFrom,
@@ -54,7 +57,20 @@ function ultimaQueDefine(fn: string): { readonly file: string; readonly body: st
   return { file, body: text.slice(start, end).replace(/\s+/g, ' ') };
 }
 
-describe('the names and their arguments, held to `0085`', () => {
+/** Where each function is defined last: `0085`, but `set_card_terms`, re-made by `0089` (`10.9k`) with its signature. */
+const DEFINIDA_EN: Readonly<Record<string, string>> = { [SET_CARD_TERMS]: '0089_' };
+
+/** The last `card_terms_expiry` check a migration sets, its whitespace folded. */
+function ultimoCheckDeDias(): string {
+  const files = readdirSync(MIGRATIONS).filter((f) => f.endsWith('.sql')).sort();
+  const checks = files
+    .map((f) => readFileSync(join(MIGRATIONS, f), 'utf8').replace(/\s+/g, ' '))
+    .flatMap((text) => [...text.matchAll(/constraint card_terms_expiry check \(([^;]*?)\)(?:,|;| \))/g)].map((m) => m[1]));
+  if (checks.length === 0) throw new Error('no migration sets card_terms_expiry');
+  return checks[checks.length - 1];
+}
+
+describe('the names and their arguments, held to `0085` (and `0089`)', () => {
   const cases: Array<[string, RegExp, string[]]> = [
     [
       SET_CARD_TERMS,
@@ -84,7 +100,7 @@ describe('the names and their arguments, held to `0085`', () => {
   for (const [name, signature, args] of cases) {
     it(`${name}: its signature, and the app sends exactly its arguments by the names PostgREST matches on`, () => {
       const { file, body } = ultimaQueDefine(name);
-      expect(file.startsWith('0085_')).toBe(true);
+      expect(file.startsWith(DEFINIDA_EN[name] ?? '0085_'), file).toBe(true);
       expect(body).toMatch(signature);
       const declared = [...body.slice(0, body.indexOf(') returns')).matchAll(/\b(p_[a-z_]+) /g)].map((m) => m[1]);
       expect(args).toEqual(declared);
@@ -123,13 +139,22 @@ describe('the bounds and the results, held to `0085`', () => {
     'utf8',
   ).replace(/\s+/g, ' ');
 
-  it('a reward of 1 to 60 characters, 4 to 12 stamps, Nunca or 15, 30, 45 or 60 days (G7, G15, G34)', () => {
+  it('a reward of 1 to 60 characters, 4 to 12 stamps; Nunca or 14 to 365 days, the chips 2 semanas, 1 mes, 2 meses and 3 meses (G7, G15, G34; `0089`, `10.9k`)', () => {
     expect(PREMIO_MAX).toBe(60);
     expect([SELLOS_MIN, SELLOS_MAX]).toEqual([4, 12]);
-    expect([...DIAS_SIN_VENIR]).toEqual([0, 15, 30, 45, 60]);
-    expect(sql).toContain('char_length(v_reward) not between 1 and 60');
-    expect(sql).toContain('p_stamps not between 4 and 12');
-    expect(sql).toContain('p_expiry_days not in (0, 15, 30, 45, 60)');
+    expect([DIAS_MIN, DIAS_MAX]).toEqual([14, 365]);
+    expect([...DIAS_SIN_VENIR]).toEqual([0, 14, 30, 60, 90]);
+    const terms = ultimaQueDefine(SET_CARD_TERMS).body;
+    expect(terms).toContain('char_length(v_reward) not between 1 and 60');
+    expect(terms).toContain('p_stamps not between 4 and 12');
+    expect(terms).toContain(`(p_expiry_days <> 0 and p_expiry_days not between ${DIAS_MIN} and ${DIAS_MAX})`);
+    expect(ultimoCheckDeDias()).toBe(`expiry_days between ${DIAS_MIN} and ${DIAS_MAX}`);
+  });
+
+  it('the app takes the days the database takes: 0, every chip, 14 to 365 whole — never 13, 366, a fraction or a sign (`10.9k`)', () => {
+    for (const d of [0, ...DIAS_SIN_VENIR, 14, 15, 21, 45, 120, 365]) expect(diasValidos(d), String(d)).toBe(true);
+    for (const d of [1, 7, 13, 366, 999, -14, 20.5, Number.NaN]) expect(diasValidos(d), String(d)).toBe(false);
+    expect(termsArgs('k', 'Un taco', 8, 21)).toEqual({ p_workspace_id: 'k', p_reward: 'Un taco', p_stamps: 8, p_expiry_days: 21 });
   });
 
   it('a closed card is kept 30 days for those who started it (G12)', () => {

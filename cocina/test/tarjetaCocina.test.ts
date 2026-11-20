@@ -22,11 +22,17 @@ import {
   deHoy,
   momentoDeLaLlamada,
   dio,
+  diasDeTexto,
+  diasQueCaben,
   direccionCorta,
   diaDeTexto,
+  ejemploDeDias,
+  empujarDias,
   enVivoDe,
+  esOtro,
   escaneoDe,
   escaneoId,
+  fichaDeDias,
   lineaDe,
   premiosDe,
   previaDe,
@@ -34,10 +40,12 @@ import {
   resumenDe,
   revisarBorrador,
   seLee,
+  soloDigitos,
   tarjetaErrorMessage,
   tarjetaGuardada,
   tarjetaViva,
   tecleadoDe,
+  textoDeDias,
 } from '@/lib/tarjeta';
 import type { DeviceStore } from '@/lib/store';
 import { ES } from '@/strings';
@@ -108,11 +116,93 @@ describe('the setup — on one screen, nothing pre-chosen (G34)', () => {
   it('the conditions name the kitchen as the one who promises, with its address (G12, G41)', () => {
     expect(condicionesDe('Fonda Doña Mari', 'Sabino 52, Santa María la Ribera', 8, 'Una comida corrida', 30)).toBe(
       'Junta 8 sellos en Fonda Doña Mari y te dan una comida corrida. Un sello por visita, uno al día. ' +
-        'Tus sellos se borran si pasan 30 días sin que vengas. La promesa es de Fonda Doña Mari, Sabino 52, Santa María la Ribera.',
+        'Tus sellos se borran si pasa un mes sin que vengas. La promesa es de Fonda Doña Mari, Sabino 52, Santa María la Ribera.',
     );
     expect(condicionesDe('Fonda Doña Mari', null, 6, 'Un café', 0)).toContain('Tus sellos no se borran. La promesa es de Fonda Doña Mari.');
     expect(direccionCorta({ street: ' Sabino ', number: '52', colonia: 'Santa María la Ribera' })).toBe('Sabino 52, Santa María la Ribera');
     expect(direccionCorta({ street: '', number: '', colonia: 'X' })).toBeNull();
+  });
+});
+
+describe('when her stamps are erased — the chips and *Otro…*, typed (`10.9k`, the owner’s rulings of 2026-11-19)', () => {
+  it('the chips, nothing pre-chosen: Nunca · 2 semanas · 1 mes · 2 meses · 3 meses, kept as 0, 14, 30, 60, 90 — then Otro…', () => {
+    expect([0, 14, 30, 60, 90].map(textoDeDias)).toEqual(['Nunca', '2 semanas', '1 mes', '2 meses', '3 meses']);
+    expect(ES.prepararTarjeta.otro).toBe('Otro…');
+    expect(borradorDe(null).dias).toBeNull();
+    expect(fichaDeDias(null)).toBeNull();
+    expect(esOtro(null)).toBe(false);
+  });
+
+  it('a typed 14, 30, 60 or 90 chooses its own chip; any other number is Otro…, reading *21 días*, chosen', () => {
+    for (const d of [0, 14, 30, 60, 90]) {
+      expect(fichaDeDias(d)).toBe(d);
+      expect(esOtro(d)).toBe(false);
+    }
+    expect(fichaDeDias(21)).toBeNull();
+    expect(esOtro(21)).toBe(true);
+    expect(textoDeDias(21)).toBe('21 días');
+    expect(textoDeDias(365)).toBe('365 días');
+  });
+
+  it('a card set up on 15 or 45 days before `10.9k` reopens as Otro…, its days kept; days out of range are none chosen', () => {
+    expect(borradorDe({ ...TERMS, expiry_days: 45 }).dias).toBe(45);
+    expect(esOtro(borradorDe({ ...TERMS, expiry_days: 15 }).dias)).toBe(true);
+    expect(textoDeDias(15)).toBe('15 días');
+    expect(borradorDe({ ...TERMS, expiry_days: 7 }).dias).toBeNull();
+    expect(revisarBorrador({ premio: 'Un café', sellos: 6, dias: 21 })).toBeNull();
+    expect(revisarBorrador({ premio: 'Un café', sellos: 6, dias: 13 })).toBe('Elige cuándo se borran sus sellos.');
+  });
+
+  it('the box: digits only, three at most, no decimals or sign; empty is none', () => {
+    expect(soloDigitos('21')).toBe('21');
+    expect(soloDigitos('2.5')).toBe('25');
+    expect(soloDigitos('-14')).toBe('14');
+    expect(soloDigitos('1234')).toBe('123');
+    expect(soloDigitos(' 3 0 ')).toBe('30');
+    expect(diasDeTexto('')).toBeNull();
+    expect(diasDeTexto('021')).toBe(21);
+  });
+
+  it('Listo waits until it fits: 14 to 365; out of range is said in words', () => {
+    expect([13, 14, 365, 366].map(diasQueCaben)).toEqual([false, true, true, false]);
+    expect(diasQueCaben(null)).toBe(false);
+    expect(ES.prepararTarjeta.hojaDias.rango(14, 365)).toBe('Elige de 14 a 365 días.');
+    expect(ES.prepararTarjeta.hojaDias.titulo).toBe('¿Cuántos días sin venir?');
+  });
+
+  it('− / + nudge by one day, held to 14…365; from an empty box, the shortest', () => {
+    expect(empujarDias(21, 1)).toBe(22);
+    expect(empujarDias(21, -1)).toBe(20);
+    expect(empujarDias(14, -1)).toBe(14);
+    expect(empujarDias(365, 1)).toBe(365);
+    expect(empujarDias(null, 1)).toBe(14);
+    expect(empujarDias(null, -1)).toBe(14);
+    expect(empujarDias(3, 1)).toBe(14);
+    expect(empujarDias(999, -1)).toBe(365);
+  });
+
+  it('the live line and the example date, as drawn: 21 days from 19 November is 10 December', () => {
+    const vivo = ES.prepararTarjeta.hojaDias.vivo(21);
+    expect(`${vivo.antes}${vivo.cuanto}${vivo.despues}`).toBe('Se borran si pasan 21 días sin venir.');
+    expect(vivo.cuanto).toBe('21 días');
+    const mes = ES.prepararTarjeta.hojaDias.vivo(30);
+    expect(`${mes.antes}${mes.cuanto}${mes.despues}`).toBe('Se borran si pasa un mes sin venir.');
+    expect(ejemploDeDias(21, new Date('2026-11-19T18:00:00Z'))).toBe('Si su último sello fuera hoy, se borrarían el 10 de diciembre.');
+    // Late at night in Mexico City it is still the 19th there.
+    expect(ejemploDeDias(14, new Date('2026-11-20T05:30:00Z'))).toBe('Si su último sello fuera hoy, se borrarían el 3 de diciembre.');
+    expect(ejemploDeDias(365, new Date('2026-11-19T18:00:00Z'))).toBe('Si su último sello fuera hoy, se borrarían el 19 de noviembre.');
+  });
+
+  it('what a neighbour reads, for each choice — the conditions and the card’s line', () => {
+    expect(ES.condiciones.seBorran(14)).toBe('Tus sellos se borran si pasan 2 semanas sin que vengas.');
+    expect(ES.condiciones.seBorran(30)).toBe('Tus sellos se borran si pasa un mes sin que vengas.');
+    expect(ES.condiciones.seBorran(60)).toBe('Tus sellos se borran si pasan 2 meses sin que vengas.');
+    expect(ES.condiciones.seBorran(90)).toBe('Tus sellos se borran si pasan 3 meses sin que vengas.');
+    expect(ES.condiciones.seBorran(21)).toBe('Tus sellos se borran si pasan 21 días sin que vengas.');
+    expect(ES.condiciones.seBorran(45)).toBe('Tus sellos se borran si pasan 45 días sin que vengas.');
+    expect(ES.tarjeta.venceSiNoVienen(21)).toBe('Los sellos se borran si pasan 21 días sin venir');
+    expect(ES.tarjeta.venceSiNoVienen(30)).toBe('Los sellos se borran si pasa un mes sin venir');
+    expect(ES.tarjeta.venceSiNoVienen(14)).toBe('Los sellos se borran si pasan 2 semanas sin venir');
   });
 });
 

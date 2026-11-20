@@ -484,7 +484,9 @@ follows it, as `cocina/CLAUDE.md`'s does:
   ⚠️ **Found on the emulator**: Android hears a pull only when a `ScrollView`'s content fills the screen — `flexGrow: 1` on *Mis cocinas*'.
 - **The loyalty card** (`10.9e-iii`; G4–G17, G38, G41, G42, as the family-shell page draws stage 3 — `kcardHtml`, `kcardSec`, `iMis`,
   `iMiCodigo`, `iEscanear`, `iPremios`, `cobrarSheet`, `iPrimer`, `iGano`, `iVe`). Every rule and word is `@/lib/tarjeta`'s, pure, pinned
-  by `test/tarjetaVecina.test.ts`; the conditions are Wera Cocina's `condicionesDe`, copied and held to it. ***Mis cocinas***: *Escanear*
+  by `test/tarjetaVecina.test.ts`; the conditions are Wera Cocina's `condicionesDe`, copied and held to it — ⚠️ since `10.9k` (`0089`) a
+  kitchen's days are any whole number from 14 to 365 (`tarjetaOf`), said as she chose them (`siPasan` in `@/strings`, Wera Cocina's, held by
+  `test/gemelos.test.ts`): *si pasan 2 semanas*, *si pasa un mes*, *si pasan 21 días sin que vengas*. ***Mis cocinas***: *Escanear*
   and *Mi código* at its top while a kitchen has a card she could start, she holds one, or ⚠️ **her phone keeps its key** (`hayTarjetas`:
   with no signal at open nothing is read, and her code needs none — found on the emulator); a row per kitchen with rewards (*3 premios por
   cobrar*); kitchens whose card she holds beside those she follows (*3/8 · 2 premios*). ***Mi código*** (`(vecino)/mi-codigo`): her QR and six

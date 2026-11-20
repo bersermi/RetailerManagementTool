@@ -163,7 +163,7 @@ export interface TarjetaDeCocina {
   readonly premio: string;
   /** How many stamps, 4 to 12. */
   readonly sellos: number;
-  /** The days without a stamp before hers are erased — 15, 30, 45 or 60; `0` is *Nunca*. */
+  /** The days without a stamp before hers are erased — 14 to 365 (`0089`; 15, 30, 45 or 60 before it); `0` is *Nunca*. */
   readonly dias: number;
 }
 

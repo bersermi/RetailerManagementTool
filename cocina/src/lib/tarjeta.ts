@@ -1,5 +1,7 @@
 import {
   DEMASIADOS_INTENTOS,
+  DIAS_MAX,
+  DIAS_MIN,
   DIAS_SIN_VENIR,
   FUERA_DE_RANGO,
   NO_ES_DUENA,
@@ -8,6 +10,7 @@ import {
   PREMIO_MAX,
   SELLOS_MAX,
   SELLOS_MIN,
+  diasValidos,
   type CardRow,
   type DiasSinVenir,
   type KitchenCardRow,
@@ -25,9 +28,11 @@ import { ES } from '@/strings';
 // THE LOYALTY CARD IN WERA COCINA — WHAT EACH SCREEN SAYS, PURE. Plan task `10.9e-ii`, on `0085`'s
 // answers (`@/api/tarjeta`) and the phone's own code (`@/lib/codigo`). The owner's rulings G4–G19, G23,
 // G34 and G35 of 2026-11-16 and 17, as the family-shell page draws stage 3:
-//   - THE SETUP ON ONE SCREEN (G34): the reward (up to 60 characters), 4 to 12 stamps, *Nunca*, 15,
-//     30, 45 or 60 days — NOTHING PRE-CHOSEN, hints only (`borradorDe`, `revisarBorrador`) — with the
-//     card as her neighbours will see it and its conditions naming her kitchen (`condicionesDe`, G12);
+//   - THE SETUP ON ONE SCREEN (G34): the reward (up to 60 characters), 4 to 12 stamps, and when her
+//     stamps are erased — *Nunca · 2 semanas · 1 mes · 2 meses · 3 meses · Otro…*, 14 to 365 days typed
+//     (`10.9k`: `fichaDeDias`, `diasDeTexto`, `empujarDias`, `ejemploDeDias`) — NOTHING PRE-CHOSEN, hints
+//     only (`borradorDe`, `revisarBorrador`) — with the card as her neighbours will see it and its
+//     conditions naming her kitchen (`condicionesDe`, G12);
 //   - *HOY*'S TILE (`enVivoDe`): *6 sellos hoy*, *1 premio por entregar* with its dot; ⚠️ CLOSED, IT
 //     STAYS while those who started it may finish it (`tarjetaGuardada`) — *Cerrar la tarjeta* turns
 //     her choice off, and without the tile there would be no *Sellar* for their last stamps;
@@ -50,11 +55,14 @@ export interface Borrador {
   readonly dias: DiasSinVenir | null;
 }
 
-/** A first setup is empty (G34: nothing pre-chosen); a change starts from the terms the card has. */
+/**
+ * A first setup is empty (G34: nothing pre-chosen); a change starts from the terms the card has — her days
+ * whatever they are, so a card set up on 15 or 45 before `10.9k` reopens as *Otro…*, *15 días*.
+ */
 export function borradorDe(terms: TermsRow | null): Borrador {
   if (terms === null) return { premio: '', sellos: null, dias: null };
-  const dias = (terms.expiry_days ?? 0) as DiasSinVenir;
-  return { premio: terms.reward, sellos: terms.stamps, dias: DIAS_SIN_VENIR.includes(dias) ? dias : null };
+  const dias = terms.expiry_days ?? 0;
+  return { premio: terms.reward, sellos: terms.stamps, dias: diasValidos(dias) ? dias : null };
 }
 
 /** What is missing, in the order the screen asks it — `null` when it may go. The database checks the same (`22023`). */
@@ -62,8 +70,58 @@ export function revisarBorrador(b: Borrador): string | null {
   const premio = b.premio.trim();
   if (premio.length === 0 || premio.length > PREMIO_MAX) return ES.prepararTarjeta.faltaPremio;
   if (b.sellos === null || b.sellos < SELLOS_MIN || b.sellos > SELLOS_MAX) return ES.prepararTarjeta.faltanSellos;
-  if (b.dias === null) return ES.prepararTarjeta.faltanDias;
+  if (b.dias === null || !diasValidos(b.dias)) return ES.prepararTarjeta.faltanDias;
   return null;
+}
+
+// ---- when her stamps are erased (`10.9k`, the owner's rulings of 2026-11-19) ---------------
+
+/**
+ * The chip her days choose — one of `DIAS_SIN_VENIR` — else `null`: *Otro…*, which then reads *21 días*. A typed
+ * 14, 30, 60 or 90 chooses its own chip, so one choice never shows twice.
+ */
+export function fichaDeDias(dias: number | null): DiasSinVenir | null {
+  return dias !== null && (DIAS_SIN_VENIR as readonly number[]).includes(dias) ? dias : null;
+}
+
+/** A chip's words: *Nunca*, *2 semanas*, *1 mes*, *2 meses*, *3 meses* — any other number in days. */
+export function textoDeDias(dias: number): string {
+  return ES.prepararTarjeta.fichas[dias] ?? ES.prepararTarjeta.diasN(dias);
+}
+
+/** Whether *Otro…* holds her choice: days chosen that are no chip's. */
+export function esOtro(dias: number | null): boolean {
+  return dias !== null && fichaDeDias(dias) === null;
+}
+
+/** *Otro…*'s box as she types: digits only, three at most — no decimals, no sign (the ruling). */
+export function soloDigitos(texto: string): string {
+  return texto.replace(/[^0-9]/g, '').slice(0, 3);
+}
+
+/** The box's days — `null` while it is empty. */
+export function diasDeTexto(texto: string): number | null {
+  const digitos = soloDigitos(texto);
+  return digitos === '' ? null : Number.parseInt(digitos, 10);
+}
+
+/** Whether the box's days may be chosen: 14 to 365 (`Listo` waits until they fit). */
+export function diasQueCaben(dias: number | null): dias is number {
+  return dias !== null && dias >= DIAS_MIN && dias <= DIAS_MAX;
+}
+
+/** − / + beside the box: a day less or more, held to 14…365; from an empty box, the shortest. */
+export function empujarDias(dias: number | null, paso: 1 | -1): number {
+  if (dias === null) return DIAS_MIN;
+  return Math.min(DIAS_MAX, Math.max(DIAS_MIN, dias + paso));
+}
+
+/**
+ * *Si su último sello fuera hoy, se borrarían el 10 de diciembre.* — her days after today, in the phone's zone (the
+ * kitchen's, in the pilot), as `0085`'s `expires_on` counts them from a last stamp.
+ */
+export function ejemploDeDias(dias: number, hoy: Date): string {
+  return ES.prepararTarjeta.hojaDias.ejemplo(diaDe(new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() + dias)));
 }
 
 /** What the preview draws while she fills it: her choices, else the hint and *Tu premio*. */

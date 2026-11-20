@@ -10,6 +10,17 @@
 // is changed here too. The reasons behind each sentence live beside Wera's copy.
 // ============================================================================
 
+/**
+ * ⚠️ `10.9k`: HOW LONG HER STAMPS WAIT, AS THE CHIPS SAY IT (the owner's rulings of 2026-11-19) — 14, 60 and 90
+ * days are *2 semanas*, *2 meses* and *3 meses*, 30 is *un mes* (one, so *pasa*), any other number its days.
+ * Itacate's copy is held to this one by its `test/gemelos.test.ts`.
+ */
+function siPasan(dias: number): { readonly pasa: string; readonly cuanto: string } {
+  if (dias === 30) return { pasa: 'pasa', cuanto: 'un mes' };
+  const cuanto = dias === 14 ? '2 semanas' : dias === 60 ? '2 meses' : dias === 90 ? '3 meses' : `${dias} días`;
+  return { pasa: 'pasan', cuanto };
+}
+
 export const ES = {
   nombre: 'Wera Cocina',
   /**
@@ -1631,7 +1642,11 @@ export const ES = {
     nombre: 'Tarjeta de lealtad',
     cuenta: (n: number, de: number) => `${n} de ${de}`,
     igual: (de: number, premio: string) => `${de} sellos = ${premio}`,
-    venceSiNoVienen: (dias: number) => `Los sellos se borran si pasan ${dias} días sin venir`,
+    /** `10.9k`: *2 semanas*, *un mes*, *21 días* — as she chose them. */
+    venceSiNoVienen: (dias: number) => {
+      const p = siPasan(dias);
+      return `Los sellos se borran si ${p.pasa} ${p.cuanto} sin venir`;
+    },
     kpi: {
       tarjetas: (n: number) => (n === 1 ? 'tarjeta activa' : 'tarjetas activas'),
       sellos: (n: number) => (n === 1 ? 'sello hoy' : 'sellos hoy'),
@@ -1682,8 +1697,29 @@ export const ES = {
     cuenta: (n: number, de: number) => `${n} de ${de}`,
     sellos: '¿Cuántos sellos?',
     dias: '¿Cuándo se borran sus sellos si no vuelve?',
-    nunca: 'Nunca',
+    /**
+     * ⚠️ `10.9k` (the owner's rulings of 2026-11-19): the chips by their days — a month is 30 days — and *Otro…*,
+     * which opens a box she types in and reads *21 días* once chosen.
+     */
+    fichas: { 0: 'Nunca', 14: '2 semanas', 30: '1 mes', 60: '2 meses', 90: '3 meses' } as Readonly<Record<number, string>>,
+    otro: 'Otro…',
     diasN: (n: number) => `${n} días`,
+    /** `10.9k`: *Otro…*'s sheet — typed, never clicked through (his words: *"type the number instead of using endless clicks"*). */
+    hojaDias: {
+      titulo: '¿Cuántos días sin venir?',
+      unidad: 'días',
+      menos: 'Un día menos',
+      mas: 'Un día más',
+      /** The live line: *Se borran si pasan* **21 días** *sin venir.* — the days drawn bold. */
+      vivo: (dias: number) => {
+        const p = siPasan(dias);
+        return { antes: `Se borran si ${p.pasa} `, cuanto: p.cuanto, despues: ' sin venir.' };
+      },
+      ejemplo: (dia: string) => `Si su último sello fuera hoy, se borrarían el ${dia}.`,
+      rango: (min: number, max: number) => `Elige de ${min} a ${max} días.`,
+      listo: 'Listo',
+      cerrar: 'Cerrar',
+    },
     asiLaVeran: 'Así la verán tus vecinos',
     /** The preview before she wrote her reward. */
     premioDeMuestra: 'Tu premio',
@@ -1704,7 +1740,11 @@ export const ES = {
   condiciones: {
     junta: (de: number, cocina: string, premio: string) => `Junta ${de} sellos en ${cocina} y te dan ${premio}.`,
     uno: 'Un sello por visita, uno al día.',
-    seBorran: (dias: number) => `Tus sellos se borran si pasan ${dias} días sin que vengas.`,
+    /** `10.9k`: *2 semanas*, *un mes*, *21 días* — as she chose them. */
+    seBorran: (dias: number) => {
+      const p = siPasan(dias);
+      return `Tus sellos se borran si ${p.pasa} ${p.cuanto} sin que vengas.`;
+    },
     noSeBorran: 'Tus sellos no se borran.',
     promesa: (cocina: string, direccion: string | null) =>
       direccion === null ? `La promesa es de ${cocina}.` : `La promesa es de ${cocina}, ${direccion}.`,

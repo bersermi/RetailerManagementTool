@@ -335,10 +335,17 @@ describe('the card’s conditions — what a fonda set up is what her neighbour 
     });
   }
 
+  it('`10.9k`: how long her stamps wait, said the same way — `siPasan`, code for code', () => {
+    expect(bloque(itacate('strings.ts'), 'function siPasan(')).toBe(bloque(cocina('strings.ts'), 'function siPasan('));
+  });
+
   it('the words, value for value', () => {
     expect(ES.condiciones.junta(8, 'Fonda Doña Mari', 'una comida corrida')).toBe(COCINA.condiciones.junta(8, 'Fonda Doña Mari', 'una comida corrida'));
     expect(ES.condiciones.uno).toBe(COCINA.condiciones.uno);
-    expect(ES.condiciones.seBorran(30)).toBe(COCINA.condiciones.seBorran(30));
+    // `10.9k`: the chips' weeks and months, *Otro…*'s days, and the days `0085` let in.
+    for (const dias of [14, 15, 21, 30, 45, 60, 90, 120, 365]) {
+      expect(ES.condiciones.seBorran(dias), String(dias)).toBe(COCINA.condiciones.seBorran(dias));
+    }
     expect(ES.condiciones.noSeBorran).toBe(COCINA.condiciones.noSeBorran);
     expect(ES.condiciones.promesa('Fonda Doña Mari', 'Sabino 52, Santa María la Ribera')).toBe(COCINA.condiciones.promesa('Fonda Doña Mari', 'Sabino 52, Santa María la Ribera'));
     expect(ES.condiciones.promesa('Fonda Doña Mari', null)).toBe(COCINA.condiciones.promesa('Fonda Doña Mari', null));

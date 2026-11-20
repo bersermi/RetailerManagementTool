@@ -799,9 +799,19 @@ in Mexico City's zone. ⚠️ **Wera's switch `tarjeta` was off until `10.9e-iii
   the owner is sent to the setup and a helper reads that it is not. ⚠️ **Closed, it stays while its 30 days run** (`tarjetaGuardada`, and
   `mosaicosDe`' `ademas` keeps its tile though her choice is off): those who started it still finish and claim, and need *Sellar* for it;
   *Abrirla otra vez* opens the setup.
-- **The setup** (`(cocina)/preparar-tarjeta`, `PREPARAR`): the reward (60), 4–12 stamps, *Nunca*/15/30/45/60 — **nothing pre-chosen**, the
+- **The setup** (`(cocina)/preparar-tarjeta`, `PREPARAR`): the reward (60), 4–12 stamps, and since `10.9k` (`0089`, the owner's rulings of
+  2026-11-19) ***Nunca · 2 semanas · 1 mes · 2 meses · 3 meses · Otro…*** — kept as 0, 14, 30, 60, 90 days — **nothing pre-chosen**, the
   8 dashed as a hint (`@/ui/Fichas`) — the card and its conditions naming her kitchen and its address (`condicionesDe`, the words Itacate
   shows before her first stamp since `10.9e-iii`, held to these by Itacate's `test/gemelos.test.ts`); *Activar* → *Listo, ya está en tu Hoy* with her tile; *Guardar*; awaited (`set_card_terms`).
+- ***Otro…*** (`@/ui/HojaDias`, `10.9k`): dashed until it holds her days, then *21 días*, chosen; a tap opens ***¿Cuántos días sin venir?***
+  with **the number pad up** — typed, never clicked through (his words) — three digits, no decimals (`soloDigitos`), − / + by one held to
+  14…365 (`empujarDias`, from an empty box 14), the live *Se borran si pasan* **21 días** *sin venir.* and *Si su último sello fuera hoy, se
+  borrarían el 11 de diciembre.* (`ejemploDeDias`); out of range *Elige de 14 a 365 días.* in red and *Listo* off; a typed 14, 30, 60 or 90
+  chooses its own chip (`fichaDeDias`). A card set up on 15 or 45 before `10.9k` reopens as *Otro…*. ⚠️ **NOT A `Modal`**: on Android a
+  `Modal`'s window leaves the pad down until the box is tapped (Wera's `HojaPrecio`, R9), so the sheet is drawn over the screen, standing on
+  the keyboard by its height (+ the gesture bar on Android 15+, nothing below 15); the hardware back closes the pad, then the sheet. Seen on the
+  emulator (`mInputShown=true` on opening). How long the stamps wait is said as she chose it — `siPasan` in `@/strings`: *2 semanas*, *un
+  mes* (*pasa*), *2 meses*, *3 meses*, else its days — in the conditions, the card's line and the sheet; Itacate's copy is held to it.
 - **The tile on *Hoy***: *6 sellos hoy*, *1 premio por entregar* with its dot (else the cards going, or *Cerrada · la completan hasta el …*),
   and *Sellar* on it. A helper sees it only once set up (`@/lib/ayudante`' `mosaicosPara`). ⚠️ **A copy read on another day says nothing
   of today** (`deHoy`): `kitchen_card` is kept on the phone, and yesterday's names and counts are not today's.

@@ -32,9 +32,21 @@ export const GIVE_REWARD = 'give_reward';
 export const PREMIO_MAX = 60;
 export const SELLOS_MIN = 4;
 export const SELLOS_MAX = 12;
-/** When her stamps are erased if she does not come back (G15): 0 is *Nunca*. Nothing pre-chosen. */
-export const DIAS_SIN_VENIR = [0, 15, 30, 45, 60] as const;
-export type DiasSinVenir = (typeof DIAS_SIN_VENIR)[number];
+/**
+ * When her stamps are erased if she does not come back (G15; `10.9k`, the owner's rulings of 2026-11-19): 0 is
+ * *Nunca*, else a whole number of days from `DIAS_MIN` to `DIAS_MAX` (`0089`). Nothing pre-chosen (G34).
+ */
+export const DIAS_MIN = 14;
+export const DIAS_MAX = 365;
+/** The chips, as days: *Nunca · 2 semanas · 1 mes · 2 meses · 3 meses* — a month is 30 days. *Otro…* is any in range. */
+export const DIAS_SIN_VENIR = [0, 14, 30, 60, 90] as const;
+/** 0 (*Nunca*) or a whole number of days from 14 to 365 — `diasValidos` says which. */
+export type DiasSinVenir = number;
+
+/** Whether `0089` takes these days: 0 (*Nunca*), or a whole number from 14 to 365. */
+export function diasValidos(dias: number): boolean {
+  return dias === 0 || (Number.isInteger(dias) && dias >= DIAS_MIN && dias <= DIAS_MAX);
+}
 /** How long a closed card is kept for those who started it (G12). */
 export const DIAS_AL_CERRAR = 30;
 
