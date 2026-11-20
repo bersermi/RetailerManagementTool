@@ -11,10 +11,18 @@
 // ⚠️⚠️ ITACATE WILL READ THESE NAMES (`10.5-iv`), and so will every phone that has
 // one: a name changed here once kitchens have photos is a photo nobody can find.
 //
-// ⚠️ A NEW PICTURE IS A NEW PATH, NEVER AN OVERWRITE: `0076` gives the bucket no
-// update and no delete policy. The path is made when the photo is taken, so a
-// retry after a weak signal uploads to the same path and finds the file already
-// there — a 409, which is a success (`alreadyStored`, Wera's, held to Wera's file).
+// ⚠️ A NEW PICTURE IS A NEW PATH, NEVER AN OVERWRITE: the bucket has no update
+// policy. The path is made when the photo is taken, so a retry after a weak
+// signal uploads to the same path and finds the file already there — a 409, which
+// is a success (`alreadyStored`, Wera's, held to Wera's file).
+//
+// ⚠️ SINCE `0090` (`10.9i-ii`, the owner's D2: *a photo stops being kept once it
+// stops being shown*) HER KITCHEN DELETES A PICTURE NOTHING NAMES — not her page,
+// not a line of any offer, not a promotion; the database refuses any other.
+// This app deletes the old cover or logo after the save that replaced or removed
+// it, and an undone promotion's photo after *Deshacer* (`picturesToDelete`,
+// `filesOf`); a dish's photo stays while an offer names it. And outside her
+// kitchen a picture is opened only while Itacate shows it.
 //
 // ⚠️ THE FOLDER IS THE KITCHEN'S OWN, IN LOWER CASE: `picture_in_folder` compares
 // with `workspace_id::text`, and the bucket's fence reads the first folder — a
@@ -24,7 +32,10 @@
 // the two files' names OUT OF THIS FILE and puts them into a real Storage API.
 // ============================================================================
 
-/** `0076`'s bucket: her owner and managers write in her folder; anyone signed in reads it while she exists. */
+/**
+ * `0076`'s bucket: everyone who works at her kitchen writes in her folder and reads all of it; since `0090`
+ * anyone else signed in reads only what Itacate shows now, and her kitchen deletes what nothing names.
+ */
 export const PHOTO_BUCKET = 'cocina';
 
 /** Every file is a JPEG, whatever the camera or the gallery gave. */
@@ -103,6 +114,11 @@ export function isPicturePath(path: string, kitchenId: string): boolean {
 /** One file of a picture, as Storage names it inside the bucket. */
 export function photoFile(path: string, size: PhotoSize): string {
   return `${path}/${FILE_OF[size]}`;
+}
+
+/** Both files of each picture, as Storage names them — what one delete is sent (`0090`). */
+export function filesOf(paths: readonly string[]): string[] {
+  return [...new Set(paths)].flatMap((path) => [photoFile(path, 'grande'), photoFile(path, 'chica')]);
 }
 
 /** Storage's door for a private file, opened with the person's own token. */

@@ -1304,15 +1304,16 @@ jobs:
       # ⚠️⚠️ AND THE KITCHENS' PHOTOS — plan task `10.5-i-a`, `0076` — APPENDED to this
       # job because it is the one that starts Storage and already drives `0063`'s
       # buckets, whose shape the bucket `cocina` takes. Its walls are only real over
-      # the Storage API: every member of a KITCHEN writes in her folder (her helper since `0083`),
-      # anyone signed in reads while the kitchen EXISTS, nobody signed out, pictures
-      # only, nothing overwritten or deleted. Since `10.5-ii` its names are Wera
-      # Cocina's, read out of `cocina/src/api/`, and its last step rehearses the
-      # runbook that deletes a deleted kitchen's photos (`delete-orphan-photos.sh`).
-      - name: Contract — the kitchens' photos, their walls over the real Storage API, and the runbook that deletes a deleted kitchen's (plans 10.5-i-a, 10.5-ii)
+      # the Storage API: every member of a KITCHEN writes in her folder (her helper since `0083`)
+      # and reads all of it, anyone else signed in only what the door shows now (`0090`), and
+      # only while the kitchen EXISTS; nobody signed out, pictures only, nothing overwritten,
+      # and her kitchen deletes only what nothing names (`0090`). Since `10.5-ii` its names are
+      # Wera Cocina's, read out of `cocina/src/api/`, and its last step rehearses the runbook
+      # that deletes a deleted kitchen's photos and a living one's nothing names (`delete-orphan-photos.sh`).
+      - name: Contract — the kitchens' photos, their walls over the real Storage API, and the runbook that deletes what nothing keeps (plans 10.5-i-a, 10.5-ii, 10.9i-ii)
         run: bash docs/checks/10.5-i-a-kitchen-photos-contract.sh
 
-      - name: Falsify it — nine broken walls of the bucket, each red for its reason
+      - name: Falsify it — fourteen broken walls of the bucket, each red for its reason
         run: bash docs/checks/10.5-i-a-kitchen-photos-contract-falsify.sh
 
       - name: Stop

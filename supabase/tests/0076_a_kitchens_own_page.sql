@@ -475,7 +475,7 @@ select public.chk('6.5 the bucket cocina: private, 2 MB a file, JPEG, PNG or Web
   case when to_regclass('storage.buckets') is null then 'Storage is not running here'
        else coalesce((select format('public %s, %s bytes, %s', public, file_size_limit, allowed_mime_types)
                         from storage.buckets where id = 'cocina'), 'no bucket cocina') end);
-select public.chk('6.6 ⚠️ its two policies — a member of a kitchen writes in her folder (staff since 0083, manager until then); anyone signed in reads a kitchen''s — and none to update or delete',
+select public.chk('6.6 ⚠️ its policies — a member of a kitchen writes in her folder (staff since 0083, manager until then); a kitchen''s read (since 0090 her members, else what is shown); since 0090 a delete of what nothing names — and none to update',
   to_regclass('storage.objects') is not null
   and (select string_agg(pol.polname || ':' || pol.polcmd::text || ':' || array_to_string(pol.polroles::regrole[], ','),
                          ' ' order by pol.polname)
@@ -483,7 +483,7 @@ select public.chk('6.6 ⚠️ its two policies — a member of a kitchen writes 
         where pol.polrelid = 'storage.objects'::regclass
           and (coalesce(pg_get_expr(pol.polqual, pol.polrelid), '')
                || coalesce(pg_get_expr(pol.polwithcheck, pol.polrelid), '')) like '%''cocina''%')
-      = 'cocina_insert:a:authenticated cocina_select:r:authenticated'
+      = 'cocina_delete:d:authenticated cocina_insert:a:authenticated cocina_select:r:authenticated'
   and (select pg_get_expr(polwithcheck, polrelid) from pg_policy
         where polrelid = 'storage.objects'::regclass and polname = 'cocina_insert')
       like '%photo_folder_ok(name, ''staff''%kitchen_folder_ok(name)%'

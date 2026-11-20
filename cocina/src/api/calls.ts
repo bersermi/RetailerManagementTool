@@ -131,6 +131,7 @@ import {
   PHOTO_TYPE,
   alreadyStored,
   bytesOf,
+  filesOf,
   photoHeaders,
   photoUrl,
   type FotoNueva,
@@ -507,6 +508,22 @@ export async function uploadPictures(fotos: readonly FotoNueva[]): Promise<void>
         .upload(`${foto.path}/${archivo.name}`, bytesOf(archivo.base64), { contentType: PHOTO_TYPE, upsert: false });
       if (error !== null && !alreadyStored(error)) throw error;
     }
+  }
+}
+
+/**
+ * ⚠️ `10.9i-ii` (`0090`): EVERY FILE OF THESE PICTURES DELETED, in one call, once nothing names them — the old
+ * cover or logo after the save that replaced it, an undone promotion's photo after *Deshacer*. ⚠️ IT NEVER THROWS:
+ * what it tidies is already saved, and a file it could not delete — no signal, or a picture something else still
+ * names, which the database refuses — is opened by nobody outside her kitchen, and the runbook takes it after a day.
+ */
+export async function deletePictures(paths: readonly string[]): Promise<void> {
+  const files = filesOf(paths);
+  if (files.length === 0) return;
+  try {
+    await supabase.storage.from(PHOTO_BUCKET).remove(files);
+  } catch {
+    // Kept for the runbook (`docs/runbooks/delete-orphan-photos.sh`); nothing on her screen depends on it.
   }
 }
 

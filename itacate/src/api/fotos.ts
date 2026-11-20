@@ -10,13 +10,16 @@
 // can find, so every block below is that file's, word for word, and
 // `test/gemelos.test.ts` holds each one to it.
 //
-// ⚠️ ANYONE SIGNED IN READS THE BUCKET while the kitchen exists (`0076`'s
-// `kitchen_folder_ok`), so a neighbour asks Storage's private door with HER OWN
-// session — never a public link, and nothing signed out (ADR-035 §2.7). The token
-// is handed in (`@/api/calls`' `photoRequest`).
+// ⚠️ A NEIGHBOUR READS A KITCHEN'S PICTURE ONLY WHILE THE DOOR SHOWS IT (`0090`,
+// plan `10.9i-ii`): her cover or logo, a dish of an offer still open, a promotion
+// while shown — and only while the kitchen exists (`0076`'s `kitchen_folder_ok`).
+// So she asks Storage's private door with HER OWN session — never a public link,
+// and nothing signed out (ADR-035 §2.7) — and a dish's photo on a page she holds
+// open stops loading once its offer ends. The token is handed in (`@/api/calls`'
+// `photoRequest`).
 // ============================================================================
 
-/** `0076`'s bucket: her owner and managers write in her folder; anyone signed in reads it while she exists. */
+/** `0076`'s bucket: her kitchen writes and reads all of it; since `0090` a neighbour reads only what the door shows now. */
 export const PHOTO_BUCKET = 'cocina';
 
 /** The large file of every picture — its shorter side, 720 px. ⚠️ One line: the contract check reads it. */
