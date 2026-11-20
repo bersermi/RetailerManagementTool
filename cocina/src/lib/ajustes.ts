@@ -6,7 +6,7 @@
 // ============================================================================
 
 import type { Ajustes } from '@/api/ajustes';
-import type { Calificaciones } from '@/api/calificaciones';
+import type { Calificaciones, Etiqueta } from '@/api/calificaciones';
 import { formatMXN } from '@/format/mxn';
 import { ES } from '@/strings';
 
@@ -45,4 +45,22 @@ export function calificacionesFila(calificaciones: Calificaciones | null): strin
 export function estrellasTexto(n: number): string {
   const llenas = Math.max(0, Math.min(5, Math.round(n)));
   return '★'.repeat(llenas) + '☆'.repeat(5 - llenas);
+}
+
+/**
+ * ⚠️ `10.9i`: WHAT *REPORTAR* PUTS IN THE OWNER'S CHAT — one of yesterday's ratings exactly as
+ * she reads it on the row (its stars, its tags in the row's order) and her kitchen's name, so he
+ * finds it without asking. Nothing else exists to send: no order, name or moment ever reaches
+ * this screen (`@/api/calificaciones`).
+ */
+export function reporteTexto(
+  rating: { readonly estrellas: number; readonly etiquetas: readonly Etiqueta[] },
+  cocina: string,
+): string {
+  const c = ES.ajustes.calificaciones;
+  return c.reportarMensaje(
+    estrellasTexto(rating.estrellas),
+    rating.etiquetas.map((e) => c.etiqueta[e]).join(ES.miCocina.separador),
+    cocina,
+  );
 }

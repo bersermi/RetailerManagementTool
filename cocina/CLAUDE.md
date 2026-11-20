@@ -612,7 +612,10 @@ and `10.5b-ii`'s final design (*Mi cocina*'s rows, *Ajustes de apartados*; Q3's 
   alone (`test/ajustes.test.ts` refuses it on *Hoy* and *Apartados*); someone with no score yet always passes; nobody is cancelled.
 - ***Tus calificaciones*** (`my_kitchen_ratings`, read at most every 30 minutes): from five, ★ and the average, how many, *Lo que más
   dicen* (each tag given) and *De ayer, en desorden*; below five, how many and *desde la quinta*. Nothing that arrives can say who.
-  ⚠️ The round-1 drawing's *Reportar* is not drawn: no function takes a report.
+  ⚠️ **Since `10.9i-i` (his D5 of 2026-11-19), *Reportar* on each of yesterday's rows** — WhatsApp to him, as *Hubo un problema*
+  does: *Quiero reportar una calificación de ayer: ★★☆☆☆ Tuve que esperar — Fonda Doña Lupe* (`@/lib/ajustes`' `reporteTexto`: the
+  row's stars, its tags as the row joins them, her kitchen's name). No function takes a report — he removes a rating by hand — and
+  nothing is drawn when the build has no support number.
 - **− and + on *Tus ofertas*** (`useCantidades`, `set_listing_quantity`): *quedan 2 de 5* between them, − stopping at what is reserved
   (`TD019` said if a neighbour reserved meanwhile), + at 999. ⚠️ **One send at a time per dish, the last tap wins**, counted from the
   last tap (never a render not yet made); her list's read in flight is cancelled before the drawing. Online only.

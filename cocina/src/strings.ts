@@ -1204,6 +1204,16 @@ export const ES = {
       alDiaSiguiente: 'Cada calificación aparece aquí al día siguiente.',
       nuncaQuien: 'Nunca ves quién te calificó.',
       estrellasAyuda: (n: number) => `${n} de 5 estrellas`,
+      /**
+       * ⚠️ `10.9i` (his ruling of 2026-11-19, D5): *REPORTAR* ON EACH OF YESTERDAY'S RATINGS —
+       * WhatsApp to him, as *Hubo un problema* does. He removes a rating by hand; nothing is
+       * written to the database, and the message carries what she reads and nothing more.
+       */
+      reportar: 'Reportar',
+      reportarAyuda: (n: number) => `Reportar esta calificación de ${n} de 5 estrellas`,
+      /** The ruled words: *Quiero reportar una calificación de ayer: ★★☆☆☆ Tuve que esperar — Fonda Doña Lupe*. */
+      reportarMensaje: (estrellas: string, etiquetas: string, cocina: string) =>
+        `Quiero reportar una calificación de ayer: ${estrellas}${etiquetas === '' ? '' : ` ${etiquetas}`} — ${cocina}`,
       promedioAyuda: (promedio: string, n: number) => `${promedio} de 5 estrellas, ${n === 1 ? '1 calificación' : `${n} calificaciones`}`,
       /** `0080`'s eight tags: the good four after four or five stars, the other four after one to three. */
       etiqueta: {

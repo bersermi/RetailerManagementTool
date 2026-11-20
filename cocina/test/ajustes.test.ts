@@ -39,7 +39,7 @@ import {
   ratingsArgs,
 } from '@/api/calificaciones';
 import { SET_KITCHEN_PAGE } from '@/api/pagina';
-import { calificacionesFila, cobroTexto, comerTexto, desechableFila, estrellasTexto, quienTexto } from '@/lib/ajustes';
+import { calificacionesFila, cobroTexto, comerTexto, desechableFila, estrellasTexto, quienTexto, reporteTexto } from '@/lib/ajustes';
 import { ES } from '@/strings';
 import { ETIQUETAS_BUENAS } from '@/vecinos/cocinas';
 
@@ -276,6 +276,20 @@ describe('what *Mi cocina*’s rows say', () => {
     expect(ES.ajustes.calificaciones.pocas(0)).toBe('Todavía no tienes calificaciones.');
     for (const tag of ETIQUETAS) expect(ES.ajustes.calificaciones.etiqueta[tag], tag).toBeTruthy();
   });
+
+  it('⚠️ `10.9i`: *Reportar* sends him the rating as she reads it — his ruled words, word for word', () => {
+    // D5 of 2026-11-19: *Quiero reportar una calificación de ayer: ★★☆☆☆ Tuve que esperar — Fonda Doña Lupe*.
+    expect(reporteTexto({ estrellas: 2, etiquetas: ['tuve_que_esperar'] }, 'Fonda Doña Lupe')).toBe(
+      'Quiero reportar una calificación de ayer: ★★☆☆☆ Tuve que esperar — Fonda Doña Lupe',
+    );
+    // Its tags in the row's order, joined as the row joins them; none, and the stars stand alone.
+    expect(reporteTexto({ estrellas: 1, etiquetas: ['porcion_chica', 'me_atendieron_mal'] }, 'Cocina Rosy')).toBe(
+      'Quiero reportar una calificación de ayer: ★☆☆☆☆ Porción chica · Me atendieron mal — Cocina Rosy',
+    );
+    expect(reporteTexto({ estrellas: 3, etiquetas: [] }, 'Cocina Rosy')).toBe('Quiero reportar una calificación de ayer: ★★★☆☆ — Cocina Rosy');
+    expect(ES.ajustes.calificaciones.reportar).toBe('Reportar');
+    expect(ES.ajustes.calificaciones.reportarAyuda(2)).toBe('Reportar esta calificación de 2 de 5 estrellas');
+  });
 });
 
 describe('the wiring, read as text', () => {
@@ -315,6 +329,20 @@ describe('the wiring, read as text', () => {
     const screen = code('app/(cocina)/como-se-come.tsx');
     expect(screen).toMatch(/fijo=\{esLaUnica\(ajustes, 'llevar'\)\}/);
     expect(screen).toMatch(/fijo=\{esLaUnica\(ajustes, 'aqui'\)\}/);
+  });
+
+  it('⚠️ `10.9i`: *Reportar* is on each of yesterday’s ratings, opens WhatsApp to him, and writes nothing', () => {
+    const screen = code('app/(cocina)/calificaciones.tsx');
+    const ayer = screen.slice(screen.indexOf('calificaciones.ayer.map('));
+    // On every row of *De ayer*, and only with a support number and her kitchen's name — as *Hubo un problema*.
+    expect(ayer).toMatch(/\{SUPPORT_WHATSAPP !== null && cocina !== null && \(\s*<Pressable/);
+    expect(ayer).toContain('whatsappUrl(SUPPORT_WHATSAPP as string, reporteTexto(r, cocina))');
+    expect(ayer).toContain('accessibilityLabel={c.reportarAyuda(r.estrellas)}');
+    expect(screen).toContain('cocina={kitchen?.displayName ?? null}');
+    // Not below five, where no rating is listed: the link lives inside *De ayer*'s rows alone.
+    expect(screen.indexOf('reporteTexto(')).toBeGreaterThan(screen.indexOf('calificaciones.ayer.map('));
+    // No report reaches the database: no call, no queue.
+    expect(screen).not.toMatch(/supabase|\.rpc\(|useMutation|@\/api\/cola/);
   });
 
   it('a screen whose settings are not read says so — never the defaults drawn as hers', () => {
