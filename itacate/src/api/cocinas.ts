@@ -373,7 +373,7 @@ export interface TarjetaDeCocina {
   readonly premio: string;
   /** How many stamps, 4 to 12. */
   readonly sellos: number;
-  /** The days without a stamp before hers are erased — 15, 30, 45 or 60; `0` is *Nunca*. */
+  /** The days without a stamp before hers are erased — 14 to 365 (`0089`; 15, 30, 45 or 60 before it); `0` is *Nunca*. */
   readonly dias: number;
 }
 
@@ -585,8 +585,9 @@ export function serviciosOf(value: unknown): ServicioVisto[] {
 
 /**
  * ⚠️ `0085`: the door's `card` — terms she could start on — or `null`: no card, or terms this build
- * cannot read (`0085`'s ranges: a reward of up to 60 characters, 4 to 12 stamps, *Nunca* or 15, 30, 45
- * or 60 days). A card closed, or chosen and not yet set up, arrives as `null` and draws nothing.
+ * cannot read (`0085`'s ranges: a reward of up to 60 characters, 4 to 12 stamps; and since `0089`, `10.9k`,
+ * *Nunca* or a whole number of days from 14 to 365). A card closed, or chosen and not yet set up, arrives
+ * as `null` and draws nothing. ⚠️ A build from before `10.9k` reads 21 days as no card — nothing drawn.
  */
 export function tarjetaOf(value: unknown): TarjetaDeCocina | null {
   const c = object(value);
@@ -596,7 +597,7 @@ export function tarjetaOf(value: unknown): TarjetaDeCocina | null {
   const dias = c.expiry_days === null ? 0 : c.expiry_days;
   if (premio === '' || premio.length > 60) return null;
   if (typeof sellos !== 'number' || !Number.isInteger(sellos) || sellos < 4 || sellos > 12) return null;
-  if (typeof dias !== 'number' || ![0, 15, 30, 45, 60].includes(dias)) return null;
+  if (typeof dias !== 'number' || !Number.isInteger(dias) || (dias !== 0 && (dias < 14 || dias > 365))) return null;
   return { premio, sellos, dias };
 }
 

@@ -13,6 +13,17 @@
 // live beside Wera's copy.
 // ============================================================================
 
+/**
+ * ⚠️ `10.9k`: HOW LONG HER STAMPS WAIT, AS THE KITCHEN CHOSE IT — Wera Cocina's, word for word (`cocina/src/strings.ts`,
+ * held by `test/gemelos.test.ts`): 14, 60 and 90 days are *2 semanas*, *2 meses* and *3 meses*, 30 is *un mes* (one,
+ * so *pasa*), any other number its days.
+ */
+function siPasan(dias: number): { readonly pasa: string; readonly cuanto: string } {
+  if (dias === 30) return { pasa: 'pasa', cuanto: 'un mes' };
+  const cuanto = dias === 14 ? '2 semanas' : dias === 60 ? '2 meses' : dias === 90 ? '3 meses' : `${dias} días`;
+  return { pasa: 'pasan', cuanto };
+}
+
 export const ES = {
   nombre: 'Itacate',
   /**
@@ -769,7 +780,11 @@ export const ES = {
   condiciones: {
     junta: (de: number, cocina: string, premio: string) => `Junta ${de} sellos en ${cocina} y te dan ${premio}.`,
     uno: 'Un sello por visita, uno al día.',
-    seBorran: (dias: number) => `Tus sellos se borran si pasan ${dias} días sin que vengas.`,
+    /** `10.9k`: *2 semanas*, *un mes*, *21 días* — as the kitchen chose them. */
+    seBorran: (dias: number) => {
+      const p = siPasan(dias);
+      return `Tus sellos se borran si ${p.pasa} ${p.cuanto} sin que vengas.`;
+    },
     noSeBorran: 'Tus sellos no se borran.',
     promesa: (cocina: string, direccion: string | null) =>
       direccion === null ? `La promesa es de ${cocina}.` : `La promesa es de ${cocina}, ${direccion}.`,

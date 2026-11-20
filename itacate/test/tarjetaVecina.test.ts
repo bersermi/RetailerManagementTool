@@ -111,10 +111,18 @@ describe('the door’s `card` — the terms a first stamp starts on (`tarjetaOf`
     expect(tarjetaOf({ reward: 'Un pan', stamps: 4, expiry_days: null })).toEqual({ premio: 'Un pan', sellos: 4, dias: 0 });
   });
 
+  it('`10.9k`: any whole number of days from 14 to 365 — the chips’ 14, 30, 60, 90, *Otro…*’s 21, and 0085’s 15 and 45', () => {
+    for (const dias of [14, 15, 21, 30, 45, 60, 90, 365]) {
+      expect(tarjetaOf({ reward: 'Pan', stamps: 8, expiry_days: dias }), String(dias)).toEqual({ premio: 'Pan', sellos: 8, dias });
+    }
+  });
+
   it('terms it cannot read are none — no invitation, never an error', () => {
     for (const bad of [null, undefined, 'x', [], { reward: '', stamps: 8, expiry_days: 30 }, { reward: 'x'.repeat(61), stamps: 8, expiry_days: 30 },
       { reward: 'Pan', stamps: 3, expiry_days: 30 }, { reward: 'Pan', stamps: 13, expiry_days: 30 }, { reward: 'Pan', stamps: 8.5, expiry_days: 30 },
-      { reward: 'Pan', stamps: 8, expiry_days: 20 }, { reward: 'Pan', stamps: 8 }]) {
+      { reward: 'Pan', stamps: 8, expiry_days: 13 }, { reward: 'Pan', stamps: 8, expiry_days: 366 }, { reward: 'Pan', stamps: 8, expiry_days: 20.5 },
+      { reward: 'Pan', stamps: 8, expiry_days: 0.5 }, { reward: 'Pan', stamps: 8, expiry_days: -21 }, { reward: 'Pan', stamps: 8, expiry_days: '21' },
+      { reward: 'Pan', stamps: 8 }]) {
       expect(tarjetaOf(bad), JSON.stringify(bad)).toBeNull();
     }
   });
@@ -156,7 +164,7 @@ describe('the invitation and its conditions (G12): the kitchen promises, with it
   it('from the door, before her first stamp — Wera Cocina’s words', () => {
     const k = kitchen({ tarjeta: { premio: 'Una comida corrida', sellos: 8, dias: 30 } });
     expect(condicionesDeCocina(k)).toBe(
-      'Junta 8 sellos en Fonda Doña Mari y te dan una comida corrida. Un sello por visita, uno al día. Tus sellos se borran si pasan 30 días sin que vengas. La promesa es de Fonda Doña Mari, Sabino 52, Santa María la Ribera.',
+      'Junta 8 sellos en Fonda Doña Mari y te dan una comida corrida. Un sello por visita, uno al día. Tus sellos se borran si pasa un mes sin que vengas. La promesa es de Fonda Doña Mari, Sabino 52, Santa María la Ribera.',
     );
     expect(condicionesDeCocina(kitchen({ tarjeta: { premio: 'Un pan', sellos: 6, dias: 0 } }))).toContain('Tus sellos no se borran.');
     expect(condicionesDeCocina(kitchen())).toBeNull();
