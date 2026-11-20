@@ -1,10 +1,13 @@
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { router } from 'expo-router';
-import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Linking, Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import type { Calificaciones } from '@/api/calificaciones';
 import { useCalificaciones, useKitchen } from '@/api/hooks';
-import { estrellasTexto } from '@/lib/ajustes';
+import { whatsappUrl } from '@/auth/support';
+import { estrellasTexto, reporteTexto } from '@/lib/ajustes';
+import { SUPPORT_WHATSAPP } from '@/lib/supportWhatsapp';
 import { ES } from '@/strings';
 import { TITULO } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
@@ -21,8 +24,11 @@ import { Aclaracion, volverAMiCocina } from '@/ui/PantallaDeAjustes';
 // *De ayer, en desorden* (yesterday's stars and tags, as the database mixed them). Below five:
 // how many, and that she and her neighbours see them from the fifth. Nothing here can say who:
 // no order, code, name or moment ever arrives. Her neighbours' notes are Wera's alone.
-// ⚠️ NOT DRAWN: the round-1 phone's *Reportar* — no function takes a report, and *Hubo un
-// problema* on an order already reaches him.
+// ⚠️ `10.9i` (his ruling of 2026-11-19, D5): *REPORTAR* ON EACH OF YESTERDAY'S RATINGS — the
+// round-1 phone's — opens WhatsApp to him with that rating's stars and tags and her kitchen's
+// name (`@/lib/ajustes`' `reporteTexto`), as *Hubo un problema* does on an order. No function
+// takes a report: he removes a rating by hand. With no support number in the build, nothing is
+// drawn, as *Hubo un problema*.
 // ============================================================================
 
 export default function TusCalificaciones() {
@@ -49,7 +55,7 @@ export default function TusCalificaciones() {
             </View>
           )
         ) : (
-          <Lo calificaciones={lectura.data} />
+          <Lo calificaciones={lectura.data} cocina={kitchen?.displayName ?? null} />
         )}
         <BotonLleno variante="principal" label={ES.ajustes.listo} onPress={() => (router.canGoBack() ? router.back() : volverAMiCocina())} />
       </ScrollView>
@@ -57,7 +63,7 @@ export default function TusCalificaciones() {
   );
 }
 
-function Lo({ calificaciones }: { calificaciones: Calificaciones | null }) {
+function Lo({ calificaciones, cocina }: { calificaciones: Calificaciones | null; cocina: string | null }) {
   const c = ES.ajustes.calificaciones;
   const tarjeta = {
     gap: SIZE.rowGap,
@@ -117,13 +123,29 @@ function Lo({ calificaciones }: { calificaciones: Calificaciones | null }) {
           <Aclaracion>{c.sinAyer}</Aclaracion>
         ) : (
           calificaciones.ayer.map((r, i) => (
-            <View key={i} style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: SIZE.space }}>
-              <Text accessibilityLabel={c.estrellasAyuda(r.estrellas)} style={{ fontSize: SIZE.bodySize, color: PALETTE.estrella }}>
-                {estrellasTexto(r.estrellas)}
-              </Text>
-              <Text style={{ flexShrink: 1, textAlign: 'right', fontSize: SIZE.smallSize, color: PALETTE.tintaApagada }}>
-                {r.etiquetas.map((e) => c.etiqueta[e]).join(ES.miCocina.separador)}
-              </Text>
+            <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: SIZE.space }}>
+              <View style={{ flex: 1, gap: 2 }}>
+                <Text accessibilityLabel={c.estrellasAyuda(r.estrellas)} style={{ fontSize: SIZE.bodySize, color: PALETTE.estrella }}>
+                  {estrellasTexto(r.estrellas)}
+                </Text>
+                {r.etiquetas.length > 0 && (
+                  <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada }}>
+                    {r.etiquetas.map((e) => c.etiqueta[e]).join(ES.miCocina.separador)}
+                  </Text>
+                )}
+              </View>
+              {SUPPORT_WHATSAPP !== null && cocina !== null && (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={c.reportarAyuda(r.estrellas)}
+                  onPress={() => void Linking.openURL(whatsappUrl(SUPPORT_WHATSAPP as string, reporteTexto(r, cocina)))}
+                  hitSlop={SIZE.rowGap}
+                  style={{ minHeight: SIZE.tapTarget, flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: SIZE.rowGap }}
+                >
+                  <MaterialCommunityIcons name="whatsapp" size={SIZE.smallSize + 4} color={PALETTE.accion} />
+                  <Text style={{ fontSize: SIZE.smallSize, fontWeight: '600', color: PALETTE.accion }}>{c.reportar}</Text>
+                </Pressable>
+              )}
             </View>
           ))
         )}
