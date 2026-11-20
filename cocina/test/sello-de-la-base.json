@@ -1,0 +1,10 @@
+{
+  "made_by": "migration 0088's servicio.reservation_seal on a local Supabase stack, 2026-11-20 (plan 10.9j-ii-b): supabase/tests/0088_the_handover_with_no_signal.sql's fixture up to Ana's reservation, read back with the secret kitchen_seal_keys handed her helper's phone, then rolled back",
+  "seal": "s1|0088cccc000040008000000000000001|18f66d3e0f424566ba00b98e93b8d626|1|647|1795187700|efectivo|llevar|1.000|85.00|5.00|0|Pozole rojo %7C con pi%C3%B1a y jalape%C3%B1o|2388b661bce0ff67483c",
+  "secret": "41d7f4fd12b5e334118f5d2503c9f0bae77d435a",
+  "kitchen": "18f66d3e-0f42-4566-ba00-b98e93b8d626",
+  "reservation": "0088cccc-0000-4000-8000-000000000001",
+  "code": "647",
+  "pickup_at": "2026-11-20T15:15:00Z",
+  "dish": "Pozole rojo | con piña y jalapeño"
+}

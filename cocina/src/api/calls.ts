@@ -222,6 +222,7 @@ import {
   type StampArgs,
   type TermsArgs,
 } from '@/api/tarjeta';
+import { KITCHEN_SEAL_KEYS, llavesFrom, sealKeysArgs, type LlaveDeSello } from '@/api/sello';
 import {
   CREATE_PROMOTION,
   END_PROMOTION,
@@ -723,6 +724,16 @@ export async function closeCard(kitchenId: string): Promise<KitchenCardRow> {
   const card = kitchenCardFrom(data);
   if (card === null) throw new TypeError(`${CLOSE_CARD}: an answer this build cannot read`);
   return card;
+}
+
+/**
+ * ⚠️ `10.9j-ii-b`: her kitchen's sealing secrets (`kitchen_seal_keys`, `0088`) — any member, every role: the
+ * current one and any retired in the last day, to check a neighbour's ticket with no signal.
+ */
+export async function kitchenSealKeys(kitchenId: string): Promise<LlaveDeSello[]> {
+  const { data, error } = await supabase.rpc(KITCHEN_SEAL_KEYS, sealKeysArgs(kitchenId));
+  if (error) throw error;
+  return llavesFrom(data);
 }
 
 /** The card's screen, *Hoy*'s tile and *Sellar*'s lines (`kitchen_card`) — any member. */

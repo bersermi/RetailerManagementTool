@@ -19,7 +19,7 @@ bash docs/checks/10.4b-iii-a-cocina-contract.sh   # against a local `supabase st
 bash docs/checks/10.4b-iv-a-listing-contract.sh   # the same stack: her list, publishing (each line's keys), a retry, withdrawing
 bash docs/checks/5R-k-apple-revoke-contract.sh     # the same stack: the function that tells Apple, served, with Wera's body, this app's and Itacate's
 bash docs/checks/10.5-i-a-kitchen-photos-contract.sh   # the same stack WITH Storage started before the reset: her page and the bucket `cocina`, by this app's names
-bash docs/checks/10.5b-iv-a-handover-contract.sh      # the same stack: her kitchen's reservations, who reserved each, the handover and her thumb, by apartados.ts's names — and her queue's claims, by cola.ts's
+bash docs/checks/10.5b-iv-a-handover-contract.sh      # the same stack: her kitchen's reservations, who reserved each, the handover and her thumb, by apartados.ts's names — and her queue's claims, by cola.ts's; and her kitchen's sealing secret, by sello.ts's
 bash docs/checks/10.5b-iv-c-settings-contract.sh      # the same stack: her settings, her stars, each dish's ways, − and +, and the read before a deletion, by ajustes.ts', calificaciones.ts', listing.ts' and account.ts' names
 bash docs/checks/10.9a-i-features-contract.sh         # the same stack: what her kitchen uses, Wera's switch, Cuéntanos, and the door's word on it, by servicios.ts' names and Itacate's
 bash docs/checks/10.9b-ii-team-contract.sh            # the same stack: a helper joining by her owner's code (invitar.ts' names), her role, who works at her kitchen, Quitar and Salir (equipo.ts') — as a real owner and a real helper
@@ -562,6 +562,25 @@ The owner's questions 7–10 of 2026-11-05: *"it works without signal (today's r
   señal.*; under *Entregado*, *Guardada en este teléfono. Se envía sola cuando vuelve la señal.*; and with no signal a code not on the
   phone is *Ese código no está en tus apartados de las 13:05. Sin señal no llegan los nuevos.* — never *Pídeselo otra vez* alone.
   A refusal that comes back later is drawn on its order (`rechazoDe`, a day).
+- ⚠️⚠️ **Her ticket's QR, checked on this phone** (`10.9j-ii-b`; the owner's J2 and J3 of 2026-11-20; `@/api/sello`, pure, pinned by
+  `test/sello.test.ts`). Every reservation still to collect carries a SEAL (`0088`): fourteen `|`-fields of printable ASCII — the order,
+  the kitchen, the code, her hour, the dish's name percent-encoded, never her name — and an 80-bit HMAC-SHA1 under her kitchen's secret.
+  **The secret is a read kept on the phone** (`kitchen_seal_keys` by `useLlavesDeSello`, mounted in the tabs' layout; `['cocina','sello']`
+  on `@/api/persist`'s list): the current one, and a retired one until its `until` — a new one is made whenever someone stops working
+  there. ***Escanear su código*** sits on *Entregar*'s keypad, always (`@/ui/Escaner`, the card's camera, opened on her tap): `leerSello`
+  reads the QR's text, `revisarSello` checks it — this kitchen's, a version this phone holds and may still use, the MAC over the text AS
+  SCANNED (`@/lib/codigo`'s `hmacSha1`) — and anything else stays *Ese código no es de un apartado de tu cocina.*; a version newer than
+  this phone's, with signal, reads the secrets again and checks the same scan once more. An order the phone has read is drawn as if
+  typed; ⚠️ **one it never read is drawn FROM THE SEAL** (`reservaDeSello`, `ordenDeSello`: what to prepare and charge, its day, *Revisado
+  en este teléfono*, *Su nombre y su calificación aparecen cuando vuelva la señal.*) and handed over by id from her queue as any — the
+  next read brings the order itself. **J3:** a typed code the phone never read is never handed over; with no signal the keypad says
+  so and the QR is the way. `test/entregarSello.test.ts` pins the screen's rules in its source. ⚠️ **Held to the database by a seal it
+  made**: `test/sello-de-la-base.json` (`0088` on a local stack, its `made_by`) is read field for field and its MAC checked with the
+  secret the database handed a helper's phone; the shape is read out of the migration that defines `reservation_seal` last; the handover
+  check's group 14 asks a real PostgREST for the secret by this file's names. ⚠️ **No device has seen *Escanear su código* yet** — it
+  reaches phones with the final MVP version (his ruling of 2026-11-19); to see it on the emulator: a debug build carrying the camera
+  (`10.9c`), the local shop, a reservation made through Itacate's names, its `seal` drawn as a QR (`@/lib/qr`) into the emulator's camera
+  image (`-camera-back imagefile:<png>`, written before the camera opens — `itacate/CLAUDE.md`'s card notes).
 - **To see it on the emulator**: the debug build against the local shop (above); **offline = airplane mode AND `adb reverse --remove
   tcp:54443`** (the local shop is reached through adb, not the emulator's network); read the queue and the cache with `run-as
   mx.wera.cocina cat files/SQLite/ExpoSQLiteStorage` (table `storage`, keys `cocina.cola` and `cocina.query-cache`).
