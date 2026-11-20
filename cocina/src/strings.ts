@@ -1479,6 +1479,50 @@ export const ES = {
     /** The tile when its read failed or waits for a signal: it says so — never a first-time state that is not one. */
     tileSinLeer: ['—', 'No se pudieron leer'],
     volver: 'Hoy',
+    /**
+     * ⚠️ `10.9l` — HER NUMBERS WITH THE CARD (his ruling of 2026-11-19, night: *"Yes to everything"* on the drawing). The
+     * summary row on top, *platos · visitas · sellos* (*vecinos* without the card), each against the period before; the
+     * two sections; and the card's six questions in the drawing's words. The rest is this row's, said in the plan.
+     */
+    resumen: {
+      platos: (uno: boolean) => (uno ? 'plato' : 'platos'),
+      visitas: (uno: boolean) => (uno ? 'visita' : 'visitas'),
+      sellos: (uno: boolean) => (uno ? 'sello' : 'sellos'),
+      vecinos: (uno: boolean) => (uno ? 'vecino' : 'vecinos'),
+      /** *vecinos* under the floor, in a tile too narrow for *Aparece desde cinco vecinos*. */
+      desdeCinco: 'aparece desde cinco',
+    },
+    apartados: 'Tus apartados',
+    tarjeta: 'Tu tarjeta de lealtad',
+    preguntasTarjeta: {
+      sellos: '¿Cuántas de tus visitas juntaron sello?',
+      premios: '¿Cuántos premios ganaron?',
+      juntan: '¿Cuántos juntan sellos ahora?',
+      empezaron: '¿Cuántos empezaron tu tarjeta?',
+      vuelven: '¿Cada cuánto vuelven quienes juntan sellos?',
+      borradas: '¿Cuántas tarjetas se borraron?',
+    },
+    /** In a sentence after a number: *Cobraron 2 esta semana*. */
+    estePeriodo: { dia: 'hoy', semana: 'esta semana', mes: 'este mes' },
+    porciento: (n: number) => `${n}%`,
+    /** A share of a period before with no visit at all. */
+    sinVisitas: 'sin visitas',
+    dondeSellos: (entrega: string, mostrador: string) => `${entrega} al entregar un apartado · ${mostrador} en el mostrador`,
+    cobraron: (n: string, cuando: string) => `Cobraron ${n} ${cuando}`,
+    porEntregar: (n: string) => `${n} por entregar`,
+    tarjetas: (n: string, una: boolean) => (una ? `${n} tarjeta` : `${n} tarjetas`),
+    /** The cards going are counted at a moment: now, against the same moment one period earlier. */
+    haceUn: { dia: 'ayer a esta hora', semana: 'hace una semana', mes: 'hace un mes' },
+    aUnSello: (n: string, uno: boolean) => (uno ? `${n} está a un sello del premio` : `${n} están a un sello del premio`),
+    enDias: (n: string, uno: boolean) => (uno ? `${n} día` : `${n} días`),
+    laMitad: 'Entre un sello y el siguiente, la mitad tarda menos',
+    /** A middle gap from a period before under the floor: *menos de cinco* would read as days. */
+    conMenosDeCinco: 'con menos de cinco vecinos',
+    /** Under *¿Cuántas tarjetas se borraron?*: her rule today, in `10.9k`'s words (*2 semanas*, *1 mes*, *21 días*). */
+    porPasar: (cuanto: string) => `Por pasar ${cuanto} sin venir`,
+    nuncaSeBorran: 'Elegiste que nunca se borren',
+    cambiarCuando: 'Cambiar cuándo se borran',
+    sinNombresConSellos: 'Cuentas de tus entregas y tus sellos, sin nombres.',
   },
   /**
    * ⚠️ `10.9g-ii`: PROMOTIONS IN WERA COCINA — the owner's rulings of 2026-11-05 (calls 23–25) and G18, G28–G30

@@ -506,8 +506,9 @@ follows it, as `cocina/CLAUDE.md`'s does:
   memory (the review of `10.9e-iii`) — ⚠️ **900 ms after her cards
   are read**: pushed while the first screens mounted, its parts stayed invisible (`@/ui/Llega`'s entrance dropped; found on the emulator).
   *Tú* → ***Lo que cada cocina ve de ti*** (`(vecino)/lo-que-ven`, G42: what is true today, no *nunca* about following) — ⚠️ since `10.9f`
-  with *Tus visitas, en las cuentas que ve su dueña, sin tu nombre* at every kitchen: `kitchen_numbers` answers any kitchen's owner,
-  chosen or not, so the line has no *si* (the review of `10.9f`). Before *Eliminar mi
+  with *Tus visitas, en las cuentas que ve su dueña, sin tu nombre* at every kitchen — *Tus visitas y tus sellos, …* since `10.9l`, whose
+  `0091` counts her stamps and rewards there too: `kitchen_numbers` answers any kitchen's owner, chosen or not, so the line has no *si*
+  (the review of `10.9f`). Before *Eliminar mi
   cuenta*, what of the card goes (`alEliminarDe`). ⚠️ **Two things of hers on the phone's disk, and only these**: her key and the ids of her rewards it celebrated —
   her own, not a read of anyone's rows; both outlive *Cerrar sesión*, as her session's does not (the aviso says so).
   ⚠️ **To see it on the emulator**: a debug build carrying the camera (`10.9c`), the local switch on, a kitchen's code worked out by RFC 6238

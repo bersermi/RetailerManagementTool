@@ -385,8 +385,9 @@ describe('*Lo que cada cocina ve de ti* (G42) — what is true today, and no *nu
     const lista = loQueVenDe([apartado(ESPIGA, 'La Espiga'), apartado(MARI, 'Fonda Doña Mari'), apartado(ESPIGA, 'La Espiga')], [card()]);
     expect(lista.map((k) => k.nombre)).toEqual(['Fonda Doña Mari', 'La Espiga']);
     const L = ES.loQueVen;
-    // ⚠️ `10.9f`: her visits in its numbers, at every kitchen — where she reserves and where she holds a card.
-    expect(L.cuentas).toBe('Tus visitas, en las cuentas que ve su dueña, sin tu nombre');
+    // ⚠️ `10.9f`: her visits in its numbers, at every kitchen — where she reserves and where she holds a card; and since
+    // `10.9l` her stamps in them too.
+    expect(L.cuentas).toBe('Tus visitas y tus sellos, en las cuentas que ve su dueña, sin tu nombre');
     expect(lista[0].lineas).toEqual([L.nombreAmbos, L.calificacion, L.sellos, L.cuentas, L.sigues, L.ubicacion]);
     expect(lista[1].lineas).toEqual([L.nombreApartas, L.calificacion, L.cuentas, L.sigues, L.ubicacion]);
     expect(loQueVenDe([], [card()])[0].lineas).toEqual([L.nombreSello, L.sellos, L.cuentas, L.sigues, L.ubicacion]);

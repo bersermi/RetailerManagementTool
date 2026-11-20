@@ -11,6 +11,9 @@
 # ⚠️ And one fixture breaks the DATABASE instead (D1, the review of `10.9f`): `kitchen_events` re-made for its
 # run with a handover's stamp as a visit of its own, so the check's *one visit* verdict is seen red too — then
 # put back from `0086`'s own text, and the check run once more to show it green.
+# ⚠️ Since `10.9l` (`0091`): three fixtures break a key of the card's at each level (C10–C12), and one breaks the
+# database (D2): `card_numbers_in` re-made with no stamp counted as given at a handover, so the card's verdict is
+# seen red — then put back from `0091`'s own text, and the check run once more (D2b).
 #
 # Run:  supabase start && supabase db reset && bash docs/checks/10.9f-numbers-contract-falsify.sh
 # Exit: 0 every fixture behaved; 1 otherwise.
@@ -92,6 +95,15 @@ echo "C9  not-her-owner read under another code — she would read the generic s
 run C9 red "the app reads 'TD013'" \
   "s/^export const NO_ES_LA_DUENA = '42501';/export const NO_ES_LA_DUENA = 'TD013';/"
 
+echo "C10 the cards going one period earlier under another key — *hace una semana* never said (0091)"
+run C10 red "carried no 'tarjetas_activas'" \
+  '/^export interface Antes {/,/^}/s/^  readonly cards_going: number | null;/  readonly tarjetas_activas: number | null;/'
+echo "C11 the stamps at a handover under another key — where her stamps come from never said (0091)"
+run C11 red "the period 'dia' carried no 'handover_stamps'" \
+  '/^export interface EnElPeriodo extends Antes {/,/^}/s/^  readonly stamps_handover: number;/  readonly handover_stamps: number;/'
+echo "C12 the rewards waiting under another key — *N por entregar* never said (0091)"
+run C12 red "the answer carried no 'rewards_to_give'" \
+  '/^export interface Numeros {/,/^}/s/^  readonly rewards_waiting: number;/  readonly rewards_to_give: number;/'
 echo "D1  a handover's stamp counted as a visit of its own — her one visit drawn as two, one a walk-in"
 MIGRATION="supabase/migrations/0086_her_numbers.sql"
 python3 - "$MIGRATION" "$TMP/good.sql" "$TMP/bad.sql" <<'PY'
@@ -121,10 +133,37 @@ fi
 echo "D1b the control again, kitchen_events put back"
 if bash "$CHECK" > /dev/null 2>&1; then echo "  ✓ D1b — green"; pass=$((pass+1)); else echo "  ✗ D1b — red: D1 left the database broken"; fail=$((fail+1)); fi
 
+echo "D2  no stamp counted as given at a handover — the card's split drawn as all at the counter (0091)"
+python3 - "supabase/migrations/0091_her_numbers_with_the_card.sql" "$TMP/good2.sql" "$TMP/bad2.sql" <<'PY'
+import sys
+text = open(sys.argv[1]).read()
+start = text.index('create function servicio.card_numbers_in(')
+end = text.index('$$;', text.index('$$', start) + 2) + 3
+good = text[start:end].replace('create function', 'create or replace function', 1)
+bad = good.replace("from st where st.via = 'entrega'", "from st where st.via = 'su_codigo'")
+assert bad != good, 'the mutation changed nothing'
+open(sys.argv[2], 'w').write(good)
+open(sys.argv[3], 'w').write(bad)
+PY
+put_back2() { supabase db query --local -f "$TMP/good2.sql" > /dev/null 2>&1; }
+if supabase db query --local -f "$TMP/bad2.sql" > /dev/null 2>&1; then
+  out="$(bash "$CHECK" 2>&1)"; rc=$?
+  put_back2
+  phrase="came back stamps, at a handover, rewards won, claimed, cards erased = (1, 0, 0, 0, 0), not (1, 1, 0, 0, 0)"
+  if (( rc == 0 )); then echo "  ✗ D2 — expected red, got green"; fail=$((fail+1))
+  elif ! grep -qF "$phrase" <<< "$out"; then
+    echo "  ✗ D2 — red, but for the wrong reason. Wanted: $phrase"; sed 's/^/        /' <<< "$out" | grep FAIL | head -3; fail=$((fail+1))
+  else echo "  ✓ D2 — red"; pass=$((pass+1)); fi
+else
+  put_back2
+  echo "  ✗ D2 — could not re-make card_numbers_in for its run"; fail=$((fail+1))
+fi
+echo "D2b the control again, card_numbers_in put back"
+if bash "$CHECK" > /dev/null 2>&1; then echo "  ✓ D2b — green"; pass=$((pass+1)); else echo "  ✗ D2b — red: D2 left the database broken"; fail=$((fail+1)); fi
 echo
 echo "$pass passed, $fail failed."
-if (( pass + fail < 12 )); then
-  echo "FAIL: only $((pass + fail)) fixtures ran, expected 12."
+if (( pass + fail < 17 )); then
+  echo "FAIL: only $((pass + fail)) fixtures ran, expected 17."
   exit 1
 fi
 (( fail == 0 )) || exit 1

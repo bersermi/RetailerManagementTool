@@ -1,13 +1,26 @@
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { Redirect, router } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ComponentProps } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 
 import { esDuena } from '@/api/equipo';
-import { useElegirServicios, useKitchen, useNumeros, useServicios, useSuRol } from '@/api/hooks';
+import { useElegirServicios, useKitchen, useNumeros, useServicios, useSuRol, useTarjeta } from '@/api/hooks';
 import { PERIODOS, type Periodo } from '@/api/numeros';
 import { conTarjeta } from '@/lib/ayudante';
+import { ICONO_DE } from '@/lib/loQueUsas';
 import { useNota } from '@/lib/NotaProvider';
-import { diasFuertes, horasFuertes, leidoHoy, PERIODO_INICIAL, respuestasDe, subtituloDe, type Respuesta } from '@/lib/numeros';
+import {
+  diasFuertes,
+  horasFuertes,
+  leidoHoy,
+  PERIODO_INICIAL,
+  respuestasDe,
+  resumenDe,
+  subtituloDe,
+  tarjetaDe,
+  type DelResumen,
+  type Respuesta,
+} from '@/lib/numeros';
 import { useAhora } from '@/lib/useAhora';
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
@@ -25,9 +38,14 @@ import { Segmento } from '@/ui/Segmento';
 //   - *Así funciona* the first time (`PASOS_DE`), gone when she picks a period or closes it;
 //   - what is counted, true today — her reservations, and the stamps only while she uses the card;
 //   - *Día · Semana · Mes*, *Semana* first (the drawing's);
-//   - five questions answered, each against the whole period before (`@/lib/numeros`' `respuestasDe`):
-//     plates, visits (*N sin apartar, con su sello*), neighbours and how many came back — *Aparece desde
-//     cinco vecinos* under the floor, which is the database's — and pesos *a precio publicado*;
+//   - ⚠️ since `10.9l` (his ruling of 2026-11-19, night: *"Yes to everything"*), ONE SCROLL: on top the
+//     summary row, *platos · visitas · sellos* (*vecinos* without the card), each against the period before;
+//   - *Tus apartados*: five questions answered, each against the whole period before (`@/lib/numeros`'
+//     `respuestasDe`): plates, visits (*N sin apartar, con su sello*), neighbours and how many came back —
+//     *Aparece desde cinco vecinos* under the floor, which is the database's — and pesos *a precio publicado*;
+//   - *Tu tarjeta de lealtad*, only while her kitchen uses the card (`10.9l`, `tarjetaDe`): six answers —
+//     visits that got a stamp, rewards, cards going, new cards, how often they come back, cards erased with
+//     *Cambiar cuándo se borran ›* (`10.9k`'s setup);
 //   - *Tus días fuertes* (a week or a month) and *Tus horas fuertes*, as bars;
 //   - *Cuentas de tus entregas, sin nombres.* and *Dejar de ver tus números* — off from its own screen,
 //     back to *Hoy* with *Deshacer*.
@@ -44,6 +62,10 @@ export default function TusNumeros() {
   const duena = esDuena(rol);
   const servicios = useServicios(kitchenId);
   const numeros = useNumeros(kitchenId, { activa: duena });
+  const usaTarjeta = conTarjeta(servicios.data);
+  // Her rule for erasing stamps, said under *¿Cuántas tarjetas se borraron?* — read only while she uses the card.
+  const tarjeta = useTarjeta(kitchenId, { activa: duena && usaTarjeta });
+  const diasSinVenir = tarjeta.data?.terms != null ? tarjeta.data.terms.expiry_days : undefined;
   const { elegir, busy: quitando } = useElegirServicios(kitchenId);
   const { avisar } = useNota();
   const ahora = useAhora(60_000);
@@ -86,7 +108,7 @@ export default function TusNumeros() {
             <AsiFunciona servicio="numeros" onCerrar={asi.cerrar} />
           </Llega>
         )}
-        <Text style={{ fontSize: SIZE.smallSize, lineHeight: 19, color: PALETTE.tintaApagada }}>{subtituloDe(conTarjeta(servicios.data), hoy)}</Text>
+        <Text style={{ fontSize: SIZE.smallSize, lineHeight: 19, color: PALETTE.tintaApagada }}>{subtituloDe(usaTarjeta, hoy)}</Text>
         <Segmento<Periodo>
           mitades={PERIODOS.map((p) => ({ valor: p, label: ES.numeros.periodos[p] }))}
           valor={periodo}
@@ -104,14 +126,28 @@ export default function TusNumeros() {
             </Llega>
           ) : (
             <>
+              <Llega i={1}>
+                <Resumen numeros={resumenDe(hoy, periodo, usaTarjeta)} />
+              </Llega>
+              <Seccion icono="silverware-fork-knife" titulo={ES.numeros.apartados} tono="apartados" />
               {respuestasDe(hoy, periodo).map((r, i) => (
-                <Llega key={r.clave} i={1 + i}>
+                <Llega key={r.clave} i={2 + i}>
                   <Tarjeta respuesta={r} />
                 </Llega>
               ))}
+              {usaTarjeta && (
+                <>
+                  <Seccion icono={ICONO_DE.tarjeta} titulo={ES.numeros.tarjeta} tono="tarjeta" />
+                  {tarjetaDe(hoy, periodo, diasSinVenir).map((r, i) => (
+                    <Llega key={r.clave} i={7 + i}>
+                      <Tarjeta respuesta={r} onCambiar={r.cambiar ? () => router.push('/preparar-tarjeta') : undefined} />
+                    </Llega>
+                  ))}
+                </>
+              )}
               {diasFuertes(hoy, periodo).length > 0 && <Barras titulo={ES.numeros.diasFuertes} barras={diasFuertes(hoy, periodo)} />}
               {horasFuertes(hoy, periodo).length > 0 && <Barras titulo={ES.numeros.horasFuertes} barras={horasFuertes(hoy, periodo)} />}
-              <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada }}>{ES.numeros.sinNombres}</Text>
+              <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada }}>{usaTarjeta ? ES.numeros.sinNombresConSellos : ES.numeros.sinNombres}</Text>
             </>
           )
         ) : sinLeer ? (
@@ -146,22 +182,101 @@ export default function TusNumeros() {
   );
 }
 
-/** One question answered: what it asks, small; the answer, large; what is under it; and how many came back as a bar. */
-function Tarjeta({ respuesta }: { respuesta: Respuesta }) {
+/**
+ * One question answered: what it asks, small; the answer, large; what is under it; a share as a bar; a second line (the
+ * card's); and *Cambiar cuándo se borran ›*, a link of its own, outside the card's reading.
+ */
+function Tarjeta({ respuesta, onCambiar }: { respuesta: Respuesta; onCambiar?: () => void }) {
   return (
-    <View
-      accessible
-      accessibilityLabel={`${respuesta.pregunta} ${respuesta.respuesta}. ${respuesta.detalle}`}
-      style={{ gap: 2, padding: SIZE.space, borderRadius: 14, borderWidth: 1, borderColor: PALETTE.linea, backgroundColor: PALETTE.superficie }}
-    >
-      <Text style={{ fontSize: SIZE.smallSize, fontWeight: '700', color: PALETTE.tintaApagada }}>{respuesta.pregunta}</Text>
-      <Text style={{ fontSize: SIZE.titleSize + 4, fontWeight: '800', color: PALETTE.tinta }}>{respuesta.respuesta}</Text>
-      <Text style={{ fontSize: SIZE.smallSize, lineHeight: 18, color: PALETTE.tintaApagada }}>{respuesta.detalle}</Text>
-      {respuesta.barra !== null && (
-        <View style={{ marginTop: 6, height: 8, borderRadius: 4, backgroundColor: PALETTE.accionSuave, overflow: 'hidden' }}>
-          <View style={{ width: `${Math.round(respuesta.barra * 100)}%`, height: '100%', borderRadius: 4, backgroundColor: PALETTE.accion }} />
-        </View>
+    <View style={{ borderRadius: 14, borderWidth: 1, borderColor: PALETTE.linea, backgroundColor: PALETTE.superficie }}>
+      <View
+        accessible
+        accessibilityLabel={[`${respuesta.pregunta} ${respuesta.respuesta}`, respuesta.detalle, respuesta.debajo].filter(Boolean).join('. ')}
+        style={{ gap: 2, padding: SIZE.space }}
+      >
+        <Text style={{ fontSize: SIZE.smallSize, fontWeight: '700', color: PALETTE.tintaApagada }}>{respuesta.pregunta}</Text>
+        <Text style={{ fontSize: SIZE.titleSize + 4, fontWeight: '800', color: PALETTE.tinta }}>{respuesta.respuesta}</Text>
+        <Text style={{ fontSize: SIZE.smallSize, lineHeight: 18, color: PALETTE.tintaApagada }}>{respuesta.detalle}</Text>
+        {respuesta.barra !== null && (
+          <View style={{ marginTop: 6, height: 8, borderRadius: 4, backgroundColor: PALETTE.accionSuave, overflow: 'hidden' }}>
+            <View style={{ width: `${Math.round(respuesta.barra * 100)}%`, height: '100%', borderRadius: 4, backgroundColor: PALETTE.accion }} />
+          </View>
+        )}
+        {respuesta.debajo !== undefined && (
+          <Text style={{ marginTop: 4, fontSize: SIZE.smallSize, lineHeight: 18, color: PALETTE.tintaApagada }}>{respuesta.debajo}</Text>
+        )}
+      </View>
+      {onCambiar !== undefined && (
+        <Pressable
+          accessibilityRole="link"
+          accessibilityLabel={ES.numeros.cambiarCuando}
+          onPress={onCambiar}
+          style={({ pressed }) => ({
+            minHeight: SIZE.tapTarget,
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 2,
+            paddingHorizontal: SIZE.space,
+            borderTopWidth: 1,
+            borderTopColor: PALETTE.linea,
+            opacity: pressed ? 0.6 : 1,
+          })}
+        >
+          <Text style={{ fontSize: SIZE.bodySize - 1, fontWeight: '700', color: PALETTE.accion }}>{ES.numeros.cambiarCuando}</Text>
+          <MaterialCommunityIcons name="chevron-right" size={18} color={PALETTE.accion} />
+        </Pressable>
       )}
+    </View>
+  );
+}
+
+/** The summary row on top: three numbers side by side, each with what it counts and the period before (`10.9l`). */
+function Resumen({ numeros }: { numeros: readonly DelResumen[] }) {
+  return (
+    <View style={{ flexDirection: 'row', gap: SIZE.rowGap }}>
+      {numeros.map((n) => (
+        <View
+          key={n.clave}
+          accessible
+          accessibilityLabel={`${n.cifra} ${n.que}, ${n.antes}`}
+          style={{
+            flex: 1,
+            alignItems: 'center',
+            gap: 1,
+            paddingVertical: SIZE.space - 2,
+            paddingHorizontal: 6,
+            borderRadius: 14,
+            borderWidth: 1,
+            borderColor: n.clave === 'sellos' ? PALETTE.accion : PALETTE.linea,
+            backgroundColor: PALETTE.superficie,
+          }}
+        >
+          <Text style={{ fontSize: SIZE.titleSize + 4, fontWeight: '800', color: PALETTE.tinta }}>{n.cifra}</Text>
+          <Text style={{ fontSize: SIZE.smallSize, fontWeight: '600', color: PALETTE.tinta }}>{n.que}</Text>
+          <Text style={{ fontSize: SIZE.smallSize - 1.6, color: PALETTE.tintaApagada, textAlign: 'center' }}>{n.antes}</Text>
+        </View>
+      ))}
+    </View>
+  );
+}
+
+/** A section's head: its icon on its tint, and its name — *Tus apartados*, *Tu tarjeta de lealtad* (`10.9l`). */
+function Seccion({
+  icono,
+  titulo,
+  tono,
+}: {
+  icono: ComponentProps<typeof MaterialCommunityIcons>['name'];
+  titulo: string;
+  tono: 'apartados' | 'tarjeta';
+}) {
+  const [fondo, tinta] = tono === 'tarjeta' ? [PALETTE.accionSuave, PALETTE.accion] : [PALETTE.marcaSuave, PALETTE.marca];
+  return (
+    <View accessibilityRole="header" style={{ flexDirection: 'row', alignItems: 'center', gap: SIZE.rowGap, marginTop: 4 }}>
+      <View style={{ width: 26, height: 26, borderRadius: 8, alignItems: 'center', justifyContent: 'center', backgroundColor: fondo }}>
+        <MaterialCommunityIcons name={icono} size={16} color={tinta} />
+      </View>
+      <Text style={{ fontSize: SIZE.bodySize + 2, fontWeight: '800', color: PALETTE.tinta }}>{titulo}</Text>
     </View>
   );
 }
