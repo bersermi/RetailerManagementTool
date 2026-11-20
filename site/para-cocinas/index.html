@@ -9,8 +9,10 @@
   <link rel="stylesheet" href="../estilo.css">
 </head>
 <body class="sitio tono-cocina">
+<svg class="tinta-def" aria-hidden="true" focusable="false"><filter id="tinta" x="-6%" y="-6%" width="112%" height="112%"><feTurbulence type="fractalNoise" baseFrequency="0.75" numOctaves="2" seed="4" result="r1"/><feDisplacementMap in="SourceGraphic" in2="r1" scale="2.6" xChannelSelector="R" yChannelSelector="G" result="d"/><feTurbulence type="fractalNoise" baseFrequency="1.3" numOctaves="1" seed="11" result="r2"/><feColorMatrix in="r2" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -2.4 0 0 0 2.05" result="m"/><feComposite in="d" in2="m" operator="in"/></filter></svg>
 <!-- Plan 5R-r: Wera Cocina's page. NOT /cocina/ — that path is each kitchen's own address (10.9c, G40).
-     Wera Cocina is in no store yet: no store button. Never call it free: a fee may come later. -->
+     Wera Cocina is in no store yet: no store button. Never call it free: a fee may come later.
+     Plan 5R-s: the loyalty card beside the title is a drawing (aria-hidden). -->
 <header class="cabecera">
   <div class="envoltura">
     <a class="marca" href="../">Wera</a>
@@ -25,30 +27,44 @@
 <main>
 
 <section class="portada">
-  <div class="envoltura">
-    <img class="icono" src="../img/cocina-icono.png" alt="" width="72" height="72">
-    <h1 class="titulo-app">Wera Cocina</h1>
-    <p class="entrada">Vende hasta el último plato, y que tus clientes regresen.</p>
+  <div class="envoltura con-tarjeta">
+    <div class="portada-texto">
+      <img class="icono" src="../img/cocina-icono.png" alt="" width="72" height="72">
+      <h1 class="titulo-app">Wera Cocina</h1>
+      <p class="entrada">Vende hasta el último plato, y que tus clientes regresen.</p>
+    </div>
+    <div class="tarjeta" aria-hidden="true">
+      <div class="tarjeta-cab"><span class="tarjeta-nombre">Tu cocina</span><span class="tarjeta-meta">Tarjeta de lealtad</span></div>
+      <div class="sellos">
+        <span class="hueco"><span class="vaca"></span></span>
+        <span class="hueco"><span class="vaca"></span></span>
+        <span class="hueco"><span class="vaca"></span></span>
+        <span class="hueco nuevo"><span class="vaca"></span></span>
+        <span class="hueco"></span><span class="hueco"></span><span class="hueco"></span><span class="hueco"></span>
+      </div>
+      <div class="tarjeta-pie"><span>Ejemplo</span><span>8 sellos</span></div>
+    </div>
   </div>
 </section>
 
 <section class="seccion">
   <div class="envoltura">
-    <div class="cuatro">
-      <div class="punto">
-        <h2>Tu tarjeta de lealtad</h2>
+    <div class="nota">
+      <p class="nota-cab"><span class="vaca" aria-hidden="true"></span>Wera Cocina</p>
+      <div class="renglon">
+        <h2 class="sellito">Tu tarjeta de lealtad</h2>
         <p>Con tu color y tu logo. Tú pones el premio y cuántos sellos; se sella con un código QR.</p>
       </div>
-      <div class="punto">
-        <h2>Tu oferta del día</h2>
-        <p>Tu precio, cuántos y tu hora. Tus vecinos la apartan en Itacate y pasan por ella a tu mostrador.</p>
+      <div class="renglon">
+        <h2 class="sellito">Tu oferta del día</h2>
+        <p>Tu precio, cuántos platos y tu hora. Tus vecinos la apartan en Itacate y pasan por ella a tu mostrador.</p>
       </div>
-      <div class="punto">
-        <h2>Tus números</h2>
-        <p>Cuántos platos, cuántas visitas y cuántos clientes regresan.</p>
+      <div class="renglon">
+        <h2 class="sellito">Tus números</h2>
+        <p>Cuántos platos vendes, cuántas visitas tienes y cuántos clientes regresan.</p>
       </div>
-      <div class="punto">
-        <h2>Tu cartel</h2>
+      <div class="renglon">
+        <h2 class="sellito">Tu cartel</h2>
         <p>Imprime el cartel de tu mostrador, con tu QR y tu nombre.</p>
       </div>
     </div>
@@ -57,8 +73,8 @@
 
 <section class="seccion">
   <div class="envoltura">
-    <div class="llamado">
-      <p class="frase">Tus clientes te pagan a ti, en tu mostrador: en efectivo, o con tarjeta o transferencia si los
+    <div class="talon llamado">
+      <p class="frase">Tus clientes te pagan a ti, en tu mostrador: en efectivo, o con tarjeta o transferencia si las
       aceptas.</p>
       <p class="estado">Ya en manos de sus primeros usuarios. Para todos, a fin de año.</p>
     </div>
@@ -69,7 +85,7 @@
   <div class="envoltura">
     <p class="frase-fuerte">¿Quieres probarla en tu cocina? Escríbenos a
     <a href="mailto:ayuda@tu-wera.com">ayuda@tu-wera.com</a>.</p>
-    <ul class="enlaces">
+    <ul class="enlaces despues">
       <li><a href="../privacidad/cocina-e-itacate/">Aviso de Wera Cocina e Itacate</a></li>
       <li><a href="../eliminar-cuenta/cocina/">Eliminar tu cuenta de Wera Cocina</a></li>
     </ul>

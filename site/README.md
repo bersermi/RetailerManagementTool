@@ -5,15 +5,22 @@ its one script to reading the address bar). Written by plan task `5R-d-i`; publi
 through `.github/workflows/site.yml` (GitHub Pages), on every push to `main` that touches
 `site/`. **This file is not published**: the build leaves it out. **Since `5R-r` (2026-11-20) the site has
 pages of its own** — a page per app, the owner's page, *Tus datos* and *Ayuda* — in the words he approved on
-2026-11-19, with the Wera mark in every page's header and titles in Nunito ExtraBold; the legal pages keep
-their text and markup and take only the shared stylesheet.
+2026-11-19, with the Wera mark in every page's header; the legal pages keep
+their text and markup and take only the shared stylesheet. **Since `5R-s` (2026-11-20) it is drawn as the
+paperwork of a counter** — his pick of three proposals, *A · Sello*: the grey of a counter, white sheets, perforated
+tickets, rubber stamps inked in each app's colour, a notebook page, an envelope, kraft at the foot; Archivo and
+Mansalva instead of Nunito; every movement CSS, and none when the phone asks for reduced motion (`estilo.css`'s
+header says how each piece is drawn).
 
 ⚠️ **Rules for any word on the site's own pages** (his rulings): never *barrio* — *local*, *comercios
 locales*, *colonia* only for a place; never *gratis* for Wera Cocina (a fee may come later; true, and said in person rather
 than on the site since his review of 2026-11-20: *Durante el piloto no cobramos comisión*); never «lo que
 sobra» where a fonda or neighbour reads (ruled 2026-11-05) — *aprovechar*, *vender hasta el último plato*; Wera Cocina and Itacate are in no store yet — no store button for them, and
 their line is *Ya en manos de sus primeros usuarios. Para todos, a fin de año.*; no prices; no phone number
-in any file (the placeholders below).
+in any file (the placeholders below); ⚠️ **never a sentence that talks down to whoever reads it** — his
+ruling of 2026-11-20 on *Reglas claras sobre tus datos, en palabras de mostrador* (*"un poco denigrante"*), which
+took with it *Sabe por fin…*, *para que una tienda sepa por fin…* and *les ayudo a entender sus números*: say what
+the tool does for them, never what they lacked before it.
 
 | Page | URL once published | What it is for |
 |---|---|---|
@@ -33,9 +40,9 @@ in any file (the placeholders below).
 | `cocina/index.html` | `tu-wera.com/cocina/?k=<id>&n=<nombre>` | **A kitchen's address** (`10.9c`, G40: the poster's QR, *Compartir mi página*, a neighbour sharing a kitchen). With Itacate on the phone the phone opens Itacate on her page instead; without it, this page: her name read from the link's `n` by the site's one script (nothing is readable without an account — ADR-035 §2.7), *Ya tengo Itacate: abrir esta cocina* (the app's scheme, for a browser that kept the address), and the stores — Google Play's listing; the App Store's line says Itacate is not there yet until its record exists (`10.5b-vi`). ⚠️ Anyone can write any name into a link: the page shows it as text, never as markup, at most 60 characters |
 | `.well-known/apple-app-site-association` | `tu-wera.com/.well-known/apple-app-site-association` | **The iPhone's half of a kitchen's address** (`10.9c`): Itacate (`RGWA74UM3G.mx.wera.vecino`) opens `/cocina/*`. No extension — the name Apple asks for. Apple's CDN fetches it on its own schedule (`5R-d-ii-site-live.sh` reads its copy) |
 | `.well-known/assetlinks.json` | `tu-wera.com/.well-known/assetlinks.json` | **Android's half** (`10.9c`): `mx.wera.vecino` and the SHA-256 of each key that signs it — today the key EAS signs every build with. ⚠️ **Play re-signs what it installs with its own key** (Play Console → Itacate → *App integrity*): until that one is listed too, Itacate installed from Play opens this site's page, never itself. `itacate/test/enlaces.test.ts` holds both files to Itacate's `app.json` |
-| `estilo.css` | — | The app's palette (`app/src/theme/palette.ts`), light only, as the app is; since `5R-r` each app's colour (rust `#B5561F`, green `#1C6B4B`, blue `#24476B`; the owner's page teal `#1F5F5B`), the site's own pages' layouts under `.sitio`, and the mark in every header (`img/wera-marca.svg`) |
+| `estilo.css` | — | Each app's colour (rust `#B5561F`, green `#1C6B4B`, blue `#24476B`; the owner's page teal `#1F5F5B`), light only, as the apps are, and the mark in every header (`img/wera-marca.svg`). **Since `5R-s`** the counter's paperwork: the legal pages on one white sheet, the site's own pages' pieces under `.sitio` (`.talon`, `.estampa`, `.nota` with its `.renglon`s and `.sellito`s, `.libreta`, `.sobre`, `.tarjeta`, `.pie` in kraft). The mark is also a mask (`.vaca`), so a stamp inks it in any colour. ⚠️ **The ink is an SVG filter, `#tinta`, written inline after `<body>` on each of the seven own pages** — a CSS filter can only point at its own page, so a new page that uses a stamp copies it too. No page has a full ground of guinda, blue or orange |
 | `img/` | — | `5R-r`: `wera-marca.svg` — `brand/wera-mark.svg` in its rust, its comments left in `brand/` (change the mark there, then here); the three app icons at 192 px (`store/google-play/icono-512.png`, `store/cocina-itacate/{cocina,itacate}-icono-512.png`); Wera's three screenshots at 960 px |
-| `letras/` | — | `5R-r`: Nunito ExtraBold, Wera's title font (`app/src/marca/letras/`, byte for byte), with its licence (SIL OFL 1.1, which lets a font be served with its notice) |
+| `letras/` | — | **Since `5R-s`**: Archivo (one variable file, width 62–125 %, weight 400–900) and Mansalva (a hand, for loose notes only), each the latin subset Google Fonts serves (`woff2`, fetched 2026-11-20), with its licence (SIL OFL 1.1, no reserved name, which lets a font be served with its notice). Nunito ExtraBold, `5R-r`'s title font, left the site with it; the apps keep theirs |
 
 ## ⚠️ Four placeholders, filled only when the page is published
 
