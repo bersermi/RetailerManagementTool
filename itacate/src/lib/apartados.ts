@@ -30,6 +30,14 @@ import { ES } from '@/strings';
  */
 export const YA_LO_TENGO_DESPUES_MS = 24 * 3_600_000;
 
+/**
+ * ⚠️ `10.9j-ii-a` (J2): how wide her ticket's QR is drawn, in points (`@/ui/BoletoApartado`). A seal is
+ * about 150 to 300 characters (`0088`: a dish's name of up to 80, percent-encoded, is in it) — a QR of
+ * about 53 to 73 squares at level M plus its quiet zone — so each square is 2.7 to 3.6 points, which a
+ * phone's camera reads at a counter's distance; `test/qrApartado.test.ts` holds the longest to 2.5.
+ */
+export const QR_LADO = 220;
+
 /** The tab, in four parts: her tickets, a cancel by the kitchen while its window is open, a plate to confirm, and the rest. */
 export interface Secciones {
   /** Still to collect, the soonest first — each a whole ticket. */
@@ -58,6 +66,16 @@ export function seccionesDe(apartados: readonly Apartado[], ahora: Date): Seccio
   return { pendientes, avisos, porConfirmar, anteriores };
 }
 
+/**
+ * ⚠️ `10.9j-ii-a` (J1): WHETHER *APARTADOS* OPENS BY ITSELF — the app's first signal reading was
+ * none, her phone keeps a ticket still to collect (one the database sealed — `0088` — and she has
+ * not swiped), and it has not opened by itself this run already. `primera` is `undefined` until the
+ * signal has been read at all, and `null` is not *no signal*.
+ */
+export function abreSuBoleto(primera: boolean | null | undefined, apartados: readonly Apartado[] | undefined, yaAbierto: boolean): boolean {
+  return !yaAbierto && primera === false && (apartados ?? []).some((a) => a.sello !== null);
+}
+
 /** What is still to collect, as one key — her standing is read again when it changes (`useApartados`). */
 export function pendientesDe(apartados: readonly Apartado[]): string {
   return apartados
@@ -70,6 +88,14 @@ export function pendientesDe(apartados: readonly Apartado[]): string {
 /** Whether any reservation is still to collect — the tab then reads the list again every minute. */
 export function hayPendientes(apartados: readonly Apartado[] | undefined): boolean {
   return (apartados ?? []).some((a) => a.estado === 'apartado');
+}
+
+/**
+ * ⚠️ `10.9j-ii-a`: *Sin señal. Lo que ves se leyó a las 13:40.* — *ayer a las 21:40*, *lun 27 a las 9:00*
+ * on another day. Wera Cocina's rule (`cocina/src/lib/apartados.ts`' `sinSenalTexto`).
+ */
+export function sinSenalTexto(leidoEn: Date, ahora: Date): string {
+  return ES.senal.sinSenal(daysFrom(ahora, leidoEn) === 0 ? null : dayOf(leidoEn, ahora).toLowerCase(), clockOf(leidoEn));
 }
 
 /** *a las 17:45* — and *a la 1:00*. */

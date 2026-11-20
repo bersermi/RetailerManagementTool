@@ -249,7 +249,8 @@ describe('¿Seguir a …? — once, after her first pickup at a kitchen (G20)', 
   it('under Ya lo tienes and under a past plate — read from the list as it is now', () => {
     const tab = code('app/(vecino)/apartados.tsx');
     expect(tab).toMatch(/preguntarSeguir\(apartado, lista \?\? \[\], siguiendo\.data, ahora\)/);
-    expect(tab).toMatch(/\{pregunta\(recogido\.id\) && \(\s*<PreguntaSeguir/);
+    // ⚠️ `10.9j-ii-a`: once her *Ya lo tengo* has landed — never while it waits on her phone, nor after a refusal.
+    expect(tab).toMatch(/\{!esperando && rechazado === null && pregunta\(recogido\.id\) && \(\s*<PreguntaSeguir/);
     expect(tab).toMatch(/\{recogido\?\.id !== apartado\.id && pregunta\(apartado\.id\) && \(/);
     // Seguir follows and leaves the bell as it is (`0084` stores it off).
     expect(code('ui/PreguntaSeguir.tsx')).toMatch(/cambiar\(cocinaId, \{ siguiendo: true \}\)/);

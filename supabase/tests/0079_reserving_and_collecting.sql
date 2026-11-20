@@ -208,10 +208,11 @@ select public.chk('1.2 ⚠️ who reserved is granted to nobody: every other col
         where table_schema = 'public' and table_name = 'reservation' and grantee = 'authenticated'
           and privilege_type = 'SELECT') = 18);  -- 16 in 0079; 0080 granted cancelled_by and cancel_reason
 select public.chk('1.3 the six doors: a signed-in person may call each, nobody signed out',
+  -- 0088 re-created confirm_my_pickup with a second argument, defaulted: her minute (J4).
   (select bool_and(has_function_privilege('authenticated', f, 'execute') and not has_function_privilege('anon', f, 'execute'))
      from unnest(array['public.reserve_plate(uuid, uuid, integer, timestamptz, text, text)',
                        'public.my_reservations()', 'public.cancel_my_reservation(uuid)',
-                       'public.confirm_my_pickup(uuid)', 'public.hand_over_reservation(uuid, timestamptz)',
+                       'public.confirm_my_pickup(uuid, timestamptz)', 'public.hand_over_reservation(uuid, timestamptz)',
                        'public.set_listing_quantity(uuid, integer, numeric)']::regprocedure[]) f));
 select public.chk('1.4 the two definitions are granted to nobody who signs in',
   -- 0080 re-created it with a sixth argument, defaulted: who cancelled, for the kitchen's cancel.

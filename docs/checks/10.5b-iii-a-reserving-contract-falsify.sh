@@ -119,10 +119,23 @@ echo "C17 the refusal after the day read under another code — she would read t
 run C17 red "the app reads 'TD098'" \
   "s/^  TD022: 'yaNoSeCalifica',/  TD098: 'yaNoSeCalifica',/"
 
+# `10.9j-ii-a`: her minute on Ya lo tengo, and the seal on her ticket (`0088`).
+echo "C18 her minute sent under another name — no function by these arguments, and no swipe could ever land"
+run C18 red "answered 404 — no function by the arguments' names" \
+  '/^export interface ConfirmArgs {/,/^}/s/^  readonly p_at: string;/  readonly p_moment: string;/'
+
+echo "C19 the seal read under a key the database does not write — no ticket would ever show its QR"
+run C19 red "a reservation carried no 'sello'" \
+  '/^export interface ReservationRow {/,/^}/s/^  readonly seal: string | null;/  readonly sello: string | null;/'
+
+echo "C20 the seal's shape misspelt — the app would draw no QR on any ticket"
+run C20 red "her ticket's seal did not start with 's2|'" \
+  "s/^export const SELLO_FORMA = 's1';/export const SELLO_FORMA = 's2';/"
+
 echo
 echo "$pass passed, $fail failed."
-if (( pass + fail < 18 )); then
-  echo "FAIL: only $((pass + fail)) fixtures ran, expected 18."
+if (( pass + fail < 21 )); then
+  echo "FAIL: only $((pass + fail)) fixtures ran, expected 21."
   exit 1
 fi
 (( fail == 0 )) || exit 1

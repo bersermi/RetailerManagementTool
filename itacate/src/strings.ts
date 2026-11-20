@@ -471,6 +471,16 @@ export const ES = {
     comer: { llevar: 'para llevar', aqui: 'para comer aquí' },
     tuCodigo: 'Tu código',
     dilo: { llevar: 'Dilo o enséñalo al recoger.', aqui: 'Dilo o enséñalo al llegar.' },
+    /**
+     * ⚠️ `10.9j-ii-a` (the owner's J2 of 2026-11-20): THE QR ON HER TICKET — the seal her kitchen's
+     * phone checks with no signal, without her name. Under her code, always: scanning is quicker
+     * than typing, and with no signal it is the only way the kitchen's phone can check her ticket.
+     */
+    qr: {
+      nota: 'Si la cocina no tiene señal, enséñale este código.',
+      /** What a screen reader hears for the QR. */
+      etiqueta: (codigo: string) => `Código QR del apartado ${codigo}`,
+    },
     /** Her hour: *a las 17:45*, *a la 1:00*. */
     aLas: (hora: string) => (hora.startsWith('1:') ? `a la ${hora}` : `a las ${hora}`),
     /** Until when: *hasta las 16:00*, *hasta la 1:30*. */
@@ -511,6 +521,14 @@ export const ES = {
       no: 'Sí voy a ir',
     },
     yaLoTienes: 'Ya lo tienes. ¡Buen provecho!',
+    /**
+     * ⚠️ `10.9j-ii-a` (the owner's J4 of 2026-11-20): HER *YA LO TENGO* KEPT ON THE PHONE until the
+     * signal returns, with the minute she swiped — and her stars wait for it (`rate_until` is the
+     * database's). Wera Cocina's *Guardada en este teléfono. Se envía sola cuando vuelve la señal.*, said
+     * of a swipe.
+     */
+    guardado: 'Guardado en este teléfono. Se envía solo cuando vuelva la señal.',
+    calificarDespues: 'Podrás calificar a la cocina cuando vuelva la señal.',
     /**
      * ⚠️ `10.5b-iii-b`: HER STARS ABOUT THE KITCHEN, after *Ya lo tengo* (`10.5b-ii`'s final design,
      * the page's *After Ya lo tengo*): one tap of the stars, then the tags of their band and a note
@@ -602,6 +620,19 @@ export const ES = {
    * the app that shows it. `@/lib/ventana` is Wera Cocina's, copied, and
    * `test/gemelos.test.ts` holds both to Wera Cocina's files.
    */
+  /**
+   * ⚠️ `10.9j-ii-a` (the owner's J1 of 2026-11-20): WITH NO SIGNAL, HER TICKETS ARE WHAT HER PHONE
+   * KEPT, and the screen says when they were read (ADR-035 §2.6: reads from the phone with visible
+   * staleness). Wera Cocina's words for its counter (`cocina/src/strings.ts`' `ES.cola.sinSenal`,
+   * `sinDatos`), held to them by `test/gemelos.test.ts` — the family says it one way.
+   */
+  senal: {
+    /** *Sin señal. Lo que ves se leyó a las 13:40.* — or *ayer a las 21:40*. */
+    sinSenal: (dia: string | null, hora: string) =>
+      dia === null ? `Sin señal. Lo que ves se leyó a las ${hora}.` : `Sin señal. Lo que ves se leyó ${dia} a las ${hora}.`,
+    /** With no signal and nothing ever read on this phone. */
+    sinDatos: 'Sin señal. Tus apartados aparecen aquí en cuanto vuelva.',
+  },
   fechas: {
     hoy: 'Hoy',
     manana: 'Mañana',

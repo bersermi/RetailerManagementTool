@@ -7,6 +7,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { QueryProvider } from '@/api/QueryProvider';
 import { AuthProvider, useAuth } from '@/auth/AuthProvider';
 import { groupOf, paraDespues, redirectFor } from '@/auth/guard';
+import { ColaProvider } from '@/lib/ColaProvider';
 import { DistanciasProvider } from '@/lib/DistanciasProvider';
 import { DondeBuscarProvider } from '@/lib/DondeBuscarProvider';
 import { FUENTES } from '@/theme/letra';
@@ -39,14 +40,17 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <AuthProvider>
         <QueryProvider>
-          <Gate />
-          {/* Dark icons, always: the app is light only, as Wera (`8g`). */}
-          <StatusBar style="dark" />
-          <DistanciasProvider>
-            <DondeBuscarProvider>
-              <Stack screenOptions={{ headerShown: false }} />
-            </DondeBuscarProvider>
-          </DistanciasProvider>
+          {/* ⚠️ `10.9j-ii-a`: the signal and her *Ya lo tengo* queue, for the app's life (`@/lib/ColaProvider`). */}
+          <ColaProvider>
+            <Gate />
+            {/* Dark icons, always: the app is light only, as Wera (`8g`). */}
+            <StatusBar style="dark" />
+            <DistanciasProvider>
+              <DondeBuscarProvider>
+                <Stack screenOptions={{ headerShown: false }} />
+              </DondeBuscarProvider>
+            </DistanciasProvider>
+          </ColaProvider>
         </QueryProvider>
       </AuthProvider>
     </GestureHandlerRootView>

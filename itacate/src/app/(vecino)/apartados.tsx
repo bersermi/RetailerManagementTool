@@ -4,11 +4,15 @@ import { useCallback, useState } from 'react';
 import { ActivityIndicator, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
 
 import { porCalificar, type Apartado } from '@/api/apartados';
+import { rechazoDe, recogiEsperando } from '@/api/cola';
 import { apiErrorMessage } from '@/api/errors';
 import { useApartados, useCancelarApartado, useCocinas, useSiguiendo, useYaLoTengo } from '@/api/hooks';
+import { useAuth } from '@/auth/AuthProvider';
 import { anteriorTexto, pasaTexto, platoTexto, porConfirmarTexto, puedeCancelar, razonTexto, seccionesDe } from '@/lib/apartados';
+import { useCola } from '@/lib/cola';
 import { preguntarSeguir } from '@/lib/misCocinas';
 import { useAhora } from '@/lib/useAhora';
+import { useSenal } from '@/lib/useSenal';
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
 import { Banda } from '@/ui/Banda';
@@ -21,6 +25,7 @@ import { Grupo } from '@/ui/Grupo';
 import { Hoja } from '@/ui/Hoja';
 import { Llega } from '@/ui/Llega';
 import { PreguntaSeguir, marcarRespondida, respondida as yaRespondida } from '@/ui/PreguntaSeguir';
+import { SinSenal } from '@/ui/SinSenal';
 
 // ============================================================================
 // *APARTADOS*. Plan task `10.5b-iii-a` — the second tab from `10.5-v-b`, filled as the
@@ -49,6 +54,12 @@ import { PreguntaSeguir, marcarRespondida, respondida as yaRespondida } from '@/
 // anteriores* at the foot of *Mis cocinas*. ⚠️ AND *¿SEGUIR A …?* (G20, `@/ui/PreguntaSeguir`): once,
 // after her first pickup at a kitchen she does not follow — under *Ya lo tienes*, and under that
 // plate in *Anteriores* while it can still be rated (`@/lib/misCocinas`' `preguntarSeguir`).
+// ⚠️⚠️ SINCE `10.9j-ii-a` IT WORKS WITH NO SIGNAL (the owner's J1 and J4 of 2026-11-20): her tickets
+// still to collect are her phone's (`@/lib/boletos`), each with its QR (`@/ui/BoletoApartado`), under
+// *Sin señal. Lo que ves se leyó a las 13:40.* (`@/ui/SinSenal`, from the app's one signal); and
+// *Ya lo tengo* is QUEUED (`@/lib/cola`) — *Ya lo tienes* at once, *Guardado en este teléfono…* and
+// *Podrás calificar a la cocina cuando vuelva la señal.* while it waits, her stars once it lands; a
+// refusal that comes back later is said under it (`rechazoDe`).
 // ============================================================================
 
 /** The clock this screen reads — *faltan 25 min*, and *Cancelar* turning into *No voy a poder ir*. */
@@ -61,7 +72,10 @@ export default function Apartados() {
   const ahora = useAhora(CADA_MEDIO_MINUTO);
   const { cancelar, busy: cancelando } = useCancelarApartado();
   const { confirmar } = useYaLoTengo();
-  const [confirmando, setConfirmando] = useState<string | null>(null);
+  const { session } = useAuth();
+  const userId = session?.user.id ?? null;
+  const cola = useCola();
+  const sinSenal = useSenal() === false;
   const [recogido, setRecogido] = useState<Apartado | null>(null);
   /** A past plate she opened *Calificar* on. */
   const [calificando, setCalificando] = useState<string | null>(null);
@@ -81,13 +95,11 @@ export default function Apartados() {
 
   const puertaDe = (apartado: Apartado) => cocinas.data?.find((cocina) => cocina.id === apartado.cocina.id);
 
-  async function yaLoTengo(apartado: Apartado) {
-    setConfirmando(apartado.id);
+  // ⚠️ `10.9j-ii-a`: queued, written to her phone before this returns — never awaited (J4).
+  function yaLoTengo(apartado: Apartado) {
     setFalla(null);
-    const resultado = await confirmar(apartado.id);
-    setConfirmando(null);
-    if (resultado.ok) setRecogido(apartado);
-    else setFalla(ES.apartar.fallas[resultado.falla]);
+    if (confirmar(apartado.id)) setRecogido(apartado);
+    else setFalla(ES.apartar.fallas.sesion);
   }
 
   async function darloDeVuelta() {
@@ -103,6 +115,11 @@ export default function Apartados() {
 
   const lista = apartados.data;
   const secciones = lista === undefined ? null : seccionesDe(lista, ahora);
+  /** Her *Ya lo tengo* for the plate she just swiped, still on the phone. */
+  const esperando = recogido !== null && recogiEsperando(cola.envios, recogido.id);
+  /** A swipe the database refused for good, said under *Ya lo tienes* — or on its own once she leaves. */
+  const rechazado = recogido === null ? null : rechazoDe(cola, userId, recogido.id, ahora);
+  const leidoEn = apartados.dataUpdatedAt > 0 ? new Date(apartados.dataUpdatedAt) : null;
   /** Whether to ask *¿Seguir a …?* under a plate — read from the list as it is now, never the copy she swiped. */
   const pregunta = (id: string) => {
     const apartado = lista?.find((a) => a.id === id);
@@ -126,9 +143,10 @@ export default function Apartados() {
           <RefreshControl refreshing={apartados.isRefetching} onRefresh={() => void apartados.refetch()} tintColor={PALETTE.accion} />
         }
       >
+        <SinSenal sinSenal={sinSenal} leidoEn={secciones === null ? null : leidoEn} ahora={ahora} />
         {secciones === null ? (
           <Llega i={0} style={styles.centro}>
-            {apartados.isError ? (
+            {sinSenal ? null : apartados.isError ? (
               <Text style={styles.nota}>{apiErrorMessage(apartados.error)}</Text>
             ) : (
               <>
@@ -144,8 +162,17 @@ export default function Apartados() {
                 <MaterialCommunityIcons name="check-circle" size={40} color={PALETTE.accion} />
                 <Text style={styles.recogidoTitulo}>{ES.apartados.yaLoTienes}</Text>
                 <Text style={styles.nota}>{`${recogido.cocina.nombre} · ${platoTexto(recogido)}`}</Text>
-                <Calificar key={recogido.id} apartado={recogido} onListo={() => setRecogido(null)} />
-                {pregunta(recogido.id) && (
+                {rechazado !== null ? (
+                  <Text style={styles.falla}>{ES.apartar.fallas[rechazado.falla]}</Text>
+                ) : esperando ? (
+                  <>
+                    <Text style={styles.guardado}>{ES.apartados.guardado}</Text>
+                    <Text style={styles.nota}>{ES.apartados.calificarDespues}</Text>
+                  </>
+                ) : (
+                  <Calificar key={recogido.id} apartado={recogido} onListo={() => setRecogido(null)} />
+                )}
+                {!esperando && rechazado === null && pregunta(recogido.id) && (
                   <PreguntaSeguir cocinaId={recogido.cocina.id} nombre={recogido.cocina.nombre} onListo={() => respondida(recogido.id)} />
                 )}
               </Llega>
@@ -168,8 +195,7 @@ export default function Apartados() {
                   apartado={apartado}
                   puerta={puertaDe(apartado)}
                   ahora={ahora}
-                  confirmando={confirmando === apartado.id}
-                  onYaLoTengo={() => void yaLoTengo(apartado)}
+                  onYaLoTengo={() => yaLoTengo(apartado)}
                   onCambioDePlanes={() => {
                     setFalla(null);
                     setCambio(apartado);
@@ -188,8 +214,7 @@ export default function Apartados() {
                   texto={ES.apartados.desliza[apartado.comer]}
                   ayuda={ES.apartados.deslizaAyuda}
                   accion={ES.apartados.yaLoTengo}
-                  ocupado={confirmando === apartado.id}
-                  onListo={() => void yaLoTengo(apartado)}
+                  onListo={() => yaLoTengo(apartado)}
                 />
               </Llega>
             ))}
@@ -278,6 +303,16 @@ const styles = StyleSheet.create({
     backgroundColor: PALETTE.superficie,
   },
   recogidoTitulo: { fontSize: SIZE.bodySize + 1, fontWeight: '700', color: PALETTE.tinta, textAlign: 'center' },
+  guardado: {
+    fontSize: SIZE.smallSize,
+    lineHeight: 19,
+    color: PALETTE.tinta,
+    textAlign: 'center',
+    paddingVertical: SIZE.rowGap / 2,
+    paddingHorizontal: SIZE.space,
+    borderRadius: 10,
+    backgroundColor: PALETTE.banda,
+  },
   aviso: { gap: SIZE.rowGap / 2, padding: SIZE.space, borderRadius: 14, backgroundColor: PALETTE.banda },
   avisoTitulo: { fontSize: SIZE.bodySize, fontWeight: '700', color: PALETTE.error },
   avisoTexto: { fontSize: SIZE.smallSize, lineHeight: 19, color: PALETTE.tinta },

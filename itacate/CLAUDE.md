@@ -65,6 +65,8 @@ from `itacate/` with the two local `EXPO_PUBLIC_SUPABASE_` values in the shell, 
   session, keyed on the login. ⚠️ **Nothing of a read is kept on the phone's disk**: the
   kitchens' photos too are drawn from memory (`@/ui/Foto`'s `cachePolicy="memory"`), so a
   deleted kitchen's photos leave every neighbour's reach at once, as Wera Cocina's aviso promises.
+  ⚠️⚠️ **One exception since `10.9j-ii-a`, by his ruling J1 of 2026-11-20: her tickets still to collect**
+  (`@/lib/boletos`, the section *With no signal* below) — never her history, never a photo.
 - **Her way out is Wera Cocina's, cut to this app** (`src/api/account.ts`, `@/ui/Salidas`, the owner's
   ruling of 2026-11-04): on *Tú* (`(vecino)/(tabs)/tu`, the last tab, since `10.5-v-b` — before it *Tu
   cuenta*, a screen pushed from the list's band), *Cerrar sesión* and *Eliminar mi cuenta*; a
@@ -132,6 +134,11 @@ from `itacate/` with the two local `EXPO_PUBLIC_SUPABASE_` values in the shell, 
   Wera Cocina's scan gives that one at once (`give_reward`); *Mi código* without a chosen reward writes four parts.
   **Drawn since `10.9e-iii`** — the section *The loyalty card* below; the calls are `@/api/calls`' four, the reads and writes
   `@/api/hooks`' `useTarjetas`, `useMiLlave` and `useEscanearCodigo`, the door's terms `cocinas.ts`' `tarjetaOf` (`Kitchen.tarjeta`).
+  ⚠️ **Since `10.9j-ii-a` reserving's claim carries the handover with no signal** (`0088`): `ReservedRow.seal` and
+  `ReservationRow.seal` — the QR on her ticket while it is still to collect, taken only in the shape this build knows
+  (`SELLO_FORMA`, `selloOf`) — and `ConfirmArgs` (`p_id`, `p_at`: *Ya lo tengo* with her minute). The reserving check's
+  group 13 checks the seal's MAC with Python's `hmac` under the kitchen's secret as a fonda's phone is handed it; its
+  falsifier's C18–C20 break the three claims.
 - **Sign-in leans on two settings outside this repository**, both made by the owner's one command,
   `bash docs/runbooks/set-itacate-sign-in.sh` (a session's write to either is refused), and read
   back by `--check`: the three values its bundle reads in this EAS project's `preview` and, since
@@ -394,6 +401,49 @@ and the promotions' kinds and days in `@/api/cocinas`. `test/gemelos.test.ts`
   Apple's portal, the owner's hands, so the function's one key covers it: until then Apple answers
   `invalid_client` to a deletion from an iPhone build, and the account is deleted regardless. One
   person has one Apple id across the team's apps, grouped or not.
+
+## With no signal — her ticket and *Ya lo tengo* work from the phone (`10.9j-ii-a`)
+
+The owner's J1–J4 of 2026-11-20 (*"yes to all"*, on `10.9j-i`'s drawing; his D4: *"We need to enable both parties to do
+redeem offline"*). Wera Cocina's half — the kitchen's secret on its phones, *Escanear su código* on *Entregar*, the seal
+checked with no signal — is `10.9j-ii-b`'s. ADR-035 §2.6's *Offline* paragraph, cut to her: one read kept with visible
+staleness, one write queued and drawn at once.
+
+- **Her tickets kept on her phone** (`@/lib/boletos`, pinned by `test/boletos.test.ts`; J1): every read of
+  `my_reservations` with signal writes the rows the database SEALED — `0088` sends `seal` exactly while one is not handed
+  over, confirmed or cancelled and no more than a day past its window — **with every photo's path blanked**, the moment it
+  was read and her login, under `itacate.boletos`; a launch starts from them (`useApartados`' `initialData`, its age the
+  moment read). A day past its window a row is not read back. ⚠️ **Forgotten at *Cerrar sesión* alone**
+  (`AuthProvider.signOut`, first), never on a `null` session — a renewal that failed with no signal is one (`@/auth/held`).
+- **The QR on her ticket** (`@/ui/BoletoApartado`, J2): `Apartado.sello`, drawn by `@/ui/CodigoQR` at `QR_LADO` (220 pt)
+  under her code with *Si la cocina no tiene señal, enséñale este código.* — always, signal or not. ⚠️ **The seal is
+  printable ASCII by the database's design** (`0088`: the dish's name percent-encoded, at most 120 characters of it):
+  `@/lib/qr` (`qrcode-generator`) writes a character as ONE byte, and a camera guesses an encoding, so anything else could
+  scan as text the database never signed. `test/qrApartado.test.ts` decodes the longest seal with ZXing, byte for byte.
+- **The signal is Wera's machine, copied** (`@/api/connectivity`, held to `app/src/api/connectivity.ts` by
+  `test/senal.test.ts`; `@/lib/connectivityMonitor` and `@/lib/useSenal`, held to Wera Cocina's by `test/gemelos.test.ts`),
+  **the only module that imports `expo-network`**. Started for the app's life by `@/lib/ColaProvider` (in `app/_layout.tsx`).
+- ⚠️⚠️ ***Ya lo tengo* is QUEUED, with signal or without** (`@/api/cola`, pure, pinned by `test/cola.test.ts`; `@/lib/cola`;
+  J4): written to the phone (`itacate.cola`) with the minute she swiped, drawn at once — `useApartados`' `select` lays it
+  over every read (`apartadosConCola`: collected, its seal gone), so the pinned ticket, the dot and her reminder agree — and
+  sent as `confirm_my_pickup(p_id, p_at)` now or when the signal returns. Wera Cocina's queue cut to one kind: the same
+  store, single-flight drain, the same reading of a failure (no signal and an unrenewed sign-in stop it; only `TD018`, the
+  function's own `42501` and `22P02` drop a send, drawn as a refusal for a day), a send only for the login that made it —
+  ⚠️ **so it outlives *Cerrar sesión*** and goes when that account signs in again. A landed swipe is drawn into the cached
+  read (a read in flight cancelled first) before it leaves the queue; her reservations, standing and the door are read
+  again after the drain. ⚠️ **Her stars wait for it**: `rate_until` is the database's — *Guardado en este teléfono. Se envía
+  solo cuando vuelva la señal.* and *Podrás calificar a la cocina cuando vuelva la señal.* under *Ya lo tienes* while it waits.
+- **What *Apartados* says** (`@/ui/SinSenal`): with no signal, *Sin señal. Lo que ves se leyó a las 13:40.* (Wera Cocina's
+  words, held to them), *Sin señal. Tus apartados aparecen aquí en cuanto vuelva.* with nothing kept. **A launch with no
+  signal opens on her ticket** (`@/lib/AbrirBoleto`, with the tabs): the app's FIRST signal reading none and a sealed ticket
+  kept — once a run; a signal lost while she looks moves nothing (`abreSuBoleto`).
+- ⚠️ **Unchanged, and not asked:** reserving, *Cancelar* and *No voy a poder ir*, and her stars need signal.
+- **The aviso's lines** (what her phone keeps, what the QR shows a kitchen) are `10.5b-vi`'s revision, with every line on
+  reserving; nothing here reaches a phone before the final MVP version (his ruling of 2026-11-19).
+- **To see it on the emulator**: the debug build against the local shop (above), a reservation made, then **airplane mode
+  AND `adb reverse --remove tcp:54443`** (the local shop is reached through adb), and Itacate force-stopped and opened again.
+  Read what it keeps with `run-as mx.wera.vecino cat files/SQLite/ExpoSQLiteStorage` (table `storage`, keys
+  `itacate.boletos` and `itacate.cola`).
 
 ## Screens — the family shell (ruled 2026-11-05, built by `10.5-v-b`)
 

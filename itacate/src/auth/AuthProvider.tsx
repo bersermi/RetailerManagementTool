@@ -10,6 +10,7 @@ import { authErrorKey, authErrorMessage } from '@/auth/errors';
 import { sessionKeyOf, sessionToHold } from '@/auth/held';
 import { OAUTH_REDIRECT_URI, oauthOutcome } from '@/auth/oauth';
 import { newNoncePair } from '@/lib/ids';
+import { olvidarBoletos } from '@/lib/boletos';
 import { deviceStore, readKey, removeKey } from '@/lib/store';
 import { SUPABASE_URL, supabase } from '@/lib/supabase';
 import { ES } from '@/strings';
@@ -256,10 +257,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // ⚠️ OFFLINE, WITH A SIGN-IN THAT COULD NOT BE RENEWED, THE LIBRARY REFUSES TO
   // SIGN OUT and removes nothing — and `@/auth/held` keeps that sign-in on
   // screen, so *Cerrar sesión* would do nothing. The phone forgets it here: the
-  // same removal the library's local sign-out makes. Nothing else is kept on the
-  // phone to forget: this app keeps no query cache on disk, and every key carries
-  // the login (`ownersKey`).
+  // same removal the library's local sign-out makes. ⚠️ `10.9j-ii-a` (J1): HER TICKETS KEPT ON
+  // THE PHONE GO HERE TOO (`@/lib/boletos` — *all at Cerrar sesión*), first and whatever the
+  // library answers, and never on a session that is merely `null`, which a renewal that
+  // failed with no signal also is. Her *Ya lo tengo* still waiting stays (`@/lib/cola`): it
+  // is sent only while her login is in, as Wera Cocina's handovers are. Nothing else is
+  // kept on the phone to forget: this app keeps no query cache on disk, and every key
+  // carries the login (`ownersKey`).
   const signOut = useCallback(async () => {
+    olvidarBoletos(deviceStore());
     const { error } = await supabase.auth.signOut();
     if (error) {
       removeKey(deviceStore(), SESSION_KEY);

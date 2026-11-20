@@ -1,5 +1,6 @@
 import { Tabs } from 'expo-router/js-tabs';
 
+import { AbrirBoleto } from '@/lib/AbrirBoleto';
 import { Festejos } from '@/lib/Festejos';
 import { Recordatorios } from '@/lib/Recordatorios';
 import { EN_USO } from '@/navigation/pestanas';
@@ -20,12 +21,15 @@ import { Pestanas } from '@/ui/Pestanas';
 // told again at each read of her reservations, and cancelled when the tabs leave.
 // ⚠️ SINCE `10.9e-iii` HER *¡GANASTE!* TOO (`@/lib/Festejos`, which draws nothing): at each read of her cards, a
 // reward won since the last one celebrated on this phone opens its screen over the tabs — once.
+// ⚠️ SINCE `10.9j-ii-a` HER TICKET WHEN THE APP OPENS WITH NO SIGNAL (`@/lib/AbrirBoleto`, which draws nothing):
+// *Apartados* over the tabs, once a run, while her phone keeps a ticket still to collect (J1).
 // ============================================================================
 export default function TabsDeItacate() {
   return (
     <>
       <Recordatorios />
       <Festejos />
+      <AbrirBoleto />
       <Tabs screenOptions={{ headerShown: false }} tabBar={(props) => <Pestanas {...props} />}>
         {EN_USO.map((pestana) => (
           <Tabs.Screen key={pestana.ruta} name={pestana.ruta} options={{ title: pestana.label }} />

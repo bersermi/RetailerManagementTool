@@ -553,7 +553,9 @@ The owner's questions 7–10 of 2026-11-05: *"it works without signal (today's r
   handover is her record, and another session would sign it.
 - **The signal is Wera's machine, copied** (`@/api/connectivity`, held to `app/src/api/connectivity.ts` code for code by
   `test/senal.test.ts`; `cocina-itacate.yml` fires on Wera's file), bound by `@/lib/connectivityMonitor`, **the only module that imports
-  `expo-network`**: a listener plus a poll plus the app-state wake, a drop believed after two seconds, a retry ladder that outlasts the
+  `expo-network`** — ⚠️ since `10.9j-ii-a` **Itacate copies `@/lib/connectivityMonitor`, `@/lib/useSenal`, `@/api/cola`'s `FlushStop`,
+  `Drenado` and `CODIGOS_DE_SESION`, and `ES.cola.sinSenal`/`sinDatos`** for her *Ya lo tengo* with no signal, held code for code by
+  `itacate/test/gemelos.test.ts`: a change here is copied there in the same PR: a listener plus a poll plus the app-state wake, a drop believed after two seconds, a retry ladder that outlasts the
   auth layer's 90 seconds. It drains her queue and is handed to TanStack's `onlineManager` (a read with no signal waits with its copy).
 - **What the counter says** (`@/ui/SinSenal`, on *Hoy*, *Apartados* and *Entregar un apartado*): *Sin señal. Lo que ves se leyó a las
   13:05.* and *2 entregas y 1 calificación por enviar* with Wera's *Todavía están en este teléfono. Se envían solas cuando vuelve la

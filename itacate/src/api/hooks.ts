@@ -14,7 +14,7 @@
 // ============================================================================
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import {
   OWNERS_KEY,
@@ -28,6 +28,7 @@ import {
 import {
   APARTADOS_KEY,
   POSICION_KEY,
+  apartadosFrom,
   apartadosKey,
   fallaDe,
   posicionKey,
@@ -40,12 +41,11 @@ import {
 import {
   accountOwners,
   cancelMyReservation,
-  confirmMyPickup,
   deleteMyAccount,
   giveMyYes,
   kitchenGiros,
   myFollows,
-  myReservations,
+  myReservationRows,
   myStanding,
   onOfferNow,
   photoRequest,
@@ -65,7 +65,10 @@ import { guardarLlave, leerLlave, type Llave } from '@/lib/llave';
 import { deviceStore } from '@/lib/store';
 import { tarjetaErrorMessage } from '@/lib/tarjeta';
 import { COCINAS_KEY, cocinasKey, girosKey, type Giro, type Kitchen } from '@/api/cocinas';
+import { apartadosConCola, deLaUsuaria } from '@/api/cola';
 import { hayPendientes, pendientesDe } from '@/lib/apartados';
+import { guardarBoletos, leerBoletos } from '@/lib/boletos';
+import { encolarRecogi, useCola } from '@/lib/cola';
 import { NO_ES_COCINA, SIGUIENDO_KEY, siguiendoKey, type Cambio, type Siguiendo, type Switches } from '@/api/siguiendo';
 import { FILE_OF, isPicturePath, type PhotoSize } from '@/api/fotos';
 import { releaseStep } from '@/auth/apple';
@@ -218,9 +221,16 @@ const PENDIENTE_CADA_MS = 60_000;
 
 /**
  * ⚠️ `10.5b-iii-a`: HERS — every reservation still to collect and her last 30 days
- * (`my_reservations`, `0079`). Keyed on the login, in memory only. Read again every
- * minute while one is pending — the fonda's *Entregar*, or a window that ends, changes it
- * from the other phone — and when the app comes back to the front.
+ * (`my_reservations`, `0079`). Keyed on the login. Read again every minute while one is
+ * pending — the fonda's *Entregar*, or a window that ends, changes it from the other phone —
+ * and when the app comes back to the front.
+ *
+ * ⚠️⚠️ `10.9j-ii-a` — WHAT IS STILL TO COLLECT IS KEPT ON HER PHONE (J1, `@/lib/boletos`): every
+ * read with signal writes it, and a launch with no signal starts from it (`initialData`, its age
+ * the moment it was read — what *Sin señal. Lo que ves se leyó a las 13:40.* says). Her history
+ * stays in memory. ⚠️ AND HER *YA LO TENGO* STILL ON THE PHONE IS LAID OVER EVERY READ (`select`,
+ * `@/api/cola`' `apartadosConCola`): the plate she swiped is collected on every screen at once —
+ * the pinned ticket, the dot, her reminder — while the swipe waits for the signal.
  *
  * ⚠️ WHEN WHAT IS STILL TO COLLECT CHANGES, HER STANDING IS READ AGAIN: a handover typed on
  * the kitchen's phone raises her limit from one to three and frees what she holds, and
@@ -231,9 +241,22 @@ export function useApartados() {
   const { session, ready } = useAuth();
   const userId = session?.user.id ?? null;
   const queries = useQueryClient();
-  const query = useQuery<Apartado[]>({
+  const cola = useCola();
+  const envios = useMemo(() => deLaUsuaria(cola, userId), [cola, userId]);
+  const select = useCallback((lista: Apartado[]) => apartadosConCola(lista, envios), [envios]);
+  const query = useQuery<Apartado[], Error, Apartado[]>({
     queryKey: apartadosKey(userId),
-    queryFn: myReservations,
+    queryFn: async () => {
+      const filas = await myReservationRows();
+      if (userId !== null) guardarBoletos(deviceStore(), userId, new Date(), filas);
+      return apartadosFrom(filas);
+    },
+    initialData: () => {
+      const guardados = leerBoletos(deviceStore(), userId, new Date());
+      return guardados === null ? undefined : apartadosFrom(guardados.filas);
+    },
+    initialDataUpdatedAt: () => leerBoletos(deviceStore(), userId, new Date())?.leidoEn.getTime(),
+    select,
     enabled: ready && userId !== null,
     refetchInterval: (q) => (hayPendientes(q.state.data) ? PENDIENTE_CADA_MS : false),
   });
@@ -336,21 +359,22 @@ export function useCancelarApartado() {
   return { cancelar, busy: mutation.isPending };
 }
 
-/** ⚠️ `10.5b-iii-a`: *Ya lo tengo* — her side of *Recogí* (`confirm_my_pickup`, `0079`). */
+/**
+ * ⚠️ `10.5b-iii-a`: *Ya lo tengo* — her side of *Recogí* (`confirm_my_pickup`, `0079`).
+ * ⚠️⚠️ `10.9j-ii-a` (J4): ALWAYS QUEUED, WITH SIGNAL OR WITHOUT (`@/lib/cola`) — written to her phone
+ * with the minute she swiped before this returns, and sent now or when the signal returns; the
+ * screen draws what waits, and a refusal that comes back later is drawn on its ticket (`rechazoDe`).
+ * One path, Wera's C10.3, as Wera Cocina's *Entregar*.
+ */
 export function useYaLoTengo() {
-  const leerOtraVez = useLeerOtraVez();
-  const mutation = useMutation({ mutationFn: (id: string) => confirmMyPickup(id) });
-  async function confirmar(id: string): Promise<Resultado<null>> {
-    try {
-      await mutation.mutateAsync(id);
-      return { ok: true, valor: null };
-    } catch (thrown) {
-      return { ok: false, falla: fallaDe(thrown) };
-    } finally {
-      void leerOtraVez();
-    }
+  const { session } = useAuth();
+  const userId = session?.user.id ?? null;
+  function confirmar(id: string): boolean {
+    if (userId === null) return false;
+    encolarRecogi({ tipo: 'recogi', usuario: userId, reserva: id, en: new Date() });
+    return true;
   }
-  return { confirmar, busy: mutation.isPending };
+  return { confirmar };
 }
 
 /**
