@@ -28,9 +28,20 @@
 //     rest, the order this list had until then — or *Más barato*, the cheapest dish
 //     first. Nothing else orders it (his answer 3: every other order waits or never
 //     comes, and none may cost money). Her pick lives while the list does.
-// Every kitchen the door sends, in every order. A card whose distance is not known
-// yet — a kitchen with no point, while her phone asks Google for its address, or
-// after Google could not place it — goes last among its equals, never left out.
+// Every kitchen the door sends is a card, in every order — and a card whose distance
+// is not known yet (a kitchen with no point, while her phone asks Google for its
+// address, or after Google could not place it) goes last among its equals.
+//
+// ⚠️⚠️ THE LIST SHOWS THE CARDS WITHIN 3 KM (`10.5-iv-b-iii`, his ruling D7 of
+// 2026-11-19: *"let's proceed with the 3km"*) of wherever it measures from — her
+// location, her postal code, or the map's centre after *Buscar en esta zona*
+// (`cercanas`, `HASTA_METROS`); there is no *Ver más lejos*. ⚠️ A card whose distance
+// is not known is not shown to be within 3 km, so the list leaves it out — as the map
+// draws no pin for it. The cut is a filter on HER PHONE, from her point, which
+// Google's reply of 2026-11-12 names as allowed (*"a radial distance filter (such as
+// showing locations within 1.5 km or 3 km)"*); the door still sends every kitchen, and
+// the map keeps every pin (`@/lib/mapa`'s `partir`: a pin she taps beyond 3 km still
+// brings its cards, under *En el mapa*).
 //
 // ⚠️ SINCE `10.5-iv-a-ii` A CARD OPENS A PAGE — a dish's card the dish's, a quiet
 // kitchen's card hers — and the list hands those pages each kitchen's distance
@@ -134,7 +145,22 @@ export function ordenDe(orden: Orden, ahora: Date): (a: Tarjeta, b: Tarjeta) => 
   return antesAhora(ahora);
 }
 
-/** Every card, in the order she picked — *Ahora* until she picks — measured from `desde`. */
+/**
+ * ⚠️ HOW FAR THE LIST REACHES, IN METRES — his ruling D7 of 2026-11-19 (*"let's proceed
+ * with the 3km"*, not 1.5 km with *Ver más lejos*). The empty list's sentence names it
+ * (`ES.zona.vacia`), and `test/lista.test.ts` holds the two together.
+ */
+export const HASTA_METROS = 3_000;
+
+/** The cards within `HASTA_METROS` of where the list measures from — a distance not known is not within it. */
+export function cercanas(tarjetas: readonly Tarjeta[]): Tarjeta[] {
+  return tarjetas.filter((tarjeta) => tarjeta.metros !== null && tarjeta.metros <= HASTA_METROS);
+}
+
+/**
+ * Every card, in the order she picked — *Ahora* until she picks — measured from `desde`,
+ * near or far: the list shows `cercanas` of them, and a pin she taps brings its own.
+ */
 export function tarjetasDe(
   cocinas: readonly Kitchen[],
   desde: Punto | null,

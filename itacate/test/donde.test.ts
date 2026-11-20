@@ -17,7 +17,7 @@ import {
   urlDeGeocodificar,
   urlDelCodigoPostal,
 } from '@/lib/google';
-import { comoPedirla, mensajeDelCodigo, motivoDe, origenDe, permisoDe, puntoDeOrigen } from '@/lib/ubicacion';
+import { centroDeBusqueda, comoPedirla, mensajeDelCodigo, motivoDe, origenDe, permisoDe, puntoDeOrigen } from '@/lib/ubicacion';
 import { RECTANGULO, enLaZona } from '@/lib/zona';
 
 // ============================================================================
@@ -104,6 +104,33 @@ describe('where the list is measured from', () => {
     expect(puntoDeOrigen({ kind: 'buscando' })).toBeNull();
     expect(puntoDeOrigen({ kind: 'fuera' })).toBeNull();
     expect(puntoDeOrigen({ kind: 'codigo', ...cp })).toEqual(cp.punto);
+  });
+
+  // ⚠️ `10.5-iv-b-iii`: *BUSCAR EN ESTA ZONA* — his question of 2026-11-19, evening, and his *"yes"* to its shape.
+  it('a zone of the map she searched wins over her location and her postal code, while it lasts', () => {
+    const zona = { latitude: 19.47, longitude: -99.18 };
+    expect(origenDe({ kind: 'aqui', punto: ZOCALO }, null, zona)).toEqual({ kind: 'zona', punto: zona, fuera: false });
+    expect(origenDe({ kind: 'aqui', punto: ZOCALO }, cp, zona)).toEqual({ kind: 'zona', punto: zona, fuera: false });
+    expect(origenDe({ kind: 'buscando' }, null, zona)).toEqual({ kind: 'zona', punto: zona, fuera: false });
+    expect(puntoDeOrigen({ kind: 'zona', punto: zona, fuera: false })).toEqual(zona);
+    // Without one, her pick as before.
+    expect(origenDe({ kind: 'aqui', punto: ZOCALO }, cp, null)).toEqual({ kind: 'codigo', ...cp });
+  });
+
+  it('a zone outside Wera Cocina’s: *Itacate aún no llega a esa zona.* — no list, but the button still measures from it', () => {
+    const puebla = { latitude: 19.0414, longitude: -98.2063 };
+    const origen = origenDe({ kind: 'aqui', punto: ZOCALO }, null, puebla);
+    expect(origen).toEqual({ kind: 'zona', punto: puebla, fuera: true });
+    expect(puntoDeOrigen(origen)).toBeNull();
+    expect(centroDeBusqueda(origen)).toEqual(puebla);
+  });
+
+  it('the button’s kilometre is measured from the list’s point — and with no list, there is no button', () => {
+    expect(centroDeBusqueda({ kind: 'aqui', punto: ZOCALO })).toEqual(ZOCALO);
+    expect(centroDeBusqueda({ kind: 'codigo', ...cp })).toEqual(cp.punto);
+    expect(centroDeBusqueda({ kind: 'buscando' })).toBeNull();
+    expect(centroDeBusqueda({ kind: 'pide-codigo', porque: 'sin-permiso' })).toBeNull();
+    expect(centroDeBusqueda({ kind: 'fuera' })).toBeNull();
   });
 });
 
@@ -232,6 +259,10 @@ describe('her location never leaves the phone, and nothing of Google’s is kept
     expect(provider).not.toMatch(/localStorage|expo-sqlite|AsyncStorage|zustand|@\/api\//);
     // It belongs to the login that chose it.
     expect(provider).toMatch(/const codigo = eleccion\.quien === quien \? eleccion\.codigo : null;/);
+    // ⚠️ `10.5-iv-b-iii`: so does a zone of the map she searched — and a pick on *Dónde buscar* lets it go.
+    expect(provider).toMatch(/const zona = eleccion\.quien === quien \? eleccion\.zona : null;/);
+    expect(provider).toMatch(/const elegirCodigo = useCallback\(\(nuevo: Codigo\) => setEleccion\(\{ quien, codigo: nuevo, zona: null \}\), \[quien\]\);/);
+    expect(provider).toMatch(/const elegirUbicacion = useCallback\(\(\) => setEleccion\(\{ quien, codigo: null, zona: null \}\), \[quien\]\);/);
     // *Dónde buscar* and *Tú* never ask the phone where she is.
     for (const screen of ['app/(vecino)/donde.tsx', 'app/(vecino)/(tabs)/tu.tsx']) {
       expect(code(screen), screen).not.toMatch(/@\/lib\/useUbicacion'|expo-location/);

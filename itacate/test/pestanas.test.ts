@@ -267,8 +267,11 @@ describe('*Ordenar* — a button at the list’s head, and a sheet (the family-s
 
   it('sits in the head of the list — the sheet that slides over the map — and Cambiar opens Dónde buscar', () => {
     const list = code('app/(vecino)/(tabs)/index.tsx');
-    expect(list).toMatch(/derecha=\{hayLista && tarjetas\.length > 1 \? <Ordenar orden=\{orden\} onOrden=\{setOrden\} \/> : null\}/);
-    expect(list).toMatch(/\{hayLista && <Desde origen=\{origen\} onCambiar=\{\(\) => router\.push\('\/donde'\)\} \/>\}/);
+    // ⚠️ `10.5-iv-b-iii`: counted on the cards she sees — those within 3 km and the ones she tapped on the map.
+    expect(list).toMatch(/derecha=\{hayLista && visibles > 1 \? <Ordenar orden=\{orden\} onOrden=\{setOrden\} \/> : null\}/);
+    expect(list).toMatch(/const visibles = enElMapa\.length \+ resto\.length;/);
+    // And, while the list measures from a zone of the map, *En esta zona del mapa* in Cambiar's place.
+    expect(list).toMatch(/\) : \(\s*hayLista && <Desde origen=\{origen\} onCambiar=\{\(\) => router\.push\('\/donde'\)\} \/>\s*\)\}/);
     // ⚠️ `10.5-iv-b-i`: the head is the sheet's — under its handle, with no room for the phone's clock.
     expect(list).toMatch(/<Cabeza\s+titulo=\{ES\.cerca\.titulo\}\s+enHoja/);
     expect(list).toMatch(/<HojaDeLista[\s\S]*cabeza=\{\s*<Cabeza/);

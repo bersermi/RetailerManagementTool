@@ -4,7 +4,7 @@ import { Image, Pressable, Text, View } from 'react-native';
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 
 import type { Punto } from '@/api/cocinas';
-import { agrupar, alTocarGrupo, camaraDe, DIAMETRO, DIAMETRO_ELEGIDO, type Marca, type Pin } from '@/lib/mapa';
+import { agrupar, alTocarGrupo, camaraDe, DIAMETRO, DIAMETRO_ELEGIDO, ofreceBuscarAqui, type Marca, type Pin } from '@/lib/mapa';
 import { ES } from '@/strings';
 import { HUES } from '@/theme/colores';
 import { DIBUJO } from '@/theme/dibujos';
@@ -49,6 +49,16 @@ import { PALETTE, SIZE } from '@/theme/palette';
 // before Google answered. At mount the view has no size yet, so the library keeps that first
 // padding and applies it itself once the map is ready.
 //
+// ⚠️ *BUSCAR EN ESTA ZONA* (`10.5-iv-b-iii`, his question of 2026-11-19, evening, and his
+// *"yes"* to its shape): a button at the map's TOP — never at its foot, where Google's logo
+// is — once the map's centre is more than 1 km from where the list measures
+// (`@/lib/mapa`'s `ofreceBuscarAqui`); a tap hands that centre to the list. The centre is
+// Google's camera's (`getCamera`), read each time the map stops moving: the middle of the
+// map ABOVE the list, where the map flies her to — not the middle of the whole view, which
+// the sheet covers. It stays on the phone: the list measures from it, and nothing is asked
+// of anyone. While the list measures from a zone, the round button and the list's *Volver a
+// donde estás* let go of it, and the map flies back to her.
+//
 // ⚠️ A CUSTOM MARKER IS A PICTURE GOOGLE TAKES OF A VIEW: it is redrawn while
 // `tracksViewChanges` is on, which costs every frame, so each marker turns it off once
 // its picture has loaded (`useQuieto`) — and a marker whose look changes (tapped,
@@ -74,25 +84,42 @@ export function MapaDeCocinas({
   cp,
   elegidas,
   padding,
+  centroDeBusqueda,
+  enZona,
   onElegir,
   onSoltar,
+  onBuscarAqui,
+  onVolver,
 }: {
   pines: readonly Pin[];
-  /** Where the list is measured from — her location or her postal code's centre — or `null`. */
+  /** Where she is — her location or her postal code's centre — or `null`: her dot, and where the map flies her back to. */
   desde: Punto | null;
-  /** Changes when where she searches from changes (`@/lib/mapa`'s `claveDeOrigen`): the map flies then. */
-  claveDeOrigen: string;
+  /**
+   * Changes when where she searches from changes (`@/lib/mapa`'s `claveDeOrigen`): the map flies then. `null` while
+   * the list measures from a zone of the map — no flight, and the next key flies again.
+   */
+  claveDeOrigen: string | null;
   /** Her postal code, while she searches from one. */
   cp: string | null;
   elegidas: ReadonlySet<string>;
   padding: { top: number; right: number; bottom: number; left: number };
+  /** Where the list measures from (`@/lib/ubicacion`'s `centroDeBusqueda`) — *Buscar en esta zona*'s kilometre — or `null`: no button. */
+  centroDeBusqueda: Punto | null;
+  /** The list measures from a zone of the map she searched. */
+  enZona: boolean;
   onElegir: (ids: readonly string[]) => void;
   onSoltar: () => void;
+  /** *Buscar en esta zona*: the map's centre, for the list to measure from. */
+  onBuscarAqui: (centro: Punto) => void;
+  /** *Volver a donde estás* while she searches a zone: let it go — the map flies back once the key returns. */
+  onVolver: () => void;
 }) {
   const map = useRef<MapView>(null);
   const [listo, setListo] = useState(false);
   const [ancho, setAncho] = useState(0);
   const [longitudeDelta, setLongitudeDelta] = useState<number | null>(null);
+  // Where Google's camera points once the map stops — the middle of the map above the list.
+  const [centro, setCentro] = useState<Punto | null>(null);
   const tocoMarcador = useRef(0);
   const [primera] = useState(() => camaraDe(desde));
   // The padding it mounted with, the one object handed to the map until it is ready.
@@ -100,9 +127,15 @@ export function MapaDeCocinas({
 
   const marcas = useMemo(() => agrupar(pines, longitudeDelta, ancho, elegidas), [pines, longitudeDelta, ancho, elegidas]);
 
-  // ⚠️ It flies to her when where she searches from changes — never as she walks.
+  // ⚠️ It flies to her when where she searches from changes — never as she walks. While she
+  // searches a zone the key is `null`: no flight, and none remembered, so letting the zone go
+  // flies her back.
   const ultimoVuelo = useRef<string | null>(null);
   useEffect(() => {
+    if (claveDeOrigen === null) {
+      ultimoVuelo.current = null;
+      return;
+    }
     if (!listo || desde === null) return;
     if (ultimoVuelo.current === claveDeOrigen) return;
     ultimoVuelo.current = claveDeOrigen;
@@ -110,6 +143,19 @@ export function MapaDeCocinas({
     // `desde` moves as she walks; only the key decides.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [listo, claveDeOrigen, desde === null]);
+
+  /** The map stopped: its zoom, for the groups, and its centre, for *Buscar en esta zona*. */
+  function alParar(region: { latitude: number; longitude: number; longitudeDelta: number }) {
+    setLongitudeDelta(region.longitudeDelta);
+    const vista = map.current;
+    if (vista === null) return;
+    vista
+      .getCamera()
+      .then((camara) => setCentro({ latitude: camara.center.latitude, longitude: camara.center.longitude }))
+      .catch(() => setCentro({ latitude: region.latitude, longitude: region.longitude }));
+  }
+
+  const buscarAqui = ofreceBuscarAqui(centro, centroDeBusqueda);
 
   function marcador() {
     tocoMarcador.current = Date.now();
@@ -143,7 +189,7 @@ export function MapaDeCocinas({
         initialCamera={primera}
         mapPadding={listo ? padding : primerPadding}
         onMapReady={() => setListo(true)}
-        onRegionChangeComplete={(region) => setLongitudeDelta(region.longitudeDelta)}
+        onRegionChangeComplete={alParar}
         onPress={() => {
           if (Date.now() - tocoMarcador.current > DEL_MARCADOR_MS) onSoltar();
         }}
@@ -178,7 +224,7 @@ export function MapaDeCocinas({
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={cp === null ? ES.mapa.volverATi : ES.mapa.volverAlCodigo(cp)}
-          onPress={() => map.current?.animateCamera(camaraDe(desde), { duration: VOLAR_MS })}
+          onPress={() => (enZona ? onVolver() : map.current?.animateCamera(camaraDe(desde), { duration: VOLAR_MS }))}
           hitSlop={SIZE.rowGap}
           style={{
             position: 'absolute',
@@ -196,6 +242,33 @@ export function MapaDeCocinas({
         >
           <MaterialCommunityIcons name="crosshairs-gps" size={SIZE.iconSize - 2} color={PALETTE.accion} />
         </Pressable>
+      )}
+      {buscarAqui && centro !== null && (
+        <View
+          pointerEvents="box-none"
+          style={{ position: 'absolute', top: padding.top + SIZE.space, left: 0, right: 0, alignItems: 'center' }}
+        >
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => onBuscarAqui(centro)}
+            hitSlop={SIZE.rowGap}
+            style={({ pressed }) => ({
+              height: SIZE.tapTarget - 4,
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: SIZE.rowGap / 2,
+              paddingHorizontal: SIZE.space,
+              borderRadius: SIZE.tapTarget,
+              backgroundColor: PALETTE.superficie,
+              borderWidth: 1,
+              borderColor: PALETTE.linea,
+              opacity: pressed ? 0.8 : 1,
+            })}
+          >
+            <MaterialCommunityIcons name="magnify" size={SIZE.iconSize - 4} color={PALETTE.accion} />
+            <Text style={{ fontSize: SIZE.smallSize, fontWeight: '700', color: PALETTE.accion }}>{ES.mapa.buscarAqui}</Text>
+          </Pressable>
+        </View>
       )}
     </View>
   );

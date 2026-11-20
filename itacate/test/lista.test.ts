@@ -5,10 +5,12 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { Dish, Kitchen, Offer, Punto, Summary } from '@/api/cocinas';
 import { EMPTY_PAGE } from '@/api/pagina';
 import {
+  HASTA_METROS,
   ORDENES,
   ORDEN_INICIAL,
   PATRON_MINIMO,
   ahorroDe,
+  cercanas,
   cuandoDe,
   cuandoPublica,
   diasAtras,
@@ -174,6 +176,63 @@ describe('Más cerca — nearest first, every kitchen the door sends (the list�
   });
 });
 
+// ⚠️ `10.5-iv-b-iii` — HIS RULING D7 OF 2026-11-19, EVENING: *"let's proceed with the 3km"*
+// (not 1.5 km with *Ver más lejos*), from wherever the list measures: her location, her
+// postal code, or the map's centre after *Buscar en esta zona*. Google's reply of 2026-11-12
+// names it allowed on her phone: *"a radial distance filter (such as showing locations
+// within 1.5 km or 3 km)"*.
+const A_2_9_KM: Punto = { latitude: 19.4586, longitude: -99.1332 };
+const A_3_1_KM: Punto = { latitude: 19.4606, longitude: -99.1332 };
+
+describe('⚠️ the list stops at 3 km — his ruling D7 of 2026-11-19 (`10.5-iv-b-iii`)', () => {
+  it('the kitchens within 3 km of where it measures; a distance not known is not within it — every card still made', () => {
+    const ahora = local(2026, 11, 5, 12);
+    const cards = tarjetasDe(
+      [cocina('k-31', 'A Lejos', A_3_1_KM, []), cocina('k-sin', 'B Sin punto', null, []), cocina('k-29', 'C Cerca', A_2_9_KM, [])],
+      AQUI,
+      new Map(),
+      ahora,
+      'cerca',
+    );
+    expect(cards.map((c) => c.cocina.id)).toEqual(['k-29', 'k-31', 'k-sin']);
+    expect(cards[0].metros).toBeGreaterThan(2_850);
+    expect(cards[0].metros).toBeLessThan(HASTA_METROS);
+    expect(cards[1].metros).toBeGreaterThan(HASTA_METROS);
+    expect(cards[1].metros).toBeLessThan(3_150);
+    expect(cercanas(cards).map((c) => c.cocina.id)).toEqual(['k-29']);
+    expect(HASTA_METROS).toBe(3_000);
+  });
+
+  it('3 km itself is within; a dish is cut as its kitchen is, in the order she picked', () => {
+    const ahora = local(2026, 11, 5, 12);
+    const fonda = cocina('k-29', 'Fonda', A_2_9_KM, [oferta('o-1', local(2026, 11, 5, 11), local(2026, 11, 5, 15), [plato(1), plato(2)])]);
+    const lejos = cocina('k-31', 'Lejos', A_3_1_KM, [oferta('o-2', local(2026, 11, 5, 11), local(2026, 11, 5, 15), [plato(1)])]);
+    const cards = tarjetasDe([lejos, fonda], AQUI, new Map(), ahora);
+    expect(cercanas(cards).map((c) => c.key)).toEqual(['platillo:o-1:1', 'platillo:o-1:2']);
+    const justo = { ...cards[0], metros: HASTA_METROS };
+    expect(cercanas([justo])).toEqual([justo]);
+    expect(cercanas([{ ...justo, metros: HASTA_METROS + 1 }])).toEqual([]);
+  });
+
+  it('measured from wherever the list measures — from the map’s centre, the far kitchen is the near one', () => {
+    const ahora = local(2026, 11, 5, 12);
+    const cocinas = [cocina('k-aqui', 'Aquí', AQUI, []), cocina('k-31', 'Lejos', A_3_1_KM, [])];
+    expect(cercanas(tarjetasDe(cocinas, AQUI, new Map(), ahora)).map((c) => c.cocina.id)).toEqual(['k-aqui']);
+    expect(cercanas(tarjetasDe(cocinas, A_3_1_KM, new Map(), ahora)).map((c) => c.cocina.id)).toEqual(['k-31']);
+  });
+
+  it('nothing within 3 km says so, in his words, naming the 3 km — and the door sending none keeps its own sentence', () => {
+    expect(ES.mapa.nadaAqui).toBe('Todavía no hay cocinas a menos de 3 km de aquí. Mueve el mapa para buscar en otra zona.');
+    expect(ES.mapa.nadaAqui).toContain(` ${HASTA_METROS / 1_000} km `);
+    expect(ES.cerca.vacio).toBe('Todavía ninguna cocina tiene algo publicado. Vuelve más tarde.');
+    const lista = readFileSync(new URL('../src/app/(vecino)/(tabs)/index.tsx', import.meta.url), 'utf8');
+    expect(lista).toMatch(/<Aviso texto=\{tarjetas\.length === 0 \? ES\.cerca\.vacio : ES\.mapa\.nadaAqui\} \/>/);
+    // The list draws `partir`'s cards — those within 3 km, and the ones she tapped on the map.
+    expect(lista).toMatch(/const \{ enElMapa, resto \} = useMemo\(\(\) => partir\(tarjetas, elegidas\), \[tarjetas, elegidas\]\);/);
+    expect(lista).toMatch(/data=\{resto\}/);
+  });
+});
+
 // ----------------------------------------------------------------------------
 // ⚠️ THE OWNER'S ANSWERS OF 2026-11-05 (`10.5-iv-a-iv`, asked on `10.5-iv-a-iii`'s
 // page): the list opens on *Ahora*; *Ordenar* offers it, *Más cerca* and *Más
@@ -288,7 +347,8 @@ describe('the list screen orders by her pick', () => {
   const pantalla = readFileSync(new URL('../src/app/(vecino)/(tabs)/index.tsx', import.meta.url), 'utf8');
   it('opens on the initial order, hands her pick to the cards, and draws Ordenar', () => {
     expect(pantalla).toContain('useState<Orden>(ORDEN_INICIAL)');
-    expect(pantalla).toMatch(/tarjetasDe\(cocinas\.data, desde, buscados, ahora, orden\)/);
+    // ⚠️ `10.5-iv-b-iii`: measured from `mide` — a zone of the map she searched, else her pick.
+    expect(pantalla).toMatch(/tarjetasDe\(cocinas\.data, mide, buscados, ahora, orden\)/);
     expect(pantalla).toContain('<Ordenar orden={orden} onOrden={setOrden} />');
     // ⚠️ `10.5-v-b`: a button at the head of the list, its orders in a sheet (`test/pestanas.test.ts`).
   });

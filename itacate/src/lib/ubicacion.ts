@@ -12,7 +12,12 @@
 //   - outside Wera Cocina's search zone: *Itacate aún no llega a tu zona*
 //     (2026-11-04, night);
 //   - ⚠️ since `10.5-v-b`, a postal code at her pick, even with her location on
-//     (2026-11-05, answer 5) — and while she searches from one, her phone is not asked.
+//     (2026-11-05, answer 5) — and while she searches from one, her phone is not asked;
+//   - ⚠️ since `10.5-iv-b-iii`, the map's centre once she taps *Buscar en esta zona*
+//     (his question of 2026-11-19, evening, and his *"yes"* to its shape): the list
+//     measures from where she moved the map until *Volver a donde estás* — outside Wera
+//     Cocina's zone, *Itacate aún no llega a esa zona.* The centre is the map's, on her
+//     phone, never sent (the door takes no area).
 // ⚠️ ONLY WHILE THE APP IS OPEN: `app.json` blocks background location on Android
 // and carries no *always* sentence on an iPhone (`10.2a`); this file decides from
 // what the foreground permission answered.
@@ -61,7 +66,9 @@ export type Origen =
   | { readonly kind: 'aqui'; readonly punto: Punto }
   | { readonly kind: 'codigo'; readonly cp: string; readonly punto: Punto }
   | { readonly kind: 'pide-codigo'; readonly porque: 'sin-permiso' | 'aproximada' | 'sin-ubicacion' }
-  | { readonly kind: 'fuera' };
+  | { readonly kind: 'fuera' }
+  /** `10.5-iv-b-iii`: the map's centre she searched — `fuera` when it is outside Wera Cocina's zone. */
+  | { readonly kind: 'zona'; readonly punto: Punto; readonly fuera: boolean };
 
 /**
  * ⚠️ HER PICK FIRST (`10.5-v-b`, the owner's answer 5 of 2026-11-05: *"We can let the
@@ -71,17 +78,34 @@ export type Origen =
  * under which a precise location always won. Without a code: her location inside the
  * zone; outside it, *Itacate aún no llega a tu zona*; declined, approximate or not
  * found, the box.
+ *
+ * ⚠️ *BUSCAR EN ESTA ZONA* WINS WHILE IT LASTS (`10.5-iv-b-iii`): once she taps it the list
+ * measures from the map's centre she searched, over her location and over a postal code,
+ * until *Volver a donde estás* — or until she picks where to search again on *Dónde buscar*,
+ * which lets go of the zone (`@/lib/DondeBuscarProvider`). Outside the zone the list says
+ * *Itacate aún no llega a esa zona.*
  */
-export function origenDe(donde: DondeEstoy, codigo: Codigo | null): Origen {
+export function origenDe(donde: DondeEstoy, codigo: Codigo | null, zona: Punto | null = null): Origen {
+  if (zona !== null) return { kind: 'zona', punto: zona, fuera: !enLaZona(zona) };
   if (codigo !== null) return { kind: 'codigo', cp: codigo.cp, punto: codigo.punto };
   if (donde.kind === 'aqui') return enLaZona(donde.punto) ? { kind: 'aqui', punto: donde.punto } : { kind: 'fuera' };
   if (donde.kind === 'buscando') return { kind: 'buscando' };
   return { kind: 'pide-codigo', porque: donde.kind };
 }
 
-/** The point the list is measured from, or `null` while there is none. */
+/** The point the list is measured from, or `null` while there is none — a zone outside Itacate's has none. */
 export function puntoDeOrigen(origen: Origen): Punto | null {
+  if (origen.kind === 'zona') return origen.fuera ? null : origen.punto;
   return origen.kind === 'aqui' || origen.kind === 'codigo' ? origen.punto : null;
+}
+
+/**
+ * Where *Buscar en esta zona* measures its kilometre from — the list's point, and the zone
+ * she searched even when it is outside Itacate's (so moving the map back offers it again);
+ * `null` while there is no list, when the button is not offered at all.
+ */
+export function centroDeBusqueda(origen: Origen): Punto | null {
+  return origen.kind === 'zona' ? origen.punto : puntoDeOrigen(origen);
 }
 
 /**

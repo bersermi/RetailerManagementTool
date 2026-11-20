@@ -95,6 +95,8 @@ const ENTERAS: Readonly<Record<string, string>> = {
   'vecinos/ui/TarjetaPlatillo.tsx': 'ui/TarjetaPlatillo.tsx',
   'vecinos/ui/PaginaDeCocina.tsx': 'ui/PaginaDeCocina.tsx',
   'vecinos/ui/PaginaDePlatillo.tsx': 'ui/PaginaDePlatillo.tsx',
+  // `10.5-iv-b-iii`: *Google Maps* under a distance (his ruling D6) — never drawn here, where the pages get none.
+  'vecinos/ui/CreditoDeGoogle.tsx': 'ui/CreditoDeGoogle.tsx',
 };
 
 /** Copies of part of a file: the blocks each holds. */

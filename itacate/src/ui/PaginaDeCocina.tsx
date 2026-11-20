@@ -14,6 +14,7 @@ import { PALETTE, SIZE } from '@/theme/palette';
 import { Atras } from '@/ui/Atras';
 import { BandaPromocion } from '@/ui/BandaPromocion';
 import { Circulo } from '@/ui/Circulo';
+import { CreditoDeGoogle } from '@/ui/CreditoDeGoogle';
 import { Dibujo } from '@/ui/Dibujo';
 import { Enlace } from '@/ui/Enlace';
 import { Foto } from '@/ui/Foto';
@@ -40,7 +41,9 @@ import { RenglonPlatillo } from '@/ui/RenglonPlatillo';
 // family-shell page's call 20). ⚠️ SINCE `10.9g-iii` HER PROMOTION (G29, the family-shell page's `promoBand` on
 // her page, stage 4): after *Seguir*, *Promoción* and the newest band — the others behind *y 2 más* — each with
 // *Condiciones* opening hers under it; and each dish under *Hoy* wears its mark (`@/ui/RenglonPlatillo`). From the
-// door's answer, like the rest (`bandasDe`); Wera Cocina's copy draws hers from her own rows.
+// door's answer, like the rest (`bandasDe`); Wera Cocina's copy draws hers from her own rows. ⚠️ SINCE `10.5-iv-b-iii`
+// *GOOGLE MAPS* UNDER THE DISTANCE (`@/ui/CreditoDeGoogle`, his ruling D6): the distance is worked out from Google's
+// point, and this page has no map. Wera Cocina's copy is handed no distance, so it draws neither.
 //
 // ⚠️ IT READS NOTHING: the kitchen, her trade's name, the distance and the clock are its
 // route's to hand it, so it never learns where the neighbour is (`test/donde.test.ts`).
@@ -144,6 +147,7 @@ export function PaginaDeCocina({
             {distancia !== null && (
               <Text style={{ fontSize: SIZE.smallSize, fontWeight: '600', color: PALETTE.tinta }}>{distancia}</Text>
             )}
+            {distancia !== null && <CreditoDeGoogle />}
             {calificacion.kind === 'estrellas' ? (
               <View accessible accessibilityLabel={calificacion.ayuda} style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
                 <MaterialCommunityIcons name="star" size={SIZE.bodySize} color={PALETTE.estrella} />
