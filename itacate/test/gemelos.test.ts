@@ -404,3 +404,30 @@ describe('a promotion’s band and mark — Wera Cocina’s, what a fonda was sh
     expect(PALETTE.marca).toBe(PALETA_DE_COCINA.marca);
   });
 });
+
+describe('the counter with no signal — Wera Cocina’s signal, words and queue’s rules (`10.9j-ii-a`)', () => {
+  // ⚠️ One signal across the two apps' counters: what makes Wera Cocina's *Sin señal* and drain trustworthy (Wera's
+  // measurements, through its copy) is what makes hers. The machine itself is held to WERA's file by `test/senal.test.ts`.
+  const sinComentarios = (text: string) =>
+    fold(text.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, ''));
+
+  for (const file of ['lib/connectivityMonitor.ts', 'lib/useSenal.ts']) {
+    it(`${file} is cocina/src/${file}`, () => {
+      expect(sinComentarios(itacate(file))).toBe(sinComentarios(cocina(file)));
+      expect(itacate(file)).toContain(`cocina/src/${file}`);
+    });
+  }
+
+  it('her queue’s word for why a drain stopped and the codes of an unrenewed sign-in are Wera Cocina’s', () => {
+    for (const inicio of ['export type FlushStop =', 'export const CODIGOS_DE_SESION:', 'export interface Drenado {']) {
+      expect(bloque(itacate('api/cola.ts'), inicio), inicio).toBe(bloque(cocina('api/cola.ts'), inicio));
+    }
+    expect(itacate('api/cola.ts')).toContain('cocina/src/api/cola.ts');
+  });
+
+  it('*Sin señal. Lo que ves se leyó a las 13:40.* — the family says it one way', () => {
+    expect(ES.senal.sinSenal(null, '13:40')).toBe(COCINA.cola.sinSenal(null, '13:40'));
+    expect(ES.senal.sinSenal('ayer', '21:40')).toBe(COCINA.cola.sinSenal('ayer', '21:40'));
+    expect(ES.senal.sinDatos).toBe(COCINA.cola.sinDatos);
+  });
+});

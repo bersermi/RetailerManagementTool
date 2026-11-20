@@ -8,7 +8,8 @@
 //   reserve_plate          one plate of one dish, at her hour, by her method
 //   my_reservations        hers: every one still to collect and her last 30 days
 //   cancel_my_reservation  *Cancelar* until an hour before her hour, then *No voy a poder ir*
-//   confirm_my_pickup      *Ya lo tengo*
+//   confirm_my_pickup      *Ya lo tengo* — since `0088` with her minute (`p_at`), so a swipe made
+//                          with no signal is sent later from her phone's queue (`@/api/cola`, J4)
 //   give_my_yes            her express yes, once, before her first reservation
 //   my_standing            her yes, her score, each label's count, how many she may hold
 //   rate_kitchen           her stars about the kitchen after a pickup, its tags, a note for Wera
@@ -27,6 +28,13 @@
 // ⚠️ MONEY AND QUANTITIES ARRIVE AS DECIMAL STRINGS and are read by `parseDecimal`
 // (`@tienda/money`), as the door's are. Only the METHOD she pays by is stored — never an
 // amount paid, a card or an account (the owner's ruling of 2026-11-05).
+//
+// ⚠️ `10.9j-ii-a` — THE SEAL (`0088`, the owner's J2 of 2026-11-20): `reserve_plate` and
+// `my_reservations` answer each reservation still to collect with `seal`, the text of the QR
+// on her ticket, which the fonda's phone checks with no signal (Wera Cocina, `10.9j-ii-b`).
+// This app never reads inside it — it draws it (`@/ui/CodigoQR`) and keeps it with her ticket
+// (`@/lib/boletos`) — so it is taken only when it has the shape this build knows (`SELLO_FORMA`):
+// a later shape is no QR on her ticket, never a QR the kitchen cannot read.
 //
 // Everything with a right answer is here, and nothing that talks: the calls are
 // `@/api/calls`', the hooks `@/api/hooks`'.
@@ -55,7 +63,7 @@ export const RESERVE_PLATE = 'reserve_plate';
 export const MY_RESERVATIONS = 'my_reservations';
 /** `0079`: gives her plate back — `cancelado`, or `no_va` within the hour before hers. */
 export const CANCEL_MY_RESERVATION = 'cancel_my_reservation';
-/** `0079`: *Ya lo tengo*. */
+/** `0079`: *Ya lo tengo* — since `0088` with her minute. */
 export const CONFIRM_MY_PICKUP = 'confirm_my_pickup';
 /** `0080`: her express yes, once. */
 export const GIVE_MY_YES = 'give_my_yes';
@@ -90,9 +98,20 @@ export interface ReserveArgs {
   readonly p_eat: Comer;
 }
 
-/** `cancel_my_reservation`'s and `confirm_my_pickup`'s one argument. */
+/** `cancel_my_reservation`'s one argument. */
 export interface ReservationIdArgs {
   readonly p_id: string;
+}
+
+/**
+ * `confirm_my_pickup`'s arguments (`0088`): the reservation, and when she swiped — on her
+ * phone, so a swipe that waited for the signal arrives with its own minute (J4). The database
+ * keeps it between the reservation's making and now, and takes it when that minute is within
+ * a day of her window.
+ */
+export interface ConfirmArgs {
+  readonly p_id: string;
+  readonly p_at: string;
 }
 
 /** A reservation as she chose it on the sheet. */
@@ -119,6 +138,10 @@ export function reserveArgs(eleccion: Eleccion): ReserveArgs {
 
 export function reservationIdArgs(id: string): ReservationIdArgs {
   return { p_id: id };
+}
+
+export function confirmArgs(id: string, at: Date): ConfirmArgs {
+  return { p_id: id, p_at: at.toISOString() };
 }
 
 /** `rate_kitchen`'s arguments, by their names. ⚠️ EACH CALL SETS ALL THREE: a blank note is none. */
@@ -155,6 +178,8 @@ export function rateArgs(id: string, calificacion: Calificacion): RateArgs {
 export interface ReservedRow {
   readonly id: string;
   readonly code: number;
+  /** `0088`: the QR on her ticket (J2). */
+  readonly seal: string | null;
 }
 
 /** One of `my_reservations`' rows. */
@@ -175,6 +200,11 @@ export interface ReservationRow {
   readonly my_rating: MyRatingRow | null;
   readonly kitchen: ReservationKitchenRow | null;
   readonly lines: readonly ReservationLineRow[] | null;
+  /**
+   * `0088`: the QR on her ticket (J2) — while it is still to collect: not handed over, not
+   * confirmed, not cancelled, and no more than a day past its window; else `null`.
+   */
+  readonly seal: string | null;
 }
 
 /** The kitchen she reserved at — never its point (Google's copy is handed out only by the door). */
@@ -242,6 +272,20 @@ export interface StandingRow {
 export interface ScoreRow {
   readonly up: number;
   readonly total: number;
+}
+
+/**
+ * ⚠️ THE ONE SHAPE OF SEAL THIS BUILD DRAWS (`0088`'s first field): `s1|…`. A seal of another
+ * shape is no QR here — the fonda's phone of this generation could not check it either.
+ */
+export const SELLO_FORMA = 's1';
+/** The longest seal taken: the dish's name is at most 80 characters (`0072`), and the rest is a fixed shape. */
+export const SELLO_MAXIMO = 600;
+
+/** The seal, when it has the shape this build knows; else `null` — no QR. */
+export function selloOf(value: unknown): string | null {
+  if (typeof value !== 'string' || value.length > SELLO_MAXIMO) return null;
+  return value.startsWith(`${SELLO_FORMA}|`) ? value : null;
 }
 
 /** A reservation's state, read from its moments by `reservation_state` (`0079`, `0080`). */
@@ -327,6 +371,8 @@ export interface Apartado {
   readonly platos: readonly Plato[];
   /** What she pays: every plate and its *desechable*. */
   readonly totalCentavos: number;
+  /** `0088`: the QR on her ticket, while it is still to collect — else `null`. */
+  readonly sello: string | null;
 }
 
 export interface Posicion {
@@ -430,6 +476,7 @@ export function apartadoOf(value: unknown): Apartado {
     },
     platos: platos.sort((a, b) => a.lineNo - b.lineNo),
     totalCentavos,
+    sello: selloOf(r.seal),
   };
 }
 

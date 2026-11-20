@@ -46,15 +46,14 @@ import {
   MY_STANDING,
   RATE_KITCHEN,
   RESERVE_PLATE,
-  apartadosFrom,
   calificadoFrom,
   posicionFrom,
   rateArgs,
   reservadoFrom,
   reservationIdArgs,
   reserveArgs,
-  type Apartado,
   type Calificacion,
+  type ConfirmArgs,
   type Eleccion,
   type Posicion,
 } from '@/api/apartados';
@@ -187,11 +186,16 @@ export async function reservePlate(eleccion: Eleccion): Promise<{ readonly id: s
   return reservadoFrom(data);
 }
 
-/** Hers: every reservation still to collect and her last 30 days (`0079`, `0080`). */
-export async function myReservations(): Promise<Apartado[]> {
+/**
+ * Hers: every reservation still to collect and her last 30 days (`0079`, `0080`) — the answer AS
+ * IT CAME, since `10.9j-ii-a`: what is still to collect is kept on her phone as the database sent
+ * it (`@/lib/boletos`), and read by `apartadosFrom` like a live answer. `@/api/hooks`' `useApartados`
+ * does both.
+ */
+export async function myReservationRows(): Promise<unknown> {
   const { data, error } = await supabase.rpc(MY_RESERVATIONS);
   if (error) throw error;
-  return apartadosFrom(data);
+  return data;
 }
 
 /** Gives her plate back — the state it left, `cancelado` or `no_va` (`0079`). */
@@ -201,9 +205,9 @@ export async function cancelMyReservation(id: string): Promise<string> {
   return typeof data === 'string' ? data : '';
 }
 
-/** *Ya lo tengo* (`0079`). */
-export async function confirmMyPickup(id: string): Promise<string> {
-  const { data, error } = await supabase.rpc(CONFIRM_MY_PICKUP, reservationIdArgs(id));
+/** *Ya lo tengo* (`0079`) — since `0088` with her minute, sent from her queue (`@/lib/cola`). */
+export async function confirmMyPickup(args: ConfirmArgs): Promise<string> {
+  const { data, error } = await supabase.rpc(CONFIRM_MY_PICKUP, args);
   if (error) throw error;
   return typeof data === 'string' ? data : '';
 }

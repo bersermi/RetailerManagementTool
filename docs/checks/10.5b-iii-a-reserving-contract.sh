@@ -42,6 +42,13 @@
 #      refused with the code the app reads as *yaNoSeCalifica*. The tags are read out of the app:
 #      the good four from `cocinas.ts` (the door sends them too), the other four from `apartados.ts`.
 #  12. Someone else — the fonda — reads none of hers, and signed out nothing is answered.
+#  13. (`10.9j-ii-a`) THE SEAL (`0088`, the owner's J2): her reservation still to collect carries
+#      `seal`, the QR on her ticket — the shape the app draws (`SELLO_FORMA`), the same from
+#      `reserve_plate` and `my_reservations`, her reservation and code in it, never her name, all
+#      printable ASCII — and its MAC fits under her kitchen's secret as the fonda's phone is handed
+#      it, worked out with Python's `hmac`, an implementation that is not the database's; one she
+#      collected has none. And *Ya lo tengo* (group 9) is sent by the app's names WITH HER MINUTE
+#      (`ConfirmArgs`, J4), which the database keeps.
 #
 # ⚠️ WHAT IT DOES NOT ASSERT: the database's own rules (`supabase/tests/0079_…` and
 # `0080_…`: who may reserve by score, trust that grows past one pickup, the clock's *No se
@@ -105,6 +112,8 @@ BAD_TAGS="$(list_of ETIQUETAS_MALAS "$APARTADOS_TS")"
 NO_RATING_CODE="$(code_of yaNoSeCalifica)"
 RESERVE_ARGS="$(fields_of "$APARTADOS_TS" ReserveArgs 'p_')"
 ID_ARGS="$(fields_of "$APARTADOS_TS" ReservationIdArgs 'p_')"
+CONFIRM_ARGS="$(fields_of "$APARTADOS_TS" ConfirmArgs 'p_')"
+SEAL_SHAPE="$(const SELLO_FORMA "$APARTADOS_TS")"
 RESERVED_KEYS="$(fields_of "$APARTADOS_TS" ReservedRow '')"
 ROW_KEYS="$(fields_of "$APARTADOS_TS" ReservationRow '')"
 KITCHEN_KEYS="$(fields_of "$APARTADOS_TS" ReservationKitchenRow '')"
@@ -137,6 +146,7 @@ NAME_KEY="$(const FULL_NAME_KEY "$CREDENTIALS_TS")"
 
 for pair in "RESERVE_PLATE:$RESERVE" "MY_RESERVATIONS:$MINE" "CANCEL_MY_RESERVATION:$CANCEL" "CONFIRM_MY_PICKUP:$CONFIRM" \
             "GIVE_MY_YES:$YES" "MY_STANDING:$STANDING" "ReserveArgs:$RESERVE_ARGS" "ReservationIdArgs:$ID_ARGS" \
+            "ConfirmArgs:$CONFIRM_ARGS" "SELLO_FORMA:$SEAL_SHAPE" \
             "ReservedRow:$RESERVED_KEYS" "ReservationRow:$ROW_KEYS" "ReservationKitchenRow:$KITCHEN_KEYS" \
             "ReservationAddressRow:$ADDRESS_KEYS" "ReservationPageRow:$PAGE_KEYS" "ReservationLineRow:$LINE_KEYS" \
             "StandingRow:$STANDING_KEYS" "ScoreRow:$SCORE_KEYS" "ESTADOS:$STATES" "the code for sinSi:$NO_YES_CODE" \
@@ -158,7 +168,7 @@ done
 PENDING="$(nth "$STATES" 1)"; COLLECTED="$(nth "$STATES" 2)"; CANCELLED="$(nth "$STATES" 3)"; NOT_GOING="$(nth "$STATES" 4)"
 CASH="$(nth "$PAYMENTS" 1)"; CARD="$(nth "$PAYMENTS" 2)"
 TO_GO="$(nth "$WAYS" 1)"; HERE="$(nth "$WAYS" 2)"
-ok "read from Itacate: $RESERVE($RESERVE_ARGS) -> {$RESERVED_KEYS}, $MINE(), $CANCEL($ID_ARGS), $CONFIRM($ID_ARGS), $YES(), $STANDING()"
+ok "read from Itacate: $RESERVE($RESERVE_ARGS) -> {$RESERVED_KEYS}, $MINE(), $CANCEL($ID_ARGS), $CONFIRM($CONFIRM_ARGS), $YES(), $STANDING(); a seal of shape '$SEAL_SHAPE'"
 ok "and the answers: a reservation {$ROW_KEYS}, its kitchen {$KITCHEN_KEYS}, address {$ADDRESS_KEYS}, page {$PAGE_KEYS}, line {$LINE_KEYS}; her standing {$STANDING_KEYS}, score {$SCORE_KEYS}"
 ok "and the states it draws ($STATES), the codes it reads ($NO_YES_CODE sinSi, $LIMIT_CODE limite, $NOT_PENDING_CODE yaNoPendiente), how she pays ($PAYMENTS) and eats ($WAYS)"
 ok "and her stars: $RATE($RATE_ARGS) -> {$RATED_KEYS}, on her reservation {$MY_RATING_KEYS}; tags ($GOOD_TAGS) after four or five, ($BAD_TAGS) after one to three; $NO_RATING_CODE yaNoSeCalifica"
@@ -460,22 +470,29 @@ fi
 # --- 9. Ya lo tengo -------------------------------------------------------------------
 R4="$(uuid)"
 s="$(ask "$SCRATCH/r4.json" POST "/rest/v1/rpc/$RESERVE" "$(reserve_body "$R4" "$FIRST_HOUR" "$CASH" "$TO_GO")")"
-s2="$(ask "$SCRATCH/confirm4.json" POST "/rest/v1/rpc/$CONFIRM" "$(by_names "$ID_ARGS" "\"$R4\"")")"
+# Her minute: a whole second after the reservation was made — the database keeps a moment between
+# the making and now, so one before the making would come back as the making.
+sleep 2
+SWIPED_AT="$(iso 0)"
+s2="$(ask "$SCRATCH/confirm4.json" POST "/rest/v1/rpc/$CONFIRM" "$(by_names "$CONFIRM_ARGS" "\"$R4\"" "\"$SWIPED_AT\"")")"
 got="$(tr -d '"' < "$SCRATCH/confirm4.json")"
 ask "$SCRATCH/mine4.json" POST "/rest/v1/rpc/$MINE" '{}' > /dev/null
 v="$(verdict mine "$SCRATCH/mine4.json" "$R4" "$ROW_KEYS" "$KITCHEN_KEYS" "$ADDRESS_KEYS" "$PAGE_KEYS" "$LINE_KEYS" "$COLLECTED" "$CASH" "$TO_GO" '5.00')"
 ask "$SCRATCH/standing3.json" POST "/rest/v1/rpc/$STANDING" '{}' > /dev/null
 w="$(verdict standing "$SCRATCH/standing3.json" "$STANDING_KEYS" "$SCORE_KEYS" yes 3)"
+# ⚠️ Her minute, as the database kept it — read as its owner: the app reads no moment of a pickup.
+kept="$(supabase db query --local -o csv "select to_char(picked_up_at at time zone 'UTC', 'YYYY-MM-DD\"T\"HH24:MI:SS\"Z\"') from public.reservation where id = '$R4'" 2>/dev/null | tail -1)"
 if [[ "$s" != 200 ]]; then fail "reserving again answered $s $(head -c 200 "$SCRATCH/r4.json")"
-elif [[ "$s2" == 404 ]]; then fail "$CONFIRM() answered 404 — no function by the argument's name ($ID_ARGS)"
+elif [[ "$s2" == 404 ]]; then fail "$CONFIRM() answered 404 — no function by the arguments' names ($CONFIRM_ARGS)"
+elif [[ "$kept" != "$SWIPED_AT" ]]; then fail "her minute was not kept: she swiped at $SWIPED_AT, the database holds '$kept'"
 elif [[ "$s2" != 200 || "$got" != "$COLLECTED" ]]; then fail "*Ya lo tengo* answered $s2 '$got', the app knows '$COLLECTED'"
 elif [[ "$v" != OK ]]; then fail "$v"
 elif [[ "$w" != OK ]]; then fail "after her first pickup, $w"
-else ok "she says *Ya lo tengo* through $CONFIRM() — '$COLLECTED' — and her standing then lets her hold three"
+else ok "she says *Ya lo tengo* through $CONFIRM() with her minute — '$COLLECTED', kept at $SWIPED_AT (J4) — and her standing then lets her hold three"
 fi
 
 # --- 10. Ya lo tengo on a cancelled one ------------------------------------------------
-s="$(ask "$SCRATCH/confirm1.json" POST "/rest/v1/rpc/$CONFIRM" "$(by_names "$ID_ARGS" "\"$R1\"")")"
+s="$(ask "$SCRATCH/confirm1.json" POST "/rest/v1/rpc/$CONFIRM" "$(by_names "$CONFIRM_ARGS" "\"$R1\"" "\"$(iso 0)\"")")"
 v="$(verdict refused "$SCRATCH/confirm1.json" "$NOT_PENDING_CODE")"
 [[ "$v" == OK ]] && ok "*Ya lo tengo* on one she cancelled is refused with $NOT_PENDING_CODE — what the app reads as *yaNoPendiente* ($s)" || fail "*Ya lo tengo* on a cancelled one: $v"
 
@@ -508,11 +525,56 @@ elif [[ "$(status "$out")" == 2* ]]; then fail "signed out, $MINE() answered $(s
 else ok "someone else — the fonda — reads none of hers through $MINE(), and signed out it refuses ($(status "$out"))"
 fi
 
+# --- 13. the seal (`10.9j-ii-a`, `0088`) -----------------------------------------------------
+# ⚠️ The secret is asked as the fonda, by the migration's name: Wera Cocina claims it in its own
+# file with `10.9j-ii-b`, and its handover check will read it from there. Here it is the
+# instrument that lets an implementation that is not the database's check the database's MAC.
+TOKEN="$FONDA"
+s="$(ask "$SCRATCH/keys.json" POST "/rest/v1/rpc/kitchen_seal_keys" "{\"p_workspace_id\": \"$A\"}")"
+TOKEN="$VECINA"
+v="$(python3 - "$SCRATCH/r1.json" "$SCRATCH/mine.json" "$SCRATCH/mine4.json" "$SCRATCH/keys.json" "$R1" "$R4" "$CODE1" "$SEAL_SHAPE" "Ana Probadora" <<'PY'
+import hmac, hashlib, json, sys
+r1, mine, mine4, keys = (json.load(open(p)) for p in sys.argv[1:5])
+rid, r4, code, shape, name = sys.argv[5:10]
+row = next((x for x in mine if isinstance(x, dict) and x.get('id') == rid), None)
+seal = (row or {}).get('seal')
+if not isinstance(seal, str):
+    print('her reservation still to collect came back with seal %r' % seal); sys.exit()
+if r1.get('seal') != seal:
+    print("reserve_plate answered seal %r, my_reservations %r — one ticket, two QRs" % (r1.get('seal'), seal)); sys.exit()
+if not seal.startswith(shape + '|'):
+    print("her ticket's seal did not start with %r: %r" % (shape + '|', seal)); sys.exit()
+if not all(32 <= ord(c) <= 126 for c in seal):
+    print("her ticket's seal is not printable ASCII — a QR writer and a camera could disagree on it: %r" % seal); sys.exit()
+fields = seal.split('|')
+if len(fields) != 14 or fields[1] != rid.replace('-', '') or fields[4] != code:
+    print("her ticket's seal does not carry her reservation and code as 0088 says: %r" % seal); sys.exit()
+if name.split()[0] in seal:
+    print("her ticket's seal carries her name: %r" % seal); sys.exit()
+payload, mac = seal.rsplit('|', 1)
+key = next((k for k in (keys.get('keys') or []) if str(k.get('version')) == fields[3]), None)
+if key is None:
+    print("the fonda's phone was handed no secret of version %s: %r" % (fields[3], keys)); sys.exit()
+want = hmac.new(bytes.fromhex(key['secret']), payload.encode('ascii'), hashlib.sha1).hexdigest()[:20]
+if mac != want:
+    print("the seal's MAC %s does not fit her kitchen's secret (Python's hmac makes %s)" % (mac, want)); sys.exit()
+row4 = next((x for x in mine4 if isinstance(x, dict) and x.get('id') == r4), None)
+if row4 is None or row4.get('seal') is not None:
+    print('a reservation she collected came back with seal %r' % (row4 or {}).get('seal')); sys.exit()
+print('OK')
+PY
+)"
+if [[ "$s" != 200 ]]; then fail "the fonda's phone could not be handed her kitchen's secret: $s $(head -c 200 "$SCRATCH/keys.json")"
+elif [[ "$v" != OK ]]; then fail "$v"
+else ok "her ticket's seal (J2): '$SEAL_SHAPE', the same from $RESERVE() and $MINE(), her reservation and code in it, never her name, printable ASCII — its MAC fits her kitchen's secret by Python's hmac, not the database's; collected, none"
+fi
+
 echo
 if (( fails > 0 )); then
   echo "$fails assertion group(s) failed."
   exit 1
 fi
-echo "all 12 assertion groups passed — Itacate reserves, gives back, collects, rates and reads her standing by"
+echo "all 13 assertion groups passed — Itacate reserves, gives back, collects, rates and reads her standing by"
 echo "the names the database answers: every argument and key, the states its screens draw, the codes it turns into"
-echo "sentences, a desechable only on a plate taken away, her stars without her note, and nothing of hers to anyone else."
+echo "sentences, a desechable only on a plate taken away, her stars without her note, nothing of hers to anyone else,"
+echo "her minute on Ya lo tengo, and a QR on her ticket the kitchen's secret seals."

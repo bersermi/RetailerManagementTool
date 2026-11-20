@@ -112,6 +112,11 @@ signed_in (proname) as (values
   -- neighbour reads them through the door, `on_offer_now`, and an offer joins one through
   -- `publish_listing`, both already on this list
   ('kitchen_promotions'), ('create_promotion'), ('end_promotion'), ('undo_promotion'),
+  -- the handover with no signal (`0088`, plan `10.9j-ii-a`): the kitchen's sealing
+  -- secrets, read by every member's phone to check a neighbour's ticket with no signal
+  -- (J2); her side — the seal on her reservations, *Ya lo tengo* with its minute — is
+  -- `reserve_plate`, `my_reservations` and `confirm_my_pickup`, already on this list
+  ('kitchen_seal_keys'),
   -- what a policy, a check or a computed column runs as the caller
   ('catalog_image_path'), ('has_role'), ('merma_path_ok'), ('my_locations'),
   ('my_role'), ('my_workspaces'), ('normalize_name'), ('photo_folder_ok'),

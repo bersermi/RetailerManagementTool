@@ -30,6 +30,7 @@ import {
   reserveArgs,
   type Apartado,
 } from '@/api/apartados';
+import { SELLO_FORMA, SELLO_MAXIMO, confirmArgs, selloOf } from '@/api/apartados';
 import type { Kitchen } from '@/api/cocinas';
 import {
   anteriorTexto,
@@ -49,6 +50,7 @@ import {
   seccionesDe,
   YA_LO_TENGO_DESPUES_MS,
 } from '@/lib/apartados';
+import { abreSuBoleto, sinSenalTexto } from '@/lib/apartados';
 import { DESLIZAR_HASTA, alSoltarConfirma, avanceDe } from '@/lib/deslizar';
 import { ES } from '@/strings';
 
@@ -147,7 +149,9 @@ describe('the seven functions, by their names — every one in the migrations’
     expect(campos('ReserveArgs')).toEqual(['p_id', 'p_listing_id', 'p_line_no', 'p_pickup_at', 'p_payment', 'p_eat']);
     expect(campos('ReservationIdArgs')).toEqual(['p_id']);
     expect(definicion(CANCEL_MY_RESERVATION)).toMatch(/cancel_my_reservation\(p_id uuid\)/);
-    expect(definicion(CONFIRM_MY_PICKUP)).toMatch(/confirm_my_pickup\(p_id uuid\)/);
+    // ⚠️ `0088` (J4): her minute, defaulted — dropped and re-created, never an overload.
+    expect(campos('ConfirmArgs')).toEqual(['p_id', 'p_at']);
+    expect(definicion(CONFIRM_MY_PICKUP)).toMatch(/confirm_my_pickup\(p_id uuid, p_at timestamptz default null\)/);
   });
 
   it('every key read is one the functions write, quoted', () => {
@@ -188,7 +192,9 @@ describe('the seven functions, by their names — every one in the migrations’
     expect(calls).toMatch(/supabase\.rpc\(RESERVE_PLATE, reserveArgs\(eleccion\)\)/);
     expect(calls).toMatch(/supabase\.rpc\(MY_RESERVATIONS\)/);
     expect(calls).toMatch(/supabase\.rpc\(CANCEL_MY_RESERVATION, reservationIdArgs\(id\)\)/);
-    expect(calls).toMatch(/supabase\.rpc\(CONFIRM_MY_PICKUP, reservationIdArgs\(id\)\)/);
+    // ⚠️ `10.9j-ii-a`: from her queue, with the arguments its one builder made (`@/api/cola`' `llamadaDe`).
+    expect(calls).toMatch(/supabase\.rpc\(CONFIRM_MY_PICKUP, args\)/);
+    expect(read('api/cola.ts')).toMatch(/args: confirmArgs\(envio\.reserva, new Date\(envio\.en\)\)/);
     expect(calls).toMatch(/supabase\.rpc\(GIVE_MY_YES\)/);
     expect(calls).toMatch(/supabase\.rpc\(MY_STANDING\)/);
   });
@@ -317,7 +323,9 @@ describe('the tab, in four parts', () => {
 
   it('a released plate keeps its swipe for a day after its window — the day `confirm_my_pickup` takes it, and after which the clock counts it', () => {
     expect(YA_LO_TENGO_DESPUES_MS).toBe(24 * 3_600_000);
-    expect(definicion('confirm_my_pickup')).toMatch(/now\(\) > v_r\.held_until \+ interval '24 hours'/);
+    // ⚠️ `0088` (J4): read at HER minute — kept between the reservation's making and now — not at its arrival.
+    expect(definicion('confirm_my_pickup')).toMatch(/v_at := greatest\(least\(coalesce\(p_at, now\(\)\), now\(\)\), v_r\.created_at\)/);
+    expect(definicion('confirm_my_pickup')).toMatch(/v_at > v_r\.held_until \+ interval '24 hours'/);
     expect(definicion('neighbour_score')).toMatch(/r\.held_until \+ interval '24 hours' <= now\(\)/);
     const hoy = uno({ id: 'l-1', state: 'liberado', held_until: '2026-11-10T19:00:00+00:00' });
     expect(seccionesDe([hoy], local(2026, 11, 11, 12, 59)).porConfirmar).toHaveLength(1);
@@ -422,5 +430,59 @@ describe('Ya lo tengo is a swipe — Wera’s answer to how far is far enough', 
     const swipe = read('ui/Deslizar.tsx');
     expect(swipe).toMatch(/const listo = useRef\(onListo\);\s*listo\.current = onListo;/);
     expect(swipe).toMatch(/accessibilityActions=\{\[\{ name: 'activate', label: accion \}\]\}/);
+  });
+});
+
+describe('the handover with no signal — her half (`10.9j-ii-a`, J1–J4)', () => {
+  const SELLO = 's1|r0000000000040008000000000000001|b1d0c0de000040008000000000000001|1|347|1762806600|efectivo|llevar|1.000|60.00|5.00|0|Mole con arroz|0123456789abcdef0123';
+
+  it('her ticket carries the database’s seal while it is still to collect — `my_reservations` writes the key (`0088`)', () => {
+    expect(campos('ReservationRow')).toContain('seal');
+    expect(campos('ReservedRow')).toContain('seal');
+    expect(definicion(MY_RESERVATIONS)).toMatch(/'seal', case when r\.handed_over_at is null and r\.picked_up_at is null/);
+    expect(definicion(RESERVE_PLATE)).toMatch(/'seal', servicio\.reservation_seal\(p_id\)/);
+    expect(uno({ seal: SELLO }).sello).toBe(SELLO);
+    expect(uno({ seal: null }).sello).toBeNull();
+  });
+
+  it('⚠️ only a seal of the shape this build knows — `s1`, the first field `0088` writes — and no longer than a seal can be', () => {
+    expect(SELLO_FORMA).toBe('s1');
+    const sql = readFileSync(join(MIGRATIONS, readdirSync(MIGRATIONS).find((n) => n.startsWith('0088_')) as string), 'utf8');
+    expect(sql).toMatch(/concat_ws\('\|',\s*'s1',/);
+    expect(selloOf(SELLO)).toBe(SELLO);
+    expect(selloOf(SELLO.replace(/^s1\|/, 's2|'))).toBeNull();
+    expect(selloOf('s1')).toBeNull();
+    expect(selloOf(`s1|${'x'.repeat(SELLO_MAXIMO)}`)).toBeNull();
+    expect(selloOf(42)).toBeNull();
+    expect(selloOf(undefined)).toBeNull();
+  });
+
+  it('*Ya lo tengo* sends her minute: `confirm_my_pickup(p_id, p_at)`', () => {
+    expect(confirmArgs('r-1', new Date('2026-11-20T20:31:00Z'))).toEqual({ p_id: 'r-1', p_at: '2026-11-20T20:31:00.000Z' });
+  });
+
+  it('*Sin señal. Lo que ves se leyó a las 13:40.* — and the day, when it was read another day', () => {
+    expect(sinSenalTexto(local(2026, 11, 20, 13, 40), local(2026, 11, 20, 14, 31))).toBe('Sin señal. Lo que ves se leyó a las 13:40.');
+    expect(sinSenalTexto(local(2026, 11, 19, 21, 40), local(2026, 11, 20, 9, 0))).toBe('Sin señal. Lo que ves se leyó ayer a las 21:40.');
+    expect(sinSenalTexto(local(2026, 11, 16, 9, 5), local(2026, 11, 20, 9, 0))).toBe('Sin señal. Lo que ves se leyó lun 16 a las 9:05.');
+  });
+
+  it('⚠️ it opens on her ticket only when the app opens with no signal and her phone keeps one still to collect — once a run', () => {
+    const conSello = [uno({ seal: SELLO })];
+    const sinSello = [uno({ seal: null, state: 'recogido' })];
+    expect(abreSuBoleto(false, conSello, false)).toBe(true);
+    expect(abreSuBoleto(false, conSello, true)).toBe(false);
+    expect(abreSuBoleto(true, conSello, false)).toBe(false);
+    expect(abreSuBoleto(null, conSello, false)).toBe(false);
+    expect(abreSuBoleto(undefined, conSello, false)).toBe(false);
+    expect(abreSuBoleto(false, sinSello, false)).toBe(false);
+    expect(abreSuBoleto(false, undefined, false)).toBe(false);
+  });
+
+  it('the QR’s words — under her code, what to do with it', () => {
+    expect(ES.apartados.qr.nota).toBe('Si la cocina no tiene señal, enséñale este código.');
+    expect(ES.apartados.qr.etiqueta('418')).toBe('Código QR del apartado 418');
+    expect(ES.apartados.guardado).toBe('Guardado en este teléfono. Se envía solo cuando vuelva la señal.');
+    expect(ES.apartados.calificarDespues).toBe('Podrás calificar a la cocina cuando vuelva la señal.');
   });
 });

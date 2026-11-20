@@ -5,6 +5,7 @@ import { Pressable, Text, View } from 'react-native';
 import type { Apartado } from '@/api/apartados';
 import type { Kitchen } from '@/api/cocinas';
 import {
+  QR_LADO,
   cambioDePlanesTexto,
   cocinaDe,
   comoLlegarDelApartado,
@@ -19,6 +20,7 @@ import { ES } from '@/strings';
 import { TITULO } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
 import { Circulo } from '@/ui/Circulo';
+import { CodigoQR } from '@/ui/CodigoQR';
 import { Deslizar } from '@/ui/Deslizar';
 import { Enlace } from '@/ui/Enlace';
 
@@ -31,14 +33,20 @@ import { Enlace } from '@/ui/Enlace';
 // hour before her hour, then *No voy a poder ir* (call 15). Every word is `@/lib/apartados`'.
 //
 // ⚠️ STATE FIRST (ADR-035 §2.8): the code and the hour lead; what she can do comes last.
+// ⚠️⚠️ `10.9j-ii-a` (the owner's J2 of 2026-11-20): THE QR UNDER HER CODE — the seal the database made
+// with her kitchen's secret (`0088`), which the kitchen's phone checks with no signal and hands over
+// from (`10.9j-ii-b`); it carries her order, never her name. Always there while the database sealed it:
+// scanning is quicker than typing. Black on white at the size a phone reads across a counter
+// (`@/lib/apartados`' `QR_LADO`); drawn by `@/ui/CodigoQR`, as *Mi código* is. A ticket her phone kept carries it too
+// (`@/lib/boletos`), so it shows with no signal.
 // NO CHECK CAN SEE THIS SCREEN (§2.11): the phone is its instrument.
 // ============================================================================
+
 
 export function BoletoApartado({
   apartado,
   puerta,
   ahora,
-  confirmando,
   onYaLoTengo,
   onCambioDePlanes,
 }: {
@@ -46,7 +54,6 @@ export function BoletoApartado({
   /** Her kitchen as the door sends it, while it does — for her circle and *Cómo llegar*. */
   puerta: Kitchen | undefined;
   ahora: Date;
-  confirmando: boolean;
   onYaLoTengo: () => void;
   onCambioDePlanes: () => void;
 }) {
@@ -84,6 +91,13 @@ export function BoletoApartado({
         </Text>
         <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada }}>{ES.apartados.dilo[apartado.comer]}</Text>
       </View>
+
+      {apartado.sello !== null && (
+        <View style={{ alignItems: 'center', gap: SIZE.rowGap / 2 }}>
+          <CodigoQR texto={apartado.sello} lado={QR_LADO} etiqueta={ES.apartados.qr.etiqueta(apartado.codigo)} />
+          <Text style={{ fontSize: SIZE.smallSize, lineHeight: 19, color: PALETTE.tintaApagada, textAlign: 'center' }}>{ES.apartados.qr.nota}</Text>
+        </View>
+      )}
 
       <View style={{ gap: SIZE.rowGap / 2 }}>
         <View style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: SIZE.rowGap }}>
@@ -127,7 +141,6 @@ export function BoletoApartado({
         texto={ES.apartados.desliza[apartado.comer]}
         ayuda={ES.apartados.deslizaAyuda}
         accion={ES.apartados.yaLoTengo}
-        ocupado={confirmando}
         onListo={onYaLoTengo}
       />
 

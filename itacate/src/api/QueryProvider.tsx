@@ -6,8 +6,10 @@
 // Cocina's copy is `cocina/src/api/QueryProvider.tsx`): the same retry policy —
 // twice, and never a read that ran out of time, which would otherwise wait
 // minutes to say so (`@/lib/plazo`) — and a read is renewed when the app comes
-// back to the front. Nothing here is needed offline yet, so nothing is kept, and
-// the cache dies with the app.
+// back to the front. The cache dies with the app: ⚠️ the one read kept on the phone
+// since `10.9j-ii-a` — her tickets still to collect (J1) — is kept by `@/lib/boletos`
+// and handed to its query as `initialData` (`@/api/hooks`' `useApartados`), never by
+// persisting this client.
 //
 // ⚠️ ITS FIRST READ IS HER WAY OUT'S (`10.5-iii-b`): what goes with her account
 // (`@/api/hooks`' `useBusinessesThatGo`); the door's (`10.5-iv`) adds a hook and
