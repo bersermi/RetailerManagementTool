@@ -9,8 +9,10 @@
   <link rel="stylesheet" href="estilo.css">
 </head>
 <body class="sitio tono-wera">
+<svg class="tinta-def" aria-hidden="true" focusable="false"><filter id="tinta" x="-6%" y="-6%" width="112%" height="112%"><feTurbulence type="fractalNoise" baseFrequency="0.75" numOctaves="2" seed="4" result="r1"/><feDisplacementMap in="SourceGraphic" in2="r1" scale="2.6" xChannelSelector="R" yChannelSelector="G" result="d"/><feTurbulence type="fractalNoise" baseFrequency="1.3" numOctaves="1" seed="11" result="r2"/><feColorMatrix in="r2" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -2.4 0 0 0 2.05" result="m"/><feComposite in="d" in2="m" operator="in"/></filter></svg>
 <!-- Plan 5R-r: the home page, and still the SUPPORT page both stores' listings give
-     (https://tu-wera.com/) — so its help block (#ayuda) stays here, with the two in-app paths. -->
+     (https://tu-wera.com/) — so its help block (#ayuda) stays here, with the two in-app paths.
+     Plan 5R-s: drawn as the counter's paperwork (estilo.css). The loyalty card is a drawing (aria-hidden). -->
 <header class="cabecera">
   <div class="envoltura">
     <a class="marca" href="./">Wera</a>
@@ -25,52 +27,54 @@
 <main>
 
 <section class="portada">
-  <div class="envoltura">
-    <h1>Apps para las tiendas, las cocinas y los vecinos de tu colonia.</h1>
-    <p class="entrada">Herramientas que se adaptan a cada negocio, no al revés: funcionan con el teléfono que ya
-    tienes, con tu manera de trabajar y hasta sin señal.</p>
+  <div class="envoltura con-tarjeta">
+    <div class="portada-texto">
+      <h1>Apps para las tiendas, las cocinas y los vecinos de <span class="subraya">tu colonia.<svg viewBox="0 0 300 20" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path pathLength="100" d="M3 13 C 55 5, 110 17, 165 10 S 262 6, 297 12"/></svg></span></h1>
+      <p class="entrada">Herramientas que se adaptan a cada negocio, no al revés: funcionan con el teléfono que ya
+      tienes, con tu manera de trabajar y hasta sin señal.</p>
+    </div>
+    <div class="tarjeta" aria-hidden="true">
+      <div class="tarjeta-cab"><span class="tarjeta-nombre">Tu cocina</span><span class="tarjeta-meta">Tarjeta de lealtad</span></div>
+      <div class="sellos">
+        <span class="hueco"><span class="vaca"></span></span>
+        <span class="hueco"><span class="vaca"></span></span>
+        <span class="hueco"><span class="vaca"></span></span>
+        <span class="hueco nuevo"><span class="vaca"></span></span>
+        <span class="hueco"></span><span class="hueco"></span><span class="hueco"></span><span class="hueco"></span>
+      </div>
+      <div class="tarjeta-pie"><span>Ejemplo</span><span>8 sellos</span></div>
+    </div>
   </div>
 </section>
 
 <section class="seccion">
-  <div class="envoltura">
-    <div class="apps">
-      <article class="app tono-wera">
-        <div class="app-cabeza">
-          <img class="icono" src="img/wera-icono.png" alt="" width="56" height="56">
-          <h2><a href="tienda/">Wera: tu tienda</a></h2>
-        </div>
-        <p>Vende, compra, anota tu merma y ve cuánto te deja cada producto, aunque no haya señal. Gratis, para
-        siempre.</p>
-        <p class="botones">
-          <a class="boton-tienda" href="https://apps.apple.com/mx/app/wera-tu-tienda/id6818418895">Descárgala en la App Store</a>
-          <a class="boton-tienda" href="https://play.google.com/store/apps/details?id=mx.wera.app">Descárgala en Google Play</a>
-        </p>
-      </article>
-      <article class="app tono-cocina">
-        <div class="app-cabeza">
-          <img class="icono" src="img/cocina-icono.png" alt="" width="56" height="56">
-          <h2><a href="para-cocinas/">Wera Cocina</a></h2>
-        </div>
-        <p>Pon tu precio, tu hora y tu propia tarjeta de lealtad, con tu color y tu logo.</p>
-        <p class="estado">Ya en manos de sus primeros usuarios. Para todos, a fin de año.</p>
-      </article>
-      <article class="app tono-itacate">
-        <div class="app-cabeza">
-          <img class="icono" src="img/itacate-icono.png" alt="" width="56" height="56">
-          <h2><a href="itacate/">Itacate</a></h2>
-        </div>
-        <p>La comida del día, de tu colonia, a mejor precio: la apartas, pasas por ella y le pagas a la cocina.</p>
-        <p class="estado">Ya en manos de sus primeros usuarios. Para todos, a fin de año.</p>
-      </article>
-    </div>
-    <p class="una-cuenta">Una sola cuenta para las tres.</p>
+  <div class="envoltura talones">
+    <article class="talon tono-wera">
+      <h2 class="estampa"><a href="tienda/"><span class="vaca" aria-hidden="true"></span>Wera: tu tienda</a></h2>
+      <p>Vende, compra, anota tu merma y ve cuánto te deja cada producto, aunque no haya señal.</p>
+      <p class="gratis">Gratis, para siempre.</p>
+      <p class="botones">
+        <a class="boton-tienda" href="https://apps.apple.com/mx/app/wera-tu-tienda/id6818418895">Descárgala en el App Store</a>
+        <a class="boton-tienda" href="https://play.google.com/store/apps/details?id=mx.wera.app">Descárgala en Google Play</a>
+      </p>
+    </article>
+    <article class="talon tono-cocina">
+      <h2 class="estampa"><a href="para-cocinas/"><span class="vaca" aria-hidden="true"></span>Wera Cocina</a></h2>
+      <p>Pon tu precio, tu hora y tu propia tarjeta de lealtad, con tu color y tu logo.</p>
+      <p class="estado">Ya en manos de sus primeros usuarios. Para todos, a fin de año.</p>
+    </article>
+    <article class="talon tono-itacate">
+      <h2 class="estampa"><a href="itacate/"><span class="vaca" aria-hidden="true"></span>Itacate</a></h2>
+      <p>La comida del día, de tu colonia, a mejor precio: la apartas, pasas por ella y le pagas a la cocina.</p>
+      <p class="estado">Ya en manos de sus primeros usuarios. Para todos, a fin de año.</p>
+    </article>
+    <p class="nota-mano"><svg viewBox="0 0 46 34" aria-hidden="true" focusable="false"><path d="M40 30 C 30 30, 14 26, 10 8 M4 14 L10 6 L16 13"/></svg>Una sola cuenta para las tres.</p>
   </div>
 </section>
 
 <section class="seccion">
   <div class="envoltura dos">
-    <div class="caja" id="ayuda">
+    <div class="libreta" id="ayuda">
       <h2>¿Necesitas ayuda?</h2>
       <p><strong>¿Olvidaste tu contraseña?</strong> En la app, en <em>Entrar</em>, toca <em>¿Olvidaste tu
       contraseña?</em> y escríbenos por WhatsApp.</p>
@@ -78,9 +82,10 @@
       <a href="eliminar-cuenta/">pídelo por correo</a>.</p>
       <p><a href="ayuda/">Toda la ayuda</a> · <a href="mailto:ayuda@tu-wera.com">ayuda@tu-wera.com</a></p>
     </div>
-    <div class="caja">
+    <div class="sobre">
+      <span class="sello-redondo" aria-hidden="true"><span class="vaca"></span></span>
       <h2><a href="datos/">Tus datos, en claro</a></h2>
-      <p>Reglas claras sobre tus datos, en palabras de mostrador.</p>
+      <p>Lo que hacemos con tus datos y lo que no.</p>
     </div>
   </div>
 </section>

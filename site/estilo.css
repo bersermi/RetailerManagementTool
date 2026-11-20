@@ -1,34 +1,61 @@
-/* tu-wera.com — one stylesheet for every page. The colours are the apps'
-   (app/src/theme/palette.ts and the two siblings' icons), light only, as the apps are.
+/* tu-wera.com — one stylesheet for every page.
+
+   Since plan 5R-s (2026-11-20) the site is drawn as the paperwork of a counter: the grey of the
+   counter, white sheets on it, perforated tickets, rubber stamps inked in each app's colour, a
+   notebook page, a manila envelope and kraft at the foot. The owner picked it from three proposals
+   ("A · Sello", https://claude.ai/artifact/VAsdXHbX2dkAVg9c5TuJic). Every movement here is CSS, none
+   plays when the phone asks for reduced motion, and no page but cocina/ carries a script (the build
+   check refuses one).
 
    Two kinds of page share it:
-   - the legal pages (avisos, terms, deletion) and a kitchen's address (cocina/):
-     a header with the mark, one reading column, their own footer. Their markup is
-     not touched by the site's redesign (plan 5R-r); only these shared rules reach them.
-   - the site's own pages (plan 5R-r): <body class="sitio tono-…">, a header with
-     the four sections, wider layouts, and the one footer every such page carries.
+   - the legal pages (avisos, terms, deletion) and a kitchen's address (cocina/): a header with the
+     mark, one white sheet to read on, their own footer. A restyle never touches their markup; only
+     these shared rules reach them.
+   - the site's own pages: <body class="sitio tono-…">, a header with the four sections, the pieces
+     below, and the one footer every such page carries. Each carries the ink filter (#tinta) inline,
+     right after <body>: a CSS filter can only point at its own page.
 
-   Titles are Nunito ExtraBold — Wera's title font (app/src/marca/letras/), served
-   from letras/ with its licence. Nothing on any page is loaded from another site. */
+   Letters, served from letras/ with their licences (SIL OFL 1.1), the latin subset only:
+   - Archivo (Omnibus-Type), one variable file, width 62–125 %, weight 400–900: titles and stamps
+     wide and heavy, text at normal width.
+   - Mansalva (Carolina Short), a hand: loose notes only, never a sentence a person needs to act on.
+   Colours are the apps' (app/src/theme/palette.ts and the two siblings' icons), light only, as the
+   apps are. No page has a full ground of guinda, blue or orange: party colours until the 2027 vote. */
 
 @font-face {
-  font-family: "Nunito";
-  src: url("letras/Nunito-ExtraBold.ttf") format("truetype");
-  font-weight: 800;
+  font-family: "Archivo";
+  src: url("letras/Archivo-latin.woff2") format("woff2");
+  font-weight: 400 900;
+  font-stretch: 62% 125%;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Mansalva";
+  src: url("letras/Mansalva-latin.woff2") format("woff2");
+  font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 
 :root {
-  --fondo: #FFFCF6;
-  --superficie: #FFFFFF;
-  --banda: #FBF0DE;
-  --tinta: #201D16;
-  --tinta-apagada: #6F675A;
-  --linea: #E7E0D2;
-  --accion: #1C6B4B;
-  --accion-suave: #E6F0EA;
-  --atencion-suave: #FCF1DE;
+  --mostrador: #E9E8E3;
+  --hoja: #FFFFFF;
+  --tarjeta: #FFFEFB;
+  --tinta: #1D2230;
+  --tenue: #555A66;
+  --guiones: #D6D2C8;
+  --punteado: #BDB8AD;
+  --renglon: #CFDCEA;
+  --margen: #E7A9A2;
+  --manila: #E3CFA6;
+  --solapa: #D6BE8E;
+  --kraft: #C9A77C;
+  --cafe: #2E2418;
+  --oxido-oscuro: #7A2E0E;
+  --suave: #F3F1EA;
+  --atencion: #FBF0DD;
+  --firma: #2C3A63;
 
   /* Each app's colour, and the owner's page. */
   --wera: #B5561F;
@@ -36,7 +63,13 @@
   --itacate: #24476B;
   --bernardo: #1F5F5B;
 
-  --titulos: "Nunito", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --letra: "Archivo", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mano: "Mansalva", "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive;
+  --sombra-papel: 0 1px 0 rgba(0, 0, 0, .05), 0 14px 22px -16px rgba(20, 24, 40, .5);
+
+  /* The counter's grain, and the drawn underline of the header's sections. */
+  --ruido: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .2 0 0 0 0 .18 0 0 0 0 .15 .18 0 0 0 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --garabato: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 8' preserveAspectRatio='none'%3E%3Cpath d='M1 5 C 12 2, 22 7, 33 4 S 52 3, 59 5' fill='none' stroke='%23000' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E");
   color-scheme: light;
 }
 
@@ -46,112 +79,130 @@ html { -webkit-text-size-adjust: 100%; }
 
 body {
   margin: 0;
-  background: var(--fondo);
+  background: var(--ruido), var(--mostrador);
   color: var(--tinta);
-  font: 17px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family: var(--letra);
+  font-size: 17px;
+  font-stretch: 100%;
+  line-height: 1.6;
 }
 
-h1, h2, h3 { font-family: var(--titulos); font-weight: 800; }
+h1, h2, h3 { font-weight: 800; font-stretch: 110%; letter-spacing: -0.01em; }
 
-/* The header of the legal pages and of a kitchen's address: the mark and the name. */
-header {
-  background: var(--banda);
-  border-bottom: 1px solid var(--linea);
+a {
+  color: inherit;
+  text-decoration-color: var(--acento, var(--wera));
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+a:hover { text-decoration-thickness: 3px; }
+a:focus-visible { outline: 3px solid var(--acento, var(--wera)); outline-offset: 3px; border-radius: 2px; }
+
+p, li { overflow-wrap: anywhere; }
+
+/* ============================================================================
+   The legal pages and a kitchen's address: the mark, one white sheet, a footer.
+   ============================================================================ */
+
+header > .marca {
+  display: flex;
+  max-width: 46rem;
+  margin: 0 auto;
+  padding: 14px 20px;
 }
 
 .marca {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 8px;
   color: var(--tinta);
-  font-family: var(--titulos);
-  font-weight: 800;
-  font-size: 1.25rem;
+  font-size: 1.4rem;
+  font-weight: 850;
+  font-stretch: 115%;
+  letter-spacing: -0.01em;
   text-decoration: none;
 }
 .marca::before {
   content: "";
   flex: none;
-  width: 30px;
-  height: 30px;
+  width: 34px;
+  height: 34px;
   background: url("img/wera-marca.svg") center / contain no-repeat;
 }
 
-header > .marca {
-  max-width: 44rem;
-  margin: 0 auto;
-  padding: 12px 16px;
-}
-
 main {
-  max-width: 44rem;
+  max-width: 46rem;
   margin: 0 auto;
-  padding: 8px 16px 48px;
+  padding: 8px 20px 44px;
+  background: var(--hoja);
+  box-shadow: var(--sombra-papel);
 }
 
-h1 { font-size: 1.7rem; line-height: 1.25; margin: 28px 0 4px; }
-h2 { font-size: 1.25rem; line-height: 1.3; margin: 36px 0 8px; padding-top: 4px; }
-h3 { font-size: 1.05rem; margin: 22px 0 4px; }
+h1 { font-size: 1.85rem; line-height: 1.15; margin: 28px 0 6px; text-wrap: balance; }
+h2 { font-size: 1.3rem; line-height: 1.25; margin: 36px 0 8px; }
+h3 { font-size: 1.08rem; line-height: 1.3; margin: 22px 0 4px; }
 
-.fecha { color: var(--tinta-apagada); margin: 0 0 20px; font-size: 0.95rem; }
+.fecha { color: var(--tenue); margin: 0 0 20px; font-size: 0.95rem; }
 
-p, li { overflow-wrap: anywhere; }
 ul, ol { padding-left: 1.3rem; }
 li { margin: 4px 0; }
 
-a { color: var(--acento, var(--accion)); text-underline-offset: 2px; }
-
 .resumen {
-  background: var(--accion-suave);
-  border-radius: 12px;
-  padding: 4px 18px 6px;
   margin: 16px 0 8px;
+  padding: 4px 18px 8px;
+  background: var(--suave);
+  border: 2px dashed var(--guiones);
+  border-radius: 4px;
 }
 .resumen h2 { margin-top: 14px; }
 
 .aviso {
-  background: var(--atencion-suave);
-  border-radius: 12px;
-  padding: 2px 18px;
   margin: 16px 0;
+  padding: 2px 18px;
+  background: var(--atencion);
+  border-radius: 4px;
 }
 
 .pasos li { margin: 8px 0; }
 
 nav.indice {
-  background: var(--superficie);
-  border: 1px solid var(--linea);
-  border-radius: 12px;
-  padding: 6px 18px;
   margin: 20px 0;
+  padding: 6px 18px;
+  border: 1.5px solid var(--guiones);
+  border-radius: 4px;
 }
 nav.indice ol { margin: 6px 0; }
 
 footer {
-  max-width: 44rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  max-width: 46rem;
   margin: 0 auto;
-  padding: 18px 16px 40px;
-  border-top: 1px solid var(--linea);
-  color: var(--tinta-apagada);
+  padding: 20px 20px 44px;
+  color: var(--tenue);
   font-size: 0.92rem;
 }
-footer a { margin-right: 14px; }
 
 /* A kitchen's page (cocina/, plan 10.9c): the one button the site draws there. */
 .boton {
   display: inline-block;
   padding: 12px 18px;
-  border-radius: 12px;
-  background: var(--accion);
-  color: var(--superficie);
-  font-weight: 600;
+  border-radius: 3px;
+  background: var(--tinta);
+  color: #FFFFFF;
+  font-weight: 700;
   text-decoration: none;
 }
 .tiendas li { margin: 8px 0; }
 
+@media (min-width: 760px) {
+  main { padding: 14px 44px 52px; }
+}
+
 /* ============================================================================
-   The site's own pages (plan 5R-r). Mobile first: one column at 390 px with
-   16 px gutters, wider grids from 700 px up.
+   The site's own pages. Mobile first: one column at 390 px with 20 px gutters,
+   wider layouts from 640, 800 and 900 px.
    ============================================================================ */
 
 .tono-wera { --acento: var(--wera); }
@@ -159,352 +210,504 @@ footer a { margin-right: 14px; }
 .tono-itacate { --acento: var(--itacate); }
 .tono-bernardo { --acento: var(--bernardo); }
 
+/* Margins of the site's own pieces come from their layouts. One class of weight: it beats the legal pages'
+   element rules above, and every piece below it wins by coming later. */
+.sitio :where(h1, h2, h3, p, blockquote, figure) { margin: 0; }
 .sitio p, .sitio li { overflow-wrap: break-word; }
-.sitio main { max-width: none; margin: 0; padding: 0 0 8px; }
+
+.sitio main { max-width: none; margin: 0; padding: 0 0 8px; background: none; box-shadow: none; }
 
 .envoltura {
   max-width: 68rem;
   margin: 0 auto;
-  padding: 0 16px;
+  padding-left: 20px;
+  padding-right: 20px;
 }
 .lectura { max-width: 42rem; }
 
-/* The header: the mark and Wera, then the four sections. */
+.tinta-def { position: absolute; width: 0; height: 0; overflow: hidden; }
+
+/* The mark as a shape that takes any ink: currentColor through the mark's silhouette. */
+.vaca {
+  display: inline-block;
+  flex: none;
+  width: 1em;
+  height: 1em;
+  background: currentColor;
+  -webkit-mask: url("img/wera-marca.svg") center / contain no-repeat;
+          mask: url("img/wera-marca.svg") center / contain no-repeat;
+}
+
+/* The header: the mark and Wera, then the four sections with a drawn underline. */
 .cabecera .envoltura {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 2px 24px;
-  padding-top: 10px;
-  padding-bottom: 10px;
+  gap: 4px 24px;
+  padding-top: 14px;
+  padding-bottom: 12px;
 }
-.cabecera nav { display: flex; flex-wrap: wrap; gap: 0 20px; }
+.cabecera .marca { font-size: 1.45rem; }
+.cabecera nav { display: flex; flex-wrap: wrap; gap: 0 22px; }
 .cabecera nav a {
-  padding: 8px 0 6px;
-  border-bottom: 2px solid transparent;
+  position: relative;
+  padding: 8px 0;
   color: var(--tinta);
   font-weight: 600;
-  font-size: 0.98rem;
   text-decoration: none;
 }
-.cabecera nav a:hover { border-bottom-color: var(--linea); }
-.cabecera nav a[aria-current="page"] { color: var(--acento); border-bottom-color: var(--acento); }
-
-.sitio h1 {
-  margin: 0 0 14px;
-  font-size: clamp(2rem, 1.35rem + 2.8vw, 3.1rem);
-  line-height: 1.12;
-  letter-spacing: -0.01em;
+.cabecera nav a::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 1px;
+  height: 7px;
+  background: var(--acento);
+  -webkit-mask: var(--garabato) center / 100% 100% no-repeat;
+          mask: var(--garabato) center / 100% 100% no-repeat;
+  scale: 0 1;
+  transform-origin: left;
+  transition: scale 0.35s ease;
 }
-.sitio h2 { margin: 0 0 8px; padding: 0; font-size: clamp(1.3rem, 1.15rem + 0.6vw, 1.6rem); line-height: 1.25; }
-.sitio h3 { margin: 0 0 6px; font-size: 1.12rem; line-height: 1.3; }
+.cabecera nav a:hover::after,
+.cabecera nav a[aria-current="page"]::after { scale: 1 1; }
 
-.portada { padding: 48px 0 28px; }
-.portada .icono { margin-bottom: 18px; }
-.entrada {
-  margin: 0 0 14px;
-  max-width: 40rem;
-  color: var(--tinta-apagada);
-  font-size: clamp(1.12rem, 1.02rem + 0.45vw, 1.3rem);
-  line-height: 1.5;
+/* The opening of each page. */
+.portada .envoltura {
+  display: grid;
+  gap: 30px;
+  align-items: center;
+  padding-top: 32px;
+  padding-bottom: 36px;
+}
+.portada-texto { display: grid; gap: 14px; justify-items: start; min-width: 0; }
+.sitio h1 {
+  font-size: clamp(2.1rem, 1.25rem + 3.6vw, 3.9rem);
+  font-weight: 850;
+  font-stretch: 112%;
+  line-height: 1.03;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
 }
 .titulo-app { color: var(--acento); }
-
-.seccion { padding: 28px 0; }
-.seccion > .envoltura > h2 { margin-bottom: 16px; }
-
+.entrada {
+  max-width: 36rem;
+  color: var(--tenue);
+  font-size: clamp(1.08rem, 1rem + 0.4vw, 1.28rem);
+  line-height: 1.5;
+}
+.frase { max-width: 40rem; font-size: 1.08rem; }
+.frase-fuerte { font-size: 1.3rem; font-weight: 800; font-stretch: 110%; line-height: 1.3; }
 .icono { display: block; flex: none; border-radius: 22%; }
+.portada .icono { rotate: -4deg; box-shadow: 0 8px 14px -8px rgba(20, 24, 40, .45); }
 
-/* The three apps, on the home page. */
-.apps {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 16px;
-}
-.app {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 22px 22px 24px;
-  background: var(--superficie);
-  border: 1px solid var(--linea);
-  border-top: 4px solid var(--acento);
-  border-radius: 16px;
-}
-.app-cabeza { display: flex; align-items: center; gap: 14px; }
-.app h2 { margin: 0; font-size: 1.3rem; }
-.app h2 a { color: var(--acento); text-decoration: none; }
-.app h2 a:hover { text-decoration: underline; }
-.app p { margin: 0; }
-.app .botones { margin-top: auto; padding-top: 6px; }
+/* A hand-drawn underline under a few words of a title. */
+.subraya { position: relative; white-space: nowrap; }
+.subraya svg { position: absolute; left: -2%; bottom: -0.14em; width: 104%; height: 0.32em; overflow: visible; }
+.subraya path { fill: none; stroke: var(--acento); stroke-width: 6; stroke-linecap: round; }
 
-.estado {
+/* A loyalty card with its stamps — a drawing, never a real card. */
+.tarjeta {
+  justify-self: center;
+  width: min(100%, 330px);
+  padding: 16px 18px 14px;
+  background: var(--tarjeta);
+  border-radius: 7px;
+  rotate: 2.5deg;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, .06), 0 16px 26px -14px rgba(30, 30, 45, .45);
+}
+.tarjeta-cab {
   display: flex;
+  justify-content: space-between;
   align-items: baseline;
-  gap: 9px;
-  color: var(--tinta-apagada);
-  font-size: 0.95rem;
-  line-height: 1.45;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1.5px dashed var(--guiones);
 }
-.estado::before {
-  content: "";
-  flex: none;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--acento);
-  transform: translateY(-1px);
-}
-.app .estado { margin-top: auto; padding-top: 6px; }
+.tarjeta-nombre { font-family: var(--mano); font-size: 1.7rem; line-height: 1; color: var(--acento); }
+.tarjeta-meta { font-size: 0.75rem; font-weight: 700; font-stretch: 120%; letter-spacing: 0.06em; text-transform: uppercase; color: var(--tenue); }
+.sellos { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.hueco { display: grid; place-items: center; aspect-ratio: 1; border: 2px dashed #CBC7BD; border-radius: 50%; }
+.hueco .vaca { width: 72%; height: 72%; color: var(--acento); filter: url(#tinta); }
+.hueco:nth-child(1) .vaca { rotate: -9deg; }
+.hueco:nth-child(2) .vaca { rotate: 7deg; }
+.hueco:nth-child(3) .vaca { rotate: -3deg; }
+.hueco:nth-child(4) .vaca { rotate: 5deg; }
+.tarjeta-pie { display: flex; justify-content: space-between; margin-top: 10px; font-size: 0.78rem; color: var(--tenue); }
 
-.una-cuenta {
-  margin: 22px 0 0;
-  color: var(--tinta-apagada);
-  font-weight: 600;
-  text-align: center;
+.seccion { padding: 26px 0; }
+.titulo { margin-bottom: 18px; font-size: clamp(1.35rem, 1.15rem + 0.8vw, 1.75rem); font-weight: 850; font-stretch: 112%; line-height: 1.2; }
+
+/* Tickets with a perforated stub, a little crooked on the counter. */
+.talones { display: grid; gap: 26px; }
+.talon {
+  --giro: -1.2deg;
+  position: relative;
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  min-width: 0;
+  padding: 22px 22px 24px 40px;
+  background: var(--hoja);
+  rotate: var(--giro);
+  -webkit-mask: radial-gradient(circle at 0 9px, transparent 4.6px, #000 5.2px) 0 0 / 100% 18px repeat-y;
+          mask: radial-gradient(circle at 0 9px, transparent 4.6px, #000 5.2px) 0 0 / 100% 18px repeat-y;
+  transition: rotate 0.4s cubic-bezier(.3, 1.5, .5, 1), scale 0.4s cubic-bezier(.3, 1.5, .5, 1);
 }
+.talon::before { content: ""; position: absolute; left: 22px; top: 12px; bottom: 12px; border-left: 2px dashed var(--guiones); }
+.talones > :nth-child(2) > .talon, .talones > .talon:nth-child(2) { --giro: 0.9deg; }
+.talones > :nth-child(3) > .talon, .talones > .talon:nth-child(3) { --giro: -0.5deg; }
+.talon:hover { rotate: 0deg; scale: 1.015; }
+.talon.llamado { --giro: 0.6deg; max-width: 46rem; }
+
+/* A rubber stamp: the app's name, inked. */
+.estampa {
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 6px 13px 6px 8px;
+  color: var(--acento);
+  border: 3px solid currentColor;
+  border-radius: 3px;
+  box-shadow: inset 0 0 0 2px var(--hoja), inset 0 0 0 4px currentColor;
+  rotate: -3deg;
+  font-size: 1.22rem;
+  font-weight: 850;
+  font-stretch: 118%;
+  line-height: 1.1;
+  filter: url(#tinta);
+}
+.estampa a { display: inline-flex; align-items: center; gap: 9px; color: inherit; text-decoration: none; }
+.estampa a:hover { text-decoration: underline; text-decoration-thickness: 2px; }
+.estampa .vaca { width: 32px; height: 32px; }
+
+.gratis { justify-self: start; font-family: var(--mano); font-size: 1.5rem; line-height: 1.1; color: var(--acento); rotate: -2deg; }
 
 /* The store buttons — text, never a badge picture. */
-.botones { display: flex; flex-wrap: wrap; gap: 10px; margin: 0; }
+.botones { display: flex; flex-wrap: wrap; gap: 8px; }
 .boton-tienda {
   display: inline-block;
-  padding: 11px 16px;
-  border-radius: 10px;
+  padding: 10px 14px;
+  border-radius: 3px;
   background: var(--tinta);
-  color: var(--fondo);
-  font-weight: 600;
-  font-size: 0.95rem;
+  color: #FFFFFF;
+  font-size: 0.93rem;
+  font-weight: 650;
   line-height: 1.25;
   text-decoration: none;
 }
-.boton-tienda:hover { background: #3A352B; }
+.boton-tienda:hover { background: #343B50; }
 
-/* Two side-by-side boxes (help, data). */
-.dos { display: grid; grid-template-columns: 1fr; gap: 16px; }
-.caja {
-  padding: 22px;
-  background: var(--superficie);
-  border: 1px solid var(--linea);
-  border-radius: 16px;
-}
-.caja h2 { font-size: 1.3rem; }
-.caja p { margin: 0 0 10px; }
-.caja p:last-child { margin-bottom: 0; }
+.estado { display: flex; align-items: baseline; gap: 9px; color: var(--tenue); font-size: 0.95rem; line-height: 1.45; }
+.estado::before { content: ""; flex: none; width: 11px; height: 11px; border: 2px solid var(--acento); border-radius: 50%; translate: 0 1px; }
 
-/* Four blocks on an app's page. */
-.cuatro { display: grid; grid-template-columns: 1fr; gap: 16px; }
-.punto {
-  padding: 20px 20px 22px;
-  background: var(--superficie);
-  border: 1px solid var(--linea);
-  border-radius: 16px;
-}
-.punto h2 { margin: 0 0 6px; color: var(--acento); font-size: 1.2rem; }
-.punto p { margin: 0; }
+/* A note in the margin, with its arrow. */
+.nota-mano { display: flex; align-items: center; gap: 10px; font-family: var(--mano); font-size: 1.55rem; line-height: 1.2; color: var(--acento); rotate: -1.5deg; }
+.nota-mano svg { flex: none; width: 46px; height: 34px; }
+.nota-mano path { fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.talones > .nota-mano { grid-column: 1 / -1; margin-top: 4px; }
 
-.frase { margin: 0 0 10px; max-width: 42rem; font-size: 1.08rem; }
-.frase-fuerte { font-family: var(--titulos); font-weight: 800; font-size: 1.3rem; line-height: 1.3; margin: 0 0 14px; }
+/* Two pieces side by side: the notebook page and the envelope. */
+.dos { display: grid; gap: 30px; }
 
-.llamado {
-  padding: 26px 22px;
-  background: var(--banda);
-  border-radius: 20px;
-}
-.llamado .frase-fuerte { color: var(--acento); }
-.llamado > :last-child, .punto > :last-child, .hablemos > :last-child { margin-bottom: 0; }
-
-/* Wera's screenshots. */
-.capturas { margin: 0; }
-.capturas-fila {
+.libreta {
+  position: relative;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-  max-width: 50rem;
+  padding: 34px 22px 26px 58px;
+  background:
+    linear-gradient(90deg, transparent 40px, var(--margen) 40px, var(--margen) 42px, transparent 42px),
+    repeating-linear-gradient(to bottom, transparent 0, transparent 27px, var(--renglon) 27px, var(--renglon) 28px) 0 6px,
+    var(--hoja);
+  line-height: 28px;
+  rotate: -0.6deg;
+  -webkit-mask: conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) 0 0 / 14px 9px repeat-x, linear-gradient(#000 0 0) 0 9px / 100% calc(100% - 9px) no-repeat;
+          mask: conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) 0 0 / 14px 9px repeat-x, linear-gradient(#000 0 0) 0 9px / 100% calc(100% - 9px) no-repeat;
 }
+.libreta h2 { font-size: 1.35rem; line-height: 28px; }
+.libreta p { font-size: 1rem; }
+
+.sobre {
+  position: relative;
+  display: grid;
+  gap: 8px;
+  padding: 114px 24px 26px;
+  background: var(--ruido), var(--manila);
+  color: var(--cafe);
+  rotate: 1deg;
+  box-shadow: 0 12px 20px -14px rgba(40, 30, 20, .5);
+}
+.sobre::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 62px; background: var(--solapa); clip-path: polygon(0 0, 100% 0, 50% 100%); }
+.sobre h2 { font-size: 1.35rem; line-height: 1.25; }
+.sello-redondo {
+  position: absolute;
+  left: 50%;
+  top: 30px;
+  translate: -50% 0;
+  display: grid;
+  place-items: center;
+  width: 68px;
+  height: 68px;
+  color: var(--acento);
+  background: var(--manila);
+  border: 3px solid currentColor;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 3px var(--manila), inset 0 0 0 5px currentColor;
+  rotate: -10deg;
+  filter: url(#tinta);
+}
+.sello-redondo .vaca { width: 40px; height: 40px; }
+.hablemos { max-width: 46rem; }
+
+/* A supplier's note: the four parts of an app, one row each, a stamp per row. */
+.nota {
+  display: grid;
+  max-width: 52rem;
+  padding: 18px 22px 30px;
+  background: var(--hoja);
+  rotate: -0.6deg;
+  -webkit-mask: conic-gradient(from 135deg at top, #0000, #000 1deg 89deg, #0000 90deg) 0 100% / 14px 9px repeat-x, linear-gradient(#000 0 0) 0 0 / 100% calc(100% - 9px) no-repeat;
+          mask: conic-gradient(from 135deg at top, #0000, #000 1deg 89deg, #0000 90deg) 0 100% / 14px 9px repeat-x, linear-gradient(#000 0 0) 0 0 / 100% calc(100% - 9px) no-repeat;
+}
+.nota-cab {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--tinta);
+  font-size: 1.15rem;
+  font-weight: 850;
+  font-stretch: 115%;
+}
+.nota-cab .vaca { width: 26px; height: 26px; color: var(--acento); filter: url(#tinta); }
+.renglon { display: grid; gap: 8px; padding: 14px 0; border-bottom: 1.5px dotted var(--punteado); }
+.renglon:last-child { border-bottom: 0; padding-bottom: 0; }
+.renglon p { font-size: 1rem; }
+/* A small stamp is a heading someone reads: its words stay crisp, only its frame is inked. */
+.sellito {
+  position: relative;
+  justify-self: start;
+  padding: 4px 11px;
+  color: var(--acento);
+  font-size: 1rem;
+  font-weight: 800;
+  font-stretch: 108%;
+  line-height: 1.25;
+  rotate: -2deg;
+}
+.sellito::after, .pronto::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 2.5px solid currentColor;
+  border-radius: 3px;
+  filter: url(#tinta);
+}
+.renglon:nth-child(odd) .sellito { rotate: 2deg; }
+
+/* Wera's screenshots, as photos on the counter. */
+.capturas { display: grid; gap: 18px; }
+.capturas-fila { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; max-width: 50rem; }
 .capturas img {
   display: block;
   width: 100%;
   height: auto;
-  border: 1px solid var(--linea);
-  border-radius: 14px;
+  border: 5px solid var(--hoja);
+  border-radius: 3px;
+  box-shadow: 0 10px 18px -12px rgba(20, 24, 40, .5);
 }
-.capturas figcaption { margin-top: 12px; color: var(--tinta-apagada); font-size: 0.93rem; }
-.capturas + p { margin: 28px 0 0; }
+.capturas img:nth-child(1) { rotate: -2deg; }
+.capturas img:nth-child(2) { rotate: 1.5deg; translate: 0 8px; }
+.capturas img:nth-child(3) { rotate: -1deg; }
+.capturas figcaption { font-family: var(--mano); font-size: 1.25rem; color: var(--tenue); }
 
-.enlaces { margin: 0; padding: 0; list-style: none; }
-.enlaces li { margin: 6px 0; }
+.enlaces { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.enlaces li { margin: 0; }
+
+/* Space above a piece that follows another; after them, so it wins. */
+.despues { margin-top: 26px; }
+
+/* A plain sheet to read on (Ayuda). */
+.hoja {
+  max-width: 46rem;
+  padding: 26px 24px 32px;
+  background: var(--hoja);
+  box-shadow: var(--sombra-papel);
+}
+.hoja h1 { margin-bottom: 8px; }
+.hoja h2 { margin: 30px 0 6px; font-size: 1.3rem; }
+.hoja p { margin: 0 0 10px; }
+.hoja ul { margin: 0; }
 
 /* The owner's page. */
-.antetitulo {
-  margin: 0 0 10px;
-  color: var(--acento);
-  font-size: 0.85rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-.vision {
-  margin: 8px 0 0;
-  max-width: 44rem;
-  padding: 4px 0 4px 20px;
-  border-left: 4px solid var(--acento);
-  font-family: var(--titulos);
-  font-weight: 800;
-  font-size: clamp(1.22rem, 1.05rem + 0.8vw, 1.55rem);
-  line-height: 1.38;
-}
-.vision p { margin: 0; }
-.historia p { margin: 0 0 16px; }
-.historia p:last-child { margin-bottom: 0; }
+.quien { color: var(--tenue); font-size: 1rem; }
+.vision { max-width: 44rem; font-size: clamp(1.15rem, 1rem + 0.7vw, 1.42rem); font-weight: 700; font-stretch: 104%; line-height: 1.4; }
+.firma { display: block; margin-top: 10px; font-family: var(--mano); font-size: 2rem; font-weight: 400; line-height: 1; color: var(--firma); rotate: -4deg; transform-origin: left; }
+.historia { display: grid; gap: 16px; }
 
-.tres { display: grid; grid-template-columns: 1fr; gap: 16px; }
-.grupo {
-  padding: 20px 22px;
-  background: var(--superficie);
-  border: 1px solid var(--linea);
-  border-radius: 16px;
-}
-.grupo h3 { color: var(--acento); font-size: 1.2rem; margin-bottom: 10px; }
 .servicios { margin: 0; padding: 0; list-style: none; }
-.servicios li { margin: 0; padding: 9px 0; border-top: 1px solid var(--linea); }
+.servicios li { margin: 0; padding: 8px 0; border-top: 1.5px dotted var(--punteado); }
 .servicios li:first-child { border-top: 0; padding-top: 0; }
 .pronto {
+  position: relative;
   display: inline-block;
   margin-left: 6px;
-  padding: 1px 9px;
-  border-radius: 999px;
-  background: #E3EEED;
+  padding: 1px 8px;
   color: var(--acento);
-  font-size: 0.78rem;
-  font-weight: 700;
-  white-space: nowrap;
-  vertical-align: 1px;
-}
-
-.principios { margin: 0; padding: 0; list-style: none; max-width: 46rem; counter-reset: principio; }
-.principios li {
-  position: relative;
-  margin: 0;
-  padding: 18px 0 18px 48px;
-  border-top: 1px solid var(--linea);
-  counter-increment: principio;
-}
-.principios li:first-child { border-top: 0; padding-top: 4px; }
-.principios li::before {
-  content: counter(principio);
-  position: absolute;
-  left: 0;
-  color: var(--acento);
-  font-family: var(--titulos);
+  font-size: 0.8rem;
   font-weight: 800;
-  font-size: 1.5rem;
-  line-height: 1.2;
+  white-space: nowrap;
+  rotate: -3deg;
 }
-.principios h3 { margin: 0 0 4px; }
-.principios p { margin: 0; }
 
-.construidas { margin: 0; padding: 0; list-style: none; display: grid; gap: 12px; max-width: 46rem; }
-.construidas li { margin: 0; }
-.construidas a {
-  display: flex;
-  align-items: flex-start;
-  gap: 16px;
-  padding: 16px 18px;
-  background: var(--superficie);
-  border: 1px solid var(--linea);
-  border-radius: 16px;
-  color: var(--tinta);
-  text-decoration: none;
-}
-.construidas a:hover { border-color: var(--tinta-apagada); }
-.construidas strong { display: block; font-family: var(--titulos); font-weight: 800; font-size: 1.1rem; }
-.construidas .linea { display: block; margin-top: 2px; }
-.construidas .estado { margin-top: 6px; }
-.construidas .tono-wera strong { color: var(--wera); }
-.construidas .tono-cocina strong { color: var(--cocina); }
-.construidas .tono-itacate strong { color: var(--itacate); }
+.principios { margin: 0; list-style: none; }
+.principios li { margin: 0; }
+.principios h3 { margin-bottom: 2px; }
 
-.hablemos {
-  padding: 28px 22px;
-  background: var(--superficie);
-  border: 1px solid var(--linea);
-  border-top: 4px solid var(--acento);
-  border-radius: 20px;
-  max-width: 46rem;
-}
-.contacto { margin: 18px 0 0; padding: 0; list-style: none; display: grid; gap: 14px; }
+.construidas { margin: 0; padding: 0; list-style: none; }
+.construidas li { margin: 0; min-width: 0; }
+.construidas a.talon { height: 100%; color: var(--tinta); text-decoration: none; }
+.construidas .tono-wera { --acento: var(--wera); }
+.construidas .tono-cocina { --acento: var(--cocina); }
+.construidas .tono-itacate { --acento: var(--itacate); }
+
+.contacto { margin: 10px 0 0; padding: 0; list-style: none; display: grid; gap: 14px; }
 .contacto li { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; }
-.contacto .etiqueta { min-width: 6.5rem; color: var(--tinta-apagada); font-weight: 600; }
+.contacto .etiqueta { min-width: 6.5rem; font-weight: 600; }
 .boton-acento {
   display: inline-block;
   padding: 10px 18px;
-  border-radius: 10px;
-  background: var(--acento);
+  border-radius: 3px;
+  background: var(--tinta);
   color: #FFFFFF;
   font-weight: 700;
   text-decoration: none;
   white-space: nowrap;
 }
+.boton-acento:hover { background: #343B50; }
 
-/* Tus datos: the five certainties. */
-.certezas { margin: 0; padding: 0; list-style: none; max-width: 46rem; }
+/* Tus datos: each certainty with a stamped tick. */
+.certezas { margin: 0; list-style: none; }
 .certezas li {
   position: relative;
   margin: 0;
-  padding: 16px 0 16px 34px;
-  border-top: 1px solid var(--linea);
+  padding: 16px 0 16px 50px;
+  border-bottom: 1.5px dotted var(--punteado);
   font-size: 1.12rem;
   font-weight: 600;
   line-height: 1.45;
 }
-.certezas li:first-child { border-top: 0; }
+.certezas li:last-child { border-bottom: 0; padding-bottom: 0; }
 .certezas li::before {
   content: "";
   position: absolute;
-  left: 2px;
-  top: 1.45em;
-  width: 14px;
-  height: 8px;
+  left: 0;
+  top: 13px;
+  width: 30px;
+  height: 30px;
+  border: 2.5px solid var(--acento);
+  border-radius: 50%;
+  rotate: -8deg;
+  filter: url(#tinta);
+}
+.certezas li::after {
+  content: "";
+  position: absolute;
+  left: 9px;
+  top: 21px;
+  width: 13px;
+  height: 7px;
   border-left: 3px solid var(--acento);
   border-bottom: 3px solid var(--acento);
-  transform: rotate(-45deg);
+  rotate: -45deg;
 }
 
-/* Ayuda: the reading column of the old home page. */
-.ayuda h2 { margin: 36px 0 8px; }
-.ayuda ul { padding-left: 1.3rem; }
-
-/* The one footer of the site's own pages. */
+/* The one footer of the site's own pages: kraft, and the roof line as a stamp. */
 footer.pie {
+  display: block;
   max-width: none;
-  margin: 48px 0 0;
+  margin: 56px 0 0;
   padding: 0;
-  background: var(--banda);
-  border-top: 1px solid var(--linea);
+  background: var(--ruido), var(--kraft);
+  color: var(--cafe);
+  font-size: 1rem;
 }
-.pie .envoltura { padding-top: 28px; padding-bottom: 40px; }
-.pie p { margin: 0 0 6px; }
-.pie a { margin-right: 0; color: var(--tinta); }
-.despedida { font-family: var(--titulos); font-weight: 800; font-size: 1.2rem; color: var(--tinta); }
-.pie nav { display: flex; flex-wrap: wrap; gap: 6px 20px; margin: 16px 0; }
-.sin-cookies { color: var(--tinta-apagada); }
+.pie .envoltura { display: grid; gap: 10px; padding-top: 34px; padding-bottom: 40px; }
+.pie a { color: var(--cafe); text-decoration-color: rgba(46, 36, 24, .5); }
+.despedida {
+  justify-self: start;
+  width: fit-content;
+  max-width: 100%;
+  margin-bottom: 18px;
+  padding: 8px 16px;
+  color: var(--oxido-oscuro);
+  border: 4px solid currentColor;
+  border-radius: 4px;
+  rotate: -2.5deg;
+  font-size: clamp(1.15rem, 0.9rem + 1.2vw, 1.75rem);
+  font-weight: 900;
+  font-stretch: 120%;
+  line-height: 1.1;
+  text-transform: uppercase;
+  filter: url(#tinta);
+}
+.pie nav { display: flex; flex-wrap: wrap; gap: 4px 20px; }
+.sin-cookies { font-size: 0.9rem; opacity: 0.85; }
 
-@media (min-width: 700px) {
-  .cuatro { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .dos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .capturas-fila { gap: 20px; }
-  .portada { padding: 64px 0 36px; }
-  .seccion { padding: 36px 0; }
-  .llamado { padding: 32px 32px; }
-  .hablemos { padding: 32px; }
+@media (min-width: 640px) {
+  .renglon { grid-template-columns: 12rem minmax(0, 1fr); gap: 16px; align-items: start; }
+}
+
+@media (min-width: 800px) {
+  .dos { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); align-items: start; }
+  .seccion { padding: 34px 0; }
+  .hoja { padding: 34px 44px 40px; }
+}
+
+@media (min-width: 860px) {
+  .portada .envoltura.con-tarjeta { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); }
+  .portada .envoltura { padding-top: 52px; padding-bottom: 46px; }
 }
 
 @media (min-width: 900px) {
-  .apps { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .tres { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .talones { grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: start; }
+  .talones > :nth-child(2):not(.nota-mano) { margin-top: 28px; }
+  .talones > :nth-child(3):not(.nota-mano) { margin-top: 10px; }
 }
 
-@media (min-width: 1040px) {
-  .cuatro { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+/* ============================================================================
+   Movement — only for a phone that has not asked for less.
+   ============================================================================ */
+
+@media (prefers-reduced-motion: no-preference) {
+  .subraya path { stroke-dasharray: 100; stroke-dashoffset: 100; animation: trazo 1.1s 0.5s ease-out forwards; }
+  .hueco.nuevo .vaca { animation: sellar 5s infinite; }
+  .tarjeta { animation: golpe 5s infinite; }
+  .talon:hover .estampa,
+  .sobre:hover .sello-redondo,
+  .nota:hover .nota-cab .vaca { animation: resellar 0.5s ease-out; }
+  .renglon:hover .sellito { animation: resellar 0.5s ease-out; }
+
+  @supports (animation-timeline: view()) {
+    .talon, .libreta, .sobre, .nota, .capturas-fila {
+      animation: llega linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 80%;
+    }
+  }
 }
+
+@keyframes trazo { to { stroke-dashoffset: 0; } }
+@keyframes sellar {
+  0%, 14% { opacity: 0; scale: 1.9; rotate: -20deg; }
+  20% { opacity: 1; scale: 0.88; rotate: 7deg; }
+  24% { scale: 1.05; rotate: 5deg; }
+  27%, 86% { opacity: 1; scale: 1; rotate: 5deg; }
+  95%, 100% { opacity: 0; scale: 1; rotate: 5deg; }
+}
+@keyframes golpe { 0%, 19%, 25%, 100% { translate: 0 0; } 20% { translate: 0 3px; } }
+@keyframes resellar { 0% { scale: 1; } 35% { scale: 1.18; opacity: 0.55; } 60% { scale: 0.94; opacity: 1; } 100% { scale: 1; } }
+@keyframes llega { from { translate: 0 46px; } to { translate: 0 0; } }

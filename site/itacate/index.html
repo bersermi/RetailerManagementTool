@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="../estilo.css">
 </head>
 <body class="sitio tono-itacate">
+<svg class="tinta-def" aria-hidden="true" focusable="false"><filter id="tinta" x="-6%" y="-6%" width="112%" height="112%"><feTurbulence type="fractalNoise" baseFrequency="0.75" numOctaves="2" seed="4" result="r1"/><feDisplacementMap in="SourceGraphic" in2="r1" scale="2.6" xChannelSelector="R" yChannelSelector="G" result="d"/><feTurbulence type="fractalNoise" baseFrequency="1.3" numOctaves="1" seed="11" result="r2"/><feColorMatrix in="r2" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -2.4 0 0 0 2.05" result="m"/><feComposite in="d" in2="m" operator="in"/></filter></svg>
 <!-- Plan 5R-r: Itacate's page. Itacate is in no store yet: no store button. A kitchen's own address is
      /cocina/?k=… (10.9c), which a phone with Itacate opens in Itacate. -->
 <header class="cabecera">
@@ -26,29 +27,32 @@
 
 <section class="portada">
   <div class="envoltura">
-    <img class="icono" src="../img/itacate-icono.png" alt="" width="72" height="72">
-    <h1 class="titulo-app">Itacate, de Wera</h1>
-    <p class="entrada">La comida del día, de tu colonia, a mejor precio.</p>
+    <div class="portada-texto">
+      <img class="icono" src="../img/itacate-icono.png" alt="" width="72" height="72">
+      <h1 class="titulo-app">Itacate, de Wera</h1>
+      <p class="entrada">La comida del día, de tu colonia, a mejor precio.</p>
+    </div>
   </div>
 </section>
 
 <section class="seccion">
   <div class="envoltura">
-    <div class="cuatro">
-      <div class="punto">
-        <h2>Mira lo que hay cerca</h2>
+    <div class="nota">
+      <p class="nota-cab"><span class="vaca" aria-hidden="true"></span>Itacate</p>
+      <div class="renglon">
+        <h2 class="sellito">Mira lo que hay cerca</h2>
         <p>Cada platillo con su precio y lo que vale normalmente.</p>
       </div>
-      <div class="punto">
-        <h2>Apártalo</h2>
+      <div class="renglon">
+        <h2 class="sellito">Apártalo</h2>
         <p>Elige tu hora, llega y dile tu código a la cocina.</p>
       </div>
-      <div class="punto">
-        <h2>Le pagas a la cocina</h2>
+      <div class="renglon">
+        <h2 class="sellito">Le pagas a la cocina</h2>
         <p>Directo, en su mostrador.</p>
       </div>
-      <div class="punto">
-        <h2>Junta sellos</h2>
+      <div class="renglon">
+        <h2 class="sellito">Junta sellos</h2>
         <p>En la tarjeta de las cocinas que te gustan.</p>
       </div>
     </div>
@@ -57,7 +61,7 @@
 
 <section class="seccion">
   <div class="envoltura">
-    <div class="llamado">
+    <div class="talon llamado">
       <p class="frase-fuerte">Itacate es gratis para ti.</p>
       <p class="frase">No hay entregas a domicilio: tú pasas por tu comida.</p>
       <p class="estado">Ya en manos de sus primeros usuarios. Para todos, a fin de año.</p>
