@@ -8,9 +8,17 @@
 # secrets. `.github/workflows/site.yml` passes them in as environment variables and
 # publishes what this script writes. They never enter a commit.
 #
+# ⚠️ SINCE `5R-r` TWO MORE: the owner's WhatsApp on his page (`bernardo/index.html`),
+# `{{WHATSAPP}}` — the digits `https://wa.me/` takes — and `{{WHATSAPP_TEXTO}}` — the
+# number as the page shows it. His number is never in this public repository either:
+# the repository secrets `WHATSAPP` and `WHATSAPP_TEXTO`, passed in the same way.
+#
 # WHAT IT REFUSES, each by name:
 #
-#   1. Either value empty, multi-line, or itself holding `{{`.
+#   1. Any of the four values empty, multi-line, or itself holding `{{` — and since
+#      `5R-r`, `WHATSAPP` that is not 10 to 15 digits (wa.me takes nothing else), or
+#      `WHATSAPP_TEXTO` whose digits are not the end of `WHATSAPP`'s (the number shown
+#      and the number dialled would differ).
 #   2. ⚠️ Anything left in `{{ … }}` after filling. A page that says `{{DOMICILIO}}`
 #      to a shopkeeper is a published aviso that names nobody.
 #   3. A placeholder filled fewer times than the source holds it.
@@ -33,7 +41,8 @@
 #
 # Values are HTML-escaped as they go in.
 #
-# Run:  RESPONSABLE='…' DOMICILIO='…' bash docs/checks/5R-d-ii-site-build.sh <out-dir> [<site-dir>]
+# Run:  RESPONSABLE='…' DOMICILIO='…' WHATSAPP='52…' WHATSAPP_TEXTO='…' \
+#         bash docs/checks/5R-d-ii-site-build.sh <out-dir> [<site-dir>]
 #       <site-dir> defaults to site/ and exists so the falsifier can build a copy.
 # Exit: 0 when <out-dir> is fit to publish; 1 otherwise, naming every problem.
 
@@ -42,7 +51,7 @@ set -uo pipefail
 OUT="${1:-}"
 SRC="${2:-site}"
 
-[[ -n "$OUT" ]] || { echo "usage: RESPONSABLE=… DOMICILIO=… $0 <out-dir> [<site-dir>]"; exit 1; }
+[[ -n "$OUT" ]] || { echo "usage: RESPONSABLE=… DOMICILIO=… WHATSAPP=… WHATSAPP_TEXTO=… $0 <out-dir> [<site-dir>]"; exit 1; }
 [[ -d "$SRC" ]] || { echo "FAIL: cannot read $SRC — run me from the repo root"; exit 1; }
 command -v python3 >/dev/null || { echo "FAIL: python3 is not on PATH"; exit 1; }
 
@@ -61,9 +70,11 @@ fails = []
 def ok(msg): print(f"  ok    {msg}")
 def fail(msg): fails.append(msg); print(f"FAIL: {msg}")
 
-# 1. The two values.
+# 1. The values. The first two name the responsable in both avisos; since `5R-r` the
+#    last two are the owner's WhatsApp on his page.
+NAMES = ("RESPONSABLE", "DOMICILIO", "WHATSAPP", "WHATSAPP_TEXTO")
 values = {}
-for name in ("RESPONSABLE", "DOMICILIO"):
+for name in NAMES:
     v = os.environ.get(name, "")
     if not v.strip():
         fail(f"{name} is empty — the repository secret is missing or was not passed in")
@@ -73,8 +84,16 @@ for name in ("RESPONSABLE", "DOMICILIO"):
         fail(f"{name} itself holds a placeholder")
     else:
         values[name] = v.strip()
-if len(values) == 2:
-    ok("RESPONSABLE and DOMICILIO are both set, one line each")
+if "WHATSAPP" in values and not re.fullmatch(r"[0-9]{10,15}", values["WHATSAPP"]):
+    fail("WHATSAPP is not 10 to 15 digits — https://wa.me/ takes the country code and number, nothing else")
+    del values["WHATSAPP"]
+if "WHATSAPP" in values and "WHATSAPP_TEXTO" in values:
+    shown = re.sub(r"[^0-9]", "", values["WHATSAPP_TEXTO"])
+    if len(shown) < 10 or not values["WHATSAPP"].endswith(shown):
+        fail("WHATSAPP_TEXTO's digits are not the end of WHATSAPP — the number shown would not be the one dialled")
+        del values["WHATSAPP_TEXTO"]
+if len(values) == len(NAMES):
+    ok("RESPONSABLE, DOMICILIO, WHATSAPP and WHATSAPP_TEXTO are all set, one line each, the two numbers one number")
 
 # Copy everything but this repository's notes and dotfiles, filling the pages.
 expected, filled = {}, {}
@@ -121,10 +140,12 @@ if left:
         fail(f"{os.path.relpath(p, out)} still holds {m}")
 else:
     ok(f"no {{{{ … }}}} left in any of {len(pages)} pages")
-for name in ("RESPONSABLE", "DOMICILIO"):
+WHERE = {"RESPONSABLE": "the aviso must name the responsable", "DOMICILIO": "the aviso must name the responsable",
+         "WHATSAPP": "the owner's page links his WhatsApp", "WHATSAPP_TEXTO": "the owner's page shows his WhatsApp"}
+for name in NAMES:
     if name in values:
         if expected.get(name, 0) == 0:
-            fail(f"no page holds {{{{{name}}}}} — the aviso must name the responsable")
+            fail(f"no page holds {{{{{name}}}}} — {WHERE[name]}")
         else:
             ok(f"{name} filled {filled[name]} time(s), as many as the source holds")
 

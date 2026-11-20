@@ -21,6 +21,13 @@
 #   F9  .well-known/ missing                 → refused, naming the file
 #   F10 assetlinks.json with a broken key    → refused, naming the file
 #   F11 the iPhone's file not JSON           → refused, naming the file
+#   ⚠️ `5R-r` — the owner's WhatsApp on his page, two more secrets:
+#   F12 WHATSAPP empty                       → refused, naming WHATSAPP
+#   F13 WHATSAPP_TEXTO empty                 → refused, naming WHATSAPP_TEXTO
+#   F14 WHATSAPP with a + and spaces         → refused: wa.me takes digits only
+#   F15 the number shown is not the one dialled → refused, naming both
+#   F16 no page holds {{WHATSAPP}}           → refused: his page must link it
+#   (F0 also reads his page: the link and the shown number filled in, once each)
 #
 # It needs no secret, so CI runs it on every pull request that touches site/.
 #
@@ -42,9 +49,11 @@ fail() { echo "FAIL: $*"; fails=$((fails+1)); }
 # copy <name> — a fresh copy of site/ to break.
 copy() { rm -rf "$TMP/$1"; cp -R site "$TMP/$1"; }
 
-# run <name> <responsable> <domicilio> — builds the copy; output in $TMP/<name>.log.
+# run <name> <responsable> <domicilio> [<whatsapp> [<whatsapp texto>]] — builds the copy;
+# output in $TMP/<name>.log. The two WhatsApp values default to stand-ins; pass '' to empty one.
 run() {
-  RESPONSABLE="$2" DOMICILIO="$3" bash "$BUILD" "$TMP/$1.out" "$TMP/$1" >"$TMP/$1.log" 2>&1
+  RESPONSABLE="$2" DOMICILIO="$3" WHATSAPP="${4-520000000000}" WHATSAPP_TEXTO="${5-00 0000 0000}" \
+    bash "$BUILD" "$TMP/$1.out" "$TMP/$1" >"$TMP/$1.log" 2>&1
 }
 
 # expect_refused <status> <label> <name> <reason grep>
@@ -61,9 +70,14 @@ expect_refused() {
   fi
 }
 
-copy f0; run f0 'Nombre Prueba' 'Calle Falsa 123, CDMX'
+copy f0; run f0 'Nombre Prueba' 'Calle Falsa 123, CDMX' 525512345678 '55 1234 5678'
 if [[ $? -eq 0 ]]; then pass "F0 the real pages build green with stand-in values"
 else fail "F0 the real pages do not build:"; sed 's/^/        /' "$TMP/f0.log"; fi
+if [[ -r "$TMP/f0.out/bernardo/index.html" ]] \
+   && [[ "$(grep -c 'href="https://wa.me/525512345678"' "$TMP/f0.out/bernardo/index.html")" == 1 ]] \
+   && [[ "$(grep -c '>55 1234 5678<' "$TMP/f0.out/bernardo/index.html")" == 1 ]]; then
+  pass "F0 his page links wa.me/<the digits> and shows the number, once each"
+else fail "F0 his page does not carry the WhatsApp link and number filled in"; fi
 
 copy f1; run f1 '' 'Calle Falsa 123, CDMX'
 expect_refused $? "F1 an empty RESPONSABLE is refused" f1 'RESPONSABLE is empty'
@@ -111,6 +125,22 @@ copy f11; printf '{ "applinks": ' >"$TMP/f11/.well-known/apple-app-site-associat
 run f11 'Nombre Prueba' 'Calle Falsa 123, CDMX'
 expect_refused $? "F11 an iPhone file that is not JSON is refused" f11 'apple-app-site-association is not what an iPhone reads'
 
+copy f12; run f12 'Nombre Prueba' 'Calle Falsa 123, CDMX' ''
+expect_refused $? "F12 an empty WHATSAPP is refused" f12 'WHATSAPP is empty'
+
+copy f13; run f13 'Nombre Prueba' 'Calle Falsa 123, CDMX' 520000000000 ''
+expect_refused $? "F13 an empty WHATSAPP_TEXTO is refused" f13 'WHATSAPP_TEXTO is empty'
+
+copy f14; run f14 'Nombre Prueba' 'Calle Falsa 123, CDMX' '+52 55 0000 0000'
+expect_refused $? "F14 a WHATSAPP that is not digits is refused" f14 'WHATSAPP is not 10 to 15 digits'
+
+copy f15; run f15 'Nombre Prueba' 'Calle Falsa 123, CDMX' 525512345678 '55 1234 9999'
+expect_refused $? "F15 a shown number that is not the dialled one is refused" f15 "WHATSAPP_TEXTO's digits are not the end of WHATSAPP"
+
+copy f16; perl -0pi -e 's#https://wa\.me/\{\{WHATSAPP\}\}#https://wa.me/#' "$TMP/f16/bernardo/index.html"
+run f16 'Nombre Prueba' 'Calle Falsa 123, CDMX'
+expect_refused $? "F16 his page without the WhatsApp link is refused" f16 'no page holds {{WHATSAPP}}'
+
 echo
 if [[ $fails -gt 0 ]]; then echo "$fails case(s) failed."; exit 1; fi
-echo "all 12 cases behave."
+echo "all 17 cases behave."

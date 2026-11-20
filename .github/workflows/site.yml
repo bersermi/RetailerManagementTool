@@ -7,7 +7,8 @@ name: site
 # ⚠️ THE AVISO NAMES THE OWNER AND HIS HOME ADDRESS, AND THIS REPOSITORY IS PUBLIC.
 # They live only in the repository secrets RESPONSABLE and DOMICILIO and are
 # filled in at build time by docs/checks/5R-d-ii-site-build.sh, so no commit ever
-# holds them. GitHub masks both in this workflow's logs.
+# holds them. GitHub masks both in this workflow's logs. Since `5R-r` his page
+# carries his WhatsApp the same way: the secrets WHATSAPP and WHATSAPP_TEXTO.
 #
 # A pull request builds with the real values (proving the secrets are set and
 # the pages are fit to publish) but uploads and deploys nothing. Only a push to
@@ -47,6 +48,10 @@ jobs:
         env:
           RESPONSABLE: ${{ secrets.RESPONSABLE }}
           DOMICILIO: ${{ secrets.DOMICILIO }}
+          # ⚠️ `5R-r`: the owner's WhatsApp on his page (bernardo/), the digits wa.me takes
+          # and the number as shown — never in a commit either.
+          WHATSAPP: ${{ secrets.WHATSAPP }}
+          WHATSAPP_TEXTO: ${{ secrets.WHATSAPP_TEXTO }}
         run: bash docs/checks/5R-d-ii-site-build.sh _site
 
       - name: hand the built site to Pages
