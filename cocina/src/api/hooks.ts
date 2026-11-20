@@ -117,6 +117,7 @@ import {
   setPlaceGooglePoint,
   setPlacePin,
   uploadPictures,
+  deletePictures,
   withdrawListing,
   kitchenFollowers,
   kitchenNumbers,
@@ -164,6 +165,7 @@ import {
   PAGES_KEY,
   pageKey,
   pagePatch,
+  picturesToDelete,
   setPageArgs,
   type Page,
   type PageDraft,
@@ -440,6 +442,9 @@ export function usePage(kitchenId: string | null) {
  * `set_kitchen_page` is sent ONLY WHAT CHANGED (`pagePatch`) — nothing at all
  * when nothing did. `save` answers `null`, or the sentence to show. The page it
  * answers with is drawn at once, and the page is read again either way.
+ * ⚠️ `10.9i-ii`: ONCE IT LANDS, THE COVER OR LOGO IT REPLACED OR REMOVED IS DELETED
+ * (`picturesToDelete`, `deletePictures`) — after the save, never before, and not
+ * waited on: her screen closes on the save alone.
  */
 export function useSavePage(kitchenId: string | null) {
   const queries = useQueryClient();
@@ -452,8 +457,9 @@ export function useSavePage(kitchenId: string | null) {
       await uploadPictures(porSubir([input.draft.cover, input.draft.logo]));
       return setKitchenPage(setPageArgs(input.kitchenId, patch));
     },
-    onSuccess: (page) => {
+    onSuccess: (page, input) => {
       queries.setQueryData<Page>(pageKey(userId, kitchenId), page);
+      void deletePictures(picturesToDelete(input.saved, page));
     },
     onSettled: () => {
       void queries.invalidateQueries({ queryKey: PAGES_KEY });
@@ -1424,19 +1430,22 @@ export function useTerminarPromocion(kitchenId: string | null) {
 }
 
 /**
- * *Deshacer* after *Publicar promoción* (`undo_promotion`, within two minutes; `TD032` after). ⚠️ THE KITCHEN AND THE
- * ID TRAVEL WITH THE CALL and nothing here belongs to a screen: the toast lives at the root (`@/lib/NotaProvider`)
- * and outlives the form that made it — so a plain call, its answer written into her list.
+ * *Deshacer* after *Publicar promoción* (`undo_promotion`, within two minutes; `TD032` after). ⚠️ THE KITCHEN, THE
+ * ID AND ITS PHOTO TRAVEL WITH THE CALL and nothing here belongs to a screen: the toast lives at the root
+ * (`@/lib/NotaProvider`) and outlives the form that made it — so a plain call, its answer written into her list.
+ * ⚠️ `10.9i-ii`: ONCE THE PROMOTION IS GONE FROM HER LIST, ITS PHOTO IS DELETED (`deletePictures`) — nothing names it
+ * any more; not waited on.
  */
-export function useDeshacerPromocion(): (kitchenId: string, id: string) => Promise<string | null> {
+export function useDeshacerPromocion(): (kitchenId: string, id: string, foto: string | null) => Promise<string | null> {
   const queries = useQueryClient();
   const { session } = useAuth();
   const userId = session?.user.id ?? null;
   return useCallback(
-    async (kitchenId: string, id: string): Promise<string | null> => {
+    async (kitchenId: string, id: string, foto: string | null): Promise<string | null> => {
       try {
         const row = await undoPromotion(promotionArgs(kitchenId, id));
         queries.setQueryData<PromotionsRow>(promocionesKey(userId, kitchenId), row);
+        if (foto !== null && !row.promotions.some((p) => p.id === id)) void deletePictures([foto]);
         return null;
       } catch (thrown) {
         return promocionErrorMessage(thrown);

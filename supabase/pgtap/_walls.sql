@@ -120,9 +120,11 @@ signed_in (proname) as (values
   -- what a policy, a check or a computed column runs as the caller
   ('catalog_image_path'), ('has_role'), ('merma_path_ok'), ('my_locations'),
   ('my_role'), ('my_workspaces'), ('normalize_name'), ('photo_folder_ok'),
-  -- the bucket `cocina`'s fence (`0076`): Storage runs its two policies as the
-  -- caller, and it answers whether a path's first folder is a kitchen that exists
-  ('kitchen_folder_ok'),
+  -- the bucket `cocina`'s fence (`0076`): Storage runs its policies as the
+  -- caller, and it answers whether a path's first folder is a kitchen that exists;
+  -- and since `0090` (plan `10.9i-ii`) the read's and the delete's two questions —
+  -- whether a file is a picture the door shows now, and whether anything names it
+  ('kitchen_folder_ok'), ('kitchen_picture_shown'), ('kitchen_picture_named'),
   -- what a trigger runs as the writer: `purging_workspace` is called inside
   -- three trigger functions, so a manager's own product or supplier edit
   -- needs it; the other two are trigger functions that were never revoked

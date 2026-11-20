@@ -18,7 +18,7 @@ bash docs/checks/wera-runtime.sh          # after ANY install here: Wera's runti
 bash docs/checks/10.4b-iii-a-cocina-contract.sh   # against a local `supabase start`: the kitchen read, making one, deleting one alone and deleting the account, as the schema answers
 bash docs/checks/10.4b-iv-a-listing-contract.sh   # the same stack: her list, publishing (each line's keys), a retry, withdrawing
 bash docs/checks/5R-k-apple-revoke-contract.sh     # the same stack: the function that tells Apple, served, with Wera's body, this app's and Itacate's
-bash docs/checks/10.5-i-a-kitchen-photos-contract.sh   # the same stack WITH Storage started before the reset: her page and the bucket `cocina`, by this app's names
+bash docs/checks/10.5-i-a-kitchen-photos-contract.sh   # the same stack WITH Storage started before the reset: her page and the bucket `cocina`, by this app's names — what a neighbour opens, what her kitchen deletes (`0090`)
 bash docs/checks/10.5b-iv-a-handover-contract.sh      # the same stack: her kitchen's reservations, who reserved each, the handover and her thumb, by apartados.ts's names — and her queue's claims, by cola.ts's; and her kitchen's sealing secret, by sello.ts's
 bash docs/checks/10.5b-iv-c-settings-contract.sh      # the same stack: her settings, her stars, each dish's ways, − and +, and the read before a deletion, by ajustes.ts', calificaciones.ts', listing.ts' and account.ts' names
 bash docs/checks/10.9a-i-features-contract.sh         # the same stack: what her kitchen uses, Wera's switch, Cuéntanos, and the door's word on it, by servicios.ts' names and Itacate's
@@ -223,7 +223,12 @@ switch `promociones` keeps them off for everyone. The code on
   `expo-image` with her token in a header (`@/ui/Foto`, `photoRequest`), its disk cache never stale. The nine drawings
   are PNGs (no app has SVG), drawn by `render.sh giros` — never the script's default run, which re-draws the icon and
   the launch screen, both native. ⚠️ **A deleted kitchen's photos stay in the bucket** until
-  `docs/runbooks/delete-orphan-photos.sh` deletes them — the aviso promises within 30 days.
+  `docs/runbooks/delete-orphan-photos.sh` deletes them — the aviso promises within 30 days. ⚠️ **Since `10.9i-ii`
+  (`0090`) a photo is opened outside her kitchen only while Itacate shows it, and her kitchen deletes one nothing
+  names**: after *Guardar* lands, the cover or logo it replaced or removed (`picturesToDelete`, from the page the
+  database answered); after *Deshacer*, the undone promotion's photo, once it is gone from her list — both through
+  `deletePictures`, one call, never waited on and never throwing (the database refuses whatever something still names,
+  and the runbook takes what is left after a day). A dish's photo is never deleted here: every offer keeps naming it.
 - **Her reminder** (`10.5-v-c-ii`, the owner's ruling of 2026-11-05 — the family-shell page's call 21 — and its drawing of round
   6): the middle of the moments she published over her last two weeks, rounded down to the half hour, on the weekdays she published
   on two different dates; asked once on *Hoy*, under the doors, after her third offer and only while the rule finds an hour and a day

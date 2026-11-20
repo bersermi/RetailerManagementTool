@@ -181,8 +181,8 @@ export default function NuevaPromocion() {
     const kitchenAhora = kitchen.id;
     const seVe = nueva?.promotions.find((p) => p.id === id)?.shown === true;
     const palabras = { hecho: ES.promociones.deshecha, fallo: ES.promociones.noSeDeshizo };
-    if (primera && seVe) avisar(ES.promociones.primera, () => deshacer(kitchenAhora, id), palabras, true);
-    else avisar(ES.promociones.publicaste(envio.loQue), () => deshacer(kitchenAhora, id), palabras);
+    if (primera && seVe) avisar(ES.promociones.primera, () => deshacer(kitchenAhora, id, envio.foto), palabras, true);
+    else avisar(ES.promociones.publicaste(envio.loQue), () => deshacer(kitchenAhora, id, envio.foto), palabras);
     volver();
   }
 

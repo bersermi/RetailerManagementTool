@@ -209,6 +209,16 @@ export function pagePatch(saved: Page, draft: PageDraft): PagePatch {
   return patch;
 }
 
+/**
+ * ⚠️ `10.9i-ii` (`0090`): THE PICTURES A SAVE STOPPED NAMING — her cover or logo as it was before, when the page
+ * the database answered holds it in neither place: replaced or removed. Wera Cocina deletes each right after the save;
+ * the database deletes only what nothing else names either (an offer, a promotion), so a mistake here deletes nothing.
+ */
+export function picturesToDelete(before: Page, after: Page): string[] {
+  const kept = new Set([after.cover, after.logo].filter((path): path is string => path !== null));
+  return [...new Set([before.cover, before.logo])].filter((path): path is string => path !== null && !kept.has(path));
+}
+
 export function setPageArgs(kitchenId: string, patch: PagePatch): SetPageArgs {
   return { p_workspace_id: kitchenId, p_page: patch };
 }

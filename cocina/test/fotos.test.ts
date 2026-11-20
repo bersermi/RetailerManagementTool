@@ -16,6 +16,7 @@ import {
   alreadyStored,
   bytesOf,
   cropFor,
+  filesOf,
   guardada,
   isPicturePath,
   newPicturePath,
@@ -33,7 +34,8 @@ import {
 // bucket `0076` made (`10.5-i-a`).
 //
 // ⚠️ WHAT ONLY A REAL STORAGE API CAN SAY — that the bucket takes these files from
-// her owner and managers, in her folder, and anyone signed in reads them — is
+// her kitchen's people, in her folder; that anyone else signed in reads only what
+// Itacate shows now, and her kitchen deletes what nothing names (`0090`) — is
 // `docs/checks/10.5-i-a-kitchen-photos-contract.sh`, which reads the bucket and
 // the files' names out of `src/api/fotos.ts`. Here: the names held to `0076`'s
 // TEXT and to Wera's twin files, the arithmetic of each shape, the bytes, and
@@ -45,6 +47,7 @@ const SRC = join(ROOT, 'src');
 const strip = (text: string) => text.replace(/^\s*\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '');
 const code = (path: string) => strip(readFileSync(join(SRC, path), 'utf8'));
 const MIGRATION = readFileSync(join(ROOT, '../supabase/migrations/0076_a_kitchens_own_page.sql'), 'utf8');
+const KEPT_WHILE_SHOWN = readFileSync(join(ROOT, '../supabase/migrations/0090_a_photo_kept_while_shown.sql'), 'utf8');
 const wera = (path: string) => readFileSync(join(ROOT, '../app/src', path), 'utf8');
 
 const KITCHEN = '11111111-2222-4333-8444-555555555555';
@@ -168,6 +171,14 @@ describe('a picture, as a form holds it', () => {
     const nueva = { kind: 'nueva', path: 'k/n', archivos: [] } as const;
     expect(porSubir([NINGUNA, guardada('k/p'), nueva, nueva])).toEqual([nueva]);
   });
+
+  it('`10.9i-ii`: a delete is sent both files of each picture, each picture once — and nothing for none', () => {
+    const path = newPicturePath(KITCHEN, PICTURE);
+    expect(filesOf([path])).toEqual([`${path}/${LARGE_FILE}`, `${path}/${SMALL_FILE}`]);
+    expect(filesOf([path, path])).toEqual([`${path}/720.jpg`, `${path}/160.jpg`]);
+    expect(filesOf(['k/a', 'k/b'])).toEqual(['k/a/720.jpg', 'k/a/160.jpg', 'k/b/720.jpg', 'k/b/160.jpg']);
+    expect(filesOf([])).toEqual([]);
+  });
 });
 
 describe('the wiring, read as text', () => {
@@ -211,6 +222,42 @@ describe('the wiring, read as text', () => {
     expect(nothing).toBeGreaterThan(-1);
     expect(up).toBeGreaterThan(nothing);
     expect(sent).toBeGreaterThan(up);
+  });
+
+  it('`10.9i-ii`: her page’s old pictures are deleted only after the save lands, from the page it answered', () => {
+    const hooks = code('api/hooks.ts');
+    const save = hooks.slice(hooks.indexOf('export function useSavePage'), hooks.indexOf('export function useFotoSource'));
+    const landed = save.indexOf('onSuccess: (page, input) => {');
+    expect(landed).toBeGreaterThan(-1);
+    expect(save.indexOf('void deletePictures(picturesToDelete(input.saved, page));')).toBeGreaterThan(landed);
+    expect(save.slice(0, landed)).not.toMatch(/deletePictures/);
+  });
+
+  it('`10.9i-ii`: an undone promotion’s photo is deleted only once the promotion is gone from her list', () => {
+    const hooks = code('api/hooks.ts');
+    const undo = hooks.slice(hooks.indexOf('export function useDeshacerPromocion'));
+    const asked = undo.indexOf('await undoPromotion(promotionArgs(kitchenId, id))');
+    const gone = undo.indexOf('if (foto !== null && !row.promotions.some((p) => p.id === id)) void deletePictures([foto]);');
+    expect(asked).toBeGreaterThan(-1);
+    expect(gone).toBeGreaterThan(asked);
+    expect(code('app/(cocina)/nueva-promocion.tsx').match(/deshacer\(kitchenAhora, id, envio\.foto\)/g)).toHaveLength(2);
+  });
+
+  it('`10.9i-ii`: a delete is one call into the bucket, and never throws — what it tidies is already saved', () => {
+    const calls = code('api/calls.ts');
+    const del = calls.slice(calls.indexOf('export async function deletePictures'), calls.indexOf('export function photoRequest'));
+    expect(del).toMatch(/const files = filesOf\(paths\);\s*if \(files\.length === 0\) return;\s*try \{\s*await supabase\.storage\.from\(PHOTO_BUCKET\)\.remove\(files\);\s*\} catch \{/);
+    expect(del).not.toMatch(/throw/);
+  });
+
+  it('`0090` lets her kitchen delete only what nothing names, and opens to anyone else only what is shown', () => {
+    expect(KEPT_WHILE_SHOWN).toMatch(
+      /create policy cocina_delete on storage\.objects\s+for delete to authenticated\s+using \(bucket_id = 'cocina'\s+and public\.kitchen_folder_ok\(name\)\s+and public\.photo_folder_ok\(name, 'staff'\)\s+and not public\.kitchen_picture_named\(name\)\)/,
+    );
+    expect(KEPT_WHILE_SHOWN).toMatch(
+      /create policy cocina_select on storage\.objects\s+for select to authenticated\s+using \(bucket_id = 'cocina'\s+and public\.kitchen_folder_ok\(name\)\s+and \(public\.photo_folder_ok\(name, 'staff'\) or public\.kitchen_picture_shown\(name\)\)\)/,
+    );
+    expect(KEPT_WHILE_SHOWN).not.toMatch(/create policy cocina_update/);
   });
 
   it('a file goes up never overwriting, into the bucket, as a JPEG', () => {

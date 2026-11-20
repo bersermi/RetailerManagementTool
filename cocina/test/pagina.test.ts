@@ -28,6 +28,7 @@ import {
   pageKey,
   pagePatch,
   pageWith,
+  picturesToDelete,
   setPageArgs,
   toPage,
   type Page,
@@ -202,6 +203,18 @@ describe('what a save sends — only what she changed', () => {
     expect(checkPage({ ...draft, mapsLink: 'mi fonda' })).toBe('link');
     expect(ES.pagina.errores.sentenceLong).toMatch(/100/);
     expect(ES.pagina.errores.link).toMatch(/Google Maps/);
+  });
+
+  it('`10.9i-ii`: once saved, the cover or logo it replaced or removed — and nothing still on her page', () => {
+    const page: Page = { ...EMPTY_PAGE, cover: 'k/portada', logo: 'k/logo' };
+    expect(picturesToDelete(page, page)).toEqual([]);
+    expect(picturesToDelete(page, { ...page, sentence: 'Hola' })).toEqual([]);
+    expect(picturesToDelete(page, { ...page, cover: 'k/nueva' })).toEqual(['k/portada']);
+    expect(picturesToDelete(page, { ...page, logo: null })).toEqual(['k/logo']);
+    expect(picturesToDelete(page, { ...page, cover: null, logo: 'k/otro' })).toEqual(['k/portada', 'k/logo']);
+    expect(picturesToDelete(EMPTY_PAGE, page)).toEqual([]);
+    expect(picturesToDelete(page, { ...page, cover: 'k/logo', logo: null })).toEqual(['k/portada']);
+    expect(picturesToDelete({ ...page, logo: 'k/portada' }, EMPTY_PAGE)).toEqual(['k/portada']);
   });
 
   it('the preview draws the form as it would be saved', () => {

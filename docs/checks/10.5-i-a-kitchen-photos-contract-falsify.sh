@@ -2,10 +2,11 @@
 # ============================================================================
 # 10.5-i-a — CAN `10.5-i-a-kitchen-photos-contract.sh` STILL FAIL? Each fixture
 # breaks ONE wall of the bucket `cocina` in the applied database — a policy of
-# `0076`'s widened or added, or the bucket's own settings loosened — and the
-# check must go red FOR THAT REASON (the output is matched, not the exit code).
-# The two policies and the bucket's row are read back out of the catalog first
-# and restored in a `trap`, then read again to prove they are back.
+# `0076`'s, `0083`'s or `0090`'s widened, narrowed, dropped or added, or the
+# bucket's own settings loosened — and the check must go red FOR THAT REASON (the
+# output is matched, not the exit code). The three policies and the bucket's row
+# are read back out of the catalog first and restored in a `trap`, then read
+# again to prove they are back.
 #
 #   bash docs/checks/10.5-i-a-kitchen-photos-contract-falsify.sh
 # ============================================================================
@@ -30,13 +31,17 @@ expr_of() { # policy-name qual|withcheck -> its expression on storage.objects
 }
 INSERT_CHECK="$(expr_of cocina_insert withcheck)"
 SELECT_USING="$(expr_of cocina_select qual)"
+DELETE_USING="$(expr_of cocina_delete qual)"
 BUCKET_ROW="$(ask "select public::text || ' ' || file_size_limit::text || ' ' || array_to_string(allowed_mime_types, ',')
                      from storage.buckets where id = 'cocina';")"
 if [[ "$INSERT_CHECK" != *kitchen_folder_ok* || "$INSERT_CHECK" != *photo_folder_ok* \
-      || "$SELECT_USING" != *kitchen_folder_ok* || "$BUCKET_ROW" != "false 2097152 image/jpeg,image/png,image/webp" ]]; then
-  echo "FAIL: could not read 0076's bucket out of the applied catalog —"
-  echo "      cocina_insert: '${INSERT_CHECK:0:100}', cocina_select: '${SELECT_USING:0:100}', bucket: '$BUCKET_ROW'."
-  echo "      Is Storage running, and was it running before the reset?"
+      || "$SELECT_USING" != *kitchen_folder_ok* || "$SELECT_USING" != *kitchen_picture_shown* \
+      || "$DELETE_USING" != *kitchen_picture_named* || "$DELETE_USING" != *photo_folder_ok* \
+      || "$BUCKET_ROW" != "false 2097152 image/jpeg,image/png,image/webp" ]]; then
+  echo "FAIL: could not read the bucket's walls (0076, 0083, 0090) out of the applied catalog —"
+  echo "      cocina_insert: '${INSERT_CHECK:0:100}', cocina_select: '${SELECT_USING:0:140}',"
+  echo "      cocina_delete: '${DELETE_USING:0:140}', bucket: '$BUCKET_ROW'."
+  echo "      Is Storage running, and was it running before the reset? Is 0090 applied?"
   exit 1
 fi
 
@@ -47,6 +52,7 @@ restore() {
   done
   ask "create policy cocina_insert on storage.objects for insert to authenticated with check ($INSERT_CHECK);" > /dev/null
   ask "create policy cocina_select on storage.objects for select to authenticated using ($SELECT_USING);" > /dev/null
+  ask "create policy cocina_delete on storage.objects for delete to authenticated using ($DELETE_USING);" > /dev/null
   ask "update storage.buckets set public = false, file_size_limit = 2097152,
          allowed_mime_types = array['image/jpeg', 'image/png', 'image/webp'] where id = 'cocina';" > /dev/null
   local back row
@@ -54,7 +60,7 @@ restore() {
                 where polrelid = 'storage.objects'::regclass and polname like 'cocina%';")"
   row="$(ask "select public::text || ' ' || file_size_limit::text || ' ' || array_to_string(allowed_mime_types, ',')
                 from storage.buckets where id = 'cocina';")"
-  if [[ "$back" != "cocina_insert cocina_select" || "$row" != "$BUCKET_ROW" ]]; then
+  if [[ "$back" != "cocina_delete cocina_insert cocina_select" || "$row" != "$BUCKET_ROW" ]]; then
     echo "FAIL: THE RESTORE DID NOT PUT THE BUCKET BACK (policies '$back', bucket '$row'). Stopping."
     exit 1
   fi
@@ -76,7 +82,7 @@ run() { # name expected-reason-regex
   fi
 }
 
-# The control: the database as `0076` left it.
+# The control: the database as `0090` left it.
 out="$(bash "$CHECK" 2>&1)"
 if [[ $? -eq 0 ]]; then echo "  ok    control — green on the database as it is"; passed=$((passed+1))
 else echo "FAIL: control — the check is red on the database as it is"; grep -E '^FAIL' <<< "$out" | head -3; failed=$((failed+1)); fi
@@ -87,6 +93,31 @@ else echo "FAIL: control — the check is red on the database as it is"; grep -E
 ask "drop policy cocina_select on storage.objects;" > /dev/null
 ask "create policy cocina_select on storage.objects for select to authenticated using (bucket_id = 'cocina');" > /dev/null
 run read-past-deletion "the neighbour's read after 200"
+restore
+
+# ⚠️ `0076`'s read put back (`10.9i-ii`): every picture in a living kitchen's folder
+# opened and listed by anyone signed in — the cover she replaced among them.
+ask "drop policy cocina_select on storage.objects;" > /dev/null
+ask "create policy cocina_select on storage.objects for select to authenticated
+       using (bucket_id = 'cocina' and public.kitchen_folder_ok(name));" > /dev/null
+run read-everything 'outside it a shop 200, a neighbour 200'
+restore
+
+# ⚠️ A read that asks what was ever named, not what shows now: an ended promotion's
+# photo and a withdrawn offer's dish stay open to everyone.
+ask "drop policy cocina_select on storage.objects;" > /dev/null
+ask "create policy cocina_select on storage.objects for select to authenticated
+       using (bucket_id = 'cocina' and public.kitchen_folder_ok(name)
+              and (public.photo_folder_ok(name, 'staff') or public.kitchen_picture_named(name)));" > /dev/null
+run read-what-was-named 'ended 200 then 200'
+restore
+
+# ⚠️ A read that forgets her own kitchen: what the door shows, and nothing more —
+# her Anteriores and Repetir would draw no photo of an offer that ended.
+ask "drop policy cocina_select on storage.objects;" > /dev/null
+ask "create policy cocina_select on storage.objects for select to authenticated
+       using (bucket_id = 'cocina' and public.kitchen_folder_ok(name) and public.kitchen_picture_shown(name));" > /dev/null
+run kitchen-blind 'her kitchen read owner 4[0-9][0-9]'
 restore
 
 # Opened to anyone signed out.
@@ -123,11 +154,26 @@ ask "create policy cocina_update on storage.objects for update to authenticated
 run overwrite 'an overwrite answered upsert 200'
 restore
 
-# A delete policy.
+# ⚠️ A delete that never asks what names a picture: her cover, a withdrawn offer's
+# dish and an ended promotion's photo deleted under the rows that point at them.
+ask "drop policy cocina_delete on storage.objects;" > /dev/null
 ask "create policy cocina_delete on storage.objects for delete to authenticated
-       using (bucket_id = 'cocina' and public.photo_folder_ok(name, 'manager'));" > /dev/null
-run delete 'after her deletes'
+       using (bucket_id = 'cocina' and public.kitchen_folder_ok(name) and public.photo_folder_ok(name, 'staff'));" > /dev/null
+run delete-named "leaving '0 0 0' \\(expected"
 restore
+
+# ⚠️ `0076`'s none put back: her kitchen deletes nothing, so a replaced cover stays.
+ask "drop policy cocina_delete on storage.objects;" > /dev/null
+run no-delete "the cook's of an unnamed one 200 \\[\\], leaving 1"
+restore
+
+# ⚠️ NO FIXTURE FOR A DELETE THAT FORGETS WHOSE FOLDER IT IS (`photo_folder_ok`
+# dropped from `cocina_delete`), measured 2026-11-20: the check stays green, and
+# rightly. Storage deletes by name, so Postgres asks the READ policy too — someone
+# outside the kitchen sees only what is shown, everything shown is named, and the
+# delete takes only what nothing names. Two walls hold that case; breaking one
+# alone cannot show. The clause stays in the policy as the ruling's words (*someone
+# who works there*), and group 15 asserts the outcome.
 
 # The bucket made public: every photo readable by its address, signed in or not.
 ask "update storage.buckets set public = true where id = 'cocina';" > /dev/null
@@ -145,8 +191,8 @@ run any-size 'a 2 MB file 200'
 restore
 
 echo
-if (( failed == 0 && passed == 11 )); then
-  echo "all 11 fixtures behaved as recorded — the contract check goes red on every wall it names."
+if (( failed == 0 && passed == 15 )); then
+  echo "all 15 fixtures behaved as recorded — the contract check goes red on every wall it names."
   exit 0
 fi
 echo "$failed of $((passed + failed)) fixtures misbehaved."
