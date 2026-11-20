@@ -3,55 +3,102 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Wera: tu tienda</title>
-  <meta name="description" content="Wera: tu tienda. Una app para llevar las ventas, compras, inventario y merma de una tienda. Ayuda, aviso de privacidad y cómo eliminar tu cuenta.">
+  <title>Wera</title>
+  <meta name="description" content="Apps para las tiendas, las cocinas y los vecinos de tu colonia. Herramientas que se adaptan a cada negocio, no al revés: funcionan con el teléfono que ya tienes, con tu manera de trabajar y hasta sin señal.">
+  <link rel="icon" href="img/wera-icono.png">
   <link rel="stylesheet" href="estilo.css">
 </head>
-<body>
-<header><a class="marca" href="./">Wera</a></header>
+<body class="sitio tono-wera">
+<!-- Plan 5R-r: the home page, and still the SUPPORT page both stores' listings give
+     (https://tu-wera.com/) — so its help block (#ayuda) stays here, with the two in-app paths. -->
+<header class="cabecera">
+  <div class="envoltura">
+    <a class="marca" href="./">Wera</a>
+    <nav aria-label="Secciones">
+      <a href="tienda/">Tienda</a>
+      <a href="para-cocinas/">Cocinas</a>
+      <a href="itacate/">Itacate</a>
+      <a href="ayuda/">Ayuda</a>
+    </nav>
+  </div>
+</header>
 <main>
 
-<h1>Wera: tu tienda</h1>
-<p>Una app para llevar las ventas, compras, inventario y merma de una tienda desde el
-teléfono, también cuando no hay señal. Por ahora está en prueba con unas cuantas
-tiendas.</p>
+<section class="portada">
+  <div class="envoltura">
+    <h1>Apps para las tiendas, las cocinas y los vecinos de tu colonia.</h1>
+    <p class="entrada">Herramientas que se adaptan a cada negocio, no al revés: funcionan con el teléfono que ya
+    tienes, con tu manera de trabajar y hasta sin señal.</p>
+  </div>
+</section>
 
-<h2 id="ayuda">Ayuda</h2>
-<ul>
-  <li><strong>¿Olvidaste tu contraseña?</strong> En la app, en <em>Entrar</em>, toca
-  <em>¿Olvidaste tu contraseña?</em> y escríbenos por WhatsApp.</li>
-  <li><strong>¿Quieres eliminar tu cuenta?</strong> Está en la app, en
-  <em>Ajustes → Tu cuenta</em>, o puedes pedirlo por correo:
-  <a href="eliminar-cuenta/">cómo eliminar tu cuenta</a>.</li>
-  <li><strong>Para cualquier otra cosa</strong>, escríbenos a
-  <a href="mailto:ayuda@tu-wera.com">ayuda@tu-wera.com</a>.</li>
-</ul>
+<section class="seccion">
+  <div class="envoltura">
+    <div class="apps">
+      <article class="app tono-wera">
+        <div class="app-cabeza">
+          <img class="icono" src="img/wera-icono.png" alt="" width="56" height="56">
+          <h2><a href="tienda/">Wera: tu tienda</a></h2>
+        </div>
+        <p>Vende, compra, anota tu merma y ve cuánto te deja cada producto, aunque no haya señal. Gratis, para
+        siempre.</p>
+        <p class="botones">
+          <a class="boton-tienda" href="https://apps.apple.com/mx/app/wera-tu-tienda/id6818418895">Descárgala en la App Store</a>
+          <a class="boton-tienda" href="https://play.google.com/store/apps/details?id=mx.wera.app">Descárgala en Google Play</a>
+        </p>
+      </article>
+      <article class="app tono-cocina">
+        <div class="app-cabeza">
+          <img class="icono" src="img/cocina-icono.png" alt="" width="56" height="56">
+          <h2><a href="para-cocinas/">Wera Cocina</a></h2>
+        </div>
+        <p>Pon tu precio, tu hora y tu propia tarjeta de lealtad, con tu color y tu logo.</p>
+        <p class="estado">Ya en manos de sus primeros usuarios. Para todos, a fin de año.</p>
+      </article>
+      <article class="app tono-itacate">
+        <div class="app-cabeza">
+          <img class="icono" src="img/itacate-icono.png" alt="" width="56" height="56">
+          <h2><a href="itacate/">Itacate</a></h2>
+        </div>
+        <p>La comida del día, de tu colonia, a mejor precio: la apartas, pasas por ella y le pagas a la cocina.</p>
+        <p class="estado">Ya en manos de sus primeros usuarios. Para todos, a fin de año.</p>
+      </article>
+    </div>
+    <p class="una-cuenta">Una sola cuenta para las tres.</p>
+  </div>
+</section>
 
-<h2 id="cocina">Wera Cocina</h2>
-<p>La app de Wera para fondas y cocinas: publicas tus ofertas del día para que los vecinos
-pasen por ellas. Por ahora está en prueba. Usa la misma cuenta que Wera, y la misma ayuda: en
-<em>Entrar</em>, <em>¿Olvidaste tu contraseña?</em>; para cualquier otra cosa,
-<a href="mailto:ayuda@tu-wera.com">ayuda@tu-wera.com</a>. Su
-<a href="privacidad/cocina-e-itacate/">aviso de privacidad</a> y
-<a href="eliminar-cuenta/cocina/">cómo eliminar tu cuenta desde Wera Cocina</a>.</p>
-
-<h2 id="itacate">Itacate</h2>
-<p>La app de Wera para vecinos. Por ahora es una versión de prueba. Usa la misma cuenta que Wera
-y Wera Cocina, y la misma ayuda: en <em>Entrar</em>, <em>¿Olvidaste tu contraseña?</em>; para
-cualquier otra cosa, <a href="mailto:ayuda@tu-wera.com">ayuda@tu-wera.com</a>. Su
-<a href="privacidad/cocina-e-itacate/#itacate">aviso de privacidad</a> y
-<a href="eliminar-cuenta/itacate/">cómo eliminar tu cuenta desde Itacate</a>.</p>
-
-<h2 id="privacidad">Tus datos</h2>
-<p>Qué datos tratamos, para qué y cómo ejercer tus derechos está en el
-<a href="privacidad/">aviso de privacidad</a>. Este sitio no usa cookies ni herramientas de
-analítica.</p>
+<section class="seccion">
+  <div class="envoltura dos">
+    <div class="caja" id="ayuda">
+      <h2>¿Necesitas ayuda?</h2>
+      <p><strong>¿Olvidaste tu contraseña?</strong> En la app, en <em>Entrar</em>, toca <em>¿Olvidaste tu
+      contraseña?</em> y escríbenos por WhatsApp.</p>
+      <p><strong>¿Quieres eliminar tu cuenta?</strong> Está en la app, en <em>Ajustes → Tu cuenta</em>, o
+      <a href="eliminar-cuenta/">pídelo por correo</a>.</p>
+      <p><a href="ayuda/">Toda la ayuda</a> · <a href="mailto:ayuda@tu-wera.com">ayuda@tu-wera.com</a></p>
+    </div>
+    <div class="caja">
+      <h2><a href="datos/">Tus datos, en claro</a></h2>
+      <p>Reglas claras sobre tus datos, en palabras de mostrador.</p>
+    </div>
+  </div>
+</section>
 
 </main>
-<footer>
-  <a href="privacidad/">Aviso de privacidad</a>
-  <a href="eliminar-cuenta/">Eliminar tu cuenta</a>
-  <a href="mailto:ayuda@tu-wera.com">ayuda@tu-wera.com</a>
+<footer class="pie">
+  <div class="envoltura">
+    <p class="despedida">Nos vemos en el mostrador.</p>
+    <p><a href="bernardo/">Wera lo hace Bernardo Serafin, en la Ciudad de México.</a></p>
+    <nav aria-label="Enlaces">
+      <a href="ayuda/">Ayuda</a>
+      <a href="datos/">Tus datos</a>
+      <a href="privacidad/">Aviso de privacidad</a>
+      <a href="eliminar-cuenta/">Eliminar tu cuenta</a>
+      <a href="mailto:ayuda@tu-wera.com">ayuda@tu-wera.com</a>
+    </nav>
+    <p class="sin-cookies">Este sitio no usa cookies ni herramientas de analítica.</p>
+  </div>
 </footer>
 </body>
 </html>
