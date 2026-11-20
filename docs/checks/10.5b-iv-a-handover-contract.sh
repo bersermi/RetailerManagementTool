@@ -48,6 +48,14 @@
 #      must NOT match, or a phone whose sign-in lapsed would drop her handover; a broken token is
 #      a code it waits on; and the codes it draws as refusals are the ones the database answered.
 #
+#  ⚠️ `10.9j-ii-b` — HER TICKET CHECKED WITH NO SIGNAL (`cocina/src/api/sello.ts`; the owner's J2):
+#  14. The fonda is handed her kitchen's sealing secret through `kitchen_seal_keys` by the app's
+#      names — its argument, every key at both levels — the current one with no `until`; the
+#      neighbour who reserved is refused it (`42501`); and the seal `reserve_plate` answered that
+#      neighbour (`0088`) fits that secret, read as `0088`'s header says (fourteen fields, the MAC
+#      after the last `|`) by Python's `hmac` — the app's own code checks a seal the database made
+#      in `cocina/test/sello.test.ts`.
+#
 # ⚠️ WHAT IT DOES NOT ASSERT: the database's own rules (`supabase/tests/0079_…` and `0080_…`),
 # or what the screens do with an answer (`cocina/test/apartados.test.ts`, which also holds the
 # state and *what is taken* to the migrations' text). Itacate's own names are its own check's
@@ -58,13 +66,15 @@
 # this a dozen times.
 #
 # Run:  supabase start && supabase db reset && bash docs/checks/10.5b-iv-a-handover-contract.sh
-# With: $1 a copy of cocina's apartados.ts, $2 a copy of its cola.ts — how the falsifier points it at a broken one.
+# With: $1 a copy of cocina's apartados.ts, $2 a copy of its cola.ts, $3 a copy of its sello.ts — how the falsifier
+#       points it at a broken one.
 # Exit: 0 every assertion holds; 1 otherwise.
 
 set -uo pipefail
 
 APARTADOS_TS="${1:-cocina/src/api/apartados.ts}"
 COLA_TS="${2:-cocina/src/api/cola.ts}"
+SELLO_TS="${3:-cocina/src/api/sello.ts}"
 ITACATE_TS="itacate/src/api/apartados.ts"
 COCINAS_TS="itacate/src/api/cocinas.ts"
 KITCHEN_TS="cocina/src/api/kitchen.ts"
@@ -72,7 +82,7 @@ PLACE_TS="cocina/src/api/place.ts"
 LISTING_TS="cocina/src/api/listing.ts"
 PAGINA_TS="cocina/src/api/pagina.ts"
 CREDENTIALS_TS="cocina/src/auth/credentials.ts"
-for f in "$APARTADOS_TS" "$COLA_TS" "$ITACATE_TS" "$COCINAS_TS" "$KITCHEN_TS" "$PLACE_TS" "$LISTING_TS" "$PAGINA_TS" "$CREDENTIALS_TS"; do
+for f in "$APARTADOS_TS" "$COLA_TS" "$SELLO_TS" "$ITACATE_TS" "$COCINAS_TS" "$KITCHEN_TS" "$PLACE_TS" "$LISTING_TS" "$PAGINA_TS" "$CREDENTIALS_TS"; do
   [[ -r "$f" ]] || { echo "FAIL: cannot read $f (run this from the repository root)"; exit 1; }
 done
 
@@ -123,6 +133,12 @@ WAYS="$(list_of COMERES "$APARTADOS_TS")"
 NO_RATING_CODE="$(code_of yaNoSeCalifica)"
 CHANGED_CODE="$(code_of cambio)"
 SESSION_CODE="$(code_of sesion)"
+# `10.9j-ii-b`: her kitchen's sealing secrets (`sello.ts`).
+SEAL_KEYS="$(const KITCHEN_SEAL_KEYS "$SELLO_TS")"
+SEAL_KEYS_ARGS="$(fields_of "$SELLO_TS" SealKeysArgs 'p_')"
+SEAL_KEYS_ROW="$(fields_of "$SELLO_TS" SealKeysRow '')"
+SEAL_KEY_ROW="$(fields_of "$SELLO_TS" SealKeyRow '')"
+SEAL_SHAPE="$(const SELLO_FORMA "$SELLO_TS")"
 # Itacate's names, for the neighbour who reserves.
 RESERVE="$(const RESERVE_PLATE "$ITACATE_TS")"
 RESERVE_ARGS="$(fields_of "$ITACATE_TS" ReserveArgs 'p_')"
@@ -158,6 +174,7 @@ for pair in "RESERVATION_TABLE:$TABLE" "RESERVATION_COLUMNS:$COLUMNS" "RESERVATI
             "ETIQUETAS_ARRIBA:$UP_LABELS" "ETIQUETAS_ABAJO:$DOWN_LABELS" "NO_SE_PRESENTO:$NO_SHOW" "PAGOS:$PAYMENTS" "COMERES:$WAYS" \
             "the code for yaNoSeCalifica:$NO_RATING_CODE" "the code for cambio:$CHANGED_CODE" "the code for sesion:$SESSION_CODE" \
             "RESERVE_PLATE:$RESERVE" "ReserveArgs:$RESERVE_ARGS" "GIVE_MY_YES:$YES" "ONBOARD_WORKSPACE:$ONBOARD" \
+            "KITCHEN_SEAL_KEYS:$SEAL_KEYS" "SealKeysArgs:$SEAL_KEYS_ARGS" "SealKeysRow:$SEAL_KEYS_ROW" "SealKeyRow:$SEAL_KEY_ROW" "SELLO_FORMA:$SEAL_SHAPE" \
             "OnboardArgs:$ONBOARD_ARGS" "COCINA_KIND:$KIND" "PLACE_TABLE:$PLACE_TABLE" "PLACE_OWNER_COLUMN:$PLACE_OWNER" \
             "SET_STORE_ADDRESS:$SET_ADDRESS" "SetStoreAddressArgs:$ADDRESS_ARGS" "PUBLISH_LISTING:$PUBLISH" \
             "PublishArgs:$PUBLISH_ARGS" "LineBody:$LINE_BODY" "SET_KITCHEN_PAGE:$SET_PAGE" "SetPageArgs:$PAGE_ARGS" \
@@ -275,6 +292,7 @@ R1="$(uuid)"
 s="$(reserve "$R1" "$CASH" "$TO_GO")"
 [[ "$s" == 200 ]] || { fail "the neighbour could not reserve, as Itacate does: $s $(head -c 200 "$SCRATCH/reserved.json")"; exit 1; }
 CODE1="$(pick code "$(cat "$SCRATCH/reserved.json")")"
+cp "$SCRATCH/reserved.json" "$SCRATCH/reserved1.json"
 ok "a fonda makes, as Wera Cocina does, a kitchen that takes cards, serves here and charges a \$5 desechable, and publishes three plates of one dish; a neighbour reserves one, as Itacate does — code $CODE1, cash, to go"
 
 # Verdicts are one python file, a function per question.
@@ -589,12 +607,50 @@ elif [[ "$FINAL_CAMBIO" != "$CHANGED_CODE" || "$FINAL_NO_RATING" != "$NO_RATING_
 else ok "her queue takes as final the functions' own 42501 ('$m1') and the codes the database answered, never a call with no session ($s2, '$m2'), and waits on a broken token ($c3)"
 fi
 
+# --- 14. `10.9j-ii-b`: her kitchen's sealing secret, and the seal it checks ----------------------
+TOKEN="$FONDA"
+s="$(ask "$SCRATCH/keys.json" POST "/rest/v1/rpc/$SEAL_KEYS" "$(by_names "$SEAL_KEYS_ARGS" "\"$A\"")")"
+TOKEN="$VECINA"
+s2="$(ask "$SCRATCH/keys-vecina.json" POST "/rest/v1/rpc/$SEAL_KEYS" "$(by_names "$SEAL_KEYS_ARGS" "\"$A\"")")"
+c2="$(pick code "$(cat "$SCRATCH/keys-vecina.json")")"
+TOKEN="$FONDA"
+v="$(python3 - "$SCRATCH/keys.json" "$SCRATCH/reserved1.json" "$A" "$R1" "$CODE1" "$SEAL_KEYS_ROW" "$SEAL_KEY_ROW" "$SEAL_SHAPE" <<'PY'
+import hmac, hashlib, json, sys
+keys, reserved = json.load(open(sys.argv[1])), json.load(open(sys.argv[2]))
+kitchen, rid, code, outer, inner, shape = sys.argv[3:9]
+gone = [k for k in outer.split(',') if not isinstance(keys, dict) or k not in keys]
+if gone: print("her kitchen's secrets came back carrying no %s: %r" % (', '.join(repr(k) for k in gone), keys)); sys.exit()
+current = [k for k in (keys.get('keys') or []) if isinstance(k, dict) and k.get('until') is None]
+if len(current) != 1: print('her kitchen has %d current secrets, not one: %r' % (len(current), keys)); sys.exit()
+gone = [k for k in inner.split(',') if k not in current[0]]
+if gone: print('a secret came back carrying no %s' % ', '.join(repr(k) for k in gone)); sys.exit()
+seal = reserved.get('seal') if isinstance(reserved, dict) else None
+if not isinstance(seal, str) or not seal.startswith(shape + '|'):
+    print("the neighbour's reservation came back with seal %r, not one of shape %r" % (seal, shape)); sys.exit()
+payload, mac = seal.rsplit('|', 1)
+f = payload.split('|')
+if len(f) != 13 or f[1] != rid.replace('-', '') or f[2] != kitchen.replace('-', '') or f[4] != code:
+    print("the seal does not carry her reservation, her kitchen and her code as 0088 says: %r" % seal); sys.exit()
+key = next((k for k in keys['keys'] if str(k.get('version')) == f[3]), None)
+if key is None: print('no secret of version %s was handed to the fonda' % f[3]); sys.exit()
+want = hmac.new(bytes.fromhex(key['secret']), payload.encode('ascii'), hashlib.sha1).hexdigest()[:20]
+print('OK' if mac == want else "the seal's MAC %s does not fit the secret the fonda was handed (%s)" % (mac, want))
+PY
+)"
+if [[ "$s" == 404 ]]; then fail "$SEAL_KEYS() answered 404 — no function by the arguments' names ($SEAL_KEYS_ARGS)"
+elif [[ "$s" != 200 ]]; then fail "$SEAL_KEYS() answered $s $(head -c 200 "$SCRATCH/keys.json")"
+elif [[ "$c2" != 42501 ]]; then fail "the neighbour asking for the kitchen's secret answered $s2 '$c2' — only who works there may hold it"
+elif [[ "$v" != OK ]]; then fail "$v"
+else ok "the fonda is handed her kitchen's sealing secret through $SEAL_KEYS() by the app's names — {$SEAL_KEYS_ROW}, each {$SEAL_KEY_ROW} — the neighbour is refused it ($c2), and the seal on the neighbour's ticket fits it (Python's hmac)"
+fi
+
 echo
 if (( fails > 0 )); then
   echo "$fails assertion group(s) failed."
   exit 1
 fi
-echo "all 13 assertion groups passed — Wera Cocina reads her kitchen's reservations, hands them over and rates the"
+echo "all 14 assertion groups passed — Wera Cocina reads her kitchen's reservations, hands them over and rates the"
 echo "neighbour by the names the database answers: every column and key, the labels it sends, the codes it turns into"
 echo "sentences, a desechable only on a plate taken away, and never who reserved; and her queue's sends keep her moment,"
-echo "a thumb lands behind its handover, and only the database's last word is taken as one."
+echo "a thumb lands behind its handover, and only the database's last word is taken as one; and her phone is handed the"
+echo "secret that checks her neighbours' tickets with no signal."

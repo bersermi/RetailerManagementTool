@@ -854,6 +854,27 @@ export const ES = {
     noEstaSinSenal: (cuando: string) => `Ese código no está en tus apartados de ${cuando}. Sin señal no llegan los nuevos.`,
     /** `10.5b-iv-b`: under *Entregado* while her handover waits on the phone. */
     guardadaAqui: 'Guardada en este teléfono. Se envía sola cuando vuelve la señal.',
+    /**
+     * ⚠️ `10.9j-ii-b` (the owner's J2 and J3 of 2026-11-20, as `10.9j-i`'s drawing words them): HER TICKET'S QR,
+     * sealed by the database with her kitchen's secret and checked on THIS phone with no signal — offered on the
+     * keypad, always: scanning is quicker than typing, and with no signal it is the only way to check a ticket
+     * this phone never read (J3: a typed code it never read is never handed over).
+     */
+    escanear: {
+      ayuda: 'Escanea el código de su apartado: tu teléfono lo revisa sin señal.',
+      escaner: {
+        boton: 'Escanear su código',
+        apunta: 'Apunta al código de su apartado',
+        sinPermiso: 'Sin la cámara no se puede escanear. Escribe su código con el teclado.',
+        ajustes: 'Permitir la cámara en Ajustes',
+        noEs: 'Ese código no es de un apartado de tu cocina.',
+        noAbre: 'La cámara no abrió. Escribe su código con el teclado.',
+      },
+    },
+    /** ⚠️ `10.9j-ii-b`: an order drawn from her ticket's seal — this phone never read it, and checked it itself. */
+    revisado: 'Revisado en este teléfono',
+    /** ⚠️ `10.9j-ii-b`: the seal never carries her name (J2) — it comes with the next read. */
+    despues: 'Su nombre y su calificación aparecen cuando vuelva la señal.',
   },
 
   /**

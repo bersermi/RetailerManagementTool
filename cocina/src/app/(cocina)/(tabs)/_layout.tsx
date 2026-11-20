@@ -1,7 +1,7 @@
 import { Tabs } from 'expo-router/js-tabs';
 
 import { esDuena } from '@/api/equipo';
-import { useApartadosAlDia, useKitchen, usePlace, useServicios, useSiYaNoEstaAqui, useSuRol } from '@/api/hooks';
+import { useApartadosAlDia, useKitchen, useLlavesDeSello, usePlace, useServicios, useSiYaNoEstaAqui, useSuRol } from '@/api/hooks';
 import { ordenesDe, porCalificar } from '@/lib/apartados';
 import { RecordatorioProvider } from '@/lib/RecordatorioProvider';
 import { veSusNumeros } from '@/lib/numeros';
@@ -58,6 +58,9 @@ export default function TabsDeCocina() {
   useSiYaNoEstaAqui(kitchen?.id ?? null);
   const apartados = useApartadosAlDia(kitchen?.id ?? null);
   const cuentas = useCuentas(apartados.data);
+  // ⚠️ `10.9j-ii-b`: her kitchen's sealing secrets, read with its first read and kept on the phone, so a
+  // neighbour's ticket is checked at the counter with no signal (J2).
+  useLlavesDeSello(kitchen?.id ?? null);
   const servicios = useServicios(kitchen?.id ?? null);
   const duena = esDuena(useSuRol(kitchen?.id ?? null).data);
   useFestejos(kitchen?.id ?? null, apartados.data?.reservas, veSusNumeros(servicios.data, duena));

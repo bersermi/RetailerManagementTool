@@ -75,7 +75,7 @@ PLACE_TS="cocina/src/api/place.ts"
 LISTING_TS="cocina/src/api/listing.ts"
 PAGINA_TS="cocina/src/api/pagina.ts"
 CREDENTIALS_TS="cocina/src/auth/credentials.ts"
-for f in "$APARTADOS_TS" "$COCINAS_TS" "$KITCHEN_TS" "$PLACE_TS" "$LISTING_TS" "$PAGINA_TS" "$CREDENTIALS_TS"; do
+for f in "$APARTADOS_TS" "$COCINAS_TS" "$KITCHEN_TS" "$PLACE_TS" "$LISTING_TS" "$PAGINA_TS" "$CREDENTIALS_TS" cocina/src/api/sello.ts; do
   [[ -r "$f" ]] || { echo "FAIL: cannot read $f (run this from the repository root)"; exit 1; }
 done
 
@@ -143,10 +143,13 @@ LINE_BODY="$(fields_of "$LISTING_TS" LineBody '')"
 SET_PAGE="$(const SET_KITCHEN_PAGE "$PAGINA_TS")"
 PAGE_ARGS="$(fields_of "$PAGINA_TS" SetPageArgs 'p_')"
 NAME_KEY="$(const FULL_NAME_KEY "$CREDENTIALS_TS")"
+# `10.9j-ii-b`: the kitchen's sealing secrets, by Wera Cocina's names — group 13's instrument.
+SEAL_KEYS="$(const KITCHEN_SEAL_KEYS cocina/src/api/sello.ts)"
+SEAL_KEYS_ARGS="$(fields_of cocina/src/api/sello.ts SealKeysArgs 'p_')"
 
 for pair in "RESERVE_PLATE:$RESERVE" "MY_RESERVATIONS:$MINE" "CANCEL_MY_RESERVATION:$CANCEL" "CONFIRM_MY_PICKUP:$CONFIRM" \
             "GIVE_MY_YES:$YES" "MY_STANDING:$STANDING" "ReserveArgs:$RESERVE_ARGS" "ReservationIdArgs:$ID_ARGS" \
-            "ConfirmArgs:$CONFIRM_ARGS" "SELLO_FORMA:$SEAL_SHAPE" \
+            "ConfirmArgs:$CONFIRM_ARGS" "SELLO_FORMA:$SEAL_SHAPE" "KITCHEN_SEAL_KEYS:$SEAL_KEYS" "SealKeysArgs:$SEAL_KEYS_ARGS" \
             "ReservedRow:$RESERVED_KEYS" "ReservationRow:$ROW_KEYS" "ReservationKitchenRow:$KITCHEN_KEYS" \
             "ReservationAddressRow:$ADDRESS_KEYS" "ReservationPageRow:$PAGE_KEYS" "ReservationLineRow:$LINE_KEYS" \
             "StandingRow:$STANDING_KEYS" "ScoreRow:$SCORE_KEYS" "ESTADOS:$STATES" "the code for sinSi:$NO_YES_CODE" \
@@ -526,11 +529,11 @@ else ok "someone else — the fonda — reads none of hers through $MINE(), and 
 fi
 
 # --- 13. the seal (`10.9j-ii-a`, `0088`) -----------------------------------------------------
-# ⚠️ The secret is asked as the fonda, by the migration's name: Wera Cocina claims it in its own
-# file with `10.9j-ii-b`, and its handover check will read it from there. Here it is the
-# instrument that lets an implementation that is not the database's check the database's MAC.
+# ⚠️ The secret is asked as the fonda, by Wera Cocina's names (`cocina/src/api/sello.ts`, since
+# `10.9j-ii-b`; its handover check holds them): here it is the instrument that lets an implementation
+# that is not the database's check the database's MAC.
 TOKEN="$FONDA"
-s="$(ask "$SCRATCH/keys.json" POST "/rest/v1/rpc/kitchen_seal_keys" "{\"p_workspace_id\": \"$A\"}")"
+s="$(ask "$SCRATCH/keys.json" POST "/rest/v1/rpc/$SEAL_KEYS" "$(by_names "$SEAL_KEYS_ARGS" "\"$A\"")")"
 TOKEN="$VECINA"
 v="$(python3 - "$SCRATCH/r1.json" "$SCRATCH/mine.json" "$SCRATCH/mine4.json" "$SCRATCH/keys.json" "$R1" "$R4" "$CODE1" "$SEAL_SHAPE" "Ana Probadora" <<'PY'
 import hmac, hashlib, json, sys

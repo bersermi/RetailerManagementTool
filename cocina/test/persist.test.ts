@@ -13,6 +13,7 @@ import { pageKey } from '@/api/pagina';
 import { seguidoresKey } from '@/api/seguidores';
 import { serviciosKey } from '@/api/servicios';
 import { tarjetaKey } from '@/api/tarjeta';
+import { selloKey } from '@/api/sello';
 import {
   CACHE_GC_TIME,
   CACHE_KEY,
@@ -73,7 +74,7 @@ const fila = {
 };
 
 describe('the reads kept — what a cold start with no signal needs at the counter, and nothing else', () => {
-  it('her kitchens, her offers, her reservations, her role at each, what she uses and her card; never her page, her place, the trades or her people', () => {
+  it('her kitchens, her offers, her reservations, her role at each, what she uses, her card and her kitchen’s sealing secrets; never her page, her place, the trades or her people', () => {
     expect(PERSISTED_KEYS).toEqual([
       ['cocina', 'mias'],
       ['cocina', 'publicaciones'],
@@ -81,7 +82,10 @@ describe('the reads kept — what a cold start with no signal needs at the count
       ['cocina', 'rol'],
       ['cocina', 'servicios'],
       ['cocina', 'tarjeta'],
+      ['cocina', 'sello'],
     ]);
+    // `10.9j-ii-b`: her kitchen's sealing secrets — her ticket checked at the counter with no signal (J2).
+    expect(shouldPersistKey(selloKey('u1', 'k1'))).toBe(true);
     // `10.9b-ii`: her role, so a helper's Hoy with no signal never draws the owner's parts.
     expect(shouldPersistKey(rolKey('u1', 'k1'))).toBe(true);
     // `10.9e-ii`: what she uses and her card's counts — the tile that opens Sellar, with no signal.

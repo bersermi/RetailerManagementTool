@@ -18,16 +18,17 @@ set -uo pipefail
 CHECK="docs/checks/10.5b-iv-a-handover-contract.sh"
 APARTADOS="cocina/src/api/apartados.ts"
 COLA="cocina/src/api/cola.ts"
-[[ -r "$CHECK" && -r "$APARTADOS" && -r "$COLA" ]] || { echo "FAIL: run this from the repository root"; exit 1; }
+SELLO="cocina/src/api/sello.ts"
+[[ -r "$CHECK" && -r "$APARTADOS" && -r "$COLA" && -r "$SELLO" ]] || { echo "FAIL: run this from the repository root"; exit 1; }
 
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 pass=0
 fail=0
 
-run() { # name want phrase sed-program [file to break: apartados (default) or cola]
+run() { # name want phrase sed-program [file to break: apartados (default), cola or sello]
   local name="$1" want="$2" phrase="$3" program="$4" which="${5:-apartados}"
-  local original="$APARTADOS"; [[ "$which" == cola ]] && original="$COLA"
+  local original="$APARTADOS"; [[ "$which" == cola ]] && original="$COLA"; [[ "$which" == sello ]] && original="$SELLO"
   local copy="$TMP/$name.ts"
   sed "$program" "$original" > "$copy"
   if [[ "$program" != "" ]] && cmp -s "$copy" "$original"; then
@@ -36,6 +37,7 @@ run() { # name want phrase sed-program [file to break: apartados (default) or co
   fi
   local out rc
   if [[ "$which" == cola ]]; then out="$(bash "$CHECK" "$APARTADOS" "$copy" 2>&1)"; rc=$?
+  elif [[ "$which" == sello ]]; then out="$(bash "$CHECK" "$APARTADOS" "$COLA" "$copy" 2>&1)"; rc=$?
   else out="$(bash "$CHECK" "$copy" 2>&1)"; rc=$?; fi
   local got=red; (( rc == 0 )) && got=green
   if [[ "$got" != "$want" ]]; then
@@ -152,10 +154,23 @@ echo "C24 her queue draws another code as cambio — the database's refusal woul
 run C24 red "her queue draws 22024 as cambio" \
   "s/^  '22023': 'cambio',/  '22024': 'cambio',/" cola
 
+# `10.9j-ii-b`: her kitchen's sealing secret (`cocina/src/api/sello.ts`).
+echo "C25 the secret's function misspelt — no phone could ever check a ticket with no signal"
+run C25 red "kitchen_seal_key() answered 404" \
+  "s/^export const KITCHEN_SEAL_KEYS = 'kitchen_seal_keys';/export const KITCHEN_SEAL_KEYS = 'kitchen_seal_key';/" sello
+
+echo "C26 its argument under another name — PostgREST finds no function by it"
+run C26 red "answered 404 — no function by the arguments' names" \
+  '/^export interface SealKeysArgs {/,/^}/s/^  readonly p_workspace_id: string;/  readonly p_kitchen_id: string;/' sello
+
+echo "C27 the secret read under a key the database does not write — every ticket refused at the counter"
+run C27 red "a secret came back carrying no 'secreto'" \
+  '/^export interface SealKeyRow {/,/^}/s/^  readonly secret: string;/  readonly secreto: string;/' sello
+
 echo
 echo "$pass passed, $fail failed."
-if (( pass + fail < 25 )); then
-  echo "FAIL: only $((pass + fail)) fixtures ran, expected 25."
+if (( pass + fail < 28 )); then
+  echo "FAIL: only $((pass + fail)) fixtures ran, expected 28."
   exit 1
 fi
 (( fail == 0 )) || exit 1

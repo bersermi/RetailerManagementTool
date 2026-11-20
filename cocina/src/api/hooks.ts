@@ -80,6 +80,7 @@ import {
   type DiasSinVenir,
   type KitchenCardRow,
 } from '@/api/tarjeta';
+import { selloKey } from '@/api/sello';
 import {
   accountOwners,
   deleteMyAccount,
@@ -124,6 +125,7 @@ import {
   giveReward,
   giveStamp,
   kitchenCard,
+  kitchenSealKeys,
   registerKitchenKey,
   setCardTerms,
   createPromotion,
@@ -1460,6 +1462,27 @@ export const SELLAR_CADA_MS = 5_000;
  * ⚠️ ASKED ONLY WHILE WERA OFFERS THE CARD (`activa`): before its switch is on there is nothing to read.
  * *Sellar* reads it every five seconds while up (`vivo`); every other screen when it mounts.
  */
+/** How often her kitchen's sealing secrets are read again: a new one is made only when someone stops working there. */
+const LLAVES_DE_SELLO_CADA_MS = 30 * 60_000;
+
+/**
+ * ⚠️ `10.9j-ii-b`: HER KITCHEN'S SEALING SECRETS (`kitchen_seal_keys`, `0088`; J2) — what checks a neighbour's
+ * ticket on this phone with no signal. Read with her kitchen's first read (the tabs' layout mounts it), again
+ * every half hour and when the app comes back, and KEPT ON THE PHONE (`@/api/persist`'s list) until *Cerrar
+ * sesión*. ⚠️ A version past its day is never used (`revisarSello`), whatever the copy says.
+ */
+export function useLlavesDeSello(kitchenId: string | null) {
+  const { session, ready } = useAuth();
+  const userId = session?.user.id ?? null;
+  return useQuery({
+    queryKey: selloKey(userId, kitchenId),
+    queryFn: () => kitchenSealKeys(kitchenId as string),
+    enabled: ready && userId !== null && kitchenId !== null,
+    staleTime: LLAVES_DE_SELLO_CADA_MS,
+    refetchInterval: LLAVES_DE_SELLO_CADA_MS,
+  });
+}
+
 export function useTarjeta(kitchenId: string | null, { activa = true, vivo = false }: { activa?: boolean; vivo?: boolean } = {}) {
   const { session, ready } = useAuth();
   const userId = session?.user.id ?? null;

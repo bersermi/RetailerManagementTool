@@ -262,6 +262,24 @@ export function buscarCodigo(ordenes: readonly Orden[], codigo: string, now: Dat
   return candidatas[0] ?? null;
 }
 
+/**
+ * ⚠️ `10.9j-ii-b` (J2): AN ORDER THIS PHONE NEVER READ, AS HER TICKET'S SEAL SAYS IT (`@/api/sello`'s
+ * `reservaDeSello`) — still to hand over, or handed over HERE at `entregadaEn`; nobody's name, no thumb (the
+ * seal never carries her name). Drawn by *Entregar* with the words of any order, under *Revisado en este
+ * teléfono*; the next read brings the order itself, and *Entregar* then draws that instead.
+ */
+export function ordenDeSello(reserva: Reserva, entregadaEn: Date | null): Orden {
+  return {
+    ...reserva,
+    entregadaEn,
+    estado: entregadaEn === null ? 'apartado' : 'recogido',
+    vecino: null,
+    pulgar: null,
+    calificarHasta: null,
+    entregaEn: entregadaEn,
+  };
+}
+
 /** A key the keypad pressed, applied to what is typed: a digit while there is room, or *Borrar*. */
 export function teclear(codigo: string, tecla: string): string {
   if (tecla === 'borrar') return codigo.slice(0, -1);

@@ -406,7 +406,7 @@ and the promotions' kinds and days in `@/api/cocinas`. `test/gemelos.test.ts`
 
 The owner's J1–J4 of 2026-11-20 (*"yes to all"*, on `10.9j-i`'s drawing; his D4: *"We need to enable both parties to do
 redeem offline"*). Wera Cocina's half — the kitchen's secret on its phones, *Escanear su código* on *Entregar*, the seal
-checked with no signal — is `10.9j-ii-b`'s. ADR-035 §2.6's *Offline* paragraph, cut to her: one read kept with visible
+checked with no signal — is `10.9j-ii-b`'s (`cocina/CLAUDE.md`, *With no signal*). ADR-035 §2.6's *Offline* paragraph, cut to her: one read kept with visible
 staleness, one write queued and drawn at once.
 
 - **Her tickets kept on her phone** (`@/lib/boletos`, pinned by `test/boletos.test.ts`; J1): every read of
