@@ -2729,13 +2729,15 @@ jobs:
   # through Itacate's names and handed over through Wera Cocina's with her card on — one visit, its stamp
   # and its reservation one — the neighbour refused with the code the app reads, and nothing signed out.
   # It turns Wera's switch for the card on for its run and back after. What the database counts on a
-  # calendar is `supabase/tests/0086_her_numbers.sql`'s, in the reset job. Its own job for
-  # `cocina-handover`'s reason: the falsifier runs the check ten times, two sign-ups each.
+  # calendar is `supabase/tests/0086_her_numbers.sql`'s and, for the card, `0091_her_numbers_with_the_card.sql`'s,
+  # in the reset job. Its own job for
+  # `cocina-handover`'s reason: the falsifier runs the check seventeen times, two sign-ups each. Since
+  # `10.9l` (`0091`) the same answer carries her loyalty card's figures, and the check asserts them too.
   # ===========================================================================
   cocina-numbers:
     name: her numbers, against Wera Cocina's own names
     runs-on: ubuntu-latest
-    # ⚠️ Ten runs of two sign-ups each, and GoTrue allows 30 in five minutes: a run that spends them
+    # ⚠️ Seventeen runs of two sign-ups each, and GoTrue allows 30 in five minutes: a run that spends them
     # waits out the window (`signup`'s retries).
     timeout-minutes: 30
 
@@ -2753,7 +2755,7 @@ jobs:
       - name: Apply migrations from scratch
         run: supabase db reset
 
-      - name: Contract — does cocina/src/api/numeros.ts read her numbers by the names 0086 answers, and is a plate handed over through the apps one visit in them (plan 10.9f)
+      - name: Contract — does cocina/src/api/numeros.ts read her numbers by the names 0086 and 0091 answer, and is a plate handed over through the apps one visit and one stamp in them (plans 10.9f, 10.9l)
         run: bash docs/checks/10.9f-numbers-contract.sh
 
       - name: Contract — can the numbers check still fail (its own fixtures; the runner counts them)

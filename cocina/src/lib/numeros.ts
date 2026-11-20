@@ -3,6 +3,7 @@ import { enUso, type LoQueUsa } from '@/api/servicios';
 import { formatMXN } from '@/format/mxn';
 import type { Festejo } from '@/lib/empujones';
 import { construidos, type Elegible, type EnVivo } from '@/lib/loQueUsas';
+import { textoDeDias } from '@/lib/tarjeta';
 import { ES } from '@/strings';
 
 // ============================================================================
@@ -10,7 +11,8 @@ import { ES } from '@/strings';
 // family-shell page's `cNumeros` (round 7): five questions answered for *Día · Semana · Mes* at her pick,
 // each against the whole period before; *Tus días fuertes* (a week or a month) and *Tus horas fuertes*
 // as two sets of bars; the tile on *Hoy*, this week's plates. The counts are `0086`'s (`@/api/numeros`):
-// this file only says them.
+// this file only says them. ⚠️ Since `10.9l` (his ruling of 2026-11-19, night) also the summary row on top
+// (`resumenDe`) and *Tu tarjeta de lealtad*'s six answers (`tarjetaDe`), on `0091`'s counts.
 //
 // ⚠️ THE FLOOR IS THE DATABASE'S: a figure about people arrives `null` under five neighbours, and this
 // says *Aparece desde cinco vecinos* — never a number it was not sent.
@@ -49,13 +51,23 @@ export function cifra(n: number): string {
 
 /** One answered question: what it asks, the answer, what is under it, and a bar of how many came back. */
 export interface Respuesta {
-  readonly clave: 'platos' | 'visitas' | 'vecinos' | 'regresan' | 'pesos';
+  readonly clave: 'platos' | 'visitas' | 'vecinos' | 'regresan' | 'pesos' | ClaveDeTarjeta;
   readonly pregunta: string;
   readonly respuesta: string;
   readonly detalle: string;
-  /** From 0 to 1 — only *¿Cuántos ya habían venido antes?*, and only when it is shown. */
+  /**
+   * From 0 to 1 — *¿Cuántos ya habían venido antes?* and *¿Cuántas de tus visitas juntaron sello?*, only when
+   * shown.
+   */
   readonly barra: number | null;
+  /** A second line under it — the card's answers only (*18 al entregar un apartado · 11 en el mostrador*). */
+  readonly debajo?: string;
+  /** *Cambiar cuándo se borran ›* under it — *¿Cuántas tarjetas se borraron?* only. */
+  readonly cambiar?: true;
 }
+
+/** The card's six, in the drawing's order. */
+export type ClaveDeTarjeta = 'sellos' | 'premios' | 'juntan' | 'empezaron' | 'vuelven' | 'borradas';
 
 /** *Esta semana · la anterior, 36*. */
 function contraAntes(periodo: Periodo, antes: string): string {
@@ -116,6 +128,129 @@ export function respuestasDe(numeros: Numeros, periodo: Periodo): Respuesta[] {
       barra: null,
     },
   ];
+}
+
+/** One number of the summary row: the number, what it counts, and the period before. */
+export interface DelResumen {
+  readonly clave: 'platos' | 'visitas' | 'sellos' | 'vecinos';
+  readonly cifra: string;
+  readonly que: string;
+  readonly antes: string;
+}
+
+/**
+ * ⚠️ `10.9l`: THE SUMMARY ROW ON TOP — *platos · visitas · sellos*, each against the whole period before (*la anterior,
+ * 31*); *vecinos* in place of *sellos* while her kitchen does not use the card (his ruling), under the floor *—*.
+ */
+export function resumenDe(numeros: Numeros, periodo: Periodo, conTarjeta: boolean): DelResumen[] {
+  const p = numeros[periodo];
+  const antes = (n: string) => ES.numeros.contra(ES.numeros.anterior[periodo], n);
+  const r = ES.numeros.resumen;
+  const tercero: DelResumen = conTarjeta
+    ? { clave: 'sellos', cifra: cifra(p.stamps), que: r.sellos(p.stamps === 1), antes: antes(cifra(p.prev.stamps)) }
+    : p.neighbours === null
+      ? { clave: 'vecinos', cifra: ES.numeros.nada, que: r.vecinos(false), antes: r.desdeCinco }
+      : { clave: 'vecinos', cifra: cifra(p.neighbours), que: r.vecinos(p.neighbours === 1), antes: antes(personasAntes(p.prev.neighbours)) };
+  return [
+    { clave: 'platos', cifra: cifra(p.plates), que: r.platos(p.plates === 1), antes: antes(cifra(p.prev.plates)) },
+    { clave: 'visitas', cifra: cifra(p.visits), que: r.visitas(p.visits === 1), antes: antes(cifra(p.prev.visits)) },
+    tercero,
+  ];
+}
+
+/** *56%* — of a period's visits, those with a stamp; a period with none says so. */
+function parteConSello(stamps: number, visits: number): string {
+  return visits === 0 ? ES.numeros.sinVisitas : ES.numeros.porciento(Math.round((stamps * 100) / visits));
+}
+
+/** Under the floor: the dash, and from how many it appears. */
+function bajoElPiso(clave: ClaveDeTarjeta, pregunta: string): Respuesta {
+  return { clave, pregunta, respuesta: ES.numeros.nada, detalle: ES.numeros.desdeCinco, barra: null };
+}
+
+/**
+ * ⚠️ `10.9l`: *TU TARJETA DE LEALTAD* — six answers for her pick, in the drawing's order, each against the period before:
+ * (1) her visits that got a stamp, of all, and where (at a handover · at the counter); (2) rewards won, and claimed in the
+ * period · waiting now; (3) cards going now against one period earlier (*hace una semana*), and how many are one stamp
+ * away; (4) new cards; (5) the middle gap between two stamps; (6) cards erased, under it her rule today and *Cambiar
+ * cuándo se borran ›*. `dias` is her rule — `null` *Nunca*, `undefined` not read (nothing said under it).
+ * ⚠️ THE FLOOR IS THE DATABASE'S: (3), (4) and (5) arrive `null` under five, and say *Aparece desde cinco vecinos*.
+ */
+export function tarjetaDe(numeros: Numeros, periodo: Periodo, dias: number | null | undefined): Respuesta[] {
+  const p = numeros[periodo];
+  const antes = p.prev;
+  const q = ES.numeros.preguntasTarjeta;
+  const contra = (n: string) => contraAntes(periodo, n);
+
+  const sellos: Respuesta = {
+    clave: 'sellos',
+    pregunta: q.sellos,
+    respuesta: p.visits === 0 ? cifra(0) : ES.numeros.deCuantos(cifra(p.stamps), cifra(p.visits)),
+    // No visit in the period: no share of its own to say — the period's name, as the other answers say it.
+    detalle:
+      p.visits === 0
+        ? contra(parteConSello(antes.stamps, antes.visits))
+        : ES.numeros.junto(parteConSello(p.stamps, p.visits), ES.numeros.contra(ES.numeros.anterior[periodo], parteConSello(antes.stamps, antes.visits))),
+    barra: p.visits === 0 ? null : p.stamps / p.visits,
+    ...(p.stamps > 0 ? { debajo: ES.numeros.dondeSellos(cifra(p.stamps_handover), cifra(p.stamps - p.stamps_handover)) } : {}),
+  };
+
+  const cobro = [
+    ...(p.rewards_claimed > 0 ? [ES.numeros.cobraron(cifra(p.rewards_claimed), ES.numeros.estePeriodo[periodo])] : []),
+    ...(numeros.rewards_waiting > 0 ? [ES.numeros.porEntregar(cifra(numeros.rewards_waiting))] : []),
+  ];
+  const premios: Respuesta = {
+    clave: 'premios',
+    pregunta: q.premios,
+    respuesta: cifra(p.rewards_won),
+    detalle: contra(cifra(antes.rewards_won)),
+    barra: null,
+    ...(cobro.length > 0 ? { debajo: cobro.join(' · ') } : {}),
+  };
+
+  const juntan: Respuesta =
+    p.cards_going === null
+      ? bajoElPiso('juntan', q.juntan)
+      : {
+          clave: 'juntan',
+          pregunta: q.juntan,
+          respuesta: ES.numeros.tarjetas(cifra(p.cards_going), p.cards_going === 1),
+          detalle: ES.numeros.contra(ES.numeros.haceUn[periodo], personasAntes(antes.cards_going)),
+          barra: null,
+          ...(p.cards_one_away !== null && p.cards_one_away > 0
+            ? { debajo: ES.numeros.aUnSello(cifra(p.cards_one_away), p.cards_one_away === 1) }
+            : {}),
+        };
+
+  const empezaron: Respuesta =
+    p.cards_started === null
+      ? bajoElPiso('empezaron', q.empezaron)
+      : { clave: 'empezaron', pregunta: q.empezaron, respuesta: cifra(p.cards_started), detalle: contra(personasAntes(antes.cards_started)), barra: null };
+
+  const vuelven: Respuesta =
+    p.return_days === null
+      ? bajoElPiso('vuelven', q.vuelven)
+      : {
+          clave: 'vuelven',
+          pregunta: q.vuelven,
+          respuesta: ES.numeros.enDias(cifra(p.return_days), p.return_days === 1),
+          detalle: contra(antes.return_days === null ? ES.numeros.conMenosDeCinco : ES.numeros.enDias(cifra(antes.return_days), antes.return_days === 1)),
+          barra: null,
+          debajo: ES.numeros.laMitad,
+        };
+
+  const regla = dias === undefined ? null : dias === null ? ES.numeros.nuncaSeBorran : ES.numeros.porPasar(textoDeDias(dias));
+  const borradas: Respuesta = {
+    clave: 'borradas',
+    pregunta: q.borradas,
+    respuesta: cifra(p.cards_erased),
+    detalle: contra(cifra(antes.cards_erased)),
+    barra: null,
+    ...(regla !== null ? { debajo: regla } : {}),
+    cambiar: true,
+  };
+
+  return [sellos, premios, juntan, empezaron, vuelven, borradas];
 }
 
 /** One bar: its label and how many visits. */

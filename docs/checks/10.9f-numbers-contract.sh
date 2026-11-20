@@ -19,7 +19,9 @@
 #   3. One plate reserved through Itacate's names and handed over through Wera Cocina's, with her
 #      loyalty card on (the handover stamps it): today, this week and this month each hold ONE
 #      plate, ONE visit — her reservation and its stamp are one — no walk-in, $60, her first visit
-#      set, the people still under the floor; each set of bars adds up to the one visit.
+#      set, the people still under the floor; each set of bars adds up to the one visit. And since
+#      `10.9l` (`0091`) the card's figures: ONE stamp, given at the handover, no reward, nothing
+#      erased, and the figures about people — cards going, new cards, the gaps — under the floor.
 #   4. The neighbour asking for the kitchen's numbers: refused with the code the app reads.
 #   5. Signed out, nothing is answered.
 #
@@ -228,6 +230,22 @@ def counts(a, periods, plates, visits, walk_ins, cents, since):
             return '%s: its bars do not add up to its visits (%r, %r)' % (p, x.get('days'), x.get('hours'))
     return None
 
+def card(a, periods, stamps):
+    """`0091`: every period holds the stamps given, all at a handover; no reward, nothing erased; the people null."""
+    if not isinstance(a, dict):
+        return 'the answer is %r' % (a,)
+    if a.get('rewards_waiting') != 0:
+        return 'rewards waiting came back %r, not 0' % (a.get('rewards_waiting'),)
+    for p in periods.split(','):
+        x = a.get(p) or {}
+        got = (x.get('stamps'), x.get('stamps_handover'), x.get('rewards_won'), x.get('rewards_claimed'), x.get('cards_erased'))
+        want = (int(stamps), int(stamps), 0, 0, 0)
+        if got != want:
+            return '%s came back stamps, at a handover, rewards won, claimed, cards erased = %r, not %r' % (p, got, want)
+        people = [x.get(k) for k in ('cards_going', 'cards_one_away', 'cards_started', 'return_days')]
+        if any(v is not None for v in people):
+            return '%s showed the card\'s people under the floor: %r' % (p, people)
+    return None
 def code(a, want):
     got = a.get('code') if isinstance(a, dict) else None
     return None if got == want else 'refused with %r — the app reads %r' % (got, want)
@@ -270,6 +288,7 @@ ok "a fonda and her kitchen made through Wera Cocina's names ($ONBOARD, $SET_ADD
 if call n0 "$NUMBERS" "$(by_names "$NUMBERS_ARGS" "\"$A\"")"; then
   check "her numbers by Wera Cocina's names, asked as the owner: exactly the app's keys at every level" shape "$SCRATCH/n0.json" "$TOP_KEYS" "$PERIODS" "$PERIOD_KEYS" "$BEFORE_KEYS"
   check "nothing yet: no first visit, every count 0, nobody shown" counts "$SCRATCH/n0.json" "$PERIODS" 0 0 0 0 none
+  check "nothing yet on the card: no stamp, no reward, nothing erased, nobody shown (0091)" card "$SCRATCH/n0.json" "$PERIODS" 0
 fi
 
 # --- 3. one plate, reserved in Itacate and handed over in Wera Cocina, her card on -----
@@ -300,6 +319,7 @@ else
 fi
 if call n1 "$NUMBERS" "$(by_names "$NUMBERS_ARGS" "\"$A\"")"; then
   check "one plate today, this week and this month — ONE visit (her reservation and its stamp are one), no walk-in, \$60, nobody shown under five" counts "$SCRATCH/n1.json" "$PERIODS" 1 1 0 6000 set
+  check "on the card: ONE stamp in each period, given at the handover, no reward, nothing erased, nobody shown under five (0091)" card "$SCRATCH/n1.json" "$PERIODS" 1
 fi
 
 # --- 4. the neighbour asking ----------------------------------------------------------

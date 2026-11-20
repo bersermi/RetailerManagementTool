@@ -86,7 +86,8 @@ TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic i
   Itacate's (its own job, `loyalty-card`; its falsifier breaks the file), held to `0085`'s text by `test/tarjeta.test.ts`. ⚠️ **Since `10.9f`,
 `src/api/numeros.ts`** — `0086`'s `kitchen_numbers` (the owner's: `42501` for anyone else, `TD013` a shop), its argument and every key of its
 answer at three levels — is asked by `docs/checks/10.9f-numbers-contract.sh` and its falsifier (its own job, `cocina-numbers`), after a plate
-reserved through Itacate's names and handed over through this app's, its stamp and its reservation one visit; held to `0086`'s text by
+reserved through Itacate's names and handed over through this app's, its stamp and its reservation one visit — and since `10.9l` the
+card's figures in the same answer (`0091`), that one stamp counted as given at a handover; held to `0086`'s and `0091`'s text by
 `test/numeros.test.ts` (the section *Her numbers* below). ⚠️ **Since `10.9g-i`, `src/api/promociones.ts`** — `0087`'s four for
 promotions: `kitchen_promotions` (any member: a helper publishes and *Publicar* asks her which runs), `create_promotion`, `end_promotion`
 (*Terminarla hoy*) and `undo_promotion` (*Deshacer*, two minutes) — the owner's, `42501` for a helper — every argument and key of their one
@@ -850,11 +851,25 @@ in Mexico City's zone. ⚠️ **Wera's switch `tarjeta` was off until `10.9e-iii
   screen before: tap it by coordinates. ⚠️ **A *Cobras* QR for the camera is a code for one coming minute**: once the camera is allowed it
   opens on arrival and reads at once, so time the arrival into the code's minute.
 
-## Her numbers — *Tus números* (`10.9f`)
+## Her numbers — *Tus números* (`10.9f`, and the card's since `10.9l`)
 
 The owner's rulings G24–G27 of 2026-11-17, as the family-shell page draws stage 4 (`cNumeros`, the tile's `41 platos`), on `0086`'s
 `kitchen_numbers` (`@/api/numeros`). What each question says is `@/lib/numeros`, pure, pinned by `test/numeros.test.ts` against the
-database's own answer at the suite's calendar (`RESPUESTA`, copied from `supabase/tests/0086_her_numbers.sql`'s run, never written by hand).
+database's own answer at the suite's calendar (`RESPUESTA`, copied from `supabase/tests/0086_her_numbers.sql`'s run, never written by hand;
+and `CON_TARJETA`, from `supabase/tests/0091_her_numbers_with_the_card.sql`'s, before its nightly job).
+
+- ⚠️ **Since `10.9l` (his ruling of 2026-11-19, night: *"Yes to everything"* on https://claude.ai/artifact/7iB3p7ffyFhSf9XowGVrWy) — ONE
+  SCROLL**: on top the summary row (`resumenDe`) — *platos · visitas · sellos*, each against the period before, *vecinos* in place of
+  *sellos* while her kitchen does not use the card (*aparece desde cinco* under the floor); *Tus apartados* — the five below, unchanged;
+  ***Tu tarjeta de lealtad*** — only while she uses the card (`conTarjeta`) — six answers (`tarjetaDe`): her visits that got a stamp of
+  all (*14 de 16*, *88% · la anterior, 100%*, a bar; under it *2 al entregar un apartado · 12 en el mostrador*); rewards won (under it
+  *Cobraron 1 esta semana · 1 por entregar*); cards going now against ONE PERIOD EARLIER (*hace una semana, 14*; *ayer a esta hora*,
+  *hace un mes*) and *N están a un sello del premio*; new cards (her first stamp ever here); the middle gap between two stamps (*2 días*,
+  *la mitad tarda menos*); cards erased, under it her rule today in `10.9k`'s words (*Por pasar 2 semanas sin venir*, *Elegiste que nunca
+  se borren*; nothing while `kitchen_card` is unread) and ***Cambiar cuándo se borran ›*** to `(cocina)/preparar-tarjeta`. The drawing's
+  *NUEVA* marks were the proposal's, not the screen's. ⚠️ **Every figure is the database's** (`0091`): the floor of five on cards going,
+  new cards (the period's neighbours, as `returning`) and the gaps' people — `null`, *Aparece desde cinco vecinos*; a gap before under it
+  reads *con menos de cinco vecinos*, never *menos de cinco*, which would read as days.
 
 - **What is counted is the database's** (`0086`): plates and pesos of reservations *recogido* (the kitchen's *Entregar* OR her *Ya lo tengo*),
   visits — one person one day, a reservation and its stamp one; her swipe counted no later than her window's end — walk-ins (a stamp and no reservation that day), and, ⚠️ **only from five
