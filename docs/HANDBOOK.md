@@ -63,17 +63,13 @@ listings do not say *inventario*; the home page of tu-wera.com still does.
 
 ## What is on your phone
 
-⏳ **19 November, evening: promotions in Itacate (`10.9g-iii`) — merged. Wera Cocina's update is sent to its test builds, your iPhone's included,
-with nothing to reinstall: it carries her numbers (`10.9f`, below) and promotions' screens (`10.9g-ii`) too. ⚠️ Itacate's was refused by the
-session's permission check — one line of yours, typed in this Claude session:**
-
-`! cd ~/RetailerToolDev/RetailerManagementTool && git fetch -q origin && git worktree add --detach /tmp/wera-10.9g-iii origin/main && cd /tmp/wera-10.9g-iii && npm ci --no-audit --no-fund && bash docs/runbooks/ship-an-update.sh preview "Itacate: las promociones de cada cocina; lo que cada cocina ve de ti (10.9f, 10.9g-iii)" --app itacate`
-
-— or tell the next session *"send Itacate's update"*. Then, on the phone: open Itacate, wait ten seconds, close it completely and open it
-again. ✅ **The card and her numbers are ON for everyone since 19 November, evening** (your *"D1 yes"*; a session switched them and read them
-back) — so on Wera Cocina now, and in Itacate once its update is on the phone: *What only you can judge* → *Itacate → the loyalty card* and
-*Wera Cocina → her numbers*. **Promotions stay off** until your analyst's answer (the plan's decisions block); then *Itacate → promotions* and
-*Wera Cocina → promotions*. ⚠️ **Wera Cocina's line in the 10.9f paragraph below is no longer needed** — this update carries it.
+✅ **19 November, evening: both apps' updates are on their test builds — your iPhone's included, nothing to reinstall.** Wera Cocina's
+carries her numbers (`10.9f`) and promotions' screens (`10.9g-ii`, `10.9g-iii`); Itacate's, sent at your word that night, carries promotions
+and *Lo que cada cocina ve de ti*'s new line — seen downloaded and running on a test Android. On each phone: open the app, wait ten seconds,
+close it completely and open it again. ✅ **The card and her numbers are ON for everyone** (your *"D1 yes"*): *What only you can judge* →
+*Itacate → the loyalty card* and *Wera Cocina → her numbers*. **Promotions stay off** until your analyst's answer (the plan's decisions
+block); then *Itacate → promotions* and *Wera Cocina → promotions*. ⚠️ **The two commands in the 10.9f paragraph below are no longer
+needed** — these updates carry it.
 
 ⏳ **19 November, afternoon: her numbers, *Tus números* (`10.9f`) — merged and on the live database, but NOT yet sent to your phones.** The session's
 permission check refused publishing the update. Nothing would show anyway until you say yes to the switches (the plan's decisions block), so
