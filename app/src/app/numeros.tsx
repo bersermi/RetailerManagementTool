@@ -892,7 +892,7 @@ function Banda({ title, onBack }: { title: string; onBack: () => void }) {
         paddingTop: insets.top + scale.space,
         paddingBottom: scale.space,
         paddingHorizontal: scale.space,
-        borderBottomWidth: 1,
+        borderBottomWidth: ES_A ? 0 : 1,
         borderBottomColor: PALETTE.linea,
         flexDirection: 'row',
         alignItems: 'center',

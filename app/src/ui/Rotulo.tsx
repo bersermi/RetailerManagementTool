@@ -15,6 +15,20 @@ import { encabezado } from '@/theme/letra';
 import { PALETTE } from '@/theme/palette';
 import { ES_A } from '@/theme/piel';
 
+/**
+ * ⚠️ 11.5-i: a heading written in capitals, in sentence case — the strings stay as
+ * they are; only their case changes on screen (11.1's *Words*).
+ */
+function oracion(t: string): string {
+  if (t !== t.toLocaleUpperCase('es-MX')) return t;
+  const l = t.toLocaleLowerCase('es-MX');
+  for (let i = 0; i < l.length; i += 1) {
+    const c = l.charAt(i);
+    if (c.toLocaleUpperCase('es-MX') !== c) return l.slice(0, i) + c.toLocaleUpperCase('es-MX') + l.slice(i + 1);
+  }
+  return l;
+}
+
 export function Rotulo({ text, ink = PALETTE.tintaApagada }: { text: string; ink?: string }) {
   const { scale } = useDensity();
   // ⚠️ 11.5-i (never merged): under A a spaced capital becomes a heading in
@@ -22,7 +36,7 @@ export function Rotulo({ text, ink = PALETTE.tintaApagada }: { text: string; ink
   if (ES_A) {
     return (
       <Text accessibilityRole="header" style={{ ...encabezado(scale), color: ink === PALETTE.tintaApagada ? PALETTE.tinta : ink }}>
-        {text}
+        {oracion(text)}
       </Text>
     );
   }
