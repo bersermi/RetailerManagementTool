@@ -14,6 +14,7 @@ import { PALETTE, SIZE } from '@/theme/palette';
 import { Atras } from '@/vecinos/ui/Atras';
 import { BandaPromocion } from '@/ui/BandaPromocion';
 import { Circulo } from '@/vecinos/ui/Circulo';
+import { CreditoDeGoogle } from '@/vecinos/ui/CreditoDeGoogle';
 import { Dibujo } from '@/ui/Dibujo';
 import { Enlace } from '@/vecinos/ui/Enlace';
 import { Foto } from '@/vecinos/ui/Foto';
@@ -125,6 +126,7 @@ export function PaginaDeCocina({
             {distancia !== null && (
               <Text style={{ fontSize: SIZE.smallSize, fontWeight: '600', color: PALETTE.tinta }}>{distancia}</Text>
             )}
+            {distancia !== null && <CreditoDeGoogle />}
             {calificacion.kind === 'estrellas' ? (
               <View accessible accessibilityLabel={calificacion.ayuda} style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
                 <MaterialCommunityIcons name="star" size={SIZE.bodySize} color={PALETTE.estrella} />

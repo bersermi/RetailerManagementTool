@@ -7,8 +7,9 @@ import { describe, expect, it } from 'vitest';
 import type { Dish, Kitchen, Offer, Punto } from '@/api/cocinas';
 import { EMPTY_PAGE } from '@/api/pagina';
 import { metrosEntre } from '@/lib/distancia';
-import { tarjetasDe } from '@/lib/lista';
+import { HASTA_METROS, tarjetasDe } from '@/lib/lista';
 import {
+  BUSCAR_DESDE_M,
   CENTRO_DE_LA_CIUDAD,
   DIAMETRO,
   JUNTOS,
@@ -23,6 +24,7 @@ import {
   claveDeOrigen,
   escondido,
   nivelAlSoltar,
+  ofreceBuscarAqui,
   paddingDelMapa,
   partir,
   pinesDe,
@@ -54,6 +56,7 @@ function sources(dir = SRC): string[] {
   });
 }
 const files = sources().map((path) => ({ name: path.slice(SRC.length + 1), text: readFileSync(path, 'utf8') }));
+const mapa = code('ui/MapaDeCocinas.tsx');
 
 const AHORA = new Date('2026-11-07T20:00:00-06:00');
 const hora = (h: number) => new Date(AHORA.getTime() + h * 3_600_000);
@@ -259,6 +262,63 @@ describe('where the map opens, and when it flies', () => {
     expect(claveDeOrigen({ kind: 'pide-codigo', porque: 'sin-permiso' })).toBe('ninguno');
     expect(claveDeOrigen({ kind: 'fuera' })).toBe('ninguno');
   });
+
+  it('⚠️ `10.5-iv-b-iii`: never while the list measures from a zone of the map — and the next key flies again', () => {
+    expect(claveDeOrigen({ kind: 'zona', punto: ESPIGA, fuera: false })).toBeNull();
+    expect(claveDeOrigen({ kind: 'zona', punto: ESPIGA, fuera: true })).toBeNull();
+    // The map forgets its last flight while the key is null, so letting the zone go flies her back.
+    expect(mapa).toMatch(/if \(claveDeOrigen === null\) \{\s*ultimoVuelo\.current = null;\s*return;\s*\}/);
+    expect(mapa).toMatch(/if \(ultimoVuelo\.current === claveDeOrigen\) return;/);
+  });
+});
+
+describe('⚠️ *Buscar en esta zona* — his question of 2026-11-19, evening, in the shape he said *"yes"* to (`10.5-iv-b-iii`)', () => {
+  /** About 900 m and 1.1 km north of Doña Mari. */
+  const A_900_M: Punto = { latitude: DONA_MARI.latitude + 0.0081, longitude: DONA_MARI.longitude };
+  const A_1_1_KM: Punto = { latitude: DONA_MARI.latitude + 0.0099, longitude: DONA_MARI.longitude };
+
+  it('offered once the map’s centre is more than 1 km from where the list measures — never before either is known', () => {
+    expect(BUSCAR_DESDE_M).toBe(1_000);
+    expect(metrosEntre(DONA_MARI, A_900_M)).toBeLessThan(BUSCAR_DESDE_M);
+    expect(metrosEntre(DONA_MARI, A_1_1_KM)).toBeGreaterThan(BUSCAR_DESDE_M);
+    expect(ofreceBuscarAqui(A_900_M, DONA_MARI)).toBe(false);
+    expect(ofreceBuscarAqui(A_1_1_KM, DONA_MARI)).toBe(true);
+    expect(ofreceBuscarAqui(DONA_MARI, DONA_MARI)).toBe(false);
+    expect(ofreceBuscarAqui(null, DONA_MARI)).toBe(false);
+    expect(ofreceBuscarAqui(A_1_1_KM, null)).toBe(false);
+  });
+
+  it('its words, as he said *"yes"* to them', () => {
+    expect(ES.mapa.buscarAqui).toBe('Buscar en esta zona');
+    expect(ES.mapa.enEstaZona).toBe('En esta zona del mapa');
+    expect(ES.mapa.volverATi).toBe('Volver a donde estás');
+    expect(ES.mapa.zonaFuera).toBe('Itacate aún no llega a esa zona.');
+  });
+
+  it('a button at the map’s TOP — never at its foot, where Google’s logo is — measured from Google’s camera', () => {
+    expect(mapa).toMatch(/const buscarAqui = ofreceBuscarAqui\(centro, centroDeBusqueda\);/);
+    expect(mapa).toMatch(/onRegionChangeComplete=\{alParar\}/);
+    // The camera's centre: the middle of the map ABOVE the list, where the map flies her to.
+    expect(mapa).toMatch(/\.getCamera\(\)\s*\.then\(\(camara\) => setCentro\(/);
+    expect(mapa).toMatch(
+      /\{buscarAqui && centro !== null && \(\s*<View\s+pointerEvents="box-none"\s+style=\{\{ position: 'absolute', top: padding\.top \+ SIZE\.space, left: 0, right: 0, alignItems: 'center' \}\}/,
+    );
+    expect(mapa).toMatch(/onPress=\{\(\) => onBuscarAqui\(centro\)\}/);
+    expect(mapa).toMatch(/\{ES\.mapa\.buscarAqui\}/);
+  });
+
+  it('while the list measures from a zone, the round button lets it go — the map flies back once the key returns', () => {
+    expect(mapa).toMatch(/onPress=\{\(\) => \(enZona \? onVolver\(\) : map\.current\?\.animateCamera\(camaraDe\(desde\), \{ duration: VOLAR_MS \}\)\)\}/);
+    const list = code('app/(vecino)/(tabs)/index.tsx');
+    expect(list).toMatch(/centroDeBusqueda=\{centroDeBusqueda\(origen\)\}\s*enZona=\{origen\.kind === 'zona'\}/);
+    expect(list).toMatch(/onBuscarAqui=\{alBuscarAqui\}\s*onVolver=\{soltarZona\}/);
+    // The list's head while it does: *En esta zona del mapa*, and *Volver a donde estás* — the postal code's words with one.
+    expect(list).toMatch(/\{origen\.kind === 'zona' \? \(\s*<EnEstaZona cp=\{codigo === null \? null : codigo\.cp\} onVolver=\{soltarZona\} \/>/);
+    expect(list).toMatch(/const volver = cp === null \? ES\.mapa\.volverATi : ES\.mapa\.volverAlCodigo\(cp\);/);
+    expect(list).toMatch(/\{origen\.kind === 'zona' && origen\.fuera && \(\s*<Llega i=\{0\}>\s*<Aviso texto=\{ES\.mapa\.zonaFuera\} \/>/);
+    // A tap: the list measures from the centre, lets go of a pin she tapped, and comes half-way.
+    expect(list).toMatch(/function alBuscarAqui\(centro: Punto\) \{\s*buscarEnZona\(centro\);\s*setElegidas\(NINGUNA\);\s*setNivel\('medio'\);/);
+  });
 });
 
 describe('a pin she taps — *En el mapa*, as drawn', () => {
@@ -275,10 +335,23 @@ describe('a pin she taps — *En el mapa*, as drawn', () => {
     expect(partir(tarjetas, new Set())).toEqual({ enElMapa: [], resto: tarjetas });
     expect([ES.mapa.enElMapa, ES.mapa.quitar]).toEqual(['En el mapa', 'Quitar']);
   });
+
+  it('⚠️ `10.5-iv-b-iii`: under them, only the cards within 3 km — and a pin she taps beyond them still brings its own', () => {
+    const lejos: Punto = { latitude: DONA_MARI.latitude + 0.0315, longitude: DONA_MARI.longitude };
+    expect(metrosEntre(DONA_MARI, lejos)).toBeGreaterThan(HASTA_METROS);
+    const cocinas = [cocina('a', DONA_MARI, [oferta('o1', hora(-1), hora(2))]), cocina('z', lejos, [oferta('o2', hora(-1), hora(2))])];
+    const tarjetas = tarjetasDe(cocinas, DONA_MARI, new Map(), AHORA);
+    expect(tarjetas.map((t) => t.cocina.id)).toEqual(['a', 'z']);
+    expect(partir(tarjetas, new Set()).resto.map((t) => t.cocina.id)).toEqual(['a']);
+    const { enElMapa, resto } = partir(tarjetas, new Set(['z']));
+    expect(enElMapa.map((t) => t.cocina.id)).toEqual(['z']);
+    expect(resto.map((t) => t.cocina.id)).toEqual(['a']);
+    // Every kitchen is still a pin, near or far (his ruling of 2026-11-04, night).
+    expect(pinesDe(cocinas, new Map(), AHORA).map((p) => p.id)).toEqual(['a', 'z']);
+  });
 });
 
 describe('the wiring — Google’s map on both phones, and nothing of hers to Google', () => {
-  const mapa = code('ui/MapaDeCocinas.tsx');
 
   it('⚠️ Google’s map on BOTH phones: Google’s points may be drawn on Google’s map alone (3.2.3(e))', () => {
     expect(mapa).toMatch(/provider=\{PROVIDER_GOOGLE\}/);
@@ -295,6 +368,9 @@ describe('the wiring — Google’s map on both phones, and nothing of hers to G
     expect(mapa).not.toMatch(/expo-location|@\/lib\/useUbicacion|@\/lib\/DondeBuscarProvider|@\/lib\/ubicacion'/);
     const list = code('app/(vecino)/(tabs)/index.tsx');
     expect(list).toMatch(/<MapaDeCocinas\s+pines=\{pines\}\s+desde=\{desde\}/);
+    // ⚠️ `10.5-iv-b-iii`: her dot is where SHE searches from — a zone of the map never moves it.
+    expect(list).toMatch(/const desde = puntoDeOrigen\(origenDe\(donde, codigo\)\);/);
+    expect(list).toMatch(/const mide = puntoDeOrigen\(origen\);/);
   });
 
   it('Google’s businesses hidden, its logo in sight: the padding is the sheet’s, nothing drawn at the map’s foot', () => {

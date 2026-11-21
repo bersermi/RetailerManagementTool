@@ -191,6 +191,13 @@ export const ES = {
      * order with a line under it, the page's words.
      */
     ordenDetalle: { ahora: 'Lo que puedes recoger ya, primero', cerca: 'Por distancia', barato: 'Por precio' },
+    /**
+     * ⚠️ `10.5-iv-b-iii`: GOOGLE'S CREDIT WHERE ITS MAP MAY NOT SHOW (his ruling D6 of 2026-11-19, *"agree"*): the
+     * words *Google Maps*, small and grey, at the foot of the list and under the distance on a kitchen's page and a
+     * dish's — every distance is worked out from Google's point for her address. Google's text, never translated
+     * (`@/ui/CreditoDeGoogle`); Wera Cocina's search box carries the same words.
+     */
+    creditoGoogle: 'Google Maps',
   },
 
   /**
@@ -212,6 +219,18 @@ export const ES = {
     /** A pin, and a circle of kitchens that overlap until she zooms in (his ruling of 2026-11-03). */
     pin: (cocina: string, enOferta: boolean) => (enOferta ? cocina : `${cocina}, sin ofertas ahora`),
     grupo: (n: number) => `${n} cocinas aquí. Toca para acercar el mapa.`,
+    /**
+     * ⚠️ `10.5-iv-b-iii`: *BUSCAR EN ESTA ZONA* — his question of 2026-11-19, evening, in the shape he said
+     * *"yes"* to: the button at the map's top once its centre is more than 1 km from where the list measures;
+     * the list's head then *En esta zona del mapa*, with *Volver a donde estás* (`volverATi`, or the postal
+     * code's when she searched from one); the list's two answers when it holds nothing.
+     */
+    buscarAqui: 'Buscar en esta zona',
+    enEstaZona: 'En esta zona del mapa',
+    /** Nothing within 3 km of where the list measures — `@/lib/lista`'s `HASTA_METROS`, named here. */
+    nadaAqui: 'Todavía no hay cocinas a menos de 3 km de aquí. Mueve el mapa para buscar en otra zona.',
+    /** The map's centre she searched is outside Wera Cocina's zone — the postal code's words for it. */
+    zonaFuera: 'Itacate aún no llega a esa zona.',
   },
 
   /**

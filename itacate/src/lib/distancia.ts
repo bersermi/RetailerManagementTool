@@ -5,10 +5,12 @@
 // for the pilot the door takes no area and sends every kitchen a neighbour may see,
 // so the distance and the order are worked out here, from her point and each
 // kitchen's — ADR-035 §2.7. ⚠️ A kitchen's point may be Google's 30-day copy for her
-// address, and §2.2 forbids a filter, a sort or a count on it ON THE SERVER only;
-// whether Google's terms allow ordering by it on the phone is one of the questions
-// to Google's support (the plan's decisions block), and the hard 1.5 and 3 km
-// cut-offs wait for that answer (`10.5-iv-b`). So nothing here hides a kitchen.
+// address, and §2.2 forbids a filter, a sort or a count on it ON THE SERVER only.
+// On the phone, Google's support answered on 2026-11-12: a straight-line distance,
+// ordering by it, *"or applying a radial distance filter (such as showing locations
+// within 1.5 km or 3 km)"* is standard client-side filtering — so since `10.5-iv-b-iii`
+// the list shows the kitchens within 3 km (his ruling D7, `@/lib/lista`'s `cercanas`),
+// and nothing here hides one: this file only measures.
 //
 // ⚠️ A STRAIGHT LINE, NOT A WALK: the great-circle distance on the mean Earth, as
 // the crow flies — what every app of the proposals page shows as *350 m*.

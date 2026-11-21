@@ -2003,6 +2003,8 @@ export const VECINOS = {
     publicoFecha: (dia: number, mes: string) => `Publicó el ${dia} de ${mes}`,
     /** `10.9g-iii`: a promotion's mark on a card, for a screen reader — *Promoción: Los jueves*. */
     promocionAyuda: (marca: string) => `Promoción: ${marca}`,
+    /** `10.5-iv-b-iii`: Google's credit under a distance — never drawn here, where the pages are handed none. */
+    creditoGoogle: 'Google Maps',
   },
 
   pagina: {

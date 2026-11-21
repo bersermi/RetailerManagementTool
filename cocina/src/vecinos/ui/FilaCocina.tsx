@@ -6,6 +6,7 @@ import { distanciaYEstrellas } from '@/vecinos/paginas';
 import { VECINOS as ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
 import { Circulo } from '@/vecinos/ui/Circulo';
+import { CreditoDeGoogle } from '@/vecinos/ui/CreditoDeGoogle';
 
 // ============================================================================
 // THE KITCHEN'S ROW ON A DISH'S PAGE.
@@ -38,6 +39,7 @@ export function FilaCocina({ cocina, distancia, onPress }: { cocina: Kitchen; di
           {cocina.name}
         </Text>
         {debajo !== null && <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada }}>{debajo}</Text>}
+        {distancia !== null && <CreditoDeGoogle />}
       </View>
       <MaterialCommunityIcons name="chevron-right" size={SIZE.iconSize} color={PALETTE.tintaApagada} />
     </Pressable>

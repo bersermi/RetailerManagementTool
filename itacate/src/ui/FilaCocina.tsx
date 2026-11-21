@@ -6,13 +6,15 @@ import { distanciaYEstrellas } from '@/lib/paginas';
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
 import { Circulo } from '@/ui/Circulo';
+import { CreditoDeGoogle } from '@/ui/CreditoDeGoogle';
 
 // ============================================================================
 // THE KITCHEN'S ROW ON A DISH'S PAGE — her circle, her name and how far she is, as the
 // proposals page drew it (*Fonda Doña Mari · 350 m*), and since `10.5b-iii-b` her stars
 // from five ratings (*350 m · ★ 4.8*, the family-shell page's dish). Plan task `10.5-iv-a-ii`.
 // A tap opens her page. Since `10.5-v-c-ii` it is handed the distance in words, so it never
-// measures — Wera Cocina's copy shows none.
+// measures — Wera Cocina's copy shows none. ⚠️ Since `10.5-iv-b-iii` *Google Maps* under the
+// distance (`@/ui/CreditoDeGoogle`, his ruling D6): the dish's page has no map.
 // ============================================================================
 
 export function FilaCocina({ cocina, distancia, onPress }: { cocina: Kitchen; distancia: string | null; onPress: () => void }) {
@@ -36,6 +38,7 @@ export function FilaCocina({ cocina, distancia, onPress }: { cocina: Kitchen; di
           {cocina.name}
         </Text>
         {debajo !== null && <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada }}>{debajo}</Text>}
+        {distancia !== null && <CreditoDeGoogle />}
       </View>
       <MaterialCommunityIcons name="chevron-right" size={SIZE.iconSize} color={PALETTE.tintaApagada} />
     </Pressable>

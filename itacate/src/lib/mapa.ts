@@ -24,16 +24,21 @@
 //     kitchens within about a kilometre; over the city while there is neither; and it
 //     flies again only when where she searches from CHANGES, never as she walks, so it
 //     never pulls the map from under her finger (`camaraDe`, `claveDeOrigen`);
-//   - a pin she taps puts its kitchen's cards first, under *En el mapa* (`partir`).
-// ⚠️ NOTHING HERE FILTERS OR CUTS OFF BY DISTANCE: every kitchen is a pin wherever she
-// moves the map (his ruling of 2026-11-04, night — browsing the city is a way in of its
-// own), and the 1.5 and 3 km limits wait for Google's reply (`10.5-iv-b-iii`).
+//   - a pin she taps puts its kitchen's cards first, under *En el mapa* (`partir`);
+//   - ⚠️ *BUSCAR EN ESTA ZONA* (`10.5-iv-b-iii`, his question of 2026-11-19, evening, and
+//     his *"yes"* to its shape): offered once the map's centre is more than 1 km from where
+//     the list measures (`ofreceBuscarAqui`, `BUSCAR_DESDE_M`); a tap makes that centre
+//     the list's point, and the map does not fly while she searches there (`claveDeOrigen`).
+// ⚠️ THE MAP KEEPS EVERY PIN: every kitchen is a pin wherever she moves the map (his
+// ruling of 2026-11-04, night — browsing the city is a way in of its own). Only the LIST
+// stops at 3 km (his ruling D7 of 2026-11-19, `@/lib/lista`'s `cercanas`), and a pin she
+// taps beyond it still brings its cards (`partir`).
 // ============================================================================
 
 import type { Kitchen, Punto } from '@/api/cocinas';
 import { colorOf, defaultsFor, type ColorCode, type Dibujo } from '@/api/pagina';
 import { metrosEntre } from '@/lib/distancia';
-import { puntoDe, vigentes, type Tarjeta } from '@/lib/lista';
+import { cercanas, puntoDe, vigentes, type Tarjeta } from '@/lib/lista';
 import type { Origen } from '@/lib/ubicacion';
 
 // ----------------------------------------------------------------------------
@@ -275,26 +280,57 @@ export function camaraDe(desde: Punto | null): { readonly center: Punto; readonl
 /**
  * ⚠️ WHEN THE MAP FLIES TO HER: when where she searches from changes — her location
  * found, a postal code picked, back to her location — never as she walks, which only
- * moves her dot. The key changes exactly then.
+ * moves her dot. The key changes exactly then. ⚠️ `10.5-iv-b-iii`: WHILE SHE SEARCHES A
+ * ZONE OF THE MAP IT IS `null` — the map is already where she put it, and flying there
+ * would undo her zoom — and the map remembers no flight, so *Volver a donde estás* (the
+ * zone let go, the key back) flies it to her again.
  */
-export function claveDeOrigen(origen: Origen): string {
+export function claveDeOrigen(origen: Origen): string | null {
+  if (origen.kind === 'zona') return null;
   if (origen.kind === 'aqui') return 'aqui';
   if (origen.kind === 'codigo') return `codigo:${origen.cp}`;
   return 'ninguno';
 }
 
 // ----------------------------------------------------------------------------
+// *Buscar en esta zona* — `10.5-iv-b-iii`
+// ----------------------------------------------------------------------------
+
+/**
+ * ⚠️ HOW FAR SHE MUST MOVE THE MAP BEFORE *BUSCAR EN ESTA ZONA* IS OFFERED, IN METRES — the
+ * shape he said *"yes"* to on 2026-11-19, evening: *"once the map's centre is more than 1 km
+ * from where the list measures"*.
+ */
+export const BUSCAR_DESDE_M = 1_000;
+
+/**
+ * Whether the button shows: the map's centre — where Google's camera points, the middle of
+ * the map above the list — more than `BUSCAR_DESDE_M` from where the list measures. Neither
+ * known (no list yet, the map not settled), no button.
+ */
+export function ofreceBuscarAqui(centro: Punto | null, desde: Punto | null): boolean {
+  if (centro === null || desde === null) return false;
+  return metrosEntre(centro, desde) > BUSCAR_DESDE_M;
+}
+
+// ----------------------------------------------------------------------------
 // A pin she taps — *En el mapa*, as drawn
 // ----------------------------------------------------------------------------
 
-/** The cards of the kitchens she tapped, first — in the list's order — and the rest under them. */
+/**
+ * The cards of the kitchens she tapped, first — in the list's order, near or far — and under
+ * them the list: the rest of the cards within 3 km (`cercanas`, his ruling D7). ⚠️ `tarjetas`
+ * is every card, so a pin she taps beyond 3 km — the map keeps every pin — still brings its
+ * kitchen's cards.
+ */
 export function partir(
   tarjetas: readonly Tarjeta[],
   elegidas: ReadonlySet<string>,
 ): { readonly enElMapa: Tarjeta[]; readonly resto: Tarjeta[] } {
-  if (elegidas.size === 0) return { enElMapa: [], resto: [...tarjetas] };
+  const lista = cercanas(tarjetas);
+  if (elegidas.size === 0) return { enElMapa: [], resto: lista };
   return {
     enElMapa: tarjetas.filter((tarjeta) => elegidas.has(tarjeta.cocina.id)),
-    resto: tarjetas.filter((tarjeta) => !elegidas.has(tarjeta.cocina.id)),
+    resto: lista.filter((tarjeta) => !elegidas.has(tarjeta.cocina.id)),
   };
 }

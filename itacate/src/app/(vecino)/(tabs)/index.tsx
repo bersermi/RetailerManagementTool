@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, FlatList, Keyboard, Pressable, RefreshControl, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import type { Punto } from '@/api/cocinas';
 import { apiErrorMessage } from '@/api/errors';
 import { useApartados, useCocinas, useTarjetas } from '@/api/hooks';
 import { useAuth } from '@/auth/AuthProvider';
@@ -21,7 +22,7 @@ import {
   type Nivel,
 } from '@/lib/mapa';
 import { fijadoDe } from '@/lib/misCocinas';
-import { motivoDe, origenDe, puntoDeOrigen, type Codigo, type Origen } from '@/lib/ubicacion';
+import { centroDeBusqueda, motivoDe, origenDe, puntoDeOrigen, type Codigo, type Origen } from '@/lib/ubicacion';
 import { useAhora } from '@/lib/useAhora';
 import { marcaDeCocina, porCocina } from '@/lib/tarjeta';
 import { usePuntosBuscados } from '@/lib/useGoogle';
@@ -33,6 +34,7 @@ import { ApartadoFijado } from '@/ui/ApartadoFijado';
 import { BotonLleno } from '@/ui/BotonLleno';
 import { Cabeza } from '@/ui/Cabeza';
 import { CodigoPostal } from '@/ui/CodigoPostal';
+import { CreditoDeGoogle } from '@/ui/CreditoDeGoogle';
 import { Formulario } from '@/ui/Formulario';
 import { HojaDeLista } from '@/ui/HojaDeLista';
 import { Llega } from '@/ui/Llega';
@@ -86,9 +88,20 @@ import { TarjetaPlatillo } from '@/ui/TarjetaPlatillo';
 //     the list hands both pages each kitchen's distance (`@/lib/DistanciasProvider`), a
 //     number and never where she is. It stays mounted under them, so as she walks the
 //     pages follow.
-// ⚠️ NOTHING IS CUT OFF BY DISTANCE: the 1.5 and 3 km limits wait for Google's reply
-// (`10.5-iv-b-iii`). ⚠️ NO CHECK CAN SEE THIS SCREEN (ADR-035 §2.11): the phone is its
-// instrument.
+// ⚠️ `10.5-iv-b-iii` — WHAT GOOGLE'S REPLY DECIDED, AS HE RULED IT ON 2026-11-19, EVENING:
+//   - THE LIST HOLDS THE KITCHENS WITHIN 3 KM of where it measures from (D7), and there is
+//     no *Ver más lejos*; the map keeps every pin, and a pin she taps beyond 3 km still
+//     brings its cards (`@/lib/mapa`'s `partir`). Nothing within 3 km, while the door sent
+//     kitchens: *Todavía no hay cocinas a menos de 3 km de aquí. Mueve el mapa para buscar
+//     en otra zona.* — the door sent none: the old sentence, still true;
+//   - *BUSCAR EN ESTA ZONA*: the map offers it once its centre is more than 1 km from where
+//     the list measures (`@/ui/MapaDeCocinas`); a tap makes that centre the list's point —
+//     *En esta zona del mapa*, with *Volver a donde estás* in the head — until she lets it
+//     go, or picks where to search on *Dónde buscar* (`@/lib/DondeBuscarProvider`). Her dot
+//     stays where she is. Outside Wera Cocina's zone: *Itacate aún no llega a esa zona.*;
+//   - *GOOGLE MAPS*, small and grey, at the foot of the list (D6): its distances are worked
+//     out from Google's points, and the list at full height hides the map and its logo.
+// ⚠️ NO CHECK CAN SEE THIS SCREEN (ADR-035 §2.11): the phone is its instrument.
 // ============================================================================
 
 /** How often the cards are made again while she looks, so an ended window drops. */
@@ -101,7 +114,7 @@ const NINGUNA: ReadonlySet<string> = new Set();
 
 export default function Cerca() {
   const { session } = useAuth();
-  const { codigo, elegirCodigo } = useDondeBuscar();
+  const { codigo, zona, elegirCodigo, buscarEnZona, soltarZona } = useDondeBuscar();
   // ⚠️ NEVER ASKED BEFORE SHE SIGNS IN (found on the emulator, 2026-11-08): signed out,
   // this tab mounts for a frame before the guard moves her to the way in, and her phone
   // asked for her location over *Crear cuenta*. Signed in, she is asked here, on *Cerca*.
@@ -124,11 +137,15 @@ export default function Cerca() {
   const [elegidas, setElegidas] = useState<ReadonlySet<string>>(NINGUNA);
   const lista = useRef<FlatList<Tarjeta>>(null);
 
-  const origen = origenDe(donde, codigo);
-  const desde = puntoDeOrigen(origen);
+  // ⚠️ `10.5-iv-b-iii`: where the list measures from — a zone of the map she searched, else her
+  // pick — and where SHE is, her dot, which a zone never moves.
+  const origen = origenDe(donde, codigo, zona);
+  const mide = puntoDeOrigen(origen);
+  const desde = puntoDeOrigen(origenDe(donde, codigo));
+  // Every card, near or far — the list shows those within 3 km (`partir`), a pin she taps its own.
   const tarjetas = useMemo(
-    () => (desde === null || cocinas.data === undefined ? [] : tarjetasDe(cocinas.data, desde, buscados, ahora, orden)),
-    [cocinas.data, desde, buscados, ahora, orden],
+    () => (mide === null || cocinas.data === undefined ? [] : tarjetasDe(cocinas.data, mide, buscados, ahora, orden)),
+    [cocinas.data, mide, buscados, ahora, orden],
   );
   const pines = useMemo(
     () => (cocinas.data === undefined ? [] : pinesDe(cocinas.data, buscados, ahora)),
@@ -164,6 +181,14 @@ export default function Cerca() {
     if (elegidas.size > 0) setElegidas(NINGUNA);
   }
 
+  /** *Buscar en esta zona*: the list measures from the map's centre, and comes half-way to show it. */
+  function alBuscarAqui(centro: Punto) {
+    buscarEnZona(centro);
+    setElegidas(NINGUNA);
+    setNivel('medio');
+    lista.current?.scrollToOffset({ offset: 0, animated: false });
+  }
+
   function enCodigo(nuevo: Codigo) {
     Keyboard.dismiss();
     elegirCodigo(nuevo);
@@ -181,7 +206,8 @@ export default function Cerca() {
     }
   }
 
-  const hayLista = origen.kind === 'aqui' || origen.kind === 'codigo';
+  const hayLista = mide !== null;
+  const visibles = enElMapa.length + resto.length;
   const pie = SIZE.space * 2 + escondido(nivel, posiciones);
 
   const tarjeta = (item: Tarjeta) =>
@@ -215,11 +241,15 @@ export default function Cerca() {
         pines={pines}
         desde={desde}
         claveDeOrigen={claveDeOrigen(origen)}
-        cp={origen.kind === 'codigo' ? origen.cp : null}
+        cp={codigo === null ? null : codigo.cp}
         elegidas={elegidas}
         padding={padding}
+        centroDeBusqueda={centroDeBusqueda(origen)}
+        enZona={origen.kind === 'zona'}
         onElegir={elegir}
         onSoltar={soltar}
+        onBuscarAqui={alBuscarAqui}
+        onVolver={soltarZona}
       />
       {alto > 0 && (
         <HojaDeLista
@@ -232,9 +262,13 @@ export default function Cerca() {
             <Cabeza
               titulo={ES.cerca.titulo}
               enHoja
-              derecha={hayLista && tarjetas.length > 1 ? <Ordenar orden={orden} onOrden={setOrden} /> : null}
+              derecha={hayLista && visibles > 1 ? <Ordenar orden={orden} onOrden={setOrden} /> : null}
             >
-              {hayLista && <Desde origen={origen} onCambiar={() => router.push('/donde')} />}
+              {origen.kind === 'zona' ? (
+                <EnEstaZona cp={codigo === null ? null : codigo.cp} onVolver={soltarZona} />
+              ) : (
+                hayLista && <Desde origen={origen} onCambiar={() => router.push('/donde')} />
+              )}
               {fijado !== null && (
                 <View style={{ paddingTop: SIZE.rowGap / 2 }}>
                   <ApartadoFijado
@@ -251,6 +285,12 @@ export default function Cerca() {
           {origen.kind === 'buscando' && (
             <Llega i={0}>
               <Aviso texto={ES.cerca.buscandote} esperando />
+            </Llega>
+          )}
+
+          {origen.kind === 'zona' && origen.fuera && (
+            <Llega i={0}>
+              <Aviso texto={ES.mapa.zonaFuera} />
             </Llega>
           )}
 
@@ -311,10 +351,17 @@ export default function Cerca() {
                     ) : cocinas.isError ? (
                       <Aviso texto={apiErrorMessage(cocinas.error)} />
                     ) : (
-                      <Aviso texto={ES.cerca.vacio} />
+                      <Aviso texto={tarjetas.length === 0 ? ES.cerca.vacio : ES.mapa.nadaAqui} />
                     )}
                   </Llega>
                 )
+              }
+              ListFooterComponent={
+                visibles > 0 ? (
+                  <View style={{ alignItems: 'flex-end' }}>
+                    <CreditoDeGoogle />
+                  </View>
+                ) : null
               }
               refreshControl={<RefreshControl refreshing={jalando} onRefresh={() => void refrescar()} />}
               contentContainerStyle={{
@@ -342,6 +389,23 @@ function Desde({ origen, onCambiar }: { origen: Origen; onCambiar: () => void })
       <Text style={{ flex: 1, fontSize: SIZE.smallSize, color: PALETTE.tintaApagada }}>{desde}</Text>
       <Pressable accessibilityRole="button" accessibilityLabel={ES.cerca.cambiarDonde} onPress={onCambiar} hitSlop={SIZE.rowGap}>
         <Text style={{ fontSize: SIZE.smallSize, fontWeight: '700', color: PALETTE.accion }}>{ES.cerca.cambiarCodigo}</Text>
+      </Pressable>
+    </View>
+  );
+}
+
+/**
+ * `10.5-iv-b-iii`: the head while the list measures from a zone of the map — *En esta zona del
+ * mapa*, and *Volver a donde estás* (her postal code's words while she searches from one),
+ * which lets the zone go; the map flies back to her.
+ */
+function EnEstaZona({ cp, onVolver }: { cp: string | null; onVolver: () => void }) {
+  const volver = cp === null ? ES.mapa.volverATi : ES.mapa.volverAlCodigo(cp);
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: SIZE.rowGap }}>
+      <Text style={{ flex: 1, fontSize: SIZE.smallSize, color: PALETTE.tintaApagada }}>{ES.mapa.enEstaZona}</Text>
+      <Pressable accessibilityRole="button" onPress={onVolver} hitSlop={SIZE.rowGap}>
+        <Text style={{ fontSize: SIZE.smallSize, fontWeight: '700', color: PALETTE.accion }}>{volver}</Text>
       </Pressable>
     </View>
   );

@@ -223,8 +223,8 @@ from `itacate/` with the two local `EXPO_PUBLIC_SUPABASE_` values in the shell, 
   (`10.5-iv-a-iv`, asked on `10.5-iv-a-iii`'s page): it opens on *Ahora* — now, later today, another day, the quiet
   kitchens, nearest first inside each — and *Ordenar* (`@/ui/Ordenar`; a button at the list's head opening a sheet
   since `10.5-v-b`) offers *Más cerca* (nearest first, the order
-  until then) and *Más barato*, and nothing else; every kitchen the door sends, an unknown distance last among its
-  equals. The orders are `@/lib/lista`'s (`ORDENES`, `ORDEN_INICIAL`, `ordenDe`), her pick the list's state. A window
+  until then) and *Más barato*, and nothing else; every kitchen the door sends is a card, an unknown distance last among
+  its equals — ⚠️ and since `10.5-iv-b-iii` the list shows those within 3 km (the bullet *What Google's reply decided*). The orders are `@/lib/lista`'s (`ORDENES`, `ORDEN_INICIAL`, `ordenDe`), her pick the list's state. A window
   that opens or ends while she looks moves its card without asking the door (the cards are made again
   every minute). Since `10.5-iv-b-i` the list slides over the map — the bullet *The map*, below. Since
   `10.5-iv-a-ii` a card opens a page — the next bullet.
@@ -318,8 +318,7 @@ from `itacate/` with the two local `EXPO_PUBLIC_SUPABASE_` values in the shell, 
   rises full as she types. ⚠️ **The padding reaches the map only once it is ready** (`10.5b-iii-b`): until `onMapReady` it
   keeps the padding it mounted with, since `react-native-maps` 1.27.2's `applyBaseMapPadding` calls Google's `map.setPadding`
   with no null check — a red screen twice on the emulator when the sheet moved before Google answered (`10.5b-iii-a`).
-  **Nothing is cut off by distance** — the 1.5 and 3 km limits wait for Google's reply
-  (`10.5-iv-b-iii`). ⚠️ **To see it**: a build made on this Mac draws an inert Android map (no key: no marker, no camera),
+  ⚠️ **Since `10.5-iv-b-iii` the list stops at 3 km; the map does not** — the next bullet. ⚠️ **To see it**: a build made on this Mac draws an inert Android map (no key: no marker, no camera),
   but **an iPhone Simulator debug build with the organization's iPhone key in the shell draws Google's map with every pin**
   — the key is locked to `mx.wera.vecino`, which the Simulator sends (`10.5-iv-b-i`): `npx expo prebuild -p ios --clean`,
   `RCT_USE_PREBUILT_RNCORE=0 RCT_USE_RN_DEP=0 pod install`, `xcodebuild … -sdk iphonesimulator`, Metro with the local
@@ -327,6 +326,24 @@ from `itacate/` with the two local `EXPO_PUBLIC_SUPABASE_` values in the shell, 
   local neighbour's session written into the app's `Documents/SQLite/ExpoSQLiteStorage` (`sb-localhost-auth-token`). The
   generated `ios/` then holds the key: `prebuild --clean` again without it afterwards. The Simulator takes no taps while the
   Mac's screen is locked; the Android emulator takes `adb` swipes for the sheet.
+- **What Google's reply decided** (`10.5-iv-b-iii`; his rulings of 2026-11-19, evening — D6, D7 and *Buscar en esta zona*'s
+  shape; Google's reply of 2026-11-12 names a radial filter on her phone allowed). ⚠️ **The list holds the kitchens within 3 km**
+  of wherever it measures from (`@/lib/lista`'s `HASTA_METROS`, `cercanas`), with no *Ver más lejos*; a kitchen whose distance is
+  not known is not within it, as the map draws no pin for it. ⚠️ **The map keeps every pin**, and a pin tapped beyond 3 km still
+  brings its cards under *En el mapa* (`@/lib/mapa`'s `partir` takes every card). Nothing within 3 km while the door sent kitchens:
+  *Todavía no hay cocinas a menos de 3 km de aquí. Mueve el mapa para buscar en otra zona.*; the door sent none: `ES.cerca.vacio`.
+  ⚠️ ***Buscar en esta zona***: a button at the map's TOP once its centre — Google's camera (`getCamera`), the middle of the map
+  above the list, read each time the map stops — is more than 1 km from where the list measures (`ofreceBuscarAqui`,
+  `BUSCAR_DESDE_M`); a tap makes that centre a third `Origen`, `zona` (`@/lib/ubicacion`), held in `@/lib/DondeBuscarProvider`
+  beside her pick so a pick on *Dónde buscar* lets it go. The head then reads *En esta zona del mapa* with *Volver a donde estás*
+  (the postal code's words while she searched from one), which the round button over the map does too; the map does not fly while
+  she searches a zone (`claveDeOrigen` is `null`) and flies back when she lets it go. **Her dot never moves to the zone** (`desde` is
+  her pick's point, `mide` the list's). Outside Wera Cocina's zone: *Itacate aún no llega a esa zona.* The centre never leaves the
+  phone (the door takes no area). ⚠️ ***Google Maps***, **small and grey** (`@/ui/CreditoDeGoogle`, Wera Cocina's credit's style:
+  12 points, weight 400, `#5E5E5E`, Roboto on Android, one line), at the foot of the list and under the distance on a kitchen's page
+  and a dish's kitchen row — and only there (`test/creditoGoogle.test.ts`); Wera Cocina's copies carry it and, handed no distance,
+  never draw it. ⚠️ **No local build can show the button**: a key-less map never moves or reports a region; the iPhone Simulator
+  with the organization's key draws the map but takes no taps here.
 - **Google, from her phone, for her alone, kept nowhere** (`@/lib/google`, pure; `@/lib/useGoogle`, the
   requests): Geocoding for a kitchen the door sends with no point — her address, asked once while the app
   is open, the answer in TanStack's memory (Service Specific Terms §6.3.2) — and for her postal code, never
