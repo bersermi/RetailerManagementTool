@@ -898,6 +898,61 @@ If the question is about what a shopkeeper, a fonda or a neighbour actually does
 walk me through the situations before showing me a design.
 ```
 
+### The Step 11 Prompt — for the apps' new look, beside the main work
+
+Use it instead of the main prompt when you want a row of Step 11, the apps' new look (direction A ·
+*Mostrador*). The main prompt always takes the plan's next task, and no Step 11 row is ever marked
+next, so this one says which row to take. It can run in a second session while another session runs
+the main prompt. To start one, paste only this line:
+
+```
+Take the next row of Step 11 in docs/PLAN.md, following the Step 11 Prompt in docs/HANDBOOK.md.
+```
+
+Name the row instead (*"Take row 11.2 …"*) when you want a particular one. What the session follows:
+
+```
+Take ONE row of `## Step 11` in docs/PLAN.md: the one I named, or else the lowest-numbered
+row there that is not done and whose Gate is met. Never a Step 10 row. One row per session,
+then stop.
+
+Another session may be working the main plan at the same time, in the same folder. Work in
+a worktree of your own, cut from origin/main. Run `bash docs/checks/plan-handover.sh` first:
+it guards the whole plan. The next task it names is the main plan's; leave it alone, and end
+your status entry with "<that task> IS THE NEXT TASK, UNCHANGED" so the plan stays true. If
+main moves while you work, rebase, and keep both status entries in time order.
+
+The emulator, my iPhone and the local Supabase stack are shared. Ask the other sessions
+before you use any of them.
+
+Read first: Step 11's own header in the plan (how it runs, and the rules every row keeps);
+the proposal it came from, linked there; ~/RetailerToolDev/wera-vision/CLAUDE.md and the
+entry of 2026-11-20, late night, in its negocio/decisiones.md; and the family-shell page in
+diseno/ for the screens' structure. The look changes; the structure, the flows and the words
+do not, apart from spaced capitals becoming plain headings.
+
+Rows 11.1 to 11.5 write no app code: only brand/, the reference page and a branch that is
+never merged. Rows 11.6 and later need my yes at 11.5 first; if I have not given it, stop
+and tell me.
+
+Estimate difficulty first and write down what the estimate found. An M or an L is one
+sitting; split only an XL.
+
+Anything I have to see to judge (a colour, a typeface, a drawing, a motion) is mine: show it
+to me on real screens or on a page, recommend one, and stop for my answer. Never decide a
+look for me and carry on.
+
+Verify properly and name the check that looked at it. Any number you write down comes from
+the thing that runs, never from a grep.
+
+End every session the same way, so I can read it in twenty seconds:
+  - what shipped, and the check that looked at it, by name
+  - what I must LOOK at, and where, or "nothing to look at"
+  - what you decided on my behalf, and what reversing it would cost
+  - what is waiting on me — one recommendation with your reasoning, not a menu
+  - the next row of Step 11, and whether its gate is met
+```
+
 ### The Standing Prompt — for a review of where we stand
 
 Use it instead of the main prompt when you want to see everything open outside the code before
