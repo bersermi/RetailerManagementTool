@@ -1,0 +1,1254 @@
+{
+  "_": "Written by brand/iconos/inventario.mjs — do not edit by hand. Every MaterialCommunityIcons glyph a screen of the three apps names (tests excluded), the files that name it, and the drawing that replaces it (null: not drawn yet).",
+  "glifos": {
+    "account-check": {
+      "dibujo": null,
+      "apps": {
+        "app": [
+          "app/src/app/solicitudes.tsx"
+        ]
+      }
+    },
+    "account-circle-outline": {
+      "dibujo": "persona-circulo",
+      "apps": {
+        "itacate": [
+          "itacate/src/navigation/pestanas.ts"
+        ]
+      }
+    },
+    "account-clock-outline": {
+      "dibujo": null,
+      "apps": {
+        "app": [
+          "app/src/app/ajustes.tsx",
+          "app/src/app/solicitudes.tsx"
+        ]
+      }
+    },
+    "account-group-outline": {
+      "dibujo": null,
+      "apps": {
+        "app": [
+          "app/src/app/ajustes.tsx"
+        ],
+        "cocina": [
+          "cocina/src/app/(onboarding)/empezar.tsx",
+          "cocina/src/lib/loQueUsas.ts"
+        ]
+      }
+    },
+    "account-outline": {
+      "dibujo": null,
+      "apps": {
+        "app": [
+          "app/src/app/ajustes.tsx"
+        ],
+        "cocina": [
+          "cocina/src/app/(cocina)/(tabs)/mi-cocina.tsx",
+          "cocina/src/ui/QuienTrabajaAqui.tsx"
+        ],
+        "itacate": [
+          "itacate/src/app/(vecino)/(tabs)/tu.tsx",
+          "itacate/src/app/(vecino)/lo-que-ven.tsx"
+        ]
+      }
+    },
+    "account-plus": {
+      "dibujo": null,
+      "apps": {
+        "app": [
+          "app/src/app/ajustes.tsx"
+        ]
+      }
+    },
+    "account-plus-outline": {
+      "dibujo": null,
+      "apps": {
+        "cocina": [
+          "cocina/src/ui/QuienTrabajaAqui.tsx"
+        ]
+      }
+    },
+    "account-tie-outline": {
+      "dibujo": "proveedor",
+      "apps": {
+        "app": [
+          "app/src/navigation/inicio.ts"
+        ]
+      }
+    },
+    "alert-circle-outline": {
+      "dibujo": null,
+      "apps": {
+        "cocina": [
+          "cocina/src/app/(cocina)/escanear.tsx",
+          "cocina/src/app/(cocina)/sellar.tsx"
+        ],
+        "itacate": [
+          "itacate/src/app/(vecino)/escanear.tsx"
+        ]
+      }
+    },
+    "arrow-down": {
+      "dibujo": null,
+      "apps": {
+        "app": [
+          "app/src/app/numeros.tsx"
+        ]
+      }
+    },
+    "arrow-up": {
+      "dibujo": null,
+      "apps": {
+        "app": [
+          "app/src/app/numeros.tsx"
+        ]
+      }
+    },
+    "backspace-outline": {
+      "dibujo": null,
+      "apps": {
+        "cocina": [
+          "cocina/src/ui/Teclado.tsx"
+        ]
+      }
+    },
+    "bank-transfer": {
+      "dibujo": null,
+      "apps": {
+        "cocina": [
+          "cocina/src/app/(cocina)/cobro.tsx"
+        ],
+        "itacate": [
+          "itacate/src/ui/BoletoApartado.tsx",
+          "itacate/src/ui/HojaApartar.tsx"
+        ]
+      }
+    },
+    "basket-minus-outline": {
+      "dibujo": "canasta-menos",
+      "apps": {
+        "app": [
+          "app/src/app/documentos.tsx",
+          "app/src/navigation/inicio.ts",
+          "app/src/navigation/tabs.ts"
+        ]
+      }
+    },
+    "bell": {
+      "dibujo": null,
+      "apps": {
+        "itacate": [
+          "itacate/src/app/(vecino)/(tabs)/mis-cocinas.tsx",
+          "itacate/src/ui/Seguir.tsx"
+        ]
+      }
+    },
+    "bell-outline": {
+      "dibujo": "campana",
+      "apps": {
+        "app": [
+          "app/src/navigation/inicio.ts"
+        ],
+        "cocina": [
+          "cocina/src/app/(cocina)/(tabs)/mi-cocina.tsx",
+          "cocina/src/ui/PreguntaRecordatorio.tsx"
+        ],
+        "itacate": [
+          "itacate/src/ui/Seguir.tsx"
+        ]
+      }
+    },
+    "bell-ring-outline": {
+      "dibujo": null,
+      "apps": {
+        "cocina": [
+          "cocina/src/ui/SusAvisos.tsx"
+        ]
+      }
+    },
+    "book-open-variant": {
+      "dibujo": "libro",
+      "apps": {
+        "cocina": [
+          "cocina/src/lib/loQueUsas.ts"
+        ]
+      }
+    },
+    "calendar-blank-outline": {
+      "dibujo": null,
+      "apps": {
+        "cocina": [
+          "cocina/src/app/(cocina)/nueva-promocion.tsx"
+        ]
+      }
+    },
+    "calendar-star": {
+      "dibujo": null,
+      "apps": {
+        "cocina": [
+          "cocina/src/lib/promociones.ts"
+        ],
+        "itacate": [
+          "itacate/src/lib/promociones.ts"
+        ]
+      }
+    },
+    "camera-outline": {
+      "dibujo": "camara",
+      "apps": {
+        "app": [
+          "app/src/app/(tabs)/desperdicio.tsx",
+          "app/src/ui/CampoFoto.tsx"
+        ],
+        "cocina": [
+          "cocina/src/app/(cocina)/escanear.tsx",
+          "cocina/src/app/(cocina)/sellar.tsx",
+          "cocina/src/lib/hoy.ts",
+          "cocina/src/ui/CampoFoto.tsx"
+        ],
+        "itacate": [
+          "itacate/src/app/(vecino)/(tabs)/mis-cocinas.tsx",
+          "itacate/src/app/(vecino)/escanear.tsx",
+          "itacate/src/app/(vecino)/mi-codigo.tsx",
+          "itacate/src/ui/SeccionTarjeta.tsx",
+          "itacate/src/ui/TarjetaDeLealtad.tsx"
+        ]
+      }
+    },
+    "cash": {
+      "dibujo": null,
+      "apps": {
+        "cocina": [
+          "cocina/src/app/(cocina)/cobro.tsx",
+          "cocina/src/vecinos/ui/PaginaDePlatillo.tsx"
+        ],
+        "itacate": [
+          "itacate/src/ui/BoletoApartado.tsx",
+          "itacate/src/ui/HojaApartar.tsx",
+          "itacate/src/ui/PaginaDePlatillo.tsx"
+        ]
+      }
+    },
+    "cash-multiple": {
+      "dibujo": null,
+      "apps": {
+        "cocina": [
+          "cocina/src/app/(cocina)/(tabs)/mi-cocina.tsx"
+        ]
+      }
+    },
+    "cash-register": {
+      "dibujo": "caja-registradora",
+      "apps": {
+        "app": [
+          "app/src/app/documentos.tsx",
+          "app/src/navigation/inicio.ts",
+          "app/src/navigation/tabs.ts"
+        ]
+      }
+    },
+    "chart-bar": {
+      "dibujo": "barras",
+      "apps": {
+        "app": [
+          "app/src/navigation/inicio.ts"
+        ],
+        "cocina": [
+          "cocina/src/lib/loQueUsas.ts"
+        ],
+        "itacate": [
+          "itacate/src/app/(vecino)/lo-que-ven.tsx"
+        ]
+      }
+    },
+    "check": {
+      "dibujo": null,
+      "apps": {
+        "app": [
+          "app/src/app/(tabs)/comprar.tsx",
+          "app/src/app/(tabs)/desperdicio.tsx",
+          "app/src/app/ajustes.tsx",
+          "app/src/app/producto/[id].tsx",
+          "app/src/app/producto/nuevo.tsx",
+          "app/src/app/proveedor/[id].tsx",
+          "app/src/app/proveedor/nuevo.tsx",
+          "app/src/app/solicitudes.tsx"
+        ],
+        "cocina": [
+          "cocina/src/app/(cocina)/entregar.tsx",
+          "cocina/src/ui/FilaServicio.tsx"
+        ],
+        "itacate": [
+          "itacate/src/app/(vecino)/escanear.tsx",
+          "itacate/src/app/(vecino)/mi-codigo.tsx"
+        ]
+      }
+    },
+    "check-circle": {
+      "dibujo": null,
+      "apps": {
+        "app": [
+          "app/src/app/ajustes.tsx",
+          "app/src/app/producto/nuevo.tsx",
+          "app/src/app/solicitudes.tsx"
+        ],
+        "cocina": [
+          "cocina/src/app/(cocina)/activar/[servicio].tsx",
+          "cocina/src/app/(cocina)/escanear.tsx",
+          "cocina/src/app/(cocina)/preparar-tarjeta.tsx",
+          "cocina/src/app/(cocina)/ya-estas.tsx",
+          "cocina/src/ui/Nota.tsx"
+        ],
+        "itacate": [
+          "itacate/src/app/(vecino)/apartados.tsx",
+          "itacate/src/ui/HojaApartar.tsx"
+        ]
+      }
+    },
+    "check-circle-outline": {
+      "dibujo": "palomita-circulo",
+      "apps": {
+        "app": [
+          "app/src/app/(tabs)/desperdicio.tsx",
+          "app/src/ui/Hecho.tsx",
+          "app/src/ui/VaciarCarrito.tsx"
+        ]
+      }
+    },
+    "checkbox-blank-outline": {
+      "dibujo": null,
+      "apps": {
+        "app": [
+          "app/src/ui/Casilla.tsx"
+        ],
+        "cocina": [
+          "cocina/src/ui/Casilla.tsx"
+        ],
+        "itacate": [
+          "itacate/src/ui/Casilla.tsx"
+        ]
+      }
+    },
+    "checkbox-marked": {
+      "dibujo": null,
+      "apps": {
+        "app": [
+          "app/src/ui/Casilla.tsx"
+        ],
+        "cocina": [
+          "cocina/src/ui/Casilla.tsx"
+        ],
+        "itacate": [
+          "itacate/src/ui/Casilla.tsx"
+        ]
+      }
+    },
+    "chevron-double-right": {
+      "dibujo": null,
+      "apps": {
+        "app": [
+          "app/src/ui/CierreCarrito.tsx"
+        ],
+        "itacate": [
+          "itacate/src/ui/Deslizar.tsx"
+        ]
+      }
+    },
+    "chevron-down": {
+      "dibujo": null,
+      "apps": {
+        "app": [
+          "app/src/app/(tabs)/desperdicio.tsx",
+          "app/src/app/documentos.tsx"
+        ],
+        "itacate": [
+          "itacate/src/ui/HojaApartar.tsx"
+        ]
+      }
+    },
+    "chevron-left": {
+      "dibujo": null,
+      "apps": {
+        "cocina": [
+          "cocina/src/vecinos/ui/Atras.tsx"
+        ],
+        "itacate": [
+          "itacate/src/ui/Atras.tsx"
+        ]
+      }
+    },
+    "chevron-right": {
+      "dibujo": "flecha-derecha",
+      "apps": {
+        "app": [
+          "app/src/app/(tabs)/comprar.tsx",
+          "app/src/app/(tabs)/desperdicio.tsx",
+          "app/src/app/(tabs)/index.tsx",
+          "app/src/app/(tabs)/vender.tsx",
+          "app/src/app/numeros.tsx",
+          "app/src/app/proveedor/nuevo.tsx",
+          "app/src/ui/Puertas.tsx"
+        ],
+        "cocina": [
+          "cocina/src/app/(cocina)/numeros.tsx",
+          "cocina/src/app/(onboarding)/empezar.tsx",
+          "cocina/src/ui/DiaDeHoy.tsx",
+          "cocina/src/ui/Fila.tsx",
+          "cocina/src/ui/FilaServicio.tsx",
+          "cocina/src/ui/LineaEmpujon.tsx",
+          "cocina/src/ui/LoQueSigue.tsx",
+          "cocina/src/ui/TarjetaOrden.tsx",
+          "cocina/src/vecinos/ui/FilaCocina.tsx"
+        ],
+        "itacate": [
+          "itacate/src/app/(vecino)/(tabs)/mis-cocinas.tsx",
+          "itacate/src/ui/ApartadoFijado.tsx",
+          "itacate/src/ui/Fila.tsx",
+          "itacate/src/ui/FilaCocina.tsx",
+          "itacate/src/ui/TarjetaDeLealtad.tsx"
+        ]
+      }
+    },
+    "chevron-up": {
+      "dibujo": null,
+      "apps": {
+        "app": [
+          "app/src/app/documentos.tsx"
+        ],
+        "itacate": [
+          "itacate/src/ui/HojaApartar.tsx"
+        ]
+      }
+    },
+    "circle-outline": {
+      "dibujo": null,
+      "apps": {
+        "app": [
+          "app/src/app/ajustes.tsx",
+          "app/src/app/producto/nuevo.tsx",
+          "app/src/app/solicitudes.tsx"
+        ]
+      }
+    },
+    "clipboard-text-clock-outline": {
+      "dibujo": "tabla-reloj",
+      "apps": {
+        "app": [
+          "app/src/navigation/inicio.ts"
+        ]
+      }
+    },
+    "clock-outline": {
+      "dibujo": null,
+      "apps": {
+        "cocina": [
+          "cocina/src/vecinos/ui/PaginaDePlatillo.tsx"
+        ],
+        "itacate": [
+          "itacate/src/ui/PaginaDePlatillo.tsx"
+        ]
+      }
+    },
+    "close": {
+      "dibujo": "cerrar",
+      "apps": {
+        "app": [
+          "app/src/app/(tabs)/comprar.tsx",
+          "app/src/app/(tabs)/desperdicio.tsx",
+          "app/src/app/(tabs)/index.tsx",
+          "app/src/app/semana.tsx"
+        ],
+        "cocina": [
+          "cocina/src/app/(cocina)/tarjeta.tsx",
+          "cocina/src/ui/AsiFunciona.tsx",
+          "cocina/src/ui/Cuentanos.tsx",
+          "cocina/src/ui/LineaEmpujon.tsx",
+          "cocina/src/ui/PreguntaRecordatorio.tsx"
+        ]
+      }
+    },
+    "close-circle": {
+      "dibujo": null,
+      "apps": {
+        "cocina": [
+          "cocina/src/ui/Buscador.tsx"
+        ]
+      }
+    },
+    "cloud-upload-outline": {
+      "dibujo": "nube-subir",
+      "apps": {
+        "cocina": [
+          "cocina/src/app/(cocina)/entregar.tsx",
+          "cocina/src/app/(cocina)/escanear.tsx",
+          "cocina/src/app/(cocina)/sellar.tsx",
+          "cocina/src/ui/SinSenal.tsx"
+        ]
+      }
+    },
+    "cog-outline": {
+      "dibujo": "engrane",
+      "apps": {
+        "app": [
+          "app/src/navigation/inicio.ts"
+        ]
+      }
+    },
+    "cow": {
+      "dibujo": null,
+      "apps": {
+        "cocina": [
+          "cocina/src/ui/TarjetaDeLealtad.tsx"
+        ],
+        "itacate": [
+          "itacate/src/ui/TarjetaDeLealtad.tsx"
+        ]
+      }
+    },
+    "creation": {
+      "dibujo": "destellos",
+      "apps": {
+        "cocina": [
+          "cocina/src/lib/loQueUsas.ts",
+          "cocina/src/lib/promociones.ts"
+        ],
+        "itacate": [
+          "itacate/src/lib/promociones.ts"
+        ]
+      }
+    },
+    "credit-card-outline": {
+      "dibujo": null,
+      "apps": {
+        "cocina": [
+          "cocina/src/app/(cocina)/cobro.tsx"
+        ],
+        "itacate": [
+          "itacate/src/ui/BoletoApartado.tsx",
+          "itacate/src/ui/HojaApartar.tsx"
+        ]
+      }
+    },
+    "crosshairs-gps": {
+      "dibujo": null,
+      "apps": {
+        "itacate": [
+          "itacate/src/app/(vecino)/(tabs)/index.tsx",
+          "itacate/src/ui/MapaDeCocinas.tsx"
+        ]
+      }
+    },
+    "delete-outline": {
+      "dibujo": null,
+      "apps": {
+        "app": [
+          "app/src/app/(tabs)/desperdicio.tsx"
+        ]
+      }
+    },
+    "dialpad": {
+      "dibujo": null,
+      "apps": {
+        "cocina": [
+          "cocina/src/app/(cocina)/entregar.tsx"
+        ]
+      }
+    },
+    "door-open": {
+      "dibujo": null,
+      "apps": {
+        "app": [
+          "app/src/app/solicitudes.tsx"
+        ]
+      }
+    },
+    "exit-run": {
+      "dibujo": null,
+      "apps": {
+        "cocina": [
+          "cocina/src/app/(cocina)/(tabs)/mi-cocina.tsx"
+        ]
+      }
+    },
+    "eye-off-outline": {
+      "dibujo": null,
+      "apps": {
+        "app": [
+          "app/src/ui/Campo.tsx"
+        ],
+        "cocina": [
+          "cocina/src/ui/Campo.tsx"
+        ],
+        "itacate": [
+          "itacate/src/ui/Campo.tsx"
+        ]
+      }
+    },
+    "eye-outline": {
+      "dibujo": null,
+      "apps": {
+        "app": [
+          "app/src/ui/Campo.tsx"
+        ],
+        "cocina": [
+          "cocina/src/app/(cocina)/(tabs)/mi-cocina.tsx",
+          "cocina/src/ui/BarraVista.tsx",
+          "cocina/src/ui/Campo.tsx",
+          "cocina/src/ui/OfertaDeHoy.tsx"
+        ],
+        "itacate": [
+          "itacate/src/app/(vecino)/(tabs)/tu.tsx",
+          "itacate/src/ui/Campo.tsx"
+        ]
+      }
+    },
+    "file-document-outline": {
+      "dibujo": null,
+      "apps": {
+        "cocina": [
+          "cocina/src/app/(cocina)/tarjeta.tsx"
+        ]
+      }
+    },
+    "fire": {
+      "dibujo": "fuego",
+      "apps": {
+        "app": [
+          "app/src/app/(tabs)/index.tsx"
+        ]
+      }
+    },
+    "format-quote-open": {
+      "dibujo": "comillas",
+      "apps": {
+        "cocina": [
+          "cocina/src/lib/hoy.ts"
+        ]
+      }
+    },
+    "format-size": {
+      "dibujo": null,
+      "apps": {
+        "app": [
+          "app/src/app/ajustes.tsx"
+        ]
+      }
+    },
+    "gift-outline": {
+      "dibujo": null,
+      "apps": {
+        "cocina": [
+          "cocina/src/app/(cocina)/escanear.tsx",
+          "cocina/src/app/(cocina)/nueva-promocion.tsx",
+          "cocina/src/app/(cocina)/sellar.tsx",
+          "cocina/src/app/(cocina)/tarjeta.tsx",
+          "cocina/src/lib/loQueUsas.ts",
+          "cocina/src/lib/promociones.ts"
+        ],
+        "itacate": [
+          "itacate/src/app/(vecino)/(tabs)/mis-cocinas.tsx",
+          "itacate/src/app/(vecino)/gano/[cocina].tsx",
+          "itacate/src/app/(vecino)/premios/[cocina].tsx",
+          "itacate/src/lib/promociones.ts",
+          "itacate/src/ui/TarjetaDeLealtad.tsx"
+        ]
+      }
+    },
+    "google": {
+      "dibujo": null,
+      "apps": {
+        "app": [
+          "app/src/app/(auth)/entrar.tsx"
+        ],
+        "cocina": [
+          "cocina/src/app/(auth)/entrar.tsx"
+        ],
+        "itacate": [
+          "itacate/src/app/(auth)/entrar.tsx"
+        ]
+      }
+    },
+    "heart": {
+      "dibujo": null,
+      "apps": {
+        "itacate": [
+          "itacate/src/ui/Seguir.tsx"
+        ]
+      }
+    },
+    "heart-outline": {
+      "dibujo": "corazon",
+      "apps": {
+        "itacate": [
+          "itacate/src/app/(vecino)/(tabs)/mis-cocinas.tsx",
+          "itacate/src/app/(vecino)/lo-que-ven.tsx",
+          "itacate/src/navigation/pestanas.ts",
+          "itacate/src/ui/PreguntaSeguir.tsx",
+          "itacate/src/ui/Seguir.tsx"
+        ]
+      }
+    },
+    "history": {
+      "dibujo": null,
+      "apps": {
+        "app": [
+          "app/src/app/(tabs)/desperdicio.tsx"
+        ]
+      }
+    },
+    "home-variant": {
+      "dibujo": "casa",
+      "apps": {
+        "app": [
+          "app/src/navigation/tabs.ts"
+        ]
+      }
+    },
+    "image-outline": {
+      "dibujo": null,
+      "apps": {
+        "cocina": [
+          "cocina/src/ui/CampoFoto.tsx"
+        ]
+      }
+    },
+    "information-outline": {
+      "dibujo": null,
+      "apps": {
+        "app": [
+          "app/src/app/(tabs)/vender.tsx"
+        ],
+        "cocina": [
+          "cocina/src/app/(cocina)/escanear.tsx"
+        ],
+        "itacate": [
+          "itacate/src/app/(vecino)/escanear.tsx"
+        ]
+      }
+    },
+    "key-outline": {
+      "dibujo": null,
+      "apps": {
+        "app": [
+          "app/src/ui/Puertas.tsx"
+        ]
+      }
+    },
+    "leaf": {
+      "dibujo": null,
+      "apps": {
+        "cocina": [
+          "cocina/src/lib/promociones.ts"
+        ],
+        "itacate": [
+          "itacate/src/lib/promociones.ts"
+        ]
+      }
+    },
+    "lightbulb-on-outline": {
+      "dibujo": null,
+      "apps": {
+        "app": [
+          "app/src/app/numeros.tsx"
+        ]
+      }
+    },
+    "lock-outline": {
+      "dibujo": null,
+      "apps": {
+        "app": [
+          "app/src/app/numeros.tsx"
+        ]
+      }
+    },
+    "logout": {
+      "dibujo": null,
+      "apps": {
+        "app": [
+          "app/src/app/ajustes.tsx"
+        ]
+      }
+    },
+    "magnify": {
+      "dibujo": null,
+      "apps": {
+        "app": [
+          "app/src/app/(tabs)/comprar.tsx",
+          "app/src/app/producto/nuevo.tsx",
+          "app/src/ui/Buscador.tsx"
+        ],
+        "cocina": [
+          "cocina/src/ui/Buscador.tsx"
+        ],
+        "itacate": [
+          "itacate/src/ui/CodigoPostal.tsx",
+          "itacate/src/ui/MapaDeCocinas.tsx"
+        ]
+      }
+    },
+    "map-marker-off-outline": {
+      "dibujo": null,
+      "apps": {
+        "itacate": [
+          "itacate/src/app/(vecino)/lo-que-ven.tsx"
+        ]
+      }
+    },
+    "map-marker-outline": {
+      "dibujo": "pin",
+      "apps": {
+        "cocina": [
+          "cocina/src/lib/hoy.ts",
+          "cocina/src/vecinos/ui/PaginaDeCocina.tsx",
+          "cocina/src/vecinos/ui/PaginaDePlatillo.tsx"
+        ],
+        "itacate": [
+          "itacate/src/app/(vecino)/(tabs)/tu.tsx",
+          "itacate/src/navigation/pestanas.ts",
+          "itacate/src/ui/BoletoApartado.tsx",
+          "itacate/src/ui/PaginaDeCocina.tsx",
+          "itacate/src/ui/PaginaDePlatillo.tsx"
+        ]
+      }
+    },
+    "minus": {
+      "dibujo": null,
+      "apps": {
+        "app": [
+          "app/src/ui/Cantidad.tsx"
+        ],
+        "cocina": [
+          "cocina/src/ui/Horario.tsx",
+          "cocina/src/ui/OfertaDeHoy.tsx"
+        ]
+      }
+    },
+    "package-variant-closed": {
+      "dibujo": "caja",
+      "apps": {
+        "app": [
+          "app/src/navigation/inicio.ts"
+        ],
+        "cocina": [
+          "cocina/src/app/(cocina)/(tabs)/mi-cocina.tsx"
+        ]
+      }
+    },
+    "pencil": {
+      "dibujo": null,
+      "apps": {
+        "app": [
+          "app/src/app/ajustes.tsx"
+        ]
+      }
+    },
+    "pencil-outline": {
+      "dibujo": null,
+      "apps": {
+        "app": [
+          "app/src/app/(tabs)/vender.tsx",
+          "app/src/ui/Corrigiendo.tsx"
+        ],
+        "cocina": [
+          "cocina/src/app/(cocina)/(tabs)/mi-cocina.tsx"
+        ]
+      }
+    },
+    "play": {
+      "dibujo": "play",
+      "apps": {
+        "app": [
+          "app/src/app/(tabs)/index.tsx"
+        ]
+      }
+    },
+    "play-circle-outline": {
+      "dibujo": null,
+      "apps": {
+        "app": [
+          "app/src/app/ajustes.tsx"
+        ]
+      }
+    },
+    "plus": {
+      "dibujo": "mas",
+      "apps": {
+        "app": [
+          "app/src/app/producto/nuevo.tsx",
+          "app/src/app/productos.tsx",
+          "app/src/app/proveedores.tsx",
+          "app/src/ui/Cantidad.tsx"
+        ],
+        "cocina": [
+          "cocina/src/app/(cocina)/(tabs)/index.tsx",
+          "cocina/src/app/(cocina)/ofertas.tsx",
+          "cocina/src/app/(cocina)/promociones.tsx",
+          "cocina/src/app/(cocina)/publicar.tsx",
+          "cocina/src/ui/Horario.tsx",
+          "cocina/src/ui/OfertaDeHoy.tsx"
+        ]
+      }
+    },
+    "plus-circle-outline": {
+      "dibujo": "mas-circulo",
+      "apps": {
+        "cocina": [
+          "cocina/src/lib/hoy.ts"
+        ]
+      }
+    },
+    "printer-outline": {
+      "dibujo": null,
+      "apps": {
+        "cocina": [
+          "cocina/src/app/(cocina)/cartel.tsx"
+        ]
+      }
+    },
+    "qrcode": {
+      "dibujo": "qr",
+      "apps": {
+        "cocina": [
+          "cocina/src/app/(cocina)/tarjeta.tsx",
+          "cocina/src/lib/loQueUsas.ts",
+          "cocina/src/ui/Mosaicos.tsx"
+        ],
+        "itacate": [
+          "itacate/src/app/(vecino)/(tabs)/mis-cocinas.tsx",
+          "itacate/src/ui/SeccionTarjeta.tsx",
+          "itacate/src/ui/TarjetaDeLealtad.tsx"
+        ]
+      }
+    },
+    "qrcode-scan": {
+      "dibujo": null,
+      "apps": {
+        "cocina": [
+          "cocina/src/app/(cocina)/entregar.tsx",
+          "cocina/src/ui/Escaner.tsx"
+        ],
+        "itacate": [
+          "itacate/src/ui/Escaner.tsx"
+        ]
+      }
+    },
+    "radiobox-blank": {
+      "dibujo": null,
+      "apps": {
+        "cocina": [
+          "cocina/src/ui/Giros.tsx"
+        ]
+      }
+    },
+    "radiobox-marked": {
+      "dibujo": null,
+      "apps": {
+        "cocina": [
+          "cocina/src/ui/Giros.tsx"
+        ]
+      }
+    },
+    "repeat": {
+      "dibujo": "repetir",
+      "apps": {
+        "cocina": [
+          "cocina/src/app/(cocina)/(tabs)/index.tsx",
+          "cocina/src/ui/Anterior.tsx",
+          "cocina/src/ui/HojaPromocion.tsx"
+        ]
+      }
+    },
+    "restore": {
+      "dibujo": null,
+      "apps": {
+        "cocina": [
+          "cocina/src/app/(cocina)/tarjeta.tsx"
+        ]
+      }
+    },
+    "share-variant": {
+      "dibujo": null,
+      "apps": {
+        "app": [
+          "app/src/app/ajustes.tsx",
+          "app/src/app/solicitudes.tsx"
+        ]
+      }
+    },
+    "share-variant-outline": {
+      "dibujo": null,
+      "apps": {
+        "cocina": [
+          "cocina/src/app/(cocina)/cartel.tsx"
+        ]
+      }
+    },
+    "shield-account-outline": {
+      "dibujo": null,
+      "apps": {
+        "app": [
+          "app/src/app/ajustes.tsx"
+        ]
+      }
+    },
+    "shield-lock-outline": {
+      "dibujo": null,
+      "apps": {
+        "cocina": [
+          "cocina/src/app/(cocina)/(tabs)/mi-cocina.tsx"
+        ],
+        "itacate": [
+          "itacate/src/app/(vecino)/(tabs)/tu.tsx"
+        ]
+      }
+    },
+    "shopping-outline": {
+      "dibujo": null,
+      "apps": {
+        "cocina": [
+          "cocina/src/app/(cocina)/(tabs)/mi-cocina.tsx",
+          "cocina/src/app/(cocina)/como-se-come.tsx",
+          "cocina/src/app/(cocina)/entregar.tsx",
+          "cocina/src/vecinos/ui/PaginaDePlatillo.tsx"
+        ],
+        "itacate": [
+          "itacate/src/ui/HojaApartar.tsx",
+          "itacate/src/ui/PaginaDePlatillo.tsx"
+        ]
+      }
+    },
+    "silverware-fork-knife": {
+      "dibujo": null,
+      "apps": {
+        "cocina": [
+          "cocina/src/app/(cocina)/(tabs)/mi-cocina.tsx",
+          "cocina/src/app/(cocina)/como-se-come.tsx",
+          "cocina/src/app/(cocina)/entregar.tsx",
+          "cocina/src/app/(cocina)/numeros.tsx",
+          "cocina/src/vecinos/ui/PaginaDePlatillo.tsx"
+        ],
+        "itacate": [
+          "itacate/src/ui/HojaApartar.tsx",
+          "itacate/src/ui/PaginaDePlatillo.tsx"
+        ]
+      }
+    },
+    "sort": {
+      "dibujo": null,
+      "apps": {
+        "itacate": [
+          "itacate/src/ui/Ordenar.tsx"
+        ]
+      }
+    },
+    "stamper": {
+      "dibujo": "sello",
+      "apps": {
+        "cocina": [
+          "cocina/src/app/(cocina)/escanear.tsx",
+          "cocina/src/app/(cocina)/sellar.tsx",
+          "cocina/src/lib/loQueUsas.ts",
+          "cocina/src/vecinos/ui/TarjetaPlatillo.tsx"
+        ],
+        "itacate": [
+          "itacate/src/app/(vecino)/gano/[cocina].tsx",
+          "itacate/src/app/(vecino)/lo-que-ven.tsx",
+          "itacate/src/ui/TarjetaCocina.tsx",
+          "itacate/src/ui/TarjetaPlatillo.tsx"
+        ]
+      }
+    },
+    "star": {
+      "dibujo": null,
+      "apps": {
+        "app": [
+          "app/src/ui/SelectorCatalogo.tsx"
+        ],
+        "cocina": [
+          "cocina/src/vecinos/ui/PaginaDeCocina.tsx",
+          "cocina/src/vecinos/ui/TarjetaPlatillo.tsx"
+        ],
+        "itacate": [
+          "itacate/src/app/(vecino)/gano/[cocina].tsx",
+          "itacate/src/ui/Calificar.tsx",
+          "itacate/src/ui/PaginaDeCocina.tsx",
+          "itacate/src/ui/TarjetaPlatillo.tsx"
+        ]
+      }
+    },
+    "star-outline": {
+      "dibujo": null,
+      "apps": {
+        "cocina": [
+          "cocina/src/app/(cocina)/(tabs)/mi-cocina.tsx"
+        ],
+        "itacate": [
+          "itacate/src/ui/Calificar.tsx"
+        ]
+      }
+    },
+    "store-off-outline": {
+      "dibujo": null,
+      "apps": {
+        "itacate": [
+          "itacate/src/app/(vecino)/(tabs)/mis-cocinas.tsx"
+        ]
+      }
+    },
+    "storefront-outline": {
+      "dibujo": "puesto",
+      "apps": {
+        "app": [
+          "app/src/app/ajustes.tsx",
+          "app/src/ui/Puertas.tsx"
+        ],
+        "cocina": [
+          "cocina/src/app/(cocina)/(tabs)/mi-cocina.tsx",
+          "cocina/src/app/(onboarding)/empezar.tsx",
+          "cocina/src/lib/hoy.ts",
+          "cocina/src/lib/loQueUsas.ts",
+          "cocina/src/navigation/pestanas.ts"
+        ]
+      }
+    },
+    "tag-outline": {
+      "dibujo": null,
+      "apps": {
+        "cocina": [
+          "cocina/src/lib/loQueUsas.ts"
+        ]
+      }
+    },
+    "thumb-up-outline": {
+      "dibujo": null,
+      "apps": {
+        "itacate": [
+          "itacate/src/app/(vecino)/lo-que-ven.tsx"
+        ]
+      }
+    },
+    "ticket-confirmation-outline": {
+      "dibujo": "boleto",
+      "apps": {
+        "cocina": [
+          "cocina/src/app/(cocina)/(tabs)/apartados.tsx",
+          "cocina/src/navigation/pestanas.ts"
+        ],
+        "itacate": [
+          "itacate/src/app/(vecino)/(tabs)/mis-cocinas.tsx",
+          "itacate/src/app/(vecino)/apartados.tsx",
+          "itacate/src/app/(vecino)/platillo/[cocina]/[oferta]/[linea].tsx",
+          "itacate/src/ui/PieDeApartar.tsx"
+        ]
+      }
+    },
+    "ticket-outline": {
+      "dibujo": null,
+      "apps": {
+        "cocina": [
+          "cocina/src/lib/loQueUsas.ts"
+        ]
+      }
+    },
+    "truck-delivery": {
+      "dibujo": "camion-reparto",
+      "apps": {
+        "app": [
+          "app/src/navigation/inicio.ts",
+          "app/src/navigation/tabs.ts"
+        ]
+      }
+    },
+    "truck-delivery-outline": {
+      "dibujo": null,
+      "apps": {
+        "app": [
+          "app/src/app/documentos.tsx"
+        ]
+      }
+    },
+    "truck-outline": {
+      "dibujo": "camion",
+      "apps": {
+        "app": [
+          "app/src/app/(tabs)/desperdicio.tsx",
+          "app/src/app/(tabs)/index.tsx"
+        ]
+      }
+    },
+    "tune-variant": {
+      "dibujo": null,
+      "apps": {
+        "cocina": [
+          "cocina/src/app/(cocina)/(tabs)/mi-cocina.tsx"
+        ]
+      }
+    },
+    "view-grid": {
+      "dibujo": null,
+      "apps": {
+        "app": [
+          "app/src/app/productos.tsx"
+        ]
+      }
+    },
+    "view-grid-outline": {
+      "dibujo": null,
+      "apps": {
+        "app": [
+          "app/src/app/productos.tsx"
+        ]
+      }
+    },
+    "view-list": {
+      "dibujo": null,
+      "apps": {
+        "app": [
+          "app/src/app/productos.tsx"
+        ]
+      }
+    },
+    "whatsapp": {
+      "dibujo": null,
+      "apps": {
+        "app": [
+          "app/src/app/(onboarding)/bienvenida.tsx",
+          "app/src/app/(tabs)/desperdicio.tsx"
+        ],
+        "cocina": [
+          "cocina/src/app/(cocina)/(tabs)/mi-cocina.tsx",
+          "cocina/src/app/(cocina)/apartado/[id].tsx",
+          "cocina/src/app/(cocina)/calificaciones.tsx",
+          "cocina/src/app/(cocina)/entregar.tsx"
+        ],
+        "itacate": [
+          "itacate/src/app/(vecino)/(tabs)/tu.tsx"
+        ]
+      }
+    },
+    "white-balance-sunny": {
+      "dibujo": "sol",
+      "apps": {
+        "cocina": [
+          "cocina/src/navigation/pestanas.ts"
+        ]
+      }
+    },
+    "wifi-off": {
+      "dibujo": "sin-senal",
+      "apps": {
+        "cocina": [
+          "cocina/src/app/(cocina)/escanear.tsx",
+          "cocina/src/app/(cocina)/sellar.tsx",
+          "cocina/src/ui/SinSenal.tsx"
+        ],
+        "itacate": [
+          "itacate/src/app/(vecino)/mi-codigo.tsx",
+          "itacate/src/ui/SinSenal.tsx"
+        ]
+      }
+    }
+  }
+}

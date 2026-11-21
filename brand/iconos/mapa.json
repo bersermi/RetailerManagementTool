@@ -1,0 +1,270 @@
+{
+  "_": "The drawn icons (Step 11). Each drawing replaces the MaterialCommunityIcons names in `reemplaza`, at the code point in `codigo`; `donde` says where the apps show it. Built into WeraIconos.ttf by brand/render-fuente-iconos.sh; checked by node brand/iconos/iconos.mjs. The line's rules: README.md beside it.",
+  "linea": {
+    "cuadricula": 24,
+    "trazo": 2,
+    "margen": 1
+  },
+  "fuente": {
+    "familia": "Wera Iconos",
+    "archivo": "WeraIconos.ttf",
+    "version": "1.000"
+  },
+  "primera": {
+    "_": "Row 11.3-i draws every glyph these files name: the three tab bars, Wera's Inicio and Wera Cocina's Hoy. Hoy's four features are named in cocina/src/lib/loQueUsas.ts's ICONO_DE, beside glyphs that are not on Hoy, so the check reads that one object.",
+    "Las tres barras": [
+      "app/src/navigation/tabs.ts",
+      "cocina/src/navigation/pestanas.ts",
+      "itacate/src/navigation/pestanas.ts"
+    ],
+    "Inicio de Wera": [
+      "app/src/app/(tabs)/index.tsx",
+      "app/src/navigation/inicio.ts",
+      "app/src/ui/Hecho.tsx"
+    ],
+    "Hoy de Wera Cocina": [
+      "cocina/src/app/(cocina)/(tabs)/index.tsx",
+      "cocina/src/lib/hoy.ts",
+      "cocina/src/ui/LineaEmpujon.tsx",
+      "cocina/src/ui/Mosaicos.tsx",
+      "cocina/src/ui/PreguntaRecordatorio.tsx",
+      "cocina/src/ui/SinSenal.tsx",
+      "cocina/src/ui/DiaDeHoy.tsx",
+      "cocina/src/ui/LoQueSigue.tsx",
+      "cocina/src/ui/Cuentanos.tsx"
+    ]
+  },
+  "dibujos": {
+    "casa": {
+      "codigo": "E000",
+      "reemplaza": [
+        "home-variant"
+      ],
+      "donde": "Wera: la pestaña Inicio"
+    },
+    "caja-registradora": {
+      "codigo": "E001",
+      "reemplaza": [
+        "cash-register"
+      ],
+      "donde": "Wera: la pestaña Vender y su puerta en Inicio"
+    },
+    "camion-reparto": {
+      "codigo": "E002",
+      "reemplaza": [
+        "truck-delivery"
+      ],
+      "donde": "Wera: la pestaña Comprar y su puerta en Inicio"
+    },
+    "canasta-menos": {
+      "codigo": "E003",
+      "reemplaza": [
+        "basket-minus-outline"
+      ],
+      "donde": "Wera: la pestaña Merma y su puerta en Inicio"
+    },
+    "sol": {
+      "codigo": "E004",
+      "reemplaza": [
+        "white-balance-sunny"
+      ],
+      "donde": "Wera Cocina: la pestaña Hoy"
+    },
+    "boleto": {
+      "codigo": "E005",
+      "reemplaza": [
+        "ticket-confirmation-outline"
+      ],
+      "donde": "Wera Cocina: la pestaña Apartados; Itacate: su apartado"
+    },
+    "puesto": {
+      "codigo": "E006",
+      "reemplaza": [
+        "storefront-outline"
+      ],
+      "donde": "Wera Cocina: la pestaña Mi cocina y su línea en Hoy; Wera: Ajustes, y Abrir mi tienda al empezar"
+    },
+    "pin": {
+      "codigo": "E007",
+      "reemplaza": [
+        "map-marker-outline"
+      ],
+      "donde": "Itacate: la pestaña Cerca; Wera Cocina: su dirección en Hoy"
+    },
+    "corazon": {
+      "codigo": "E008",
+      "reemplaza": [
+        "heart-outline"
+      ],
+      "donde": "Itacate: la pestaña Mis cocinas"
+    },
+    "persona-circulo": {
+      "codigo": "E009",
+      "reemplaza": [
+        "account-circle-outline"
+      ],
+      "donde": "Itacate: la pestaña Tú"
+    },
+    "caja": {
+      "codigo": "E00A",
+      "reemplaza": [
+        "package-variant-closed"
+      ],
+      "donde": "Wera: la puerta Productos en Inicio"
+    },
+    "proveedor": {
+      "codigo": "E00B",
+      "reemplaza": [
+        "account-tie-outline"
+      ],
+      "donde": "Wera: la puerta Proveedores en Inicio"
+    },
+    "barras": {
+      "codigo": "E00C",
+      "reemplaza": [
+        "chart-bar"
+      ],
+      "donde": "Wera: la puerta Números en Inicio; Wera Cocina: Tus números en Hoy"
+    },
+    "tabla-reloj": {
+      "codigo": "E00D",
+      "reemplaza": [
+        "clipboard-text-clock-outline"
+      ],
+      "donde": "Wera: la puerta de los documentos en Inicio"
+    },
+    "campana": {
+      "codigo": "E00E",
+      "reemplaza": [
+        "bell-outline"
+      ],
+      "donde": "Wera: la puerta Solicitudes en Inicio; Wera Cocina: el recordatorio en Hoy"
+    },
+    "engrane": {
+      "codigo": "E00F",
+      "reemplaza": [
+        "cog-outline"
+      ],
+      "donde": "Wera: la puerta Ajustes en Inicio"
+    },
+    "flecha-derecha": {
+      "codigo": "E010",
+      "reemplaza": [
+        "chevron-right"
+      ],
+      "donde": "Las tres apps: al final de una fila que abre otra pantalla"
+    },
+    "play": {
+      "codigo": "E011",
+      "reemplaza": [
+        "play"
+      ],
+      "donde": "Wera: el recorrido en Inicio"
+    },
+    "cerrar": {
+      "codigo": "E012",
+      "reemplaza": [
+        "close"
+      ],
+      "donde": "Las tres apps: cerrar un aviso o una hoja"
+    },
+    "fuego": {
+      "codigo": "E013",
+      "reemplaza": [
+        "fire"
+      ],
+      "donde": "Wera: la racha de ventas en Inicio"
+    },
+    "camion": {
+      "codigo": "E014",
+      "reemplaza": [
+        "truck-outline"
+      ],
+      "donde": "Wera: la recolección de Te lo compro en Inicio"
+    },
+    "palomita-circulo": {
+      "codigo": "E015",
+      "reemplaza": [
+        "check-circle-outline"
+      ],
+      "donde": "Wera: Hecho, después de registrar"
+    },
+    "mas": {
+      "codigo": "E016",
+      "reemplaza": [
+        "plus"
+      ],
+      "donde": "Wera Cocina: Publicar una oferta en Hoy; las tres apps: añadir"
+    },
+    "repetir": {
+      "codigo": "E017",
+      "reemplaza": [
+        "repeat"
+      ],
+      "donde": "Wera Cocina: repetir la oferta de ayer en Hoy"
+    },
+    "comillas": {
+      "codigo": "E018",
+      "reemplaza": [
+        "format-quote-open"
+      ],
+      "donde": "Wera Cocina: su frase, en Hoy"
+    },
+    "mas-circulo": {
+      "codigo": "E019",
+      "reemplaza": [
+        "plus-circle-outline"
+      ],
+      "donde": "Wera Cocina: su primera oferta, en Hoy"
+    },
+    "camara": {
+      "codigo": "E01A",
+      "reemplaza": [
+        "camera-outline"
+      ],
+      "donde": "Wera Cocina: su portada, en Hoy"
+    },
+    "sello": {
+      "codigo": "E01B",
+      "reemplaza": [
+        "stamper"
+      ],
+      "donde": "Wera Cocina: la tarjeta de lealtad, en Hoy"
+    },
+    "destellos": {
+      "codigo": "E01C",
+      "reemplaza": [
+        "creation"
+      ],
+      "donde": "Wera Cocina: las promociones, en Hoy"
+    },
+    "libro": {
+      "codigo": "E01D",
+      "reemplaza": [
+        "book-open-variant"
+      ],
+      "donde": "Wera Cocina: el menú (Próximamente), en Hoy"
+    },
+    "qr": {
+      "codigo": "E01E",
+      "reemplaza": [
+        "qrcode"
+      ],
+      "donde": "Wera Cocina: escanear una tarjeta, en Hoy"
+    },
+    "nube-subir": {
+      "codigo": "E01F",
+      "reemplaza": [
+        "cloud-upload-outline"
+      ],
+      "donde": "Wera Cocina: lo que se manda al volver la señal, en Hoy"
+    },
+    "sin-senal": {
+      "codigo": "E020",
+      "reemplaza": [
+        "wifi-off"
+      ],
+      "donde": "Wera Cocina: sin señal, en Hoy"
+    }
+  }
+}
