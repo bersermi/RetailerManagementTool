@@ -1,0 +1,87 @@
+{
+  "_nota": "Step 11, row 11.2 (2026-11-21): the counter's objects in direction A · Mostrador, as React Native draws them today — views, live text, and pictures tinted at runtime (<Image tintColor>), since no app build carries an SVG library. Proposed for his look at 11.5; nothing here reaches a phone before rows 11.6 to 11.9 copy it into an app. A picture's size is its drawing's (brand/mostrador/objetos/*.svg, width and height in points), rendered by brand/render-mostrador.sh into brand/mostrador/png/; this file holds what no picture says. Lengths in points; colours are palette roles (paleta.json). Checked by objetos.mjs beside it. The reference page is https://claude.ai/artifact/WhCNyqR8PhzkFom7gavTX5",
+  "hoja": {
+    "que": "A sheet: what is read. A list, a card, a bottom sheet. Row 11.1's, kept.",
+    "esquina": "esquina-hoja",
+    "receta": "<View style={{ backgroundColor: superficie, borderRadius: 3, padding: space }}>"
+  },
+  "boleto": {
+    "que": "A ticket: what is handed over or kept — an apartado, its code, the handover. Square corners, a notch at each end of the band where it tears, a perforation across the band, and a stub after it.",
+    "esquina": "esquina-boleto",
+    "muesca": {
+      "dibujo": "muesca",
+      "radio": 8,
+      "receta": "A row across the ticket, as tall as the drawing (18): the notch picture tinted the ticket's colour, a view of that colour holding the perforation, and the same picture flipped (transform: [{ scaleX: -1 }]). The bite is transparent, so the counter and its paper show through it."
+    },
+    "perforacion": {
+      "raya": 4,
+      "hueco": 3,
+      "grueso": 1.5,
+      "color": "linea",
+      "colorSobreAccion": "barraSobreAccion",
+      "receta": "Dashes as views (width 4, height 1.5, 3 apart), as many as fit the measured width (onLayout). Not borderStyle 'dashed': one dashed side is not drawn the same on both platforms."
+    },
+    "talon": "The stub is a view of its own after the band, so it can tear off (movimiento.json, talon) while the ticket stays."
+  },
+  "sello": {
+    "que": "A stamp: what is earned or done. Round with the cow on the loyalty card; a word in a double rule when the stamp says what happened. Always a little turned, never level.",
+    "vaca": {
+      "dibujo": "sello-vaca",
+      "tinta": "superficie: the card is her kitchen's colour, and the stamp is pressed in white on it",
+      "receta": "<Image source={sello-vaca} tintColor={tinta} style={{ width: 32, height: 32, transform: [{ rotate: giro }] }} />, giro from giros by the stamp's position. The empty place stays as today: a thin ring."
+    },
+    "palabra": {
+      "palabras": ["Entregado", "Venta registrada", "Compra registrada", "Merma registrada"],
+      "letra": "encabezado",
+      "bordeFuera": 2.5,
+      "entre": 2,
+      "bordeDentro": 1.5,
+      "esquina": 3,
+      "rellenoVertical": 4,
+      "rellenoHorizontal": 10,
+      "giro": -4,
+      "motas": "motas",
+      "receta": "Two views, one inside the other, each with its border in the ink (2.5 outside, 1.5 inside, 2 apart), the word as live text in encabezado, the whole turned -4 degrees; over it the specks picture (motas) tinted the ground the stamp sits on, resizeMode 'cover', pointerEvents 'none'. The word is the app's own string, read aloud and sized by the phone; never baked into a picture."
+    },
+    "giros": [-6, 5, -3, 7, -8, 3, -5, 6, -2, 4, -7, 2]
+  },
+  "etiqueta": {
+    "que": "A price tag: a price on a list. A piece of the counter's paper with a point and its string hole.",
+    "color": "fondo",
+    "punta": {
+      "dibujo": "punta-etiqueta",
+      "proporcion": 0.5,
+      "solape": 1
+    },
+    "esquina": "esquina-etiqueta",
+    "letra": "the phone's own face, bold, at the row's money size (prices in lists stay in the phone's face)",
+    "rellenoVertical": 3,
+    "rellenoHorizontal": 8,
+    "receta": "A row: the point picture tinted fondo, as tall as the tag and half as wide (aspectRatio 0.5), then a view of fondo with the right corners at esquina-etiqueta, 1 point under the picture (marginLeft: -1) so no seam shows, holding the price."
+  },
+  "recibo": {
+    "que": "A receipt: what was rung up. Lo último on Wera's Inicio: a sheet whose foot is torn in teeth.",
+    "diente": {
+      "paso": 12,
+      "alto": 6,
+      "receta": "A row under the sheet, 6 high, overflow hidden: squares of superficie, side 8.49 (the tooth's width over the square root of two), turned 45 degrees, their centres on the row's top edge, 12 apart. Only their lower halves show, as teeth on the counter."
+    }
+  },
+  "pestana": {
+    "que": "The tab bar: the active tab underlined by a stroke of a marker, in place of the pill behind its icon.",
+    "trazo": {
+      "dibujo": "trazo-pestana",
+      "color": "accion",
+      "colorPorPestana": { "comprar": "compra", "desperdicio": "desperdicio" },
+      "normal": [34, 5],
+      "grande": [40, 6]
+    },
+    "receta": "Under the active tab's word: <Image source={trazo-pestana} tintColor={the active tab's colour} style={{ width, height }} /> — accion, and in Wera compra on Comprar and desperdicio on Merma, as the tab's word is today (app/src/app/(tabs)/_layout.tsx); under the others an empty space of the same height, so the words do not move. The active word stays bold: never the colour alone."
+  },
+  "papel": {
+    "que": "The counter's paper: a tile repeated behind every screen, over its ground colour.",
+    "dibujo": "mostrador",
+    "fondos": ["fondo", "compraFondo", "desperdicioFondo"],
+    "receta": "The screen's first child: <Image source={mostrador} resizeMode=\"repeat\" style={StyleSheet.absoluteFill} pointerEvents=\"none\" />, over the screen's backgroundColor. Never tinted: the tile is white specks, so it lightens any ground and darkens none. ⚠️ Its cost is measured on an Android before 11.6 lays it (row 11.5)."
+  }
+}
