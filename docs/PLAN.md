@@ -1717,7 +1717,7 @@ once we have done the restyling"* — the status entry of 2026-11-21, 00:50 UTC.
 
 **How it runs beside Step 10:**
 - **No row here is ever *THIS IS THE NEXT TASK*.** Step 10's next task stays the next task; a row here is taken when he
-  asks for it, in its own session and worktree, as `5R-s` was.
+  asks for it, in its own session and worktree, as `5R-s` was. **He starts one with the handbook's *Step 11 Prompt*.**
 - **Two halves.** The design half (`11.1`–`11.5`) writes no app code — a reference page, sources in `brand/`, and a
   branch that is never merged — so it cannot collide with Step 10's pull requests. **The build half (`11.6`–`11.12`)
   starts only after his yes on real screens (`11.5`).**
