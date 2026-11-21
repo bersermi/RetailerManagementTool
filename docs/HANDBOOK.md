@@ -613,6 +613,8 @@ after you have tried it.
 
 **Since 20 November the plan also carries Step 11, the apps' look** — direction A · *Mostrador*, your pick of three (https://claude.ai/artifact/DnbxMURykZKNYYeemUHbuz): the counter's paperwork that tu-wera.com wears, carried into the three apps. It runs **beside** Step 10 and never takes its turn: a row is taken when you ask for it. The design half (`11.1`–`11.5`) touches no app code; the rest starts after your yes on real screens (`11.5`: Wera's at `11.5-i`, Wera Cocina's and Itacate's at `11.5-ii`).
 
+**Since 21 November the plan also carries Step 12, *Optimizations*.** These are screens that must answer fast on a shop with months of history. First is Números' *Ventas*, which spins and then fails on the demo shop (your words that day: *"We can't afford not showing promptly the persons figures over Sales"*). Like Step 11, it runs **beside** Step 10, and a row is taken when you ask for it, with the *Optimizations Prompt*. Its first row (`12.1`) finds the cause and proposes fixes, and changes nothing in the apps. The fix (`12.2`) waits on your yes.
+
 | Job | What | State |
 |---|---|---|
 | **10.4e** | **Wera Cocina — the map fixed before slice 2** | ✅ **Done 2 November, late night**, the same night as your word. **Measured first, as a fonda types**: the same twenty Mexico City addresses, each typed in four steps — half the street, the street, the first digit of the number, the whole number. With the whole number typed, LocationIQ's list opened on the right block 6 times in 20 and **never on the door**; your phone's own search answered with **the door 18 times in 20**, on the right block 12 times on Android and 11 on an iPhone. Before the number, the phone's search did no better than LocationIQ's. **So the list now opens on her door once she has typed the number**, LocationIQ's streets below it while she is still typing the street. **The pin stays in the middle of the map, as Uber does it** — she moves the map under it, or taps her door to bring it to the middle. **What is saved is the middle, only once she has moved the map herself**: right after the map flies to a search answer the pin is grey and hollow and the card says *Mueve el mapa hasta que el pin quede justo donde entregas la comida.* — Apple's and Google's terms forbid keeping their point, so a nudge of hers makes the pin green, and hers. All of it reaches your iPhone's new test build as an update, with nothing to reinstall. What to try: *What only you can judge* → *Wera Cocina → the pin in the middle, and your door in the list* |
@@ -755,6 +757,8 @@ after you have tried it.
 | **11.10** | **The drawn icons and drawings in all three apps** | After `11.3-ii`, `11.4`, `11.6` and `11.7` |
 | **11.11** | **The pictures** — both stores' pictures of Wera, the site's screenshots, and a note on the family-shell drawing | As far as the rows above are done |
 | **11.12** | **With the major update** — true vector stamps, a thud when a stamp lands, the glass tab bar if you want it then | With `10.8` |
+| **12.1** | **Números' *Ventas*, fast on a shop with history**: what is slow and what ends it, measured on the demo shop; the fixes, with their times, one recommended | Not started. Take it with the *Optimizations Prompt* (below). It changes nothing in the apps, and ends in a proposal for your yes |
+| **12.2** | **The fix you pick at `12.1`**: the same figures, measured before and after on the demo shop | After your yes at `12.1` |
 | **10.9a** | **The frame every service lands on** — Wera Cocina's first run in three steps, the third *¿Qué más quieres usar?* (no first offer inside it); three tabs for every kitchen, *Hoy* growing a tile for each feature she uses; the gentle nudges you ruled (*¿Tienes alguna oferta?* instead of *Tu página · 4 de 5*); *Lo que usas* in *Mi cocina*; *Tu menú* as *Próximamente* and *Cuéntanos cómo necesitas tu menú*; in the database, which features each kitchen uses, and a switch of yours to keep a built feature off for everyone | ✅ **Done 18 November, all three parts** — ✂️ split in three on 17 November, measured too big for one sitting: the database (`10.9a-i`, done that day); her choices in the first run and *Mi cocina* (`10.9a-ii`, done that day); *Hoy*'s tiles and the nudges (`10.9a-iii`, done 18 November) |
 | **10.9a-i** | **The frame's database** — which features each kitchen uses (on, off, or *Me interesa*), kept per kitchen; a switch of yours for each feature, and one for *Próximamente*; Itacate told which services a kitchen uses; *Me interesa* and *Cuéntanos cómo necesitas tu menú* recorded | ✅ **Done 17 November, and on the live database the same night** (every switch read back off there) — tried against a test copy of the database, every write read back. **Nothing on a phone changes**: no screen draws it yet. **What it holds:** for each kitchen and feature — the loyalty card, promotions, her numbers, your menu — whether she uses it, not, or said *Me interesa*, with when; only the kitchen's owner writes it, everyone at the kitchen reads it. **Your switches, all off** until each feature is built: one per feature (off, no fonda is offered it or can turn it on, and no neighbour sees it), and one for every *Próximamente* (*Tu menú*, *Cuéntanos*), for after both stores approve. Turning one on is one line on the live database, which you run — a session writes it out for you, since sessions may not write there. **Itacate** learns which services a kitchen uses — the card and promotions only; never that she reads her numbers — and ignores a name it does not know, so its builds in the field survive the services after it. **Your Discord:** *Una cocina quiere: Tu menú* when a fonda taps *Me interesa*, and *Una cocina nos contó cómo necesita su menú* when she writes — what she wrote stays in the database, never on Discord |
 | **10.9a-ii** | **Her choices** — the first run's third step, *¿Qué más quieres usar?*, in place of the first offer; *Lo que usas* at the top of *Mi cocina*, with *Activar*; *Tu menú · Próximamente* with *Me interesa*; *Cuéntanos cómo necesitas tu menú* at the foot of *Hoy* | ✅ **Done 17 November** — every screen built and walked on a test phone against a test copy of the database, with your switches turned on there. **What a fonda sees today, every switch off on the live database: only that the first run is two steps** — her kitchen, her address, then her page; *Lo que usas*, *Tu menú* and *Cuéntanos* stay hidden. ⚠️ **A feature appears only when your switch is on AND the app carries its screen** — so the day the card is built (`10.9e`) its session adds it to the app and its switch is turned on with it; until then nothing new can be offered by mistake. *Tu menú · Me interesa* and *Cuéntanos* appear with your *Próximamente* switch, after both stores approve |
@@ -957,6 +961,69 @@ End every session the same way, so I can read it in twenty seconds:
   - what you decided on my behalf, and what reversing it would cost
   - what is waiting on me — one recommendation with your reasoning, not a menu
   - the next row of Step 11, and whether its gate is met
+```
+
+### The Optimizations Prompt — when a screen keeps a person waiting
+
+Use it for a row of Step 12, *Optimizations*: a screen that is slow, or that fails, on a shop with months of history.
+Like the Step 11 Prompt, it runs beside the main work and says which row to take, so it can run in a second session
+while another runs the main prompt. To start one, paste only this line:
+
+```
+Take the next row of Step 12 in docs/PLAN.md, following the Optimizations Prompt in docs/HANDBOOK.md.
+```
+
+Name the row instead (*"Take row 12.1 …"*) when you want a particular one. What the session follows:
+
+```
+Take ONE row of `## Step 12` in docs/PLAN.md: the one I named, or else the lowest-numbered
+row there that is not done and whose Gate is met. Never a Step 10 or Step 11 row. One row
+per session, then stop.
+
+Another session may be working the main plan at the same time, in the same folder. Work in
+a worktree of your own, cut from origin/main. Run `bash docs/checks/plan-handover.sh` first:
+it guards the whole plan. The next task it names is the main plan's; leave it alone, and end
+your status entry with "<that task> IS THE NEXT TASK, UNCHANGED" so the plan stays true. If
+main moves while you work, rebase, and keep both status entries in time order.
+
+The emulator, my iPhone and the local Supabase stack are shared. Ask the other sessions
+before you use any of them. The hosted database holds the real shops: read it, and never
+write to it without my OK, including a refresh of the demo shop. If you need me to do
+something on my phone (open a screen at a minute you name, so you can read the hosted logs
+for that minute), ask me in chat and wait.
+
+Read first: Step 12's own header in the plan (how it runs, what is already known, and the
+rules every row keeps), then the code and the migrations it names.
+
+Estimate difficulty first and write down what the estimate found. An M or an L is one
+sitting; split only an XL.
+
+A diagnosis is measured, not reasoned. Reproduce the slowness first, on the hosted demo
+shop and on a local copy of the same size. Find where the time goes and what ends it, then
+test each cause by changing it and measuring again. Measure as the phone asks: signed in,
+through RLS, with the same columns, filters, order and pages. Any number you write down
+comes from the thing that runs, never from a grep or a guess. Say which you have evidence
+about: the schema, the code or the shop.
+
+A diagnosis row changes nothing that reaches a phone and writes no migration: use probes,
+scratch copies and a branch that is never merged. It ends in a proposal I can read on my
+phone. Each fix carries its measured time on the demo shop's size and on a year of
+history, what it costs to build, whether it reaches the builds already in the field with no
+update, and what could go wrong. Recommend one, then stop for my yes.
+
+A fix row builds what I said yes to. The figures stay the same to the cent (name the suites
+that hold them), and its time is measured before and after on the hosted demo shop. A
+migration follows CLAUDE.md: it keeps every build in the field working, and merging it
+owes the deploy.
+
+Verify properly and name the check that looked at it.
+
+End every session the same way, so I can read it in twenty seconds:
+  - what shipped, and the check that looked at it, by name
+  - what I must LOOK at, and where, or "nothing to look at"
+  - what you decided on my behalf, and what reversing it would cost
+  - what is waiting on me — one recommendation with your reasoning, not a menu
+  - the next row of Step 12, and whether its gate is met
 ```
 
 ### The Standing Prompt — for a review of where we stand
