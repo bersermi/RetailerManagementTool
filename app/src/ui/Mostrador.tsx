@@ -139,7 +139,7 @@ export function SelloPalabra({ word, ink, suelo, play }: { word: string; ink: st
         ],
       }}
     >
-      <View style={{ borderWidth: 2.5, borderColor: ink, borderRadius: 3, padding: 2 }}>
+      <View style={{ borderWidth: 2.5, borderColor: ink, borderRadius: 3, padding: 2, backgroundColor: suelo }}>
         <View style={{ borderWidth: 1.5, borderColor: ink, borderRadius: 2, paddingVertical: 4, paddingHorizontal: 10 }}>
           <Text style={{ ...encabezado(scale), color: ink }}>{word}</Text>
         </View>

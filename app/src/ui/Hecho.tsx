@@ -89,11 +89,9 @@ export function Hecho({
         style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', gap: scale.space }}
       >
         <Animated.View style={{ opacity: bloom.interpolate({ inputRange: [0, 0.01, 1], outputRange: [0, 1, 1] }), alignItems: 'center', gap: scale.space }}>
-          <View style={{ backgroundColor: PALETTE.superficie, borderRadius: 3, padding: scale.space }}>
-            <SelloPalabra word={word} ink={PALETTE.accion} suelo={PALETTE.superficie} play={1} />
-          </View>
+          <SelloPalabra word={word} ink={PALETTE.accion} suelo={PALETTE.superficie} play={1} />
           {note === null ? null : (
-            <Text style={{ maxWidth: scale.space * 18, fontSize: scale.smallSize, color: PALETTE.tinta, textAlign: 'center', backgroundColor: PALETTE.superficie, borderRadius: 3, padding: scale.rowGap }}>
+            <Text style={{ maxWidth: scale.space * 18, fontSize: scale.smallSize, color: PALETTE.tinta, textAlign: 'center', backgroundColor: PALETTE.fondo, borderRadius: 3, padding: scale.rowGap }}>
               {note}
             </Text>
           )}
