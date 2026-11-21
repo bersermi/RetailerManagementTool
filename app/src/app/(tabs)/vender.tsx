@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import MaterialCommunityIcons from '@/marca/Icono';
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import {
   Animated,
@@ -32,6 +32,8 @@ import { canCommit, commitOf, type Basketful } from '@/cart/commit';
 import { sellGate } from '@/cart/gate';
 import { useCart, useCartStore, useCorrects, useTyped } from '@/cart/store';
 import { formatMXN } from '@/format/mxn';
+import { ES_A } from '@/theme/piel';
+import { Etiqueta, Papel } from '@/ui/Mostrador';
 import { commitToQueue } from '@/lib/commitRunner';
 import { newWriteId, nowIso } from '@/lib/ids';
 import { usePilotVisit } from '@/pilot/usePilotVisit';
@@ -60,6 +62,7 @@ import { TotalCarrito } from '@/ui/TotalCarrito';
 import { Vacio } from '@/ui/Vacio';
 import { Corrigiendo } from '@/ui/Corrigiendo';
 import { VaciarCarrito } from '@/ui/VaciarCarrito';
+import { esq, borde } from '@/theme/piel';
 
 // ============================================================================
 // VENDER — the counter. Plan tasks `5f-ii` (the list, the row, the quantity
@@ -680,7 +683,7 @@ function Fila({
         gap: scale.space,
         paddingVertical: scale.space,
         paddingHorizontal: scale.space,
-        backgroundColor: alarm ? PALETTE.atencionSuave : PALETTE.fondo,
+        backgroundColor: alarm ? PALETTE.atencionSuave : ES_A ? PALETTE.superficie : PALETTE.fondo,
       }}
     >
       <Retrato name={entry.name} picture={entry.picture} />
@@ -775,6 +778,25 @@ function Precio({ entry, onPrice }: { entry: CatalogEntry; onPrice: (() => void)
   const { scale } = useDensity();
   const unit = ES.units[entry.priceUnit as keyof typeof ES.units] ?? entry.priceUnit;
   const priced = entry.centavos !== null;
+  // ⚠️ 11.5-i (never merged): under A a price is a tag on the row — the counter's
+  // grey with its point — and the owner's tap is the tag itself, the pencil in it.
+  if (ES_A && priced) {
+    const tag = (
+      <View style={{ gap: 2 }}>
+        <Etiqueta alto={Math.round(scale.moneySize * 1.5)}>
+          <Text style={{ fontSize: scale.moneySize, fontWeight: '700', color: PALETTE.tinta }}>{formatMXN(entry.centavos as number)}</Text>
+          {onPrice === null ? null : <MaterialCommunityIcons name="pencil-outline" size={scale.smallSize} color={PALETTE.accion} />}
+        </Etiqueta>
+        <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>{ES.sell.per(unit)}</Text>
+      </View>
+    );
+    if (onPrice === null) return tag;
+    return (
+      <Pressable accessibilityRole="button" accessibilityLabel={ES.sell.priceSheet.title(entry.name)} hitSlop={scale.rowGap} onPress={onPrice}>
+        {tag}
+      </Pressable>
+    );
+  }
   const words = (
     <>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: scale.rowGap / 2 }}>
@@ -806,7 +828,7 @@ function Precio({ entry, onPrice }: { entry: CatalogEntry; onPrice: (() => void)
       style={{
         paddingHorizontal: scale.rowGap,
         paddingVertical: scale.rowGap / 2,
-        borderRadius: scale.space,
+        borderRadius: esq(scale.space),
         // ⚠️ A PRODUCT WITH NO PRICE GETS THE CHIP'S OUTLINE AND NOT ITS FILL:
         // on a new shop's first day that is nearly every row, and a list of green
         // chips is a list of shouting. Measured on the emulator, 2026-10-15.
@@ -845,8 +867,8 @@ function Nota({ name, onDone }: { name: string; onDone: () => void }) {
         flexDirection: 'row',
         gap: scale.space,
         padding: scale.space,
-        borderRadius: scale.space,
-        borderWidth: 1,
+        borderRadius: esq(scale.space),
+        borderWidth: borde(1),
         borderColor: PALETTE.linea,
         backgroundColor: PALETTE.superficie,
         // ⚠️ ANDROID'S ELEVATION AND iOS'S SHADOW, the second without an offset:
@@ -1295,7 +1317,7 @@ function Unitario({
         gap: scale.rowGap / 2,
         paddingHorizontal: scale.rowGap,
         paddingVertical: scale.rowGap / 2,
-        borderRadius: scale.space,
+        borderRadius: esq(scale.space),
         backgroundColor: PALETTE.accionSuave,
       }}
     >

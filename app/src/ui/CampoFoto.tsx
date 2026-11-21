@@ -15,7 +15,7 @@
 // product looking unfinished (C8.14).
 // ============================================================================
 
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import MaterialCommunityIcons from '@/marca/Icono';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { initials } from '@/api/catalog';
@@ -24,6 +24,7 @@ import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
 import { Foto } from '@/ui/Foto';
+import { esq } from '@/theme/piel';
 
 export function CampoFoto({
   name,
@@ -62,7 +63,7 @@ export function CampoFoto({
           style={{
             width: side,
             height: side,
-            borderRadius: scale.space,
+            borderRadius: esq(scale.space),
             borderWidth: dashed && !has ? 2 : 1,
             borderStyle: dashed && !has ? 'dashed' : 'solid',
             borderColor: dashed && !has ? PALETTE.accion : PALETTE.linea,
@@ -90,7 +91,7 @@ export function CampoFoto({
               gap: scale.rowGap / 2,
               minHeight: scale.tapTarget,
               paddingHorizontal: scale.space,
-              borderRadius: scale.space * 0.75,
+              borderRadius: esq(scale.space * 0.75),
               borderWidth: 1,
               borderColor: PALETTE.accion,
               backgroundColor: PALETTE.accionSuave,

@@ -19,7 +19,7 @@
 // a link inside it would otherwise be read as two fragments.
 // ============================================================================
 
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import MaterialCommunityIcons from '@/marca/Icono';
 import type { ReactNode } from 'react';
 import { Pressable } from 'react-native';
 

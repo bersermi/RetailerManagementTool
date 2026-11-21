@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import MaterialCommunityIcons from '@/marca/Icono';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
@@ -69,7 +69,9 @@ import { useOnline } from '@/offline/useOnline';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
-import { TITULO } from '@/theme/letra';
+import { FAMILIA_NUMERO, TITULO, lineaTitulo } from '@/theme/letra';
+import { ES_A } from '@/theme/piel';
+import { Papel } from '@/ui/Mostrador';
 import { monthCsv, monthHtml } from '@/export/monthFile';
 import { shareCsv, shareHtmlAsPdf, type ShareOutcome } from '@/export/share';
 import { Boton } from '@/ui/Boton';
@@ -77,6 +79,7 @@ import { Interruptor } from '@/ui/Interruptor';
 import { Rotulo } from '@/ui/Rotulo';
 import { Separador } from '@/ui/Separador';
 import { Vacio } from '@/ui/Vacio';
+import { esq, borde } from '@/theme/piel';
 
 // ============================================================================
 // NÚMEROS — WHAT AM I SELLING, AND WHAT DID IT BRING IN. Plan task `7a`, the
@@ -166,6 +169,7 @@ export default function Numeros() {
 
   return (
     <View style={{ flex: 1, backgroundColor: PALETTE.fondo }}>
+      <Papel />
       <Banda
         title={pagina === 'ventas' ? ES.numbers.salesTitle : ES.numbers.title}
         onBack={pagina === 'ventas' ? () => setPagina('centro') : () => router.back()}
@@ -367,7 +371,7 @@ function PrimeraSemana({ age }: { age: number }) {
             style={{
               flex: 1,
               height: scale.rowGap,
-              borderRadius: scale.rowGap / 2,
+              borderRadius: esq(scale.rowGap / 2),
               backgroundColor: i < age ? PALETTE.accion : PALETTE.accionSuave,
             }}
           />
@@ -467,7 +471,7 @@ function Bloque({
     <View
       style={{
         backgroundColor: soft,
-        borderRadius: scale.space * 0.75,
+        borderRadius: esq(scale.space * 0.75),
         paddingHorizontal: scale.space,
         paddingVertical: scale.rowGap,
         flexDirection: 'row',
@@ -480,7 +484,7 @@ function Bloque({
         {amount === null ? (
           <ActivityIndicator color={ink} style={{ alignSelf: 'flex-start' }} />
         ) : (
-          <Text style={{ fontSize: scale.moneySize * 1.3, ...TITULO, color: PALETTE.tinta }}>{amount}</Text>
+          <Text style={{ fontSize: scale.moneySize * 1.3, ...TITULO, ...(ES_A ? { fontFamily: FAMILIA_NUMERO, fontSize: scale.moneySize * 1.5, fontVariant: ['tabular-nums' as const] } : {}), color: PALETTE.tinta }}>{amount}</Text>
         )}
         {line === '' ? null : (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: scale.rowGap / 4 }}>
@@ -547,9 +551,9 @@ function Hallazgo({ title, big, children, tip }: { title: string; big: string; c
       style={{
         width,
         backgroundColor: PALETTE.superficie,
-        borderWidth: 1,
+        borderWidth: borde(1),
         borderColor: PALETTE.linea,
-        borderRadius: scale.space * 0.875,
+        borderRadius: esq(scale.space * 0.875),
         padding: scale.space,
         gap: scale.rowGap,
       }}
@@ -643,7 +647,7 @@ function Cliente({ ticket }: { ticket: Ticket }) {
             style={{
               width: `${Math.round((row.centavos / most) * 100)}%`,
               height: scale.rowGap,
-              borderRadius: scale.rowGap / 2,
+              borderRadius: esq(scale.rowGap / 2),
               backgroundColor: row.on ? PALETTE.accion : PALETTE.accionSuave,
             }}
           />
@@ -735,7 +739,7 @@ function Cuadritos({ year }: { year: Year }) {
                 style={{
                   width: side,
                   height: side,
-                  borderRadius: side / 4,
+                  borderRadius: esq(side / 4),
                   backgroundColor: cell === null ? 'transparent' : cell === 0 ? PALETTE.linea : PALETTE.accion,
                   opacity: cell === null || cell === 0 ? 1 : shade[cell],
                 }}
@@ -796,7 +800,7 @@ function Columnas({
             style={{
               flex: 1,
               height: Math.max(1, Math.round(v.share * height)),
-              borderRadius: scale.rowGap / 3,
+              borderRadius: esq(scale.rowGap / 3),
               backgroundColor: v.share === 0 ? PALETTE.linea : v.on ? PALETTE.accion : PALETTE.accionSuave,
             }}
           />
@@ -834,7 +838,7 @@ function Bloqueada({ title, when, have, need }: { title: string; when: string; h
     <View
       style={{
         backgroundColor: PALETTE.atencionSuave,
-        borderRadius: scale.space * 0.875,
+        borderRadius: esq(scale.space * 0.875),
         padding: scale.space,
         gap: scale.rowGap,
       }}
@@ -843,12 +847,12 @@ function Bloqueada({ title, when, have, need }: { title: string; when: string; h
         <MaterialCommunityIcons name="lock-outline" size={scale.iconSize} color={PALETTE.atencion} />
         <Text style={{ flex: 1, fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.tinta }}>{title}</Text>
       </View>
-      <View style={{ height: scale.rowGap, borderRadius: scale.rowGap / 2, backgroundColor: PALETTE.superficie }}>
+      <View style={{ height: scale.rowGap, borderRadius: esq(scale.rowGap / 2), backgroundColor: PALETTE.superficie }}>
         <View
           style={{
             width: `${Math.round((Math.min(have, need) / need) * 100)}%`,
             height: scale.rowGap,
-            borderRadius: scale.rowGap / 2,
+            borderRadius: esq(scale.rowGap / 2),
             backgroundColor: PALETTE.atencion,
           }}
         />
@@ -865,9 +869,9 @@ function Tarjeta({ children }: { children: React.ReactNode }) {
     <View
       style={{
         backgroundColor: PALETTE.superficie,
-        borderWidth: 1,
+        borderWidth: borde(1),
         borderColor: PALETTE.linea,
-        borderRadius: scale.space * 0.875,
+        borderRadius: esq(scale.space * 0.875),
         padding: scale.space,
         gap: scale.rowGap,
       }}
@@ -898,7 +902,7 @@ function Banda({ title, onBack }: { title: string; onBack: () => void }) {
     >
       <Text
         numberOfLines={1}
-        style={{ flex: 1, fontSize: scale.titleSize, ...TITULO, color: PALETTE.tinta }}
+        style={{ flex: 1, fontSize: scale.titleSize, ...TITULO, ...lineaTitulo(scale), color: PALETTE.tinta }}
       >
         {title}
       </Text>
@@ -959,7 +963,7 @@ function Barras({
               <View
                 style={{
                   height: Math.max(1, Math.round(bar.share * height)),
-                  borderRadius: scale.rowGap / 2,
+                  borderRadius: esq(scale.rowGap / 2),
                   backgroundColor:
                     bar.share === 0 ? PALETTE.linea : on ? PALETTE.accion : PALETTE.accionSuave,
                   borderWidth: on ? 0 : 1,
@@ -1033,9 +1037,9 @@ function Tabla({
         <View
           style={{
             backgroundColor: PALETTE.superficie,
-            borderWidth: 1,
+            borderWidth: borde(1),
             borderColor: PALETTE.linea,
-            borderRadius: scale.space / 2,
+            borderRadius: esq(scale.space / 2),
           }}
         >
           {report.rows.map((row, index) => (

@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import MaterialCommunityIcons from '@/marca/Icono';
 import { Tabs } from 'expo-router/js-tabs';
 import { Image, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -11,7 +11,9 @@ import { TABS } from '@/navigation/tabs';
 import { currentTabGuard } from '@/navigation/salida';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
-import { TITULO } from '@/theme/letra';
+import { TITULO, lineaTitulo } from '@/theme/letra';
+import { ES_A } from '@/theme/piel';
+import { Papel, Trazo } from '@/ui/Mostrador';
 
 // ============================================================================
 // THE TAB SHELL. Plan task 5a-ii. The tabs themselves are `src/navigation/
@@ -51,6 +53,7 @@ export default function TabsLayout() {
           height: scale.tabBarHeight + insets.bottom,
           paddingBottom: insets.bottom,
           paddingTop: scale.rowGap / 2,
+          ...(ES_A ? { backgroundColor: PALETTE.superficie, borderTopColor: PALETTE.linea } : {}),
         },
       }}
     >
@@ -84,6 +87,16 @@ export default function TabsLayout() {
                   ? PALETTE.desperdicio
                   : PALETTE.accion,
             header: () => <Banda title={tab.label} />,
+            ...(ES_A
+              ? {
+                  tabBarLabel: ({ focused, color }: { focused: boolean; color: unknown }) => (
+                    <View style={{ alignItems: 'center' }}>
+                      <Text style={{ fontSize: scale.tabLabelSize, fontWeight: focused ? '700' : '500', color: color as string }}>{tab.label}</Text>
+                      <Trazo on={focused} color={color as string} />
+                    </View>
+                  ),
+                }
+              : {}),
             tabBarIcon: ({ color }) => (
               <MaterialCommunityIcons
                 // The glyph names are checked against the shipped map in
@@ -138,11 +151,12 @@ function Banda({ title }: { title: string }) {
         paddingTop: insets.top + scale.space,
         paddingBottom: scale.space,
         paddingHorizontal: scale.space,
-        borderBottomWidth: 1,
+        borderBottomWidth: ES_A ? 0 : 1,
         borderBottomColor: PALETTE.linea,
         gap: scale.rowGap / 4,
       }}
     >
+      <Papel />
       {emblema === null ? null : (
         <Image
           source={DIBUJOS[emblema]}
@@ -167,7 +181,7 @@ function Banda({ title }: { title: string }) {
       <Text
         accessibilityRole="header"
         numberOfLines={1}
-        style={{ fontSize: scale.titleSize, ...TITULO, color: PALETTE.tinta }}
+        style={{ fontSize: scale.titleSize, ...TITULO, ...lineaTitulo(scale), color: PALETTE.tinta }}
       >
         {title}
       </Text>
@@ -176,9 +190,9 @@ function Banda({ title }: { title: string }) {
           numberOfLines={1}
           style={{
             fontSize: scale.smallSize,
-            fontWeight: '700',
-            letterSpacing: scale.rowGap / 8,
-            textTransform: 'uppercase',
+            fontWeight: ES_A ? '600' : '700',
+            letterSpacing: ES_A ? 0 : scale.rowGap / 8,
+            textTransform: ES_A ? 'none' : 'uppercase',
             color: PALETTE.marca,
           }}
         >

@@ -14,13 +14,14 @@
 // key unless its screen asks for *Siguiente*, and a password box carries
 // *Mostrar* / *Ocultar* (`mostrable`), the dots by default.
 // ============================================================================
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import MaterialCommunityIcons from '@/marca/Icono';
 import { useState, type Ref } from 'react';
 import { Pressable, Text, TextInput, View, type TextInputProps } from 'react-native';
 
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
+import { esq, borde } from '@/theme/piel';
 
 export function Campo({
   label,
@@ -55,9 +56,9 @@ export function Campo({
           style={{
             fontSize: scale.bodySize,
             minHeight: scale.tapTarget,
-            borderWidth: 1,
+            borderWidth: borde(1),
             borderColor: PALETTE.linea,
-            borderRadius: scale.space * 0.75,
+            borderRadius: esq(scale.space * 0.75),
             paddingHorizontal: scale.space,
             paddingRight: mostrable ? scale.tapTarget + scale.space / 2 : scale.space,
             backgroundColor: PALETTE.superficie,

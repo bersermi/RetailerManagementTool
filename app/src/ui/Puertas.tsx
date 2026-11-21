@@ -8,13 +8,14 @@
 // Drawn on the welcome (`(auth)/hola`) and on the landing, for a signed-in
 // account that came by neither door (a second phone).
 // ============================================================================
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import MaterialCommunityIcons from '@/marca/Icono';
 import type { ComponentProps } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
+import { esq } from '@/theme/piel';
 
 type Icono = ComponentProps<typeof MaterialCommunityIcons>['name'];
 
@@ -41,7 +42,7 @@ export function Puertas({
         alignItems: 'center',
         gap: scale.space,
         paddingHorizontal: scale.space + scale.rowGap,
-        borderRadius: scale.space + scale.rowGap / 2,
+        borderRadius: esq(scale.space + scale.rowGap / 2),
         borderWidth: 1.5,
         borderColor: PALETTE.accion,
         backgroundColor: lleno ? PALETTE.accion : PALETTE.superficie,

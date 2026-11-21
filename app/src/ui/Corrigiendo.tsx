@@ -10,12 +10,13 @@
 // counter's own *Vaciar carrito* box, which then asks in the correction's words.
 // ============================================================================
 
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import MaterialCommunityIcons from '@/marca/Icono';
 import { Pressable, Text, View } from 'react-native';
 
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
+import { esq } from '@/theme/piel';
 
 export function Corrigiendo({ line, onCancel }: { line: string; onCancel: () => void }) {
   const { scale } = useDensity();
@@ -26,7 +27,7 @@ export function Corrigiendo({ line, onCancel }: { line: string; onCancel: () => 
         alignItems: 'center',
         gap: scale.rowGap,
         backgroundColor: PALETTE.atencionSuave,
-        borderRadius: scale.space * 0.75,
+        borderRadius: esq(scale.space * 0.75),
         paddingHorizontal: scale.space,
         paddingVertical: scale.rowGap / 2,
       }}

@@ -11,10 +11,21 @@
 import { Text } from 'react-native';
 
 import { useDensity } from '@/theme/DensityProvider';
+import { encabezado } from '@/theme/letra';
 import { PALETTE } from '@/theme/palette';
+import { ES_A } from '@/theme/piel';
 
 export function Rotulo({ text, ink = PALETTE.tintaApagada }: { text: string; ink?: string }) {
   const { scale } = useDensity();
+  // ⚠️ 11.5-i (never merged): under A a spaced capital becomes a heading in
+  // sentence case, in the titles' face, in ink unless a role was asked for.
+  if (ES_A) {
+    return (
+      <Text accessibilityRole="header" style={{ ...encabezado(scale), color: ink === PALETTE.tintaApagada ? PALETTE.tinta : ink }}>
+        {text}
+      </Text>
+    );
+  }
   return (
     <Text
       style={{

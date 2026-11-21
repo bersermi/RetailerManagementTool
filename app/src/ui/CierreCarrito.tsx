@@ -24,7 +24,7 @@
 // and the `Deslizador` still nudges, so the touch is answered.
 // ============================================================================
 
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import MaterialCommunityIcons from '@/marca/Icono';
 import { useRef, useState, type ReactNode } from 'react';
 import { Animated, Easing, PanResponder, Pressable, Text, View } from 'react-native';
 
@@ -32,6 +32,7 @@ import { releaseCommits, releaseTaps } from '@/cart/commit';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
+import { esq } from '@/theme/piel';
 
 export function CierreCarrito({
   onEmpty,
@@ -296,7 +297,7 @@ function Deslizador({
       onLayout={(e) => setTrack(e.nativeEvent.layout.width)}
       style={{
         height,
-        borderRadius: height / 2,
+        borderRadius: esq(height / 2),
         borderWidth: 1,
         borderColor: PALETTE.accion,
         backgroundColor: PALETTE.accionSuave,
@@ -358,7 +359,7 @@ function Deslizador({
         style={{
           width: height,
           height,
-          borderRadius: height / 2,
+          borderRadius: esq(height / 2),
           backgroundColor: PALETTE.accion,
           alignItems: 'center',
           justifyContent: 'center',

@@ -19,13 +19,16 @@
 // takes no touches: a thumb reaching for the next product must not lose its tap.
 // ============================================================================
 
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import MaterialCommunityIcons from '@/marca/Icono';
 import { useEffect, useRef } from 'react';
 import { Animated, Easing, Text, View } from 'react-native';
 
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
+import { ES_A } from '@/theme/piel';
+import { SelloPalabra } from '@/ui/Mostrador';
 import { DONE_HOLD_MS, DONE_IN_MS, DONE_NOTE_HOLD_MS, DONE_OUT_MS } from '@/theme/pulse';
+import { esq, borde } from '@/theme/piel';
 
 export function Hecho({
   shown,
@@ -77,6 +80,28 @@ export function Hecho({
 
   if (!shown) return null;
 
+  // ⚠️ 11.5-i (never merged): under A the confirmation is the word's stamp,
+  // pressed onto the screen (*El sello cae*), its note on a sheet beneath.
+  if (ES_A) {
+    return (
+      <View
+        pointerEvents="none"
+        style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', gap: scale.space }}
+      >
+        <Animated.View style={{ opacity: bloom.interpolate({ inputRange: [0, 0.01, 1], outputRange: [0, 1, 1] }), alignItems: 'center', gap: scale.space }}>
+          <View style={{ backgroundColor: PALETTE.superficie, borderRadius: 3, padding: scale.space }}>
+            <SelloPalabra word={word} ink={PALETTE.accion} suelo={PALETTE.superficie} play={1} />
+          </View>
+          {note === null ? null : (
+            <Text style={{ maxWidth: scale.space * 18, fontSize: scale.smallSize, color: PALETTE.tinta, textAlign: 'center', backgroundColor: PALETTE.superficie, borderRadius: 3, padding: scale.rowGap }}>
+              {note}
+            </Text>
+          )}
+        </Animated.View>
+      </View>
+    );
+  }
+
   return (
     <View
       pointerEvents="none"
@@ -88,8 +113,8 @@ export function Hecho({
           gap: scale.rowGap,
           paddingHorizontal: scale.space * 2,
           paddingVertical: scale.space * 1.5,
-          borderRadius: scale.space,
-          borderWidth: 1,
+          borderRadius: esq(scale.space),
+          borderWidth: borde(1),
           borderColor: PALETTE.linea,
           backgroundColor: PALETTE.superficie,
           // ⚠️ ANDROID'S ELEVATION AND iOS'S SHADOW, the second without an offset:

@@ -21,6 +21,7 @@ import { Boton } from '@/ui/Boton';
 import { BotonLleno } from '@/ui/BotonLleno';
 import { Frase } from '@/ui/Frase';
 import { Velo } from '@/ui/Velo';
+import { esq } from '@/theme/piel';
 
 export function Pregunta({
   shown,
@@ -51,7 +52,7 @@ export function Pregunta({
         <View
           style={{
             width: '100%',
-            borderRadius: scale.space,
+            borderRadius: esq(scale.space),
             backgroundColor: PALETTE.fondo,
             padding: scale.space * 1.5,
             gap: scale.space,

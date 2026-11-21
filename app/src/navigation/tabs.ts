@@ -1,6 +1,6 @@
 import type { ComponentProps } from 'react';
 
-import type MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import type MaterialCommunityIcons from '@/marca/Icono';
 
 import { ES } from '@/strings';
 

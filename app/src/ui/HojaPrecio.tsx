@@ -39,6 +39,7 @@ import { BotonLleno } from '@/ui/BotonLleno';
 import type { Picture } from '@/api/photos';
 import { Retrato } from '@/ui/Retrato';
 import { Velo } from '@/ui/Velo';
+import { esq } from '@/theme/piel';
 
 export function HojaPrecio({
   name,
@@ -124,7 +125,7 @@ export function HojaPrecio({
               gap: scale.rowGap,
               minHeight: scale.tapTarget * 1.4,
               paddingHorizontal: scale.space,
-              borderRadius: scale.space,
+              borderRadius: esq(scale.space),
               borderWidth: 2,
               borderColor: tone,
               backgroundColor: PALETTE.superficie,

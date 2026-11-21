@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import MaterialCommunityIcons from '@/marca/Icono';
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Animated, Easing, Pressable, ScrollView, Text, View } from 'react-native';
@@ -39,7 +39,9 @@ import { deviceStore, readKey, writeKey } from '@/lib/store';
 import { WEEK_SEEN_KEY, lastWeek, offersWeek, weekRange } from '@/api/semana';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
-import { TITULO } from '@/theme/letra';
+import { TITULO, numero } from '@/theme/letra';
+import { ES_A, borde, esq } from '@/theme/piel';
+import { Dientes, Papel } from '@/ui/Mostrador';
 import { PALETTE } from '@/theme/palette';
 import { Hecho } from '@/ui/Hecho';
 import { Rotulo } from '@/ui/Rotulo';
@@ -145,6 +147,7 @@ export default function Inicio() {
 
   return (
     <View style={{ flex: 1, backgroundColor: PALETTE.fondo }}>
+      <Papel />
       <ScrollView
         contentContainerStyle={{ padding: scale.space, gap: scale.space }}
         // ⚠️ `8g`, 2026-10-20: PULL DOWN TO REFRESH — the quiet extra, no button
@@ -234,8 +237,8 @@ function Hoy({ focused, onCelebrate }: { focused: boolean; onCelebrate: (word: s
       style={{
         gap: scale.rowGap / 2,
         padding: scale.space,
-        borderRadius: scale.space,
-        borderWidth: 1,
+        borderRadius: esq(scale.space),
+        borderWidth: borde(1),
         borderColor: PALETTE.linea,
         backgroundColor: PALETTE.superficie,
       }}
@@ -278,18 +281,25 @@ function weekdayOf(day: string): string {
  */
 function Rodillo({ text, reduce }: { text: string; reduce: boolean }) {
   const { scale } = useDensity();
-  const line = Math.round(scale.moneySize * 1.2);
+  // ⚠️ 11.5-i (never merged): under A the number is the screen's one big number
+  // (Archivo Condensed Bold, tabular figures, 34/38 and 44/48), and each place
+  // turns 40 ms after the one to its right (*El total rueda*).
+  const big = ES_A ? numero(scale) : null;
+  const line = big === null ? Math.round(scale.moneySize * 1.2) : big.lineHeight;
+  const face = big === null ? { fontSize: scale.moneySize, fontWeight: '700' as const } : { fontFamily: big.fontFamily, fontSize: big.fontSize };
   const chars = [...text];
+  let digitsRight = chars.filter((c) => /[0-9]/.test(c)).length;
   return (
     <View style={{ flexDirection: 'row', height: line, overflow: 'hidden' }} accessibilityLabel={text}>
       {chars.map((ch, i) => {
         const fromRight = chars.length - i;
+        if (/[0-9]/.test(ch)) digitsRight -= 1;
         return /[0-9]/.test(ch) ? (
-          <Digito key={`d${fromRight}`} digit={Number(ch)} line={line} reduce={reduce} />
+          <Digito key={`d${fromRight}`} digit={Number(ch)} line={line} reduce={reduce} face={face} delay={ES_A ? digitsRight * 40 : 0} />
         ) : (
           <Text
             key={`c${fromRight}`}
-            style={{ fontSize: scale.moneySize, lineHeight: line, height: line, fontWeight: '700', color: PALETTE.tinta, includeFontPadding: false }}
+            style={{ ...face, lineHeight: line, height: line, color: PALETTE.tinta, includeFontPadding: false }}
           >
             {ch}
           </Text>
@@ -301,8 +311,7 @@ function Rodillo({ text, reduce }: { text: string; reduce: boolean }) {
 
 const DIGITS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] as const;
 
-function Digito({ digit, line, reduce }: { digit: number; line: number; reduce: boolean }) {
-  const { scale } = useDensity();
+function Digito({ digit, line, reduce, face, delay }: { digit: number; line: number; reduce: boolean; face: object; delay: number }) {
   const y = useRef(new Animated.Value(-digit * line)).current;
   // ⚠️ STARTED IN AN EFFECT, NEVER IN A HANDLER — on the native driver that is
   // motion versus silence (`8g`'s Hecho learned it).
@@ -314,12 +323,13 @@ function Digito({ digit, line, reduce }: { digit: number; line: number; reduce: 
     const run = Animated.timing(y, {
       toValue: -digit * line,
       duration: 700,
-      easing: Easing.out(Easing.cubic),
+      delay,
+      easing: ES_A ? Easing.bezier(0.33, 1, 0.68, 1) : Easing.out(Easing.cubic),
       useNativeDriver: true,
     });
     run.start();
     return () => run.stop();
-  }, [digit, line, reduce, y]);
+  }, [digit, line, reduce, y, delay]);
   return (
     <View style={{ height: line, overflow: 'hidden' }}>
       <Animated.View style={{ transform: [{ translateY: y }] }}>
@@ -327,10 +337,9 @@ function Digito({ digit, line, reduce }: { digit: number; line: number; reduce: 
           <Text
             key={d}
             style={{
-              fontSize: scale.moneySize,
+              ...face,
               lineHeight: line,
               height: line,
-              fontWeight: '700',
               color: PALETTE.tinta,
               fontVariant: ['tabular-nums'],
               includeFontPadding: false,
@@ -344,7 +353,6 @@ function Digito({ digit, line, reduce }: { digit: number; line: number; reduce: 
   );
 }
 
-/** The green `+$45` that rises over the total and fades — once per sale that lands. */
 function Flota({ amount }: { amount: number }) {
   const { scale } = useDensity();
   const t = useRef(new Animated.Value(0)).current;
@@ -362,7 +370,7 @@ function Flota({ amount }: { amount: number }) {
         top: 0,
         paddingHorizontal: scale.rowGap,
         paddingVertical: scale.rowGap / 4,
-        borderRadius: scale.space,
+        borderRadius: esq(scale.space),
         backgroundColor: PALETTE.accion,
         opacity: t.interpolate({ inputRange: [0, 0.15, 0.7, 1], outputRange: [0, 1, 1, 0] }),
         transform: [{ translateY: t.interpolate({ inputRange: [0, 1], outputRange: [scale.space * 1.5, -scale.space] }) }],
@@ -399,12 +407,12 @@ function Marca({ gross, best, weekday, reduce }: { gross: number; best: number; 
     <View style={{ gap: scale.rowGap / 2, marginTop: scale.rowGap / 2 }}>
       <View
         onLayout={(e) => setWidth(e.nativeEvent.layout.width)}
-        style={{ height: scale.rowGap, borderRadius: scale.rowGap, overflow: 'hidden', backgroundColor: PALETTE.accionSuave }}
+        style={{ height: scale.rowGap, borderRadius: esq(scale.rowGap), overflow: 'hidden', backgroundColor: PALETTE.accionSuave }}
       >
         <Animated.View
           style={{
             height: '100%',
-            borderRadius: scale.rowGap,
+            borderRadius: esq(scale.rowGap),
             backgroundColor: broken ? PALETTE.marca : PALETTE.accion,
             // ⚠️ HIDDEN UNTIL MEASURED: a bar drawn full before its width is known
             // would flash the record as already beaten.
@@ -454,8 +462,8 @@ function ConoceWera() {
         alignItems: 'center',
         gap: scale.rowGap,
         padding: scale.space,
-        borderRadius: scale.space,
-        borderWidth: 1,
+        borderRadius: esq(scale.space),
+        borderWidth: borde(1),
         borderColor: PALETTE.linea,
         backgroundColor: PALETTE.superficie,
       }}
@@ -469,7 +477,7 @@ function ConoceWera() {
           style={{
             width: scale.tapTarget,
             height: scale.tapTarget,
-            borderRadius: scale.tapTarget / 2,
+            borderRadius: esq(scale.tapTarget / 2),
             backgroundColor: PALETTE.marca,
             alignItems: 'center',
             justifyContent: 'center',
@@ -516,8 +524,8 @@ function SemanaLista() {
         alignItems: 'center',
         gap: scale.rowGap,
         padding: scale.space,
-        borderRadius: scale.space,
-        borderWidth: 1,
+        borderRadius: esq(scale.space),
+        borderWidth: borde(1),
         borderColor: PALETTE.linea,
         backgroundColor: PALETTE.superficie,
       }}
@@ -526,7 +534,7 @@ function SemanaLista() {
         style={{
           width: scale.tapTarget,
           height: scale.tapTarget,
-          borderRadius: scale.tapTarget / 2,
+          borderRadius: esq(scale.tapTarget / 2),
           backgroundColor: PALETTE.accion,
           alignItems: 'center',
           justifyContent: 'center',
@@ -571,8 +579,8 @@ function Racha({ onCelebrate }: { onCelebrate: (word: string) => void }) {
         alignItems: 'center',
         gap: scale.rowGap,
         padding: scale.space,
-        borderRadius: scale.space,
-        borderWidth: 1,
+        borderRadius: esq(scale.space),
+        borderWidth: borde(1),
         borderColor: PALETTE.linea,
         backgroundColor: PALETTE.banda,
       }}
@@ -589,7 +597,7 @@ function Racha({ onCelebrate }: { onCelebrate: (word: string) => void }) {
             style={{
               width: scale.rowGap,
               height: scale.rowGap * 2,
-              borderRadius: scale.rowGap / 4,
+              borderRadius: esq(scale.rowGap / 4),
               backgroundColor: sold ? PALETTE.marca : PALETTE.linea,
               opacity: sold && i < week.length - 1 ? 0.55 : 1,
             }}
@@ -628,7 +636,7 @@ function Puertas() {
             justifyContent: 'center',
             gap: scale.rowGap / 2,
             paddingVertical: scale.space,
-            borderRadius: scale.space,
+            borderRadius: esq(scale.space),
             backgroundColor: ground[door.key] ?? PALETTE.accion,
           }}
         >
@@ -667,7 +675,8 @@ function Ultimo({ focused }: { focused: boolean }) {
   const seen = useRef<Set<string> | null>(null);
   if (seen.current === null && rows.length > 0) seen.current = new Set(rows.map((r) => r.id));
   return (
-    <View style={{ padding: scale.space, borderRadius: scale.space, borderWidth: 1, borderColor: PALETTE.linea, backgroundColor: PALETTE.superficie }}>
+    <View>
+    <View style={{ padding: scale.space, borderRadius: esq(scale.space), borderWidth: borde(1), borderColor: PALETTE.linea, backgroundColor: PALETTE.superficie, ...(ES_A ? { borderBottomLeftRadius: 0, borderBottomRightRadius: 0 } : {}) }}>
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={`${ES.documents.title}. ${ES.home.feed.seeAll}`}
@@ -689,6 +698,8 @@ function Ultimo({ focused }: { focused: boolean }) {
           return <Renglon key={row.id} row={row} first={i === 0} fresh={fresh} />;
         })
       )}
+    </View>
+    {ES_A ? <Dientes /> : null}
     </View>
   );
 }
@@ -749,7 +760,7 @@ function Ahorros({ focused }: { focused: boolean }) {
   return (
     <View style={{ flexDirection: 'row', gap: scale.rowGap }}>
       {showSaved ? (
-        <View style={{ flex: 1, gap: scale.rowGap / 4, padding: scale.space, borderRadius: scale.space, backgroundColor: PALETTE.compraSuave }}>
+        <View style={{ flex: 1, gap: scale.rowGap / 4, padding: scale.space, borderRadius: esq(scale.space), backgroundColor: PALETTE.compraSuave }}>
           <Rotulo text={ES.home.savings.title} ink={PALETTE.compra} />
           <Text style={{ fontSize: scale.moneySize * 0.8, fontWeight: '700', color: PALETTE.compra }}>{formatMXN(saved)}</Text>
           <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>{ES.home.savings.line}</Text>
@@ -784,7 +795,7 @@ function Rescatado({ paid, focused }: { paid: number; focused: boolean }) {
     <View
       accessible
       accessibilityLabel={`${ES.home.rescued.title}, ${formatMXN(paid)}. ${ES.home.rescued.line}`}
-      style={{ flex: 1, gap: scale.rowGap / 4, padding: scale.space, borderRadius: scale.space, backgroundColor: PALETTE.desperdicioSuave }}
+      style={{ flex: 1, gap: scale.rowGap / 4, padding: scale.space, borderRadius: esq(scale.space), backgroundColor: PALETTE.desperdicioSuave }}
     >
       <Rotulo text={ES.home.rescued.title} ink={PALETTE.desperdicio} />
       <View style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', gap: scale.rowGap }}>
@@ -850,7 +861,7 @@ function Moneda({ size, drop }: { size: number; drop: number }) {
         width: size,
         height: size,
         marginLeft: -size / 2,
-        borderRadius: size / 2,
+        borderRadius: esq(size / 2),
         borderWidth: 2,
         borderColor: PALETTE.atencionSuave,
         backgroundColor: PALETTE.atencion,
@@ -886,7 +897,7 @@ function Recoleccion() {
         alignItems: 'center',
         gap: scale.rowGap,
         padding: scale.space,
-        borderRadius: scale.space,
+        borderRadius: esq(scale.space),
         borderWidth: 1,
         borderColor: PALETTE.desperdicioSuave,
         backgroundColor: PALETTE.superficie,
@@ -948,8 +959,8 @@ function Mas() {
                   justifyContent: 'center',
                   gap: scale.rowGap / 2,
                   padding: scale.rowGap,
-                  borderRadius: scale.space,
-                  borderWidth: 1,
+                  borderRadius: esq(scale.space),
+                  borderWidth: borde(1),
                   borderColor: PALETTE.linea,
                   backgroundColor: PALETTE.superficie,
                 }}
@@ -979,7 +990,7 @@ function Insignia({ count }: { count: number }) {
         right: scale.rowGap / 2,
         minWidth: scale.iconSize,
         paddingHorizontal: scale.rowGap / 2,
-        borderRadius: scale.iconSize,
+        borderRadius: esq(scale.iconSize),
         backgroundColor: PALETTE.atencionSuave,
         borderWidth: 1,
         borderColor: PALETTE.atencion,
@@ -1032,7 +1043,7 @@ function Confeti({ burst }: { burst: number }) {
             top: scale.rowHeight * 2,
             width: scale.rowGap,
             height: scale.rowGap / 2,
-            borderRadius: scale.rowGap / 8,
+            borderRadius: esq(scale.rowGap / 8),
             backgroundColor: p.color,
             opacity: t.interpolate({ inputRange: [0, 0.8, 1], outputRange: [1, 1, 0] }),
             transform: [

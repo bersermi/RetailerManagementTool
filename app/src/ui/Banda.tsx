@@ -15,6 +15,7 @@ import { useDensity } from '@/theme/DensityProvider';
 import { TITULO } from '@/theme/letra';
 import { PALETTE } from '@/theme/palette';
 import { Rotulo } from '@/ui/Rotulo';
+import { borde } from '@/theme/piel';
 
 export function Banda({
   titulo,
@@ -35,7 +36,7 @@ export function Banda({
         paddingTop: insets.top + scale.rowGap,
         paddingBottom: scale.space + scale.rowGap,
         paddingHorizontal: scale.space * 2,
-        borderBottomWidth: 1,
+        borderBottomWidth: borde(1),
         borderBottomColor: PALETTE.linea,
         gap: scale.rowGap / 2,
       }}

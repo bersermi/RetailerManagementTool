@@ -29,6 +29,7 @@ import { type LayoutChangeEvent, View, Text } from 'react-native';
 import type { Plot } from '@/api/costs';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
+import { esq, borde } from '@/theme/piel';
 
 /** How tall the plot is, before density. ⚠️ `scale.space` multiples, never a literal (`R6`). */
 const PLOT_ROWS = 8;
@@ -80,9 +81,9 @@ export function Grafica({
           flex: 1,
           height,
           backgroundColor: PALETTE.superficie,
-          borderWidth: 1,
+          borderWidth: borde(1),
           borderColor: PALETTE.linea,
-          borderRadius: scale.space / 2,
+          borderRadius: esq(scale.space / 2),
           overflow: 'hidden',
         }}
       >
@@ -204,7 +205,7 @@ function Linea({
           top: py(one.y) - dot / 2,
           width: dot,
           height: dot,
-          borderRadius: dot / 2,
+          borderRadius: esq(dot / 2),
           backgroundColor: colour,
         }}
       />,

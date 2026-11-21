@@ -27,7 +27,7 @@
 // the owner's phone to judge, and no check here can see it.
 // ============================================================================
 
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import MaterialCommunityIcons from '@/marca/Icono';
 import { Pressable, Text, View } from 'react-native';
 
 import {
@@ -40,6 +40,7 @@ import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
 import { Casilla } from '@/ui/Casilla';
+import { esq } from '@/theme/piel';
 
 export function SelectorCatalogo({
   template,
@@ -102,7 +103,7 @@ export function SelectorCatalogo({
                 minHeight: scale.tapTarget,
                 justifyContent: 'center',
                 paddingHorizontal: scale.space,
-                borderRadius: scale.rowGap,
+                borderRadius: esq(scale.rowGap),
                 borderWidth: 1,
                 borderColor: on ? PALETTE.accion : PALETTE.linea,
                 backgroundColor: on ? PALETTE.accionSuave : PALETTE.superficie,

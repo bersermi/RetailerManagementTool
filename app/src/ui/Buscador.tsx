@@ -38,13 +38,14 @@
 // component that could not be drawn over anything else (`R16`).
 // ============================================================================
 
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import MaterialCommunityIcons from '@/marca/Icono';
 import type { RefObject } from 'react';
 import { Keyboard, Pressable, Text, TextInput, View } from 'react-native';
 
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
+import { esq, borde } from '@/theme/piel';
 
 /**
  * The box above a catalog list, on all three capture screens and on Productos.
@@ -96,8 +97,8 @@ export function Buscador({
           gap: scale.rowGap,
           minHeight: scale.tapTarget,
           paddingHorizontal: scale.space,
-          borderRadius: scale.space / 2,
-          borderWidth: 1,
+          borderRadius: esq(scale.space / 2),
+          borderWidth: borde(1),
           borderColor: PALETTE.linea,
           backgroundColor: PALETTE.superficie,
         }}

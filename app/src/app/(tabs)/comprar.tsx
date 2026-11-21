@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import MaterialCommunityIcons from '@/marca/Icono';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Animated,

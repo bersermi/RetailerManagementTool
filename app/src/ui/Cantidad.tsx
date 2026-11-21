@@ -48,7 +48,7 @@
 // converts anything.
 // ============================================================================
 
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import MaterialCommunityIcons from '@/marca/Icono';
 import { useRef, useState } from 'react';
 import { Keyboard, Pressable, Text, TextInput, View } from 'react-native';
 
@@ -59,6 +59,7 @@ import { useCartStore } from '@/cart/store';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
+import { esq } from '@/theme/piel';
 
 export function Cantidad({
   entry,
@@ -211,7 +212,7 @@ export function Cantidad({
           alignItems: 'stretch',
           justifyContent: 'center',
           paddingHorizontal: scale.rowGap / 2,
-          borderRadius: scale.space,
+          borderRadius: esq(scale.space),
           borderWidth: counted ? 2 : 1,
           borderColor: counted ? PALETTE.accion : PALETTE.linea,
           backgroundColor: refusal?.dim === true ? PALETTE.fondo : PALETTE.superficie,
@@ -322,7 +323,7 @@ function Paso({
         height: scale.tapTarget,
         alignItems: 'center',
         justifyContent: 'center',
-        borderRadius: scale.tapTarget / 2,
+        borderRadius: esq(scale.tapTarget / 2),
         borderWidth: filled && !disabled ? 0 : 1.5,
         borderColor: disabled ? PALETTE.linea : PALETTE.accion,
         backgroundColor: ground,

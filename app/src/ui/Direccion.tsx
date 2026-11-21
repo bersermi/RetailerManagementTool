@@ -27,6 +27,7 @@ import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
 import { TecladoListo } from '@/ui/TecladoListo';
+import { esq, borde } from '@/theme/piel';
 
 /** The postal code's pad and its *Listo* bar meet by this string (`InputAccessoryView`). */
 const PAD_ID = 'wera.address.pad';
@@ -72,9 +73,9 @@ export function Direccion({
           style={{
             fontSize: scale.bodySize,
             minHeight: scale.tapTarget,
-            borderWidth: 1,
+            borderWidth: borde(1),
             borderColor: PALETTE.linea,
-            borderRadius: scale.space / 2,
+            borderRadius: esq(scale.space / 2),
             paddingHorizontal: scale.space,
             backgroundColor: PALETTE.superficie,
             color: PALETTE.tinta,

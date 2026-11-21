@@ -23,6 +23,7 @@ import type { Picture } from '@/api/photos';
 import { Foto } from '@/ui/Foto';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
+import { esq } from '@/theme/piel';
 
 export function Retrato({
   name,
@@ -48,7 +49,7 @@ export function Retrato({
       style={{
         width: side,
         height: side,
-        borderRadius: small ? scale.space : scale.space * 1.5,
+        borderRadius: esq(small ? scale.space : scale.space * 1.5),
         backgroundColor: ground,
         alignItems: 'center',
         justifyContent: 'center',

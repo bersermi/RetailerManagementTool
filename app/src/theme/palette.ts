@@ -50,6 +50,8 @@
  * doc-comment is the role's ONE job — the sentence a person matches their
  * screen against before picking it.
  */
+import { ES_A } from '@/theme/piel';
+
 export interface Palette {
   /** The ground of every screen. */
   readonly fondo: string;
@@ -188,7 +190,7 @@ export interface Palette {
  * both clear 4.5:1 on every ground already, and a monochrome viewer would
  * still be guessing. The word beside the colour is the fix, and it is free.
  */
-export const PALETTE: Palette = {
+const PALETTE_HOY: Palette = {
   fondo: '#FFFCF6',
   superficie: '#FFFFFF',
   banda: '#FBF0DE',
@@ -212,6 +214,32 @@ export const PALETTE: Palette = {
 };
 
 /** `'fondo' | 'superficie' | …` — derived from the table so the two cannot drift. */
+// ⚠️ 11.5-i (never merged): direction A's values, copied from brand/mostrador/paleta.json.
+const PALETTE_A: Palette = {
+  fondo: '#E9E8E3',
+  superficie: '#FFFFFF',
+  banda: '#E9E8E3',
+  tinta: '#1D2230',
+  tintaApagada: '#555A66',
+  linea: '#D9D6CE',
+  accion: '#1C6B4B',
+  accionSuave: '#E6F0EA',
+  atencion: '#935609',
+  atencionSuave: '#FCF1DE',
+  error: '#A32218',
+  velo: '#11141B',
+  retrato: '#EFEEEA',
+  marca: '#9A4A1A',
+  compra: '#24476B',
+  compraSuave: '#E6ECF3',
+  compraFondo: '#E3E7EC',
+  desperdicio: '#5B2B4E',
+  desperdicioSuave: '#F4E9F0',
+  desperdicioFondo: '#EAE4E8',
+};
+
+export const PALETTE: Palette = ES_A ? PALETTE_A : PALETTE_HOY;
+
 export type PaletteRole = keyof Palette;
 
 /**

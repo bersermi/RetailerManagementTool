@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import MaterialCommunityIcons from '@/marca/Icono';
 import { router } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { useEffect, useState, type ReactNode } from 'react';
