@@ -122,6 +122,11 @@ signed_in (proname) as (values
   -- with nobody kept; the tokens and the messages sit in `servicio`, read by no client
   ('register_push_token'), ('retire_push_token'), ('my_notification_kinds'),
   ('set_notification_switch'), ('count_notification_tap'),
+  -- campaigns (`0093`, plan `10.5c-ii`): her three, keyed on her own id — her yes or no on
+  -- words the analyst approved, her answers read back, a tap on a campaign's message kept
+  -- only on her own while she is counted; campaigns, her answers and who got what sit in
+  -- `servicio`, read by no client
+  ('set_my_consent'), ('my_consent'), ('count_campaign_tap'),
   -- what a policy, a check or a computed column runs as the caller
   ('catalog_image_path'), ('has_role'), ('merma_path_ok'), ('my_locations'),
   ('my_role'), ('my_workspaces'), ('normalize_name'), ('photo_folder_ok'),
