@@ -181,7 +181,8 @@ select public.chk('1.4 Wera Cocina''s kind: apartados, a service kind on its own
           and importance = 'alta' and default_on and is_on and opens = 'apartados'
           and label = 'Avisos de apartados' and detail = 'Cada apartado nuevo y cada cancelación.'
      from servicio.notification_kind where kind = 'apartados')
-  and (select count(*) from servicio.notification_kind) = 1);
+  -- `0093` adds two promotion kinds, dark: Wera Cocina's one service kind is still this one.
+  and (select count(*) from servicio.notification_kind where class = 'servicio') = 1);
 select public.chk('1.5 the three jobs: Expo''s answers each minute, the 30 days and pg_cron''s own history each night',
   (select count(*) from cron.job
     where (jobname, schedule, command) in (
