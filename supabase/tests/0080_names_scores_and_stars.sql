@@ -807,7 +807,13 @@ select public.chk('8.5 ⚠️ her list reads La cocina canceló tu apartado: can
 -- ---- 9. the deletions -------------------------------------------------------------------
 -- Gaby collected a plate at Mari's an hour ago; Mari rated her, she rated Mari with a
 -- note. Otra's kitchen has a thumb and its four ratings.
-select public._past(:rgaby, :gaby, :'ws_m', :lmp, interval '2 hours', true, 951) is not null as gaby_made \gset
+-- ⚠️ A code nobody holds at Mari's that day: `reserve_plate` above drew its codes at random from 100–999, and
+-- a fixed 951 collided once (`main`'s run of `85806ed`, 2026-11-21: reservation_code_unique). Nothing reads it.
+select min(c) as code_gaby from generate_series(100, 999) c
+ where not exists (select 1 from public.reservation r
+                    where r.workspace_id = :'ws_m' and r.code = c
+                      and r.pickup_day = ((now() - interval '2 hours') at time zone 'America/Mexico_City')::date) \gset
+select public._past(:rgaby, :gaby, :'ws_m', :lmp, interval '2 hours', true, :code_gaby) is not null as gaby_made \gset
 select public._thumb(:rgaby, true, '{amable}', now() - interval '90 minutes');
 insert into servicio.kitchen_rating (reservation_id, stars, tags, note) values (:rgaby, 4, '{muy_rica}', 'nota-de-gaby');
 select public._past(:ro, :eli, :'ws_o', :lop, interval '2 days', true, 952) is not null as ro_made \gset
