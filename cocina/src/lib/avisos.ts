@@ -2,7 +2,7 @@ import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 
 import type { Aviso } from '@/api/push';
-import { canalesDe, importanciaAndroid, kindDe, rutaDelToque as rutaDelAviso, type Permiso } from '@/lib/avisosPush';
+import { canalesDe, importanciaAndroid, kindDe, rutaDelToque as rutaDelAviso, type Permiso, type RutaDelToque } from '@/lib/avisosPush';
 import { PREFIJO, RUTA, rutaDelToque, type Disparo } from '@/lib/recordatorio';
 import { ES } from '@/strings';
 
@@ -14,7 +14,8 @@ import { ES } from '@/strings';
 // ⚠️ SINCE `10.5b-v-ii` THIS MODULE ALSO ASKS EXPO FOR THE PHONE'S PUSH TOKEN — the second half,
 // below the reminders: her kitchen's reservations sent from the database (`0092`), the channels
 // made from the kinds the database answers, what the phone allows read back, a message shown
-// while the app is in front (SDK 57 shows none otherwise) and a tap that opens *Apartados*. The
+// while the app is in front (SDK 57 shows none otherwise) and a tap that opens what its kind says —
+// *Apartados*, or since `10.9h-ii` *Publicar* for the nudge to a kitchen with no offer yet. The
 // rules are `@/lib/avisosPush`'s; what is done on each open is `@/lib/useAvisosDelTelefono`'s.
 //
 // ⚠️ ANDROID 13 ASKS ONLY ONCE A CHANNEL EXISTS, so the channel is made before the
@@ -256,7 +257,7 @@ export function alLlegarUnAviso(llego: (kind: string) => void): () => void {
  * A tap on a message from the database — the one that opened the app, and every one tapped while
  * it runs: where it opens and its kind. ⚠️ Acted on once: the last response is cleared after it.
  */
-export function alTocarUnAviso(abrir: (ruta: '/apartados', kind: string) => void): () => void {
+export function alTocarUnAviso(abrir: (ruta: RutaDelToque, kind: string) => void): () => void {
   const seguir = (respuesta: Notifications.NotificationResponse | null) => {
     if (respuesta === null) return;
     const data = respuesta.notification.request.content.data;

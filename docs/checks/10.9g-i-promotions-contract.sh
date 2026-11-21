@@ -28,6 +28,10 @@
 #  10. *Deshacer*, by Wera Cocina's names: gone. Ending one she does not have: her list, unchanged —
 #      never a refusal (a raised `P0002` is a 500 through PostgREST, which this check found).
 #  11. Signed out, nothing is answered.
+#  12. `10.9h-ii` — *Avisar a quienes te siguen*, by Wera Cocina's names (`0094`): while the kind
+#      `promocion_cocina` is dark, not offered and the alert `{offered: false, alerted: false}` with
+#      exactly the app's keys; with it on, offered, and the alert `{true, true}` — again the same answer
+#      (a retry is the same alert); signed out, both refused.
 #
 # ⚠️ WHAT IT DOES NOT ASSERT: the database's own rules (`supabase/tests/0087_promotions.sql`: the
 # shapes, who may, *Deshacer*'s two minutes — `TD032` cannot be reached in a run without waiting —
@@ -35,7 +39,9 @@
 # (`cocina/test/promociones.test.ts`).
 #
 # ⚠️ IT TURNS WERA'S SWITCH FOR PROMOTIONS ON for its run, as the database's owner (`supabase db
-# query --local`), and off again on its way out, as the card's check does. ⚠️ IT DELETES THE KITCHEN
+# query --local`), and off again on its way out, as the card's check does — and since `10.9h-ii` the
+# alert's kind `promocion_cocina` too, for step 12, dark again on its way out. ⚠️ Who RECEIVES the alert,
+# and when, is the database's rule (`supabase/tests/0094_the_services_messages.sql`), not asked here. ⚠️ IT DELETES THE KITCHEN
 # IT MADE as its owner (`delete_my_business`, `0077`). ⚠️ NO `mapfile`, NO `declare -A`: macOS ships
 # bash 3.2. ⚠️ TWO ACCOUNTS A RUN: GoTrue allows 30 sign-ups in 5 minutes, and the falsifier runs
 # this a dozen times.
@@ -63,7 +69,7 @@ fail() { echo "FAIL: $*"; fails=$((fails+1)); }
 
 SCRATCH="$(mktemp -d)"
 as_owner() { supabase db query --local -o csv "$1" 2>/dev/null | tail -1; }
-trap 'as_owner "update servicio.feature_switch set is_on = false where name = '"'"'promociones'"'"'" >/dev/null; rm -rf "$SCRATCH"' EXIT
+trap 'as_owner "update servicio.feature_switch set is_on = false where name = '"'"'promociones'"'"'" >/dev/null; as_owner "update servicio.notification_kind set is_on = false where kind = '"'"'promocion_cocina'"'"'" >/dev/null; rm -rf "$SCRATCH"' EXIT
 
 # --- 1. the apps' own claim, read out of their source ----------------------
 const() { sed -n "s/^export const $1 = '\([^']*\)';.*/\1/p" "$2" | head -1; }
@@ -84,6 +90,9 @@ READ="$(const KITCHEN_PROMOTIONS "$PROMOS_TS")"
 MAKE="$(const CREATE_PROMOTION "$PROMOS_TS")"
 END="$(const END_PROMOTION "$PROMOS_TS")"
 UNDO="$(const UNDO_PROMOTION "$PROMOS_TS")"
+OFFERED="$(const PROMOTION_ALERT_OFFERED "$PROMOS_TS")"
+ALERT="$(const ALERT_PROMOTION "$PROMOS_TS")"
+ALERT_KEYS="$(fields_of "$PROMOS_TS" AlertRow '')"
 THREE="$(const TRES_ACTIVAS "$PROMOS_TS")"
 NO_CARD="$(const SIN_TARJETA "$PROMOS_TS")"
 CANT_JOIN="$(const NO_SE_PUEDE_UNIR "$PROMOS_TS")"
@@ -110,6 +119,7 @@ DELETE="$(const DELETE_MY_BUSINESS "$ACCOUNT_TS")"
 DELETE_ARGS="$(fields_of "$ACCOUNT_TS" DeleteBusinessArgs 'p_')"
 
 for pair in "KITCHEN_PROMOTIONS:$READ" "CREATE_PROMOTION:$MAKE" "END_PROMOTION:$END" "UNDO_PROMOTION:$UNDO" \
+            "PROMOTION_ALERT_OFFERED:$OFFERED" "ALERT_PROMOTION:$ALERT" "AlertRow:$ALERT_KEYS" \
             "TRES_ACTIVAS:$THREE" "SIN_TARJETA:$NO_CARD" "NO_SE_PUEDE_UNIR:$CANT_JOIN" \
             "KitchenArgs:$KITCHEN_ARGS" "CreateArgs:$MAKE_ARGS" "PromotionArgs:$PROMO_ARGS" \
             "PromotionsRow:$ANSWER_KEYS" "PromotionRow:$ROW_KEYS" \
@@ -128,6 +138,7 @@ done
 IFS=, read -r _ _ _ _ _ JOIN_ARG _ <<< "$PUBLISH_ARGS"
 [[ -n "${JOIN_ARG:-}" ]] || { echo "FAIL: PublishArgs names no sixth argument — the promotion an offer joins"; exit 1; }
 ok "read from Wera Cocina: $READ($KITCHEN_ARGS) → {$ANSWER_KEYS}, each {$ROW_KEYS}; $MAKE($MAKE_ARGS); $END and $UNDO($PROMO_ARGS); $PUBLISH(…, $JOIN_ARG)"
+ok "read from Wera Cocina: $OFFERED($KITCHEN_ARGS) → a boolean; $ALERT($PROMO_ARGS) → {$ALERT_KEYS}"
 ok "read from Itacate: $DOOR() — a kitchen's $DOOR_PROMOS, each {$DOOR_ROW_KEYS}; an offer's $OFFER_MARK"
 
 # --- the local stack -------------------------------------------------------
@@ -249,6 +260,21 @@ def door(a, kitchen, promos_key, row_keys, mark_key, promo, offer, mode):
     want = promo if mode == 'in' else None
     return None if o.get(mark_key) == want else 'the offer wears %r, not %r' % (o.get(mark_key), want)
 
+def alert(a, keys, offered, alerted):
+    """alert_promotion: exactly the app's keys, and the two booleans — never how many."""
+    bad = exactly(a, keys, "the alert's answer")
+    if bad:
+        return bad
+    want = {'offered': offered == 'true', 'alerted': alerted == 'true'}
+    got = {k: a.get(k) for k in want}
+    return None if got == want else 'the alert answered %r, not %r' % (got, want)
+
+def boolean(a, want):
+    """promotion_alert_offered: a JSON boolean, the one wanted."""
+    if not isinstance(a, bool):
+        return 'whether it is offered came back %r, not a boolean' % (a,)
+    return None if a == (want == 'true') else 'whether it is offered came back %r, not %s' % (a, want)
+
 def code(a, want):
     got = a.get('code') if isinstance(a, dict) else None
     return None if got == want else 'refused with %r — the app reads %r' % (got, want)
@@ -355,13 +381,29 @@ call u1 "$UNDO" "$(by_names "$PROMO_ARGS" "\"$A\"" "\"$P5\"")" \
 call x4 "$END" "$(by_names "$PROMO_ARGS" "\"$A\"" "\"$(uuid)\"")" \
   && check "ending one her kitchen does not have, by Wera Cocina's names: her list, unchanged — never a refusal" answer "$SCRATCH/x4.json" "$ANSWER_KEYS" "$ROW_KEYS" 2 "$P3,$P2,$P1"
 
+# --- 12. Avisar a quienes te siguen (`0094`, plan 10.9h-ii) ------------------------------------------
+call o1 "$OFFERED" "$(by_names "$KITCHEN_ARGS" "\"$A\"")" \
+  && check "while the alert's kind is dark, $OFFERED by Wera Cocina's names: false — the form draws no switch" boolean "$SCRATCH/o1.json" false
+call a1 "$ALERT" "$(by_names "$PROMO_ARGS" "\"$A\"" "\"$P2\"")" \
+  && check "while it is dark, $ALERT by Wera Cocina's names: exactly the app's keys, nothing offered, nothing alerted" alert "$SCRATCH/a1.json" "$ALERT_KEYS" false false
+[[ "$(as_owner "update servicio.notification_kind set is_on = true where kind = 'promocion_cocina' returning is_on")" == t* ]] \
+  || { echo "FAIL: could not turn the alert's kind on, as the database's owner"; exit 1; }
+call o2 "$OFFERED" "$(by_names "$KITCHEN_ARGS" "\"$A\"")" \
+  && check "with the alert's kind on, $OFFERED: true — the form draws Avisar a quienes te siguen" boolean "$SCRATCH/o2.json" true
+call a2 "$ALERT" "$(by_names "$PROMO_ARGS" "\"$A\"" "\"$P2\"")" \
+  && check "with it on, $ALERT for a promotion neighbours see: exactly the app's keys, offered and alerted" alert "$SCRATCH/a2.json" "$ALERT_KEYS" true true
+call a3 "$ALERT" "$(by_names "$PROMO_ARGS" "\"$A\"" "\"$P2\"")" \
+  && check "again — the phone's retry: the same answer, never a refusal" alert "$SCRATCH/a3.json" "$ALERT_KEYS" true true
+as_owner "update servicio.notification_kind set is_on = false where kind = 'promocion_cocina'" >/dev/null
+
 out="$(api POST "/rest/v1/rpc/$DELETE" "$(by_names "$DELETE_ARGS" "\"$A\"" "\"$NAME\"")")"
 [[ "$(status "$out")" == 200 ]] && ok "her kitchen deleted alone through Wera Cocina's names ($DELETE)" || fail "could not delete her kitchen: $DELETE answered $(status "$out") $(body "$out" | head -c 200)"
 
 # --- 11. signed out --------------------------------------------------------------------------------
 TOKEN=""
 for fn in "$READ:$(by_names "$KITCHEN_ARGS" "\"$A\"")" "$MAKE:$(make_one "$(uuid)" nuevo '[1]' "$DAY" "Nada")" \
-          "$END:$(by_names "$PROMO_ARGS" "\"$A\"" "\"$P2\"")" "$UNDO:$(by_names "$PROMO_ARGS" "\"$A\"" "\"$P2\"")"; do
+          "$END:$(by_names "$PROMO_ARGS" "\"$A\"" "\"$P2\"")" "$UNDO:$(by_names "$PROMO_ARGS" "\"$A\"" "\"$P2\"")" \
+          "$OFFERED:$(by_names "$KITCHEN_ARGS" "\"$A\"")" "$ALERT:$(by_names "$PROMO_ARGS" "\"$A\"" "\"$P2\"")"; do
   out="$(api POST "/rest/v1/rpc/${fn%%:*}" "${fn#*:}")"
   [[ "$(status "$out")" == 401 || "$(status "$out")" == 403 ]] && ok "signed out, ${fn%%:*} is refused ($(status "$out"))" || fail "signed out, ${fn%%:*} answered $(status "$out")"
 done
@@ -371,4 +413,4 @@ if (( fails > 0 )); then
   echo "$fails assertion(s) failed."
   exit 1
 fi
-echo "every assertion held: her kitchen's promotions, one made, an offer joining it, the door's band and mark, three at once, the card's kind, ending, the weekday and Deshacer are the names the database answers."
+echo "every assertion held: her kitchen's promotions, one made, an offer joining it, the door's band and mark, three at once, the card's kind, ending, the weekday, Deshacer and the alert to her followers are the names the database answers."

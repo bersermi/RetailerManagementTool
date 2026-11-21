@@ -20,9 +20,11 @@ import {
   retireArgs,
   switchArgs,
   tapArgs,
+  type Aviso,
 } from '@/api/push';
 import {
   PREGUNTADO_KEY,
+  RUTAS,
   TOKEN_KEY,
   canalesDe,
   enMiCocina,
@@ -274,6 +276,34 @@ describe('a message from the database on the phone', () => {
   it("the database's messages open what the kind says — `0092`’s triggers send opens apartados", () => {
     const text = readFileSync(join(MIGRATIONS, '0092_the_first_push.sql'), 'utf8');
     expect(text.match(/jsonb_build_object\('kind', 'apartados', 'opens', 'apartados', 'workspace_id'/g)).toHaveLength(2);
+  });
+  // `10.9h-ii`: the nudge to a kitchen with no offer yet (`0094`'s `primera_oferta`, *¿Tienes alguna oferta?*).
+  it('the nudge’s tap opens Publicar — the place `0094` sends it with, and its kind’s row names', () => {
+    expect(rutaDelToque({ kind: 'primera_oferta', opens: 'publicar', workspace_id: 'w' })).toBe('/publicar');
+    expect(Object.keys(RUTAS).sort()).toEqual(['apartados', 'publicar']);
+    const text = readFileSync(join(MIGRATIONS, '0094_the_services_messages.sql'), 'utf8').replace(/\s+/g, ' ');
+    expect(text.match(/jsonb_build_object\('kind', 'primera_oferta', 'opens', 'publicar', 'workspace_id'/g)).toHaveLength(1);
+    // The kind's row: a service kind of this app — so *Mi cocina* draws its switch — whose tap opens `publicar`.
+    expect(text).toContain("('primera_oferta', 'cocina', 'servicio', 'primera_oferta', 'Tu primera oferta', 'normal', 'Tu primera oferta', 'Un recordatorio si aún no publicas.', true, true, 'publicar', 2,");
+    // Itacate's kinds open places of Itacate's, never one of this build's.
+    for (const lugar of ['cocina', 'mis_cocinas', 'tarjeta']) expect(rutaDelToque({ kind: 'publico', opens: lugar })).toBeNull();
+  });
+  it('the nudge’s kind is drawn in Mi cocina with Nuevo apartado — a service kind, from its row', () => {
+    const fila = (kind: string, clase: string): Aviso => ({
+      kind,
+      canal: kind,
+      nombreDelCanal: kind,
+      importancia: 'normal',
+      titulo: kind,
+      detalle: null,
+      abre: 'publicar',
+      encendido: true,
+      deServicio: clase === 'servicio',
+    });
+    expect(enMiCocina([fila('apartados', 'servicio'), fila('primera_oferta', 'servicio'), fila('otra', 'promocion')]).map((a) => a.kind)).toEqual([
+      'apartados',
+      'primera_oferta',
+    ]);
   });
 });
 

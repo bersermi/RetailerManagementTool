@@ -6,6 +6,7 @@ import { describe, expect, it } from 'vitest';
 
 import { attemptFor, emptyLine, publishArgs, publishBody, PUBLISH_LISTING, type LineDraft } from '@/api/listing';
 import {
+  ALERT_PROMOTION,
   ACTIVAS_MAX,
   CONDICIONES_MAX,
   CREATE_PROMOTION,
@@ -23,15 +24,19 @@ import {
   NO_SE_OFRECE,
   NO_SE_PUEDE_UNIR,
   PROMOCIONES_KEY,
+  PROMOTION_ALERT_OFFERED,
   SIN_TARJETA,
   TIPOS,
   TRES_ACTIVAS,
   UNDO_PROMOTION,
   YA_NO_SE_DESHACE,
   activasEl,
+  alertaFrom,
+  avisoOfrecidoKey,
   createArgs,
   diaDeLaSemana,
   kitchenArgs,
+  ofrecidoFrom,
   promocionesFrom,
   promocionesKey,
   promotionArgs,
@@ -105,6 +110,57 @@ describe('the names and their arguments, held to `0087`', () => {
     const args = publishArgs({ id: 'x', sent: '' }, publishBody('place', lineas, { start: new Date(0), end: new Date(1) }, null, 'promo-1'));
     expect(Object.keys(args)).toContain('p_promotion_id');
     expect(args.p_promotion_id).toBe('promo-1');
+  });
+});
+
+describe('Avisar a quienes te siguen — the alert’s two doors, held to `0094` (`10.9h-ii`)', () => {
+  it('promotion_alert_offered: her kitchen, by the name the app sends — any member reads it; true only while the kind is on', () => {
+    const { file, body } = ultimaQueDefine(PROMOTION_ALERT_OFFERED);
+    expect(file.startsWith('0094_')).toBe(true);
+    expect(body).toMatch(/promotion_alert_offered\(p_workspace_id uuid\) returns boolean/);
+    expect(Object.keys(kitchenArgs('k'))).toEqual(['p_workspace_id']);
+    expect(body).toContain('p_workspace_id not in (select public.my_workspaces())');
+    expect(body).not.toContain('has_role');
+    expect(body).toContain("k.kind = 'promocion_cocina'");
+  });
+
+  it('alert_promotion: her kitchen and her promotion, by the names the app sends — the owner’s alone', () => {
+    const { file, body } = ultimaQueDefine(ALERT_PROMOTION);
+    expect(file.startsWith('0094_')).toBe(true);
+    expect(body).toMatch(/alert_promotion\(p_workspace_id uuid, p_id uuid\) returns jsonb/);
+    const declared = [...body.slice(0, body.indexOf(') returns')).matchAll(/\b(p_[a-z_]+) /g)].map((m) => m[1]);
+    expect(Object.keys(promotionArgs('k', 'p'))).toEqual(declared);
+    expect(body).toContain("not public.has_role(p_workspace_id, 'owner')");
+  });
+
+  it('its answer is {offered, alerted} and never how many — exactly the keys the app reads', () => {
+    const { body } = ultimaQueDefine(ALERT_PROMOTION);
+    const answers = [...body.matchAll(/jsonb_build_object\('offered', (true|false), 'alerted', (true|false)\)/g)];
+    expect(answers.map((m) => `${m[1]},${m[2]}`)).toEqual(['false,false', 'true,true']);
+    expect(body).not.toMatch(/count\(|row_count/i);
+  });
+
+  it('a retry is the same alert: once per neighbour and promotion', () => {
+    const { body } = ultimaQueDefine(ALERT_PROMOTION);
+    expect(body).toContain("'promotion:' || v_p.id");
+    expect(body).toContain('on conflict (user_id, kind, about) do nothing');
+  });
+
+  it('what the app reads: offered only when it is true, the answer only when both are booleans', () => {
+    expect(ofrecidoFrom(true)).toBe(true);
+    for (const v of [false, null, 'true', 1, {}, undefined]) expect(ofrecidoFrom(v)).toBe(false);
+    expect(alertaFrom({ offered: true, alerted: true })).toEqual({ offered: true, alerted: true });
+    expect(alertaFrom({ offered: false, alerted: false })).toEqual({ offered: false, alerted: false });
+    expect(alertaFrom({ offered: true })).toBeNull();
+    expect(alertaFrom({ offered: 'true', alerted: true })).toBeNull();
+    expect(alertaFrom([true, true])).toBeNull();
+    expect(alertaFrom(null)).toBeNull();
+  });
+
+  it('whether it is offered is cached under the login and the kitchen, apart from her promotions', () => {
+    expect(avisoOfrecidoKey('u', 'k')).toEqual(['cocina', 'aviso-ofrecido', 'u', 'k']);
+    expect(avisoOfrecidoKey(null, null)).toEqual(['cocina', 'aviso-ofrecido', '', '']);
+    expect(avisoOfrecidoKey('u', 'k')[1]).not.toBe(PROMOCIONES_KEY[1]);
   });
 });
 

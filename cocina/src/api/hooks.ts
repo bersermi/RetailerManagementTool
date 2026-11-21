@@ -68,7 +68,14 @@ import { codigoErrorMessage, codigoKey, esRechazoDelCodigo } from '@/api/invitar
 import { SERVICIOS_KEY, serviciosKey, type Estado, type LoQueUsa, type Servicio } from '@/api/servicios';
 import { seguidoresKey } from '@/api/seguidores';
 import { NUMEROS_KEY, numerosKey } from '@/api/numeros';
-import { PROMOCIONES_KEY, promocionesKey, promotionArgs, type CreateArgs, type PromotionsRow } from '@/api/promociones';
+import {
+  PROMOCIONES_KEY,
+  avisoOfrecidoKey,
+  promocionesKey,
+  promotionArgs,
+  type CreateArgs,
+  type PromotionsRow,
+} from '@/api/promociones';
 import {
   TARJETA_KEY,
   codeArgs,
@@ -134,6 +141,8 @@ import {
   endPromotion,
   kitchenPromotions,
   undoPromotion,
+  promotionAlertOffered,
+  alertPromotion,
   myNotificationKinds,
   setNotificationSwitch,
 } from '@/api/calls';
@@ -1312,14 +1321,16 @@ export function useUnirme() {
  * day's card on *Hoy* and before *Eliminar esta cocina*. Any member reads it, her helpers too. Keyed on
  * the login and the kitchen; ⚠️ NOT on the phone's disk (`@/api/persist`'s list is unchanged): with no
  * signal the card simply leaves the line out, and a count read days ago is never shown as today's.
+ * ⚠️ `10.9h-ii`: also under *Avisar a quienes te siguen* on *Nueva promoción* — asked there only while it is offered
+ * (`activa`).
  */
-export function useSeguidores(kitchenId: string | null) {
+export function useSeguidores(kitchenId: string | null, { activa = true }: { activa?: boolean } = {}) {
   const { session, ready } = useAuth();
   const userId = session?.user.id ?? null;
   return useQuery({
     queryKey: seguidoresKey(userId, kitchenId),
     queryFn: () => kitchenFollowers(kitchenId as string),
-    enabled: ready && userId !== null && kitchenId !== null,
+    enabled: ready && userId !== null && kitchenId !== null && activa,
   });
 }
 
@@ -1361,6 +1372,22 @@ export function usePromociones(kitchenId: string | null, { activa = true }: { ac
   return useQuery({
     queryKey: promocionesKey(userId, kitchenId),
     queryFn: () => kitchenPromotions(kitchenId as string),
+    enabled: ready && userId !== null && kitchenId !== null && activa,
+  });
+}
+
+/**
+ * ⚠️ `10.9h-ii`: WHETHER *NUEVA PROMOCIÓN* OFFERS *AVISAR A QUIENES TE SIGUEN* (`promotion_alert_offered`, `0094`) — the
+ * kind `promocion_cocina` on, dark until his product analyst rules. Asked only on the form (`activa`: she is the owner).
+ * Keyed on the login and the kitchen; ⚠️ NOT on the phone's disk: an answer read on another day is not today's, and a
+ * read that failed or waits offers nothing (`data !== true`) — the form never draws a switch the database would not honour.
+ */
+export function useAvisoOfrecido(kitchenId: string | null, { activa = true }: { activa?: boolean } = {}) {
+  const { session, ready } = useAuth();
+  const userId = session?.user.id ?? null;
+  return useQuery({
+    queryKey: avisoOfrecidoKey(userId, kitchenId),
+    queryFn: () => promotionAlertOffered(kitchenId as string),
     enabled: ready && userId !== null && kitchenId !== null && activa,
   });
 }
@@ -1458,6 +1485,15 @@ export function useDeshacerPromocion(): (kitchenId: string, id: string, foto: st
     },
     [queries, userId],
   );
+}
+
+/**
+ * ⚠️ `10.9h-ii`: *AVISAR A QUIENES TE SIGUEN* (`alert_promotion`, `0094`) — the owner's, once; a retry is the same alert.
+ * A plain call with the kitchen and the id, never a screen's mutation: it is made after *Deshacer*'s eight seconds
+ * (`@/lib/avisoDePromocion`), when the form is long gone. Nothing cached changes — the database never says how many.
+ */
+export function useAnunciarPromocion(): (kitchenId: string, id: string) => Promise<unknown> {
+  return useCallback((kitchenId: string, id: string) => alertPromotion(promotionArgs(kitchenId, id)), []);
 }
 
 // ----------------------------------------------------------------------------

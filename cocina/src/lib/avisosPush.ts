@@ -117,10 +117,17 @@ export function kindDe(data: unknown): string | null {
   return typeof kind === 'string' && /^[a-z_]+$/.test(kind) ? kind : null;
 }
 
-/** Where a tap opens, from the places this build knows — anything else opens nothing. */
-export const RUTAS: Readonly<Record<string, '/apartados'>> = { apartados: '/apartados' };
+/** A place a tap may open. */
+export type RutaDelToque = '/apartados' | '/publicar';
 
-export function rutaDelToque(data: unknown): '/apartados' | null {
+/**
+ * Where a tap opens, from the places this build knows — anything else opens nothing. *Nuevo apartado* opens
+ * *Apartados* (`0092`); ⚠️ `10.9h-ii`: the nudge to a kitchen with no offer yet (`0094`'s `primera_oferta`, *¿Tienes
+ * alguna oferta?*) opens *Publicar* — her reminder's place, which her own phone's reminders open by their own route.
+ */
+export const RUTAS: Readonly<Record<string, RutaDelToque>> = { apartados: '/apartados', publicar: '/publicar' };
+
+export function rutaDelToque(data: unknown): RutaDelToque | null {
   if (kindDe(data) === null) return null;
   const abre = (data as { opens?: unknown }).opens;
   return typeof abre === 'string' && Object.prototype.hasOwnProperty.call(RUTAS, abre) ? RUTAS[abre] : null;

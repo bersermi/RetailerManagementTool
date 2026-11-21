@@ -7,7 +7,8 @@
 # or `cocina/src/api/listing.ts`, or Itacate's `itacate/src/api/cocinas.ts` — breaks ONE claim in the
 # copy (a function's name, an argument's, a key of an answer, a refusal's code), points the check at
 # it, and requires red WITH THE SENTENCE that names that claim: red for the wrong reason is a failure
-# here too. The control, unedited, must be green.
+# here too. The control, unedited, must be green. Since `10.9h-ii`, three more: the alert's two names and
+# its answer's keys.
 #
 # Run:  supabase start && supabase db reset && bash docs/checks/10.9g-i-promotions-contract-falsify.sh
 # Exit: 0 every fixture behaved; 1 otherwise.
@@ -122,10 +123,22 @@ echo "P14 an offer that cannot join read under another code"
 run P14 red "the app reads 'TD030'" \
   "s/^export const NO_SE_PUEDE_UNIR = 'TD031';/export const NO_SE_PUEDE_UNIR = 'TD030';/"
 
+echo "P15 whether the alert is offered asked of a misspelt function — the switch is never drawn (10.9h-ii)"
+run P15 red "promotion_alert_offer answered 404" \
+  "s/^export const PROMOTION_ALERT_OFFERED = 'promotion_alert_offered';/export const PROMOTION_ALERT_OFFERED = 'promotion_alert_offer';/"
+
+echo "P16 the alert asked of a misspelt function — Avisar a quienes te siguen never reaches anyone (10.9h-ii)"
+run P16 red "alert_promotions answered 404" \
+  "s/^export const ALERT_PROMOTION = 'alert_promotion';/export const ALERT_PROMOTION = 'alert_promotions';/"
+
+echo "P17 the alert's answer read under another key — every answer unreadable, every alert a failure (10.9h-ii)"
+run P17 red "the alert's answer carried no 'sent'" \
+  '/^export interface AlertRow {/,/^}/s/^  readonly alerted: boolean;/  readonly sent: boolean;/'
+
 echo
 echo "$pass passed, $fail failed."
-if (( pass + fail < 15 )); then
-  echo "FAIL: only $((pass + fail)) fixtures ran, expected 15."
+if (( pass + fail < 18 )); then
+  echo "FAIL: only $((pass + fail)) fixtures ran, expected 18."
   exit 1
 fi
 (( fail == 0 )) || exit 1

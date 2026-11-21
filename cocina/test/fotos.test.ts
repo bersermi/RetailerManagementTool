@@ -240,7 +240,11 @@ describe('the wiring, read as text', () => {
     const gone = undo.indexOf('if (foto !== null && !row.promotions.some((p) => p.id === id)) void deletePictures([foto]);');
     expect(asked).toBeGreaterThan(-1);
     expect(gone).toBeGreaterThan(asked);
-    expect(code('app/(cocina)/nueva-promocion.tsx').match(/deshacer\(kitchenAhora, id, envio\.foto\)/g)).toHaveLength(2);
+    // Both toasts' *Deshacer* carry the photo — since `10.9h-ii` through one call, which also stops the alert.
+    const forma = code('app/(cocina)/nueva-promocion.tsx');
+    expect(forma.match(/deshacer\(kitchenAhora, id, envio\.foto\)/g)).toHaveLength(1);
+    expect(forma).toContain('const problema = await deshacer(kitchenAhora, id, envio.foto);');
+    expect(forma.match(/avisar\([^;]*, deshacerla, palabras/g)).toHaveLength(2);
   });
 
   it('`10.9i-ii`: a delete is one call into the bucket, and never throws — what it tidies is already saved', () => {
