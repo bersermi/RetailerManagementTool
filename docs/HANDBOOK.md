@@ -2177,6 +2177,46 @@ reaches 1.1 only** — a phone on 1.0 takes 1.1 from its store first.
 
 ---
 
+## The demo shop, to show Wera
+
+A made-up shop for showing Wera to people: **Pollería y Recaudería La Güera**, with sales since 1 May,
+deliveries from six providers whose prices move (chicken up in September, jitomate in July, limón down
+from May), its Merma, and an Empleado, **Lucía**. None of it is a real shop's. Its login (email and
+password) is in the message of 20 November, and is not written here because this repository is public.
+Forgot the password: `bash docs/runbooks/reset-a-password.sh <its email>`.
+
+**The morning of a demo**, from the repository folder, so today has sales:
+
+```
+bash docs/runbooks/demo-polleria.sh <its email>
+```
+
+It writes only what is missing, up to the minute you run it, never twice, and ends with the shop month
+by month. It touches nothing but the shop that email owns, and refuses an email that owns more than one
+shop. It writes to the live database, so a session runs it only with your OK. To try it safely first,
+add `--local`.
+
+Where each thing shows:
+
+- **Ventas** — *Números*: six months by day, week and month, by product, the hours and the weekdays.
+  *Inicio*: today.
+- **Compras and their prices** — a product's page → *Costos*: each delivery, by provider (*Pollo
+  entero* comes from two distributors, the second cheaper since September). *Números* → *Lo que más
+  subió*.
+- **Merma** — *Documentos*: the last 7 days, what, how much and why. *Números* → *Tu mes* → *Tirado*.
+- **Lucía** — your team list, as Empleado at the store; the month's download names who recorded each
+  line. She cannot sign in: her login exists only because the database wants one for every member. To
+  show what an Empleado sees, make a second real account and ask a session to make it the employee.
+- **Ganancia** — there is no *ganancia del mes* screen. A month reads as *Vendido* against *Comprado*
+  in *Tu mes*, and each product's page shows *Ganas $X por kg*.
+
+It counts as one more shop in *Seeing how much each shop uses Wera* and *Is any shop's record broken?*.
+To remove it, delete the account from *Ajustes*, which removes the shop; Lucía's login stays until
+`bash docs/runbooks/delete-an-account.sh` is run with her address (`lucia.…@demo.wera.invalid` — a
+session can look it up).
+
+---
+
 ## What only you can decide
 
 - **Anything a shopkeeper sees or types** — wording, taps, what a cashier may change.
