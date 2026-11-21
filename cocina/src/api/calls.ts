@@ -225,12 +225,17 @@ import {
 } from '@/api/tarjeta';
 import { KITCHEN_SEAL_KEYS, llavesFrom, sealKeysArgs, type LlaveDeSello } from '@/api/sello';
 import {
+  ALERT_PROMOTION,
   CREATE_PROMOTION,
   END_PROMOTION,
   KITCHEN_PROMOTIONS,
+  PROMOTION_ALERT_OFFERED,
   UNDO_PROMOTION,
+  alertaFrom,
   kitchenArgs as promotionsKitchenArgs,
+  ofrecidoFrom,
   promocionesFrom,
+  type AlertRow,
   type CreateArgs,
   type PromotionArgs,
   type PromotionsRow,
@@ -850,6 +855,24 @@ export async function undoPromotion(args: PromotionArgs): Promise<PromotionsRow>
   const { data, error } = await supabase.rpc(UNDO_PROMOTION, args);
   if (error) throw error;
   return promociones(UNDO_PROMOTION, data);
+}
+
+// `10.9h-ii` — *Avisar a quienes te siguen* (`0094`): whether it is offered, and the owner's alert.
+
+/** Whether *Publicar promoción* offers *Avisar a quienes te siguen* (`promotion_alert_offered`) — any member. */
+export async function promotionAlertOffered(kitchenId: string): Promise<boolean> {
+  const { data, error } = await supabase.rpc(PROMOTION_ALERT_OFFERED, promotionsKitchenArgs(kitchenId));
+  if (error) throw error;
+  return ofrecidoFrom(data);
+}
+
+/** *Avisar a quienes te siguen* (`alert_promotion`) — the owner's, once; a retry is the same alert. Never how many. */
+export async function alertPromotion(args: PromotionArgs): Promise<AlertRow> {
+  const { data, error } = await supabase.rpc(ALERT_PROMOTION, args);
+  if (error) throw error;
+  const row = alertaFrom(data);
+  if (row === null) throw new TypeError(`${ALERT_PROMOTION}: an answer this build cannot read`);
+  return row;
 }
 
 // ----------------------------------------------------------------------------

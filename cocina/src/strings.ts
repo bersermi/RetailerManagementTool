@@ -1540,8 +1540,10 @@ export const ES = {
    * ⚠️ `10.9g-ii`: PROMOTIONS IN WERA COCINA — the owner's rulings of 2026-11-05 (calls 23–25) and G18, G28–G30
    * and G36 of 2026-11-16 and 17, as the family-shell page draws stage 4 (`cPromos`, `promoForm`, `promoSheet`,
    * `promoBand`, the tile). The drawn words are the page's; the rest is this row's, each said in the plan's
-   * status entry. ⚠️ NOTHING HERE PROMISES A MESSAGE: *Avisar a quienes te siguen* is the analyst's (`10.9h`),
-   * so the drawing's switch is not written.
+   * status entry. ⚠️ `10.9h-ii`: *Avisar a quienes te siguen* is the form's (`nuevaPromocion.avisar`), drawn only while the
+   * database offers it — `0094`'s kind, dark until his product analyst rules. ⚠️ *Tu promoción* never says *y avisamos*:
+   * no answer says whether one was announced (`alert_promotion` never says how many, and a phone's record would be wrong
+   * on her other phone), and whether it reaches anyone is the database's (her neighbours' yes, the hours, the limits).
    */
   promociones: {
     titulo: 'Promociones',
@@ -1659,6 +1661,14 @@ export const ES = {
     cambiar: 'Cambiar',
     /** Back to the conditions written from the fields, after she changed them. */
     escribirlas: 'Que se escriban solas',
+    /**
+     * ⚠️ `10.9h-ii`: *Avisar a quienes te siguen* (the family-shell page's `promoForm`, call 25) — drawn only while
+     * `promotion_alert_offered` answers true (`0094`: the kind on, dark until his product analyst rules). The count is
+     * *Hoy*'s *Te siguen* (`kitchen_followers`), from the first follower; with none, or unread, the line without it.
+     */
+    avisar: 'Avisar a quienes te siguen',
+    avisarConCuantos: (n: number) => `${n} ${n === 1 ? 'vecino' : 'vecinos'} · un solo aviso, al publicarla`,
+    avisarSinCuantos: 'Un solo aviso, al publicarla',
     asiLaVeran: 'Así la verán en tu página',
     marcaNota: 'Y tus ofertas de esos días llevan la marca',
     publicar: 'Publicar promoción',
@@ -1688,8 +1698,9 @@ export const ES = {
    * ⚠️ `10.9e-ii`: THE LOYALTY CARD IN WERA COCINA — the owner's rulings G4–G19, G23, G34 and G35 of
    * 2026-11-16 and 17, as the family-shell page draws stage 3 (`cTarjeta`, `cSetup`, `cSellar`, `cFres`,
    * `cCartel`, `tcerrarSheet`). The drawn words are the page's; the rest is this row's, each said in the
-   * plan's status entry. ⚠️ NOTHING HERE PROMISES A MESSAGE: whether holders hear of a closing is the
-   * analyst's (`10.9h`), so the drawing's *y les avisamos* is not written.
+   * plan's status entry. ⚠️ NOTHING HERE PROMISES A MESSAGE: the message to holders of a closing card is built
+   * (`0094`'s `tarjeta_cambio`, `10.9h-i`: a service kind his product analyst may turn off), but no Itacate phone
+   * holds a token before `10.5c-iii` — so the drawing's *y les avisamos* is not written; that row says it, or not.
    */
   tarjeta: {
     titulo: 'Tarjeta de lealtad',

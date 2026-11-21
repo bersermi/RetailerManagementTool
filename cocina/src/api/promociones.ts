@@ -19,9 +19,16 @@
 // ⚠️ WERA'S SWITCH (`promociones`) KEEPS IT OFF FOR EVERYONE until his product analyst rules: making
 // one is refused `TD024`, and Wera Cocina offers it nowhere (`@/lib/loQueUsas`' `PANTALLA_DE`, which
 // `10.9g-ii` gives its screen).
+// ⚠️ `10.9h-ii`: *AVISAR A QUIENES TE SIGUEN* — `0094`'s two doors (`10.9h-i`). Whether the form offers
+// it is the database's answer (`promotion_alert_offered`, any member: the kind `promocion_cocina` on —
+// dark until his product analyst rules); announcing one is the owner's (`alert_promotion`, `42501` for a
+// helper), once — a retry is the same alert — and NEVER SAYS HOW MANY: `{offered, alerted}`, and
+// `{false, false}` while the kind is dark. Who receives it, and when, is the database's (the kind's
+// class: a promotion needs her yes, 9:00 to 20:00, her day's and week's limits).
 //
 // The names below are read OUT OF THIS FILE by `docs/checks/10.9g-i-promotions-contract.sh`, which
-// asks a real PostgREST with each; `test/promociones.test.ts` holds them to `0087`'s TEXT.
+// asks a real PostgREST with each; `test/promociones.test.ts` holds them to `0087`'s TEXT — and the
+// alert's two to `0094`'s.
 // ============================================================================
 
 /** `0087`'s read and three writes for her kitchen's promotions. */
@@ -29,6 +36,10 @@ export const KITCHEN_PROMOTIONS = 'kitchen_promotions';
 export const CREATE_PROMOTION = 'create_promotion';
 export const END_PROMOTION = 'end_promotion';
 export const UNDO_PROMOTION = 'undo_promotion';
+/** `0094`: whether *Publicar promoción* offers *Avisar a quienes te siguen* — any member. Takes `KitchenArgs`. */
+export const PROMOTION_ALERT_OFFERED = 'promotion_alert_offered';
+/** `0094`: *Avisar a quienes te siguen*, after publishing — the owner's, once. Takes `PromotionArgs`. */
+export const ALERT_PROMOTION = 'alert_promotion';
 
 /** The four kinds, each the mark neighbours see (call 25). *Para tus clientes* only with her card open. */
 export const TIPOS = ['nuevo', 'temporada', 'dia', 'clientes'] as const;
@@ -206,6 +217,27 @@ export function promocionesFrom(data: unknown): PromotionsRow | null {
   return { day, max, running, card_open, promotions: read };
 }
 
+/** `alert_promotion`'s answer — every key it sends. Never how many. */
+export interface AlertRow {
+  /** The alert's kind is on: the form offered it. */
+  readonly offered: boolean;
+  /** Queued, once, for each neighbour following her kitchen or ringing its bell. */
+  readonly alerted: boolean;
+}
+
+/** `promotion_alert_offered`'s answer: `true` only when it is `true` — anything else offers nothing. */
+export function ofrecidoFrom(data: unknown): boolean {
+  return data === true;
+}
+
+/** `alert_promotion`'s answer, or null when it is not one. */
+export function alertaFrom(data: unknown): AlertRow | null {
+  if (!isObject(data)) return null;
+  const { offered, alerted } = data;
+  if (typeof offered !== 'boolean' || typeof alerted !== 'boolean') return null;
+  return { offered, alerted };
+}
+
 /** ISO weekday (1 Monday … 7 Sunday) of a day written YYYY-MM-DD — the calendar's, never the phone's zone. */
 export function diaDeLaSemana(day: string): Dia {
   const [y, m, d] = day.split('-').map(Number);
@@ -232,4 +264,12 @@ export const PROMOCIONES_KEY = ['cocina', 'promociones'] as const;
 /** Cached under the login and the kitchen, Cocina's rule. */
 export function promocionesKey(userId: string | null, kitchenId: string | null): readonly unknown[] {
   return [...PROMOCIONES_KEY, userId ?? '', kitchenId ?? ''];
+}
+
+/** The prefix whether the alert is offered is cached under. */
+export const AVISO_OFRECIDO_KEY = ['cocina', 'aviso-ofrecido'] as const;
+
+/** Cached under the login and the kitchen, Cocina's rule. */
+export function avisoOfrecidoKey(userId: string | null, kitchenId: string | null): readonly unknown[] {
+  return [...AVISO_OFRECIDO_KEY, userId ?? '', kitchenId ?? ''];
 }

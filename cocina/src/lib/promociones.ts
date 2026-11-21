@@ -42,7 +42,9 @@ import { ES } from '@/strings';
 // and what it publishes is a new promotion with a new id.
 // ⚠️ THE OWNER'S (G18): a helper never reaches these screens, and the database refuses her `42501`.
 // A helper only answers *¿Es parte de una promoción?* in *Publicar* (G36) — `activasEl`, the api's.
-// ⚠️ NOT *AVISAR A QUIENES TE SIGUEN*: the alert is `10.9h`'s, his product analyst's.
+// ⚠️ `10.9h-ii`: *AVISAR A QUIENES TE SIGUEN* — the form's switch (`Borrador.avisar`, on at first as the drawing's
+// `freshPromo`), drawn only while the database offers it; sent after *Deshacer* (`@/lib/avisoDePromocion`). It is never
+// part of what `create_promotion` is sent (`envioDe`): a retry with it changed is the same promotion.
 // `test/promocionesCocina.test.ts` pins every rule here against a calendar.
 // ============================================================================
 
@@ -229,14 +231,21 @@ export interface Borrador {
   readonly hasta: Hasta | null;
   /** Her own conditions after *Cambiar* — `null` while they are written for her from the fields. */
   readonly condiciones: string | null;
+  /** *Avisar a quienes te siguen* — heard only while the database offers it (`10.9h-ii`). */
+  readonly avisar: boolean;
 }
 
-/** A new form: *Platillo nuevo*, every day, no end yet (the drawing's `freshPromo`). */
-export const NUEVO: Borrador = { tipo: 'nuevo', loQue: '', mas: '', foto: NINGUNA, dias: TODOS, hasta: null, condiciones: null };
+/** A new form: *Platillo nuevo*, every day, no end yet, *Avisar a quienes te siguen* on (the drawing's `freshPromo`). */
+export const NUEVO: Borrador = { tipo: 'nuevo', loQue: '', mas: '', foto: NINGUNA, dias: TODOS, hasta: null, condiciones: null, avisar: true };
+
+/** Whether publishing announces it: her switch on, and the database offering it now (`promotion_alert_offered`). */
+export function avisaAlPublicar(b: Borrador, ofrecido: boolean | undefined): boolean {
+  return b.avisar && ofrecido === true;
+}
 
 /**
  * *Usarla otra vez* (the drawing's `promo-again`): its kind, what, more, photo and days — never its end,
- * which was its own, nor its conditions, which named its dates. *Para tus clientes* with her card closed
+ * which was its own, nor its conditions, which named its dates; *Avisar a quienes te siguen* on, as a new form. *Para tus clientes* with her card closed
  * starts as *Platillo nuevo*: that kind is not offered then (G28).
  */
 export function borradorDe(p: PromotionRow, conTarjeta: boolean): Borrador {

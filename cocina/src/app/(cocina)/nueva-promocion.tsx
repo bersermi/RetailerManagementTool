@@ -6,14 +6,26 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { esDuena } from '@/api/equipo';
 import { newPicturePath, NINGUNA, porSubir } from '@/api/fotos';
-import { useCrearPromocion, useDeshacerPromocion, useKitchen, usePlace, usePromociones, useSuRol } from '@/api/hooks';
+import {
+  useAnunciarPromocion,
+  useAvisoOfrecido,
+  useCrearPromocion,
+  useDeshacerPromocion,
+  useKitchen,
+  usePlace,
+  usePromociones,
+  useSeguidores,
+  useSuRol,
+} from '@/api/hooks';
 import { CONDICIONES_MAX, DIAS, LO_QUE_MAX, MAS_MAX, createArgs, type Dia, type Tipo } from '@/api/promociones';
+import { avisarDespues, detalleDelAviso } from '@/lib/avisoDePromocion';
 import { elegirFoto, tomarFoto } from '@/lib/foto';
 import { newId } from '@/lib/ids';
 import { useNota } from '@/lib/NotaProvider';
 import {
   HASTAS,
   ICONO_DE_TIPO,
+  avisaAlPublicar,
   NUEVO,
   bandaDe,
   borradorDe,
@@ -41,7 +53,9 @@ import { BotonLleno } from '@/ui/BotonLleno';
 import { Calendario } from '@/ui/Calendario';
 import { Campo } from '@/ui/Campo';
 import { CampoFoto } from '@/ui/CampoFoto';
+import { FilaInterruptor } from '@/ui/FilaInterruptor';
 import { Formulario } from '@/ui/Formulario';
+import { Grupo } from '@/ui/Grupo';
 
 // ============================================================================
 // *NUEVA PROMOCIÓN* — THE FORM, TOP TO BOTTOM (the family-shell page's `promoForm` and its section *Crear promoción*).
@@ -56,13 +70,17 @@ import { Formulario } from '@/ui/Formulario';
 //     duration, and it ends by itself;
 //   - *Condiciones · las verán tus vecinos* — written for her from the fields with her kitchen's name and address
 //     (`condicionesDe`), and *Cambiar*;
+//   - *Avisar a quienes te siguen* — `10.9h-ii`: on at first, as drawn; ⚠️ DRAWN ONLY WHILE THE DATABASE OFFERS IT
+//     (`promotion_alert_offered`, `0094`: dark until his product analyst rules) — unread, refused or off, no switch and
+//     no alert; under it *38 vecinos · un solo aviso, al publicarla*, the count *Hoy*'s (`kitchen_followers`);
 //   - *Así la verán en tu página* — the band filling in as she types, and the mark her offers will wear;
 //   - *Publicar promoción*: every rule checked first (`revisar`), its photo up, then ONE call — and back on
 //     *Promociones* with *Publicaste …* and *Deshacer* for 8 seconds (`undo_promotion`; the database allows two
 //     minutes for a slow signal, then *termínala hoy*). Her first, as a celebration that keeps its *Deshacer*.
+//     ⚠️ With *Avisar* on, `alert_promotion` is asked once *Deshacer*'s eight seconds are over — never before
+//     (`@/lib/avisoDePromocion`): *Deshacer* stops it, and *Deshacer* refused sends it at once.
 // ⚠️ A RETRY IS THE SAME PROMOTION: the id is kept while what it sends is unchanged; a press after an edit is a new one.
 // ⚠️ *USARLA OTRA VEZ* (`?de=<id>`): the form filled from an old one (`borradorDe`) — a new promotion, a new id.
-// ⚠️ NOT *AVISAR A QUIENES TE SIGUEN*: the alert is `10.9h`'s, his product analyst's (the drawing's switch is left out).
 // ⚠️ THE OWNER'S (G18): a helper reads that it is not hers.
 // NO CHECK CAN SEE THIS SCREEN (ADR-035 §2.11): the phone is its instrument.
 // ============================================================================
@@ -77,6 +95,9 @@ export default function NuevaPromocion() {
   const promociones = usePromociones(kitchenId);
   const { crear, busy } = useCrearPromocion(kitchenId);
   const deshacer = useDeshacerPromocion();
+  const anunciar = useAnunciarPromocion();
+  const ofrecido = useAvisoOfrecido(kitchenId, { activa: rol !== undefined && esDuena(rol) });
+  const seguidores = useSeguidores(kitchenId, { activa: ofrecido.data === true });
   const { avisar } = useNota();
   const ahora = useAhora(60_000);
   const [borrador, setBorrador] = useState<Borrador | null>(null);
@@ -181,8 +202,16 @@ export default function NuevaPromocion() {
     const kitchenAhora = kitchen.id;
     const seVe = nueva?.promotions.find((p) => p.id === id)?.shown === true;
     const palabras = { hecho: ES.promociones.deshecha, fallo: ES.promociones.noSeDeshizo };
-    if (primera && seVe) avisar(ES.promociones.primera, () => deshacer(kitchenAhora, id, envio.foto), palabras, true);
-    else avisar(ES.promociones.publicaste(envio.loQue), () => deshacer(kitchenAhora, id, envio.foto), palabras);
+    // ⚠️ The alert waits for *Deshacer*'s eight seconds: a tap stops it, a refused one (still published) sends it.
+    const aviso = avisaAlPublicar(b, ofrecido.data) && seVe ? avisarDespues(() => anunciar(kitchenAhora, id)) : null;
+    const deshacerla = async () => {
+      aviso?.cancelar();
+      const problema = await deshacer(kitchenAhora, id, envio.foto);
+      if (problema !== null) aviso?.yaMismo();
+      return problema;
+    };
+    if (primera && seVe) avisar(ES.promociones.primera, deshacerla, palabras, true);
+    else avisar(ES.promociones.publicaste(envio.loQue), deshacerla, palabras);
     volver();
   }
 
@@ -349,6 +378,19 @@ export default function NuevaPromocion() {
             <Text style={{ fontSize: SIZE.smallSize, lineHeight: 19, color: PALETTE.tinta }}>{condicionesDelBorrador(b, hoy, cocina, direccion)}</Text>
           )}
         </View>
+
+        {ofrecido.data === true && (
+          <Grupo>
+            <FilaInterruptor
+              icono="bell-outline"
+              titulo={ES.nuevaPromocion.avisar}
+              detalle={detalleDelAviso(seguidores.data)}
+              encendido={b.avisar}
+              disabled={busy}
+              onCambiar={(avisar) => cambiar({ avisar })}
+            />
+          </Grupo>
+        )}
 
         <View style={{ gap: SIZE.rowGap, padding: SIZE.rowGap, borderRadius: 18, borderWidth: 1, borderStyle: 'dashed', borderColor: PALETTE.linea, backgroundColor: PALETTE.banda }}>
           <Text style={{ marginHorizontal: 4, marginTop: 2, fontSize: SIZE.smallSize - 2.5, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase', color: PALETTE.marca }}>

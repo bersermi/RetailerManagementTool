@@ -27,6 +27,7 @@ import { PANTALLA_DE } from '@/lib/loQueUsas';
 import {
   ICONO_DE_TIPO,
   NUEVO,
+  avisaAlPublicar,
   bandaDe,
   bandaDeFila,
   borradorDe,
@@ -55,6 +56,7 @@ import {
   ultimoDia,
   type Borrador,
 } from '@/lib/promociones';
+import { detalleDelAviso } from '@/lib/avisoDePromocion';
 import { ES } from '@/strings';
 
 // ============================================================================
@@ -293,6 +295,7 @@ describe('Publicar promoción — checked before anything is sent, in the order 
       dias: [4],
       hasta: null,
       condiciones: null,
+      avisar: true,
     });
     expect(borradorDe(vieja, false).tipo).toBe('nuevo');
     expect(borradorDe(promo(), true).foto).toEqual(NINGUNA);
@@ -439,10 +442,54 @@ describe('the wiring, read as text', () => {
     expect(hoy).toContain('const promocionesVivas = promocionesLeidas.data ?? (promocionesSinLeer ? null : undefined);');
   });
 
-  it('no alert to her followers: that is 10.9h’s, his product analyst’s', () => {
-    const palabras = JSON.stringify([ES.promociones, ES.nuevaPromocion]);
-    expect(palabras).not.toMatch(/Avisar a quienes te siguen|avisamos/i);
-    expect(code('app/(cocina)/nueva-promocion.tsx')).not.toMatch(/notify|avisar a quienes/i);
+  // `10.9h-ii` turned this test: until `0094` it refused the alert's words; now it holds them, as drawn.
+  it('Avisar a quienes te siguen: the drawing’s words — the count Hoy’s Te siguen, from the first follower', () => {
+    expect(ES.nuevaPromocion.avisar).toBe('Avisar a quienes te siguen');
+    expect(detalleDelAviso(38)).toBe('38 vecinos · un solo aviso, al publicarla');
+    expect(detalleDelAviso(1)).toBe('1 vecino · un solo aviso, al publicarla');
+    // None, or unread (`null` while it waits or failed): never a 0 that is not one — the line without a count.
+    expect(detalleDelAviso(0)).toBe('Un solo aviso, al publicarla');
+    expect(detalleDelAviso(null)).toBe('Un solo aviso, al publicarla');
+    expect(detalleDelAviso(undefined)).toBe('Un solo aviso, al publicarla');
+  });
+
+  it('it is on at first, as drawn — a new form and Usarla otra vez — and never part of what create_promotion is sent', () => {
+    expect(NUEVO.avisar).toBe(true);
+    expect(borradorDe(promo(), true).avisar).toBe(true);
+    const b = { ...NUEVO, loQue: 'Pozole', hasta: { eleccion: 'semana' as const } };
+    // A retry with the switch changed is the same promotion: what is sent does not carry it.
+    expect(envioDe({ ...b, avisar: false }, JUEVES, MARI, SABINO)).toEqual(envioDe(b, JUEVES, MARI, SABINO));
+    expect(Object.keys(createArgs('k', 'p', envioDe(b, JUEVES, MARI, SABINO)))).not.toContain('p_notify');
+  });
+
+  it('publishing announces it only with her switch on AND the database offering it — unread, refused or dark is no', () => {
+    expect(avisaAlPublicar(NUEVO, true)).toBe(true);
+    expect(avisaAlPublicar({ ...NUEVO, avisar: false }, true)).toBe(false);
+    expect(avisaAlPublicar(NUEVO, false)).toBe(false);
+    expect(avisaAlPublicar(NUEVO, undefined)).toBe(false);
+  });
+
+  it('the form draws the switch only while promotion_alert_offered answers true, and reads it only on the owner’s phone', () => {
+    const forma = code('app/(cocina)/nueva-promocion.tsx');
+    expect(forma).toContain('const ofrecido = useAvisoOfrecido(kitchenId, { activa: rol !== undefined && esDuena(rol) });');
+    expect(forma).toContain('{ofrecido.data === true && (');
+    expect(forma).toContain('detalle={detalleDelAviso(seguidores.data)}');
+    expect(forma).toContain('const seguidores = useSeguidores(kitchenId, { activa: ofrecido.data === true });');
+  });
+
+  it('the alert is asked after Deshacer’s eight seconds, only for a promotion neighbours see: a tap stops it, a refused one sends it', () => {
+    const forma = code('app/(cocina)/nueva-promocion.tsx');
+    expect(forma).toContain('const aviso = avisaAlPublicar(b, ofrecido.data) && seVe ? avisarDespues(() => anunciar(kitchenAhora, id)) : null;');
+    expect(forma).toMatch(/aviso\?\.cancelar\(\);\s+const problema = await deshacer\(kitchenAhora, id, envio\.foto\);\s+if \(problema !== null\) aviso\?\.yaMismo\(\);/);
+    // Both toasts carry it: her first, celebrated, and every later one.
+    expect(forma).toContain('avisar(ES.promociones.primera, deshacerla, palabras, true);');
+    expect(forma).toContain('avisar(ES.promociones.publicaste(envio.loQue), deshacerla, palabras);');
+    // Never asked before it is published: the call comes after create_promotion answered.
+    expect(forma.indexOf('await crear(createArgs(')).toBeLessThan(forma.indexOf('avisarDespues('));
+  });
+
+  it('Tu promoción never says y avisamos: no answer says whether one was announced, or to how many', () => {
+    expect(JSON.stringify(ES.promociones)).not.toMatch(/avisamos/i);
   });
 
   it('terracotta, never the action’s colour: the band and the mark are drawn in `marca`', () => {

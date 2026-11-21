@@ -26,7 +26,7 @@ bash docs/checks/10.9b-ii-team-contract.sh            # the same stack: a helper
 bash docs/checks/10.9d-i-following-contract.sh        # the same stack: Te siguen N by seguidores.ts' names, as the fonda, beside Itacate's following
 bash docs/checks/10.9e-i-card-contract.sh             # the same stack: the loyalty card by tarjeta.ts' names — Activar, a phone's code, a scan, a stamp, a reward, Cerrar — beside Itacate's
 bash docs/checks/10.9f-numbers-contract.sh            # the same stack: her numbers by numeros.ts' names, as the owner, after a plate reserved in Itacate and handed over here — one visit
-bash docs/checks/10.9g-i-promotions-contract.sh       # the same stack: promotions by promociones.ts' names — made, three at once, ended, undone — an offer joining one by listing.ts', the door's band by Itacate's
+bash docs/checks/10.9g-i-promotions-contract.sh       # the same stack: promotions by promociones.ts' names — made, three at once, ended, undone — an offer joining one by listing.ts', the door's band by Itacate's; and `0094`'s alert to her followers, dark and on
 bash docs/checks/10.5b-v-ii-push-contract.sh          # the same stack: her phone's messages by push.ts' names — this phone's token stored and retired, her kinds by every key, her switch, a tap counted with nobody kept (nothing is sent)
 bash store/cocina-itacate/render.sh giros         # the nine trades' drawings, from brand/giros.svg into src/marca/giros/ — and nothing else
 TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic is local time, and the Mac is UTC−6
@@ -92,10 +92,10 @@ card's figures in the same answer (`0091`), that one stamp counted as given at a
 `test/numeros.test.ts` (the section *Her numbers* below). ⚠️ **Since `10.9g-i`, `src/api/promociones.ts`** — `0087`'s four for
 promotions: `kitchen_promotions` (any member: a helper publishes and *Publicar* asks her which runs), `create_promotion`, `end_promotion`
 (*Terminarla hoy*) and `undo_promotion` (*Deshacer*, two minutes) — the owner's, `42501` for a helper — every argument and key of their one
-answer, `TD029` (three at once), `TD030` (*Para tus clientes* with no card), `TD032` (too late to undo) — ending or undoing one not there answers her list; and `src/api/listing.ts`'
+answer, `TD029` (three at once), `TD030` (*Para tus clientes* with no card), `TD032` (too late to undo) — ending or undoing one not there answers her list — and since `10.9h-ii` `0094`'s two for *Avisar a quienes te siguen*: `promotion_alert_offered` (any member; `true` only while the kind `promocion_cocina` is on — dark until his product analyst rules) and `alert_promotion` (the owner's, once; `{offered, alerted}`, never how many); and `src/api/listing.ts`'
 optional `p_promotion_id`, sent only when she picks one (`publish_listing`'s sixth, defaulted; `TD031` when it cannot join). Asked against
 a real PostgREST by `docs/checks/10.9g-i-promotions-contract.sh` beside Itacate's door (its own job, `promotions`; its falsifier breaks the
-three files), held to `0087`'s text by `test/promociones.test.ts`. ⚠️ **Since `10.5b-v-ii`, `src/api/push.ts`** — `0092`'s five: `register_push_token` (this phone's token on each open, its channels and those she silenced, the token it replaces), `retire_push_token` (*Cerrar sesión*), `my_notification_kinds` (each kind's channel, its switch's words, what a tap opens, her switch), `set_notification_switch` (service kinds only) and `count_notification_tap` — every argument, the app's name, its kind and every key of a kind; asked against a real PostgREST by `docs/checks/10.5b-v-ii-push-contract.sh` and its falsifier (its own job, `cocina-push`), held to `0092`'s text by `test/push.test.ts`. What the phone does on each open is `@/lib/useAvisosDelTelefono`'s (the rules `@/lib/avisosPush`'s, the phone's calls `@/lib/avisos`'): ⚠️ asking Expo for the token makes the phone announce it, so only a DIFFERENT token counts as a change (measured on the emulator — the first version looped and never registered). **Drawn since `10.9g-ii`** — the section *Promotions* below; Wera's
+three files), held to `0087`'s text by `test/promociones.test.ts`. ⚠️ **Since `10.5b-v-ii`, `src/api/push.ts`** — `0092`'s five: `register_push_token` (this phone's token on each open, its channels and those she silenced, the token it replaces), `retire_push_token` (*Cerrar sesión*), `my_notification_kinds` (each kind's channel, its switch's words, what a tap opens, her switch), `set_notification_switch` (service kinds only) and `count_notification_tap` — every argument, the app's name, its kind and every key of a kind; asked against a real PostgREST by `docs/checks/10.5b-v-ii-push-contract.sh` and its falsifier (its own job, `cocina-push`), held to `0092`'s text by `test/push.test.ts`. What the phone does on each open is `@/lib/useAvisosDelTelefono`'s (the rules `@/lib/avisosPush`'s, the phone's calls `@/lib/avisos`'): ⚠️ asking Expo for the token makes the phone announce it, so only a DIFFERENT token counts as a change (measured on the emulator — the first version looped and never registered). A tap opens what its kind says (`@/lib/avisosPush`' `RUTAS`, anything else nothing): *Apartados*, and since `10.9h-ii` *Publicar* for the nudge to a kitchen with no offer yet (`0094`'s `primera_oferta`, *¿Tienes alguna oferta?*, at 12:00 on her kitchen's second day) — whose switch *Mi cocina* draws from its row, as every service kind's. **Drawn since `10.9g-ii`** — the section *Promotions* below; Wera's
 switch `promociones` keeps them off for everyone. The code on
   *Sellar* is `src/lib/codigo.ts` — HOTP over the minute in plain TypeScript (no crypto package: a dependency moves Wera's runtime),
   held to RFC 4226 and RFC 6238 by `test/codigo.test.ts`, and Itacate's copy to it by `itacate/test/gemelos.test.ts`. **Drawn since
@@ -694,6 +694,12 @@ by `test/empujones.test.ts` against a calendar in Mexico City's zone.
   dot for what waits. ⚠️ **The card's since `10.9e-ii`**, with *Sellar* on it (`EnVivo`'s `accion`) — the next section.
 - ***Así funciona*** (`@/ui/AsiFunciona`, `useAsiFunciona`): three pictures (`PASOS_DE`) at the top of a feature's one screen the first time
   she opens it, gone when she uses it (`usado`) or closes it. **Built here, drawn by each feature's row** — the card's since `10.9e-ii`.
+- ⚠️ **The one nudge that leaves the phone is the database's** (`0094`'s `primera_oferta`, `10.9h-i`; the nudges' ruling of
+  2026-11-17: *"don't discard the nudge notification"*): *¿Tienes alguna oferta? · Publícala y tus vecinos la verán.* at 12:00 on her kitchen's second day with nothing
+  published, to every member; a tap opens *Publicar* (`RUTAS`, `10.9h-ii`). ⚠️ **It reaches only a phone that already shows
+  notifications**: this app asks the phone after her kitchen's first publication (`hayQuePreguntar`), and her reminder after three — so
+  before her first offer only an Android 12 or older (on unasked), or one whose *Tu primera oferta* she turned on in *Mi cocina* (which
+  asks), holds a token. When to ask is in the plan's decisions block, his product analyst's (found by `10.9h-ii`).
 - **To see it on the emulator**: the debug build against the local shop (*Apartados*' section), Metro **without** `CI=1` (with it Metro does
   not watch files, so an edit never reaches the phone); a fonda signed up through the app; a neighbour reserving through `give_my_yes` and
   `reserve_plate` with her own token (the handover check's way). The glow lasts under four seconds: read it from a burst of raw `screencap`s
@@ -938,11 +944,24 @@ analyst rules** (the plan's decisions block, since `10.9g-iii`): nothing of this
   never the action's colour): ✅ Itacate draws them since `10.9g-iii` from a copy its `test/gemelos.test.ts` holds to this file — a change
   here is copied there in the same PR. ⚠️ **And her previews show them** (`10.9g-iii`): *Ver como la ven* her band and her dishes' marks
   (`@/lib/comoLaVen`, her list reading `promotion_id`), *Publicar*'s card the mark of the one she picked (`@/lib/vistaPrevia`'s `promocion`).
-- ⚠️ **Not *Avisar a quienes te siguen*** — the switch on this form is `10.9h-ii`'s; its database half is `0094`'s
-  (`10.9h-i`: `promotion_alert_offered`, `alert_promotion`, the kind `promocion_cocina` written dark until his product analyst
-  rules); until then the suite refuses the words.
+- ***Avisar a quienes te siguen*** (`10.9h-ii`, the drawing's switch under the conditions): ⚠️ **drawn only while
+  `promotion_alert_offered` answers true** (`useAvisoOfrecido`, the owner's phone only, never on its disk) — `0094`'s kind
+  `promocion_cocina`, dark until his product analyst rules, so on every phone today there is no switch and no alert. **On at
+  first** (`Borrador.avisar`, the drawing's `freshPromo`; *Usarla otra vez* too), never part of what `create_promotion` is sent (a
+  retry with it changed is the same promotion). Under it ***38 vecinos · un solo aviso, al publicarla*** — *Hoy*'s count
+  (`kitchen_followers`), from the first follower; none or unread, *Un solo aviso, al publicarla* (`detalleDelAviso`).
+  ⚠️⚠️ **THE ALERT IS ASKED AFTER *DESHACER*, NEVER BEFORE IT** (`@/lib/avisoDePromocion`, `test/avisoDePromocion.test.ts`):
+  `alert_promotion` queues it at once and the database's minute job sends it, so asked as she publishes it could reach her
+  neighbours while *Deshacer* is on screen — and one a day, the corrected promotion's would wait for tomorrow. Asked once
+  *Deshacer*'s eight seconds and a margin are over (`ESPERA_MS`, 10 s), only for a promotion the database says is shown; *Deshacer*
+  stops it, *Deshacer* refused sends it at once; a lost signal is tried again (three in all, 20 s apart), a refusal not; ⚠️ **a phone
+  closed before the ten seconds sends none** — as `10.9h-i` ruled for a signal lost between publishing and the alert. Who receives
+  it and when is the database's (the kind's class: a promotion — her neighbours' yes, 9:00 to 20:00, her day's and week's limits).
+  ⚠️ ***Tu promoción* never says *y avisamos*** (the drawing's sheet): no answer says whether one was announced, or to whom.
 - **To see it on the emulator**: the debug build against the local shop (*Apartados*' section), Metro from `cocina/` on 8082 with the local
-  values; the local switch on (`update servicio.feature_switch set is_on = true where name in ('promociones', 'tarjeta')`, off after); a fonda
+  values; the local switch on (`update servicio.feature_switch set is_on = true where name in ('promociones', 'tarjeta')`, off after) —
+  and for *Avisar a quienes te siguen* its kind (`update servicio.notification_kind set is_on = true where kind = 'promocion_cocina'`,
+  off after; what it queued is `servicio.notice`'s rows `where kind = 'promocion_cocina'`, read as the database's owner); a fonda
   made through the apps' functions (`onboard_workspace`, `set_store_address`, `set_card_terms` for *Para tus clientes*); more than one running
   is quickest through `create_promotion` with her token. ⚠️ **Tap *Deshacer* in the same command as *Publicar promoción*** — reading a
   screenshot between them outlasts the toast. ⚠️ *Publicar*'s number boxes move when one takes focus: read the boxes back before publishing.

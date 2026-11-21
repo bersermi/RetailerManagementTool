@@ -35,7 +35,8 @@ import { useAlAbrir } from '@/lib/useGoogle';
 // ⚠️ WITH NO SIGNAL NOTHING HAPPENS: no kinds are read, no channel is made, nothing is sent; the
 // next open tries again. A failure is never shown — *Apartados* always shows everything.
 // ⚠️ WHILE THE APP IS IN FRONT a message is shown (SDK 57 drops it otherwise) and her reservations
-// are read again at once; A TAP reads them again too, opens *Apartados* and adds one to the kind's count,
+// are read again at once; A TAP reads them again too, opens what its kind says (*Apartados*; since `10.9h-ii` the
+// nudge's *Publicar*, `@/lib/avisosPush`' `RUTAS`) and adds one to the kind's count,
 // nobody kept.
 // ⚠️ MEASURED ON THE EMULATOR WHILE THIS ROW WAS BUILT: ASKING EXPO FOR THE TOKEN MAKES THE PHONE ANNOUNCE
 // ITS TOKEN (`@/lib/avisos`' `alCambiarElToken` hears it), so a listener that re-ran this hook on every announcement

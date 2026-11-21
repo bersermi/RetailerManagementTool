@@ -158,7 +158,8 @@ on:
       # `0087`'s four — her kitchen's promotions, making one, *Terminarla hoy*, *Deshacer* — every argument
       # and key of their answer and the refusals it reads; its `listing.ts` the argument an offer joins one
       # by; Itacate's `cocinas.ts` (under `itacate/src/api/**`) the door's `promotions`, each one's keys and
-      # each offer's mark. Its own job, `promotions`, below.
+      # each offer's mark. Since `10.9h-ii`, `promociones.ts` also names `0094`'s two for *Avisar a quienes
+      # te siguen*. Its own job, `promotions`, below.
       - "docs/checks/10.9g-i-promotions-contract.sh"
       - "docs/checks/10.9g-i-promotions-contract-falsify.sh"
       # ⚠️ `10.5b-v-ii`, THE FIRST PUSH: Wera Cocina's `push.ts` (under `cocina/src/api/**` above) names
@@ -2710,7 +2711,7 @@ jobs:
   loyalty-card:
     name: the loyalty card, against Wera Cocina's and Itacate's own names
     runs-on: ubuntu-latest
-    # ⚠️ Fifteen runs of two sign-ups each, and GoTrue allows 30 in five minutes: a run that spends
+    # ⚠️ Eighteen runs of two sign-ups each, and GoTrue allows 30 in five minutes: a run that spends
     # them waits out the window (`signup`'s retries).
     timeout-minutes: 35
 
@@ -2785,10 +2786,12 @@ jobs:
   # promotions, *Publicar promoción*, *Terminarla hoy*, *Deshacer* — and `listing.ts`' argument an offer
   # joins one by; Itacate's `itacate/src/api/cocinas.ts` — the door's `promotions` and each offer's mark.
   # Every key of every answer exactly, three at once, *Para tus clientes* with no card and an offer on
-  # the wrong weekday refused with the codes the app reads, and nothing signed out. It turns Wera's
-  # switch for promotions on for its run and back after. The database's own rules are
-  # `supabase/tests/0087_promotions.sql`'s, in the reset job. Its own job for `cocina-handover`'s
-  # reason: the falsifier runs the check fifteen times, two sign-ups each.
+  # the wrong weekday refused with the codes the app reads, and nothing signed out. Since `10.9h-ii`
+  # (`0094`): whether *Avisar a quienes te siguen* is offered, and the alert's answer, dark and on. It turns
+  # Wera's switch for promotions — and the alert's kind — on for its run and back after. The database's
+  # own rules are `supabase/tests/0087_promotions.sql`'s and `0094_the_services_messages.sql`'s, in the
+  # reset job. Its own job for `cocina-handover`'s reason: the falsifier runs the check eighteen times,
+  # two sign-ups each.
   # ===========================================================================
   promotions:
     name: promotions, against Wera Cocina's and Itacate's own names
@@ -2811,7 +2814,7 @@ jobs:
       - name: Apply migrations from scratch
         run: supabase db reset
 
-      - name: Contract — do cocina/src/api/promociones.ts, listing.ts and itacate/src/api/cocinas.ts make, join, read and end a promotion by the names 0087 answers (plan 10.9g-i)
+      - name: Contract — do cocina/src/api/promociones.ts, listing.ts and itacate/src/api/cocinas.ts make, join, read, end and announce a promotion by the names 0087 and 0094 answer (plans 10.9g-i, 10.9h-ii)
         run: bash docs/checks/10.9g-i-promotions-contract.sh
 
       - name: Contract — can the promotions check still fail (its own fixtures; the runner counts them)
