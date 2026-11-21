@@ -437,8 +437,9 @@ as $$
            'label', k.label,
            'detail', k.detail,
            'opens', k.opens,
-           'is_on', case when k.class = 'promocion' then servicio.consent_now(p_user, k.app, 'promociones')
-                         else coalesce(s.is_on, k.default_on) end)
+           -- a promotion kind: her answer (never a switch row — set_notification_switch refuses one)
+           'is_on', coalesce(case when k.class = 'promocion' then servicio.consent_now(p_user, k.app, 'promociones') end,
+                             s.is_on, k.default_on))
          order by k.position, k.kind), '[]'::jsonb)
     from servicio.notification_kind k
     left join servicio.notification_switch s on s.user_id = p_user and s.kind = k.kind
