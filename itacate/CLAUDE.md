@@ -25,6 +25,8 @@ bash docs/checks/10.9a-i-features-contract.sh       # the same stack: the door's
 bash docs/checks/10.9d-i-following-contract.sh      # the same stack: Seguir, the bell and her list by siguiendo.ts's names, and Te siguen N by Wera Cocina's seguidores.ts
 bash docs/checks/10.9e-i-card-contract.sh           # the same stack: her loyalty cards by tarjeta.ts's names — her phone's code, a kitchen's card, her scan, her claim — beside Wera Cocina's
 bash docs/checks/10.9g-i-promotions-contract.sh     # the same stack: the door's promotions and each offer's mark by cocinas.ts's names, beside Wera Cocina's promociones.ts
+bash docs/checks/10.5b-v-ii-push-contract.sh itacate/src/api/push.ts PUBLICO   # the same stack: her phone's messages by push.ts's names — token stored and retired, her kinds by every key, the bell's switch, a tap
+bash docs/checks/10.5c-iii-consent-contract.sh itacate/src/api/push.ts         # the same stack: her answer to offers on the sheet's version (refused until on 1 approves it), a campaign's tap
 TZ=UTC npm --prefix itacate test          # CI's zone: the list's days and windows are local time, and the Mac is UTC−6
 bash store/cocina-itacate/render.sh itacate-icono   # the iPhone's icon, the cow on the blue — and nothing else (native on the iPhone)
 ```
@@ -117,7 +119,15 @@ from `itacate/` with the two local `EXPO_PUBLIC_SUPABASE_` values in the shell, 
   in 30 days, *dejó Itacate*), every argument and key, and `TD026` — asked as a neighbour by `docs/checks/10.9d-i-following-contract.sh`
   (its own job, `itacate-following`; its falsifier breaks the file), held to `0084`'s text by `test/siguiendo.test.ts`. **Drawn since
   `10.9d-ii`** (`useSiguiendo`, `useSeguir` — the next section's *Following*); the bell is stored, and since `0094` (`10.9h-i`) the
-  database queues its message (kind `publico`) — which reaches no phone until Itacate registers its token (`10.5c-iii`).
+  database queues its message (kind `publico`), and since `10.5c-iii` her phone receives it (the next paragraph).
+  ⚠️ **Her phone's messages from the server are `src/api/push.ts`** (`10.5c-iii`, Wera Cocina's `10.5b-v-ii` cut to Itacate):
+  `0092`'s five — this phone's token on each open and retired at *Cerrar sesión*, her kinds (each kind's channel, class, switch's
+  words, what a tap opens, her switch), `set_notification_switch` (service and on-request kinds; `0094`), a tap counted with nobody —
+  and `0093`'s three: `my_consent` and `set_my_consent` (her answer to offers, given only on the sheet's version `PALABRAS`, which the
+  runbook's *on 1* inserts — refused with 22023 until then) and `count_campaign_tap` (a campaign's tap, with its send). Asked against a
+  real PostgREST by `docs/checks/10.5b-v-ii-push-contract.sh` (run on this file with `PUBLICO`, in `cocina-push`) and
+  `docs/checks/10.5c-iii-consent-contract.sh` (its own job, `campaigns-in-the-apps`), each with its falsifier; held to the migrations'
+  text, and the sheet's words to the runbook's, by `test/push.test.ts`.
   ⚠️ **The loyalty card's claim is `src/api/tarjeta.ts`** (`10.9e-i`): `0085`'s `register_my_key` (her phone's secret, handed once),
   `my_cards` (every kitchen where she has stamps going or a reward to claim, in its colour and logo — her mark in *Cerca*, G38, is read
   from it by kitchen id), `stamp_with_code` and `claim_with_code` — every argument and key, and `TD027`; a kitchen's terms before her
@@ -291,9 +301,10 @@ from `itacate/` with the two local `EXPO_PUBLIC_SUPABASE_` values in the shell, 
   imports `expo-notifications`; `@/lib/Recordatorios`, mounted with the tabs): her phone holds one per reservation still to
   collect whose hour has not come, ⚠️ **kept by id** — at each read of her reservations those no longer wanted are cancelled and
   the new ones still ahead scheduled, never "cancel all, schedule again", which would cancel one Android has not delivered yet
-  (the review of `10.5b-iii-b`); all cancelled when the tabs leave; shown while Itacate is open too (`mostrarRecordatorios`, ours
-  only); a tap opens *Apartados*. ⚠️ **What it cannot know:** a plate the kitchen hands over while her app is closed keeps its
-  reminder until her next read — nothing reaches her phone (no push to neighbours). ⚠️ **Its words — the kitchen, her hour, her
+  (the review of `10.5b-iii-b`); all cancelled when the tabs leave; shown while Itacate is open too (`mostrarAvisosEnFrente` — since
+  `10.5c-iii` the one handler for the front, the database's messages included); a tap opens *Apartados*. ⚠️ **What it cannot know:**
+  a plate the kitchen hands over while her app is closed keeps its reminder until her next read — no message tells her phone (no kind
+  for it). ⚠️ **Its words — the kitchen, her hour, her
   code — are held by her phone's scheduler** until it shows or is cancelled: the one thing of a read this app leaves on the disk,
   by the design's ruling (the aviso says so before Itacate reaches people, `10.5b-vi`). Asked after a
   reservation goes through, while the phone still lets Itacate ask — ⚠️ **never "only while undetermined"**: on Android 13 and
@@ -494,9 +505,18 @@ follows it, as `cocina/CLAUDE.md`'s does:
   *Seguir* — never her full page, which would say *Todavía sin calificaciones* of a kitchen that has stars. ***Seguir* and the bell**
   (`@/ui/Seguir`) on her page, after *Cómo pagas aquí*, handed in by the route as `PaginaDeCocina`'s `seguir` slot (Wera Cocina's copy
   carries the slot and hands nothing): two switches, either alone, each drawn only once the database answers (`useSeguir`); ⚠️ **the
-  bell is stored and rings no phone yet**: since `0094` (`10.9h-i`) the database queues its message, but this build registers no token
-  and asks the phone nothing until `10.5c-iii`; it starts off — drawn now because nobody but his test builds holds Itacate until
-  `10.5b-vi`, which waits for `10.9h` and `10.5c-iii`. ***¿Seguir a …?*** (`@/ui/PreguntaSeguir`, G20) on *Apartados*, under *Ya lo
+  bell rings since `10.5c-iii`**: the database queues its message (`0094`, `10.9h-i`) and her phone receives it; it starts off, and
+  rung on, once it lands, the phone is asked if it does not allow notifications yet and still can (never its settings from here).
+  ⚠️ **Her phone's messages on each open are `@/lib/AvisosDelTelefono`'s** (mounted with the tabs; the rules `@/lib/avisosPush`'s):
+  the kinds' channels, then this phone's token — never a question to the phone on an open; ⚠️ a grant made on a screen runs it at
+  once (`@/lib/avisos`' `alConcederPermiso` — found on the emulator: Android's dialog is no open). A tap opens its place
+  (`destinoDelToque`: `cocina` and `tarjeta` her kitchen's page, `mis_cocinas`, and a campaign's `cerca` or `apartados`) and is
+  counted — a campaign's with its send, a service or on-request kind's with nobody. While Itacate is open every message is shown
+  but *¡Ganaste!*, which the screen celebrates. ***Tú → Notificaciones*** (`(vecino)/notificaciones`): a switch per service or
+  on-request kind from the rows, the phone's refusal with *Permitir avisos* / *Abrir ajustes*, and offers as ONE row while offered
+  (`filasDe`) — on opens the sheet (`@/ui/HojaOfertas`), off is her no. **The sheet** also rises once on *Apartados* after her stars
+  on a *Ya lo tengo* (`@/lib/ofertas`' `hayQuePreguntar`); its words are `10.5c-i`'s draft, kept dark until the analyst approves
+  them. ***¿Seguir a …?*** (`@/ui/PreguntaSeguir`, G20) on *Apartados*, under *Ya lo
   tienes* and under that plate in *Anteriores*: the FIRST plate she collected at a kitchen she does not follow, while its rating window
   lasts (`rate_until`, rated or not) — a second plate there never asks again, and *Ahora no* is kept in memory while the app runs (never
   on the disk). ⚠️ **What it cannot know**: a first plate that left her 30 days (`my_reservations`) makes a later one her "first" again.

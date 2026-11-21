@@ -5,7 +5,8 @@
 // `10.5b-iii-a` (her reservations: reserving, cancelling, *Ya lo tengo*, her yes and
 // her standing), `10.5b-iii-b` (her stars about the kitchen), `10.9d-ii` (the kitchens
 // she follows, and *Seguir* with its bell — `0084`, claimed by `10.9d-i`) and `10.9e-iii`
-// (her loyalty cards: her phone's key, her cards, a scan, a claim — `0085`, claimed by `10.9e-i`).
+// (her loyalty cards: her phone's key, her cards, a scan, a claim — `0085`, claimed by `10.9e-i`) and `10.5c-iii`
+// (her phone's messages: its token, the kinds and her switches, a tap, her answer to offers — `0092`, `0093`).
 //
 // ⚠️ THE IMPURE HALF OF `src/api/` (ADR-035 §2.11), as Wera's and Wera Cocina's
 // (`app/src/api/calls.ts`, `cocina/src/api/calls.ts`): the only module here that
@@ -57,6 +58,28 @@ import {
   type Eleccion,
   type Posicion,
 } from '@/api/apartados';
+import {
+  COUNT_CAMPAIGN_TAP,
+  COUNT_NOTIFICATION_TAP,
+  MY_CONSENT,
+  MY_NOTIFICATION_KINDS,
+  REGISTER_PUSH_TOKEN,
+  RETIRE_PUSH_TOKEN,
+  SET_MY_CONSENT,
+  SET_NOTIFICATION_SWITCH,
+  answerArgs,
+  campaignTapArgs,
+  consentArgs,
+  consentFrom,
+  kindsArgs,
+  kindsFrom,
+  retireArgs,
+  switchArgs,
+  tapArgs,
+  type Aviso,
+  type Consentimiento,
+  type RegisterArgs,
+} from '@/api/push';
 import { KITCHEN_GIROS, ON_OFFER_NOW, girosFrom, kitchensFrom, type Giro, type Kitchen } from '@/api/cocinas';
 import { photoHeaders, photoUrl, type PhotoSize } from '@/api/fotos';
 import {
@@ -306,4 +329,75 @@ export async function claimWithCode(rewardId: string, code: string, key: string 
   const scan = scanFrom(data);
   if (scan === null) throw new TypeError(`${CLAIM_WITH_CODE}: an answer this build cannot read`);
   return scan;
+}
+
+// ----------------------------------------------------------------------------
+// `10.5c-iii` — her phone's messages from the server (`0092`, `0093`)
+// ----------------------------------------------------------------------------
+
+function avisos(name: string, data: unknown): readonly Aviso[] {
+  const read = kindsFrom(data);
+  if (read === null) throw new TypeError(`${name}: an answer this build cannot read`);
+  return read;
+}
+
+/** The kinds of message of this app, with her switch for each (`my_notification_kinds`). */
+export async function myNotificationKinds(): Promise<readonly Aviso[]> {
+  const { data, error } = await supabase.rpc(MY_NOTIFICATION_KINDS, kindsArgs());
+  if (error) throw error;
+  return avisos(MY_NOTIFICATION_KINDS, data);
+}
+
+/** Her switch for one service or on-request kind (`set_notification_switch`) — answered with her kinds again. */
+export async function setNotificationSwitch(kind: string, on: boolean): Promise<readonly Aviso[]> {
+  const { data, error } = await supabase.rpc(SET_NOTIFICATION_SWITCH, switchArgs(kind, on));
+  if (error) throw error;
+  return avisos(SET_NOTIFICATION_SWITCH, data);
+}
+
+/** This phone's token for her (`register_push_token`), on each open and when it changes. */
+export async function registerPushToken(args: RegisterArgs): Promise<void> {
+  const { error } = await supabase.rpc(REGISTER_PUSH_TOKEN, args);
+  if (error) throw error;
+}
+
+/** *Cerrar sesión*: this phone stops getting her messages (`retire_push_token`). */
+export async function retirePushToken(token: string): Promise<void> {
+  const { error } = await supabase.rpc(RETIRE_PUSH_TOKEN, retireArgs(token));
+  if (error) throw error;
+}
+
+/** A tap on a service or on-request message: plus one on today's count, nobody kept (`count_notification_tap`). */
+export async function countNotificationTap(kind: string): Promise<void> {
+  const { error } = await supabase.rpc(COUNT_NOTIFICATION_TAP, tapArgs(kind));
+  if (error) throw error;
+}
+
+/** A tap on a campaign's message, with its send's number (`count_campaign_tap`) — kept only while she is counted. */
+export async function countCampaignTap(send: number): Promise<void> {
+  const { error } = await supabase.rpc(COUNT_CAMPAIGN_TAP, campaignTapArgs(send));
+  if (error) throw error;
+}
+
+function consentimiento(name: string, data: unknown): Consentimiento {
+  const read = consentFrom(data);
+  if (read === null) throw new TypeError(`${name}: an answer this build cannot read`);
+  return read;
+}
+
+/** Her answers to offers in Itacate (`my_consent`): each purpose's latest, or never asked. */
+export async function myConsent(): Promise<Consentimiento> {
+  const { data, error } = await supabase.rpc(MY_CONSENT, consentArgs());
+  if (error) throw error;
+  return consentimiento(MY_CONSENT, data);
+}
+
+/**
+ * Her yes or no to offers on the sheet's words (`set_my_consent`) — answered with her answers again.
+ * ⚠️ Refused (22023) while the analyst has not approved those words: nobody can say yes before she does.
+ */
+export async function setMyConsent(si: boolean): Promise<Consentimiento> {
+  const { data, error } = await supabase.rpc(SET_MY_CONSENT, answerArgs(si));
+  if (error) throw error;
+  return consentimiento(SET_MY_CONSENT, data);
 }

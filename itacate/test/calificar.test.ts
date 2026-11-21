@@ -328,7 +328,7 @@ describe('her reminder, 15 minutes before her hour — scheduled by her own phon
     expect(existsSync(join(SRC, 'app/(vecino)/apartados.tsx'))).toBe(true);
   });
 
-  it('the one module that imports `expo-notifications`: asked while the phone lets it, never a push token, a dated trigger', () => {
+  it('the one module that imports `expo-notifications`: asked while the phone lets it, a dated trigger', () => {
     const quienes = (dir: string): string[] =>
       readdirSync(join(SRC, dir), { withFileTypes: true }).flatMap((e) =>
         e.isDirectory() ? quienes(join(dir, e.name)) : /\.tsx?$/.test(e.name) ? [join(dir, e.name)] : [],
@@ -336,7 +336,8 @@ describe('her reminder, 15 minutes before her hour — scheduled by her own phon
     const importan = quienes('.').filter((f) => /from 'expo-notifications'/.test(read(f)));
     expect(importan).toEqual(['lib/avisos.ts']);
     const avisos = code('lib/avisos.ts');
-    expect(avisos).not.toMatch(/getExpoPushTokenAsync|getDevicePushTokenAsync/);
+    // ⚠️ Since `10.5c-iii` it also asks Expo for the push token (`test/push.test.ts`) — never the phone's own.
+    expect(avisos).not.toMatch(/getDevicePushTokenAsync/);
     // Asked while her phone still lets Itacate ask — never "only while undetermined": Android 13
     // reports a permission never asked as denied, and such a check never asked (found on the emulator).
     expect(avisos).toMatch(/if \(ahora\.granted\) return true;\s*if \(!ahora\.canAskAgain\) return false;\s*const respuesta = await Notifications\.requestPermissionsAsync\(\);/);
@@ -347,9 +348,9 @@ describe('her reminder, 15 minutes before her hour — scheduled by her own phon
     expect(avisos).toMatch(/if \(!\(await Notifications\.getPermissionsAsync\(\)\)\.granted\) return;\s*tiene = await nuestros\(\);/);
     expect(avisos).toMatch(/for \(const id of tiene\) \{\s*if \(quiere\.has\(id\)\) continue;/);
     expect(avisos).toMatch(/disparos\.filter\(\(d\) => !tiene\.includes\(d\.id\)\)/);
-    // Shown while Itacate is open too — its own reminders only.
-    expect(avisos).toMatch(/const nuestra = rutaDelToque\(notificacion\.request\.identifier\) !== null;/);
-    expect(code('lib/Recordatorios.tsx')).toMatch(/useEffect\(\(\) => mostrarRecordatorios\(\), \[\]\);/);
+    // Shown while Itacate is open too — her reminders, and since `10.5c-iii` the database's messages (`test/push.test.ts`).
+    expect(avisos).toMatch(/const nuestra =\s*rutaDelToque\(notificacion\.request\.identifier\) !== null \|\|/);
+    expect(code('lib/Recordatorios.tsx')).toMatch(/useEffect\(\(\) => mostrarAvisosEnFrente\(\), \[\]\);/);
   });
 
   it('kept in step with her reservations from the tabs, cancelled when they leave, and asked after her first reservation', () => {

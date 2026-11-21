@@ -88,7 +88,7 @@ import {
   type KitchenCardRow,
 } from '@/api/tarjeta';
 import { selloKey } from '@/api/sello';
-import { AVISOS_KEY, avisosKey, type Aviso } from '@/api/push';
+import { AVISOS_KEY, CONSENTIMIENTO_KEY, avisosKey, consentimientoKey, type Aviso, type Consentimiento } from '@/api/push';
 import {
   accountOwners,
   deleteMyAccount,
@@ -145,6 +145,8 @@ import {
   alertPromotion,
   myNotificationKinds,
   setNotificationSwitch,
+  myConsent,
+  setMyConsent,
 } from '@/api/calls';
 import { deLaCocina, rechazoDe, reservasConCola, vecinosConCola, type Envio } from '@/api/cola';
 import { guardarSuDireccion, type Escritura } from '@/api/direccion';
@@ -1833,4 +1835,57 @@ export function useCambiarAviso() {
   }
 
   return { cambiar, busy: mutation.isPending };
+}
+
+// ----------------------------------------------------------------------------
+// `10.5c-iii` — her answer to *Novedades de Wera Cocina* (`0093`)
+// ----------------------------------------------------------------------------
+
+/**
+ * ⚠️ HER ANSWERS TO *NOVEDADES* (`my_consent`, `0093`): whether the sheet is still to ask after a handover, and
+ * *Dijiste que sí el …* in *Mi cocina*. Keyed on the login. ⚠️ NOT on the phone's disk (`@/api/persist` keeps her
+ * kitchen's counter, not her answers).
+ */
+export function useConsentimiento() {
+  const { session, ready } = useAuth();
+  const userId = session?.user.id ?? null;
+  return useQuery({
+    queryKey: consentimientoKey(userId),
+    queryFn: () => myConsent(),
+    enabled: ready && userId !== null,
+    staleTime: 60 * 60_000,
+  });
+}
+
+/**
+ * ⚠️ HER YES OR NO TO *NOVEDADES* ON THE SHEET'S WORDS (`set_my_consent`, `0093`). The answer is written into her
+ * answers at once, and her kinds are read again — a promotion kind's switch is her answer. `false` when it was not
+ * kept: no signal, or words the analyst has not approved (22023 — only his test accounts are shown the sheet before then).
+ */
+export function useResponderOfertas() {
+  const queries = useQueryClient();
+  const { session } = useAuth();
+  const userId = session?.user.id ?? null;
+  const mutation = useMutation({
+    mutationFn: (si: boolean) => setMyConsent(si),
+    onSuccess: (respuesta: Consentimiento) => {
+      queries.setQueryData<Consentimiento>(consentimientoKey(userId), respuesta);
+    },
+    onSettled: () => {
+      void queries.invalidateQueries({ queryKey: AVISOS_KEY });
+      void queries.invalidateQueries({ queryKey: CONSENTIMIENTO_KEY });
+    },
+  });
+
+  async function responder(si: boolean): Promise<boolean> {
+    if (mutation.isPending) return false;
+    try {
+      await mutation.mutateAsync(si);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  return { responder, busy: mutation.isPending };
 }

@@ -1,6 +1,7 @@
 import { Tabs } from 'expo-router/js-tabs';
 
 import { AbrirBoleto } from '@/lib/AbrirBoleto';
+import { AvisosDelTelefono } from '@/lib/AvisosDelTelefono';
 import { Festejos } from '@/lib/Festejos';
 import { Recordatorios } from '@/lib/Recordatorios';
 import { EN_USO } from '@/navigation/pestanas';
@@ -23,11 +24,14 @@ import { Pestanas } from '@/ui/Pestanas';
 // reward won since the last one celebrated on this phone opens its screen over the tabs — once.
 // ⚠️ SINCE `10.9j-ii-a` HER TICKET WHEN THE APP OPENS WITH NO SIGNAL (`@/lib/AbrirBoleto`, which draws nothing):
 // *Apartados* over the tabs, once a run, while her phone keeps a ticket still to collect (J1).
+// ⚠️ SINCE `10.5c-iii` HER PHONE AND THE DATABASE'S MESSAGES (`@/lib/AvisosDelTelefono`, which draws nothing): on
+// each open the kinds' channels made and this phone's token told; a message's arrival and its tap.
 // ============================================================================
 export default function TabsDeItacate() {
   return (
     <>
       <Recordatorios />
+      <AvisosDelTelefono />
       <Festejos />
       <AbrirBoleto />
       <Tabs screenOptions={{ headerShown: false }} tabBar={(props) => <Pestanas {...props} />}>

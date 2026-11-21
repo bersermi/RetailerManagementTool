@@ -82,7 +82,7 @@ run R7 red "send it to your own phones first" \
 
 echo "R8  promotions turned on for the wrong kind — the launch is refused"
 run R8 red "the kind ofertas is off" \
-  "s/^update servicio.notification_kind set is_on = true where kind = 'ofertas';/update servicio.notification_kind set is_on = true where kind = 'novedades';/"
+  "s/^update servicio.notification_kind set is_on = true where kind in ('ofertas', 'novedades');/update servicio.notification_kind set is_on = true where kind in ('novedades');/"
 
 echo "R9  his results asked of a misspelt function"
 run R9 red "campaign_result(" \

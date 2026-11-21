@@ -3,7 +3,7 @@
 # for the reason it states?
 #
 # A contract check that has never been seen red is a check nobody has shown can fail. Each fixture
-# below copies Wera Cocina's `cocina/src/api/push.ts`, breaks ONE claim in the copy (a function's
+# below copies Wera Cocina's `cocina/src/api/push.ts` (since `10.5c-iii`, three Itacate's), breaks ONE claim in the copy (a function's
 # name, an argument's, the app's name, its kind's, a key of a kind), points the check at it, and
 # requires red WITH THE SENTENCE that names that claim: red for the wrong reason is a failure here
 # too. The control, unedited, must be green.
@@ -24,16 +24,16 @@ trap 'rm -rf "$TMP"' EXIT
 pass=0
 fail=0
 
-run() { # name want phrase sed-program
-  local name="$1" want="$2" phrase="$3" program="$4"
+run() { # name want phrase sed-program [file kind-constant]
+  local name="$1" want="$2" phrase="$3" program="$4" file="${5:-$PUSH}" kind="${6:-APARTADOS}"
   local copy="$TMP/$name.ts"
-  sed "$program" "$PUSH" > "$copy"
-  if [[ "$program" != "" ]] && cmp -s "$copy" "$PUSH"; then
+  sed "$program" "$file" > "$copy"
+  if [[ "$program" != "" ]] && cmp -s "$copy" "$file"; then
     echo "  ✗ $name — THE MUTATION CHANGED NOTHING: a fixture that edits nothing tests the control twice."
     fail=$((fail+1)); return
   fi
   local out rc
-  out="$(bash "$CHECK" "$copy" 2>&1)"; rc=$?
+  out="$(bash "$CHECK" "$copy" "$kind" 2>&1)"; rc=$?
   local got=red; (( rc == 0 )) && got=green
   if [[ "$got" != "$want" ]]; then
     echo "  ✗ $name — expected $want, got $got"
@@ -100,10 +100,26 @@ echo "P12 a tap counted by a misspelt function"
 run P12 red "count_notification_taps answered 404" \
   "s/^export const COUNT_NOTIFICATION_TAP = 'count_notification_tap';/export const COUNT_NOTIFICATION_TAP = 'count_notification_taps';/"
 
+# ⚠️ `10.5c-iii`: the same check on Itacate's file — its control green, and red when ITS claims break, so the
+# second run in CI reads the second file and not Wera Cocina's.
+ITACATE="itacate/src/api/push.ts"
+[[ -r "$ITACATE" ]] || { echo "FAIL: cannot read $ITACATE"; exit 1; }
+
+echo "I0  Itacate's file, unedited"
+run I0 green "" "" "$ITACATE" PUBLICO
+
+echo "I1  Itacate's app under another name — the database knows no such app"
+run I1 red "my_notification_kinds answered 400" \
+  "s/^export const APP = 'itacate';/export const APP = 'itacate_app';/" "$ITACATE" PUBLICO
+
+echo "I2  Itacate's bell under another name — her switch and her tap aimed at nothing"
+run I2 red "no kind 'publicos'" \
+  "s/^export const PUBLICO = 'publico';/export const PUBLICO = 'publicos';/" "$ITACATE" PUBLICO
+
 echo
 echo "$pass passed, $fail failed."
-if (( pass + fail < 13 )); then
-  echo "FAIL: only $((pass + fail)) fixtures ran, expected 13."
+if (( pass + fail < 16 )); then
+  echo "FAIL: only $((pass + fail)) fixtures ran, expected 16."
   exit 1
 fi
 (( fail == 0 )) || exit 1

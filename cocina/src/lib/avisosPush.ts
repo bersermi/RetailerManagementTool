@@ -118,14 +118,21 @@ export function kindDe(data: unknown): string | null {
 }
 
 /** A place a tap may open. */
-export type RutaDelToque = '/apartados' | '/publicar';
+export type RutaDelToque = '/apartados' | '/publicar' | '/' | '/mi-cocina';
 
 /**
  * Where a tap opens, from the places this build knows — anything else opens nothing. *Nuevo apartado* opens
  * *Apartados* (`0092`); ⚠️ `10.9h-ii`: the nudge to a kitchen with no offer yet (`0094`'s `primera_oferta`, *¿Tienes
  * alguna oferta?*) opens *Publicar* — her reminder's place, which her own phone's reminders open by their own route.
+ * ⚠️ `10.5c-iii`: A CAMPAIGN'S PLACES JOIN THEM (`0093`'s `opens`, which he names in `new_campaign`): *Hoy* — the
+ * place `novedades` opens when he names none — and *Mi cocina*; *Publicar* and *Apartados* as above.
  */
-export const RUTAS: Readonly<Record<string, RutaDelToque>> = { apartados: '/apartados', publicar: '/publicar' };
+export const RUTAS: Readonly<Record<string, RutaDelToque>> = {
+  apartados: '/apartados',
+  publicar: '/publicar',
+  hoy: '/',
+  mi_cocina: '/mi-cocina',
+};
 
 export function rutaDelToque(data: unknown): RutaDelToque | null {
   if (kindDe(data) === null) return null;
@@ -136,4 +143,24 @@ export function rutaDelToque(data: unknown): RutaDelToque | null {
 /** The kinds she switches in *Mi cocina*: the service ones. */
 export function enMiCocina(avisos: readonly Aviso[] | undefined): readonly Aviso[] {
   return (avisos ?? []).filter((a) => a.deServicio);
+}
+
+/**
+ * ⚠️ `10.5c-iii`: *NOVEDADES DE WERA COCINA* IN *MI COCINA*, ONLY WHILE OFFERED — every promotion kind of this app
+ * moves with her one answer (`0093`), drawn once, with the first one's words; on while any is. `null` while none
+ * comes in her kinds: Wera has *Novedades* dark and she is no test account of the owner's.
+ */
+export function novedadesDe(avisos: readonly Aviso[] | undefined): Aviso | null {
+  const promos = (avisos ?? []).filter((a) => a.clase === 'promocion');
+  return promos.length === 0 ? null : { ...promos[0], encendido: promos.some((a) => a.encendido) };
+}
+
+/**
+ * The send's number a campaign's message carries (`0093`'s `send_id`), or `null` — a service message carries
+ * none. A tap is reported with it (`count_campaign_tap`) and nothing else.
+ */
+export function envioDe(data: unknown): number | null {
+  if (kindDe(data) === null) return null;
+  const send = (data as { send_id?: unknown }).send_id;
+  return typeof send === 'number' && Number.isSafeInteger(send) && send > 0 ? send : null;
 }

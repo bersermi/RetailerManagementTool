@@ -46,7 +46,10 @@ on conflict (user_id) do nothing;
 --   p_window_h  hours after her message in which a reservation (or a publication) counts: 1 to 168
 --   p_held_out  per cent held back, sent nothing, counted all the same: 0 to 90
 --   p_variants  1 to 5 wordings: a key A–Z, a weight (all adding to 100), a title (80) and a body (240)
---   p_opens     what a tap opens — leave it out for the kind's own (Itacate: its list)
+--   p_opens     what a tap opens — leave it out for the kind's own (Itacate: its list; Wera Cocina: Hoy). The places
+--               each app's build opens (`10.5c-iii`; any other word opens only the app):
+--               itacate: cerca (the list), mis_cocinas, apartados, cocina (with p_opens_id => a kitchen's id: her page)
+--               cocina:  hoy, publicar, apartados, mi_cocina
 select servicio.new_campaign(
   p_app      => 'itacate',
   p_kind     => 'ofertas',
@@ -96,20 +99,28 @@ select servicio.stop_campaign(:campaign);
 
 -- ---------------------------------------------------------------------------
 -- TURNING PROMOTIONS ON — THE ANALYST'S, ONCE SHE HAS RULED (her questions 2 to 5).
--- Two statements per app. Her words exactly as the sheet shows them, as a new version
--- (an approved version never changes: new words are a new version); then the kind on.
--- Until both are done nobody can say yes, and nothing is sent.
+-- Two statements, each covering both apps — to turn on one app alone, keep only its row in on 1
+-- and its kind in on 2. Her words exactly as the sheet shows them, as a new version (an approved
+-- version never changes: new words are a new version); then the kind on. Until both are done
+-- nobody can say yes, and nothing is sent.
 -- ---------------------------------------------------------------------------
 
--- on 1: the words she approved — the yes sheet naming both uses (or two screens, each naming one)
--- ⚠️ THE TEXT BELOW IS `10.5c-i`'s DRAFT, NOT APPROVED: replace it with hers, word for word,
--- and give it the version Itacate's sheet carries.
+-- on 1: the words she approved — the yes sheet naming both uses (or two screens, each naming one); one row per app
+-- ⚠️ THE TEXT BELOW IS A DRAFT, NOT APPROVED — Itacate's `10.5c-i`'s, Wera Cocina's written after it by
+-- `10.5c-iii`. Each is EXACTLY what that app's sheet shows today, under the version its build carries
+-- (`itacate/src/api/push.ts` and `cocina/src/api/push.ts`, `PALABRAS`; each app's `test/push.test.ts` holds the
+-- two equal). Her words, if they differ from these, change the app's sheet too — an update to the app — and
+-- take a new version (`itacate-hoja-2`) in both places: an approved version never changes.
 insert into servicio.consent_words (words, app, purposes, shown_on, body) values
   ('itacate-hoja-1', 'itacate', '{promociones,medir_promociones}', 'hoja',
-   '¿Te avisamos de ofertas? De vez en cuando te mandamos ofertas y novedades de las cocinas de Itacate. Nunca antes de las 9 ni después de las 20, y no más de una al día. Contamos cuáles abres y si apartas después, para saber cuáles te sirven. Lo apagas cuando quieras en Tú → Notificaciones.');
+   '¿Te avisamos de ofertas? De vez en cuando te mandamos ofertas y novedades de las cocinas de Itacate. Nunca antes de las 9 ni después de las 20, y no más de una al día. Contamos cuáles abres y si apartas después, para saber cuáles te sirven. Lo apagas cuando quieras en Tú → Notificaciones.'),
+  ('cocina-hoja-1', 'cocina', '{promociones,medir_promociones}', 'hoja',
+   '¿Te mandamos novedades de Wera Cocina? De vez en cuando te mandamos consejos y novedades de la app. Nunca antes de las 9 ni después de las 20, y no más de uno al día. Contamos cuáles abres y si publicas después, para saber cuáles te sirven. Lo apagas cuando quieras en Mi cocina.');
 
--- on 2: the kind on, for everyone
-update servicio.notification_kind set is_on = true where kind = 'ofertas';
+-- on 2: the kind on, for everyone — AFTER on 1: with the kind on and no words approved, the sheet rises and
+-- every yes is refused. Once on, each app shows its sheet once, after a Ya lo tengo (Itacate) or a handover
+-- (Wera Cocina), and the switch in Tú → Notificaciones or Mi cocina (`10.5c-iii`).
+update servicio.notification_kind set is_on = true where kind in ('ofertas', 'novedades');
 
 -- Her other settings, each one UPDATE: the hours and limits —
 --   update servicio.notification_rule set promo_from = '09:00', promo_until = '20:00', promo_per_day = 1, promo_per_week = 3;

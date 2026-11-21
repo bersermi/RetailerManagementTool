@@ -6,11 +6,14 @@ import { ActivityIndicator, Pressable, RefreshControl, StyleSheet, Text, View } 
 import { porCalificar, type Apartado } from '@/api/apartados';
 import { rechazoDe, recogiEsperando } from '@/api/cola';
 import { apiErrorMessage } from '@/api/errors';
-import { useApartados, useCancelarApartado, useCocinas, useSiguiendo, useYaLoTengo } from '@/api/hooks';
+import { useApartados, useAvisos, useCancelarApartado, useCocinas, useConsentimiento, useSiguiendo, useYaLoTengo } from '@/api/hooks';
 import { useAuth } from '@/auth/AuthProvider';
+import { usePermisoDeAvisos } from '@/lib/AvisosDelTelefono';
 import { anteriorTexto, pasaTexto, platoTexto, porConfirmarTexto, puedeCancelar, razonTexto, seccionesDe } from '@/lib/apartados';
 import { useCola } from '@/lib/cola';
 import { preguntarSeguir } from '@/lib/misCocinas';
+import { hayQuePreguntar, preguntadoAqui } from '@/lib/ofertas';
+import { deviceStore } from '@/lib/store';
 import { useAhora } from '@/lib/useAhora';
 import { useSenal } from '@/lib/useSenal';
 import { ES } from '@/strings';
@@ -23,6 +26,7 @@ import { Deslizar } from '@/ui/Deslizar';
 import { Formulario } from '@/ui/Formulario';
 import { Grupo } from '@/ui/Grupo';
 import { Hoja } from '@/ui/Hoja';
+import { HojaOfertas } from '@/ui/HojaOfertas';
 import { Llega } from '@/ui/Llega';
 import { PreguntaSeguir, marcarRespondida, respondida as yaRespondida } from '@/ui/PreguntaSeguir';
 import { SinSenal } from '@/ui/SinSenal';
@@ -60,6 +64,10 @@ import { SinSenal } from '@/ui/SinSenal';
 // *Ya lo tengo* is QUEUED (`@/lib/cola`) — *Ya lo tienes* at once, *Guardado en este teléfono…* and
 // *Podrás calificar a la cocina cuando vuelva la señal.* while it waits, her stars once it lands; a
 // refusal that comes back later is said under it (`rechazoDe`).
+// ⚠️ SINCE `10.5c-iii` *¿TE AVISAMOS DE OFERTAS?* (`@/ui/HojaOfertas`), the design's moment — after a *Ya lo
+// tengo*: once she taps her stars' *Listo*, if `@/lib/ofertas`' `hayQuePreguntar` says so (offers offered to her,
+// never answered, never asked on this phone, a phone that shows notifications or can still ask). Dark until the
+// analyst turns offers on — today only his test accounts are offered them.
 // ============================================================================
 
 /** The clock this screen reads — *faltan 25 min*, and *Cancelar* turning into *No voy a poder ir*. */
@@ -83,6 +91,17 @@ export default function Apartados() {
   const [falla, setFalla] = useState<string | null>(null);
   /** Plates whose *¿Seguir a …?* she answered while on this screen. */
   const [respondidas, setRespondidas] = useState<ReadonlySet<string>>(new Set());
+  const avisos = useAvisos();
+  const consentimiento = useConsentimiento();
+  const { permiso } = usePermisoDeAvisos();
+  const [ofertas, setOfertas] = useState(false);
+
+  /** Her stars given: the plate's card closes, and the offers' sheet rises if it is still to ask. */
+  function calificado() {
+    setRecogido(null);
+    const preguntado = userId !== null && preguntadoAqui(deviceStore(), userId);
+    if (hayQuePreguntar({ avisos: avisos.data, consentimiento: consentimiento.data, preguntado, permiso })) setOfertas(true);
+  }
 
   // What she just collected is said while she stays; leaving the tab clears it.
   useFocusEffect(
@@ -170,7 +189,7 @@ export default function Apartados() {
                     <Text style={styles.nota}>{ES.apartados.calificarDespues}</Text>
                   </>
                 ) : (
-                  <Calificar key={recogido.id} apartado={recogido} onListo={() => setRecogido(null)} />
+                  <Calificar key={recogido.id} apartado={recogido} onListo={calificado} />
                 )}
                 {!esperando && rechazado === null && pregunta(recogido.id) && (
                   <PreguntaSeguir cocinaId={recogido.cocina.id} nombre={recogido.cocina.nombre} onListo={() => respondida(recogido.id)} />
@@ -276,6 +295,8 @@ export default function Apartados() {
           </>
         )}
       </Formulario>
+
+      <HojaOfertas visible={ofertas} pregunta onCerrar={() => setOfertas(false)} />
 
       <Hoja visible={cambio !== null} titulo={hoja.titulo} onCerrar={() => setCambio(null)}>
         <Text style={styles.hojaTexto}>{hoja.texto}</Text>

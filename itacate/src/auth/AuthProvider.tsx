@@ -4,11 +4,13 @@ import type { Session } from '@supabase/supabase-js';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import * as WebBrowser from 'expo-web-browser';
 
+import { retirePushToken } from '@/api/calls';
 import { APPLE_PROVIDER, appleOutcome, appleThrown, asksAppleFirst, nameToStore, type AppleReturn } from '@/auth/apple';
 import { FULL_NAME_KEY, checkCredentials, checkSignUp } from '@/auth/credentials';
 import { authErrorKey, authErrorMessage } from '@/auth/errors';
 import { sessionKeyOf, sessionToHold } from '@/auth/held';
 import { OAUTH_REDIRECT_URI, oauthOutcome } from '@/auth/oauth';
+import { leerToken, olvidarToken } from '@/lib/avisosPush';
 import { newNoncePair } from '@/lib/ids';
 import { olvidarBoletos } from '@/lib/boletos';
 import { deviceStore, readKey, removeKey } from '@/lib/store';
@@ -264,8 +266,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // is sent only while her login is in, as Wera Cocina's handovers are. Nothing else is
   // kept on the phone to forget: this app keeps no query cache on disk, and every key
   // carries the login (`ownersKey`).
+  // ⚠️ `10.5c-iii`: AND THIS PHONE STOPS GETTING HER MESSAGES — its token retired (`retire_push_token`)
+  // while the session still holds, given 4 seconds; with no signal she leaves anyway, and the next login
+  // on this phone takes it from her (`0092`). Forgotten on the phone either way, so the next person's
+  // first token replaces nothing of hers. Wera Cocina's sign-out (`10.5b-v-ii`), the same steps — after
+  // her tickets, which go first.
   const signOut = useCallback(async () => {
     olvidarBoletos(deviceStore());
+    const store = deviceStore();
+    const suyo = leerToken(store);
+    if (suyo !== null) {
+      await Promise.race([
+        retirePushToken(suyo.token).catch(() => {}),
+        new Promise<void>((resolve) => setTimeout(resolve, 4_000)),
+      ]);
+      olvidarToken(store);
+    }
     const { error } = await supabase.auth.signOut();
     if (error) {
       removeKey(deviceStore(), SESSION_KEY);

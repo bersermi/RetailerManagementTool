@@ -3,12 +3,13 @@ import { router } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 
 import { APARTADOS_KEY } from '@/api/apartados';
-import { countNotificationTap, registerPushToken } from '@/api/calls';
+import { countCampaignTap, countNotificationTap, registerPushToken } from '@/api/calls';
 import { useAvisos } from '@/api/hooks';
-import { registerArgs } from '@/api/push';
+import { registerArgs, type Aviso } from '@/api/push';
 import { useAuth } from '@/auth/AuthProvider';
 import {
   alCambiarElToken,
+  alConcederPermiso,
   alLlegarUnAviso,
   alTocarUnAviso,
   hacerCanales,
@@ -37,7 +38,9 @@ import { useAlAbrir } from '@/lib/useGoogle';
 // ⚠️ WHILE THE APP IS IN FRONT a message is shown (SDK 57 drops it otherwise) and her reservations
 // are read again at once; A TAP reads them again too, opens what its kind says (*Apartados*; since `10.9h-ii` the
 // nudge's *Publicar*, `@/lib/avisosPush`' `RUTAS`) and adds one to the kind's count,
-// nobody kept.
+// nobody kept. ⚠️ SINCE `10.5c-iii` A CAMPAIGN'S TAP (`0093`, *Novedades de Wera Cocina*) opens its place (*Hoy*
+// unless he named another) and is reported with its send's number (`count_campaign_tap` — kept only while she is
+// counted); a promotion kind's tap with no send is counted by neither.
 // ⚠️ MEASURED ON THE EMULATOR WHILE THIS ROW WAS BUILT: ASKING EXPO FOR THE TOKEN MAKES THE PHONE ANNOUNCE
 // ITS TOKEN (`@/lib/avisos`' `alCambiarElToken` hears it), so a listener that re-ran this hook on every announcement
 // re-ran it on its own fetch, and the first version cancelled each run before it registered — a loop, and
@@ -84,10 +87,16 @@ export function useAvisosDelTelefono(publicoAlgunaVez: boolean): void {
   const abierta = useAlAbrir();
   const queries = useQueryClient();
   const [tokenCambio, setTokenCambio] = useState(0);
+  // ⚠️ `10.5c-iii`: a permission granted from a screen (*Mi cocina*'s switch, her reminder, the *Novedades* sheet) —
+  // the database is told now, not at the next open (`@/lib/avisos`' `alConcederPermiso`, found on Itacate's emulator).
+  const [concedido, setConcedido] = useState(0);
   // Whose phone it is now — `null` once she signed out, so a run still in flight tells nothing.
   const quien = useRef<string | null>(userId);
   const cola = useRef<Promise<void>>(Promise.resolve());
   const ultimoAnunciado = useRef<string | null>(null);
+  // The kinds as last read — a tap on a promotion kind with no send is counted by nothing.
+  const kinds = useRef<readonly Aviso[]>([]);
+  kinds.current = avisos.data ?? kinds.current;
 
   useEffect(() => {
     quien.current = userId;
@@ -102,7 +111,9 @@ export function useAvisosDelTelefono(publicoAlgunaVez: boolean): void {
     cola.current = cola.current
       .then(() => decirAlServidor(userId, kinds, publicoAlgunaVez, () => quien.current === userId))
       .catch(() => {});
-  }, [userId, avisos.data, abierta, publicoAlgunaVez, tokenCambio]);
+  }, [userId, avisos.data, abierta, publicoAlgunaVez, tokenCambio, concedido]);
+
+  useEffect(() => alConcederPermiso(() => setConcedido((n) => n + 1)), []);
 
   useEffect(() => {
     if (userId === null) return;
@@ -112,10 +123,11 @@ export function useAvisosDelTelefono(publicoAlgunaVez: boolean): void {
     });
     // ⚠️ A tap reads her reservations again too: on a phone whose app was gone, the copy kept on it is from
     // before the message — measured on the emulator, the new plate took half a minute to appear.
-    const dejarDeTocar = alTocarUnAviso((ruta, kind) => {
+    const dejarDeTocar = alTocarUnAviso((ruta, kind, envio) => {
       void queries.invalidateQueries({ queryKey: APARTADOS_KEY });
-      router.navigate(ruta);
-      countNotificationTap(kind).catch(() => {});
+      if (ruta !== null) router.navigate(ruta);
+      if (envio !== null) countCampaignTap(envio).catch(() => {});
+      else if (kinds.current.find((a) => a.kind === kind)?.clase !== 'promocion') countNotificationTap(kind).catch(() => {});
     });
     // ⚠️ Only a token different from one already announced: our own fetch announces the same one.
     const dejarElToken = alCambiarElToken((anunciado) => {

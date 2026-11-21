@@ -1273,6 +1273,28 @@ export const ES = {
     noSeGuardo: 'No se pudo guardar. Intenta de nuevo en un momento.',
   },
 
+  /**
+   * ⚠️⚠️ `10.5c-iii`: *NOVEDADES DE WERA COCINA* — THE SHEET'S WORDS ARE A DRAFT, NOT APPROVED (`10.5c-i` drew only
+   * Itacate's; these follow it, for the fonda). Shown only while a promotion kind of this app is offered to her
+   * (`0093`: his test accounts until the analyst turns *Novedades* on), after a handover; a yes is kept only on
+   * words she approved: `docs/runbooks/campaigns.sql`'s *on 1* inserts these exact words under `@/api/push`'
+   * `PALABRAS` (`test/push.test.ts` holds the two equal) — her words, if they differ, change both, and the version.
+   */
+  novedades: {
+    hoja: {
+      titulo: '¿Te mandamos novedades de Wera Cocina?',
+      texto:
+        'De vez en cuando te mandamos consejos y novedades de la app. Nunca antes de las 9 ni después de las 20, y no más de uno al día.',
+      medir: 'Contamos cuáles abres y si publicas después, para saber cuáles te sirven. Lo apagas cuando quieras en Mi cocina.',
+      si: 'Sí, mándamelas',
+      no: 'Ahora no',
+    },
+    /** Her answer could not be kept — no signal, or words not yet approved (his test accounts). */
+    noSeGuardo: 'No se guardó tu respuesta. Puedes darla después en Mi cocina.',
+    /** Under *Novedades*' switch, once she said yes. */
+    dijisteQueSi: (dia: string) => `Dijiste que sí el ${dia}.`,
+  },
+
   recordatorio: {
     /** The question on *Hoy* — *¿Te recordamos a las 16:00, de lunes a sábado?* — and its line. */
     pregunta: (hora: string, dias: string) => `¿Te recordamos a las ${hora}, ${dias}?`,

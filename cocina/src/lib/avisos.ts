@@ -2,7 +2,7 @@ import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 
 import type { Aviso } from '@/api/push';
-import { canalesDe, importanciaAndroid, kindDe, rutaDelToque as rutaDelAviso, type Permiso, type RutaDelToque } from '@/lib/avisosPush';
+import { canalesDe, envioDe, importanciaAndroid, kindDe, rutaDelToque as rutaDelAviso, type Permiso, type RutaDelToque } from '@/lib/avisosPush';
 import { PREFIJO, RUTA, rutaDelToque, type Disparo } from '@/lib/recordatorio';
 import { ES } from '@/strings';
 
@@ -62,7 +62,10 @@ export async function pedirPermiso(): Promise<'si' | 'no' | 'ajustes'> {
     if (ahora.granted) return 'si';
     if (!ahora.canAskAgain) return 'ajustes';
     const respuesta = await Notifications.requestPermissionsAsync();
-    if (respuesta.granted) return 'si';
+    if (respuesta.granted) {
+      concedido();
+      return 'si';
+    }
     return respuesta.canAskAgain ? 'no' : 'ajustes';
   } catch {
     return 'no';
@@ -151,6 +154,25 @@ export function alTocarUnRecordatorio(abrir: (ruta: string) => void): () => void
 // `10.5b-v-ii` — her kitchen's messages, sent from the database (`0092`)
 // ----------------------------------------------------------------------------
 
+/**
+ * ⚠️ A PERMISSION GRANTED INSIDE THE APP IS HEARD AT ONCE (`10.5c-iii`, found on the emulator): the database is told
+ * this phone's token on each open and return to the front, and Android's permission dialog is neither — so a phone
+ * allowed from a screen (a switch, a bell, the offers' sheet, after a reservation) stayed unknown to the database
+ * until the next open, every message to it dropped meanwhile. Each ask that the phone grants calls these.
+ */
+const alConceder = new Set<() => void>();
+
+export function alConcederPermiso(oir: () => void): () => void {
+  alConceder.add(oir);
+  return () => {
+    alConceder.delete(oir);
+  };
+}
+
+function concedido(): void {
+  for (const oir of alConceder) oir();
+}
+
 /** What the phone says of notifications now, asking nothing — `null` when it cannot say. */
 export async function leerPermisoDelTelefono(): Promise<Permiso | null> {
   try {
@@ -201,7 +223,10 @@ export async function pedirPermisoParaAvisos(avisos: readonly Aviso[]): Promise<
     if (ahora.granted) return 'si';
     if (!ahora.canAskAgain) return 'ajustes';
     const respuesta = await Notifications.requestPermissionsAsync();
-    if (respuesta.granted) return 'si';
+    if (respuesta.granted) {
+      concedido();
+      return 'si';
+    }
     return respuesta.canAskAgain ? 'no' : 'ajustes';
   } catch {
     return 'no';
@@ -255,17 +280,17 @@ export function alLlegarUnAviso(llego: (kind: string) => void): () => void {
 
 /**
  * A tap on a message from the database — the one that opened the app, and every one tapped while
- * it runs: where it opens and its kind. ⚠️ Acted on once: the last response is cleared after it.
+ * it runs: where it opens (or `null`, a place this build does not know — since `10.5c-iii` still
+ * counted), its kind, and a campaign's send. ⚠️ Acted on once: the last response is cleared after it.
  */
-export function alTocarUnAviso(abrir: (ruta: RutaDelToque, kind: string) => void): () => void {
+export function alTocarUnAviso(tocado: (ruta: RutaDelToque | null, kind: string, envio: number | null) => void): () => void {
   const seguir = (respuesta: Notifications.NotificationResponse | null) => {
     if (respuesta === null) return;
     const data = respuesta.notification.request.content.data;
     const kind = kindDe(data);
-    const ruta = rutaDelAviso(data);
-    if (kind === null || ruta === null) return;
+    if (kind === null) return;
     Notifications.clearLastNotificationResponse();
-    abrir(ruta, kind);
+    tocado(rutaDelAviso(data), kind, envioDe(data));
   };
   try {
     seguir(Notifications.getLastNotificationResponse());
