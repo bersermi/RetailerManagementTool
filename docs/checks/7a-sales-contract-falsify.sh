@@ -11,17 +11,19 @@
 # ([[tab-delimiter-collapses-empty-fields]]): a check that went red because GoTrue
 # throttled a signup is not a check that caught the defect.
 #
-#   F1  the headline read as NET          → SALES_COLUMNS no longer asks for revenue_gross
-#   F2  a figure without its ::text cast  → not a string
-#   F3  a page at or above max_rows      → IS NOT BELOW max_rows
-#   F4  the wrong view                    → THE READ ANSWERED
+#   F1  the headline read as NET          → SALES_KEYS names revenue_net
+#   F2  a key the screen reads, missing   → where SALES_KEYS names
+#   F3  the wrong function                → THE READ ANSWERED
+#   F4  the function's name gone          → could not read SALES_FUNCTION
 #
-# ⚠️ WHAT NO FIXTURE HERE BREAKS, AND WHY: the spine filter. The operator (`gt.0`)
-# lives in `@/api/calls`, which no script can load, and every other column in the
-# view either excludes the unsold product too or is not comparable to zero — so a
-# constant-only mutation cannot make the spine leak. The check covers that half by
-# asserting the unfiltered read DOES carry the unsold product, which is what makes
-# its *filtered out* verdict mean something.
+# ⚠️ WHAT NO FIXTURE HERE BREAKS, AND WHY (since `12.2`): the answer's figures,
+# its spine, its void, its fence and its one value all live in `daily_sales`
+# (`0095`), which a copy of `sales.ts` cannot touch. Each was broken in the
+# database instead when it was written — fourteen mutations of the function and
+# the view, each red at its own check of `supabase/tests/0095_sales_in_one_answer.sql`
+# (plan `12.2`'s status entry) — and the check itself asserts the non-vacuity of
+# each: the view's spine DOES carry the unsold product, and the same rows asked
+# for as a set DO stop at max_rows.
 #
 # Run:  supabase start && supabase db reset && bash docs/checks/7a-sales-contract-falsify.sh
 # Exit: 0 when the clean contract passes and every fixture fails for its reason.
@@ -65,18 +67,18 @@ fixture() { # id reason sed-expression description
   fi
 }
 
-fixture F1 'no longer asks for revenue_gross' \
-  "s/revenue_gross::text/revenue_net::text/" \
+fixture F1 'SALES_KEYS names revenue_net' \
+  "s/^  'revenue_gross',$/  'revenue_net',/" \
   "the headline read as net — 16% short on a taxed product"
-fixture F2 'not a string' \
-  "s/qty_base_sold::text/qty_base_sold/" \
-  "a quantity without its ::text cast arrives as a JSON number"
-fixture F3 'IS NOT BELOW max_rows' \
-  "s/^export const SALES_PAGE = [0-9]*;/export const SALES_PAGE = 1500;/" \
-  "a page above the cap makes every page short and the read stop after one"
-fixture F4 'THE READ ANSWERED' \
-  "s/^export const SALES_VIEW = '[a-z_]*';/export const SALES_VIEW = 'product_purchases_daily';/" \
-  "the purchases view has no revenue_gross — a 400 on every phone"
+fixture F2 'where SALES_KEYS names' \
+  "/^  'family_name',$/d" \
+  "a key the screen reads is no longer named — the answer and the app disagree"
+fixture F3 'THE READ ANSWERED' \
+  "s/^export const SALES_FUNCTION = '[a-z_]*';/export const SALES_FUNCTION = 'daily_sale';/" \
+  "a function that does not exist — a 404 on every phone"
+fixture F4 'could not read SALES_FUNCTION' \
+  "/^export const SALES_FUNCTION = /d" \
+  "the check must refuse, not pass, when it cannot read the name"
 
 echo
 if (( fails > 0 )); then

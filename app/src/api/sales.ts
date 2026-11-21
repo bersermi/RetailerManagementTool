@@ -17,8 +17,9 @@
 // ⚠️ **The database already agreed**: `product_velocity_daily` is
 // `security_invoker` over `sale_line`, whose policy is `my_workspaces()` and
 // `my_locations()` with no `has_role` (`0003`), and `0031`'s header measured a
-// cashier reading it. So a cashier sees her own stores' sales **by policy**,
-// and this module carries no role at all.
+// cashier reading it — and `daily_sales` (`0095`), which this read asks since
+// `12.2`, is `security invoker` over the same table. So a cashier sees her own
+// stores' sales **by policy**, and this module carries no role at all.
 //
 // ----------------------------------------------------------------------------
 // ⚠️⚠️ THE GRAIN IS DAILY AND THE CLIENT ROLLS IT UP — §2.9, VERBATIM
@@ -29,19 +30,18 @@
 // the same rows up. Switching never re-fetches, which matters in a shop that is
 // offline half the day ([[pilot-store-is-offline-a-lot]]).
 //
-// ⚠️ THE VIEW'S `day` IS ALREADY THE STORE'S LOCAL DATE (`0031`: `occurred_at at
-// time zone l.timezone`), so the bucketing below is calendar arithmetic on a
+// ⚠️ THE ANSWER'S `day` IS ALREADY THE STORE'S LOCAL DATE (`0031`: `occurred_at at
+// time zone l.timezone`, the view's rule and `daily_sales`'), so the bucketing below is calendar arithmetic on a
 // date string and never touches an instant. That is why it can use `Date.UTC`
 // freely: a date with no time in it has no timezone to get wrong.
 //
 // ----------------------------------------------------------------------------
 // ⚠️ A VOID NETS, IT DOES NOT VANISH
 // ----------------------------------------------------------------------------
-// `void_transaction` (`0021`) inserts a mirror sale with NEGATIVE lines, stamped
-// at the moment of the void, so the view's sums already net. A sale voided the
-// same day contributes nothing to that day; one voided the next day is a plus
-// on one day and a minus on the next, and every week or month containing both
-// is right. **A product whose whole period nets to nothing is dropped from the
+// `void_transaction` (`0021`) inserts a mirror sale with NEGATIVE lines, so the
+// database's sums already net — and since `0064` a void counts on the day of the
+// sale it undoes, wherever it was made: a cancelled sale nets its own day to
+// zero, never a plus on one day and a minus on the next. **A product whose whole period nets to nothing is dropped from the
 // table** — a row reading *0 pza, $0.00* is bookkeeping about a mistake
 // ([[users-dont-do-bookkeeping]]).
 //
@@ -64,20 +64,46 @@ import { qtyShown, shownUnitOf } from '@/cart/quantity';
 import { waitsForSignal } from '@/offline/senal';
 import { ES } from '@/strings';
 
-/** The view the rows come off. Spelled once (`R13`). */
-export const SALES_VIEW = 'product_velocity_daily';
+/**
+ * The function the rows come off — `0095`, plan `12.2`. Spelled once (`R13`).
+ *
+ * ⚠️⚠️ ONE REQUEST, AND WHY IT USED TO BE EIGHTEEN. Until `12.2` this read paged
+ * `product_velocity_daily` 500 rows at a time, because PostgREST caps a SET of
+ * rows at `max_rows` (1000) and truncates without an error. On the hosted demo
+ * shop (six months, 51,468 sale lines) page 1 alone took 16–24 s, every page
+ * rebuilt the shop's whole history, and the database stops a phone's statement
+ * at 8 s: the screen spun and failed (`12.1`, measured). `daily_sales` answers
+ * the same rows — exactly the view's with `line_count > 0`, held to the cent by
+ * `supabase/tests/0095_sales_in_one_answer.sql` — as ONE json value, and one
+ * value is one row, which no `max_rows` truncates. So there is no page, and no
+ * order to keep total: `docs/checks/7a-sales-contract.sh` asks for more rows than
+ * the cap and gets every one.
+ *
+ * ⚠️ WHO MAY READ IT DID NOT CHANGE: `security invoker` over `sale_line`, so a
+ * cashier reads her own stores' sales by policy, as through the view.
+ */
+export const SALES_FUNCTION = 'daily_sales';
+
+/** Its arguments: the open shop, and the first day the read covers (`salesSince`). */
+export function salesArgs(shopId: string, since: string): {
+  readonly p_workspace_id: string;
+  readonly p_since: string;
+} {
+  return { p_workspace_id: shopId, p_since: since };
+}
 
 /**
- * The columns a client may ask the view for.
+ * The keys each row of the answer carries — `SalesRow`'s, which the compiler
+ * holds this list to, and which the contract check holds the database to.
  *
- * ⚠️ NAMED AND NEVER `*` (`R13`). The view carries twenty-odd columns — the
- * trailing windows, `days_since_last_sale`, `store_traded` — and this screen
- * draws none of them. ⚠️ **`revenue_gross` AND NOT `revenue_net`**: §2.9, ruled
- * 2026-09-14 — gross is the figure that reconciles against the cash in the till.
+ * ⚠️ `revenue_gross` AND NOT `revenue_net`: §2.9, ruled 2026-09-14 — gross is
+ * the figure that reconciles against the cash in the till. The view carries
+ * twenty-odd columns (the trailing windows, `days_since_last_sale`,
+ * `store_traded`); the function hands over only what this read draws.
  *
- * ⚠️⚠️ BOTH FIGURES ARE `::text`, `SALE_COLUMNS`' MEASURED REASON: a bare
- * `numeric` arrives as a JSON number, which is a double, and `parseDecimal`
- * refuses a number outright.
+ * ⚠️⚠️ BOTH FIGURES ARRIVE AS TEXT — the function casts them, as `::text` in a
+ * select did before it: a bare `numeric` arrives as a JSON number, which is a
+ * double, and `parseDecimal` refuses a number outright.
  *
  * ⚠️ `base_unit_code` IS READ AND IS NOT TRUSTED ON ITS OWN. `@/api/catalog`'s
  * `UnitBases` records that the variant's column says `250g` on every product
@@ -85,45 +111,23 @@ export const SALES_VIEW = 'product_velocity_daily';
  * looked up in the unit table before it names anything. It is only needed for a
  * product the catalog no longer lists (a retired one), which is the one case the
  * catalog cannot answer.
- */
-export const SALES_COLUMNS =
-  'day,variant_id,variant_name,family_id,family_name,base_unit_code,qty_base_sold::text,revenue_gross::text';
-
-/** The column the window is filtered and ordered on — the store's own date. */
-export const SALES_DAY_COLUMN = 'day';
-
-/**
- * The column that says a sale line exists on that row.
  *
- * ⚠️⚠️ THE VIEW IS A SPINE AND NOT A LIST OF SALES. `0014` gives every product
- * the store has ever stocked a row for EVERY day from its first stock to the
- * store's last trading day, sold or not — so without this filter the read is
- * products × days, which in a real shop is tens of thousands of zeros. `gt.0`
- * on `line_count` keeps exactly the rows with a sale line, **including a day
- * whose only line is a void**, which is what makes the netting above right.
+ * ⚠️⚠️ AND THE ANSWER IS ALREADY A LIST OF SALES, NOT THE VIEW'S SPINE (`0014`
+ * gives every stocked product a row for every day, sold or not): the function
+ * reads the sale lines themselves, so a day appears only with a sale line on it —
+ * **including a day whose only lines are a sale and its void**, which is what
+ * makes the netting above right.
  */
-export const SALES_ACTIVE_COLUMN = 'line_count';
-
-/**
- * The tie-breakers after `SALES_DAY_COLUMN`, in order.
- *
- * ⚠️⚠️ THE ORDER EXISTS FOR THE PAGING AND NOT FOR THE SCREEN. `(day,
- * variant_id, location_id)` is the view's grain, so this order is TOTAL — and a
- * paged read over an order with ties can return one row twice and skip another,
- * silently, whenever the planner breaks a tie differently between two pages.
- */
-export const SALES_TIEBREAK: readonly string[] = ['variant_id', 'location_id'];
-
-/**
- * How many rows one request asks for.
- *
- * ⚠️⚠️ BELOW `max_rows`, ON PURPOSE. PostgREST caps every response at
- * `max_rows` (1000 in `supabase/config.toml`) and **truncates without an
- * error**. The read stops when a page comes back short, so a page size ABOVE the
- * cap would stop after the first page every time and report a partial six
- * months as the whole of it. At half the cap, a short page can only mean the end.
- */
-export const SALES_PAGE = 500;
+export const SALES_KEYS: readonly (keyof SalesRow)[] = [
+  'day',
+  'variant_id',
+  'variant_name',
+  'family_id',
+  'family_name',
+  'base_unit_code',
+  'qty_base_sold',
+  'revenue_gross',
+];
 
 /** How many calendar months the read covers — and how many `Mes` bars there are. */
 export const SALES_MONTHS = 6;
@@ -156,7 +160,7 @@ export function salesKey(since: string): readonly unknown[] {
   return ['sales', 'daily', since];
 }
 
-/** One row, as PostgREST sends it. */
+/** One row of `daily_sales`' answer. */
 export interface SalesRow {
   readonly day: string;
   readonly variant_id: string;

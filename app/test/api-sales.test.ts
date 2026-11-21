@@ -1,21 +1,20 @@
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import type { CatalogEntry } from '@/api/catalog';
 import {
   BARS,
-  SALES_ACTIVE_COLUMN,
-  SALES_COLUMNS,
-  SALES_DAY_COLUMN,
+  SALES_FUNCTION,
+  SALES_KEYS,
   SALES_MONTHS,
-  SALES_PAGE,
-  SALES_TIEBREAK,
-  SALES_VIEW,
   barsOf,
   bucketLabel,
   bucketOf,
   bucketsEnding,
   periodTitle,
   reportOf,
+  salesArgs,
   salesFrom,
   salesKey,
   salesLine,
@@ -52,9 +51,9 @@ function entry(id: string, priceUnit: string, baseUnit: string): CatalogEntry {
 }
 
 /**
- * One view row as PostgREST sends it.
+ * One row of `daily_sales`' answer.
  *
- * ⚠️ BOTH FIGURES ARE DECIMAL STRINGS, which is what `SALES_COLUMNS`' `::text`
+ * ⚠️ BOTH FIGURES ARE DECIMAL STRINGS, which is what the function's `::text`
  * casts exist for; a number here would test a wire shape this app never gets.
  */
 function row(
@@ -77,25 +76,47 @@ function row(
   };
 }
 
+/**
+ * `0095`'s text, read as TEXT only — to hold the name, the arguments and the
+ * keys the app sends and reads to the ones the migration declares
+ * (`api-shelf-price.test.ts`'s arrangement). Whether the database answers that
+ * way is `docs/checks/7a-sales-contract.sh`'s, over a real PostgREST.
+ */
+const MIGRATION = readFileSync(
+  resolve(__dirname, '../../supabase/migrations/0095_sales_in_one_answer.sql'),
+  'utf8',
+);
+
+/** Each `'key', expression` pair of the function's `json_build_object`. */
+function answerKeys(): ReadonlyMap<string, string> {
+  const body = MIGRATION.slice(MIGRATION.indexOf('create function public.daily_sales'));
+  const object = body.slice(body.indexOf('json_build_object('), body.indexOf('order by d.day desc'));
+  return new Map(
+    [...object.matchAll(/^\s*'(\w+)',\s+(.+?)[,)]?\s*$/gm)].map((m) => [m[1] ?? '', m[2] ?? '']),
+  );
+}
+
 describe('the read, as the contract check will send it', () => {
-  it('asks the view for named columns, both figures cast to text', () => {
-    expect(SALES_VIEW).toBe('product_velocity_daily');
-    expect(SALES_COLUMNS).not.toContain('*');
-    expect(SALES_COLUMNS).toContain('qty_base_sold::text');
+  it('asks ONE function, by the name and the arguments 0095 declares', () => {
+    expect(SALES_FUNCTION).toBe('daily_sales');
+    expect(MIGRATION).toMatch(
+      /create function public\.daily_sales\(p_workspace_id uuid, p_since date\)\s+returns json/,
+    );
+    expect(salesArgs('tienda', '2026-06-01')).toEqual({ p_workspace_id: 'tienda', p_since: '2026-06-01' });
+  });
+
+  it('is answered in exactly the keys a row carries, both figures cast to text', () => {
+    const keys = answerKeys();
+    expect([...keys.keys()]).toEqual([...SALES_KEYS]);
+    expect(keys.get('qty_base_sold')).toMatch(/::text$/);
     // §2.9, ruled 2026-09-14: GROSS is the headline, because it is the cash in the till.
-    expect(SALES_COLUMNS).toContain('revenue_gross::text');
-    expect(SALES_COLUMNS).not.toContain('revenue_net');
+    expect(keys.get('revenue_gross')).toBe('(d.revenue_net + d.tax_collected)::text');
+    expect([...keys.keys()]).not.toContain('revenue_net');
   });
 
-  it('filters the spine down to rows with a sale line, on the store date', () => {
-    expect(SALES_ACTIVE_COLUMN).toBe('line_count');
-    expect(SALES_DAY_COLUMN).toBe('day');
-  });
-
-  it('pages below max_rows, over the view grain, so a short page can only mean the end', () => {
-    // supabase/config.toml's max_rows is 1000 and PostgREST truncates silently.
-    expect(SALES_PAGE).toBeLessThan(1000);
-    expect([SALES_DAY_COLUMN, ...SALES_TIEBREAK]).toEqual(['day', 'variant_id', 'location_id']);
+  it('answers one value, so no max_rows truncates it — the reason the read paged until 12.2', () => {
+    expect(MIGRATION).toMatch(/coalesce\(\s*json_agg\(/);
+    expect(MIGRATION).toMatch(/'\[\]'::json\)/);
   });
 
   it('puts the window in the key, so a new month is a new read', () => {

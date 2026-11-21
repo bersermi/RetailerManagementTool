@@ -60,6 +60,15 @@
   - **Internal:** §2.3 opens *"Nineteen tables"* (there are 22). §6 says `record_transfer`
     ships in `0004` (it is `0020`). §2.10 names `@rmt/money` (the package is `@tienda/money`).
     §8's checklist has every box unticked, among them the invites, built in `0027`–`0029`.
+- **Revised:** 2026-11-21 — **§2.9: Números' sales are read through ONE function over the ledger** (plan `12.2`, `0095`; the
+  decision maker's yes to `12.1`'s option C). *"SQL views over the ledger, so reports cannot drift from transactions"* still
+  holds: `daily_sales(p_workspace_id, p_since)` is SQL over the same ledger, `security invoker` (a cashier her own stores'), at
+  the same daily grain (the client still rolls up), and answers exactly `product_velocity_daily`'s rows with a sale line —
+  held equal to the cent by `supabase/tests/0095_sales_in_one_answer.sql`. **Why a function:** PostgREST cuts a set of rows at
+  `max_rows`, so the view was read in pages, and on the demo shop's six months each page took longer than the database lets a
+  phone wait (page 1 measured at 16–24 s against 8 s); one json value is one row, which nothing cuts. **The view stays** —
+  *Precios* and the trailing columns read it, and every build in the field — with its `carried` step rewritten (`union all` +
+  `min`, the same rows) so the planner no longer takes its spine for one row.
 - **Revised:** 2026-11-21 — **§2.2's *Outbound messages* row and §2.7's *What is hers*: the services' messages are built** (plan
   `10.9h-i`, `0094`; ⚠️ built ahead of the decision maker's product analyst's answers, as the campaigns were — his ruling of
   2026-11-20). **Each moment is a row of `servicio.notification_kind`** with its own `is_on` and its timing as data (five
