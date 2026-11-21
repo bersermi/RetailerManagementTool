@@ -216,15 +216,7 @@ import {
   SUPPLIER_LINE_TIME,
   type SupplierLine,
 } from '@/api/providerPage';
-import {
-  SALES_ACTIVE_COLUMN,
-  SALES_COLUMNS,
-  SALES_DAY_COLUMN,
-  SALES_PAGE,
-  SALES_TIEBREAK,
-  SALES_VIEW,
-  type SalesRow,
-} from '@/api/sales';
+import { SALES_FUNCTION, salesArgs, type SalesRow } from '@/api/sales';
 import {
   EXPORT_COLUMNS,
   EXPORT_DAY_COLUMN,
@@ -1269,42 +1261,41 @@ export async function variantCosts(variantId: string): Promise<CostLineRow[]> {
 }
 
 /**
- * Every product's daily sales since `since`, for Números. Plan task `7a`.
+ * Every product's daily sales since `since`, for Números, Inicio and a product's
+ * card. Plan tasks `7a` and `12.2`.
  *
- * ⚠️⚠️ IT PAGES, AND IT IS THE FIRST READ IN THIS APP THAT HAS TO. Every other
- * read here is bounded by what a screen shows — a week of documents, one
- * product's deliveries, `MAGNITUDE_LIMIT` lines. Six months of products × days
- * is not, and PostgREST **truncates at `max_rows` without saying so**: a single
- * request would draw the newest thousand rows as though they were six months.
- * So it asks in `SALES_PAGE`s over a TOTAL order — the view's own grain — and
- * stops at the first short page. See both constants.
+ * ⚠️⚠️ ONE REQUEST, AND IT USED TO BE EIGHTEEN PAGES. It paged
+ * `product_velocity_daily` because PostgREST truncates a set of rows at
+ * `max_rows` without saying so — and on a shop with six months of history each
+ * page took longer than the database lets a phone wait (`12.1`, measured on the
+ * demo shop). `daily_sales` (`0095`) answers the same rows as ONE json value,
+ * which nothing truncates. See `SALES_FUNCTION`.
+ *
+ * ⚠️ THE SHOP IS AN ARGUMENT, NOT A FILTER (`shopRows`' rule kept by other
+ * means): the function reads only `p_workspace_id`'s rows, and
+ * `app/test/api-shop-scope.test.ts` holds this read to the open shop.
  *
  * ⚠️ NO LOCATION FILTER AND NO ROLE, `variantCosts`' reason: `sale_line_select`
- * keeps `my_locations()` and carries no `has_role` (`0003`), so a cashier reads
- * her own stores' sales by policy — which is what the owner ruled on 2026-09-28.
+ * keeps `my_locations()` and carries no `has_role` (`0003`), and the function is
+ * `security invoker`, so a cashier reads her own stores' sales by policy — which
+ * is what the owner ruled on 2026-09-28.
+ *
+ * ⚠️ AN ANSWER THAT IS NOT A LIST IS A FAILURE, NOT *NO SALES*: the screen says
+ * the read failed and can be tried again, rather than drawing an empty six months.
  */
 export async function shopSales(shopId: string, since: string): Promise<SalesRow[]> {
-  const rows: SalesRow[] = [];
-  for (let from = 0; ; from += SALES_PAGE) {
-    let query = shopRows(SALES_VIEW, SALES_COLUMNS, shopId)
-      .gte(SALES_DAY_COLUMN, since)
-      .gt(SALES_ACTIVE_COLUMN, 0)
-      .order(SALES_DAY_COLUMN, { ascending: false });
-    for (const column of SALES_TIEBREAK) query = query.order(column, { ascending: true });
-    const { data, error } = await query.range(from, from + SALES_PAGE - 1);
-    if (error) throw reported(error);
-    const page = (data ?? []) as unknown as SalesRow[];
-    rows.push(...page);
-    if (page.length < SALES_PAGE) return rows;
-  }
+  const { data, error } = await supabase.rpc(SALES_FUNCTION, salesArgs(shopId, since));
+  if (error) throw reported(error);
+  if (!Array.isArray(data)) throw new Error(`${SALES_FUNCTION} answered something that is not a list`);
+  return data as SalesRow[];
 }
 
 /**
  * Every header of one kind of document whose `occurred_at` falls in a window,
  * oldest first. Plan task `8g` — Números' *Tu mes* and *Descubre*.
  *
- * ⚠️ IT PAGES, `shopSales`' reason: a busy month of sales is more than
- * `max_rows`, and PostgREST truncates without saying so. The order is total —
+ * ⚠️ IT PAGES: a busy month of sales is more than `max_rows`, and PostgREST
+ * truncates a set of rows without saying so. The order is total —
  * the time, then the id.
  * ⚠️ NO LOCATION FILTER AND NO ROLE: the three tables' own policies scope a
  * cashier to her stores (`0003`), and purchase headers are hers since `0040`.
@@ -1359,7 +1350,7 @@ export async function reversalsSince(shopId: string, table: string, from: string
  * One side of one product's price history — every day it traded, oldest first.
  * Plan task `7b`.
  *
- * ⚠️ IT PAGES, `shopSales`' reason, over `(day, location_id)` — the view's whole
+ * ⚠️ IT PAGES (`max_rows` truncates a set silently), over `(day, location_id)` — the view's whole
  * grain once the variant is fixed, so the order is total. ⚠️ THE WHOLE HISTORY,
  * NOT A WINDOW: a card's baseline is the last price on or before its window
  * opened, however long ago that was (`asOfDay` in `@/api/prices`). A product
@@ -1451,7 +1442,7 @@ export async function variantPriceHistory(variantId: string): Promise<PriceRows>
  * Every line of every sale, delivery and write-off in one month, for the file
  * Números hands over. Plan task `7d`.
  *
- * ⚠️⚠️ IT PAGES, `shopSales`' reason: a month is not bounded by what a screen
+ * ⚠️⚠️ IT PAGES: a month is not bounded by what a screen
  * shows, and PostgREST truncates at `max_rows` without saying so. `EXPORT_PAGE`
  * over a TOTAL order, stopping at the first short page.
  *

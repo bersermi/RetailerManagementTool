@@ -31,6 +31,12 @@
 #      relations say more, because a screen takes a decision off the answer: ONE
 #      store (`useCatalog` resolves a store only from one), ONE generic supplier
 #      (Comprar's default) and ONE membership of hers (her role).
+#   4. Since `12.2`, the reads that ask a FUNCTION with the shop as its argument
+#      — Números' sales, `SALES_FUNCTION` read out of `app/src/api/sales.ts`
+#      (`daily_sales`, `0095`): asked for the shop, the shop's sale and not the
+#      kitchen's; asked for the kitchen, the kitchen's — so the walls show both
+#      and the argument is what keeps the kitchen out. That `shopSales` hands it
+#      the open shop is `app/test/api-shop-scope.test.ts`'s.
 #
 # ⚠️ WHAT IT DOES NOT ASSERT. That every read in `calls.ts` starts at `shopRows`:
 # a read that skips it names no relation here, so `app/test/api-shop-scope.test.ts`
@@ -128,10 +134,11 @@ for relation in sorted(reads):
     print('%s|%s' % (relation, ','.join(sorted(set(reads[relation])))))
 PY
 
-# ⚠️ THIRTEEN RELATIONS TODAY, FROM SIXTEEN READS. A floor, not a snapshot: a read
-# that leaves `shopRows` lowers the count and turns this red here, and the suite
-# names which. Raise it when a relation joins.
-MIN_RELATIONS=13
+# ⚠️ TWELVE RELATIONS TODAY, FROM FIFTEEN READS — thirteen from sixteen until
+# `12.2` moved Números' sales off `product_velocity_daily` onto a function (group
+# 4). A floor, not a snapshot: a read that leaves `shopRows` lowers the count and
+# turns this red here, and the suite names which. Raise it when a relation joins.
+MIN_RELATIONS=12
 RELATIONS="$(grep -c '^[a-z_][a-z_]*|' "$SCRATCH/relations")"
 UNREAD="$(grep -c '^?|' "$SCRATCH/relations")"
 
@@ -365,11 +372,48 @@ while IFS='|' read -r relation reads; do
   fi
 done < "$SCRATCH/relations"
 
+# --- 4. the reads that ask a function, the shop its argument (`12.2`) -------
+SALES_FN="$(sed -n "s/^export const SALES_FUNCTION = '\([a-z_]*\)';.*/\1/p" "$API_DIR/sales.ts" | head -1)"
+note
+if [[ -z "$SALES_FN" ]]; then
+  fail "could not read SALES_FUNCTION out of $API_DIR/sales.ts"
+else
+  SHOP_SALES="$(api POST "/rest/v1/rpc/$SALES_FN" "{\"p_workspace_id\":\"$SHOP\",\"p_since\":\"2000-01-01\"}")"
+  KITCHEN_SALES="$(api POST "/rest/v1/rpc/$SALES_FN" "{\"p_workspace_id\":\"$KITCHEN\",\"p_since\":\"2000-01-01\"}")"
+  body "$SHOP_SALES" > "$SCRATCH/shop-sales.json"
+  body "$KITCHEN_SALES" > "$SCRATCH/kitchen-sales.json"
+  cat > "$SCRATCH/sales-verdict.py" <<'PY'
+import json, sys
+fn, shop_status, kitchen_status, shop_path, kitchen_path = sys.argv[1:6]
+if shop_status != '200' or kitchen_status != '200':
+    print('%s answered %s for the shop and %s for the kitchen' % (fn, shop_status, kitchen_status)); raise SystemExit
+shop, kitchen = json.load(open(shop_path)), json.load(open(kitchen_path))
+if not isinstance(shop, list) or not isinstance(kitchen, list):
+    print('%s did not answer a list: %r / %r' % (fn, shop, kitchen)); raise SystemExit
+names = lambda rows: sorted({r.get('variant_name') for r in rows})
+if names(kitchen) != ['Producto cocina']:
+    print("asked for the kitchen, %s answered %r — the walls should show her the kitchen's sale, "
+          "or the shop's answer below proves nothing" % (fn, names(kitchen))); raise SystemExit
+if names(shop) != ['Producto tienda']:
+    print("asked for the shop, %s answered %r — a kitchen's sale in Wera's Números, "
+          "or the shop's own missing" % (fn, names(shop))); raise SystemExit
+print("ok the shop's sale alone for the shop, the kitchen's alone for the kitchen")
+PY
+  VERDICT="$(python3 "$SCRATCH/sales-verdict.py" "$SALES_FN" "$(status "$SHOP_SALES")" \
+    "$(status "$KITCHEN_SALES")" "$SCRATCH/shop-sales.json" "$SCRATCH/kitchen-sales.json" 2>&1)"
+  [[ -z "$VERDICT" ]] && VERDICT="the verdict script produced nothing — it crashed on the shape that came back"
+  if [[ "$VERDICT" == ok* ]]; then
+    ok "$SALES_FN (shopSales): ${VERDICT#ok }"
+  else
+    fail "$SALES_FN (shopSales): $VERDICT"
+  fi
+fi
+
 echo
 # ⚠️ THE ANTI-VACUITY GUARD, rule 4 of this repository. Every failure path above
 # is conditional, so "0 failures" is also what a run that skipped everything
 # looks like.
-EXPECTED=$((2 + RELATIONS))
+EXPECTED=$((3 + RELATIONS))
 if (( ran < EXPECTED )); then
   echo "FAIL: only $ran assertion groups ran, expected $EXPECTED — this check"
   echo "      asserted almost nothing and was about to report success."

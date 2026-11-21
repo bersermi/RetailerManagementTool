@@ -97,7 +97,7 @@ run S6 red "only 0 relations are read through shopRows" calls \
   's/\([^n] \)shopRows(/\1rowsOf(/g; s/= shopRows(/= rowsOf(/g; s/await shopRows(/await rowsOf(/g'
 
 echo "S7  one relation leaves the helper — the roster reads every business again"
-run S7 red "only 12 relations are read through shopRows" calls \
+run S7 red "only 11 relations are read through shopRows" calls \
   "s/await shopRows('workspace_member', MEMBER_COLUMNS, shopId)/await supabase.from('workspace_member').select(MEMBER_COLUMNS)/"
 
 echo "S8  a relation where the kitchen holds nothing — green would be the fixture's, not the filter's"

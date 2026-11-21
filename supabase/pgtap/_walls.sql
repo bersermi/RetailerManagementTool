@@ -131,6 +131,10 @@ signed_in (proname) as (values
   -- promotion to those who follow it, and whether that is offered — both keyed on her
   -- membership; what each neighbour is owed sits in `servicio.notice`, read by no client
   ('promotion_alert_offered'), ('alert_promotion'),
+  -- Números' sales in one answer (`0095`, plan `12.2`): every product's sales per store
+  -- per day since a date, one json value — security invoker, so what it reads is
+  -- `sale_line`'s policy's: a cashier her own stores', nobody another shop's
+  ('daily_sales'),
   -- what a policy, a check or a computed column runs as the caller
   ('catalog_image_path'), ('has_role'), ('merma_path_ok'), ('my_locations'),
   ('my_role'), ('my_workspaces'), ('normalize_name'), ('photo_folder_ok'),

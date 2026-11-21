@@ -63,7 +63,7 @@ const hooks = functionsOf(hooksSource);
 const WRITES = /\.(update|insert|upsert|delete|upload)\(/;
 
 /**
- * ⚠️⚠️ THE SIXTEEN READS OF ONE SHOP'S ROWS — each starts at `shopRows`. A new
+ * ⚠️⚠️ THE FIFTEEN READS OF ONE SHOP'S ROWS — each starts at `shopRows`. A new
  * read of a business's rows joins this list and the contract check reads its
  * relation without being told.
  */
@@ -78,13 +78,25 @@ const SCOPED = [
   'reversalsSince',
   'shopMagnitude',
   'shopProviders',
-  'shopSales',
   'storeAddresses',
   'todaySales',
   'workspaceInvites',
   'workspaceLocations',
   'workspaceMembers',
 ].sort();
+
+/**
+ * ⚠️⚠️ THE READS OF ONE SHOP'S ROWS THAT ASK A FUNCTION, THE SHOP ITS ARGUMENT —
+ * `shopSales` since `12.2` (`daily_sales`, `0095`: one json answer, which no
+ * `max_rows` truncates). No `.from(`, so the assertions over `shopRows` cannot
+ * see it; it is held below to hand the open shop over by name, and its hook to
+ * the same three rules as the sixteen. That the function reads only that shop is
+ * the database's: `docs/checks/7a-sales-contract.sh` and
+ * `supabase/tests/0095_sales_in_one_answer.sql`.
+ */
+const SCOPED_BY_ARGUMENT: Readonly<Record<string, RegExp>> = {
+  shopSales: /supabase\.rpc\(SALES_FUNCTION, salesArgs\(shopId, /,
+};
 
 /**
  * ⚠️⚠️ EVERY OTHER READ IN THE FILE, AND WHY IT IS NOT A SHOP'S LIST. A read by a
@@ -112,7 +124,7 @@ describe('every read in `@/api/calls` of a business’s rows starts at `shopRows
     expect(calls.get('shopRows')).toMatch(/\.eq\(SHOP_COLUMN, shopId\)/);
   });
 
-  it('scopes exactly the sixteen reads of a shop’s rows', () => {
+  it('scopes exactly the fifteen reads of a shop’s rows', () => {
     const scoped = [...calls].filter(([, body]) => /\bshopRows\(/.test(body)).map(([name]) => name);
     expect(scoped.filter((name) => name !== 'shopRows').sort()).toEqual(SCOPED);
   });
@@ -122,6 +134,14 @@ describe('every read in `@/api/calls` of a business’s rows starts at `shopRows
       const body = calls.get(name) ?? '';
       expect(body, name).toMatch(new RegExp(`function ${name}(<[^>]*>)?\\(\\s*shopId: string`));
       expect(body, name).toMatch(/\bshopRows\([^()]*(\([^()]*\))?[^()]*,\s*shopId\)/);
+    }
+  });
+
+  it('hands each function read of a shop’s rows the open shop, as its argument', () => {
+    for (const [name, call] of Object.entries(SCOPED_BY_ARGUMENT)) {
+      const body = calls.get(name) ?? '';
+      expect(body, name).toMatch(new RegExp(`function ${name}(<[^>]*>)?\\(\\s*shopId: string`));
+      expect(body, name).toMatch(call);
     }
   });
 
@@ -144,7 +164,8 @@ describe('every hook over those reads asks for the open shop, and keys on it', (
   });
 
   /** Each call of a scoped read in `@/api/hooks`: its argument, its query so far, its hook. */
-  const sites = SCOPED.flatMap((name) =>
+  const READS = [...SCOPED, ...Object.keys(SCOPED_BY_ARGUMENT)];
+  const sites = READS.flatMap((name) =>
     [...hooksSource.matchAll(new RegExp(`\\b${name}(<[^>]*>)?\\(\\s*([A-Za-z]+)`, 'g'))].map((match) => {
       const at = match.index ?? 0;
       const before = hooksSource.slice(0, at);
@@ -155,8 +176,9 @@ describe('every hook over those reads asks for the open shop, and keys on it', (
   );
 
   it('finds every one of the sixteen called, so nothing below can pass vacuously', () => {
-    expect(new Set(sites.map((site) => site.name)).size).toBe(SCOPED.length);
-    expect(sites.length).toBeGreaterThanOrEqual(SCOPED.length);
+    expect(READS).toHaveLength(16);
+    expect(new Set(sites.map((site) => site.name)).size).toBe(READS.length);
+    expect(sites.length).toBeGreaterThanOrEqual(READS.length);
   });
 
   it('passes each the open shop', () => {

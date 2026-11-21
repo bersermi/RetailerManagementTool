@@ -76,7 +76,8 @@ export const EXPORT_DAY_COLUMN = 'day';
 /**
  * The tie-breakers after `EXPORT_DAY_COLUMN`, in order, all ascending.
  *
- * ⚠️⚠️ THE ORDER IS TOTAL BECAUSE THE READ PAGES — `SALES_TIEBREAK`'s reason. A
+ * ⚠️⚠️ THE ORDER IS TOTAL BECAUSE THE READ PAGES: over an order with ties, the
+ * planner may break a tie differently per page — one row twice, one never. A
  * line's id is unique within its kind, so `(kind, line_id)` alone is a key;
  * `occurred_at` and `document_id` come first so the file reads in the order
  * things happened, with a document's lines together.
@@ -84,8 +85,8 @@ export const EXPORT_DAY_COLUMN = 'day';
 export const EXPORT_TIEBREAK: readonly string[] = ['occurred_at', 'kind', 'document_id', 'line_id'];
 
 /**
- * How many rows one request asks for. ⚠️ BELOW `max_rows` (1000), `SALES_PAGE`'s
- * reason: PostgREST truncates without an error, and the read stops at the first
+ * How many rows one request asks for. ⚠️ BELOW `max_rows` (1000), ON PURPOSE:
+ * PostgREST truncates without an error, and the read stops at the first
  * short page — at half the cap, a short page can only mean the end.
  */
 export const EXPORT_PAGE = 500;
