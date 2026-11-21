@@ -81,6 +81,7 @@ import {
   type KitchenCardRow,
 } from '@/api/tarjeta';
 import { selloKey } from '@/api/sello';
+import { AVISOS_KEY, avisosKey, type Aviso } from '@/api/push';
 import {
   accountOwners,
   deleteMyAccount,
@@ -133,6 +134,8 @@ import {
   endPromotion,
   kitchenPromotions,
   undoPromotion,
+  myNotificationKinds,
+  setNotificationSwitch,
 } from '@/api/calls';
 import { deLaCocina, rechazoDe, reservasConCola, vecinosConCola, type Envio } from '@/api/cola';
 import { guardarSuDireccion, type Escritura } from '@/api/direccion';
@@ -1745,4 +1748,53 @@ export function useLogoDelCartel(kitchenId: string | null, logo: string | null) 
       }
     },
   });
+}
+
+// ----------------------------------------------------------------------------
+// `10.5b-v-ii` — her phone's messages from the server (`0092`)
+// ----------------------------------------------------------------------------
+
+/**
+ * ⚠️ THE KINDS OF MESSAGE AND HER SWITCH FOR EACH (`my_notification_kinds`, `0092`): what the phone makes its
+ * channels from (`@/lib/useAvisosDelTelefono`) and *Mi cocina* draws its switches from. Keyed on the login — her
+ * switch is hers on every phone. ⚠️ NOT on the phone's disk: with no signal nothing is drawn and no channel made.
+ */
+export function useAvisos() {
+  const { session, ready } = useAuth();
+  const userId = session?.user.id ?? null;
+  return useQuery({
+    queryKey: avisosKey(userId),
+    queryFn: () => myNotificationKinds(),
+    enabled: ready && userId !== null,
+    staleTime: 60 * 60_000,
+  });
+}
+
+/** Her switch for one kind (`set_notification_switch`): the answer is her kinds as now held. */
+export function useCambiarAviso() {
+  const queries = useQueryClient();
+  const { session } = useAuth();
+  const userId = session?.user.id ?? null;
+  const mutation = useMutation({
+    mutationFn: ({ kind, on }: { readonly kind: string; readonly on: boolean }) => setNotificationSwitch(kind, on),
+    onSuccess: (avisos: readonly Aviso[]) => {
+      queries.setQueryData<readonly Aviso[]>(avisosKey(userId), avisos);
+    },
+    onError: () => {
+      void queries.invalidateQueries({ queryKey: AVISOS_KEY });
+    },
+  });
+
+  /** `true` once saved; `false` when it could not be — her switch is drawn as the database holds it. */
+  async function cambiar(kind: string, on: boolean): Promise<boolean> {
+    if (mutation.isPending) return false;
+    try {
+      await mutation.mutateAsync({ kind, on });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  return { cambiar, busy: mutation.isPending };
 }

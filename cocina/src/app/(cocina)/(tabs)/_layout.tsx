@@ -1,9 +1,19 @@
 import { Tabs } from 'expo-router/js-tabs';
 
 import { esDuena } from '@/api/equipo';
-import { useApartadosAlDia, useKitchen, useLlavesDeSello, usePlace, useServicios, useSiYaNoEstaAqui, useSuRol } from '@/api/hooks';
+import {
+  useApartadosAlDia,
+  useKitchen,
+  useListings,
+  useLlavesDeSello,
+  usePlace,
+  useServicios,
+  useSiYaNoEstaAqui,
+  useSuRol,
+} from '@/api/hooks';
 import { ordenesDe, porCalificar } from '@/lib/apartados';
 import { RecordatorioProvider } from '@/lib/RecordatorioProvider';
+import { useAvisosDelTelefono } from '@/lib/useAvisosDelTelefono';
 import { veSusNumeros } from '@/lib/numeros';
 import { useFestejos } from '@/lib/useFestejos';
 import { useAhora } from '@/lib/useAhora';
@@ -48,6 +58,11 @@ import { Pestanas } from '@/ui/Pestanas';
 // *Tus números empiezan hoy* on the owner's phone when she uses them — her role and her choices are the queries
 // *Hoy* reads, so nothing more is asked.
 //
+// ⚠️ `10.5b-v-ii`: AND HER PHONE IS TOLD TO THE DATABASE HERE (`@/lib/useAvisosDelTelefono`), on each open:
+// its token, what it allows, its channels — and asked once, after her kitchen's first publication (her
+// list is the query `RecordatorioProvider` reads, so nothing more is asked). A message from the database
+// is shown while the app is in front, and a tap opens *Apartados*.
+//
 // ⚠️ `10.9b-ii`: AND HER ROLE IS WATCHED HERE (`useSiYaNoEstaAqui`): a helper the owner removed, or
 // who is gone, reads `null` for her role at this kitchen, and her kitchens are read again — once,
 // from here — so the guard sends her where a kitchen is made.
@@ -64,6 +79,8 @@ export default function TabsDeCocina() {
   const servicios = useServicios(kitchen?.id ?? null);
   const duena = esDuena(useSuRol(kitchen?.id ?? null).data);
   useFestejos(kitchen?.id ?? null, apartados.data?.reservas, veSusNumeros(servicios.data, duena));
+  const listings = useListings(kitchen?.id ?? null);
+  useAvisosDelTelefono((listings.data?.length ?? 0) > 0);
   return (
     <RecordatorioProvider kitchenId={kitchen?.id ?? null}>
       <Tabs screenOptions={{ headerShown: false }} tabBar={(props) => <Pestanas {...props} cuentas={cuentas} />}>

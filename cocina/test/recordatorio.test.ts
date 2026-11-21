@@ -271,12 +271,17 @@ describe('the wiring, read as text', () => {
     });
   }
 
-  it('one module asks for notifications — and never for a push token', () => {
+  // ⚠️ `10.5b-v-ii`: until then, *never for a push token*. Since then the same module asks for it — her
+  // kitchen's reservations sent from the database (`0092`) — and still never for a task in the background.
+  it('one module asks for notifications — and it alone asks for a push token, never for a background task', () => {
     const importers = sources()
       .filter((path) => /from 'expo-notifications'/.test(readFileSync(path, 'utf8')))
       .map((path) => path.slice(SRC.length + 1));
     expect(importers).toEqual(['lib/avisos.ts']);
-    expect(code('lib/avisos.ts')).not.toMatch(/PushToken|registerTaskAsync|setNotificationHandler/);
+    expect(code('lib/avisos.ts')).toMatch(/Notifications\.getExpoPushTokenAsync\(\)/);
+    expect(code('lib/avisos.ts')).not.toMatch(/registerTaskAsync|expo-task-manager/);
+    const askers = sources().filter((path) => /get(Expo|Device)PushTokenAsync|addPushTokenListener/.test(readFileSync(path, 'utf8'))).map((path) => path.slice(SRC.length + 1));
+    expect(askers.sort()).toEqual(['lib/avisos.ts']);
   });
 
   it('a weekly trigger on her channel, the channel made before the permission is asked', () => {

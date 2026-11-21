@@ -27,6 +27,7 @@ bash docs/checks/10.9d-i-following-contract.sh        # the same stack: Te sigue
 bash docs/checks/10.9e-i-card-contract.sh             # the same stack: the loyalty card by tarjeta.ts' names — Activar, a phone's code, a scan, a stamp, a reward, Cerrar — beside Itacate's
 bash docs/checks/10.9f-numbers-contract.sh            # the same stack: her numbers by numeros.ts' names, as the owner, after a plate reserved in Itacate and handed over here — one visit
 bash docs/checks/10.9g-i-promotions-contract.sh       # the same stack: promotions by promociones.ts' names — made, three at once, ended, undone — an offer joining one by listing.ts', the door's band by Itacate's
+bash docs/checks/10.5b-v-ii-push-contract.sh          # the same stack: her phone's messages by push.ts' names — this phone's token stored and retired, her kinds by every key, her switch, a tap counted with nobody kept (nothing is sent)
 bash store/cocina-itacate/render.sh giros         # the nine trades' drawings, from brand/giros.svg into src/marca/giros/ — and nothing else
 TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic is local time, and the Mac is UTC−6
 ```
@@ -94,7 +95,7 @@ promotions: `kitchen_promotions` (any member: a helper publishes and *Publicar* 
 answer, `TD029` (three at once), `TD030` (*Para tus clientes* with no card), `TD032` (too late to undo) — ending or undoing one not there answers her list; and `src/api/listing.ts`'
 optional `p_promotion_id`, sent only when she picks one (`publish_listing`'s sixth, defaulted; `TD031` when it cannot join). Asked against
 a real PostgREST by `docs/checks/10.9g-i-promotions-contract.sh` beside Itacate's door (its own job, `promotions`; its falsifier breaks the
-three files), held to `0087`'s text by `test/promociones.test.ts`. **Drawn since `10.9g-ii`** — the section *Promotions* below; Wera's
+three files), held to `0087`'s text by `test/promociones.test.ts`. ⚠️ **Since `10.5b-v-ii`, `src/api/push.ts`** — `0092`'s five: `register_push_token` (this phone's token on each open, its channels and those she silenced, the token it replaces), `retire_push_token` (*Cerrar sesión*), `my_notification_kinds` (each kind's channel, its switch's words, what a tap opens, her switch), `set_notification_switch` (service kinds only) and `count_notification_tap` — every argument, the app's name, its kind and every key of a kind; asked against a real PostgREST by `docs/checks/10.5b-v-ii-push-contract.sh` and its falsifier (its own job, `cocina-push`), held to `0092`'s text by `test/push.test.ts`. What the phone does on each open is `@/lib/useAvisosDelTelefono`'s (the rules `@/lib/avisosPush`'s, the phone's calls `@/lib/avisos`'): ⚠️ asking Expo for the token makes the phone announce it, so only a DIFFERENT token counts as a change (measured on the emulator — the first version looped and never registered). **Drawn since `10.9g-ii`** — the section *Promotions* below; Wera's
 switch `promociones` keeps them off for everyone. The code on
   *Sellar* is `src/lib/codigo.ts` — HOTP over the minute in plain TypeScript (no crypto package: a dependency moves Wera's runtime),
   held to RFC 4226 and RFC 6238 by `test/codigo.test.ts`, and Itacate's copy to it by `itacate/test/gemelos.test.ts`. **Drawn since

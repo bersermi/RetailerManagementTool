@@ -235,6 +235,20 @@ import {
   type PromotionArgs,
   type PromotionsRow,
 } from '@/api/promociones';
+import {
+  COUNT_NOTIFICATION_TAP,
+  MY_NOTIFICATION_KINDS,
+  REGISTER_PUSH_TOKEN,
+  RETIRE_PUSH_TOKEN,
+  SET_NOTIFICATION_SWITCH,
+  kindsArgs,
+  kindsFrom,
+  retireArgs,
+  switchArgs,
+  tapArgs,
+  type Aviso,
+  type RegisterArgs,
+} from '@/api/push';
 import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL, supabase } from '@/lib/supabase';
 
 /**
@@ -836,4 +850,46 @@ export async function undoPromotion(args: PromotionArgs): Promise<PromotionsRow>
   const { data, error } = await supabase.rpc(UNDO_PROMOTION, args);
   if (error) throw error;
   return promociones(UNDO_PROMOTION, data);
+}
+
+// ----------------------------------------------------------------------------
+// `10.5b-v-ii` — her phone's messages from the server (`0092`)
+// ----------------------------------------------------------------------------
+
+function avisos(name: string, data: unknown): readonly Aviso[] {
+  const read = kindsFrom(data);
+  if (read === null) throw new TypeError(`${name}: an answer this build cannot read`);
+  return read;
+}
+
+/** The kinds of message of this app, with her switch for each (`my_notification_kinds`). */
+export async function myNotificationKinds(): Promise<readonly Aviso[]> {
+  const { data, error } = await supabase.rpc(MY_NOTIFICATION_KINDS, kindsArgs());
+  if (error) throw error;
+  return avisos(MY_NOTIFICATION_KINDS, data);
+}
+
+/** Her switch for one kind (`set_notification_switch`) — answered with her kinds again. */
+export async function setNotificationSwitch(kind: string, on: boolean): Promise<readonly Aviso[]> {
+  const { data, error } = await supabase.rpc(SET_NOTIFICATION_SWITCH, switchArgs(kind, on));
+  if (error) throw error;
+  return avisos(SET_NOTIFICATION_SWITCH, data);
+}
+
+/** This phone's token for her (`register_push_token`), on each open and when it changes. */
+export async function registerPushToken(args: RegisterArgs): Promise<void> {
+  const { error } = await supabase.rpc(REGISTER_PUSH_TOKEN, args);
+  if (error) throw error;
+}
+
+/** *Cerrar sesión*: this phone stops getting her messages (`retire_push_token`). */
+export async function retirePushToken(token: string): Promise<void> {
+  const { error } = await supabase.rpc(RETIRE_PUSH_TOKEN, retireArgs(token));
+  if (error) throw error;
+}
+
+/** A tap on a message: plus one on today's count, nobody kept (`count_notification_tap`). */
+export async function countNotificationTap(kind: string): Promise<void> {
+  const { error } = await supabase.rpc(COUNT_NOTIFICATION_TAP, tapArgs(kind));
+  if (error) throw error;
 }
