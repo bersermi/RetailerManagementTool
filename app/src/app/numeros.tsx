@@ -484,7 +484,7 @@ function Bloque({
         {amount === null ? (
           <ActivityIndicator color={ink} style={{ alignSelf: 'flex-start' }} />
         ) : (
-          <Text style={{ fontSize: scale.moneySize * 1.3, ...TITULO, ...(ES_A ? { fontFamily: FAMILIA_NUMERO, fontSize: scale.moneySize * 1.5, fontVariant: ['tabular-nums' as const] } : {}), color: PALETTE.tinta }}>{amount}</Text>
+          <Text style={{ fontSize: scale.moneySize * 1.3, ...TITULO, ...(ES_A ? { fontFamily: FAMILIA_NUMERO, fontVariant: ['tabular-nums' as const] } : {}), color: PALETTE.tinta }}>{amount}</Text>
         )}
         {line === '' ? null : (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: scale.rowGap / 4 }}>
