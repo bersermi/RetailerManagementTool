@@ -17,12 +17,34 @@ const PUNTA = require('@/marca/mostrador/punta-etiqueta.png') as number;
 const TRAZO = require('@/marca/mostrador/trazo-pestana.png') as number;
 const MOTAS = require('@/marca/mostrador/motas.png') as number;
 
-/** The counter's paper: white specks over the ground, never tinted. */
+/**
+ * The counter's paper: white specks over the ground, never tinted.
+ *
+ * ⚠️ MEASURED 2026-11-21 ON THE EMULATOR (Android 16, React Native 0.86.3): `resizeMode="repeat"`
+ * drew ONE tile, not a wall of them — Android tiles in a post-processing step that paints a
+ * bitmap the size of the view (ReactImageView's TilePostprocessor). So the paper is laid as a grid
+ * of 128-point tiles, cut by the screen's edge; the same on both platforms.
+ */
+const LADO = 128;
 export function Papel() {
+  const [size, setSize] = useState({ w: 0, h: 0 });
   if (!CON_PAPEL) return null;
+  const cols = Math.ceil(size.w / LADO);
+  const rows = Math.ceil(size.h / LADO);
   return (
-    <View style={StyleSheet.absoluteFill} pointerEvents="none">
-      <Image source={PAPEL} resizeMode="repeat" style={StyleSheet.absoluteFill} />
+    <View
+      style={[StyleSheet.absoluteFill, { overflow: 'hidden' }]}
+      pointerEvents="none"
+      onLayout={(e) => setSize({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height })}
+    >
+      {Array.from({ length: rows * cols }, (_, i) => (
+        <Image
+          key={i}
+          source={PAPEL}
+          fadeDuration={0}
+          style={{ position: 'absolute', left: (i % cols) * LADO, top: Math.floor(i / cols) * LADO, width: LADO, height: LADO }}
+        />
+      ))}
     </View>
   );
 }
