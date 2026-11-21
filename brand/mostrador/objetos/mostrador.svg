@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!--
+    THE COUNTER'S PAPER — Step 11, row 11.2. A tile repeated behind every screen
+    (`<Image resizeMode="repeat">` filling the screen, over its ground colour), so the counter
+    reads as a surface rather than a flat grey.
+    ⚠️ IT ONLY LIGHTENS. Every pixel is white, and only its alpha varies: laid over any ground,
+    the counter or a tinted room, it can never darken it, so every ink row 11.1 measured on the
+    flat colour (contraste.mjs) clears 4.5:1 on the paper too. The site's paper darkens
+    (site/estilo.css, its ruido); the apps' cannot, because the amber on the tinted Merma room has
+    0.19 to spare. brand/mostrador/objetos.mjs asserts it, pixel by pixel.
+    128 points square; seamless (the noise is stitched at the tile's edges). The apps take
+    mostrador@2x.png and mostrador@3x.png, so a pixel of grain is a pixel of the screen.
+    Drawn by brand/render-mostrador.sh.
+  -->
+  <defs>
+    <filter id="papel" x="0" y="0" width="128" height="128" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.55" numOctaves="3" seed="3" stitchTiles="stitch"/>
+      <feColorMatrix type="matrix" values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  2.4 0 0 0 -1.3"/>
+    </filter>
+  </defs>
+  <rect width="128" height="128" filter="url(#papel)"/>
+</svg>

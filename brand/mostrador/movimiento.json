@@ -1,0 +1,97 @@
+{
+  "_nota": "Step 11, row 11.2 (2026-11-21): the four motions of direction A · Mostrador as data — the stamp landing, the stub tearing, the receipt coming out, a total rolling like a register. Proposed for his look at 11.5; nothing here reaches a phone before rows 11.8 and 11.9. One file, three players: Reanimated 4's keyframes (animationName, a keyframe's own animationTimingFunction: cubicBezier(...curva)), React Native's Animated (Easing.bezier(...curva)) and the reference page's previews (the Web Animations API), so what he sees on the page is what the apps will play. Checked by objetos.mjs beside it. The reference page is https://claude.ai/artifact/WhCNyqR8PhzkFom7gavTX5",
+  "reglas": {
+    "propiedades": ["opacity", "translateX", "translateY", "scale", "rotate"],
+    "orden": "One transform, in this order: [{ translateX }, { translateY }, { scale }, { rotate }] in React Native, translate() scale() rotate() in CSS — the same composition in both, about the motion's origen (transformOrigin).",
+    "unidades": "translateX and translateY in points unless the motion's own unidad says otherwise; rotate in degrees, added to the object's resting turn (objetos.json, sello.giros); scale and opacity plain numbers. A keyframe's curva is the easing from it to the next keyframe, as CSS, Reanimated and the Web Animations API all read it.",
+    "conToque": 300,
+    "conToqueNota": "A motion that answers a tap ends within 300 milliseconds of it (ADR-035 §2.11). None of the four blocks a touch: the next tap is never lost to a motion still playing.",
+    "menosMovimiento": "When the phone asks for less motion, each shows its last keyframe at once (Wera reads it with useReduceMotion, app/src/lib/movimiento.ts).",
+    "entrada": "The one entrance per screen is kept as it is: the siblings' LLEGADA (cocina/src/theme/movimiento.ts, itacate/src/theme/movimiento.ts — blocks rise 8 points and fade in, 240 ms, 40 ms apart). These four are answers to something that happened, never a screen's arrival: none plays on a screen's first frame unless what it shows changed while she was away."
+  },
+  "movimientos": {
+    "sello": {
+      "nombre": "El sello cae",
+      "que": "A stamp is pressed: it comes down from a little above, larger and turned further, lands a touch too far and settles at its resting turn.",
+      "donde": [
+        "Itacate, her card at a kitchen: the new stamp, when the kitchen gives it (11.8)",
+        "Wera Cocina, her card on Sellar: the stamp she just gave (11.8)",
+        "Wera Cocina, Apartados: Entregado on the ticket she handed over, after the stub tears (11.8)",
+        "Wera: Venta registrada, Compra registrada, Merma registrada in place of today's card (app/src/ui/Hecho.tsx) (11.9)"
+      ],
+      "cuando": "The moment the act is kept on the phone — the queue, never the server's reply (C10.3).",
+      "conToque": true,
+      "duracion": 260,
+      "retraso": 0,
+      "origen": "center",
+      "fotogramas": [
+        { "en": 0, "opacity": 0, "scale": 1.6, "rotate": -12, "curva": [0.5, 0, 0.9, 0.45] },
+        { "en": 0.55, "opacity": 1, "scale": 0.94, "rotate": 2, "curva": [0.2, 0.8, 0.3, 1] },
+        { "en": 1, "opacity": 1, "scale": 1, "rotate": 0 }
+      ]
+    },
+    "talon": {
+      "nombre": "El talón se arranca",
+      "que": "The stub tears off along the perforation: it swings away from the band, turning about its corner there, and is gone.",
+      "donde": [
+        "Wera Cocina, Apartados: the stub that holds Entregar, when she hands a plate over (11.8)",
+        "Itacate, her ticket: the stub that holds Ya lo tengo, when she has it (11.8)"
+      ],
+      "cuando": "The handover is kept on the phone. The ticket stays; the stub goes, and the stamp lands on what is left (secuencias, entregar).",
+      "conToque": true,
+      "duracion": 200,
+      "retraso": 0,
+      "origen": "left top",
+      "fotogramas": [
+        { "en": 0, "opacity": 1, "translateX": 0, "translateY": 0, "rotate": 0, "curva": [0.5, 0, 0.75, 0] },
+        { "en": 1, "opacity": 0, "translateX": 22, "translateY": -6, "rotate": 10 }
+      ]
+    },
+    "recibo": {
+      "nombre": "Sale el recibo",
+      "que": "The receipt feeds out one line: everything under its heading starts one line higher, hidden by the heading's edge, and slides down, so the new line comes out at the top as a till prints it.",
+      "donde": ["Wera, Inicio: Lo último, when a sale, a purchase or a write-off she has not seen arrives (11.9)"],
+      "cuando": "Inicio comes to the front with a document Lo último has not shown her yet — held while Inicio is behind another tab, as the total is (useHeldWhileHidden).",
+      "conToque": false,
+      "duracion": 380,
+      "retraso": 0,
+      "origen": "center",
+      "unidad": "fila",
+      "unidadNota": "One row of Lo último: density's rowHeight (56, and 76 at Letra grande). The rows' box clips at its top (overflow hidden).",
+      "fotogramas": [
+        { "en": 0, "translateY": -1, "curva": [0.2, 0.8, 0.3, 1] },
+        { "en": 1, "translateY": 0 }
+      ]
+    },
+    "rodillo": {
+      "nombre": "El total rueda",
+      "que": "A total rolls like a register: each digit a wheel of 0 to 9 behind a window one line tall, turning from the number she saw to the new one, the units first and each place to the left a moment later.",
+      "donde": [
+        "Wera, Inicio: Hoy's total, when a sale lands (today's Rodillo, app/src/app/(tabs)/index.tsx; 11.9)",
+        "Wera Cocina, Hoy: Quedan 9 de 14 as a plate is reserved, if he wants it there too (11.8)"
+      ],
+      "cuando": "The number changes while the screen is in front, or changed while she was away (useHeldWhileHidden). Today's roll, kept: 700 ms, Easing.out(Easing.cubic) — the stagger is new.",
+      "conToque": false,
+      "duracion": 700,
+      "retraso": 0,
+      "origen": "center",
+      "unidad": "renglon",
+      "unidadNota": "One digit's line, the window's height: the number's lineHeight (numero, 38; 48 at Letra grande).",
+      "escalonado": { "cada": 40, "desde": "derecha" },
+      "fotogramas": [
+        { "en": 0, "translateY": "-anterior", "curva": [0.33, 1, 0.68, 1] },
+        { "en": 1, "translateY": "-nuevo" }
+      ],
+      "fotogramasNota": "-anterior and -nuevo are the digit she saw and the new one, in lines: a wheel showing 3 sits at translateY -3."
+    }
+  },
+  "secuencias": {
+    "entregar": {
+      "que": "Wera Cocina's handover: the stub tears and Entregado lands on what is left, as one gesture, a conductor's punch — the stamp starts as the stub lets go, so both have ended 300 ms after her tap.",
+      "pasos": [
+        { "movimiento": "talon", "en": 0 },
+        { "movimiento": "sello", "en": 40 }
+      ]
+    }
+  }
+}

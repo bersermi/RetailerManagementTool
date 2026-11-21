@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="34" height="5" viewBox="0 0 40 6" preserveAspectRatio="none">
+  <!--
+    THE STROKE UNDER THE ACTIVE TAB — Step 11, row 11.2. In place of the pill behind the tab's
+    icon (Android's default, redrawn on the iPhone too): one stroke of a marker under the word,
+    a little higher at its right end, as a hand underlines. Tinted `accion` at runtime.
+    The proposal's own stroke (https://claude.ai/artifact/DnbxMURykZKNYYeemUHbuz).
+    34 x 5 points under the word at Normal; 40 x 6 at Letra grande, the same picture.
+    Drawn by brand/render-mostrador.sh.
+  -->
+  <path d="M2 4 C10 1.5 22 1.5 38 3" fill="none" stroke="#000" stroke-width="2.4" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="72" viewBox="0 0 200 72">
+  <!--
+    THE SPECKS THAT WEAR A WORD STAMP — Step 11, row 11.2. A stamp with words (*Entregado*,
+    *Venta registrada*) is drawn with views and live text, so the words stay the apps' own
+    (strings.ts), take the phone's text size and are read aloud. This picture is laid over it,
+    tinted the colour of the ground the stamp sits on (`<Image tintColor>`, `resizeMode="cover"`),
+    so a speck of ground shows through the ink, as a rubber stamp leaves it.
+    One colour (black here; only its alpha is used). 200 x 72 points, wider than the longest
+    word stamp at Letra grande. Drawn by brand/render-mostrador.sh.
+  -->
+  <defs>
+    <filter id="motas" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7"/>
+      <feColorMatrix type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  9 0 0 0 -6"/>
+    </filter>
+  </defs>
+  <rect width="200" height="72" filter="url(#motas)"/>
+</svg>

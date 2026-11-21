@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="8" height="18" viewBox="0 0 8 18">
+  <!--
+    A TICKET'S NOTCH — Step 11, row 11.2. One end of the band where a ticket tears: a piece of
+    the ticket with a half-round bite out of its outer edge, radius 8 points. The bite is
+    transparent, so whatever is under the ticket shows through it (the counter and its paper),
+    which a circle painted in the counter's colour could not do on a textured ground.
+    Tinted the ticket's colour at runtime (`<Image tintColor>`): white for a ticket, Wera
+    Cocina's green for her offer. The left notch as drawn; the right one is the same picture
+    flipped (`transform: [{ scaleX: -1 }]`). Drawn by brand/render-mostrador.sh.
+  -->
+  <path fill-rule="evenodd" d="M0 0H8V18H0Z M0 1A8 8 0 0 1 0 17Z"/>
+</svg>
