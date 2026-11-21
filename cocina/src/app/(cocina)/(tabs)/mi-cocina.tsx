@@ -49,6 +49,7 @@ import { sinPuntoPara } from '@/ui/PantallaDireccion';
 import { Portada } from '@/ui/Portada';
 import { QuienTrabajaAqui } from '@/ui/QuienTrabajaAqui';
 import { Salidas } from '@/ui/Salidas';
+import { SusAvisos } from '@/ui/SusAvisos';
 
 // ============================================================================
 // *MI COCINA* — WHAT SHE SETS ONCE. Plan task `10.5-v-c-i`, the owner's rulings of
@@ -57,7 +58,8 @@ import { Salidas } from '@/ui/Salidas';
 // tu página*, what is missing of it under it (`10.9a-iii`: a *Falta* row each, no count — `@/ui/Falta`), where she hands food over,
 // her trade, help and her account. Since `10.5-v-c-ii`: *Ver como la ven* beside *Editar tu
 // página* — her page as Itacate draws it (`/como-la-ven`) — and *Recordatorio diario* under her
-// trade once she has one to set (`@/lib/RecordatorioProvider`), which opens its sheet.
+// trade once she has one to set (`@/lib/RecordatorioProvider`), which opens its sheet — and since
+// `10.5b-v-ii` *Avisos de apartados* under it (`@/ui/SusAvisos`), a helper's too, under her kitchen.
 //
 // ⚠️ WHERE SHE HANDS FOOD OVER IS HER KITCHEN'S SCREEN'S, AS BUILT (`10.4h`, which he
 // looked at on his iPhone on 2026-11-05: *"work very good"*): her address, the small map
@@ -287,6 +289,7 @@ function MiCocinaDe({ kitchen, rol }: { kitchen: Kitchen; rol: Rol | null | unde
                 onPress={recordatorio.abrirHoja}
               />
             )}
+            <SusAvisos />
             <Fila
               icono="star-outline"
               titulo={ES.miCocina.calificaciones}
@@ -387,6 +390,7 @@ function MiCocinaDeAyudante({ kitchen }: { kitchen: Kitchen }) {
           <Grupo>
             {cuenta !== null && <Fila icono="account-outline" titulo={cuenta.titulo} detalle={cuenta.detalle} />}
             <Fila icono="storefront-outline" titulo={kitchen.displayName} detalle={ayudasAqui(servicios.data)} />
+            <SusAvisos />
           </Grupo>
         </Llega>
 

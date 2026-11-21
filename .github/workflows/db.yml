@@ -161,6 +161,13 @@ on:
       # each offer's mark. Its own job, `promotions`, below.
       - "docs/checks/10.9g-i-promotions-contract.sh"
       - "docs/checks/10.9g-i-promotions-contract-falsify.sh"
+      # ⚠️ `10.5b-v-ii`, THE FIRST PUSH: Wera Cocina's `push.ts` (under `cocina/src/api/**` above) names
+      # `0092`'s five — this phone's token sent and retired, her kinds, her switch, a tap — every argument,
+      # the app's name, its kind and every key of a kind. Its own job, `cocina-push`, below. Who gets a
+      # message and in what words, and the reader of Expo's answers, are `supabase/tests/0092_the_first_push.sql`'s,
+      # in the reset job.
+      - "docs/checks/10.5b-v-ii-push-contract.sh"
+      - "docs/checks/10.5b-v-ii-push-contract-falsify.sh"
       # ⚠️⚠️ AND THE ROSTER'S, as of plan task 5b-ii-a. `app/src/api/members.ts`
       # is a second claim about the applied schema — two column lists — and it
       # carries something `workspace.ts` does not: a claim about a POLICY. The
@@ -2911,6 +2918,44 @@ jobs:
 
       - name: Field rule — can it still see a broken call (its own 32 fixtures)
         run: bash docs/checks/field-rule-falsify.sh
+
+      - name: Stop
+        if: always()
+        run: supabase stop --no-backup
+
+  # ===========================================================================
+  # THE FIRST PUSH (plan `10.5b-v-ii`, `0092`): Wera Cocina's `cocina/src/api/push.ts` — her kinds by
+  # exactly the app's keys, her switch off and on, this phone's token stored live with its channels, a
+  # changed token retiring the one it names, a token that is not Expo's refused, a tap counted with nobody
+  # kept, *Cerrar sesión* retiring the token, and nothing signed out. NOTHING IS SENT: nobody reserves in
+  # it, so nothing is queued for Expo. Who gets a message, in what words, and Expo's answers read back are
+  # `supabase/tests/0092_the_first_push.sql`'s, in the reset job. Its own job for `cocina-handover`'s
+  # reason: the falsifier runs the check thirteen times, one sign-up each.
+  # ===========================================================================
+  cocina-push:
+    name: her phone's messages from the server, against Wera Cocina's own names
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: 2.114.0
+
+      - name: Start Postgres, GoTrue and PostgREST
+        run: supabase start -x realtime,storage-api,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
+
+      - name: Apply migrations from scratch
+        run: supabase db reset
+
+      - name: Contract — does cocina/src/api/push.ts send this phone's token, read her kinds, switch one, count a tap and retire the token by the names 0092 answers (plan 10.5b-v-ii)
+        run: bash docs/checks/10.5b-v-ii-push-contract.sh
+
+      - name: Contract — can the push check still fail (its own fixtures; the runner counts them)
+        run: bash docs/checks/10.5b-v-ii-push-contract-falsify.sh
 
       - name: Stop
         if: always()

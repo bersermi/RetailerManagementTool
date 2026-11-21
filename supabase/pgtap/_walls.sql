@@ -117,6 +117,11 @@ signed_in (proname) as (values
   -- (J2); her side — the seal on her reservations, *Ya lo tengo* with its minute — is
   -- `reserve_plate`, `my_reservations` and `confirm_my_pickup`, already on this list
   ('kitchen_seal_keys'),
+  -- the first push (`0092`, plan `10.5b-v-ii`): her five, keyed on her own id — this
+  -- phone's token sent and retired, the kinds and her switch for each, a tap counted
+  -- with nobody kept; the tokens and the messages sit in `servicio`, read by no client
+  ('register_push_token'), ('retire_push_token'), ('my_notification_kinds'),
+  ('set_notification_switch'), ('count_notification_tap'),
   -- what a policy, a check or a computed column runs as the caller
   ('catalog_image_path'), ('has_role'), ('merma_path_ok'), ('my_locations'),
   ('my_role'), ('my_workspaces'), ('normalize_name'), ('photo_folder_ok'),

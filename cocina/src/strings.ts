@@ -1261,6 +1261,18 @@ export const ES = {
    * family-shell page's round 6). A notification her own phone schedules, every week on
    * each of her days; nothing of it leaves the phone. The rules are `@/lib/recordatorio`'s.
    */
+  /**
+   * `10.5b-v-ii`: her kitchen's messages from the server, in *Mi cocina*. The switch's own words — *Avisos de
+   * apartados*, *Cada apartado nuevo y cada cancelación.* — and the messages themselves are the database's
+   * (`0092`'s kinds and its triggers): a kind is a row, so these are only what the phone adds.
+   */
+  avisos: {
+    /** Her switch on, but her phone does not let Wera Cocina show it — the reminder's words. */
+    sinPermiso: 'Apagado en los ajustes de tu teléfono',
+    /** The switch could not be saved. */
+    noSeGuardo: 'No se pudo guardar. Intenta de nuevo en un momento.',
+  },
+
   recordatorio: {
     /** The question on *Hoy* — *¿Te recordamos a las 16:00, de lunes a sábado?* — and its line. */
     pregunta: (hora: string, dias: string) => `¿Te recordamos a las ${hora}, ${dias}?`,

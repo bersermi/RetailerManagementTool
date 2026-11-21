@@ -1,6 +1,8 @@
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 
+import type { Aviso } from '@/api/push';
+import { canalesDe, importanciaAndroid, kindDe, rutaDelToque as rutaDelAviso, type Permiso } from '@/lib/avisosPush';
 import { PREFIJO, RUTA, rutaDelToque, type Disparo } from '@/lib/recordatorio';
 import { ES } from '@/strings';
 
@@ -8,8 +10,12 @@ import { ES } from '@/strings';
 // HER PHONE'S NOTIFICATIONS — THE ONE MODULE THAT ASKS FOR THEM. Plan task `10.5-v-c-ii`:
 // her reminder is a notification HER OWN PHONE schedules (`expo-notifications`, in every
 // build of this app since `10.2a` — read inside the test builds' binaries on 2026-11-06),
-// every week on each of her days at her hour. Nothing is sent to any server: no push
-// token is asked for, and no Expo or Firebase message carries it (the aviso, section 3).
+// every week on each of her days at her hour. Nothing about her reminder reaches any server.
+// ⚠️ SINCE `10.5b-v-ii` THIS MODULE ALSO ASKS EXPO FOR THE PHONE'S PUSH TOKEN — the second half,
+// below the reminders: her kitchen's reservations sent from the database (`0092`), the channels
+// made from the kinds the database answers, what the phone allows read back, a message shown
+// while the app is in front (SDK 57 shows none otherwise) and a tap that opens *Apartados*. The
+// rules are `@/lib/avisosPush`'s; what is done on each open is `@/lib/useAvisosDelTelefono`'s.
 //
 // ⚠️ ANDROID 13 ASKS ONLY ONCE A CHANNEL EXISTS, so the channel is made before the
 // permission is asked, every time — `setNotificationChannelAsync` is idempotent. Its
@@ -137,5 +143,143 @@ export function alTocarUnRecordatorio(abrir: (ruta: string) => void): () => void
     // An older engine without the synchronous read: the listener below still hears taps.
   }
   const sub = Notifications.addNotificationResponseReceivedListener(seguir);
+  return () => sub.remove();
+}
+
+// ----------------------------------------------------------------------------
+// `10.5b-v-ii` — her kitchen's messages, sent from the database (`0092`)
+// ----------------------------------------------------------------------------
+
+/** What the phone says of notifications now, asking nothing — `null` when it cannot say. */
+export async function leerPermisoDelTelefono(): Promise<Permiso | null> {
+  try {
+    const p = await Notifications.getPermissionsAsync();
+    return { concedido: p.granted, puedePreguntar: p.canAskAgain };
+  } catch {
+    return null;
+  }
+}
+
+/** Android's channels for the kinds the database answered — idempotent, as her reminder's. */
+export async function hacerCanales(avisos: readonly Aviso[]): Promise<void> {
+  if (Platform.OS !== 'android') return;
+  for (const aviso of avisos) {
+    try {
+      await Notifications.setNotificationChannelAsync(aviso.canal, {
+        name: aviso.nombreDelCanal,
+        importance: Notifications.AndroidImportance[importanciaAndroid(aviso.importancia)],
+      });
+    } catch (falla) {
+      console.warn(`[avisos] the phone did not make the channel ${aviso.canal}: ${String(falla)}`);
+    }
+  }
+}
+
+/** The channels the phone holds, and those she silenced — an iPhone has none. */
+export async function leerCanales(): Promise<{ readonly channels: readonly string[]; readonly silenced: readonly string[] }> {
+  if (Platform.OS !== 'android') return { channels: [], silenced: [] };
+  try {
+    const canales = await Notifications.getNotificationChannelsAsync();
+    return canalesDe(
+      canales.map((c) => ({ id: c.id, importance: c.importance })),
+      Notifications.AndroidImportance.NONE,
+    );
+  } catch {
+    return { channels: [], silenced: [] };
+  }
+}
+
+/**
+ * Ask the phone for her kitchen's messages: the channels first (Android 13 asks only once one
+ * exists), then the question — `'si'`, `'no'`, or `'ajustes'` when only its settings can turn it on.
+ */
+export async function pedirPermisoParaAvisos(avisos: readonly Aviso[]): Promise<'si' | 'no' | 'ajustes'> {
+  try {
+    await hacerCanales(avisos);
+    const ahora = await Notifications.getPermissionsAsync();
+    if (ahora.granted) return 'si';
+    if (!ahora.canAskAgain) return 'ajustes';
+    const respuesta = await Notifications.requestPermissionsAsync();
+    if (respuesta.granted) return 'si';
+    return respuesta.canAskAgain ? 'no' : 'ajustes';
+  } catch {
+    return 'no';
+  }
+}
+
+/**
+ * This phone's Expo push token, or `null` — no signal, no Google services, or the phone refused.
+ * ⚠️ Addressed to the project the build names (`extra.eas.projectId`, the one its updates come
+ * from), which expo-notifications reads itself — `@/lib/useGoogle` stays the config's one reader.
+ */
+export async function tokenDelTelefono(): Promise<string | null> {
+  try {
+    const limite = new Promise<null>((resolve) => setTimeout(() => resolve(null), 15_000));
+    const pedido = Notifications.getExpoPushTokenAsync().then((t) => t.data);
+    const token = await Promise.race([pedido, limite]);
+    return typeof token === 'string' && token !== '' ? token : null;
+  } catch (falla) {
+    console.warn(`[avisos] no push token: ${String(falla)}`);
+    return null;
+  }
+}
+
+/** The platform the database is told. */
+export function plataforma(): 'ios' | 'android' {
+  return Platform.OS === 'ios' ? 'ios' : 'android';
+}
+
+/**
+ * ⚠️ WHILE WERA COCINA IS IN FRONT, A MESSAGE FROM THE DATABASE IS SHOWN as anywhere else —
+ * SDK 57 drops it otherwise. Her reminders are not (as before this row). Returns what undoes it.
+ */
+export function mostrarAvisosEnFrente(): () => void {
+  Notifications.setNotificationHandler({
+    handleNotification: async (n) => {
+      const nuestro = kindDe(n.request.content.data) !== null;
+      return { shouldShowBanner: nuestro, shouldShowList: nuestro, shouldPlaySound: nuestro, shouldSetBadge: false };
+    },
+  });
+  return () => Notifications.setNotificationHandler(null);
+}
+
+/** Each message from the database that arrives while the app runs: its kind. */
+export function alLlegarUnAviso(llego: (kind: string) => void): () => void {
+  const sub = Notifications.addNotificationReceivedListener((n) => {
+    const kind = kindDe(n.request.content.data);
+    if (kind !== null) llego(kind);
+  });
+  return () => sub.remove();
+}
+
+/**
+ * A tap on a message from the database — the one that opened the app, and every one tapped while
+ * it runs: where it opens and its kind. ⚠️ Acted on once: the last response is cleared after it.
+ */
+export function alTocarUnAviso(abrir: (ruta: '/apartados', kind: string) => void): () => void {
+  const seguir = (respuesta: Notifications.NotificationResponse | null) => {
+    if (respuesta === null) return;
+    const data = respuesta.notification.request.content.data;
+    const kind = kindDe(data);
+    const ruta = rutaDelAviso(data);
+    if (kind === null || ruta === null) return;
+    Notifications.clearLastNotificationResponse();
+    abrir(ruta, kind);
+  };
+  try {
+    seguir(Notifications.getLastNotificationResponse());
+  } catch {
+    // An older engine without the synchronous read: the listener below still hears taps.
+  }
+  const sub = Notifications.addNotificationResponseReceivedListener(seguir);
+  return () => sub.remove();
+}
+
+/**
+ * The phone announces its own token — when Apple or Google renews it, and ⚠️ ALSO EACH TIME ITS EXPO
+ * TOKEN IS ASKED FOR (measured on the emulator, 2026-11-20): the caller compares.
+ */
+export function alCambiarElToken(anunciado: (token: string) => void): () => void {
+  const sub = Notifications.addPushTokenListener((t) => anunciado(String(t.data)));
   return () => sub.remove();
 }
