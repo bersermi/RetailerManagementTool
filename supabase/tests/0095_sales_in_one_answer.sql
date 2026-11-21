@@ -3,7 +3,10 @@
 -- sales view's join repaired. Plan task `12.2`, the owner's yes to `12.1`'s C.
 --
 --   1. `daily_sales` is one function, `security invoker`, stable, with an empty
---      search_path, returning json; anon may not run it, a signed-in person may
+--      search_path, returning json; anon may not run it, a signed-in person may;
+--      ⚠️ and since `0096` it plans every call with the shop it is handed
+--      (`plan_cache_mode = force_custom_plan`): on the hosted project a plan made
+--      without the shop's id took 80 s, which no fixture this size can show
 --   2. ⚠️⚠️ AS THE OWNER, IT IS THE VIEW'S ROWS TO THE CENT — exactly what Wera
 --      asked `product_velocity_daily` for (the shop, a first day,
 --      `line_count > 0`), both ways — and each story's figures: gross as keyed,
@@ -328,8 +331,18 @@ select public.chk('1.1 exactly ONE daily_sales: (p_workspace_id uuid, p_since da
      from pg_proc where pronamespace = 'public'::regnamespace and proname = 'daily_sales'));
 
 select public.chk('1.2 ⚠️ security INVOKER — the policies under it are the reader''s — stable, empty search_path',
-  (select not prosecdef and provolatile = 's' and proconfig = array['search_path=""']
+  (select not prosecdef and provolatile = 's' and 'search_path=""' = any(proconfig)
      from pg_proc where pronamespace = 'public'::regnamespace and proname = 'daily_sales'));
+
+select public.chk('1.5 ⚠️⚠️ PLANNED EVERY CALL WITH THE SHOP IT IS HANDED (0096): PL/pgSQL with plan_cache_mode = force_custom_plan — a plan made without the shop''s id took 80 s on the hosted project',
+  (select l.lanname = 'plpgsql'
+          and proconfig @> array['plan_cache_mode=force_custom_plan']
+          and cardinality(proconfig) = 2
+     from pg_proc p join pg_language l on l.oid = p.prolang
+    where p.pronamespace = 'public'::regnamespace and p.proname = 'daily_sales'),
+  (select l.lanname || ' ' || coalesce(array_to_string(proconfig, ', '), 'no settings')
+     from pg_proc p join pg_language l on l.oid = p.prolang
+    where p.pronamespace = 'public'::regnamespace and p.proname = 'daily_sales'));
 
 select public.chk('1.3 anon may not run it, nor PUBLIC; a signed-in person may',
   not has_function_privilege('anon', 'public.daily_sales(uuid, date)', 'execute')
@@ -479,8 +492,8 @@ begin
   if v_failed > 0 then
     raise exception '% behavioural check(s) FAILED — see the table above', v_failed;
   end if;
-  if (select count(*) from public._verify) <> 21 then
-    raise exception 'expected 21 checks, % recorded — one was lost, not passed',
+  if (select count(*) from public._verify) <> 22 then
+    raise exception 'expected 22 checks, % recorded — one was lost, not passed',
       (select count(*) from public._verify);
   end if;
   raise notice 'all % checks passed', (select count(*) from public._verify);
