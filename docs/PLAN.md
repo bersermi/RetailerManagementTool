@@ -77,6 +77,10 @@ before** today (UTC), so a due-today row is never a false red on a timezone.
 ⚠️ **The ticked rows (2026-09-20, -21, -27) and this block's notes moved 2026-09-29 to the same
 position-history archive.** A row leaves the table once its Done cell is written.
 
+▶️ **2026-11-21, 14:38 UTC — STEP 12 OPENED: *OPTIMIZATIONS*, A LANE BESIDE STEP 10, ON HIS WORD. ON THE DEMO SHOP, NÚMEROS' *VENTAS* SPINS AND THEN FAILS. `12.1` DIAGNOSES IT AND PROPOSES FIXES; `12.2` BUILDS THE ONE HE PICKS. NOTHING IN THE APPS CHANGED. `10.9h-ii` IS THE NEXT TASK, UNCHANGED.**
+**His words** (2026-11-21, after `11.5-i` noted that Números took one to two minutes on a local copy): *"We can't afford not showing promptly the persons figures over Sales. In the demo when I open Números, Ventas is just loading and then it fails to show the números. Next session needs to be a diagnosis and proposal of fixtures for this."* He asked for that session to be prepared, with a context of its own for *Optimizations*.
+**Changed:** this plan (this entry; `## Step 12`, with its rules, what is known going in, and rows `12.1` and `12.2`); the handbook (Step 12 in *Where we are*, its two rows, and *The Optimizations Prompt*). No app code and no migration; the hosted project was not read. **No cause is claimed here.** Step 12's header lists what `12.1` tests first.
+
 ✅ **2026-11-21, 08:02 UTC — `11.5` SPLIT AND `11.5-i` DONE: WERA ON REAL SCREENS — *INICIO*, *VENDER* AND *NÚMEROS* IN TODAY'S LOOK, IN DIRECTION A AND IN A WITH NUNITO, AT *NORMAL* AND *LETRA GRANDE*, ON THE ANDROID EMULATOR AND THE IPHONE SIMULATOR, FROM ONE NEVER-MERGED BRANCH AGAINST A LOCAL SHOP WITH SIX MONTHS OF SALES (https://claude.ai/artifact/Edi2RXDVCPppcFMsX4axBv). MEASURED: THE BIG NUMBER'S FIGURES HOLD A COLUMN ON BOTH PLATFORMS WHEN ASKED FOR; ⚠️ THE COUNTER'S PAPER SLOWS EVERY SCROLLING FRAME ON A SOFTWARE-RENDERED EMULATOR, AND A FLAT A COSTS WHAT TODAY DOES. TWO CALLS FOR HIM: ARCHIVO OR NUNITO, AND THE PAPER. NOTHING ON ANY PHONE IN THE FIELD. `10.9h-ii` IS THE NEXT TASK, UNCHANGED.**
 **The estimate, written first** (a worktree at `origin/main` `fcfb6cf`; pull request 636, a peer's `10.9h-i`, open with its checks running — left to it, it merged while this row was built; `plan-handover.sh` 11 of 11, naming `10.9h`, left alone; no date past due; call 10 unanswered — no comment on the page, nothing in the plan or `decisiones.md` — so `11.3-ii` and `11.4` stay gated and the next Step 11 row with its gate met is `11.5`; the five other sessions in this folder asked before the emulator, the local stack and the simulator were touched — all five *free*, one noting its unmerged `0094` in the local database): **`XL`, not the row's `M` — split on size.** Three apps, eight screens, two letter sizes, two platforms, a frame measurement on a slowed emulator, and Wera Cocina and Itacate never built for the iPhone simulator. Split by app, which is how the build rows already divide: Wera's three screens with the paper's cost and the tabular figures (`11.5-i`, his yes opening `11.6` and `11.9`), then the siblings' five (`11.5-ii`, opening `11.7` and `11.8`). `11.5-i` alone measured `L`.
 **Found reading first:** (a) **one build can show every option**: Wera reads its palette as a constant and its store (`expo-sqlite`'s key–value table) synchronously, so a key read when the app starts — `wera.piel`: `hoy`, `a`, `a-nunito`, `a-plano` — switches the skin with a cold start and no rebuild, set from outside the app (root `sqlite3` on the emulator, the simulator's container on the Mac); (b) the demo shop's runbook (`docs/runbooks/demo-polleria.sql`, `--local`) fills a local shop with months of history — run from a scratch copy whose day is Pago Pago's, so at 1 a.m. in Mexico City the screens show a working evening on both platforms (the simulator keeps the Mac's clock; the app takes its time zone at launch); (c) ⚠️ the runbook's prices take effect the day it runs, so a phone in yesterday's zone reads every product *sin precio* — the local copy's prices were backdated, as `store/README.md` warns; (d) ⚠️ a heading in spaced capitals is often written in capitals in `strings.ts` (*TU MES*, *VENDISTE*), so A's sentence case is the heading component's job, not a `textTransform`; (e) the cart keeps a quantity at scale 3 (`CartLine.base`), a planted basket included; (f) "the iPhone" is the simulator: this Mac's Xcode cannot attach to his iPhone 18 Pro, and a throwaway build there would replace his App Store Wera.
@@ -1830,6 +1834,54 @@ once we have done the restyling"* — the status entry of 2026-11-21, 00:50 UTC.
 | **11.10** | **Icons and drawings in all three apps** — the icon font in place of MaterialCommunityIcons, and the drawings in their screens. | `L` | `11.3-ii` (the whole font), `11.4`, `11.6`, `11.7` |
 | **11.11** | **The pictures** — Wera's App Store and Play pictures, the site's three screenshots of Wera, the siblings' store pictures if not yet made, and a note on the family-shell page (wera-vision `diseno/`) that these colours and this type win over its drawing. | `M` | As far as `11.6`–`11.10` are done; Wera's next store version |
 | **11.12** | **With the major update** — true vector stamps and edges (an SVG library), a thud when a stamp lands (haptics), and the glass tab bar if he wants it then; his call 8 put haptics and glass after `10.8`. | `M` + builds | `10.8` |
+
+## Step 12 — *Optimizations*: a screen answers fast on a shop with months of history (opened 2026-11-21): a lane beside Step 10
+
+**What it is:** a screen that keeps a person waiting is a screen that fails. A shopkeeper who opens Números to see what
+she sold and watches it spin stops opening it. **His words, 2026-11-21:** *"We can't afford not showing promptly the
+persons figures over Sales. In the demo when I open Números, Ventas is just loading and then it fails to show the
+números. Next session needs to be a diagnosis and proposal of fixtures for this."* The lane holds that and any later
+slowness of the same kind: a read that grows with a shop's history.
+
+**How it runs beside Step 10:**
+- **No row here is ever *THIS IS THE NEXT TASK*.** Step 10's next task stays the next task. A row here is taken when he
+  asks for it, in its own session and worktree, as Step 11's are. **He starts one with the handbook's *Optimizations
+  Prompt*.**
+- **A diagnosis row writes no shipping code and no migration.** It measures, finds the cause, and proposes fixes with
+  their numbers, one recommended. Probes, scratch copies of a database and a branch that is never merged are fine. **His
+  yes opens the fix row.**
+- **Every row keeps these:** (a) **measured on the thing that runs**: the hosted demo shop (a read; a write there,
+  refreshing the demo included, is his) and a local copy of the same size. Times and errors come from the runner, never
+  from an estimate; (b) **measured as the phone asks**: the `authenticated` role through RLS, with the same columns,
+  filters, order and pages. `postgres` bypasses RLS, so an `explain` run as `postgres` measures a different query; (c)
+  **a figure's meaning does not change**: the same totals to the cent, voids netted, the shop's own day, and a
+  cashier's rows by her stores' policy (`7a-sales-contract.sh` and `app/test/api-sales.test.ts` hold it); (d) **the
+  builds in the field**: a server-side fix reaches every phone with no update. An app fix reaches Wera over the air
+  (Wera's fixes still ship; the ruling of 2026-11-19 stops only the siblings' per-row updates). A migration adds and
+  breaks no build in use (`field-rule.sh`); (e) **both platforms**; (f) **a failed read says so and can be tried
+  again**, and never spins for ever.
+
+**Known going in.** These come from `11.5-i` (its status entry of 08:02 UTC) and a read of the code. They are
+hypotheses for `12.1` to test, not conclusions:
+- `shopSales` (`app/src/api/calls.ts`) reads `product_velocity_daily` in pages of 500 rows by offset (`SALES_PAGE`,
+  under PostgREST's `max_rows` of 1000). It covers six calendar months (`SALES_MONTHS`), newest first, with
+  `line_count > 0`. `useSales` (`app/src/api/hooks.ts`) keeps it 60 s and never on the phone's disk.
+- The view (last defined in `0064`) is a **spine**: a row for every product on every day since its first stock, with
+  window functions over each product's days. **The first thing to measure: does the date filter reach inside the
+  view, or does every page compute the shop's whole history again?**
+- Three things can end the read: the hosted database's statement timeout for a phone's role (local Postgres may not
+  have one, which would explain why the local copy is only slow), the app's own deadline per request
+  (`app/src/lib/plazo.ts`), and the query client's retries, each starting the paged read from page one
+  (`app/src/api/QueryProvider.tsx`).
+- **Locally, a six-month pollería took about 5 s a page and one to two minutes in all.** That copy was 165 products from
+  `docs/runbooks/demo-polleria.sql --local`. **Hosted, it has not been measured:** his report is the only reading
+  there.
+- The same view feeds Números' *Precios* (`app/src/api/prices.ts`) and *Tu mes* (`app/src/api/month.ts`).
+
+| Row | What | Size | Gate |
+|---|---|---|---|
+| **12.1** | **Números' *Ventas* on a shop with history: diagnosis and proposal.** Reproduce his report on the hosted demo shop (it spins, then fails) and on a local copy of the same size. Find where the time goes and what error ends the read: each page, the view's work behind it, the database's limits for a phone's role, the app's deadline and retries. Do the same for the other reads of that view. Propose fixes on a page he can read on his phone. Each fix carries its measured time on the demo shop's size and on a year of history, what it costs to build, and whether it reaches the builds in the field with no update. Recommend one, then stop for his yes. No shipping code and no migration. | `M`–`L` | — |
+| **12.2** | **The fix his yes at `12.1` picks**, with the same figures to the cent and its time measured before and after on the hosted demo shop. | Sized at `12.1` | His yes at `12.1` |
 
 ## The other edges — what the pilot must LEARN, and it builds nothing
 
