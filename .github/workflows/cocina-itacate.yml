@@ -105,6 +105,10 @@ on:
       # Itacate's suite reads all three (`itacate/test/enlaces.test.ts`).
       - "site/.well-known/**"
       - "site/cocina/**"
+      # ⚠️ `10.5c-iii`, CAMPAIGNS IN BOTH APPS: each app's offers' sheet shows words the analyst's approval
+      # inserts from the owner's runbook (*on 1*), under the version the app carries — and both suites hold the
+      # sheet's text to that line (`cocina/test/push.test.ts`, `itacate/test/push.test.ts`).
+      - "docs/runbooks/campaigns.sql"
       - "package.json"
       - "package-lock.json"
       - ".github/workflows/cocina-itacate.yml"

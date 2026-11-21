@@ -6,8 +6,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { diaTexto, type Falla } from '@/api/apartados';
 import { entregaEsperando } from '@/api/cola';
-import { useApartados, useCalificarVecino, useEntregar, useKitchen, useLlavesDeSello } from '@/api/hooks';
+import { useApartados, useAvisos, useCalificarVecino, useConsentimiento, useEntregar, useKitchen, useLlavesDeSello } from '@/api/hooks';
 import { leerSello, reservaDeSello, revisarSello, versionNueva, type SelloLeido } from '@/api/sello';
+import { useAuth } from '@/auth/AuthProvider';
 import { whatsappUrl } from '@/auth/support';
 import {
   buscarCodigo,
@@ -28,6 +29,9 @@ import {
   type Orden,
 } from '@/lib/apartados';
 import { useNota } from '@/lib/NotaProvider';
+import { hayQuePreguntar, preguntadoAqui } from '@/lib/ofertas';
+import { usePermisoDeAvisos } from '@/lib/useAvisosDelTelefono';
+import { deviceStore } from '@/lib/store';
 import { SUPPORT_WHATSAPP } from '@/lib/supportWhatsapp';
 import { useAhora } from '@/lib/useAhora';
 import { clockOf, dayOf } from '@/lib/ventana';
@@ -37,6 +41,7 @@ import { PALETTE, SIZE } from '@/theme/palette';
 import { Banda } from '@/ui/Banda';
 import { BotonLleno } from '@/ui/BotonLleno';
 import { CalificarVecino } from '@/ui/CalificarVecino';
+import { HojaOfertas } from '@/ui/HojaOfertas';
 import { Escaner } from '@/ui/Escaner';
 import { Llega } from '@/ui/Llega';
 import { SinSenal } from '@/ui/SinSenal';
@@ -110,6 +115,21 @@ export default function Entregar() {
   const nombres = useRef(new Map<string, Orden['vecino']>());
 
   const volver = () => (router.canGoBack() ? router.back() : router.replace('/apartados'));
+
+  // ⚠️ `10.5c-iii`: *¿TE MANDAMOS NOVEDADES DE WERA COCINA?* — the design's moment, after a handover: leaving with
+  // the plate handed over raises the sheet once (`@/lib/ofertas`' `hayQuePreguntar` — dark until the analyst turns
+  // *Novedades* on, his test accounts aside), and she leaves when it closes.
+  const avisos = useAvisos();
+  const consentimiento = useConsentimiento();
+  const { permiso } = usePermisoDeAvisos();
+  const [ofertas, setOfertas] = useState(false);
+  const { session } = useAuth();
+  const terminar = () => {
+    const userId = session?.user.id ?? null;
+    const preguntado = userId !== null && preguntadoAqui(deviceStore(), userId);
+    if (hayQuePreguntar({ avisos: avisos.data, consentimiento: consentimiento.data, preguntado, permiso })) setOfertas(true);
+    else volver();
+  };
 
   // ⚠️ `10.9j-ii-b`: a seal refused only because this phone had not read its secret's version is checked again
   // once her kitchen's secrets are read again (`leer`, with signal) — she need not show it a second time.
@@ -260,12 +280,12 @@ export default function Entregar() {
                 onCalificar={(pulgar) => calificar(orden.id, pulgar)}
                 onListo={() => {
                   avisar(ES.pulgar.calificaste(vecino.nombre));
-                  volver();
+                  terminar();
                 }}
-                onDespues={volver}
+                onDespues={terminar}
               />
             )}
-            {orden.entregadaEn !== null && !calificando && <BotonLleno variante="principal" label={ES.pulgar.listo} onPress={volver} />}
+            {orden.entregadaEn !== null && !calificando && <BotonLleno variante="principal" label={ES.pulgar.listo} onPress={terminar} />}
             {SUPPORT_WHATSAPP !== null && (
               <BotonLleno
                 variante="discreto"
@@ -278,6 +298,14 @@ export default function Entregar() {
           </Llega>
         )}
       </ScrollView>
+      <HojaOfertas
+        visible={ofertas}
+        pregunta
+        onCerrar={() => {
+          setOfertas(false);
+          volver();
+        }}
+      />
     </View>
   );
 }

@@ -678,6 +678,56 @@ export const ES = {
   },
 
   /**
+   * ⚠️ `10.5c-iii`: *NOTIFICACIONES*, UNDER *TÚ* (the notifications page of `10.5c-i`, built on his ruling of
+   * 2026-11-20). Each switch's own words — *Cocinas que sigues*, *Premios*, *Sellos por vencer* … — are the
+   * database's (`0094`'s kinds): a kind is a row, so these are only what the phone adds.
+   */
+  notificaciones: {
+    /** *Tú*'s row, and the screen's title. */
+    fila: 'Notificaciones',
+    /** *Tú*'s row while her phone does not let Itacate show any. */
+    filaApagadas: 'Apagadas en tu teléfono',
+    volver: 'Tú',
+    detalle: 'Lo que Itacate te avisa en este teléfono',
+    /** The phone itself refuses: the box, and its door to the phone's settings. */
+    telefonoNoDeja: 'Tu teléfono no deja que Itacate te avise.',
+    /** While the phone can still ask (Android 13 reads one never asked as refusing): its own question. */
+    permitir: 'Permitir avisos',
+    /** Once only its settings can turn them on. */
+    abrirAjustes: 'Abrir ajustes',
+    /** A switch on, but her phone does not let Itacate show it — Wera Cocina's words (`ES.avisos.sinPermiso`). */
+    sinPermiso: 'Apagado en los ajustes de tu teléfono',
+    /** Under the offers' switch, once she said yes. */
+    dijisteQueSi: (dia: string) => `Dijiste que sí el ${dia}.`,
+    pie: 'Te escribe Itacate, de Wera. Para dejar de recibir ofertas, apaga el interruptor: los avisos de tus apartados siguen llegando.',
+    /** Her reminder before her hour is her own phone's, not a row: said, never switched here. */
+    recordatorio: 'El recordatorio 15 minutos antes de tu hora llega siempre que tu teléfono lo deje.',
+    cargando: 'Leyendo tus notificaciones…',
+    sinSenal: 'Sin señal. Tus notificaciones se verán cuando vuelva.',
+    /** A switch that could not be saved — Wera Cocina's words (`ES.avisos.noSeGuardo`). */
+    noSeGuardo: 'No se pudo guardar. Intenta de nuevo en un momento.',
+  },
+
+  /**
+   * ⚠️⚠️ `10.5c-iii`: THE OFFERS' SHEET — ITS WORDS ARE `10.5c-i`'S DRAFT, NOT APPROVED. Shown only while a promotion
+   * kind is offered to her (`0093`: his test accounts until the analyst turns offers on), and a yes is kept only on
+   * words she approved: `docs/runbooks/campaigns.sql`'s *on 1* inserts these exact words under `@/api/push`'
+   * `PALABRAS` (`test/push.test.ts` holds the two equal) — her words, if they differ, change both, and the version.
+   */
+  ofertas: {
+    hoja: {
+      titulo: '¿Te avisamos de ofertas?',
+      texto:
+        'De vez en cuando te mandamos ofertas y novedades de las cocinas de Itacate. Nunca antes de las 9 ni después de las 20, y no más de una al día.',
+      medir: 'Contamos cuáles abres y si apartas después, para saber cuáles te sirven. Lo apagas cuando quieras en Tú → Notificaciones.',
+      si: 'Sí, avísame',
+      no: 'Ahora no',
+    },
+    /** Her answer could not be kept — no signal, or words not yet approved (his test accounts). */
+    noSeGuardo: 'No se guardó tu respuesta. Puedes darla después en Tú → Notificaciones.',
+  },
+
+  /**
    * ⚠️ `10.5-v-b`: *TÚ*, THE LAST TAB — what she sets once, as the family-shell page
    * draws it (the owner's ruling of 2026-11-05): her account, *Dónde buscar*, the aviso,
    * help by WhatsApp, *Cerrar sesión* and *Eliminar mi cuenta*, and *Itacate, de Wera*.

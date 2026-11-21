@@ -241,17 +241,25 @@ import {
   type PromotionsRow,
 } from '@/api/promociones';
 import {
+  COUNT_CAMPAIGN_TAP,
   COUNT_NOTIFICATION_TAP,
+  MY_CONSENT,
   MY_NOTIFICATION_KINDS,
   REGISTER_PUSH_TOKEN,
   RETIRE_PUSH_TOKEN,
+  SET_MY_CONSENT,
   SET_NOTIFICATION_SWITCH,
+  answerArgs,
+  campaignTapArgs,
+  consentArgs,
+  consentFrom,
   kindsArgs,
   kindsFrom,
   retireArgs,
   switchArgs,
   tapArgs,
   type Aviso,
+  type Consentimiento,
   type RegisterArgs,
 } from '@/api/push';
 import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL, supabase } from '@/lib/supabase';
@@ -915,4 +923,37 @@ export async function retirePushToken(token: string): Promise<void> {
 export async function countNotificationTap(kind: string): Promise<void> {
   const { error } = await supabase.rpc(COUNT_NOTIFICATION_TAP, tapArgs(kind));
   if (error) throw error;
+}
+
+// ----------------------------------------------------------------------------
+// `10.5c-iii` — her answer to *Novedades*, and a campaign's tap (`0093`)
+// ----------------------------------------------------------------------------
+
+/** A tap on a campaign's message, with its send's number (`count_campaign_tap`) — kept only while she is counted. */
+export async function countCampaignTap(send: number): Promise<void> {
+  const { error } = await supabase.rpc(COUNT_CAMPAIGN_TAP, campaignTapArgs(send));
+  if (error) throw error;
+}
+
+function consentimiento(name: string, data: unknown): Consentimiento {
+  const read = consentFrom(data);
+  if (read === null) throw new TypeError(`${name}: an answer this build cannot read`);
+  return read;
+}
+
+/** Her answers to *Novedades* in Wera Cocina (`my_consent`): each purpose's latest, or never asked. */
+export async function myConsent(): Promise<Consentimiento> {
+  const { data, error } = await supabase.rpc(MY_CONSENT, consentArgs());
+  if (error) throw error;
+  return consentimiento(MY_CONSENT, data);
+}
+
+/**
+ * Her yes or no to *Novedades* on the sheet's words (`set_my_consent`) — answered with her answers again.
+ * ⚠️ Refused (22023) while the analyst has not approved those words: nobody can say yes before she does.
+ */
+export async function setMyConsent(si: boolean): Promise<Consentimiento> {
+  const { data, error } = await supabase.rpc(SET_MY_CONSENT, answerArgs(si));
+  if (error) throw error;
+  return consentimiento(SET_MY_CONSENT, data);
 }

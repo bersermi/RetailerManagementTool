@@ -7,6 +7,7 @@ import { usePosicion } from '@/api/hooks';
 import { useAuth } from '@/auth/AuthProvider';
 import { AVISO_URL } from '@/auth/aviso';
 import { porcentajeDe } from '@/lib/apartar';
+import { usePermisoDeAvisos } from '@/lib/AvisosDelTelefono';
 import { useDondeBuscar } from '@/lib/DondeBuscarProvider';
 import { SUPPORT_WHATSAPP } from '@/lib/supportWhatsapp';
 import { algoNoCuadraUrl, ayudaUrl, cuentaDe } from '@/lib/tu';
@@ -52,6 +53,7 @@ export default function Tu() {
   const numero = SUPPORT_WHATSAPP;
   const posicion = usePosicion().data;
   const pct = posicion === undefined ? null : porcentajeDe(posicion.calificacion);
+  const { permiso } = usePermisoDeAvisos();
 
   return (
     <Formulario style={styles.pantalla} contentContainerStyle={styles.contenido}>
@@ -106,6 +108,12 @@ export default function Tu() {
               titulo={ES.loQueVen.fila}
               detalle={ES.loQueVen.filaDetalle}
               onPress={() => router.push('/lo-que-ven')}
+            />
+            <Fila
+              icono="bell-outline"
+              titulo={ES.notificaciones.fila}
+              detalle={permiso?.concedido === false ? ES.notificaciones.filaApagadas : null}
+              onPress={() => router.push('/notificaciones')}
             />
             <Fila
               icono="shield-lock-outline"

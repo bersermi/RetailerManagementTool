@@ -8,12 +8,22 @@ import {
   APARTADOS,
   APP,
   AVISOS_KEY,
+  CONSENTIMIENTO_KEY,
+  COUNT_CAMPAIGN_TAP,
   COUNT_NOTIFICATION_TAP,
+  MY_CONSENT,
   MY_NOTIFICATION_KINDS,
+  PALABRAS,
   REGISTER_PUSH_TOKEN,
   RETIRE_PUSH_TOKEN,
+  SET_MY_CONSENT,
   SET_NOTIFICATION_SWITCH,
+  answerArgs,
   avisosKey,
+  campaignTapArgs,
+  consentArgs,
+  consentFrom,
+  consentimientoKey,
   kindsArgs,
   kindsFrom,
   registerArgs,
@@ -21,6 +31,7 @@ import {
   switchArgs,
   tapArgs,
   type Aviso,
+  type Consentimiento,
 } from '@/api/push';
 import {
   PREGUNTADO_KEY,
@@ -28,17 +39,28 @@ import {
   TOKEN_KEY,
   canalesDe,
   enMiCocina,
+  envioDe,
   esOtroToken,
   guardarToken,
   hayQuePreguntar,
   importanciaAndroid,
   kindDe,
   leerToken,
+  novedadesDe,
   olvidarToken,
   queDecir,
   reemplaza,
   rutaDelToque,
 } from '@/lib/avisosPush';
+import {
+  PREGUNTADO_KEY as HOJA_KEY,
+  diaDelSi,
+  hayQuePreguntar as hayQuePreguntarNovedades,
+  marcarPreguntado,
+  preguntadoAqui,
+  siDesde,
+  textoDeLaHoja,
+} from '@/lib/ofertas';
 import type { DeviceStore } from '@/lib/store';
 import { ES } from '@/strings';
 
@@ -52,6 +74,7 @@ import { ES } from '@/strings';
 // ============================================================================
 
 const MIGRATIONS = fileURLToPath(new URL('../../supabase/migrations', import.meta.url));
+const RUNBOOK = fileURLToPath(new URL('../../docs/runbooks/campaigns.sql', import.meta.url));
 const SRC = fileURLToPath(new URL('../src', import.meta.url));
 
 /** The text of the last migration that defines `schema.fn`, its whitespace folded. */
@@ -240,6 +263,7 @@ describe('the kinds, as the database answers them', () => {
         abre: 'apartados',
         encendido: true,
         deServicio: true,
+        clase: 'servicio',
       },
     ]);
   });
@@ -251,6 +275,7 @@ describe('the kinds, as the database answers them', () => {
     expect(kindsFrom({ kinds: [fila] })).toBeNull();
     expect(kindsFrom([{ ...fila, importance: 'urgente' }])?.[0].importancia).toBe('normal');
     expect(kindsFrom([{ ...fila, detail: null }])?.[0].detalle).toBeNull();
+    expect(kindsFrom([{ ...fila, class: 'otra' }])).toEqual([]);
   });
   it("Mi cocina switches only the service kinds; Android's importance from each", () => {
     const avisos = kindsFrom([fila, { ...fila, kind: 'novedades', class: 'promocion' }]) ?? [];
@@ -280,7 +305,7 @@ describe('a message from the database on the phone', () => {
   // `10.9h-ii`: the nudge to a kitchen with no offer yet (`0094`'s `primera_oferta`, *¿Tienes alguna oferta?*).
   it('the nudge’s tap opens Publicar — the place `0094` sends it with, and its kind’s row names', () => {
     expect(rutaDelToque({ kind: 'primera_oferta', opens: 'publicar', workspace_id: 'w' })).toBe('/publicar');
-    expect(Object.keys(RUTAS).sort()).toEqual(['apartados', 'publicar']);
+    expect(Object.keys(RUTAS).sort()).toEqual(['apartados', 'hoy', 'mi_cocina', 'publicar']);
     const text = readFileSync(join(MIGRATIONS, '0094_the_services_messages.sql'), 'utf8').replace(/\s+/g, ' ');
     expect(text.match(/jsonb_build_object\('kind', 'primera_oferta', 'opens', 'publicar', 'workspace_id'/g)).toHaveLength(1);
     // The kind's row: a service kind of this app — so *Mi cocina* draws its switch — whose tap opens `publicar`.
@@ -299,6 +324,7 @@ describe('a message from the database on the phone', () => {
       abre: 'publicar',
       encendido: true,
       deServicio: clase === 'servicio',
+      clase: clase === 'servicio' ? 'servicio' : 'promocion',
     });
     expect(enMiCocina([fila('apartados', 'servicio'), fila('primera_oferta', 'servicio'), fila('otra', 'promocion')]).map((a) => a.kind)).toEqual([
       'apartados',
@@ -312,7 +338,10 @@ describe('the wiring, read as text', () => {
     const tabs = code('app/(cocina)/(tabs)/_layout.tsx');
     expect(tabs).toMatch(/const listings = useListings\(kitchen\?\.id \?\? null\);\s*useAvisosDelTelefono\(\(listings\.data\?\.length \?\? 0\) > 0\);/);
     const hook = code('lib/useAvisosDelTelefono.ts');
-    expect(hook).toMatch(/\}, \[userId, avisos\.data, abierta, publicoAlgunaVez, tokenCambio\]\);/);
+    expect(hook).toMatch(/\}, \[userId, avisos\.data, abierta, publicoAlgunaVez, tokenCambio, concedido\]\);/);
+    // ⚠️ `10.5c-iii`: a grant made on a screen runs it at once — Android's dialog is no open (found on Itacate's emulator).
+    expect(hook).toMatch(/useEffect\(\(\) => alConcederPermiso\(\(\) => setConcedido\(\(n\) => n \+ 1\)\), \[\]\);/);
+    expect(code('lib/avisos.ts').match(/concedido\(\);/g)).toHaveLength(2);
     expect(hook).toMatch(/await hacerCanales\(kinds\);\s*let permiso/);
     expect(hook).toMatch(/writeKey\(store, PREGUNTADO_KEY, '1'\);\s*await pedirPermisoParaAvisos\(kinds\);/);
   });
@@ -332,7 +361,7 @@ describe('the wiring, read as text', () => {
     const hook = code('lib/useAvisosDelTelefono.ts');
     expect(hook).toMatch(/queries\.invalidateQueries\(\{ queryKey: APARTADOS_KEY \}\)/);
     expect(hook).toMatch(
-      /void queries\.invalidateQueries\(\{ queryKey: APARTADOS_KEY \}\);\s*router\.navigate\(ruta\);\s*countNotificationTap\(kind\)\.catch\(\(\) => \{\}\);/,
+      /void queries\.invalidateQueries\(\{ queryKey: APARTADOS_KEY \}\);\s*if \(ruta !== null\) router\.navigate\(ruta\);\s*if \(envio !== null\) countCampaignTap\(envio\)\.catch\(\(\) => \{\}\);\s*else if \(kinds\.current\.find\(\(a\) => a\.kind === kind\)\?\.clase !== 'promocion'\) countNotificationTap\(kind\)\.catch\(\(\) => \{\}\);/,
     );
   });
 
@@ -353,5 +382,111 @@ describe('the wiring, read as text', () => {
   it("the phone adds two sentences of its own; the switch's words are the database's", () => {
     expect(ES.avisos.sinPermiso).toBe(ES.recordatorio.sinPermiso);
     expect(ES.avisos.noSeGuardo).toMatch(/^No se pudo guardar\./);
+  });
+});
+
+// ----------------------------------------------------------------------------
+// `10.5c-iii` — *Novedades de Wera Cocina*: her answer, the sheet, a campaign's tap (`0093`)
+// ----------------------------------------------------------------------------
+
+describe('her answer and a campaign’s tap: `0093`’s three names', () => {
+  it('each by its arguments, in the migration’s own text', () => {
+    expect(ultimaQueDefine(MY_CONSENT)).toMatch(/my_consent\(p_app text\) returns jsonb/);
+    expect(consentArgs()).toEqual({ p_app: 'cocina' });
+    expect(ultimaQueDefine(SET_MY_CONSENT)).toMatch(/set_my_consent\(p_words text, p_answer boolean\) returns jsonb/);
+    expect(answerArgs(false)).toEqual({ p_words: PALABRAS, p_answer: false });
+    expect(ultimaQueDefine(COUNT_CAMPAIGN_TAP)).toMatch(/count_campaign_tap\(p_send bigint\) returns void/);
+    expect(campaignTapArgs(7)).toEqual({ p_send: 7 });
+  });
+  it('her answers read by exactly `consents_of`’s keys; one this build cannot read is an error, never a no', () => {
+    expect(ultimaQueDefine('consents_of', 'servicio')).toContain("jsonb_build_object('answer', c.answer, 'words', c.words, 'at', c.given_at)");
+    expect(consentFrom({ promociones: null, medir_promociones: null })).toEqual({ ofertas: null, medir: null });
+    expect(consentFrom({ promociones: { answer: true, words: PALABRAS, at: '2026-12-03T18:40:00Z' }, medir_promociones: null })?.ofertas?.si).toBe(true);
+    expect(consentFrom({ promociones: { answer: 1, words: PALABRAS, at: '2026-12-03T18:40:00Z' }, medir_promociones: null })).toBeNull();
+    expect(consentFrom('si')).toBeNull();
+    expect(consentimientoKey('u1')).toEqual([...CONSENTIMIENTO_KEY, 'u1']);
+  });
+  it('`novedades` is the promotion kind `0093` writes for this app — dark, opening Hoy', () => {
+    expect(readFileSync(join(MIGRATIONS, '0093_campaigns.sql'), 'utf8').replace(/\s+/g, ' ')).toContain(
+      "('novedades', 'cocina', 'promocion', 'novedades', 'Novedades de Wera Cocina', 'normal', 'Novedades de Wera Cocina', 'Consejos y novedades de la app.', false, false, 'hoy', 3)",
+    );
+    expect(rutaDelToque({ kind: 'novedades', opens: 'hoy', campaign_id: 1, send_id: 9 })).toBe('/');
+    expect(rutaDelToque({ kind: 'novedades', opens: 'mi_cocina', send_id: 9 })).toBe('/mi-cocina');
+  });
+  it('a campaign’s message carries its send; a service message none', () => {
+    expect(envioDe({ kind: 'novedades', opens: 'hoy', campaign_id: 1, send_id: 9 })).toBe(9);
+    expect(envioDe({ kind: 'apartados', opens: 'apartados', workspace_id: 'w' })).toBeNull();
+    expect(envioDe({ send_id: 9 })).toBeNull();
+    expect(ultimaQueDefine('campaign_push', 'servicio')).toContain("jsonb_set(v_message, '{data,send_id}', to_jsonb(x.send))");
+  });
+});
+
+describe('⚠️ the sheet’s words are the words the analyst’s approval inserts', () => {
+  const runbook = readFileSync(RUNBOOK, 'utf8');
+  const fila = /\('([a-z0-9-]+)', 'cocina', '\{promociones,medir_promociones\}', 'hoja',\s*'((?:[^']|'')*)'\)/.exec(runbook);
+  it('*on 1* inserts this build’s version, for both uses, shown on the sheet — the text exactly as drawn', () => {
+    expect(fila?.[1]).toBe(PALABRAS);
+    expect(fila?.[2].replace(/''/g, "'")).toBe(textoDeLaHoja());
+    expect(PALABRAS).toMatch(/^[a-z0-9][a-z0-9_.-]{0,39}$/);
+  });
+  it('*on 2* turns `novedades` on with Itacate’s `ofertas`', () => {
+    expect(runbook).toContain("update servicio.notification_kind set is_on = true where kind in ('ofertas', 'novedades');");
+  });
+  it('its words name where to turn it off, and are a draft until the analyst approves them', () => {
+    expect(ES.novedades.hoja.medir).toContain('Mi cocina');
+    expect(code('strings.ts')).toContain('THE SHEET\'S WORDS ARE A DRAFT, NOT APPROVED');
+  });
+});
+
+describe('*Novedades* in *Mi cocina*, and when the sheet asks', () => {
+  const promo: Aviso = {
+    kind: 'novedades',
+    canal: 'novedades',
+    nombreDelCanal: 'Novedades de Wera Cocina',
+    importancia: 'normal',
+    titulo: 'Novedades de Wera Cocina',
+    detalle: 'Consejos y novedades de la app.',
+    abre: 'hoy',
+    encendido: false,
+    deServicio: false,
+    clase: 'promocion',
+  };
+  const apartados: Aviso = { ...promo, kind: 'apartados', clase: 'servicio', deServicio: true, encendido: true };
+  const nunca: Consentimiento = { ofertas: null, medir: null };
+  const base = { avisos: [apartados, promo], consentimiento: nunca, preguntado: false, permiso: { concedido: true, puedePreguntar: false } };
+
+  it('drawn only while offered — a promotion kind among her kinds — on while her answer is yes', () => {
+    expect(novedadesDe([apartados])).toBeNull();
+    expect(novedadesDe([apartados, promo])?.encendido).toBe(false);
+    expect(novedadesDe([apartados, { ...promo, encendido: true }])?.encendido).toBe(true);
+    expect(enMiCocina([apartados, promo]).map((a) => a.kind)).toEqual(['apartados']);
+  });
+  it('the sheet asks once after a handover: offered, never answered, never asked here, a phone that can show it', () => {
+    expect(hayQuePreguntarNovedades(base)).toBe(true);
+    expect(hayQuePreguntarNovedades({ ...base, avisos: [apartados] })).toBe(false);
+    expect(hayQuePreguntarNovedades({ ...base, preguntado: true })).toBe(false);
+    expect(hayQuePreguntarNovedades({ ...base, permiso: { concedido: false, puedePreguntar: false } })).toBe(false);
+    const en = new Date(2026, 11, 3);
+    expect(hayQuePreguntarNovedades({ ...base, consentimiento: { ofertas: { si: false, palabras: PALABRAS, en }, medir: null } })).toBe(false);
+    expect(siDesde({ ofertas: { si: true, palabras: PALABRAS, en }, medir: null })).toBe(en);
+    expect(ES.novedades.dijisteQueSi(diaDelSi(en))).toBe('Dijiste que sí el 3 de diciembre.');
+  });
+  it('the phone keeps that it asked, per login, under a key of its own — not the phone’s question’s', () => {
+    const store = memoria();
+    marcarPreguntado(store, 'u1');
+    expect(preguntadoAqui(store, 'u1')).toBe(true);
+    expect(preguntadoAqui(store, 'u2')).toBe(false);
+    expect(HOJA_KEY).not.toBe(PREGUNTADO_KEY);
+    expect(HOJA_KEY).not.toBe(TOKEN_KEY);
+  });
+  it('wired: the sheet rises when she leaves *Entregar* after a handover; *Novedades*’ switch opens it in *Mi cocina*', () => {
+    const entregar = code('app/(cocina)/entregar.tsx');
+    expect(entregar).toMatch(/onDespues=\{terminar\}/);
+    expect(entregar).toMatch(/label=\{ES\.pulgar\.listo\} onPress=\{terminar\}/);
+    expect(entregar).toMatch(/if \(hayQuePreguntar\(\{ avisos: avisos\.data, consentimiento: consentimiento\.data, preguntado, permiso \}\)\) setOfertas\(true\);\s*else volver\(\);/);
+    expect(entregar).toMatch(/<HojaOfertas\s*visible=\{ofertas\}\s*pregunta/);
+    const sus = code('ui/SusAvisos.tsx');
+    expect(sus).toMatch(/if \(on\) \{\s*setHoja\(true\);\s*return;\s*\}\s*if \(!\(await responder\(false\)\)\)/);
+    expect(sus).toMatch(/<HojaOfertas visible=\{hoja\} pregunta=\{false\}/);
   });
 });

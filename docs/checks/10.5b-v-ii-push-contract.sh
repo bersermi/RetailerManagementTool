@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# 10.5b-v-ii-push-contract — does Wera Cocina tell the database about her phone, read the kinds of
-# message, switch one, count a tap and retire its token by the names the database answers?
+# 10.5b-v-ii-push-contract — does Wera Cocina (and since `10.5c-iii` Itacate) tell the database about
+# her phone, read the kinds of message, switch one, count a tap and retire its token by the names the
+# database answers?
 #
 # WHY THIS EXISTS. `cocina/src/api/push.ts` is Wera Cocina's claim about `0092`: five functions,
 # their arguments, the app's own name and its one kind, and every key of a kind. PostgREST matches a
@@ -28,13 +29,20 @@
 # ⚠️ NO MESSAGE IS SENT: nobody reserves here, so nothing is queued for Expo.
 # ⚠️ NO `mapfile`, NO `declare -A`: macOS ships bash 3.2.
 #
+# ⚠️ SINCE `10.5c-iii` IT RUNS ON EACH APP'S FILE: `$1` the app's push.ts, `$2` the name of the constant
+# holding the kind it switches and taps — Wera Cocina's `APARTADOS` (service), Itacate's `PUBLICO` (the
+# bell's, on request, which `0094` lets her switch). The app's own name is read out of the file (`APP`).
+#
 # Run:  supabase start && supabase db reset && bash docs/checks/10.5b-v-ii-push-contract.sh
-# With: $1 Wera Cocina's push.ts — how the falsifier points it at a broken copy.
+#       bash docs/checks/10.5b-v-ii-push-contract.sh itacate/src/api/push.ts PUBLICO
+# With: $1 an app's push.ts (Wera Cocina's by default) — how the falsifier points it at a broken copy;
+#       $2 the constant naming its kind (APARTADOS by default).
 # Exit: 0 every assertion holds; 1 otherwise.
 
 set -uo pipefail
 
 PUSH_TS="${1:-cocina/src/api/push.ts}"
+KIND_CONST="${2:-APARTADOS}"
 CREDENTIALS_TS="cocina/src/auth/credentials.ts"
 for f in "$PUSH_TS" "$CREDENTIALS_TS"; do
   [[ -r "$f" ]] || { echo "FAIL: cannot read $f (run this from the repository root)"; exit 1; }
@@ -76,7 +84,7 @@ KINDS="$(const MY_NOTIFICATION_KINDS "$PUSH_TS")"
 SWITCH="$(const SET_NOTIFICATION_SWITCH "$PUSH_TS")"
 TAP="$(const COUNT_NOTIFICATION_TAP "$PUSH_TS")"
 APP="$(const APP "$PUSH_TS")"
-KIND="$(const APARTADOS "$PUSH_TS")"
+KIND="$(const "$KIND_CONST" "$PUSH_TS")"
 REGISTER_ARGS="$(fields_of "$PUSH_TS" RegisterArgs 'p_')"
 RETIRE_ARGS="$(fields_of "$PUSH_TS" RetireArgs 'p_')"
 KINDS_ARGS="$(fields_of "$PUSH_TS" KindsArgs 'p_')"
@@ -86,7 +94,7 @@ KIND_KEYS="$(fields_of "$PUSH_TS" KindRow '')"
 NAME_KEY="$(const FULL_NAME_KEY "$CREDENTIALS_TS")"
 
 for pair in "REGISTER_PUSH_TOKEN:$REGISTER" "RETIRE_PUSH_TOKEN:$RETIRE" "MY_NOTIFICATION_KINDS:$KINDS" \
-            "SET_NOTIFICATION_SWITCH:$SWITCH" "COUNT_NOTIFICATION_TAP:$TAP" "APP:$APP" "APARTADOS:$KIND" \
+            "SET_NOTIFICATION_SWITCH:$SWITCH" "COUNT_NOTIFICATION_TAP:$TAP" "APP:$APP" "$KIND_CONST:$KIND" \
             "RegisterArgs:$REGISTER_ARGS" "RetireArgs:$RETIRE_ARGS" "KindsArgs:$KINDS_ARGS" \
             "SwitchArgs:$SWITCH_ARGS" "TapArgs:$TAP_ARGS" "KindRow:$KIND_KEYS" "FULL_NAME_KEY:$NAME_KEY"; do
   if [[ -z "${pair#*:}" ]]; then
@@ -96,7 +104,7 @@ for pair in "REGISTER_PUSH_TOKEN:$REGISTER" "RETIRE_PUSH_TOKEN:$RETIRE" "MY_NOTI
     exit 1
   fi
 done
-ok "read from Wera Cocina: $REGISTER($REGISTER_ARGS), $RETIRE($RETIRE_ARGS), $KINDS($KINDS_ARGS) → [{$KIND_KEYS}], $SWITCH($SWITCH_ARGS), $TAP($TAP_ARGS); app '$APP', kind '$KIND'"
+ok "read from $PUSH_TS: $REGISTER($REGISTER_ARGS), $RETIRE($RETIRE_ARGS), $KINDS($KINDS_ARGS) → [{$KIND_KEYS}], $SWITCH($SWITCH_ARGS), $TAP($TAP_ARGS); app '$APP', kind '$KIND'"
 
 # --- the local stack -------------------------------------------------------
 STATUS="$(supabase status -o env 2>/dev/null)"
@@ -231,7 +239,7 @@ TOKEN="$FONDA_TOKEN"
 
 echo
 if (( fails > 0 )); then
-  echo "$fails assertion(s) failed: Wera Cocina's push.ts does not describe 0092 as applied."
+  echo "$fails assertion(s) failed: $PUSH_TS does not describe 0092 as applied."
   exit 1
 fi
-echo "every assertion holds — Wera Cocina's push.ts names 0092's five doors as the database answers them."
+echo "every assertion holds — $PUSH_TS ('$APP') names 0092's five doors as the database answers them."

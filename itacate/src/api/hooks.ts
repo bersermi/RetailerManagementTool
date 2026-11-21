@@ -58,7 +58,19 @@ import {
   myCards,
   registerMyKey,
   stampWithCode,
+  myConsent,
+  myNotificationKinds,
+  setMyConsent,
+  setNotificationSwitch,
 } from '@/api/calls';
+import {
+  AVISOS_KEY,
+  CONSENTIMIENTO_KEY,
+  avisosKey,
+  consentimientoKey,
+  type Aviso,
+  type Consentimiento,
+} from '@/api/push';
 import { apiErrorKey } from '@/api/errors';
 import { TARJETAS_KEY, tarjetasKey, type MyCardRow, type ScanRow } from '@/api/tarjeta';
 import { guardarLlave, leerLlave, type Llave } from '@/lib/llave';
@@ -608,4 +620,101 @@ export function useEscanearCodigo() {
   }
 
   return { sellar, cobrar, busy: ocupado };
+}
+
+// ----------------------------------------------------------------------------
+// `10.5c-iii` — her phone's messages from the server (`0092`, `0093`)
+// ----------------------------------------------------------------------------
+
+/**
+ * ⚠️ THE KINDS OF MESSAGE AND HER SWITCH FOR EACH (`my_notification_kinds`, `0092`): what the phone makes its
+ * channels from (`@/lib/AvisosDelTelefono`) and *Notificaciones* draws its switches from. Keyed on the login — her
+ * switch is hers on every phone. ⚠️ NOT on the phone's disk: with no signal nothing is drawn and no channel made.
+ */
+export function useAvisos() {
+  const { session, ready } = useAuth();
+  const userId = session?.user.id ?? null;
+  return useQuery({
+    queryKey: avisosKey(userId),
+    queryFn: () => myNotificationKinds(),
+    enabled: ready && userId !== null,
+    staleTime: 60 * 60_000,
+  });
+}
+
+/** Her switch for one service or on-request kind (`set_notification_switch`): the answer is her kinds as now held. */
+export function useCambiarAviso() {
+  const queries = useQueryClient();
+  const { session } = useAuth();
+  const userId = session?.user.id ?? null;
+  const mutation = useMutation({
+    mutationFn: ({ kind, on }: { readonly kind: string; readonly on: boolean }) => setNotificationSwitch(kind, on),
+    onSuccess: (avisos: readonly Aviso[]) => {
+      queries.setQueryData<readonly Aviso[]>(avisosKey(userId), avisos);
+    },
+    onError: () => {
+      void queries.invalidateQueries({ queryKey: AVISOS_KEY });
+    },
+  });
+
+  /** `true` once saved; `false` when it could not be — her switch is drawn as the database holds it. */
+  async function cambiar(kind: string, on: boolean): Promise<boolean> {
+    if (mutation.isPending) return false;
+    try {
+      await mutation.mutateAsync({ kind, on });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  return { cambiar, busy: mutation.isPending };
+}
+
+/**
+ * ⚠️ HER ANSWERS TO OFFERS (`my_consent`, `0093`): whether the sheet is still to ask, and *Dijiste que sí el …* on her
+ * switch. Keyed on the login, in memory only.
+ */
+export function useConsentimiento() {
+  const { session, ready } = useAuth();
+  const userId = session?.user.id ?? null;
+  return useQuery({
+    queryKey: consentimientoKey(userId),
+    queryFn: () => myConsent(),
+    enabled: ready && userId !== null,
+    staleTime: 60 * 60_000,
+  });
+}
+
+/**
+ * ⚠️ HER YES OR NO TO OFFERS ON THE SHEET'S WORDS (`set_my_consent`, `0093`). The answer is written into her answers at
+ * once, and her kinds are read again — a promotion kind's switch is her answer. `false` when it was not kept: no
+ * signal, or words the analyst has not approved (22023 — only his test accounts are shown the sheet before then).
+ */
+export function useResponderOfertas() {
+  const queries = useQueryClient();
+  const { session } = useAuth();
+  const userId = session?.user.id ?? null;
+  const mutation = useMutation({
+    mutationFn: (si: boolean) => setMyConsent(si),
+    onSuccess: (respuesta: Consentimiento) => {
+      queries.setQueryData<Consentimiento>(consentimientoKey(userId), respuesta);
+    },
+    onSettled: () => {
+      void queries.invalidateQueries({ queryKey: AVISOS_KEY });
+      void queries.invalidateQueries({ queryKey: CONSENTIMIENTO_KEY });
+    },
+  });
+
+  async function responder(si: boolean): Promise<boolean> {
+    if (mutation.isPending) return false;
+    try {
+      await mutation.mutateAsync(si);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  return { responder, busy: mutation.isPending };
 }

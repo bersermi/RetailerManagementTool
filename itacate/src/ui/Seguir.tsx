@@ -2,8 +2,9 @@ import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 
-import { useSeguir, useSiguiendo, type FallaDeSeguir } from '@/api/hooks';
+import { useAvisos, useSeguir, useSiguiendo, type FallaDeSeguir } from '@/api/hooks';
 import { switchesDe, type Cambio, type Switches } from '@/api/siguiendo';
+import { pedirPermisoParaAvisos } from '@/lib/avisos';
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
 
@@ -14,10 +15,10 @@ import { PALETTE, SIZE } from '@/theme/palette';
 // square bell, filled while it is on. TWO SWITCHES, EITHER ALONE (`0084`): the bell may ring a
 // kitchen she does not follow, and *Mis cocinas* lists only those she follows.
 //
-// ⚠️ THE BELL IS STORED AND RUNG BY NOTHING UNTIL `10.9h` (its message and its default are his
-// product analyst's, the plan's decisions block): it starts off, as `0084` stores it, and asks the
-// phone nothing — `10.9h` asks for notifications when it makes the bell ring. Drawn now because
-// nobody but his test builds holds Itacate until `10.5b-vi`, which waits for `10.9h`.
+// ⚠️ THE BELL RINGS SINCE `10.9h-i` AND `10.5c-iii`: the database queues its message (`0094`, kind `publico`)
+// and this phone receives it (`@/lib/AvisosDelTelefono`). It starts off, as `0084` stores it; ⚠️ RUNG ON,
+// ONCE IT LANDS, THE PHONE IS ASKED for notifications if it does not allow them and still can — the moment
+// it is for is on the screen (`@/lib/avisosPush`); the phone's settings are never opened from here.
 // ⚠️ DRAWN ONLY ONCE IT LANDS (`useSeguir`): the button waits busy and shows the database's answer;
 // a refusal is said under it. NO CHECK CAN SEE THIS (ADR-035 §2.11): the phone is its instrument.
 // ============================================================================
@@ -25,6 +26,7 @@ import { PALETTE, SIZE } from '@/theme/palette';
 export function Seguir({ cocinaId, nombre }: { cocinaId: string; nombre: string }) {
   const siguiendo = useSiguiendo();
   const { cambiar, busy } = useSeguir();
+  const avisos = useAvisos();
   /**
    * The database's last answer to her tap, and when it came — drawn until her list is read again after it
    * (`dataUpdatedAt`), then the list wins: another page of the same kitchen may have changed it since.
@@ -46,8 +48,12 @@ export function Seguir({ cocinaId, nombre }: { cocinaId: string; nombre: string 
     setFalla(null);
     const resultado = await cambiar(cocinaId, cambio);
     setCual(null);
-    if (resultado.ok) setUltimo({ valor: resultado.valor, at: Date.now() });
-    else setFalla(resultado.falla);
+    if (resultado.ok) {
+      setUltimo({ valor: resultado.valor, at: Date.now() });
+      if (que === 'campana' && resultado.valor.campana) void pedirPermisoParaAvisos(avisos.data ?? []);
+    } else {
+      setFalla(resultado.falla);
+    }
   }
 
   const sigue = ahora.siguiendo;
