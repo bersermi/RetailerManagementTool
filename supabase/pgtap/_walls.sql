@@ -127,6 +127,10 @@ signed_in (proname) as (values
   -- only on her own while she is counted; campaigns, her answers and who got what sit in
   -- `servicio`, read by no client
   ('set_my_consent'), ('my_consent'), ('count_campaign_tap'),
+  -- the services' messages (`0094`, plan `10.9h-i`): a kitchen's owner announcing her
+  -- promotion to those who follow it, and whether that is offered — both keyed on her
+  -- membership; what each neighbour is owed sits in `servicio.notice`, read by no client
+  ('promotion_alert_offered'), ('alert_promotion'),
   -- what a policy, a check or a computed column runs as the caller
   ('catalog_image_path'), ('has_role'), ('merma_path_ok'), ('my_locations'),
   ('my_role'), ('my_workspaces'), ('normalize_name'), ('photo_folder_ok'),

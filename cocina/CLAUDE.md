@@ -938,7 +938,9 @@ analyst rules** (the plan's decisions block, since `10.9g-iii`): nothing of this
   never the action's colour): ✅ Itacate draws them since `10.9g-iii` from a copy its `test/gemelos.test.ts` holds to this file — a change
   here is copied there in the same PR. ⚠️ **And her previews show them** (`10.9g-iii`): *Ver como la ven* her band and her dishes' marks
   (`@/lib/comoLaVen`, her list reading `promotion_id`), *Publicar*'s card the mark of the one she picked (`@/lib/vistaPrevia`'s `promocion`).
-- ⚠️ **Not *Avisar a quienes te siguen*** — the alert is `10.9h`'s, his product analyst's; the suite refuses the words.
+- ⚠️ **Not *Avisar a quienes te siguen*** — the switch on this form is `10.9h-ii`'s; its database half is `0094`'s
+  (`10.9h-i`: `promotion_alert_offered`, `alert_promotion`, the kind `promocion_cocina` written dark until his product analyst
+  rules); until then the suite refuses the words.
 - **To see it on the emulator**: the debug build against the local shop (*Apartados*' section), Metro from `cocina/` on 8082 with the local
   values; the local switch on (`update servicio.feature_switch set is_on = true where name in ('promociones', 'tarjeta')`, off after); a fonda
   made through the apps' functions (`onboard_workspace`, `set_store_address`, `set_card_terms` for *Para tus clientes*); more than one running

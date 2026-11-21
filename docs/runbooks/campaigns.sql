@@ -115,3 +115,19 @@ update servicio.notification_kind set is_on = true where kind = 'ofertas';
 --   update servicio.notification_rule set promo_from = '09:00', promo_until = '20:00', promo_per_day = 1, promo_per_week = 3;
 -- an audience switched off — update servicio.campaign_audience set is_on = false where app = 'itacate' and audience = 'recogio';
 -- the days a row naming who got what is kept — update servicio.notification_rule set keep_days = 30;
+
+-- THE SERVICES' MESSAGES (`0094`, plan `10.9h-i`) — each moment a row of servicio.notification_kind, the
+-- recommendations as written; her answers, each one UPDATE. What a message needs before it goes is read from
+-- its kind's CLASS when it goes: servicio (her switch), a_pedido (her switch, her bell, one a kitchen a day),
+-- promocion (her yes, the hours and the limits above, counted with every campaign).
+-- a moment off for everyone — update servicio.notification_kind set is_on = false where kind = 'sellos';
+--   (the kinds: publico — the bell; promocion_cocina — a promotion's alert, dark; premio — ¡Ganaste!; sellos — the
+--   reminder; tarjeta_cambio — a card closing or its kitchen leaving; primera_oferta — Wera Cocina's nudge)
+-- the bell: several within the hour as one — update servicio.notification_kind set hold_minutes = 60 where kind = 'publico';
+-- the reminder: days before, its hour, none for a card of fewer days —
+--   update servicio.notification_kind set days_before = 7, send_at = '11:00', min_days = null where kind = 'sellos';
+-- the nudge: on which day with no offer, at what hour — update servicio.notification_kind set on_day = 2, send_at = '12:00' where kind = 'primera_oferta';
+-- a moment read as a promotion (needs her yes) — update servicio.notification_kind set class = 'promocion', default_on = false where kind = 'sellos';
+-- the alert only to those who rang the bell, without her yes — update servicio.notification_kind set class = 'a_pedido', default_on = true where kind = 'promocion_cocina';
+-- the alert on — update servicio.notification_kind set is_on = true where kind = 'promocion_cocina';
+-- her switch's words in Notificaciones — update servicio.notification_kind set label = '…', detail = '…' where kind = '…';

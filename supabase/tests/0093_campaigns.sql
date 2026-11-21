@@ -183,7 +183,9 @@ select public.chk('1.4 the rules, one row, the recommended numbers: 9:00 to 20:0
          from servicio.notification_rule)
   and public._try('insert into servicio.notification_rule (id) values (false)') = '23514');
 select public.chk('1.5 dark until she rules: the two promotion kinds off, no words approved; the closed list on, 6 facts in Itacate and 5 in Wera Cocina',
-  (select count(*) from servicio.notification_kind where class = 'promocion' and not is_on and not default_on) = 2
+  -- (`0094`, `10.9h-i`, adds a third, `promocion_cocina`, dark too — its own suite holds it)
+  (select count(*) from servicio.notification_kind
+    where class = 'promocion' and not is_on and not default_on and kind in ('novedades', 'ofertas')) = 2
   and (select app = 'itacate' and channel = 'ofertas' and opens = 'cerca' from servicio.notification_kind where kind = 'ofertas')
   and (select app = 'cocina' and channel = 'novedades' and opens = 'hoy' from servicio.notification_kind where kind = 'novedades')
   and (select count(*) from servicio.consent_words) = 0
@@ -258,11 +260,14 @@ select u, 'itacate', p, true, 'itacate-hoja-1'
   from unnest(array[:dani, :eli, :yo]::uuid[]) u, unnest(array['promociones', 'medir_promociones']) p;
 insert into servicio.campaign_tester (user_id) values (:yo);
 
-select public.chk('2.7 the dark kind is offered to nobody but his test account, whose is_on is his answer; Ana is offered none of Itacate''s',
-  servicio.kinds_of(:ana, 'itacate') = '[]'::jsonb
+-- `0094`'s Itacate kinds (`10.9h-i`) — the bell, ¡Ganaste!, the reminder, the card's changes, a
+-- promotion's alert — are its own suite's.
+select public.chk('2.7 the dark kind is offered to nobody but his test account, whose is_on is his answer; Ana is offered none of Itacate''s promotion kinds',
+  not exists (select 1 from jsonb_array_elements(servicio.kinds_of(:ana, 'itacate')) k where k ->> 'class' = 'promocion')
   and (select (k ->> 'is_on')::boolean and k ->> 'class' = 'promocion'
          from jsonb_array_elements(servicio.kinds_of(:yo, 'itacate')) k where k ->> 'kind' = 'ofertas')
-  and jsonb_array_length(servicio.kinds_of(:yo, 'itacate')) = 1
+  and (select count(*) from jsonb_array_elements(servicio.kinds_of(:yo, 'itacate')) k
+        where k ->> 'kind' not in ('publico', 'promocion_cocina', 'premio', 'sellos', 'tarjeta_cambio')) = 1
   and (select (k ->> 'is_on')::boolean = false
          from jsonb_array_elements(servicio.kinds_of(:yo, 'cocina')) k where k ->> 'kind' = 'novedades'),
   servicio.kinds_of(:yo, 'itacate')::text);

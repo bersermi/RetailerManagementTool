@@ -181,8 +181,10 @@ select public.chk('1.4 Wera Cocina''s kind: apartados, a service kind on its own
           and importance = 'alta' and default_on and is_on and opens = 'apartados'
           and label = 'Avisos de apartados' and detail = 'Cada apartado nuevo y cada cancelación.'
      from servicio.notification_kind where kind = 'apartados')
-  -- `0093` adds two promotion kinds, dark: Wera Cocina's one service kind is still this one.
-  and (select count(*) from servicio.notification_kind where class = 'servicio') = 1);
+  -- `0093` adds two promotion kinds, dark, and `0094` (`10.9h-i`) four service kinds held by
+  -- its own suite: `0092`'s one service kind is still this one.
+  and (select count(*) from servicio.notification_kind
+        where class = 'servicio' and kind not in ('premio', 'sellos', 'tarjeta_cambio', 'primera_oferta')) = 1);
 select public.chk('1.5 the three jobs: Expo''s answers each minute, the 30 days and pg_cron''s own history each night',
   (select count(*) from cron.job
     where (jobname, schedule, command) in (
@@ -301,14 +303,16 @@ select public._call_as_me('teo-off', format('select public.set_notification_swit
 select public._try(format('select public.set_notification_switch(%L, false)', 'nada')) as teo_unknown \gset
 select public._try(format('select public.set_notification_switch(%L, null)', 'apartados')) as teo_null \gset
 reset role;
-select public.chk('2.7 her kinds: one, by these keys, her switch on by default; Itacate''s none yet; an app it does not know — 22023',
+-- `0094`'s kinds (`10.9h-i`) — Wera Cocina's nudge, Itacate's four — are its own suite's.
+select public.chk('2.7 her kinds: apartados, by these keys, her switch on by default; Itacate''s none of this file''s; an app it does not know — 22023',
   :'teo_kinds' = 'ok' and :'teo_itacate' = 'ok' and :'teo_wera' = '22023'
-  and jsonb_array_length(public._a('teo-kinds')) = 1
+  and (select count(*) from jsonb_array_elements(public._a('teo-kinds')) k where k ->> 'kind' <> 'primera_oferta') = 1
   and (select array_agg(k order by k) from jsonb_object_keys(public._a('teo-kinds') -> 0) k)
       = array['channel', 'channel_name', 'class', 'detail', 'importance', 'is_on', 'kind', 'label', 'opens']
   and public._a('teo-kinds') -> 0 ->> 'kind' = 'apartados'
   and (public._a('teo-kinds') -> 0 ->> 'is_on')::boolean
-  and public._a('teo-itacate') = '[]'::jsonb,
+  and not exists (select 1 from jsonb_array_elements(public._a('teo-itacate')) k
+                   where k ->> 'kind' not in ('publico', 'premio', 'sellos', 'tarjeta_cambio')),
   coalesce(public._a('teo-kinds')::text, :'teo_kinds'));
 select public.chk('2.8 her switch off: answered as held, kept for her; no such kind, no answer — 22023',
   :'teo_off' = 'ok' and not (public._a('teo-off') -> 0 ->> 'is_on')::boolean
@@ -469,7 +473,8 @@ select servicio.push_send('apartados', array(select id from servicio.push_token 
 select servicio.kinds_of(:mari, 'cocina') as kinds_while_off \gset
 update servicio.notification_kind set is_on = true where kind = 'apartados';
 select public.chk('3.12 a kind Wera switched off sends nothing and is offered to nobody',
-  :'sent_while_off' = 0 and (select count(*) from public._queued(:m5)) = 0 and :'kinds_while_off' = '[]');
+  :'sent_while_off' = 0 and (select count(*) from public._queued(:m5)) = 0
+  and not exists (select 1 from jsonb_array_elements(:'kinds_while_off'::jsonb) k where k ->> 'kind' = 'apartados'));
 
 -- 101 phones: two requests, 100 and 1 (Expo's limit).
 insert into servicio.push_token (user_id, app, token, platform, allowed, channels)

@@ -116,7 +116,8 @@ from `itacate/` with the two local `EXPO_PUBLIC_SUPABASE_` values in the shell, 
   `null` to leave it) and `my_follows` (her kitchens — **every one she follows, not only those the door sends today** — and those that left
   in 30 days, *dejó Itacate*), every argument and key, and `TD026` — asked as a neighbour by `docs/checks/10.9d-i-following-contract.sh`
   (its own job, `itacate-following`; its falsifier breaks the file), held to `0084`'s text by `test/siguiendo.test.ts`. **Drawn since
-  `10.9d-ii`** (`useSiguiendo`, `useSeguir` — the next section's *Following*); the bell is stored and rung by nothing until `10.9h`.
+  `10.9d-ii`** (`useSiguiendo`, `useSeguir` — the next section's *Following*); the bell is stored, and since `0094` (`10.9h-i`) the
+  database queues its message (kind `publico`) — which reaches no phone until Itacate registers its token (`10.5c-iii`).
   ⚠️ **The loyalty card's claim is `src/api/tarjeta.ts`** (`10.9e-i`): `0085`'s `register_my_key` (her phone's secret, handed once),
   `my_cards` (every kitchen where she has stamps going or a reward to claim, in its colour and logo — her mark in *Cerca*, G38, is read
   from it by kitchen id), `stamp_with_code` and `claim_with_code` — every argument and key, and `TD027`; a kitchen's terms before her
@@ -493,8 +494,9 @@ follows it, as `cocina/CLAUDE.md`'s does:
   *Seguir* — never her full page, which would say *Todavía sin calificaciones* of a kitchen that has stars. ***Seguir* and the bell**
   (`@/ui/Seguir`) on her page, after *Cómo pagas aquí*, handed in by the route as `PaginaDeCocina`'s `seguir` slot (Wera Cocina's copy
   carries the slot and hands nothing): two switches, either alone, each drawn only once the database answers (`useSeguir`); ⚠️ **the
-  bell is stored and rings nothing until `10.9h`**, asks the phone nothing, and starts off — drawn now because nobody but his test builds
-  holds Itacate until `10.5b-vi`, which waits for `10.9h`. ***¿Seguir a …?*** (`@/ui/PreguntaSeguir`, G20) on *Apartados*, under *Ya lo
+  bell is stored and rings no phone yet**: since `0094` (`10.9h-i`) the database queues its message, but this build registers no token
+  and asks the phone nothing until `10.5c-iii`; it starts off — drawn now because nobody but his test builds holds Itacate until
+  `10.5b-vi`, which waits for `10.9h` and `10.5c-iii`. ***¿Seguir a …?*** (`@/ui/PreguntaSeguir`, G20) on *Apartados*, under *Ya lo
   tienes* and under that plate in *Anteriores*: the FIRST plate she collected at a kitchen she does not follow, while its rating window
   lasts (`rate_until`, rated or not) — a second plate there never asks again, and *Ahora no* is kept in memory while the app runs (never
   on the disk). ⚠️ **What it cannot know**: a first plate that left her 30 days (`my_reservations`) makes a later one her "first" again.
