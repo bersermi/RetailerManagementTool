@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
@@ -77,19 +77,24 @@ function row(
 }
 
 /**
- * `0095`'s text, read as TEXT only — to hold the name, the arguments and the
- * keys the app sends and reads to the ones the migration declares
+ * The text of the LAST migration that defines `daily_sales` (`0095`, re-made by
+ * `0096`), read as TEXT only — to hold the name, the arguments and the keys the
+ * app sends and reads to the ones the database was last given
  * (`api-shelf-price.test.ts`'s arrangement). Whether the database answers that
  * way is `docs/checks/7a-sales-contract.sh`'s, over a real PostgREST.
  */
-const MIGRATION = readFileSync(
-  resolve(__dirname, '../../supabase/migrations/0095_sales_in_one_answer.sql'),
-  'utf8',
-);
+const MIGRATIONS = resolve(__dirname, '../../supabase/migrations');
+const MIGRATION =
+  readdirSync(MIGRATIONS)
+    .filter((name) => name.endsWith('.sql'))
+    .sort()
+    .map((name) => readFileSync(resolve(MIGRATIONS, name), 'utf8'))
+    .filter((text) => /function public\.daily_sales\(/.test(text))
+    .at(-1) ?? '';
 
 /** Each `'key', expression` pair of the function's `json_build_object`. */
 function answerKeys(): ReadonlyMap<string, string> {
-  const body = MIGRATION.slice(MIGRATION.indexOf('create function public.daily_sales'));
+  const body = MIGRATION.slice(MIGRATION.indexOf('function public.daily_sales('));
   const object = body.slice(body.indexOf('json_build_object('), body.indexOf('order by d.day desc'));
   return new Map(
     [...object.matchAll(/^\s*'(\w+)',\s+(.+?)[,)]?\s*$/gm)].map((m) => [m[1] ?? '', m[2] ?? '']),
@@ -100,7 +105,7 @@ describe('the read, as the contract check will send it', () => {
   it('asks ONE function, by the name and the arguments 0095 declares', () => {
     expect(SALES_FUNCTION).toBe('daily_sales');
     expect(MIGRATION).toMatch(
-      /create function public\.daily_sales\(p_workspace_id uuid, p_since date\)\s+returns json/,
+      /create (or replace )?function public\.daily_sales\(p_workspace_id uuid, p_since date\)\s+returns json/,
     );
     expect(salesArgs('tienda', '2026-06-01')).toEqual({ p_workspace_id: 'tienda', p_since: '2026-06-01' });
   });
