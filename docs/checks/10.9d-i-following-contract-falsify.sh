@@ -79,7 +79,7 @@ echo "C4  her list asked of a misspelt function — Mis cocinas never read"
 run C4 red "my_follow answered 404" \
   "s/^export const MY_FOLLOWS = 'my_follows';/export const MY_FOLLOWS = 'my_follow';/"
 
-echo "C5  the list of kitchens that left under another key — dejó Itacate never said"
+echo "C5  the list of kitchens that left under another key — dejó Wera never said"
 run C5 red "the answer carried no 'left'" \
   '/^export interface FollowsRow {/,/^}/s/^  readonly gone: readonly GoneRow\[\];/  readonly left: readonly GoneRow[];/'
 

@@ -233,7 +233,7 @@ describe('her first offer, celebrated — and never again', () => {
     expect(ofertaDeEstreno(MEMORIA_VACIA, [oferta('a', 10)])).toBe(false);
     // Taken back by Deshacer and published again: not a second first.
     expect(ofertaDeEstreno(ofertaFestejada(MEMORIA_VACIA), [oferta('d', 16, nov(16, 16, 40))])).toBe(false);
-    expect(ES.festejo.oferta).toBe('¡Ya te ven en Itacate!');
+    expect(ES.festejo.oferta).toBe('¡Ya te ven en Wera!');
   });
 });
 

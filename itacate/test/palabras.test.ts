@@ -45,7 +45,7 @@ describe('no word that makes the food sound left over', () => {
   });
 
   it('but Wera’s own Merma, named to a shop’s owner — one line, about her shop in Wera', () => {
-    expect(ES.account.shopRecords).toMatch(/tu tienda en Wera/);
+    expect(ES.account.shopRecords).toMatch(/tu tienda en Wera Tienda:/);
     expect(code('strings.ts').match(SOBRAS)).toEqual(['merma']);
   });
 
@@ -77,5 +77,45 @@ describe('the ruled words, word for word', () => {
     expect(screen).toMatch(/\{ES\.lema\}/);
     // First: above the providers' buttons.
     expect(screen.indexOf('{ES.lema}')).toBeLessThan(screen.indexOf('ES.auth.google'));
+  });
+});
+
+// ============================================================================
+// ⚠️ `13.2` — THE OWNER'S RULING OF 2026-11-22: *"Itacate se vuelve Wera"*, and the shop
+// app *Wera: tu tienda* becomes *Wera Tienda*. Every sentence here, the name under the
+// icon and the two permission sentences say *Wera*; the comments keep *Itacate* as
+// history, and the code may keep it for the folder (`itacate/`), the ids and the keys.
+// ============================================================================
+
+const APP_JSON = readFileSync(fileURLToPath(new URL('../app.json', import.meta.url)), 'utf8');
+/** The old name as a word — `dejoItacate`, a key, is not one. */
+const ITACATE = /(?<!\p{L})Itacate(?!\p{L})/gu;
+
+describe('13.2: the app is Wera', () => {
+  it('no sentence it shows names Itacate', () => {
+    expect(code('strings.ts').match(ITACATE)).toBeNull();
+  });
+
+  it('nor the name under its icon, nor what the phone asks her for', () => {
+    expect(APP_JSON.match(ITACATE)).toBeNull();
+    const expo = JSON.parse(APP_JSON).expo;
+    expect(expo.name).toBe('Wera');
+    expect(JSON.stringify(expo.plugins)).toContain('Wera usa tu ubicación solo mientras tienes la app abierta');
+    expect(JSON.stringify(expo.plugins)).toContain('Wera usa la cámara para escanear el código de la cocina.');
+  });
+
+  it('its own name where she signs in, and its signature in Tú', () => {
+    expect(ES.nombre).toBe('Wera');
+    expect(ES.tu.deWera).toBe('Wera');
+  });
+
+  it('the shop app is Wera Tienda wherever a sentence sends her to it', () => {
+    expect(ES.account.businessLine('Tienda Lupe', 'tienda')).toBe('Tienda Lupe: tu tienda en Wera Tienda');
+    expect(ES.account.shopRecords).toContain('en Wera Tienda: Números');
+  });
+
+  it('the guard sees the old name as a word, and passes over a key', () => {
+    expect('Esta cocina ya no está en Itacate.'.match(ITACATE)).toEqual(['Itacate']);
+    expect('ES.misCocinas.dejoItacate'.match(ITACATE)).toBeNull();
   });
 });

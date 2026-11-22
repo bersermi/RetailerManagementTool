@@ -41,7 +41,7 @@ export const ES = {
   hola: {
     crear: 'Crear cuenta',
     tengo: 'Ya tengo cuenta',
-    misma: 'Tu cuenta es la misma en Wera, Wera Cocina e Itacate.',
+    misma: 'Tu cuenta es la misma en Wera Tienda, Wera Cocina y Wera.',
     volver: 'Volver',
   },
 
@@ -287,7 +287,7 @@ export const ES = {
     ajustarPunto: 'Ajustar punto',
     cambiarGiro: 'Cambiar giro',
     /** `10.5-ii`: her page's door, under a small picture of it. */
-    pagina: 'Tu página en Itacate',
+    pagina: 'Tu página en Wera',
     editarPagina: 'Editar tu página',
   },
 
@@ -300,7 +300,7 @@ export const ES = {
    * link were not drawn; their words are this row's.
    */
   pagina: {
-    titulo: 'Tu página en Itacate',
+    titulo: 'Tu página en Wera',
     volver: 'Volver',
     asiTeVen: 'Así te ven tus vecinos',
     portada: 'Foto de portada',
@@ -365,12 +365,12 @@ export const ES = {
           'completos, con todo lo que tienen. No se puede deshacer.',
     /** This app's own: a kitchen is here; a shop is in Wera (Wera says the mirror). */
     businessLine: (name: string, kind: 'tienda' | 'cocina') =>
-      kind === 'cocina' ? `${name}: tu cocina` : `${name}: tu tienda en Wera`,
+      kind === 'cocina' ? `${name}: tu cocina` : `${name}: tu tienda en Wera Tienda`,
     /**
      * This app's own: Wera's Ajustes offers a shop's month as a file before it
      * goes (`5R-c`); Cocina cannot make that file, so it says where it is made.
      */
-    shopRecords: 'Antes, puedes descargar las ventas, compras y merma de tu tienda en Wera: Números → Descargar un mes.',
+    shopRecords: 'Antes, puedes descargar las ventas, compras y merma de tu tienda en Wera Tienda: Números → Descargar un mes.',
     typeShopName: (shop: string) => `Para confirmar, escribe el nombre de la tienda: ${shop}`,
     typeKitchenName: (kitchen: string) => `Para confirmar, escribe el nombre de la cocina: ${kitchen}`,
     confirm: 'Eliminar mi cuenta',
@@ -404,9 +404,9 @@ export const ES = {
     /** What goes. ⚠️ The photos are in "todo lo que tiene"; when they are deleted is the aviso's. */
     warning:
       'Se borra esta cocina completa, con todo lo que tiene: su dirección, su punto en el mapa, ' +
-      'su página en Itacate y lo que publicó. No se puede deshacer.',
+      'su página en Wera y lo que publicó. No se puede deshacer.',
     /** What stays: the login, which is the same in the three apps. */
-    keeps: 'Tu cuenta sigue: entras con ella a Wera Cocina, a Itacate y a Wera, y puedes registrar otra cocina.',
+    keeps: 'Tu cuenta sigue: entras con ella a Wera Cocina, a Wera y a Wera Tienda, y puedes registrar otra cocina.',
     /**
      * ⚠️ `10.9d-ii` (G23): HOW MANY FOLLOW HER — warned, never blocked — and the one thing that stays:
      * her kitchen's name, 30 days, in the *Mis cocinas* of those who followed it (`0084`). From the
@@ -414,8 +414,8 @@ export const ES = {
      */
     followers: (n: number) =>
       n === 1
-        ? 'Te sigue 1 vecino en Itacate. Dejará de ver tu cocina, y durante 30 días su lista dirá que dejó Itacate.'
-        : `Te siguen ${n} vecinos en Itacate. Dejarán de ver tu cocina, y durante 30 días su lista dirá que dejó Itacate.`,
+        ? 'Te sigue 1 vecino en Wera. Dejará de ver tu cocina, y durante 30 días su lista dirá que dejó Wera.'
+        : `Te siguen ${n} vecinos en Wera. Dejarán de ver tu cocina, y durante 30 días su lista dirá que dejó Wera.`,
     /**
      * ⚠️ `10.9e-ii` (G23): WHO HOLDS HER CARD — warned, never blocked: cards going and rewards still to give
      * go with the kitchen (`0085` cascades). From `kitchen_card`'s counts; with none, nothing is said.
@@ -485,7 +485,7 @@ export const ES = {
     otro: 'Otro platillo',
     cuando: '¿Cuándo pueden pasar?',
     /** `10.5-v-d`: over the card at the form's foot — Itacate's own card, filling in as she types. */
-    asiLaVeran: 'Así la verán en Itacate',
+    asiLaVeran: 'Así la verán en Wera',
     desde: 'Desde',
     hasta: 'Hasta',
     /** The steppers' two buttons, for a screen reader: `Desde: más temprano`. */
@@ -568,7 +568,7 @@ export const ES = {
    * de 8* (`10.5b-iv-a`).
    */
   hoy: {
-    enItacate: 'Hoy en Itacate',
+    enItacate: 'Hoy en Wera',
     /** *hasta las 19:00*; a window that ends another day names it: *hasta mañana a las 1:00*. */
     hasta: (dia: string | null, hora: string) => (dia === null ? `hasta las ${hora}` : `hasta ${dia} a las ${hora}`),
     porciones: (n: number) => (n === 1 ? '1 porción en oferta' : `${n} porciones en oferta`),
@@ -590,9 +590,9 @@ export const ES = {
     nada: 'Hoy todavía no has publicado',
     ayer: (hora: string) => `Ayer publicaste a las ${hora}`,
     antes: (dia: string, hora: string) => `Publicaste el ${dia} a las ${hora}`,
-    nunca: 'Tu primera oferta aparece aquí, y en Itacate para tus vecinos.',
+    nunca: 'Tu primera oferta aparece aquí, y en Wera para tus vecinos.',
     terminado: 'Por hoy ya se terminó',
-    terminadoDetalle: 'Lo que publicaste hoy ya no está en Itacate.',
+    terminadoDetalle: 'Lo que publicaste hoy ya no está en Wera.',
     repetir: 'Repetir:',
     /** A chip: what, how many, the price of one — *Comida corrida · 8 · $65*. */
     chip: (que: string, cuantos: number, precio: string) => `${que} · ${cuantos} · ${precio}`,
@@ -620,7 +620,7 @@ export const ES = {
   },
   /** One small celebration per first — the toast in the kitchen's green, with the cow. */
   festejo: {
-    oferta: '¡Ya te ven en Itacate!',
+    oferta: '¡Ya te ven en Wera!',
     apartado: '¡Tu primer apartado!',
     entrega: '¡Tu primera entrega!',
     /** `10.9f`: her first handover once she uses her numbers — the page's `firstToast('entrega', …)`. */
@@ -660,7 +660,7 @@ export const ES = {
     cerrar: 'Cerrar',
     pasos: {
       tarjeta: ['Eliges tu premio y cuántos sellos', 'Te enseñan su código, o escanean el tuyo', 'Al completarla, le das su premio'],
-      promociones: ['Escribes qué ofreces y hasta cuándo', 'Sale en tu página de Itacate', 'Tus ofertas de esos días llevan su marca'],
+      promociones: ['Escribes qué ofreces y hasta cuándo', 'Sale en tu página de Wera', 'Tus ofertas de esos días llevan su marca'],
       numeros: ['Cada entrega cuenta', 'Ves tus días y tus horas fuertes', 'Y cuántos vecinos regresan'],
     },
   },
@@ -679,7 +679,7 @@ export const ES = {
       portada: 'Foto de portada',
     },
     falta: 'Falta',
-    paraTuPagina: 'Para tu página en Itacate',
+    paraTuPagina: 'Para tu página en Wera',
   },
 
   /**
@@ -691,14 +691,14 @@ export const ES = {
   ofertas: {
     titulo: 'Tus ofertas',
     /** The room's first line while something is on offer: *Hoy en Itacate · hasta las 19:00*. */
-    enItacate: (hasta: string) => `Hoy en Itacate · ${hasta}`,
+    enItacate: (hasta: string) => `Hoy en Wera · ${hasta}`,
     /** Back to the tab it was opened from. */
     volver: 'Hoy',
     hoy: 'Hoy',
     anteriores: 'Anteriores',
     estado: { oferta: 'En oferta', terminada: 'Terminada' },
     yaSeTermino: 'Ya se terminó',
-    pregunta: '¿La quitas de Itacate?',
+    pregunta: '¿La quitas de Wera?',
     si: 'Sí, ya se terminó',
     no: 'No',
     /** On a past offer she already published again today, where *Repetir* would be. */
@@ -766,7 +766,7 @@ export const ES = {
       transferencia: (monto: string) => `Cobra ${monto} por transferencia`,
     },
     junto: (una: string, otra: string) => `${una} · ${otra}`,
-    nueva: 'Nueva en Itacate',
+    nueva: 'Nueva en Wera',
     porcentaje: (n: number) => `👍 ${n}%`,
     sinNombre: 'Sin nombre',
     entregadoA: (hora: string) => `Entregado a las ${hora}`,
@@ -855,7 +855,7 @@ export const ES = {
     /** ⚠️ *Entregar* is always recorded (ruled 2026-11-10): she is told, never stopped. */
     cancelado: 'Este apartado se canceló. Si se lo das, queda como entregado.',
     /** ⚠️ She swiped *Ya lo tengo* in Itacate before the counter recorded it: what to charge stays, and the button. */
-    yaLoMarco: 'En Itacate ya marcó que lo recogió. Si todavía no se lo das, cóbrale y entrégaselo.',
+    yaLoMarco: 'En Wera ya marcó que lo recogió. Si todavía no se lo das, cóbrale y entrégaselo.',
     terminado: 'Su horario ya terminó. Si se lo das, queda como entregado.',
     leyendo: 'Leyendo tus apartados de hoy…',
     /**
@@ -1199,7 +1199,7 @@ export const ES = {
       titulo: 'Tus calificaciones',
       /** From five (`0080`): the average and how many. */
       cuantas: (n: number) => (n === 1 ? '1 calificación' : `${n} calificaciones`),
-      enTuPagina: 'Tus vecinos la ven en tu página de Itacate.',
+      enTuPagina: 'Tus vecinos la ven en tu página de Wera.',
       /** Below five: how many, and nothing else (Q3, ruled 2026-11-10). */
       pocas: (n: number) =>
         n === 0
@@ -1249,9 +1249,9 @@ export const ES = {
     deshacer: 'Deshacer',
     publicaste: (que: string) => `Publicaste ${que}`,
     otraVez: (que: string, cuando: string) => `Publicaste otra vez ${que}: ${cuando}`,
-    quitaste: (que: string) => `Quitaste ${que} de Itacate`,
-    deshecha: 'Listo: ya no está en Itacate.',
-    noSeQuito: (porque: string) => `No se pudo quitar de Itacate. ${porque}`,
+    quitaste: (que: string) => `Quitaste ${que} de Wera`,
+    deshecha: 'Listo: ya no está en Wera.',
+    noSeQuito: (porque: string) => `No se pudo quitar de Wera. ${porque}`,
     paginaCerrada: 'Tu página sigue en Mi cocina',
   },
 
@@ -1343,13 +1343,13 @@ export const ES = {
    * family-shell page's `prevBar`). Their own words are Itacate's (`VECINOS`, below).
    */
   vista: {
-    platillo: 'Así la ven tus vecinos en Itacate',
+    platillo: 'Así la ven tus vecinos en Wera',
     pagina: 'Tu página, como la ven tus vecinos',
     cerrar: 'Cerrar',
     asiLaVen: 'Así la ven',
     verComoLaVen: 'Ver como la ven',
     /** Under the bar while the door would not send her: nothing on offer, nothing in 14 days. */
-    noSeVe: 'Tus vecinos verán tu página en Itacate en cuanto publiques una oferta.',
+    noSeVe: 'Tus vecinos verán tu página en Wera en cuanto publiques una oferta.',
   },
 
   /**
@@ -1360,7 +1360,7 @@ export const ES = {
    * `10.9a-ii` (G32, ruled 2026-11-17: no first offer inside the first run).
    */
   primera: {
-    yaEsta: 'Tu cocina ya está en Itacate',
+    yaEsta: 'Tu cocina ya está en Wera',
     asiTeVen: 'Así te ven tus vecinos:',
     asiTeVeran: 'Así te verán tus vecinos',
     irAHoy: 'Ir a Hoy',
@@ -1404,7 +1404,7 @@ export const ES = {
     },
     frase: {
       tarjeta: 'Tus clientes juntan sellos y, al completarla, les das un premio.',
-      promociones: 'Un platillo nuevo, de temporada o tu día especial, en tu página de Itacate.',
+      promociones: 'Un platillo nuevo, de temporada o tu día especial, en tu página de Wera.',
       numeros: 'Cuántos platos entregas, cuántos vecinos vienen y cuándo.',
     },
     pide: {
@@ -1466,8 +1466,8 @@ export const ES = {
   numeros: {
     titulo: 'Tus números',
     /** Under the title — what is counted, true today: the stamps only while her kitchen uses the card. */
-    subtitulo: 'Lo que pasa por Itacate: tus apartados y quienes juntan sellos',
-    subtituloSinTarjeta: 'Lo que pasa por Itacate: tus apartados entregados',
+    subtitulo: 'Lo que pasa por Wera: tus apartados y quienes juntan sellos',
+    subtituloSinTarjeta: 'Lo que pasa por Wera: tus apartados entregados',
     periodos: { dia: 'Día', semana: 'Semana', mes: 'Mes' },
     este: { dia: 'Hoy', semana: 'Esta semana', mes: 'Este mes' },
     anterior: { dia: 'ayer', semana: 'la anterior', mes: 'el anterior' },
@@ -1587,7 +1587,7 @@ export const ES = {
     dejando: 'Quitando…',
     dejarTitulo: '¿Dejar de usar promociones?',
     dejarTexto: (n: number) =>
-      n === 1 ? 'Tu promoción activa termina hoy y ya no se ve en Itacate.' : `Tus ${n} promociones activas terminan hoy y ya no se ven en Itacate.`,
+      n === 1 ? 'Tu promoción activa termina hoy y ya no se ve en Wera.' : `Tus ${n} promociones activas terminan hoy y ya no se ven en Wera.`,
     dejarSi: 'Dejar de usarlas',
     dejarNo: 'Seguir con ellas',
     dejadas: 'Quitaste las promociones de tu Hoy. Están en Mi cocina › Lo que usas',
@@ -1630,9 +1630,9 @@ export const ES = {
     /** *Tu promoción* — the sheet a row opens. */
     tuPromocion: 'Tu promoción',
     seVe: 'Se ve en tu página.',
-    noSeVe: 'Ahora no se ve en Itacate.',
+    noSeVe: 'Ahora no se ve en Wera.',
     ofertasHoy: (n: number) => (n === 1 ? 'Una oferta de hoy lleva su marca.' : `${n} ofertas de hoy llevan su marca.`),
-    terminada: 'Ya no se ve en Itacate.',
+    terminada: 'Ya no se ve en Wera.',
     terminar: 'Terminarla hoy',
     terminando: 'Terminando…',
     seguir: 'Seguir con ella',
@@ -1653,7 +1653,7 @@ export const ES = {
     /** *¿Es parte de una promoción?* in *Publicar* (G30) — asked only while one runs that day. */
     parte: '¿Es parte de una promoción?',
     no: 'No',
-    parteNota: 'Si lo es, tu oferta lleva su marca en Itacate.',
+    parteNota: 'Si lo es, tu oferta lleva su marca en Wera.',
   },
   /** *Nueva promoción* — the form, top to bottom (the family-shell page's *Crear promoción*). */
   nuevaPromocion: {
@@ -1678,7 +1678,7 @@ export const ES = {
     calendarioCerrar: 'Cerrar',
     /** *Para tus clientes* (G28): seen by all, marked; shown in Itacate to get it, no scan. */
     clientes: 'La ven todos, con la marca Con tu tarjeta de lealtad',
-    clientesDetalle: 'La usan quienes juntan sellos en tu tarjeta: la enseñan en Itacate.',
+    clientesDetalle: 'La usan quienes juntan sellos en tu tarjeta: la enseñan en Wera.',
     condiciones: 'Condiciones · las verán tus vecinos',
     cambiar: 'Cambiar',
     /** Back to the conditions written from the fields, after she changed them. */
@@ -1726,7 +1726,7 @@ export const ES = {
    */
   tarjeta: {
     titulo: 'Tarjeta de lealtad',
-    asiLaVen: 'Así la ven tus vecinos en Itacate',
+    asiLaVen: 'Así la ven tus vecinos en Wera',
     /** The card as drawn (G41): its name, her kitchen, the count and what it gives. */
     nombre: 'Tarjeta de lealtad',
     cuenta: (n: number, de: number) => `${n} de ${de}`,
@@ -1888,7 +1888,7 @@ export const ES = {
       apunta: 'Apunta al código en su teléfono',
       sinPermiso: 'Sin la cámara no se puede escanear. Escribe su número aquí abajo.',
       ajustes: 'Permitir la cámara en Ajustes',
-      noEs: 'Ese no es el código de un cliente en Itacate.',
+      noEs: 'Ese no es el código de un cliente en Wera.',
       noAbre: 'La cámara no abrió. Escribe su número aquí abajo.',
     },
     escribir: 'O escribe su número',
@@ -1943,7 +1943,7 @@ export const ES = {
     junta: (de: number, premio: string) => `Junta ${de} sellos y llévate ${premio}`,
     miraHoy: 'Mira lo que hay hoy',
     escanea: 'Escanéalo con tu cámara',
-    enItacate: 'en Itacate',
+    enItacate: 'en Wera',
     imprimir: 'Imprimir',
     compartir: 'Mandarlo como PDF',
     compartirDetalle: 'Por WhatsApp a tu papelería, o guárdalo',
@@ -2071,7 +2071,7 @@ export const VECINOS = {
     comoLlegarAyuda: 'Cómo llegar, en Google Maps',
     verEnMapsAyuda: 'Ver en Google Maps',
     /** The door no longer sends her: she has not published in 14 days, or the kitchen was deleted. */
-    yaNoEsta: 'Esta cocina ya no está en Itacate.',
+    yaNoEsta: 'Esta cocina ya no está en Wera.',
     cargando: 'Buscando la cocina…',
     /** `10.5b-iii-b`: her stars, from five ratings — else *Todavía sin calificaciones*. */
     calificaciones: (n: number) => (n === 1 ? '(1 calificación)' : `(${n} calificaciones)`),

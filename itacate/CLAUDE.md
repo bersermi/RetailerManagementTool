@@ -1,10 +1,12 @@
-# `itacate/` — Itacate, the neighbours' app
+# `itacate/` — Wera (vecinos), the neighbours' app — once Itacate
 
 Loads when a session touches `itacate/`. Lane **Itacate** of `docs/PLAN.md`'s Step 10: a
 neighbour reserves an itacate nearby and collects it in person with a 3-digit code (`10.5`).
 **She is no workspace's member**: every policy denies her, and what she reads of other businesses
-goes through one `security definer` function (ADR-035 §2.7). *Itacate* is a working name until the
-owner's IMPI search. The root `CLAUDE.md` holds what is not app-only; **nothing checks this file**,
+goes through one `security definer` function (ADR-035 §2.7). **Its name is *Wera*** since the owner's
+ruling of 2026-11-22 (the plan's Step 13): every sentence it shows, the name under its icon and its two
+permission sentences (`test/palabras.test.ts` holds them); the folder, the ids (`mx.wera.vecino`), the
+scheme, the slug, the database's `'itacate'` and the comments keep the old word. The root `CLAUDE.md` holds what is not app-only; **nothing checks this file**,
 so it carries commands, never counts. Its twin is `cocina/CLAUDE.md` — most rules here are in both.
 
 **A Step 10 task reads `~/RetailerToolDev/wera-vision/CLAUDE.md` first** (the owner's private

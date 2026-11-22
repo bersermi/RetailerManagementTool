@@ -84,9 +84,9 @@ describe('`10.9d-ii` — Te siguen N, drawn', () => {
     expect(ES.hoy.vecinos(1)).toBe('1 vecino');
     expect(ES.hoy.vecinos(38)).toBe('38 vecinos');
     expect(ES.kitchenDeletion.followers(1)).toBe(
-      'Te sigue 1 vecino en Itacate. Dejará de ver tu cocina, y durante 30 días su lista dirá que dejó Itacate.',
+      'Te sigue 1 vecino en Wera. Dejará de ver tu cocina, y durante 30 días su lista dirá que dejó Wera.',
     );
-    expect(ES.kitchenDeletion.followers(12)).toMatch(/^Te siguen 12 vecinos en Itacate\. Dejarán de ver/);
+    expect(ES.kitchenDeletion.followers(12)).toMatch(/^Te siguen 12 vecinos en Wera\. Dejarán de ver/);
     // The 30 days are `0084`'s and Itacate's (`DIAS_QUE_SE_VE_QUE_SE_FUE`).
     expect(readFileSync(join(SRC_10_9D, '../../itacate/src/api/siguiendo.ts'), 'utf8')).toMatch(
       /export const DIAS_QUE_SE_VE_QUE_SE_FUE = 30;/,

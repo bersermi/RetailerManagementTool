@@ -478,7 +478,9 @@ describe('the counter poster (G35) — her kitchen’s, its QR her address on tu
     expect(leidos.filter((r) => r.isValid).map((r) => r.text)).toEqual([enlace]);
   });
 
-  it('her name, her terms, her address and *en Itacate* — escaped, and the word *Wera* nowhere', () => {
+  // ⚠️ `13.2`: G35's *"minimize the exposure of wera"* met the owner's ruling of 2026-11-22 (*Itacate se vuelve
+  // Wera*): the small line that named the neighbours' app now names it as *Wera* — once, small, and nowhere else.
+  it('her name, her terms, her address and *en Wera* — escaped, and the word *Wera* once, in that small line', () => {
     const html = cartelHtml(datos);
     // Written out by hand, never by the function under test.
     expect(html).toContain('Fonda Doña &lt;Mari&gt; &amp; &quot;hijas&quot;');
@@ -487,9 +489,9 @@ describe('the counter poster (G35) — her kitchen’s, its QR her address on tu
     expect(html).toContain('Junta 8 sellos y llévate una comida corrida');
     expect(html).toContain('Escanéalo con tu cámara');
     expect(html).toContain('Sabino 52, Santa María la Ribera');
-    expect(html).toContain('en Itacate');
+    expect(html).toContain('<div class="itacate">en Wera</div>');
     expect(html).toContain('background: #B23A2B');
-    expect(html).not.toMatch(/wera/i);
+    expect(html.match(/wera/gi)).toEqual(['Wera']);
     // Her initials with no logo; her logo, a data URI only.
     expect(html).toContain('<div class="logo ini">DM</div>');
     expect(cartelHtml({ ...datos, logo: 'data:image/jpeg;base64,AAAA' })).toContain('<img class="logo" src="data:image/jpeg;base64,AAAA"');

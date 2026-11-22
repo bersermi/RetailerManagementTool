@@ -331,7 +331,7 @@ describe('the words: Wera’s, word for word', () => {
 
   it('and where each business lives is said from here: a kitchen is here, a shop is in Wera', () => {
     expect(ES.account.businessLine('Fonda Lupe', 'cocina')).toBe('Fonda Lupe: tu cocina');
-    expect(ES.account.businessLine('Tienda Lupe', 'tienda')).toBe('Tienda Lupe: tu tienda en Wera');
+    expect(ES.account.businessLine('Tienda Lupe', 'tienda')).toBe('Tienda Lupe: tu tienda en Wera Tienda');
     expect(ES.account.shopRecords).toContain('Wera');
     expect(ES.account.shopRecords).toContain(WERA.monthExport.heading);
   });
@@ -435,8 +435,11 @@ describe('her kitchen deleted alone', () => {
     expect(ES.kitchenDeletion.open).toBe('Eliminar esta cocina');
     expect(ES.kitchenDeletion.confirm).toBe('Eliminar esta cocina');
     expect(ES.kitchenDeletion.warning).toContain('No se puede deshacer.');
-    expect(ES.kitchenDeletion.warning).toContain('su página en Itacate');
-    for (const app of ['Wera Cocina', 'Itacate', 'Wera']) expect(ES.kitchenDeletion.keeps).toContain(app);
+    expect(ES.kitchenDeletion.warning).toContain('su página en Wera');
+    // ⚠️ `13.2`: the three apps by their names of 2026-11-22 — Wera Cocina, Wera (the neighbours'), Wera Tienda.
+    expect(ES.kitchenDeletion.keeps).toBe(
+      'Tu cuenta sigue: entras con ella a Wera Cocina, a Wera y a Wera Tienda, y puedes registrar otra cocina.',
+    );
     expect(typedLabel(lupe)).toBe(WERA.account.typeKitchenName('Fonda Doña Lupe'));
   });
 });

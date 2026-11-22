@@ -69,11 +69,11 @@ describe('the chat the link opens', () => {
   // a sentence compared with itself would pass whatever it said.
   it('names the typed address, so the owner knows who is asking — and this app', () => {
     const text = new URL(forgotPasswordUrl(FAKE, '  doña.lupe@ejemplo.mx ')).searchParams.get('text');
-    expect(text).toBe('Hola, olvidé mi contraseña de Itacate. Mi correo es doña.lupe@ejemplo.mx');
+    expect(text).toBe('Hola, olvidé mi contraseña de Wera. Mi correo es doña.lupe@ejemplo.mx');
   });
 
   it('says nothing about an address when the box is empty — and still names this app', () => {
-    expect(new URL(forgotPasswordUrl(FAKE, '  ')).searchParams.get('text')).toBe('Hola, olvidé mi contraseña de Itacate.');
+    expect(new URL(forgotPasswordUrl(FAKE, '  ')).searchParams.get('text')).toBe('Hola, olvidé mi contraseña de Wera.');
   });
 
   // An unencoded `&` or `+` in an address would cut the message short or turn

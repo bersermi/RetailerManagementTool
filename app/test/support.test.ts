@@ -70,7 +70,7 @@ describe('telling the owner, from the landing', () => {
     const url = whatsappChooseUrl(ES.join.pending.tellMessage('Abarrotes & Café'));
     expect(url).toMatch(/^https:\/\/wa\.me\/\?text=/);
     expect(new URL(url).searchParams.get('text')).toBe(
-      'Hola, te pedí entrar a Abarrotes & Café en Wera. Ábrela y entra a Solicitudes para dejarme entrar.',
+      'Hola, te pedí entrar a Abarrotes & Café en Wera Tienda. Ábrela y entra a Solicitudes para dejarme entrar.',
     );
   });
 });

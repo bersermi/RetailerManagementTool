@@ -193,7 +193,7 @@ describe('one staggered entrance per screen, transform and opacity only (ADR-035
   });
 });
 
-describe('*Tú* — her account, Dónde buscar, the aviso, help, her way out, and Itacate, de Wera', () => {
+describe('*Tú* — her account, Dónde buscar, the aviso, help, her way out, and its signature, Wera', () => {
   const google = { email: 'laura@correo.mx', user_metadata: { full_name: 'Laura Pérez' }, app_metadata: { provider: 'google', providers: ['google'] } };
 
   it('state first: who is signed in, then the doors, in the page’s order', () => {
@@ -243,13 +243,13 @@ describe('*Tú* — her account, Dónde buscar, the aviso, help, her way out, an
     expect(screen).toMatch(/\{numero !== null && \(/);
     expect(screen).toMatch(/Linking\.openURL\(ayudaUrl\(numero, session\?\.user\.email\)\)/);
     expect(ayudaUrl('525500000000', 'laura@correo.mx')).toBe(
-      whatsappUrl('525500000000', 'Hola, necesito ayuda con Itacate. Mi correo es laura@correo.mx'),
+      whatsappUrl('525500000000', 'Hola, necesito ayuda con Wera. Mi correo es laura@correo.mx'),
     );
-    expect(ayudaUrl('525500000000', '  ')).toBe(whatsappUrl('525500000000', 'Hola, necesito ayuda con Itacate.'));
+    expect(ayudaUrl('525500000000', '  ')).toBe(whatsappUrl('525500000000', 'Hola, necesito ayuda con Wera.'));
   });
 
-  it('Itacate, de Wera — under Wera’s cow, its rust file byte for byte', () => {
-    expect(ES.tu.deWera).toBe('Itacate, de Wera');
+  it('Wera — under Wera’s cow, its rust file byte for byte', () => {
+    expect(ES.tu.deWera).toBe('Wera');
     expect(code('app/(vecino)/(tabs)/tu.tsx')).toMatch(/require\('@\/marca\/vaca-oxido\.png'\)/);
     expect(bytes('itacate/src/marca/vaca-oxido.png')).toBe(bytes('app/src/marca/vaca-oxido.png'));
   });

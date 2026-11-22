@@ -292,7 +292,7 @@ describe('⚠️ *Buscar en esta zona* — his question of 2026-11-19, evening, 
     expect(ES.mapa.buscarAqui).toBe('Buscar en esta zona');
     expect(ES.mapa.enEstaZona).toBe('En esta zona del mapa');
     expect(ES.mapa.volverATi).toBe('Volver a donde estás');
-    expect(ES.mapa.zonaFuera).toBe('Itacate aún no llega a esa zona.');
+    expect(ES.mapa.zonaFuera).toBe('Wera aún no llega a esa zona.');
   });
 
   it('a button at the map’s TOP — never at its foot, where Google’s logo is — measured from Google’s camera', () => {

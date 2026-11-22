@@ -377,7 +377,7 @@ describe('her ticket, word for word (Mexico City)', () => {
     );
     expect(pagoTexto(uno({ payment: 'tarjeta' }))).toBe('Paga $65 con tarjeta en la cocina.');
     expect(pagoTexto(uno({ payment: 'transferencia' }))).toBe('Transfiere $65 al llegar: la cocina te da sus datos.');
-    expect(ES.apartados.conceptoValor(a.codigo)).toBe('Itacate 347');
+    expect(ES.apartados.conceptoValor(a.codigo)).toBe('Wera 347');
   });
 
   it('what she reserved', () => {

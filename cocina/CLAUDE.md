@@ -3,7 +3,9 @@
 Loads when a session touches `cocina/`. Lane **Cocina** of `docs/PLAN.md`'s Step 10: a fonda
 publishes her surplus meals (*itacates*, `10.4`) and reserves shops' offers (`10.6`). A fonda is a
 **workspace**, like a shop (ADR-035 §2.3); what a buyer reads goes through §2.7's one door.
-The root `CLAUDE.md` holds what is not app-only; **nothing checks this file**, so it carries
+Since the owner's ruling of 2026-11-22 (Step 13) its sentences call the neighbours' app **Wera** (once
+*Itacate*) and the shop app **Wera Tienda** — `test/palabras.test.ts` holds it; keys such as `enItacate`
+and the comments keep the old word. The root `CLAUDE.md` holds what is not app-only; **nothing checks this file**, so it carries
 commands, never counts. Its twin is `itacate/CLAUDE.md` — most rules here are in both.
 
 **A Step 10 task reads `~/RetailerToolDev/wera-vision/CLAUDE.md` first** (the owner's private

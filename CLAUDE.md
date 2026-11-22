@@ -1,11 +1,14 @@
 # Tienda — retail management tool
 
 Multi-tenant retail operations for small Mexican retailers. Postgres (Supabase) +
-React Native (Expo). MXN, IVA, LFPDPPP — not GDPR, CFDI out of scope. The app is
-named **Wera**; the repo and `@tienda/*` packages stay Tienda.
+React Native (Expo). MXN, IVA, LFPDPPP — not GDPR, CFDI out of scope. **The names, since the
+owner's ruling of 2026-11-22 (the plan's Step 13):** the shop app is **Wera Tienda** (`app/`; *Wera*
+under its icon until `13.4`), the fondas' **Wera Cocina** (`cocina/`), and the neighbours' **Wera**
+(`itacate/`, once *Itacate*) — new prose says *Wera (vecinos)* wherever *Wera* alone could mean either.
+The repo, the folders, the ids, the schemes and the `@tienda/*` packages keep their names.
 
 **Step 10 of the plan is the ecosystem** — Wera's pilot version, two new sibling apps (Wera Cocina for
-fondas in `cocina/`, Itacate for neighbours in `itacate/`, beside Wera's `app/` since `10.2a`) and
+fondas in `cocina/`, Wera (vecinos) — once Itacate — for neighbours in `itacate/`, beside Wera's `app/` since `10.2a`) and
 the backend they share. **A task there reads
 `~/RetailerToolDev/wera-vision/CLAUDE.md` first** — the owner's private notes, outside this repo — and copies
 nothing from them here: no strategy, fees, prices or research, only what the code needs.

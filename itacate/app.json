@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Itacate",
+    "name": "Wera",
     "slug": "itacate",
     "platforms": [
       "ios",
@@ -72,7 +72,7 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "Itacate usa tu ubicación solo mientras tienes la app abierta, para mostrarte lo que hay cerca de ti.",
+          "locationWhenInUsePermission": "Wera usa tu ubicación solo mientras tienes la app abierta, para mostrarte lo que hay cerca de ti.",
           "locationAlwaysAndWhenInUsePermission": false,
           "locationAlwaysPermission": false,
           "motionUsagePermission": false,
@@ -84,7 +84,7 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "Itacate usa la cámara para escanear el código de la cocina.",
+          "cameraPermission": "Wera usa la cámara para escanear el código de la cocina.",
           "microphonePermission": false,
           "recordAudioAndroid": false
         }

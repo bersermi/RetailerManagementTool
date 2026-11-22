@@ -74,13 +74,13 @@ describe('who gets which story', () => {
     }
     expect(ES.recorrido.cards.comprar.title).toBe('Conoce tus costos y que no te coman');
     expect(ES.recorrido.cards.comprar.line).toBe(
-      'Anota lo que te entrega cada proveedor. Wera te ayuda a ajustar tus precios.',
+      'Anota lo que te entrega cada proveedor. Wera Tienda te ayuda a ajustar tus precios.',
     );
     expect(ES.recorrido.cards.productos.title).toBe('¿Sabes cuánto te deja cada producto?');
     expect(ES.recorrido.cards.numeros.title).toBe('Ten tus cuentas en orden y tus números a la mano');
     expect(ES.recorrido.cards.comprarEmpleado.title).toBe('Cuando llega el proveedor');
     expect(ES.recorrido.cards.comprarEmpleado.line).toBe(
-      'En Comprar anotas lo que te entregó y cuánto costó. Wera recuerda el último precio.',
+      'En Comprar anotas lo que te entregó y cuánto costó. Wera Tienda recuerda el último precio.',
     );
   });
 });
