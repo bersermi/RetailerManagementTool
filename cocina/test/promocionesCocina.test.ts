@@ -313,8 +313,8 @@ describe('her list, its sheet and its tile', () => {
     expect(estadoDe(promo())).toBe('Se ve en tu página.');
     expect(estadoDe(promo({ offers_today: 1 }))).toBe('Se ve en tu página. Una oferta de hoy lleva su marca.');
     expect(estadoDe(promo({ offers_today: 2 }))).toBe('Se ve en tu página. 2 ofertas de hoy llevan su marca.');
-    expect(estadoDe(promo({ shown: false }))).toBe('Ahora no se ve en Itacate.');
-    expect(estadoDe(promo({ state: 'terminada', ended_on: JUEVES }))).toBe('Ya no se ve en Itacate.');
+    expect(estadoDe(promo({ shown: false }))).toBe('Ahora no se ve en Wera.');
+    expect(estadoDe(promo({ state: 'terminada', ended_on: JUEVES }))).toBe('Ya no se ve en Wera.');
   });
 
   it('the band: the mark, hasta el …, what — the kind’s example until she types — and more', () => {
@@ -409,7 +409,7 @@ describe('the wiring, read as text', () => {
     const pantalla = code('app/(cocina)/promociones.tsx');
     expect(pantalla).toContain('if (corren.length > 0) return setPreguntar(true);');
     expect(pantalla).toContain('if (corren.length > 0) avisar(ES.promociones.dejadas);');
-    expect(ES.promociones.dejarTexto(2)).toBe('Tus 2 promociones activas terminan hoy y ya no se ven en Itacate.');
+    expect(ES.promociones.dejarTexto(2)).toBe('Tus 2 promociones activas terminan hoy y ya no se ven en Wera.');
   });
 
   it('a retry is the same promotion: the id is kept while what it sends is unchanged', () => {

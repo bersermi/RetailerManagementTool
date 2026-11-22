@@ -41,6 +41,14 @@ import { afterAll, describe, expect, it } from 'vitest';
 // and `ship-an-update.sh` then leaves it out without failing, as
 // `docs/checks/wera-runtime.sh` holds Wera's. A new build moves its pin, in the PR
 // that makes it.
+//
+// ⚠️⚠️ `13.2` (2026-11-22) MOVED BOTH ON PURPOSE, WITH NO BUILD: the app's name under its
+// icon (*Itacate* → *Wera*) and its two permission sentences are native, so the runtime
+// moved — Android `09c70ded` → `f37239fe`, the iPhone `f3ddd688` → `22388973`, computed on
+// this Mac. Nothing is stranded: the owner's ruling of 2026-11-19 sends no update to the
+// test builds before the MVP version, and that build (`10.5b-vi`) carries this runtime —
+// its PR writes the build's id here. Until then the pin holds the tree to the names, and
+// any other native change still turns it red.
 // ============================================================================
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
@@ -49,17 +57,19 @@ const STAND_IN_KEY = 'clave-de-prueba-10-2a';
 const STAND_IN_IOS_KEY = 'clave-de-prueba-10-5-iv-a-i';
 
 /**
- * The runtime of build `d56bd2cc`, Itacate's Android test build of `10.9c` — computed on this Mac and by EAS for the
- * build, the same (2026-11-18). Before it, `2b638d21`'s `4de35b0b…`.
+ * ⚠️ `13.2`: the runtime its names give, which no build carries yet — the MVP build's (`10.5b-vi`). Before it, build
+ * `d56bd2cc`'s `09c70ded…`, Itacate's Android test build of `10.9c` — computed on this Mac and by EAS for the
+ * build, the same (2026-11-18); and before that, `2b638d21`'s `4de35b0b…`.
  */
-const RUNTIME_DE_SU_BUILD_ANDROID = '09c70deda1bbdab406dfca8d183c60ecf0dc355e';
+const RUNTIME_DE_SU_BUILD_ANDROID = 'f37239fe6f7f582b0309f2d068a2fcabaaf8d5d9';
 
 /**
- * The runtime of build `de2ae178`, Itacate's iPhone test build of `10.9c` (from `8cf5944`, made by the owner's
+ * ⚠️ `13.2`: the runtime its names give, which no build carries yet — the MVP build's (`10.5b-vi`). Before it,
+ * `f3ddd688…`, the runtime of build `de2ae178`, Itacate's iPhone test build of `10.9c` (from `8cf5944`, made by the owner's
  * Terminal on 2026-11-18 — the first try, `ab888164`, stopped at signing: its profile had no Associated Domains,
- * which only an Apple sign-in adds) — read inside it (`EXUpdates.bundle/fingerprint`). Before it, `282cfb7d`'s `a46650e4…`.
+ * which only an Apple sign-in adds) — read inside it (`EXUpdates.bundle/fingerprint`); and before that, `282cfb7d`'s `a46650e4…`.
  */
-const RUNTIME_DE_SU_BUILD_IOS = 'f3ddd6883919bf584573e8fae6bc95e458982161';
+const RUNTIME_DE_SU_BUILD_IOS = '22388973381a5ff68fac0eadf8499f6e6a356f3a';
 
 function npx(args: string[], withSecrets: boolean): string {
   const env = { ...process.env };

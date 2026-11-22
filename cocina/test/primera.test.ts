@@ -202,7 +202,7 @@ describe('each screen hands on to the next', () => {
 
   it('in the drawing’s words', () => {
     expect(ES.primera).toEqual({
-      yaEsta: 'Tu cocina ya está en Itacate',
+      yaEsta: 'Tu cocina ya está en Wera',
       asiTeVen: 'Así te ven tus vecinos:',
       asiTeVeran: 'Así te verán tus vecinos',
       irAHoy: 'Ir a Hoy',

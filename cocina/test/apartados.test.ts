@@ -410,11 +410,11 @@ describe('each state: one mark, one action (the final design’s table)', () => 
     expect(cobroLargoTexto(orden('a', { pago: 'transferencia' }))).toBe('Dale tus datos y revisa en tu banco que llegó $65');
   });
 
-  it('her score rounded down, so it never reads above what it is; Nueva en Itacate before her third thumb', () => {
+  it('her score rounded down, so it never reads above what it is; Nueva en Wera before her third thumb', () => {
     expect(porcentajeDe({ up: 11, total: 12 })).toBe(91);
     expect(porcentajeDe({ up: 4, total: 5 })).toBe(80);
     expect(calificacionTexto({ nombre: 'Ana R.', calificacion: { up: 11, total: 12 } })).toBe('👍 91%');
-    expect(calificacionTexto({ nombre: 'Rosa M.', calificacion: null })).toBe('Nueva en Itacate');
+    expect(calificacionTexto({ nombre: 'Rosa M.', calificacion: null })).toBe('Nueva en Wera');
   });
 
   it('a past order’s line never carries her name — the day, what it was, the thumb’s labels', () => {

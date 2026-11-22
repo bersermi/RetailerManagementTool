@@ -256,15 +256,15 @@ describe('what the screen says — the drawing’s five questions', () => {
   });
 
   it('what is counted, true today: the stamps while her kitchen uses the card — or while its stamps are still counted', () => {
-    expect(subtituloDe(true)).toBe('Lo que pasa por Itacate: tus apartados y quienes juntan sellos');
-    expect(subtituloDe(false)).toBe('Lo que pasa por Itacate: tus apartados entregados');
+    expect(subtituloDe(true)).toBe('Lo que pasa por Wera: tus apartados y quienes juntan sellos');
+    expect(subtituloDe(false)).toBe('Lo que pasa por Wera: tus apartados entregados');
     // The card closed, its walk-ins still in her numbers: *N sin apartar, con su sello* is on the screen, so the subtitle names them.
-    expect(subtituloDe(false, leida())).toBe('Lo que pasa por Itacate: tus apartados y quienes juntan sellos');
+    expect(subtituloDe(false, leida())).toBe('Lo que pasa por Wera: tus apartados y quienes juntan sellos');
     const n = leida();
     const sinSellos = Object.fromEntries(
       (['dia', 'semana', 'mes'] as const).map((p) => [p, { ...n[p], walk_ins: 0, prev: { ...n[p].prev, walk_ins: 0 } }]),
     );
-    expect(subtituloDe(false, { ...n, ...sinSellos })).toBe('Lo que pasa por Itacate: tus apartados entregados');
+    expect(subtituloDe(false, { ...n, ...sinSellos })).toBe('Lo que pasa por Wera: tus apartados entregados');
   });
 
   it('a count as she reads it', () => {

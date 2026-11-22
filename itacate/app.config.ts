@@ -64,7 +64,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
   const hasGoogleServices = existsSync(join(__dirname, GOOGLE_SERVICES_FILE));
   return {
     ...config,
-    name: config.name ?? 'Itacate',
+    name: config.name ?? 'Wera',
     slug: config.slug ?? 'itacate',
     android: {
       ...config.android,

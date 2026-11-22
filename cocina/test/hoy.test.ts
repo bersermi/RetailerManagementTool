@@ -323,7 +323,7 @@ describe('one tap publishes only what the form would have sent untouched', () =>
   });
 });
 
-describe('Tu página en Itacate — its checklist, five things', () => {
+describe('Tu página en Wera — its checklist, five things', () => {
   const todo = { giro: 'giro-fonda', direccionCompleta: true, frase: 'Comida casera.', portada: 'k/portada', listings: [oferta('a', { start: new Date(0), end: new Date(3_600_000) })] };
 
   it('in the page’s order, each with where it is done', () => {
@@ -346,7 +346,7 @@ describe('Tu página en Itacate — its checklist, five things', () => {
   it('⚠️ `10.9a-iii`: no count anywhere — each part missing is a *Falta* row in *Mi cocina*, opening where it is done', () => {
     // *Tu página · N de 5* and every count of what she has not done went (his ruling of 2026-11-17).
     expect(Object.keys(ES.pendientes).sort()).toEqual(['falta', 'item', 'paraTuPagina']);
-    expect([ES.pendientes.falta, ES.pendientes.paraTuPagina]).toEqual(['Falta', 'Para tu página en Itacate']);
+    expect([ES.pendientes.falta, ES.pendientes.paraTuPagina]).toEqual(['Falta', 'Para tu página en Wera']);
     const falta = code('ui/Falta.tsx');
     expect(falta).toMatch(/\{faltan\.map\(\(pendiente, i\) => \{/);
     expect(falta).toMatch(/onPress=\{\(\) => router\.push\(DONDE_SE_HACE\[pendiente\]\)\}/);

@@ -25,7 +25,7 @@ function siPasan(dias: number): { readonly pasa: string; readonly cuanto: string
 }
 
 export const ES = {
-  nombre: 'Itacate',
+  nombre: 'Wera',
   /**
    * ⚠️ `10.5-v-a`: THE APP'S LINE, where it first greets her — under the band of
    * the way in — and in its store text (the owner's ruling of 2026-11-05, the
@@ -72,8 +72,8 @@ export const ES = {
      * he knows a neighbour is asking.
      */
     forgotPassword: '¿Olvidaste tu contraseña?',
-    forgotMessage: 'Hola, olvidé mi contraseña de Itacate.',
-    forgotMessageWithEmail: (email: string) => `Hola, olvidé mi contraseña de Itacate. Mi correo es ${email}`,
+    forgotMessage: 'Hola, olvidé mi contraseña de Wera.',
+    forgotMessageWithEmail: (email: string) => `Hola, olvidé mi contraseña de Wera. Mi correo es ${email}`,
     signOut: 'Cerrar sesión',
     errors: {
       /** Wrong password, or no such account — one message, as Wera's (`5a-iii-a`). */
@@ -123,7 +123,7 @@ export const ES = {
       'Tu teléfono solo nos deja ver tu ubicación aproximada. Escribe tu código postal para ver lo que hay cerca.',
     sinUbicacion: 'No pudimos saber dónde estás. Escribe tu código postal para ver lo que hay cerca.',
     /** Outside Wera Cocina's search zone (`ZONA_DE_BUSQUEDA`, the owner's ruling of 2026-11-04, night). */
-    fueraDeZona: 'Itacate aún no llega a tu zona.',
+    fueraDeZona: 'Wera aún no llega a tu zona.',
     fueraDeZonaDetalle: 'Por ahora está en la Ciudad de México y el Estado de México.',
     otroCodigo: 'Si quieres ver otro lugar, escribe su código postal.',
     /** Her way back to her location, under the box: asks again, or opens Itacate in Settings. */
@@ -133,7 +133,7 @@ export const ES = {
     codigo: {
       corto: 'Escribe los 5 números del código postal.',
       ninguno: 'No encontramos ese código postal.',
-      fuera: 'Itacate aún no llega a esa zona.',
+      fuera: 'Wera aún no llega a esa zona.',
       sinSenal: 'Sin conexión a internet. Intenta de nuevo en un momento.',
       falla: 'No pudimos buscar ese código postal. Intenta de nuevo.',
     },
@@ -230,7 +230,7 @@ export const ES = {
     /** Nothing within 3 km of where the list measures — `@/lib/lista`'s `HASTA_METROS`, named here. */
     nadaAqui: 'Todavía no hay cocinas a menos de 3 km de aquí. Mueve el mapa para buscar en otra zona.',
     /** The map's centre she searched is outside Wera Cocina's zone — the postal code's words for it. */
-    zonaFuera: 'Itacate aún no llega a esa zona.',
+    zonaFuera: 'Wera aún no llega a esa zona.',
   },
 
   /**
@@ -263,7 +263,7 @@ export const ES = {
     comoLlegarAyuda: 'Cómo llegar, en Google Maps',
     verEnMapsAyuda: 'Ver en Google Maps',
     /** The door no longer sends her: she has not published in 14 days, or the kitchen was deleted. */
-    yaNoEsta: 'Esta cocina ya no está en Itacate.',
+    yaNoEsta: 'Esta cocina ya no está en Wera.',
     cargando: 'Buscando la cocina…',
     /**
      * ⚠️ `10.5b-iii-b`: HER STARS, FROM FIVE RATINGS (the family-shell page's call 20, ruled
@@ -427,7 +427,7 @@ export const ES = {
     /** A kitchen she follows that published nothing in four weeks — said where *Publicó …* would be. */
     sinOfertas: 'Sin ofertas en las últimas 4 semanas',
     /** G23, the owner's words. */
-    dejoItacate: 'dejó Itacate',
+    dejoItacate: 'dejó Wera',
     /** A screen reader's word for the bell beside a row — it rings nothing until `10.9h`, so it promises nothing. */
     conCampana: 'con la campana encendida',
     anteriores: 'Tus apartados anteriores',
@@ -461,7 +461,7 @@ export const ES = {
     callada: 'No ha publicado en las últimas dos semanas.',
     fallas: {
       /** `TD026`. */
-      yaNoEsta: 'Esta cocina ya no está en Itacate.',
+      yaNoEsta: 'Esta cocina ya no está en Wera.',
       otra: 'No se pudo. Revisa tu conexión e intenta de nuevo.',
     },
   },
@@ -530,7 +530,7 @@ export const ES = {
       transferencia: (total: string) => `Transfiere ${total} al llegar: la cocina te da sus datos.`,
     },
     concepto: 'En el concepto pon',
-    conceptoValor: (codigo: string) => `Itacate ${codigo}`,
+    conceptoValor: (codigo: string) => `Wera ${codigo}`,
     transferenciaNota: 'La cocina te entrega cuando ve tu pago en su banco.',
     desliza: { llevar: 'Desliza cuando ya lo tengas', aqui: 'Desliza cuando te la sirvan' },
     /** What a screen reader hears on the swipe, and the one action it may take instead. */
@@ -688,9 +688,9 @@ export const ES = {
     /** *Tú*'s row while her phone does not let Itacate show any. */
     filaApagadas: 'Apagadas en tu teléfono',
     volver: 'Tú',
-    detalle: 'Lo que Itacate te avisa en este teléfono',
+    detalle: 'Lo que Wera te avisa en este teléfono',
     /** The phone itself refuses: the box, and its door to the phone's settings. */
-    telefonoNoDeja: 'Tu teléfono no deja que Itacate te avise.',
+    telefonoNoDeja: 'Tu teléfono no deja que Wera te avise.',
     /** While the phone can still ask (Android 13 reads one never asked as refusing): its own question. */
     permitir: 'Permitir avisos',
     /** Once only its settings can turn them on. */
@@ -699,7 +699,7 @@ export const ES = {
     sinPermiso: 'Apagado en los ajustes de tu teléfono',
     /** Under the offers' switch, once she said yes. */
     dijisteQueSi: (dia: string) => `Dijiste que sí el ${dia}.`,
-    pie: 'Te escribe Itacate, de Wera. Para dejar de recibir ofertas, apaga el interruptor: los avisos de tus apartados siguen llegando.',
+    pie: 'Te escribe Wera. Para dejar de recibir ofertas, apaga el interruptor: los avisos de tus apartados siguen llegando.',
     /** Her reminder before her hour is her own phone's, not a row: said, never switched here. */
     recordatorio: 'El recordatorio 15 minutos antes de tu hora llega siempre que tu teléfono lo deje.',
     cargando: 'Leyendo tus notificaciones…',
@@ -718,7 +718,7 @@ export const ES = {
     hoja: {
       titulo: '¿Te avisamos de ofertas?',
       texto:
-        'De vez en cuando te mandamos ofertas y novedades de las cocinas de Itacate. Nunca antes de las 9 ni después de las 20, y no más de una al día.',
+        'De vez en cuando te mandamos ofertas y novedades de las cocinas en Wera. Nunca antes de las 9 ni después de las 20, y no más de una al día.',
       medir: 'Contamos cuáles abres y si apartas después, para saber cuáles te sirven. Lo apagas cuando quieras en Tú → Notificaciones.',
       si: 'Sí, avísame',
       no: 'Ahora no',
@@ -748,10 +748,10 @@ export const ES = {
     aviso: 'Aviso de privacidad',
     ayuda: 'Ayuda por WhatsApp',
     /** What lands in the owner's chat — it names this app and, when there is one, her address. */
-    ayudaMensaje: 'Hola, necesito ayuda con Itacate.',
-    ayudaMensajeConCorreo: (email: string) => `Hola, necesito ayuda con Itacate. Mi correo es ${email}`,
-    deWera: 'Itacate, de Wera',
-    version: 'Estás probando una versión temprana de Itacate: la iremos llenando con actualizaciones.',
+    ayudaMensaje: 'Hola, necesito ayuda con Wera.',
+    ayudaMensajeConCorreo: (email: string) => `Hola, necesito ayuda con Wera. Mi correo es ${email}`,
+    deWera: 'Wera',
+    version: 'Estás probando una versión temprana de Wera: la iremos llenando con actualizaciones.',
     /**
      * ⚠️ `10.5b-iii-a`: HER SCORE, the final design of 2026-11-10 — the share of thumbs up among
      * her last 20 from any kitchen, from her third, each label's count, never which kitchen or
@@ -760,7 +760,7 @@ export const ES = {
     calificacion: 'Tu calificación como vecina',
     porcentaje: (pct: number) => `👍 ${pct}%`,
     deCalificaciones: (n: number) => `de ${n} calificaciones de las cocinas donde apartaste`,
-    nueva: 'Nueva en Itacate',
+    nueva: 'Nueva en Wera',
     nuevaDetalle: 'Tu porcentaje aparece desde tu tercera calificación.',
     etiqueta: {
       a_tiempo: 'Llegó a tiempo',
@@ -771,8 +771,8 @@ export const ES = {
     },
     nunca: 'Las cocinas ven tu porcentaje cuando apartas. Nunca ves qué cocina te calificó ni cuándo.',
     algoNoCuadra: '¿Algo no cuadra? Escríbenos',
-    algoNoCuadraMensaje: 'Hola, tengo una duda sobre mi calificación en Itacate.',
-    algoNoCuadraMensajeConCorreo: (email: string) => `Hola, tengo una duda sobre mi calificación en Itacate. Mi correo es ${email}`,
+    algoNoCuadraMensaje: 'Hola, tengo una duda sobre mi calificación en Wera.',
+    algoNoCuadraMensajeConCorreo: (email: string) => `Hola, tengo una duda sobre mi calificación en Wera. Mi correo es ${email}`,
   },
 
   /**
@@ -783,7 +783,7 @@ export const ES = {
     titulo: 'Dónde buscar',
     volver: 'Volver',
     miUbicacion: 'Mi ubicación',
-    miUbicacionDetalle: 'Itacate la usa solo mientras la tienes abierta. Nunca sale de tu teléfono.',
+    miUbicacionDetalle: 'Wera la usa solo mientras la tienes abierta. Nunca sale de tu teléfono.',
     codigo: 'Un código postal',
     codigoDetalle: 'Para ver las cocinas cerca de otra colonia',
     codigoEnUso: (cp: string) => `Ahora buscas cerca del ${cp}`,
@@ -818,9 +818,9 @@ export const ES = {
           'completos, con todo lo que tienen. No se puede deshacer.',
     /** Neither business lives here: a kitchen is in Wera Cocina, a shop in Wera. */
     businessLine: (name: string, kind: 'tienda' | 'cocina') =>
-      kind === 'cocina' ? `${name}: tu cocina en Wera Cocina` : `${name}: tu tienda en Wera`,
+      kind === 'cocina' ? `${name}: tu cocina en Wera Cocina` : `${name}: tu tienda en Wera Tienda`,
     /** Wera's Ajustes offers a shop's month as a file before it goes (`5R-c`); this app cannot make it. */
-    shopRecords: 'Antes, puedes descargar las ventas, compras y merma de tu tienda en Wera: Números → Descargar un mes.',
+    shopRecords: 'Antes, puedes descargar las ventas, compras y merma de tu tienda en Wera Tienda: Números → Descargar un mes.',
     typeShopName: (shop: string) => `Para confirmar, escribe el nombre de la tienda: ${shop}`,
     typeKitchenName: (kitchen: string) => `Para confirmar, escribe el nombre de la cocina: ${kitchen}`,
     confirm: 'Eliminar mi cuenta',

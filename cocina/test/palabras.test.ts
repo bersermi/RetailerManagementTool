@@ -49,7 +49,7 @@ describe('no word that makes the food sound left over', () => {
   });
 
   it('but Wera’s own Merma, named to a shop’s owner — one line, about her shop in Wera', () => {
-    expect(ES.account.shopRecords).toMatch(/tu tienda en Wera/);
+    expect(ES.account.shopRecords).toMatch(/tu tienda en Wera Tienda:/);
     expect(code('strings.ts').match(SOBRAS)).toEqual(['merma']);
   });
 
@@ -87,5 +87,35 @@ describe('the ruled words, word for word', () => {
     expect(screen).not.toMatch(/\{ES\.lema\}/);
     expect(screen.indexOf('{ES.hola.misma}')).toBeGreaterThan(-1);
     expect(screen.indexOf('{ES.hola.misma}')).toBeLessThan(screen.indexOf('ES.auth.google'));
+  });
+});
+
+// ============================================================================
+// ⚠️ `13.2` — THE OWNER'S RULING OF 2026-11-22: *"Itacate se vuelve Wera"*, *Wera Cocina se
+// queda como está*, and the shop app *Wera: tu tienda* becomes *Wera Tienda*. Every sentence
+// that named the neighbours' app names it *Wera*; the comments keep *Itacate* as history,
+// and the code may keep it for the folder, the ids and the keys (`enItacate`).
+// ============================================================================
+
+/** The old name as a word — `enItacate`, a key, is not one. */
+const ITACATE = /(?<!\p{L})Itacate(?!\p{L})/gu;
+
+describe('13.2: the neighbours’ app is Wera, the shop app Wera Tienda', () => {
+  it('no sentence Wera Cocina shows names Itacate', () => {
+    expect(code('strings.ts').match(ITACATE)).toBeNull();
+  });
+
+  it('the one login names the three apps by their names', () => {
+    expect(ES.hola.misma).toBe('Tu cuenta es la misma en Wera Tienda, Wera Cocina y Wera.');
+  });
+
+  it('her page is in Wera, and a shop is in Wera Tienda', () => {
+    expect(ES.cocina.pagina).toBe('Tu página en Wera');
+    expect(ES.account.businessLine('Tienda Lupe', 'tienda')).toBe('Tienda Lupe: tu tienda en Wera Tienda');
+  });
+
+  it('the guard sees the old name as a word, and passes over a key', () => {
+    expect('Tu página en Itacate'.match(ITACATE)).toEqual(['Itacate']);
+    expect('ES.hoy.enItacate'.match(ITACATE)).toBeNull();
   });
 });

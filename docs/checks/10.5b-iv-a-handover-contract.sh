@@ -441,7 +441,7 @@ s="$(neighbours "$SCRATCH/n1.json")"
 v="$(verdict entry "$SCRATCH/n1.json" "$R1" "$ENTRY_KEYS" "$NEIGHBOUR_KEYS" "$THUMB_KEYS" 'Ana P.' none no)"
 if [[ "$s" == 404 ]]; then fail "$NEIGHBOURS() answered 404 — no function by the argument's name ($NEIGHBOURS_ARGS)"
 elif [[ "$s" != 200 ]]; then fail "$NEIGHBOURS() answered $s $(head -c 200 "$SCRATCH/n1.json")"
-elif [[ "$v" == OK ]]; then ok "$NEIGHBOURS() answers every key the app reads: 'Ana P.', no score yet (Nueva en Itacate), no thumb, nothing to rate while it is pending"
+elif [[ "$v" == OK ]]; then ok "$NEIGHBOURS() answers every key the app reads: 'Ana P.', no score yet (Nueva en Wera), no thumb, nothing to rate while it is pending"
 else fail "$v"; fi
 
 # --- 5. Ya cobré y lo entregué ------------------------------------------------------------

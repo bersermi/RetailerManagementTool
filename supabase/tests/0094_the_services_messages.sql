@@ -506,9 +506,9 @@ values (:'ws_l', :ana, :'t_l', 'Un postre', now());
 select public._as(:lupe, format('select public.delete_my_business(%L, %L)', :'ws_l', 'Cocina Lupe 0094')) as lupe_gone \gset
 select public._mark() as m14 \gset
 select servicio.send_due_notices(public._mx(:'d' || ' 16:00')) as run20 \gset
-select public.chk('7.1 Lupe''s kitchen is deleted — the deletion goes through — and Ana, who held its 2 stamps and a reward, is told: Cocina Lupe dejó Itacate · Se borraron tus 2 sellos y tu premio por cobrar.; Ines, who only followed, is not',
+select public.chk('7.1 Lupe''s kitchen is deleted — the deletion goes through — and Ana, who held its 2 stamps and a reward, is told: Cocina Lupe dejó Wera (its words since 0097, plan 13.2) · Se borraron tus 2 sellos y tu premio por cobrar.; Ines, who only followed, is not',
   :'lupe_gone' not like 'ERR:%' and not exists (select 1 from public.workspace where id = :'ws_l')
-  and (select m ->> 'title' = 'Cocina Lupe 0094 dejó Itacate' and m ->> 'body' = 'Se borraron tus 2 sellos y tu premio por cobrar.'
+  and (select m ->> 'title' = 'Cocina Lupe 0094 dejó Wera' and m ->> 'body' = 'Se borraron tus 2 sellos y tu premio por cobrar.'
               and m -> 'data' = '{"kind": "tarjeta_cambio", "opens": "mis_cocinas"}'::jsonb
          from jsonb_array_elements(public._to(:m14, public._tok('ana'))) m where m ->> 'title' like '%dejó%')
   and not exists (select 1 from servicio.notice where user_id = :ines and kind = 'tarjeta_cambio'),

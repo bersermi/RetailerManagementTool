@@ -118,8 +118,8 @@ describe('the card’s kitchen and offer', () => {
 describe('the form draws it — read as text', () => {
   const screen = code('app/(cocina)/publicar.tsx');
 
-  it('Itacate’s card, one per line, under *Así la verán en Itacate*, between the hours and *Publicar*', () => {
-    expect(ES.publicar.asiLaVeran).toBe('Así la verán en Itacate');
+  it('Itacate’s card, one per line, under *Así la verán en Wera*, between the hours and *Publicar*', () => {
+    expect(ES.publicar.asiLaVeran).toBe('Así la verán en Wera');
     expect(screen).toMatch(/import \{ TarjetaPlatillo \} from '@\/vecinos\/ui\/TarjetaPlatillo';/);
     const horas = screen.indexOf('<Horario');
     const titulo = screen.indexOf('{ES.publicar.asiLaVeran}');

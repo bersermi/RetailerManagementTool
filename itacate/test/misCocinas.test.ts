@@ -192,13 +192,13 @@ describe('Tus cocinas — the kitchens she follows, and those that left (G21, G2
     expect(misCocinasDe(follows([sigue({ last_day: manana })]), AHORA).filas[0].publicoHoy).toBe(true);
   });
 
-  it('a kitchen that left reads dejó Itacate while its 30 days last', () => {
+  it('a kitchen that left reads dejó Wera while its 30 days last', () => {
     const lista = follows([], [
       { id: 'x', name: 'Tacos Lalo', gone_at: '2026-11-01T12:00:00+00:00' },
       { id: 'y', name: 'Antes', gone_at: '2026-10-01T12:00:00+00:00' },
     ]);
     expect(misCocinasDe(lista, AHORA).seFueron).toEqual([{ id: 'x', nombre: 'Tacos Lalo' }]);
-    expect(ES.misCocinas.dejoItacate).toBe('dejó Itacate');
+    expect(ES.misCocinas.dejoItacate).toBe('dejó Wera');
   });
 
   it('nothing before her list is read — never a list that says she follows nothing', () => {

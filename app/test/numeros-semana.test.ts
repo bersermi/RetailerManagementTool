@@ -104,7 +104,7 @@ describe('the story', () => {
     const s = weekStory(sold, rows, null, ENTRIES, FACTORS, MONDAY);
     expect(s?.best).toEqual({ day: '2026-10-16', centavos: 900_00, sales: 2, record: true });
     expect(ES.numbers.semana.bestDetail('$900', 2)).toBe('$900 en 2 ventas');
-    expect(ES.numbers.semana.bestRecord('viernes')).toBe('Tu mejor viernes desde que usas Wera.');
+    expect(ES.numbers.semana.bestRecord('viernes')).toBe('Tu mejor viernes desde que usas Wera Tienda.');
   });
 
   it('not a record when an earlier Friday sold as much', () => {

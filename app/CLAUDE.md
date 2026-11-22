@@ -4,6 +4,11 @@ Loads when a session touches `app/`. The root `CLAUDE.md` holds what is not app-
 migrations, deploy, the working agreement and graphify. **Nothing checks this file**, so it
 carries commands, never counts. Editing it fires `app.yml`.
 
+**The app is *Wera Tienda*** (the owner's ruling of 2026-11-22, the plan's Step 13): a sentence that names
+it says so, and *Wera* alone is the company acting (it buys, it picks up, you write to it) — `test/nombres.test.ts`.
+⚠️ The name under its icon and the camera's sentence stay *Wera* until `13.4`: `app.json` is native, and
+changing it moves the runtime of the builds in the field (`docs/checks/wera-runtime.sh`).
+
 `app/` is the third workspace (`@tienda/app`). **Read [`docs/CONVENTIONS.md`](../docs/CONVENTIONS.md)
 before writing a file here** — it governs how every file is written, and
 `bash docs/checks/conventions-gate.sh` enforces it (and prints the counts it measured).

@@ -113,7 +113,7 @@ select servicio.stop_campaign(:campaign);
 -- take a new version (`itacate-hoja-2`) in both places: an approved version never changes.
 insert into servicio.consent_words (words, app, purposes, shown_on, body) values
   ('itacate-hoja-1', 'itacate', '{promociones,medir_promociones}', 'hoja',
-   '¿Te avisamos de ofertas? De vez en cuando te mandamos ofertas y novedades de las cocinas de Itacate. Nunca antes de las 9 ni después de las 20, y no más de una al día. Contamos cuáles abres y si apartas después, para saber cuáles te sirven. Lo apagas cuando quieras en Tú → Notificaciones.'),
+   '¿Te avisamos de ofertas? De vez en cuando te mandamos ofertas y novedades de las cocinas en Wera. Nunca antes de las 9 ni después de las 20, y no más de una al día. Contamos cuáles abres y si apartas después, para saber cuáles te sirven. Lo apagas cuando quieras en Tú → Notificaciones.'),
   ('cocina-hoja-1', 'cocina', '{promociones,medir_promociones}', 'hoja',
    '¿Te mandamos novedades de Wera Cocina? De vez en cuando te mandamos consejos y novedades de la app. Nunca antes de las 9 ni después de las 20, y no más de uno al día. Contamos cuáles abres y si publicas después, para saber cuáles te sirven. Lo apagas cuando quieras en Mi cocina.');
 

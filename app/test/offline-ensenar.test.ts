@@ -58,7 +58,7 @@ describe('each hint is shown once on a phone', () => {
 
   it('says what the owner was shown', () => {
     expect(ES.offline.firstSale).toBe(
-      'Wera funciona sin internet: si se va la señal, tus ventas se guardan en el teléfono y se envían solas.',
+      'Wera Tienda funciona sin internet: si se va la señal, tus ventas se guardan en el teléfono y se envían solas.',
     );
     expect(ES.offline.firstNotice).toBe('Sin internet: puedes seguir vendiendo');
   });

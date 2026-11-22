@@ -57,7 +57,7 @@ describe('what it may ask for', () => {
 
   it('`10.9c`: the camera, to scan a kitchen’s code — a Spanish reason, no microphone, no recording', () => {
     const [, camera] = named('expo-camera') as [string, Record<string, unknown>];
-    expect(camera.cameraPermission).toBe('Itacate usa la cámara para escanear el código de la cocina.');
+    expect(camera.cameraPermission).toBe('Wera usa la cámara para escanear el código de la cocina.');
     expect(camera.microphonePermission).toBe(false);
     expect(camera.recordAudioAndroid).toBe(false);
   });

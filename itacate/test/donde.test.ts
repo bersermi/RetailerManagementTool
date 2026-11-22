@@ -93,7 +93,7 @@ describe('where the list is measured from', () => {
     expect(motivoDe('aproximada')).toMatch(/^Tu teléfono solo nos deja ver tu ubicación aproximada\./);
   });
 
-  it('outside the zone: Itacate aún no llega a tu zona — unless she typed a code inside it', () => {
+  it('outside the zone: Wera aún no llega a tu zona — unless she typed a code inside it', () => {
     const puebla = { latitude: 19.0414, longitude: -98.2063 };
     expect(origenDe({ kind: 'aqui', punto: puebla }, null)).toEqual({ kind: 'fuera' });
     expect(origenDe({ kind: 'aqui', punto: puebla }, cp)).toEqual({ kind: 'codigo', ...cp });
@@ -222,9 +222,9 @@ describe('what Google answers', () => {
     expect(respuestaDeGeocoding(200, body)).toEqual({ kind: 'punto', punto: { latitude: 19.45, longitude: -99.16 } });
   });
 
-  it('points only outside it: fuera — Itacate aún no llega a esa zona', () => {
+  it('points only outside it: fuera — Wera aún no llega a esa zona', () => {
     expect(respuestaDeGeocoding(200, { status: 'OK', results: [resultado(19.04, -98.2)] })).toEqual({ kind: 'fuera' });
-    expect(mensajeDelCodigo({ kind: 'fuera' })).toBe('Itacate aún no llega a esa zona.');
+    expect(mensajeDelCodigo({ kind: 'fuera' })).toBe('Wera aún no llega a esa zona.');
   });
 
   it('nothing found, and Google’s refusals — a 200 whose status says so', () => {

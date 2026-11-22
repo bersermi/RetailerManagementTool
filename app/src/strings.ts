@@ -43,7 +43,7 @@ export const ES = {
    * typecheck failure rather than a second copy nobody notices.
    */
   auth: {
-    title: 'Wera',
+    title: 'Wera Tienda',
     emailLabel: 'Correo',
     passwordLabel: 'Contraseña',
     /** `8g`, 2026-10-22: the switch beside the password box, to a screen reader. */
@@ -93,9 +93,9 @@ export const ES = {
     avisoAcceptLead: 'Acepto el ',
     avisoGoogleLead: 'Al continuar, aceptas el ',
     forgotPassword: '¿Olvidaste tu contraseña?',
-    forgotMessage: 'Hola, olvidé mi contraseña de Wera.',
+    forgotMessage: 'Hola, olvidé mi contraseña de Wera Tienda.',
     forgotMessageWithEmail: (email: string) =>
-      `Hola, olvidé mi contraseña de Wera. Mi correo es ${email}`,
+      `Hola, olvidé mi contraseña de Wera Tienda. Mi correo es ${email}`,
     signOut: 'Cerrar sesión',
     working: 'Un momento…',
     /** After a sign-up when the project has confirmations on. Off today. */
@@ -370,7 +370,7 @@ export const ES = {
       /** Nothing reaches the owner outside Wera, so she can say it herself. */
       tell: 'Avisar por WhatsApp',
       tellMessage: (shop: string) =>
-        `Hola, te pedí entrar a ${shop} en Wera. Ábrela y entra a Solicitudes para dejarme entrar.`,
+        `Hola, te pedí entrar a ${shop} en Wera Tienda. Ábrela y entra a Solicitudes para dejarme entrar.`,
     },
   },
 
@@ -390,7 +390,7 @@ export const ES = {
    * under them; the icon and the words say it.
    */
   hola: {
-    name: 'Wera',
+    name: 'Wera Tienda',
     abrir: 'Abrir mi tienda',
     invitada: 'Me invitaron a una tienda',
     yaTengo: '¿Ya tienes cuenta?',
@@ -416,20 +416,20 @@ export const ES = {
    * tus números a la mano"*). One promise and one line of how per card.
    */
   recorrido: {
-    label: (n: number, total: number) => `Conoce Wera · ${n} de ${total}`,
+    label: (n: number, total: number) => `Conoce Wera Tienda · ${n} de ${total}`,
     skip: 'Saltar',
     goSell: 'Ir a Vender',
     /** What a screen reader says for the real screen inside a card. */
-    screen: 'Así se ve en Wera',
+    screen: 'Así se ve en Wera Tienda',
     cards: {
-      hola: { title: 'Tu tienda, en tu mano', line: 'En un minuto te enseñamos lo que Wera hace por ti.' },
+      hola: { title: 'Tu tienda, en tu mano', line: 'En un minuto te enseñamos lo que Wera Tienda hace por ti.' },
       vender: {
         title: 'Vende en segundos, aunque se vaya la señal',
         line: 'Toca + en cada producto y desliza Cobrar. Sin internet, la venta se guarda y se envía sola.',
       },
       comprar: {
         title: 'Conoce tus costos y que no te coman',
-        line: 'Anota lo que te entrega cada proveedor. Wera te ayuda a ajustar tus precios.',
+        line: 'Anota lo que te entrega cada proveedor. Wera Tienda te ayuda a ajustar tus precios.',
       },
       productos: {
         title: '¿Sabes cuánto te deja cada producto?',
@@ -449,7 +449,7 @@ export const ES = {
       /** ⚠️ `5R-o`, the owner's yes of 2026-11-18: Comprar became hers on 2026-11-17. */
       comprarEmpleado: {
         title: 'Cuando llega el proveedor',
-        line: 'En Comprar anotas lo que te entregó y cuánto costó. Wera recuerda el último precio.',
+        line: 'En Comprar anotas lo que te entregó y cuánto costó. Wera Tienda recuerda el último precio.',
       },
       sinSenal: {
         title: 'Sin señal, sigues vendiendo',
@@ -467,9 +467,9 @@ export const ES = {
     /** Merma's second sentence — only where Wera does not already say it cannot reach. */
     teLoCompro: 'Si algo está por caducar, Wera te lo compra y pasa por él.',
     /** The last card's title for a shop that has sold before: no *primera venta* to make. */
-    listoVendiendo: 'Ya sabes lo que Wera hace por ti',
+    listoVendiendo: 'Ya sabes lo que Wera Tienda hace por ti',
     /** Inicio's card, for a phone that has not opened the story. */
-    inicio: { title: 'Conoce Wera · 1 minuto', line: 'Lo que Wera hace por ti', close: 'Quitar' },
+    inicio: { title: 'Conoce Wera Tienda · 1 minuto', line: 'Lo que Wera Tienda hace por ti', close: 'Quitar' },
   },
 
   /**
@@ -565,7 +565,7 @@ export const ES = {
       salir: 'Cerrar sesión',
       /** `8g`, 2026-10-21: the tutorial, again. */
       recorrido: 'Ver el recorrido',
-      recorridoValue: 'Lo que Wera hace, en un minuto',
+      recorridoValue: 'Lo que Wera Tienda hace, en un minuto',
       /** From a page back to the menu — `Cerrar` stays the way out of Ajustes. */
       back: 'Volver',
       tiendaValue: (giro: string, street: string | null) => (street === null ? giro : `${giro} · ${street}`),
@@ -786,7 +786,7 @@ export const ES = {
      */
     /** ⚠️ `8g`, the owner's ruling of 2026-10-21: it names the door. */
     shareMessage: (shopName: string, token: string) =>
-      `Te invité a ${shopName} en Wera. Abre Wera, toca «Me invitaron a una tienda» y escribe este código: ${token}`,
+      `Te invité a ${shopName} en Wera Tienda. Abre Wera Tienda, toca «Me invitaron a una tienda» y escribe este código: ${token}`,
   },
 
   /**
@@ -912,7 +912,7 @@ export const ES = {
      */
     /** ⚠️ `8g`, the owner's ruling of 2026-10-21: the words he approved, naming the door. */
     shareMessage: (shopName: string, code: string) =>
-      `Te invité a ${shopName} en Wera. Abre Wera, toca «Me invitaron a una tienda» y escribe este código: ${code}`,
+      `Te invité a ${shopName} en Wera Tienda. Abre Wera Tienda, toca «Me invitaron a una tienda» y escribe este código: ${code}`,
   },
 
   /**
@@ -958,7 +958,7 @@ export const ES = {
      * offers the code to send — an empty queue is the day nobody has typed it.
      */
     emptyTitle: 'Nadie está esperando entrar',
-    emptyHint: 'Cuando alguien escriba el código de tu tienda en Wera, aparece aquí y tú decides si entra.',
+    emptyHint: 'Cuando alguien escriba el código de tu tienda en Wera Tienda, aparece aquí y tú decides si entra.',
     codeLabel: 'Código de tu tienda',
     shareCode: 'Compartir código',
     /** Above the cards, in amber: how many are at the door. */
@@ -1078,7 +1078,7 @@ export const ES = {
      */
     firstNotice: 'Sin internet: puedes seguir vendiendo',
     /** Under the first sale's confirmation, once on this phone. */
-    firstSale: 'Wera funciona sin internet: si se va la señal, tus ventas se guardan en el teléfono y se envían solas.',
+    firstSale: 'Wera Tienda funciona sin internet: si se va la señal, tus ventas se guardan en el teléfono y se envían solas.',
 
     /**
      * C11.9 — THE DEAD-LETTER BANNER (5c-iv-b), AND IT IS THE ONE SURFACE IN
@@ -2227,8 +2227,8 @@ export const ES = {
     },
     streak: {
       days: (n: number) => (n === 1 ? '1 día seguido' : `${n} días seguidos`),
-      sub: 'vendiendo con Wera',
-      milestone: (n: number) => `¡${n} días seguidos vendiendo con Wera!`,
+      sub: 'vendiendo con Wera Tienda',
+      milestone: (n: number) => `¡${n} días seguidos vendiendo con Wera Tienda!`,
     },
     feed: {
       seeAll: 'Ver todo',
@@ -3403,7 +3403,7 @@ export const ES = {
     /** ⚠️ `8g`: a shop's first week — never an empty screen on day one. */
     firstWeek: {
       title: 'TU PRIMERA SEMANA',
-      days: (n: number) => (n === 1 ? 'Hoy empezaste con Wera' : `Llevas ${n} días con Wera`),
+      days: (n: number) => (n === 1 ? 'Hoy empezaste con Wera Tienda' : `Llevas ${n} días con Wera Tienda`),
       encourage: 'Cada venta que registras hace tus números más útiles.',
     },
     /**
@@ -3489,7 +3489,7 @@ export const ES = {
       bestBig: (weekday: string) => `El ${weekday}`,
       bestDetail: (amount: string, sales: number | null) =>
         sales === null ? amount : `${amount} en ${sales} ${sales === 1 ? 'venta' : 'ventas'}`,
-      bestRecord: (weekday: string) => `Tu mejor ${weekday} desde que usas Wera.`,
+      bestRecord: (weekday: string) => `Tu mejor ${weekday} desde que usas Wera Tienda.`,
       starTitle: 'LA ESTRELLA DE LA SEMANA',
       thrownTitle: 'PARA ESTA SEMANA',
       thrownBig: (quantity: string, name: string) => `Se tiró ${quantity} de ${name}`,

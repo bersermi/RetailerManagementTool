@@ -334,7 +334,7 @@ describe('the words: Wera’s, word for word', () => {
     expect(ES.account.businessLine('Fonda Lupe', 'cocina')).toBe(WERA.account.businessLine('Fonda Lupe', 'cocina'));
     expect(ES.account.businessLine('Tienda Lupe', 'tienda')).toBe(COCINA.account.businessLine('Tienda Lupe', 'tienda'));
     expect(ES.account.businessLine('Fonda Lupe', 'cocina')).toBe('Fonda Lupe: tu cocina en Wera Cocina');
-    expect(ES.account.businessLine('Tienda Lupe', 'tienda')).toBe('Tienda Lupe: tu tienda en Wera');
+    expect(ES.account.businessLine('Tienda Lupe', 'tienda')).toBe('Tienda Lupe: tu tienda en Wera Tienda');
     expect(ES.account.shopRecords).toBe(COCINA.account.shopRecords);
     expect(ES.account.shopRecords).toContain(WERA.monthExport.heading);
   });
