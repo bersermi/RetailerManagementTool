@@ -19,6 +19,8 @@ import {
   mermaConPuertas,
   mermaPideDireccion,
   mermaProximamente,
+  mermaPuertas,
+  mermaVuelveAPuertas,
   recorridoPrometeTeLoCompro,
   veTeLoCompro,
 } from '@/navigation/pausa';
@@ -124,5 +126,50 @@ describe('Merma’s Próximamente, switched on', () => {
     expect(ES.waste.proximamente.title).toBe('Próximamente');
     expect(ES.waste.doors.compro).toBe('Te lo compro');
     expect(ES.waste.proximamente.ofrecer).toBe('Ofrecer a las cocinas');
+  });
+});
+
+// ============================================================================
+// THE DOORS MERMA OPENS ON — `5R-p`, the owner's look of 2026-11-22: *"gates when
+// opening Merma"*. Which doors, role by role, in each state.
+// ============================================================================
+
+describe('the doors Merma opens on', () => {
+  it('as shipped: Próximamente’s for an owner and an Encargado; none for an Empleado or a role not yet read', () => {
+    expect(mermaPuertas(PROXIMAMENTE, TE_LO_COMPRO, 'owner')).toBe('proximamente');
+    expect(mermaPuertas(PROXIMAMENTE, TE_LO_COMPRO, 'manager')).toBe('proximamente');
+    expect(mermaPuertas(PROXIMAMENTE, TE_LO_COMPRO, 'staff')).toBeNull();
+    expect(mermaPuertas(PROXIMAMENTE, TE_LO_COMPRO, null)).toBeNull();
+  });
+
+  it('none for anybody while Próximamente is off and Te lo compro paused — Merma is Tirar', () => {
+    for (const role of EVERY_ROLE) expect(mermaPuertas('apagado', 'pausado', role), String(role)).toBeNull();
+  });
+
+  it('Te lo compro’s own once it is open again, whatever Próximamente says — a cashier still goes to Tirar', () => {
+    for (const aviso of ['apagado', 'encendido'] as const) {
+      expect(mermaPuertas(aviso, 'abierto', 'owner')).toBe('compro');
+      expect(mermaPuertas(aviso, 'abierto', 'manager')).toBe('compro');
+      expect(mermaPuertas(aviso, 'abierto', null)).toBe('compro');
+      expect(mermaPuertas(aviso, 'abierto', 'staff')).toBeNull();
+    }
+  });
+});
+
+describe('when Merma goes back to its doors — opened again, or Android’s back from Tirar', () => {
+  it('Próximamente’s doors, with nothing counted', () => {
+    expect(mermaVuelveAPuertas('proximamente', 0)).toBe(true);
+  });
+
+  it('never with lines counted — Merma stays Tirar, as Vender stays Vender', () => {
+    expect(mermaVuelveAPuertas('proximamente', 1)).toBe(false);
+    expect(mermaVuelveAPuertas('proximamente', 12)).toBe(false);
+  });
+
+  it('never to Te lo compro’s doors (`8g`’s own rules) nor where there are none', () => {
+    for (const lineas of [0, 3]) {
+      expect(mermaVuelveAPuertas('compro', lineas)).toBe(false);
+      expect(mermaVuelveAPuertas(null, lineas)).toBe(false);
+    }
   });
 });
