@@ -781,6 +781,9 @@ function Tirar({ proximamente }: { proximamente: boolean }) {
           <Corrigiendo line={correctingLine('waste', corrects)} onCancel={() => setAsking(true)} />
         </View>
       )}
+      {/* ⚠️ `5R-p`: WHAT IS COMING, AS DOORS BESIDE TIRAR, AT THE TOP — gone while
+          she searches, so the list keeps its room with the keyboard up. */}
+      {proximamente && typed === '' ? <PuertasArriba /> : null}
       <Buscador value={typed} onChange={setTyped} box={box} placeholder={ES.catalog.search} />
 
       <FlatList
@@ -809,10 +812,6 @@ function Tirar({ proximamente }: { proximamente: boolean }) {
         keyboardDismissMode="none"
         keyboardShouldPersistTaps="handled"
       />
-
-      {/* ⚠️ `5R-n`: WHAT IS COMING, AT MERMA'S FOOT, ONLY WHILE NOTHING IS COUNTED
-          OR SEARCHED — the first line counted gives this room to the bar. */}
-      {proximamente && cart.length === 0 && typed === '' ? <Proximamente /> : null}
 
       <Barra
         lines={cart.length}
@@ -1142,43 +1141,74 @@ function Barra({
 }
 
 /**
- * ⚠️ `5R-n` — *PRÓXIMAMENTE*, the owner's ruling of 2026-11-17: a heading over
- * two grey rows, names only, nothing to tap — *Te lo compro* and *Ofrecer a las
- * cocinas*, the two ways Merma will one day go further than the bin. At the foot
- * while Merma is idle, over the bar, so it is seen without scrolling a catalog
- * of hundreds; gone while she works, so the work keeps its room. Drawn only by
- * this file, so it stays here (`R14`). Switched on by `5R-p`.
+ * ⚠️ `5R-p` — *PRÓXIMAMENTE* AS DOORS BESIDE *TIRAR*, his look of 2026-11-22 on
+ * his iPhone: *"puertas arriba junto a Tirar, apagadas con Próximamente"* — the
+ * first of two layouts drawn for him (A), because it adds no tap: Merma still
+ * opens on Tirar, and above its search sit the three doors in a row. *Tirar*,
+ * the one she is in, filled as `@/ui/Interruptor` fills its picked side, and
+ * said by `accessibilityState` too, never by colour alone; *Te lo compro* and
+ * *Ofrecer a las cocinas* grey and inert, each with its *Próximamente* in words
+ * (`R11`). Until that look (`5R-n`, the owner's ruling of 2026-11-17) it was a
+ * heading over two grey rows at Merma's foot. Drawn only by this file, so it
+ * stays here (`R14`); an Empleado never sees it (`mermaProximamente`).
+ *
+ * ⚠️ *Tirar* IS NARROWER (2 to 3): one short word, while each grey door holds two
+ * lines and its tag — at *Letra grande* on a 360-wide phone a third of the row
+ * is too narrow for *Próximamente*, which shrinks to fit rather than break.
  */
-function Proximamente() {
+function PuertasArriba() {
   const { scale } = useDensity();
-  const names = [ES.waste.doors.compro, ES.waste.proximamente.ofrecer];
+  const pronto = [ES.waste.doors.compro, ES.waste.proximamente.ofrecer];
+  const door = {
+    minHeight: scale.tapTarget,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: scale.rowGap / 2,
+    paddingHorizontal: scale.rowGap / 2,
+    paddingVertical: scale.rowGap / 2,
+    borderRadius: scale.rowGap,
+    borderWidth: 1,
+  } as const;
   return (
-    <View
-      accessible
-      accessibilityLabel={`${ES.waste.proximamente.title}. ${names.join('. ')}`}
-      style={{
-        gap: scale.rowGap / 2,
-        paddingHorizontal: scale.space,
-        paddingVertical: scale.rowGap,
-        borderTopWidth: 1,
-        borderTopColor: PALETTE.linea,
-      }}
-    >
-      <Rotulo text={ES.waste.proximamente.title} />
-      {names.map((name) => (
+    <View style={{ flexDirection: 'row', gap: scale.rowGap, paddingHorizontal: scale.space, paddingTop: scale.space }}>
+      <View
+        accessible
+        accessibilityLabel={ES.waste.doors.tirar}
+        accessibilityState={{ selected: true }}
+        style={{ ...door, flex: 2, borderColor: PALETTE.desperdicio, backgroundColor: PALETTE.desperdicioSuave }}
+      >
+        <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.desperdicio, textAlign: 'center' }}>
+          {ES.waste.doors.tirar}
+        </Text>
+      </View>
+      {pronto.map((name) => (
         <View
           key={name}
-          style={{
-            justifyContent: 'center',
-            minHeight: scale.tapTarget * 0.75,
-            paddingHorizontal: scale.space,
-            borderRadius: scale.rowGap,
-            borderWidth: 1,
-            borderColor: PALETTE.linea,
-            backgroundColor: PALETTE.superficie,
-          }}
+          accessible
+          accessibilityLabel={`${name}. ${ES.waste.proximamente.title}`}
+          accessibilityState={{ disabled: true }}
+          style={{ ...door, flex: 3, borderColor: PALETTE.linea, backgroundColor: PALETTE.fondo }}
         >
-          <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>{name}</Text>
+          <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.tintaApagada, textAlign: 'center' }}>
+            {name}
+          </Text>
+          <View
+            style={{
+              maxWidth: '100%',
+              paddingHorizontal: scale.rowGap / 2,
+              paddingVertical: scale.rowGap / 4,
+              borderRadius: scale.space,
+              backgroundColor: PALETTE.linea,
+            }}
+          >
+            <Text
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              style={{ fontSize: scale.smallSize, fontWeight: '600', color: PALETTE.tintaApagada }}
+            >
+              {ES.waste.proximamente.title}
+            </Text>
+          </View>
         </View>
       ))}
     </View>
