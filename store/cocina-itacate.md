@@ -3,7 +3,9 @@
 Written by plan task `10.2b` (2026-10-27), on the shape of [`google-play.md`](google-play.md), Wera's.
 Paste from here, **once per app**: where the two differ, the field gives both. The handbook's
 *Before the two new apps' first builds* is the order of work. Section 7, the App Store's privacy
-answers for Wera Cocina, was added by `10.4g-ii` (2026-11-03) and waits for `10.5b`'s App Store record.
+answers for Wera Cocina, was added by `10.4g-ii` (2026-11-03) and waits for Wera Cocina's App Store record — **made at `13.1` (2026-11-22): Apple ID `6837963326`**; the neighbours' app's record, named *Wera*, is `6837963460`.
+
+⚠️ **Since `13.1` (2026-11-22) Itacate's app name on Play is *Wera*** — the owner's naming ruling of that day (Itacate becomes Wera); changed in Play Console and sent for review that day. Its descriptions and pictures still say *Itacate* until `13.3`; the folder, the package and the headings below keep *itacate*.
 
 **These are the listings for the CLOSED TESTS.** Only the testers you add see them. **Itacate's
 store version is still the skeleton** — one screen, a map, nothing else — but its test build signs
@@ -47,7 +49,7 @@ precio*, the reviewers' note names the button *Publicar una oferta*, and version
 
 | Field | Wera Cocina | Itacate |
 |---|---|---|
-| App name | `Wera Cocina` | `Itacate` |
+| App name | `Wera Cocina` | `Wera` (was `Itacate` until `13.1`) |
 | **Package name** | **`mx.wera.cocina`** | **`mx.wera.vecino`** |
 | Default language | **Spanish (Latin America) – es-419** | same |
 | App or game | **App** | same |
@@ -101,7 +103,7 @@ Aviso de privacidad: https://tu-wera.com/privacidad/cocina-e-itacate/
 
 <!-- max:30 -->
 ```
-Itacate
+Wera
 ```
 
 **Short description**

@@ -45,6 +45,8 @@ before that upload.
 Wera: tu tienda
 ```
 
+⚠️ **Becomes `Wera Tienda` with Wera's next version (`13.4`)** — the owner's naming ruling of 2026-11-22. Read at `13.1`: the field is greyed out while 1.1 is *Ready for Distribution*, so it changes in the next version's *App Information*. Spanish (Mexico) is the record's only localization.
+
 **Subtitle**
 
 <!-- max:30 -->
