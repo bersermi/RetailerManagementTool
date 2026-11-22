@@ -101,7 +101,8 @@ select public.chk('1.2 a kitchen''s call makes a kitchen, with its owner, its ki
   and exists (select 1 from public.workspace_setting where workspace_id = :'ws_c'));
 select public.chk('1.3 the shop''s Discord line is the shop''s words, and counts shops only',
   (select count(*) from public._enviados(:q_t, :q_c)) = 1
-  and (select content from public._enviados(:q_t, :q_c)) = format('🏪 Nueva tienda en Wera. Ya son %s tiendas.', :n_tiendas),
+  -- `0098` (plan 13.3): the shop app is Wera Tienda since the owner's ruling of 2026-11-22.
+  and (select content from public._enviados(:q_t, :q_c)) = format('🏪 Nueva tienda en Wera Tienda. Ya son %s tiendas.', :n_tiendas),
   coalesce((select string_agg(content, ' | ') from public._enviados(:q_t, :q_c)), 'none'));
 select public.chk('1.4 a kitchen''s line says cocina, counts kitchens, and names nobody',
   (select count(*) from public._enviados(:q_c)) = 1

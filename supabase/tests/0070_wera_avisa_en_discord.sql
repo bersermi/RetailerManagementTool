@@ -130,7 +130,8 @@ select count(*) as tiendas from public.workspace where is_active \gset
 select chk('3.1 a new shop sends exactly one message, and it counts the shops',
            (select count(*) from public._enviados(:q2)) = 1
        and (select content from public._enviados(:q2))
-             = format('🏪 Nueva tienda en Wera. Ya son %s tiendas.', :tiendas),
+             -- `0098` (plan 13.3): the shop app is Wera Tienda since the owner's ruling of 2026-11-22.
+             = format('🏪 Nueva tienda en Wera Tienda. Ya son %s tiendas.', :tiendas),
            coalesce((select string_agg(content, ' | ') from public._enviados(:q2)), 'none'));
 
 select chk('3.2 the shop''s name is not in it (a small shop is often named for its owner)',

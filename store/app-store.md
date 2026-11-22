@@ -26,7 +26,7 @@ counted in bytes, where an accented letter is two.
 | Field | Answer |
 |---|---|
 | Platform | **iOS** |
-| Name | `Wera: tu tienda` |
+| Name | `Wera: tu tienda` when the record was made; `Wera Tienda` from Wera's next version (`13.4`, section 2) |
 | Primary language | **Spanish (Mexico)** |
 | Bundle ID | `mx.wera.app` |
 | SKU | `wera-mx` — never shown to anybody, and **it cannot be changed once the app is added** |
@@ -42,10 +42,10 @@ before that upload.
 
 <!-- max:30 -->
 ```
-Wera: tu tienda
+Wera Tienda
 ```
 
-⚠️ **Becomes `Wera Tienda` with Wera's next version (`13.4`)** — the owner's naming ruling of 2026-11-22. Read at `13.1`: the field is greyed out while 1.1 is *Ready for Distribution*, so it changes in the next version's *App Information*. Spanish (Mexico) is the record's only localization.
+⚠️ **Was `Wera: tu tienda` until `13.3` wrote this block; the record still shows that name until Wera's next version (`13.4`)** — the owner's naming ruling of 2026-11-22. Read at `13.1`: the field is greyed out while 1.1 is *Ready for Distribution*, so it changes in the next version's *App Information*. Spanish (Mexico) is the record's only localization.
 
 **Subtitle**
 
@@ -82,12 +82,12 @@ Registra lo que vendes, lo que compras y lo que se echa a perder, también sin s
 
 <!-- max:4000 -->
 ```
-Wera es la app para llevar tu tienda desde el teléfono: lo que vendes, lo que compras y lo que se echa a perder.
+Wera Tienda es la app para llevar tu tienda desde el teléfono: lo que vendes, lo que compras y lo que se echa a perder.
 
 Está hecha para tiendas pequeñas en México: pollerías, carnicerías, verdulerías, fruterías, abarrotes, cremerías y materias primas. Pesos, IVA y venta por kilo, por pieza, por litro o por manojo.
 
 VENDER
-Busca el producto, pon la cantidad y registra la venta en segundos. Funciona sin señal: Wera guarda las ventas en el teléfono y las envía cuando vuelve la conexión.
+Busca el producto, pon la cantidad y registra la venta en segundos. Funciona sin señal: Wera Tienda guarda las ventas en el teléfono y las envía cuando vuelve la conexión.
 
 COMPRAR
 Registra lo que te entrega cada proveedor y cuánto te costó. En Costos ves cómo ha cambiado lo que pagas por cada producto, y lo puedes compartir en PDF.
@@ -96,7 +96,7 @@ MERMA
 Anota lo que ya no vas a vender y por qué, para saber cuánto se pierde.
 
 PRODUCTOS
-Tu catálogo con sus precios. Para empezar, Wera te pone los productos de tu giro y tú quitas los que no vendes.
+Tu catálogo con sus precios. Para empezar, Wera Tienda te pone los productos de tu giro y tú quitas los que no vendes.
 
 NÚMEROS
 Lo que vendiste por día, por semana o por mes, con IVA. Compara el precio de compra y el de venta de cada producto, y descarga el mes en hoja de cálculo o en PDF.

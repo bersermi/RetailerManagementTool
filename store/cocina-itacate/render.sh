@@ -49,6 +49,15 @@
 # `cocina/src/marca/giros/<name>.png` (no app has SVG), and NOTHING ELSE: run with no
 # argument this script re-draws the icon and the launch screen too, which are part of
 # the native build. The drawings are JavaScript assets and move no runtime.
+#
+# AND, ON ITS OWN, THE FOUR LISTING PICTURES (`13.3`, the owner's naming ruling of 2026-11-22 —
+# Itacate becomes Wera, so its feature graphic says *Wera*):
+#
+#   bash store/cocina-itacate/render.sh listado
+#
+# draws the two 512 px listing icons and the two feature graphics beside this script, and NOTHING
+# ELSE — no app's icon or launch screen, so no runtime moves. The folder and the file names keep
+# *itacate* (the plan's Step 13: no id or path changes).
 # ============================================================================
 set -euo pipefail
 cd "$(dirname "$0")"
@@ -150,6 +159,17 @@ if [[ "${1:-}" == "giros" ]]; then
   exit 0
 fi
 
+if [[ "${1:-}" == "listado" ]]; then
+  icon    cocina  "#1C6B4B"
+  icon    itacate "#24476B"
+  graphic cocina  "#1C6B4B" "Wera Cocina" 96  "Para fondas y cocinas"
+  graphic itacate "#24476B" "Wera"        124 "Para vecinos"
+  for f in cocina-icono-512.png itacate-icono-512.png cocina-grafico-1024x500.png itacate-grafico-1024x500.png; do
+    printf '  %-36s %s\n' "$f" "$(sips -g pixelWidth -g pixelHeight -g hasAlpha "$f" | tail -3 | awk '{print $2}' | tr '\n' ' ')"
+  done
+  exit 0
+fi
+
 if [[ "${1:-}" == "itacate-icono" ]]; then
   appicon "$REPO/itacate/assets/images" "#24476B"
   printf '  %-36s %s\n' "itacate/assets/images/icon.png" "$(sips -g pixelWidth -g pixelHeight -g hasAlpha "$REPO/itacate/assets/images/icon.png" | tail -3 | awk '{print $2}' | tr '\n' ' ')"
@@ -159,7 +179,7 @@ fi
 icon    cocina  "#1C6B4B"
 icon    itacate "#24476B"
 graphic cocina  "#1C6B4B" "Wera Cocina" 96  "Para fondas y cocinas"
-graphic itacate "#24476B" "Itacate"     124 "Para vecinos"
+graphic itacate "#24476B" "Wera"        124 "Para vecinos"
 apppictures "$REPO/cocina/assets/images" "#1C6B4B"
 
 for f in cocina-icono-512.png itacate-icono-512.png cocina-grafico-1024x500.png itacate-grafico-1024x500.png \
