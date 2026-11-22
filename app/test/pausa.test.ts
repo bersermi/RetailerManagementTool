@@ -84,13 +84,20 @@ describe('open, exactly as before `10.0a`', () => {
 
 // ============================================================================
 // MERMA'S *PRÓXIMAMENTE* — `5R-n`, the owner's ruling of 2026-11-17. Built
-// switched off: the update to the 1.0 builds and the 1.1 build Apple reviews
-// must not show it; `5R-p` turns it on. Both states held here.
+// switched off (the update to the 1.0 builds and the 1.1 build Apple reviewed
+// must not show it); switched on by `5R-p` on 2026-11-22, once both stores had
+// approved 1.1. Both states held here.
 // ============================================================================
 
 describe('Merma’s Próximamente, as shipped', () => {
-  it('is off — switching it on is `5R-p`’s, after both stores approve 1.1', () => {
-    expect(PROXIMAMENTE).toBe('apagado');
+  it('is on — `5R-p` switched it on once both stores approved 1.1', () => {
+    expect(PROXIMAMENTE).toBe('encendido');
+  });
+
+  it('draws, as shipped, for an owner and an Encargado and for nobody else', () => {
+    for (const role of EVERY_ROLE) {
+      expect(mermaProximamente(PROXIMAMENTE, TE_LO_COMPRO, role), String(role)).toBe(canWriteCatalog(role));
+    }
   });
 
   it('draws for nobody while off', () => {
