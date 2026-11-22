@@ -20,6 +20,7 @@ import {
   mermaPideDireccion,
   mermaProximamente,
   mermaPuertas,
+  mermaVuelveAPuertas,
   recorridoPrometeTeLoCompro,
   veTeLoCompro,
 } from '@/navigation/pausa';
@@ -151,6 +152,24 @@ describe('the doors Merma opens on', () => {
       expect(mermaPuertas(aviso, 'abierto', 'manager')).toBe('compro');
       expect(mermaPuertas(aviso, 'abierto', null)).toBe('compro');
       expect(mermaPuertas(aviso, 'abierto', 'staff')).toBeNull();
+    }
+  });
+});
+
+describe('when Merma goes back to its doors — opened again, or Android’s back from Tirar', () => {
+  it('Próximamente’s doors, with nothing counted', () => {
+    expect(mermaVuelveAPuertas('proximamente', 0)).toBe(true);
+  });
+
+  it('never with lines counted — Merma stays Tirar, as Vender stays Vender', () => {
+    expect(mermaVuelveAPuertas('proximamente', 1)).toBe(false);
+    expect(mermaVuelveAPuertas('proximamente', 12)).toBe(false);
+  });
+
+  it('never to Te lo compro’s doors (`8g`’s own rules) nor where there are none', () => {
+    for (const lineas of [0, 3]) {
+      expect(mermaVuelveAPuertas('compro', lineas)).toBe(false);
+      expect(mermaVuelveAPuertas(null, lineas)).toBe(false);
     }
   });
 });

@@ -113,6 +113,19 @@ export function mermaPuertas(aviso: Aviso, estado: Estado, role: Role | null): P
 }
 
 /**
+ * ⚠️ `5R-p`, HIS WORD OF 2026-11-22: *"asegúrate de que las interacciones
+ * funcionen para que estén homologadas con el resto de las ventanas (Vender,
+ * Comprar)"*. Vender and Comprar open on their list, keep a basket across tabs and
+ * ask nothing on leaving; their Android back goes to Inicio. So *Próximamente*'s
+ * doors are a step only while nothing is counted: Merma opened again, or Android's
+ * back from Tirar, returns to them with an empty basket; with lines counted Merma
+ * stays Tirar, as Vender stays Vender — back goes to Inicio, the basket kept.
+ */
+export function mermaVuelveAPuertas(puertas: PuertasMerma, lineas: number): boolean {
+  return puertas === 'proximamente' && lineas === 0;
+}
+
+/**
  * Does the tutorial's Merma card add *Wera te lo compra y pasa por él*? Open:
  * unless Wera already knows it cannot reach this store (`8g`). Paused: never —
  * a card promising a pickup nobody makes is the app talking past her.

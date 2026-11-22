@@ -102,6 +102,7 @@ import {
   TE_LO_COMPRO,
   mermaPideDireccion,
   mermaPuertas,
+  mermaVuelveAPuertas,
   veTeLoCompro,
 } from '@/navigation/pausa';
 import { setTabGuard } from '@/navigation/salida';
@@ -281,6 +282,15 @@ function PideDireccion() {
 }
 
 /** The device's `HH:MM` — the shop's own clock, for which quarters have begun. */
+/**
+ * How many lines Merma's basket holds NOW — read from the store at the moment of
+ * a focus or a back press, not from a render: a write-off handed back by
+ * `Corregir` (`documentos.tsx`) fills the basket just before Merma is focused.
+ */
+function lineasEnMerma(): number {
+  return useCartStore.getState().carts.waste.length;
+}
+
 function nowClock(): string {
   const now = new Date();
   return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
@@ -319,15 +329,13 @@ export default function Desperdicio() {
 
   // ⚠️ `5R-p`, HIS LOOK OF 2026-11-22: *"gates when opening Merma"* — so every
   // time Merma is opened with nothing counted, it opens on *Próximamente*'s doors
-  // again; with a basket it opens on Tirar, which holds it (the effect above).
-  // Only *Próximamente*'s: Te lo compro's doors, open, keep `8g`'s rules.
-  const cartCount = useRef(cart.length);
-  cartCount.current = cart.length;
-  const proximas = puertas === 'proximamente';
+  // again; with a basket it opens on Tirar, which holds it (the effect above), as
+  // Vender holds its own (`mermaVuelveAPuertas`). Te lo compro's doors, open, keep
+  // `8g`'s rules.
   useFocusEffect(
     useCallback(() => {
-      if (proximas && cartCount.current === 0) setModo('puertas');
-    }, [proximas]),
+      if (mermaVuelveAPuertas(puertas, lineasEnMerma())) setModo('puertas');
+    }, [puertas]),
   );
 
   // ⚠️⚠️ `8g`'s review (2026-10-20), THE OWNER'S RULING: *"when someone closes a
@@ -357,6 +365,12 @@ export default function Desperdicio() {
     useCallback(() => {
       setTabGuard({ onLeave: leaveRequest });
       const back = BackHandler.addEventListener('hardwareBackPress', () => {
+        // ⚠️ `5R-p`: Android's back from Tirar is a step back to *Próximamente*'s
+        // doors while nothing is counted; with lines it does what Vender's does.
+        if (shown === 'tirar' && mermaVuelveAPuertas(puertas, lineasEnMerma())) {
+          setModo('puertas');
+          return true;
+        }
         if (shown !== 'compro') return false;
         leaveRequest(() => router.navigate('/'));
         return true;
@@ -365,7 +379,7 @@ export default function Desperdicio() {
         setTabGuard(null);
         back.remove();
       };
-    }, [leaveRequest, shown]),
+    }, [leaveRequest, shown, puertas]),
   );
 
   // ⚠️⚠️ `8g`/`8q`, THE OWNER'S RULINGS OF 2026-10-21: THE ADDRESS IS ASKED
