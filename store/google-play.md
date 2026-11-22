@@ -7,6 +7,7 @@ Google Play's closed test* says which screen each block goes on. Why each answer
 **Written for the closed test; the public listing in Mexico since 2026-11-11** (`5R-e`). The
 screenshots are of 2026-10-21; new ones, styled, and the words read again with him are `5R-q`'s.
 ⚠️ **The first upload is the bundle built with the cow on its icon** (the owner's rulings of 2026-10-13); `store/README.md` says which one.
+⚠️ **Since `13.1` (2026-11-22) the app name is *Wera Tienda*** — the owner's naming ruling of that day; was *Wera: tu tienda*, changed in Play Console and sent for review that day. The other texts and the feature graphic are `13.3`'s; the release notes of section 8 are history.
 
 ⚠️ A block marked `<!-- max:N -->` has a limit of N characters in Play Console. After editing
 one, run `python3 store/limits.py`.
@@ -17,7 +18,7 @@ one, run `python3 store/limits.py`.
 
 | Field | Answer |
 |---|---|
-| App name | `Wera: tu tienda` |
+| App name | `Wera Tienda` (was `Wera: tu tienda` until `13.1`) |
 | Default language | **Spanish (Latin America) – es-419** |
 | App or game | **App** |
 | Free or paid | **Free** |
@@ -32,7 +33,7 @@ uploaded: from that moment `mx.wera.app` belongs to this app for ever.
 
 <!-- max:30 -->
 ```
-Wera: tu tienda
+Wera Tienda
 ```
 
 **Short description**
