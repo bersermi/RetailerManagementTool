@@ -1672,10 +1672,11 @@ export const ES = {
     /**
      * ⚠️ `5R-n`, THE OWNER'S RULING OF 2026-11-17: *"I need to show the Te lo
      * compro and Ofrecer feature marked as proximamente"* — names only, nothing
-     * to tap; since his look at `5R-p` (2026-11-22) two grey doors beside
-     * *Tirar* at Merma's top, each tagged `title` (until then a heading over two
-     * grey rows at its foot). *Te lo compro* is `doors.compro`, read rather than
-     * respelled. Drawn since `5R-p` turned `PROXIMAMENTE` on (`@/navigation/pausa`).
+     * to tap; since his look at `5R-p` (2026-11-22) two shut doors among the
+     * doors Merma opens on, beside *Tirar*, each tagged `title` (until then a
+     * heading over two grey rows at its foot). *Te lo compro* is `doors.compro`,
+     * read rather than respelled. Drawn since `5R-p` turned `PROXIMAMENTE` on
+     * (`@/navigation/pausa`).
      */
     proximamente: {
       title: 'Próximamente',

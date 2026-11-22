@@ -100,9 +100,8 @@ import { correctingLine } from '@/api/corrections';
 import {
   PROXIMAMENTE,
   TE_LO_COMPRO,
-  mermaConPuertas,
   mermaPideDireccion,
-  mermaProximamente,
+  mermaPuertas,
   veTeLoCompro,
 } from '@/navigation/pausa';
 import { setTabGuard } from '@/navigation/salida';
@@ -313,7 +312,23 @@ export default function Desperdicio() {
 
   // ⚠️ `role === null` IS *NOT KNOWN YET*, and the doors are drawn meanwhile:
   // only an answer of `staff` sends her straight to Tirar — or the pause.
-  const shown: Modo = mermaConPuertas(TE_LO_COMPRO, role) ? modo : 'tirar';
+  // ⚠️ `5R-p` (2026-11-22): while paused, *Próximamente*'s doors for an owner or
+  // an Encargado (`mermaPuertas`) — a role not yet read gets Tirar meanwhile.
+  const puertas = mermaPuertas(PROXIMAMENTE, TE_LO_COMPRO, role);
+  const shown: Modo = puertas === null ? 'tirar' : modo;
+
+  // ⚠️ `5R-p`, HIS LOOK OF 2026-11-22: *"gates when opening Merma"* — so every
+  // time Merma is opened with nothing counted, it opens on *Próximamente*'s doors
+  // again; with a basket it opens on Tirar, which holds it (the effect above).
+  // Only *Próximamente*'s: Te lo compro's doors, open, keep `8g`'s rules.
+  const cartCount = useRef(cart.length);
+  cartCount.current = cart.length;
+  const proximas = puertas === 'proximamente';
+  useFocusEffect(
+    useCallback(() => {
+      if (proximas && cartCount.current === 0) setModo('puertas');
+    }, [proximas]),
+  );
 
   // ⚠️⚠️ `8g`'s review (2026-10-20), THE OWNER'S RULING: *"when someone closes a
   // screen such as Desperdicio -> Te Lo Compro the Desperdicio screen should be
@@ -389,7 +404,9 @@ export default function Desperdicio() {
         </View>
       )}
 
-      {shown === 'puertas' ? (
+      {shown === 'puertas' && puertas === 'proximamente' ? (
+        <PuertasPronto onTirar={() => setModo('tirar')} />
+      ) : shown === 'puertas' ? (
         <Puertas
           acceso={acceso}
           isOwner={role === 'owner'}
@@ -397,7 +414,7 @@ export default function Desperdicio() {
           onCompro={() => setModo('compro')}
         />
       ) : shown === 'tirar' ? (
-        <Tirar proximamente={mermaProximamente(PROXIMAMENTE, TE_LO_COMPRO, role)} />
+        <Tirar />
       ) : (
         <TeLoCompro key={requestKey} acceso={acceso} isOwner={role === 'owner'} onDirty={setRequestDirty} />
       )}
@@ -548,9 +565,10 @@ function Puerta({
   tone,
   onPress,
 }: {
-  icon: 'delete-outline' | 'truck-outline';
+  icon: 'delete-outline' | 'truck-outline' | 'silverware-fork-knife';
   title: string;
-  hint: string;
+  /** ⚠️ `5R-p`: optional — a door that is only a name (*Próximamente*'s) has none. */
+  hint?: string;
   tag?: string;
   tone: 'claro' | 'lleno' | 'cerrado';
   onPress?: () => void;
@@ -566,7 +584,7 @@ function Puerta({
     <Frame
       {...(onPress === undefined
         ? {}
-        : { accessibilityRole: 'button' as const, accessibilityLabel: `${title}. ${hint}`, onPress })}
+        : { accessibilityRole: 'button' as const, accessibilityLabel: [title, hint].filter(Boolean).join('. '), onPress })}
       style={{
         flexDirection: 'row',
         alignItems: 'center',
@@ -594,7 +612,7 @@ function Puerta({
       </View>
       <View style={{ flex: 1, gap: scale.rowGap / 2 }}>
         <Text style={{ fontSize: scale.titleSize, ...TITULO, color: ink }}>{title}</Text>
-        <Text style={{ fontSize: scale.smallSize, color: sub }}>{hint}</Text>
+        {hint === undefined ? null : <Text style={{ fontSize: scale.smallSize, color: sub }}>{hint}</Text>}
         {tag === undefined ? null : (
           <View
             style={{
@@ -628,7 +646,7 @@ function Puerta({
 // Tirar
 // ============================================================================
 
-function Tirar({ proximamente }: { proximamente: boolean }) {
+function Tirar() {
   const { scale } = useDensity();
 
   // ⚠️ THE SAME LIST AS PRODUCTOS AND VENDER — C3.1, *"there are no buy-only or
@@ -781,9 +799,6 @@ function Tirar({ proximamente }: { proximamente: boolean }) {
           <Corrigiendo line={correctingLine('waste', corrects)} onCancel={() => setAsking(true)} />
         </View>
       )}
-      {/* ⚠️ `5R-p`: WHAT IS COMING, AS DOORS BESIDE TIRAR, AT THE TOP — gone while
-          she searches, so the list keeps its room with the keyboard up. */}
-      {proximamente && typed === '' ? <PuertasArriba /> : null}
       <Buscador value={typed} onChange={setTyped} box={box} placeholder={ES.catalog.search} />
 
       <FlatList
@@ -1141,77 +1156,40 @@ function Barra({
 }
 
 /**
- * ⚠️ `5R-p` — *PRÓXIMAMENTE* AS DOORS BESIDE *TIRAR*, his look of 2026-11-22 on
- * his iPhone: *"puertas arriba junto a Tirar, apagadas con Próximamente"* — the
- * first of two layouts drawn for him (A), because it adds no tap: Merma still
- * opens on Tirar, and above its search sit the three doors in a row. *Tirar*,
- * the one she is in, filled as `@/ui/Interruptor` fills its picked side, and
- * said by `accessibilityState` too, never by colour alone; *Te lo compro* and
- * *Ofrecer a las cocinas* grey and inert, each with its *Próximamente* in words
- * (`R11`). Until that look (`5R-n`, the owner's ruling of 2026-11-17) it was a
- * heading over two grey rows at Merma's foot. Drawn only by this file, so it
- * stays here (`R14`); an Empleado never sees it (`mermaProximamente`).
- *
- * ⚠️ *Tirar* IS NARROWER (2 to 3): one short word, while each grey door holds two
- * lines and its tag — at *Letra grande* on a 360-wide phone a third of the row
- * is too narrow for *Próximamente*, which shrinks to fit rather than break.
+ * ⚠️ `5R-p` — *PRÓXIMAMENTE* AS THE DOORS MERMA OPENS ON, his look of 2026-11-22:
+ * *"I was thinking more of gates when opening Merma. I don't want to overcrowd
+ * the screen."* — the second of two layouts drawn for him in chat (B), with its
+ * cost said: one tap more before each write-off. Merma's own doors from before
+ * `10.0a` (`Puerta`), under its own question: *Tirar*, which opens the list,
+ * and *Te lo compro* and *Ofrecer a las cocinas* shut (`cerrado`), names only
+ * (`5R-n`, the owner's ruling of 2026-11-17), each tagged *Próximamente* in
+ * words (`R11`). No requests list under them: nothing collects while Te lo
+ * compro is paused. Drawn only by this file, so it stays here (`R14`); an
+ * Empleado never sees it (`mermaPuertas`). Until this look it was, in turn, a
+ * heading over two grey rows at the foot (`5R-n`) and a row over the list.
  */
-function PuertasArriba() {
+function PuertasPronto({ onTirar }: { onTirar: () => void }) {
   const { scale } = useDensity();
-  const pronto = [ES.waste.doors.compro, ES.waste.proximamente.ofrecer];
-  const door = {
-    minHeight: scale.tapTarget,
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: scale.rowGap / 2,
-    paddingHorizontal: scale.rowGap / 2,
-    paddingVertical: scale.rowGap / 2,
-    borderRadius: scale.rowGap,
-    borderWidth: 1,
-  } as const;
   return (
-    <View style={{ flexDirection: 'row', gap: scale.rowGap, paddingHorizontal: scale.space, paddingTop: scale.space }}>
-      <View
-        accessible
-        accessibilityLabel={ES.waste.doors.tirar}
-        accessibilityState={{ selected: true }}
-        style={{ ...door, flex: 2, borderColor: PALETTE.desperdicio, backgroundColor: PALETTE.desperdicioSuave }}
-      >
-        <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.desperdicio, textAlign: 'center' }}>
-          {ES.waste.doors.tirar}
-        </Text>
-      </View>
-      {pronto.map((name) => (
-        <View
-          key={name}
-          accessible
-          accessibilityLabel={`${name}. ${ES.waste.proximamente.title}`}
-          accessibilityState={{ disabled: true }}
-          style={{ ...door, flex: 3, borderColor: PALETTE.linea, backgroundColor: PALETTE.fondo }}
-        >
-          <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.tintaApagada, textAlign: 'center' }}>
-            {name}
-          </Text>
-          <View
-            style={{
-              maxWidth: '100%',
-              paddingHorizontal: scale.rowGap / 2,
-              paddingVertical: scale.rowGap / 4,
-              borderRadius: scale.space,
-              backgroundColor: PALETTE.linea,
-            }}
-          >
-            <Text
-              numberOfLines={1}
-              adjustsFontSizeToFit
-              style={{ fontSize: scale.smallSize, fontWeight: '600', color: PALETTE.tintaApagada }}
-            >
-              {ES.waste.proximamente.title}
-            </Text>
-          </View>
-        </View>
-      ))}
-    </View>
+    <ScrollView contentContainerStyle={{ padding: scale.space, gap: scale.space }}>
+      <Text style={{ fontSize: scale.titleSize, ...TITULO, color: PALETTE.tinta }}>
+        {ES.waste.doors.question}
+      </Text>
+      <Puerta
+        icon="delete-outline"
+        title={ES.waste.doors.tirar}
+        hint={ES.waste.doors.tirarHint}
+        tone="claro"
+        onPress={onTirar}
+      />
+      <Puerta icon="truck-outline" title={ES.waste.doors.compro} tag={ES.waste.proximamente.title} tone="cerrado" />
+      <Puerta
+        icon="silverware-fork-knife"
+        title={ES.waste.proximamente.ofrecer}
+        tag={ES.waste.proximamente.title}
+        tone="cerrado"
+      />
+    </ScrollView>
   );
 }
 

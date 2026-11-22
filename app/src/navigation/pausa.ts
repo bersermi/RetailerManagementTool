@@ -94,6 +94,24 @@ export function mermaProximamente(aviso: Aviso, estado: Estado, role: Role | nul
   return aviso === 'encendido' && estado === 'pausado' && canWriteCatalog(role);
 }
 
+/** Which doors Merma opens on — Te lo compro's own, *Próximamente*'s, or none. */
+export type PuertasMerma = 'compro' | 'proximamente' | null;
+
+/**
+ * ⚠️ `5R-p`, THE OWNER'S LOOK OF 2026-11-22: *"I was thinking more of gates when
+ * opening Merma. I don't want to overcrowd the screen."* — so *Próximamente* is
+ * doors Merma OPENS ON, as it opened on *Tirar* and *Te lo compro* before `10.0a`,
+ * and not a row over Tirar's list. Which doors, if any: open, Te lo compro's own
+ * (`mermaConPuertas`); paused with *Próximamente* on, *Tirar* and the two names
+ * switched off (`mermaProximamente` — an owner or an Encargado); otherwise none,
+ * and Merma is *Tirar* — an Empleado's always, and a role not yet read.
+ */
+export function mermaPuertas(aviso: Aviso, estado: Estado, role: Role | null): PuertasMerma {
+  if (mermaConPuertas(estado, role)) return 'compro';
+  if (mermaProximamente(aviso, estado, role)) return 'proximamente';
+  return null;
+}
+
 /**
  * Does the tutorial's Merma card add *Wera te lo compra y pasa por él*? Open:
  * unless Wera already knows it cannot reach this store (`8g`). Paused: never —
