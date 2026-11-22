@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 # ============================================================================
 # STORE (OR REPLACE) EXPO'S ACCESS TOKEN, WHICH EVERY PUSH FROM THE DATABASE CARRIES. Plan task
-# `10.5b-v-ii`.
+# `10.5b-v-ii`; first run by the owner on 2026-11-21 (`10.5b-v-iii`).
 #
-# `0092` sends Wera Cocina's messages (a fonda's reservations) from Postgres to Expo's push
-# service. Until Expo's push security is switched on, Expo takes a message from anyone who holds a
-# phone's token; once it is on, Expo refuses any request without the account's access token. The
+# `0092` sends the apps' messages from Postgres to Expo's push service — Wera Cocina's since
+# `0092`, Itacate's since `10.5c-iii`. Expo's push security is ON for the `wera-app` account since
+# 2026-11-21 (`10.5b-v-iii`): Expo refuses any message without the account's access token — 403
+# `UNAUTHORIZED`, *Insufficient permissions to send push notifications to @wera-app/cocina*. The
 # database carries that token as `Authorization: Bearer …` whenever the hosted Vault holds it under
-# `expo_push_access_token` — this is how it gets there.
+# `expo_push_access_token` — this is how it gets there, and how it is replaced.
 #
 #   bash docs/runbooks/set-expo-push-token.sh            # asks for the token
 #   bash docs/runbooks/set-expo-push-token.sh < file     # reads it from a file
@@ -15,14 +16,21 @@
 # THE ORDER, AND IT MATTERS (measured 2026-11-20): Expo READS the header even while push security is
 # off, and refuses the whole request when the token is not valid — 401 AUTHENTICATION_ERROR, *The
 # bearer token is invalid* — so a wrong token stored here stops every message, switched on or not.
-#   1. expo.dev → Access tokens (https://expo.dev/settings/access-tokens, the page Expo's
-#      docs point to) → create a token for the account that owns Wera Cocina and Itacate.
+#   1. expo.dev → the `wera-app` account (it owns Wera Cocina and Itacate; not the personal one) →
+#      Settings → Access tokens (https://expo.dev/accounts/wera-app/settings/access-tokens) → a token
+#      of its robot user `push-sender` (made 2026-11-21; a robot acts only on `wera-app`, where a
+#      personal token acts as its person on every account).
 #   2. Run this. It asks Expo first, with that token, and changes NOTHING unless Expo accepts it.
-#   3. Only then switch on Expo's push security — Expo's docs (read 2026-11-20) say it is enabled
-#      "from your Expo dashboard", linking the same page, and name no switch or scope: read the page
-#      for it, and say what you find.
-# To stop using it: delete the secret (Supabase dashboard → Vault) AND switch Expo's push security
-# off first — the other order stops every message.
+#   3. Only then, on the same page, the switch *Enhanced security for push notifications — Require
+#      access tokens before delivering notifications to your end users* (Expo's docs name no switch;
+#      the owner read the page on 2026-11-21). Replacing the token while it is on: this script alone.
+#   4. Prove it: `bash docs/checks/10.5b-v-iii-push-security.sh <file holding a test phone's push
+#      token>` — this Mac refused without a token, the database's message accepted with it. ⚠️ This
+#      script's own probe CANNOT show the setting: it sends to a made-up token, which Expo answers
+#      `DeviceNotRegistered` with the setting on or off (both measured 2026-11-21) — only a real
+#      phone's token can.
+# To stop using it: switch Expo's push security off FIRST, then delete the secret (Supabase dashboard
+# → Vault) — the other order stops every message.
 #
 # ⚠️ THE TOKEN IS A SECRET — it acts as the account on Expo. Never an argument (the shell's history,
 # the process list), never in this repository, which is public.
@@ -100,4 +108,4 @@ if [[ "$carried" != "1" ]]; then
   exit 1
 fi
 echo "Stored in the hosted Vault as expo_push_access_token; every push from the database now carries it."
-echo "Now — and only now — switch on Expo's push security (step 3 at the top of this file)."
+echo "Now — and only now — switch on Expo's push security (step 3 at the top of this file), then prove it (step 4)."

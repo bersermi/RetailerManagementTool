@@ -119,6 +119,13 @@ Adding a dependency moves the root lockfile, so it fires every workflow but `sit
   `discord_avisos_webhook`; `db push` does not carry it, and nothing fails without it:
   `bash docs/runbooks/set-discord-webhook.sh`. **A message names nobody** — a name is an aviso
   change first.
+- **Expo's push security is ON** (since `10.5b-v-iii`, on the `wera-app` account): Expo refuses
+  every push without that account's access token, which lives only in the hosted Vault as
+  `expo_push_access_token` (the robot user `push-sender`'s). `db push` does not carry it, and
+  nothing fails visibly without it — **every message of both apps is refused, silently**. Replace
+  it with `bash docs/runbooks/set-expo-push-token.sh`, prove it with
+  `bash docs/checks/10.5b-v-iii-push-security.sh <file with a test phone's push token>`; to stop
+  using it, the setting off FIRST, then the secret.
 - **The site deploys itself on merge** (`site.yml`). `bash docs/checks/5R-d-ii-site-live.sh`
   proves what tu-wera.com is serving; nothing runs it but a person.
 - **`store/` and `brand/` are read by no workflow**: the text a person pastes into the two
