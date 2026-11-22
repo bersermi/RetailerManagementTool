@@ -5,7 +5,7 @@ Paste from here, **once per app**: where the two differ, the field gives both. T
 *Before the two new apps' first builds* is the order of work. Section 7, the App Store's privacy
 answers for Wera Cocina, was added by `10.4g-ii` (2026-11-03) and waits for Wera Cocina's App Store record — **made at `13.1` (2026-11-22): Apple ID `6837963326`**; the neighbours' app's record, named *Wera*, is `6837963460`.
 
-⚠️ **Since `13.1` (2026-11-22) Itacate's app name on Play is *Wera*** — the owner's naming ruling of that day (Itacate becomes Wera); changed in Play Console and sent for review that day. Its descriptions and pictures still say *Itacate* until `13.3`; the folder, the package and the headings below keep *itacate*.
+⚠️ **Since `13.1` (2026-11-22) Itacate's app name on Play is *Wera*** — the owner's naming ruling of that day (Itacate becomes Wera); changed in Play Console and sent for review that day. Its descriptions and feature graphic say *Wera* since `13.3` (2026-11-22), and Wera Cocina's description names it so; ⚠️ **they reach Play only when the owner pastes them** — once Google approves the title (the plan's date of 2026-11-29), with Wera Tienda's in one send. Its two screenshots still show the old skeleton's card naming *Itacate*: no build shows that screen any more, and `10.5b-vi` replaces both apps' screenshots from the release builds. The folder, the package and the headings below keep *itacate*.
 
 **These are the listings for the CLOSED TESTS.** Only the testers you add see them. **Itacate's
 store version is still the skeleton** — one screen, a map, nothing else — but its test build signs
@@ -86,9 +86,9 @@ Vende hasta el último plato.
 
 Wera Cocina es la app de Wera para fondas y cocinas: ofrece tu comida del día a mejor precio para que los vecinos pasen por ella.
 
-Esta es una versión de prueba, solo para quienes la están probando. Por ahora puedes crear tu cuenta, registrar tu cocina con su dirección —y, si quieres, su punto exacto en el mapa— y publicar platillos o bolsas sorpresa, con el horario en que pueden pasar. Lo que publicas lo ven los vecinos en Itacate, la app de Wera para vecinos, que también está en prueba.
+Esta es una versión de prueba, solo para quienes la están probando. Por ahora puedes crear tu cuenta, registrar tu cocina con su dirección —y, si quieres, su punto exacto en el mapa— y publicar platillos o bolsas sorpresa, con el horario en que pueden pasar. Lo que publicas lo ven los vecinos en Wera, la app para vecinos, que también está en prueba.
 
-Usa la misma cuenta que Wera: tu tienda.
+Usa la misma cuenta que Wera Tienda.
 
 No tiene anuncios y no vende datos.
 
@@ -110,7 +110,7 @@ Wera
 
 <!-- max:80 -->
 ```
-Versión de prueba de Itacate, la app de Wera para vecinos.
+Versión de prueba de Wera, la app para vecinos.
 ```
 
 **Full description**
@@ -119,7 +119,7 @@ Versión de prueba de Itacate, la app de Wera para vecinos.
 ```
 La comida del día de tu colonia, a mejor precio.
 
-Itacate es la app de Wera para vecinos.
+Wera es la app para vecinos.
 
 Esta es una versión de prueba, solo para quienes la están probando. Te muestra las cocinas cercanas que tienen algo publicado —primero lo que puedes recoger ahora, y de la más cercana a la más lejana—, con lo que ofrecen, su precio y a qué hora pasar por ello. Tu ubicación se usa solo en tu teléfono; si no quieres darla, escribe tu código postal. La iremos llenando con actualizaciones.
 

@@ -7,7 +7,7 @@ Google Play's closed test* says which screen each block goes on. Why each answer
 **Written for the closed test; the public listing in Mexico since 2026-11-11** (`5R-e`). The
 screenshots are of 2026-10-21; new ones, styled, and the words read again with him are `5R-q`'s.
 ⚠️ **The first upload is the bundle built with the cow on its icon** (the owner's rulings of 2026-10-13); `store/README.md` says which one.
-⚠️ **Since `13.1` (2026-11-22) the app name is *Wera Tienda*** — the owner's naming ruling of that day; was *Wera: tu tienda*, changed in Play Console and sent for review that day. The other texts and the feature graphic are `13.3`'s; the release notes of section 8 are history.
+⚠️ **Since `13.1` (2026-11-22) the app name is *Wera Tienda*** — the owner's naming ruling of that day; was *Wera: tu tienda*, changed in Play Console and sent for review that day. The other texts and the feature graphic are rewritten by `13.3` (2026-11-22) — the full description says *Wera Tienda* where the app names itself, and its last line no longer says the app is *en prueba* (it is public); ⚠️ **they reach Play only when the owner pastes them — once Google approves the title** (the plan's date of 2026-11-29), in the same visit to Play Console, both apps' listings in one send; a listing change sent while another is in review moves the app to the back of the queue. The screenshots still show the welcome saying *Wera* until `13.4` retakes them from the build that carries the new words. The release notes of section 8 are history.
 
 ⚠️ A block marked `<!-- max:N -->` has a limit of N characters in Play Console. After editing
 one, run `python3 store/limits.py`.
@@ -47,12 +47,12 @@ Registra las ventas, compras y merma de tu tienda. Funciona sin señal.
 
 <!-- max:4000 -->
 ```
-Wera es la app para llevar tu tienda desde el teléfono: lo que vendes, lo que compras y lo que se echa a perder.
+Wera Tienda es la app para llevar tu tienda desde el teléfono: lo que vendes, lo que compras y lo que se echa a perder.
 
 Está hecha para tiendas pequeñas en México: pollerías, carnicerías, verdulerías, fruterías, abarrotes, cremerías y materias primas. Pesos, IVA y venta por kilo, por pieza, por litro o por manojo.
 
 VENDER
-Busca el producto, pon la cantidad y registra la venta en segundos. Funciona sin señal: Wera guarda las ventas en el teléfono y las envía cuando vuelve la conexión.
+Busca el producto, pon la cantidad y registra la venta en segundos. Funciona sin señal: Wera Tienda guarda las ventas en el teléfono y las envía cuando vuelve la conexión.
 
 COMPRAR
 Registra lo que te entrega cada proveedor y cuánto te costó. En Costos ves cómo ha cambiado lo que pagas por cada producto, y lo puedes compartir en PDF.
@@ -61,7 +61,7 @@ MERMA
 Anota lo que ya no vas a vender y por qué, para saber cuánto se pierde.
 
 PRODUCTOS
-Tu catálogo con sus precios. Para empezar, Wera te pone los productos de tu giro y tú quitas los que no vendes.
+Tu catálogo con sus precios. Para empezar, Wera Tienda te pone los productos de tu giro y tú quitas los que no vendes.
 
 NÚMEROS
 Lo que vendiste por día, por semana o por mes, con IVA. Compara el precio de compra y el de venta de cada producto, y descarga el mes en hoja de cálculo o en PDF.
@@ -75,7 +75,7 @@ Corrige o elimina una venta, una compra o una merma de los últimos siete días.
 TUS DATOS
 Sin anuncios. No vendemos tus datos. Puedes eliminar tu cuenta desde la app cuando quieras.
 
-Wera está en prueba con unas cuantas tiendas. Cuéntanos qué le falta: ayuda@tu-wera.com
+Cuéntanos qué le falta a Wera Tienda: ayuda@tu-wera.com
 
 Aviso de privacidad: https://tu-wera.com/privacidad/
 ```
@@ -85,7 +85,7 @@ Aviso de privacidad: https://tu-wera.com/privacidad/
 | Play asks for | File | What it is |
 |---|---|---|
 | App icon, 512 × 512 PNG | `icono-512.png` | The app's icon since 2026-10-13: a cream cow on a rust square, drawn by `brand/render-icons.sh` |
-| Feature graphic, 1024 × 500 | `grafico-1024x500.jpg` | The mark and the word *Wera*, in rust on cream. Its source is `grafico.html` |
+| Feature graphic, 1024 × 500 | `grafico-1024x500.jpg` | The mark and the name *Wera Tienda*, in rust on cream (*Wera* until `13.3`). Its source is `grafico.html` |
 | Phone screenshots (2 to 8) | `captura-1-bienvenida.jpg` … `captura-6-productos.jpg`, in that order: the welcome, Inicio, Vender, Números, Lo último, Productos | 1080 × 1920, taken 2026-10-21 after `8g`'s first day, from an Android emulator on an invented shop, *Abarrotes Lupita* (Abarrotes and Cremería, three days of invented sales). No real shop's data |
 
 Leave the tablet, Chromebook and video fields empty.

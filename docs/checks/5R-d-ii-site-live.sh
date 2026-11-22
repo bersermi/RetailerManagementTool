@@ -19,8 +19,10 @@
 #      /eliminar-cuenta/, /eliminar-cuenta/cocina/ (Wera Cocina's, the link its
 #      Play Data safety form gives), /eliminar-cuenta/itacate/ (Itacate's, the same,
 #      `10.5-iii-b`) and /estilo.css answer 200 over HTTPS, served by GitHub — and
-#      since `5R-r` the site's own pages: /tienda/, /para-cocinas/, /itacate/,
-#      /bernardo/ (the owner's WhatsApp filled in: 5 holds it), /datos/, /ayuda/.
+#      since `5R-r` the site's own pages: /tienda/, /para-cocinas/, /vecinos/ (the
+#      neighbours' app, Wera since `13.3`; /itacate/ before, which now only points
+#      there and is still asked, so an old link keeps arriving), /bernardo/ (the
+#      owner's WhatsApp filled in: 5 holds it), /datos/, /ayuda/.
 #   4. ⚠️ No response sets a cookie — the pages say *"Este sitio no usa cookies"*.
 #   5. ⚠️ No page holds `{{` — the aviso names its responsable.
 #   6. Both avisos and the terms served are the ones on this checkout (their date
@@ -90,7 +92,7 @@ else
 fi
 
 # 3, 4 and 5. Each page.
-for path in / /privacidad/ /privacidad/cocina-e-itacate/ /terminos/cocina-e-itacate/ /eliminar-cuenta/ /eliminar-cuenta/cocina/ /eliminar-cuenta/itacate/ /cocina/ /tienda/ /para-cocinas/ /itacate/ /bernardo/ /datos/ /ayuda/ /estilo.css; do
+for path in / /privacidad/ /privacidad/cocina-e-itacate/ /terminos/cocina-e-itacate/ /eliminar-cuenta/ /eliminar-cuenta/cocina/ /eliminar-cuenta/itacate/ /cocina/ /tienda/ /para-cocinas/ /vecinos/ /itacate/ /bernardo/ /datos/ /ayuda/ /estilo.css; do
   name="$(echo "$path" | tr '/' '_')"
   code="$(curl -sS ${PIN[@]+"${PIN[@]}"} -o "$TMP/$name.body" -D "$TMP/$name.head" -w '%{http_code}' "$BASE$path" 2>"$TMP/$name.err")"
   if [[ "$code" != "200" ]]; then
