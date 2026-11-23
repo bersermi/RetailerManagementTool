@@ -2978,6 +2978,23 @@ export const ES = {
       dash: '— quiere decir que no hay compras para comparar en ese plazo.',
     },
 
+    /**
+     * ⚠️ THE CHART, ONE PERIOD AT A TIME — `5R-t`, after the owner's first look.
+     * The buttons are `change.window`'s words; these are the chart's own.
+     */
+    chart: {
+      /** Under the plot's right edge. */
+      today: 'Hoy',
+      /** A point at 3 or 6 meses stands for a week from its Monday. */
+      week: (date: string) => `Semana del ${date}`,
+      /** A point at 1 año stands for a month. */
+      month: (month: string, year: string) => `${month.slice(0, 1).toUpperCase()}${month.slice(1)} de ${year}`,
+      /** A period she picked with no delivery in it — the plot stays, empty, and says why. */
+      empty: 'Sin compras en este plazo.',
+      /** The chart's first day when it falls in another year. */
+      withYear: (date: string, year: string) => `${date} de ${year}`,
+    },
+
     /** The collapsible, shut. ⚠️ A word and never a glyph alone (C12.1). */
     showMatrix: 'Ver la tabla',
     /** The collapsible, open. */

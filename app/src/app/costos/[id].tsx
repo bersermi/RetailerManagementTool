@@ -3,20 +3,27 @@ import { useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { isoDay } from '@/api/catalog';
+import { isoDay, priceLabel } from '@/api/catalog';
 import {
+  COST_WINDOWS,
   anyDash,
   changeLine,
   changePoints,
+  chartFromLabel,
+  chartWindowFor,
   costChanges,
+  costChart,
   costsLine,
   costsSpin,
   matrixOf,
+  nearestStop,
+  periodLabel,
   picksProvider,
-  plotted,
+  pricesAt,
   showsChanges,
   type CostChange,
   type CostSeries,
+  type CostWindow,
   type Costs,
   type CostsLineInput,
 } from '@/api/costs';
@@ -70,8 +77,8 @@ import { Vacio } from '@/ui/Vacio';
 // abandoned."*
 //
 // So a segment is a 2 pt `View` rotated about its left edge, and a dot is a
-// small round one. ⚠️ **The arithmetic is NOT here** — `plotted` (`@/api/costs`)
-// answers in fractions of a unit box and this file multiplies by pixels it has
+// small round one. ⚠️ **The arithmetic is NOT here** — `costChart` (`@/api/costs`;
+// `plotted` until `5R-t` drew one period at a time) answers in fractions of a unit box and this file multiplies by pixels it has
 // measured. That is the `R3`/`R9` line drawn where it belongs: a y-axis that
 // silently clipped the highest price would still draw a perfectly plausible
 // line, and nothing on a screen can see that, so the arithmetic lives where a
@@ -247,6 +254,10 @@ function Cuerpo({
   // ⚠️ `5R-t`: the provider she picked in *Cuánto ha cambiado* — `null` is *Todos*.
   // A pick whose provider is no longer on the screen (a delivery voided) is *Todos*.
   const [picked, setPicked] = useState<string | null>(null);
+  // ⚠️ `5R-t`: the chart's period — `null` until she picks one, and then
+  // `chartWindowFor`'s — and the period a finger on the chart is reading.
+  const [period, setPeriod] = useState<CostWindow | null>(null);
+  const [reading, setReading] = useState<string | null>(null);
 
   if (costs.state === 'unknown') {
     if (!costsSpin(costs.state, online)) return <Vacio line={line} />;
@@ -274,23 +285,61 @@ function Cuerpo({
   if (costs.state === 'nothing') return <Vacio line={line} />;
 
   const shown = picked !== null && costs.series.some((one) => one.providerId === picked) ? picked : null;
+  // ⚠️ TODAY IS READ HERE, `Compartir`'s rule (`R3`): the arithmetic takes it as an argument.
+  const today = isoDay(new Date());
+  const window = period ?? chartWindowFor(costs, today);
+  const chart = costChart(costs, window, today, priceUnit);
+  const guide = reading === null ? null : (chart.stops.find((stop) => stop.day === reading)?.x ?? null);
 
   return (
     <View style={{ gap: scale.space }}>
       {showsChanges(costs) ? (
-        <CuantoCambio costs={costs} priceUnit={priceUnit} picked={shown} onPick={setPicked} />
+        <CuantoCambio
+          costs={costs}
+          priceUnit={priceUnit}
+          picked={shown}
+          onPick={(id) => {
+            setPicked(id);
+            setReading(null);
+          }}
+          chosen={window}
+          today={today}
+        />
+      ) : null}
+      {showsChanges(costs) ? (
+        <Periodos
+          chosen={window}
+          onPick={(w) => {
+            setPeriod(w);
+            setReading(null);
+          }}
+        />
       ) : null}
       <Grafica
-        lines={plotted(costs).map((one) => ({
+        lines={chart.lines.map((one) => ({
           key: one.providerId,
-          dots: one.dots,
+          dots: one.points,
           colour: serieColour(one.hue),
           faded: shown !== null && one.providerId !== shown,
         }))}
-        highLabel={costs.highLabel}
-        lowLabel={costs.lowLabel}
+        highLabel={chart.highLabel}
+        lowLabel={chart.lowLabel}
+        fromLabel={chartFromLabel(chart)}
+        toLabel={ES.costs.chart.today}
+        endpoint
+        guide={guide}
+        onTouch={(x) => setReading(x === null ? null : (nearestStop(chart, x, shown)?.day ?? null))}
+        empty={ES.costs.chart.empty}
       />
-      <Leyenda series={costs.series} picked={shown} />
+      <Leyenda
+        series={costs.series}
+        picked={shown}
+        reading={
+          reading === null
+            ? null
+            : { label: periodLabel(reading, chart.grain), prices: pricesAt(chart, reading), priceUnit }
+        }
+      />
       {costs.state === 'single' || costs.state === 'unlinked' ? <Nota line={line} /> : null}
       <Tabla costs={costs} />
       <Compartir costs={costs} title={title} />
@@ -322,14 +371,19 @@ function CuantoCambio({
   priceUnit,
   picked,
   onPick,
+  chosen,
+  today,
 }: {
   costs: Costs;
   priceUnit: string;
   picked: string | null;
   onPick: (providerId: string | null) => void;
+  /** The chart's period: its row is marked, so the rows and the chart read as one. */
+  chosen: CostWindow;
+  today: string;
 }) {
   const { scale } = useDensity();
-  const rows = costChanges(changePoints(costs, picked), isoDay(new Date()));
+  const rows = costChanges(changePoints(costs, picked), today);
   return (
     <View
       style={{
@@ -360,12 +414,28 @@ function CuantoCambio({
       ) : null}
       <View>
         {rows.map((row) => (
-          <Fila key={row.window} change={row} />
+          <Fila key={row.window} change={row} on={row.window === chosen} />
         ))}
       </View>
       {anyDash(rows) ? (
         <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>{ES.costs.change.dash}</Text>
       ) : null}
+    </View>
+  );
+}
+
+/**
+ * The chart's five periods, as buttons over it — `5R-t`, the owner's *"easy to
+ * interact at the different timescales"*. The same buttons as the suppliers',
+ * the same words as the rows'.
+ */
+function Periodos({ chosen, onPick }: { chosen: CostWindow; onPick: (w: CostWindow) => void }) {
+  const { scale } = useDensity();
+  return (
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: scale.rowGap / 2 }}>
+      {COST_WINDOWS.map((w) => (
+        <Escoger key={w} label={ES.costs.change.window[w]} on={w === chosen} onPress={() => onPick(w)} />
+      ))}
     </View>
   );
 }
@@ -430,7 +500,7 @@ function Escoger({
 }
 
 /** One window: its name, then the pesos and the percent — or *Sin cambio*, or the dash in both. */
-function Fila({ change }: { change: CostChange }) {
+function Fila({ change, on }: { change: CostChange; on: boolean }) {
   const { scale } = useDensity();
   const line = changeLine(change);
   const quiet = change.centavos === null || line.same;
@@ -450,9 +520,14 @@ function Fila({ change }: { change: CostChange }) {
         minHeight: scale.rowHeight * 0.75,
         borderTopWidth: change.window === 'd15' ? 0 : 1,
         borderTopColor: PALETTE.linea,
+        // ⚠️ The chart's period, marked by a band AND a bolder name — never the band alone.
+        marginHorizontal: -scale.rowGap / 2,
+        paddingHorizontal: scale.rowGap / 2,
+        borderRadius: on ? scale.rowGap / 2 : 0,
+        backgroundColor: on ? PALETTE.banda : 'transparent',
       }}
     >
-      <Text style={{ flex: 1, fontSize: scale.bodySize, color: PALETTE.tinta }}>
+      <Text style={{ flex: 1, fontSize: scale.bodySize, fontWeight: on ? '700' : '400', color: PALETTE.tinta }}>
         {ES.costs.change.window[change.window]}
       </Text>
       {line.same ? (
@@ -490,10 +565,26 @@ function Nota({ line }: { line: string }) {
  * relationship are different kinds of line and the owner said he wants to see it
  * here: *"You can also look at it in Costos if there are records."*
  */
-function Leyenda({ series, picked }: { series: readonly CostSeries[]; picked: string | null }) {
+function Leyenda({
+  series,
+  picked,
+  reading,
+}: {
+  series: readonly CostSeries[];
+  picked: string | null;
+  /**
+   * ⚠️ `5R-t`: while a finger is on the chart, the period it stands on and each
+   * supplier's price there — a dash where that supplier has none. `null`: each
+   * supplier's last price, as always.
+   */
+  reading: { label: string; prices: ReadonlyMap<string, number | null>; priceUnit: string } | null;
+}) {
   const { scale } = useDensity();
   return (
     <View style={{ gap: scale.rowGap / 2 }}>
+      {reading === null ? null : (
+        <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.tinta }}>{reading.label}</Text>
+      )}
       {series.map((one) => (
         <View
           key={one.providerId}
@@ -529,8 +620,10 @@ function Leyenda({ series, picked }: { series: readonly CostSeries[]; picked: st
               instead — and *what are they charging me now* is still the question
               she opens this screen with, so it is answered in words next to the
               line rather than left to be read off a chart. */}
-          <Text style={{ fontSize: scale.bodySize, color: PALETTE.tinta }}>
-            {one.latest?.price ?? ES.catalog.noPrice}
+          <Text style={{ fontSize: scale.bodySize, color: PALETTE.tinta, fontVariant: ['tabular-nums'] }}>
+            {reading === null
+              ? (one.latest?.price ?? ES.catalog.noPrice)
+              : priceLabel(reading.prices.get(one.providerId) ?? null, reading.priceUnit)}
           </Text>
         </View>
       ))}

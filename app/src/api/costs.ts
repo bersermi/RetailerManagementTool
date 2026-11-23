@@ -97,6 +97,7 @@ import type { Online } from '@/api/connectivity';
 import type { ApiMessageKey } from '@/api/errors';
 import { daysBefore, monthsBefore, tenthsOf } from '@/api/prices';
 import type { Provider } from '@/api/providers';
+import { daysFrom, formatLedgerDay } from '@/format/date';
 import { formatMXN } from '@/format/mxn';
 import { waitsForSignal } from '@/offline/senal';
 import { ES } from '@/strings';
@@ -856,6 +857,218 @@ export function changeLine(change: CostChange): CostChangeLine {
 /** Whether any row is a dash — the sentence that says what one means shows only then. */
 export function anyDash(changes: readonly CostChange[]): boolean {
   return changes.some((one) => one.centavos === null);
+}
+
+// ----------------------------------------------------------------------------
+// ⚠️⚠️ THE CHART, ONE PERIOD AT A TIME — `5R-t`, the owner's word at his first
+// look (2026-11-23): *"The Costos chart seems odd, enhance it to look good on
+// different scenarios, the data points are overlapping and not easy to read at
+// all. The chart should be easy to interact at the different timescales. Make
+// this part optimized enough not to be heavy for the devices."* Measured on the
+// demo pollería: every delivery a dot, 180 of them for six months of chicken in
+// a 300-point strip, and a year-old delivery squeezing the rest to the right.
+//
+// ⚠️ SO THE CHART SHOWS ONE OF THE FIVE PERIODS, and a point is a PERIOD's
+// average for one supplier — a day at 15 días and 1 mes, a week (from Monday) at
+// 3 and 6 meses, a month at 1 año: at most about thirty points a line, whatever
+// the history. The averages are `weekPrice`'s idea at the chart's own grain, so
+// two suppliers taking turns draw two steady lines, not a saw.
+//
+// ⚠️ TIME STAYS PROPORTIONAL (`plotted`'s rule): x is the period's first day
+// within the window, counted in days from the day the window opens from to
+// today — a month with no delivery is a gap in the line's run of dots, never a
+// step closed up. `plotted` keeps the whole-history geometry for its tests and
+// its argument; the screen draws `costChart`.
+// ----------------------------------------------------------------------------
+
+/** What one point on the chart stands for. */
+export type ChartGrain = 'dia' | 'semana' | 'mes';
+
+/** The grain of each period: about thirty points a line at most. */
+export const CHART_GRAIN: Readonly<Record<CostWindow, ChartGrain>> = {
+  d15: 'dia',
+  m1: 'dia',
+  m3: 'semana',
+  m6: 'semana',
+  y1: 'mes',
+};
+
+/** The day a point stands for: the day itself, the Monday of its week, or the 1st of its month. */
+export function grainStart(day: string, grain: ChartGrain): string {
+  if (grain === 'dia') return day;
+  if (grain === 'mes') return `${day.slice(0, 7)}-01`;
+  const noon = Date.UTC(Number(day.slice(0, 4)), Number(day.slice(5, 7)) - 1, Number(day.slice(8, 10)), 12);
+  const sinceMonday = (new Date(noon).getUTCDay() + 6) % 7;
+  return daysBefore(day, sinceMonday);
+}
+
+/**
+ * The period the chart opens on: the shortest that holds every delivery, up to
+ * three months; past that, three months when they hold her last delivery — else
+ * the shortest period that does, so the chart never opens empty while there is
+ * something to draw.
+ */
+export function chartWindowFor(costs: Costs, today: string): CostWindow {
+  let first: string | null = null;
+  let last: string | null = null;
+  for (const p of costs.all) {
+    if (p.centavos === null || p.day > today) continue;
+    if (first === null || p.day < first) first = p.day;
+    if (last === null || p.day > last) last = p.day;
+  }
+  if (first === null || last === null) return 'm3';
+  for (const w of ['d15', 'm1', 'm3'] as const) if (first > costAsOf(today, w)) return w;
+  for (const w of ['m3', 'm6', 'y1'] as const) if (last > costAsOf(today, w)) return w;
+  return 'y1';
+}
+
+/** One point: a period's average for one supplier, and where it sits in a unit box. */
+export interface ChartPoint {
+  /** The period's own first day (`grainStart`) — its identity, shared by every supplier. */
+  readonly day: string;
+  readonly centavos: number;
+  readonly x: number;
+  readonly y: number;
+}
+
+/** One supplier's line over the period, oldest first. */
+export interface ChartLine {
+  readonly providerId: string;
+  readonly hue: number;
+  readonly points: readonly ChartPoint[];
+}
+
+/** A period any line has a point in — where a finger on the chart can stop. */
+export interface ChartStop {
+  readonly day: string;
+  readonly x: number;
+}
+
+/** Everything the chart draws for one period. */
+export interface CostChart {
+  readonly window: CostWindow;
+  readonly grain: ChartGrain;
+  /** The first day the period shows, and today. */
+  readonly from: string;
+  readonly to: string;
+  /** One per supplier, in `Costs.series`' order and colours — empty lines included, so a hue never moves. */
+  readonly lines: readonly ChartLine[];
+  /** Every period with a point, oldest first. */
+  readonly stops: readonly ChartStop[];
+  /** C3.10's sentences for the cheapest and dearest point drawn, `''` when nothing is. */
+  readonly lowLabel: string;
+  readonly highLabel: string;
+}
+
+/**
+ * The chart for one period. ⚠️ The y range is every supplier's together, so
+ * picking one in *Cuánto ha cambiado* fades the others without moving the axis.
+ * ⚠️ One point, or one price, sits in the middle (`plotted`'s rule): `0/0` is
+ * *this is the only value there is*, not the cheapest it has ever been.
+ */
+export function costChart(costs: Costs, window: CostWindow, today: string, priceUnit: string): CostChart {
+  const grain = CHART_GRAIN[window];
+  const asOf = costAsOf(today, window);
+  const from = daysBefore(asOf, -1);
+  const span = daysFrom(asOf, today) ?? 0;
+  const at = (day: string): number => {
+    const shown = day < from ? from : day;
+    const d = daysFrom(asOf, shown) ?? 0;
+    return span <= 0 ? 0.5 : d / span;
+  };
+
+  let low: number | null = null;
+  let high: number | null = null;
+  const sums = costs.series.map((one) => {
+    const byPeriod = new Map<string, { sum: number; n: number }>();
+    for (const p of one.points) {
+      if (p.centavos === null || p.day <= asOf || p.day > today) continue;
+      const key = grainStart(p.day, grain);
+      const cell = byPeriod.get(key) ?? { sum: 0, n: 0 };
+      cell.sum += p.centavos;
+      cell.n += 1;
+      byPeriod.set(key, cell);
+    }
+    const averaged: { day: string; centavos: number }[] = [];
+    for (const [day, cell] of byPeriod) {
+      const centavos = divRoundHalfUpAwayFromZero(cell.sum, cell.n);
+      averaged.push({ day, centavos });
+      if (low === null || centavos < low) low = centavos;
+      if (high === null || centavos > high) high = centavos;
+    }
+    averaged.sort((a, b) => (a.day < b.day ? -1 : a.day > b.day ? 1 : 0));
+    return averaged;
+  });
+
+  const reach = low === null || high === null ? 0 : (high as number) - (low as number);
+  const seen = new Map<string, number>();
+  const lines: ChartLine[] = costs.series.map((one, i) => ({
+    providerId: one.providerId,
+    hue: one.hue,
+    points: (sums[i] ?? []).map((p) => {
+      const x = at(p.day);
+      seen.set(p.day, x);
+      const y = reach === 0 || low === null ? 0.5 : (p.centavos - (low as number)) / reach;
+      return { day: p.day, centavos: p.centavos, x, y };
+    }),
+  }));
+  const stops = [...seen.entries()]
+    .map(([day, x]) => ({ day, x }))
+    .sort((a, b) => (a.day < b.day ? -1 : a.day > b.day ? 1 : 0));
+
+  return {
+    window,
+    grain,
+    from,
+    to: today,
+    lines,
+    stops,
+    lowLabel: low === null ? '' : priceLabel(low, priceUnit),
+    highLabel: high === null ? '' : priceLabel(high, priceUnit),
+  };
+}
+
+/**
+ * The period nearest a finger at `x` (0 to 1 across the plot), or `null` when
+ * nothing is drawn. ⚠️ With a supplier picked, only that supplier's periods: the
+ * line she is reading never answers with a dash.
+ */
+export function nearestStop(chart: CostChart, x: number, providerId: string | null = null): ChartStop | null {
+  const line = providerId === null ? null : chart.lines.find((one) => one.providerId === providerId);
+  const stops = line === null || line === undefined ? chart.stops : line.points;
+  let best: ChartStop | null = null;
+  for (const stop of stops) {
+    if (best === null || Math.abs(stop.x - x) < Math.abs(best.x - x)) best = stop;
+  }
+  return best;
+}
+
+/** Each supplier's price in one period — `null` where that supplier has no point there. */
+export function pricesAt(chart: CostChart, day: string): ReadonlyMap<string, number | null> {
+  const out = new Map<string, number | null>();
+  for (const line of chart.lines) out.set(line.providerId, line.points.find((p) => p.day === day)?.centavos ?? null);
+  return out;
+}
+
+/** A period as she reads it: *12 de noviembre*, *Semana del 3 de noviembre*, *Noviembre de 2026*. */
+export function periodLabel(day: string, grain: ChartGrain): string {
+  const parts = formatLedgerDay(day);
+  if (parts === null) return day;
+  if (grain === 'mes') return ES.costs.chart.month(parts.month, parts.year);
+  const date = ES.dates.dayOfMonth(Number(parts.day), parts.month);
+  return grain === 'semana' ? ES.costs.chart.week(date) : date;
+}
+
+/**
+ * The chart's first day, under its left edge: *9 de noviembre* — and its year
+ * when the period starts in another one (*24 de noviembre de 2025*), so a year
+ * back never reads as this month.
+ */
+export function chartFromLabel(chart: CostChart): string {
+  const parts = formatLedgerDay(chart.from);
+  if (parts === null) return chart.from;
+  const date = ES.dates.dayOfMonth(Number(parts.day), parts.month);
+  return parts.year === chart.to.slice(0, 4) ? date : ES.costs.chart.withYear(date, parts.year);
 }
 
 // ----------------------------------------------------------------------------

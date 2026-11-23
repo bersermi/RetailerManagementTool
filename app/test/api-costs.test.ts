@@ -6,8 +6,16 @@ import {
   COSTS_ORDER_ASCENDING,
   COSTS_TABLE,
   COSTS_VARIANT_COLUMN,
+  CHART_GRAIN,
   COST_WINDOWS,
   anyDash,
+  chartFromLabel,
+  chartWindowFor,
+  costChart,
+  grainStart,
+  nearestStop,
+  periodLabel,
+  pricesAt,
   changeLine,
   changePoints,
   costAsOf,
@@ -758,5 +766,126 @@ describe('cuánto ha cambiado — when it shows, and its buttons (5R-t)', () => 
     expect(costs.all.map((p) => p.day)).toEqual(['2026-09-10', '2026-09-20', '2026-09-24']);
     expect(changePoints(costs, null)).toBe(costs.all);
     expect(changePoints(costs, GEN.id).map((p) => p.day)).toEqual(['2026-09-10', '2026-09-20']);
+  });
+});
+
+// ============================================================================
+// THE CHART, ONE PERIOD AT A TIME — `5R-t`, after the owner's first look: dots
+// overlapping, a year-old delivery squeezing the rest. A point is a period's
+// average for one supplier; the chart shows one of the five periods.
+// ============================================================================
+
+/** `n` days of deliveries back from 23 Nov 2026 (no Sundays), the two suppliers taking turns. */
+function turns(n: number): CostLineRow[] {
+  const rows: CostLineRow[] = [];
+  for (let d = 0; d < n; d += 1) {
+    const day = new Date(Date.UTC(2026, 10, 23 - d));
+    const dow = day.getUTCDay();
+    if (dow === 0) continue;
+    rows.push(line(dow % 2 === 1 ? KG.id : DON_PEPE.id, kilo(dow % 2 === 1 ? 52 : 49), at(day.toISOString().slice(0, 10))));
+  }
+  return rows;
+}
+
+describe('the chart — its grain and the period it opens on (5R-t)', () => {
+  it('stands a point for a day, a week from its Monday, or a month', () => {
+    expect(CHART_GRAIN).toEqual({ d15: 'dia', m1: 'dia', m3: 'semana', m6: 'semana', y1: 'mes' });
+    expect(grainStart('2026-11-23', 'semana')).toBe('2026-11-23');
+    expect(grainStart('2026-11-29', 'semana')).toBe('2026-11-23');
+    expect(grainStart('2026-11-22', 'semana')).toBe('2026-11-16');
+    expect(grainStart('2026-01-01', 'semana')).toBe('2025-12-29');
+    expect(grainStart('2026-11-23', 'mes')).toBe('2026-11-01');
+    expect(grainStart('2026-11-23', 'dia')).toBe('2026-11-23');
+  });
+
+  it('opens on the shortest period holding every delivery, three months at most', () => {
+    const of = (days: string[]) => costsFrom(days.map((d) => line(KG.id, kilo(20), at(d))), PROVIDERS, 'kg', FACTORS);
+    expect(chartWindowFor(of(['2026-11-18', '2026-11-10']), TODAY)).toBe('d15');
+    expect(chartWindowFor(of(['2026-11-18', '2026-10-30']), TODAY)).toBe('m1');
+    expect(chartWindowFor(of(['2026-11-18', '2026-10-14']), TODAY)).toBe('m3');
+    expect(chartWindowFor(of(['2026-11-18', '2026-05-01', '2025-11-10']), TODAY)).toBe('m3');
+  });
+
+  it('never opens empty while there is something to draw', () => {
+    const of = (days: string[]) => costsFrom(days.map((d) => line(KG.id, kilo(20), at(d))), PROVIDERS, 'kg', FACTORS);
+    expect(chartWindowFor(of(['2026-07-20', '2026-07-01']), TODAY)).toBe('m6');
+    expect(chartWindowFor(of(['2026-03-20', '2026-03-01']), TODAY)).toBe('y1');
+    expect(chartWindowFor(of(['2025-06-01', '2025-05-01']), TODAY)).toBe('y1');
+    expect(chartWindowFor(costsFrom([], PROVIDERS, 'kg', FACTORS), TODAY)).toBe('m3');
+  });
+});
+
+describe('the chart — what it draws (5R-t)', () => {
+  const costs = costsFrom(turns(400), WITH_PEPE, 'kg', FACTORS);
+
+  it('draws two suppliers taking turns as two steady lines, a point a week, no more than the period holds', () => {
+    const chart = costChart(costs, 'm3', TODAY, 'kg');
+    expect(chart.grain).toBe('semana');
+    expect(chart.from).toBe('2026-08-24');
+    expect(chart.to).toBe(TODAY);
+    for (const one of chart.lines) {
+      expect(one.points.length).toBeGreaterThan(12);
+      expect(one.points.length).toBeLessThanOrEqual(14);
+    }
+    const prices = chart.lines.map((one) => [...new Set(one.points.map((p) => p.centavos))]);
+    expect(prices).toEqual([[5200], [4900]]);
+    expect([chart.lowLabel, chart.highLabel]).toEqual(['$49 / kg', '$52 / kg']);
+  });
+
+  it('keeps the colours in the series order, an empty line included', () => {
+    const chart = costChart(costs, 'm3', TODAY, 'kg');
+    expect(chart.lines.map((one) => [one.providerId, one.hue])).toEqual(costs.series.map((one) => [one.providerId, one.hue]));
+  });
+
+  it('puts time on the x axis — the window opens at 0, today is 1 — and every stop in order', () => {
+    const chart = costChart(costs, 'd15', TODAY, 'kg');
+    expect(chart.grain).toBe('dia');
+    const xs = chart.stops.map((stop) => stop.x);
+    expect(xs).toEqual([...xs].sort((a, b) => a - b));
+    expect(Math.min(...xs)).toBeGreaterThan(0);
+    expect(chart.stops[chart.stops.length - 1]).toEqual({ day: TODAY, x: 1 });
+    expect(chart.stops).toHaveLength(13);
+  });
+
+  it('leaves a delivery older than the period out, so it cannot squeeze the rest', () => {
+    const old = costsFrom([line(KG.id, kilo(30), at('2025-11-10')), line(KG.id, kilo(24), at('2026-11-18')), line(KG.id, kilo(22), at('2026-11-04'))], PROVIDERS, 'kg', FACTORS);
+    const chart = costChart(old, 'm1', TODAY, 'kg');
+    expect(chart.stops.map((stop) => stop.day)).toEqual(['2026-11-04', '2026-11-18']);
+    expect(chart.highLabel).toBe('$24 / kg');
+  });
+
+  it('averages a supplier\'s deliveries within a period', () => {
+    const twice = costsFrom([line(KG.id, kilo(24), at('2026-11-20')), line(KG.id, kilo(21), at('2026-11-17'))], PROVIDERS, 'kg', FACTORS);
+    const chart = costChart(twice, 'm3', TODAY, 'kg');
+    expect(chart.lines[0]!.points).toEqual([{ day: '2026-11-16', centavos: 2250, x: chart.lines[0]!.points[0]!.x, y: 0.5 }]);
+  });
+
+  it('stops a finger at the nearest period, and reads each supplier there', () => {
+    const chart = costChart(costs, 'm1', TODAY, 'kg');
+    expect(nearestStop(chart, 1)?.day).toBe(TODAY);
+    expect(nearestStop(chart, 0)?.day).toBe(chart.stops[0]!.day);
+    const monday = pricesAt(chart, TODAY);
+    expect(monday.get(KG.id)).toBe(5200);
+    expect(monday.get(DON_PEPE.id)).toBeNull();
+    // Picked, Don Pepe: the finger at today stops on his last day, never on one he did not deliver.
+    const his = nearestStop(chart, 1, DON_PEPE.id);
+    expect(his?.day).toBe('2026-11-21');
+    expect(pricesAt(chart, his!.day).get(DON_PEPE.id)).toBe(4900);
+  });
+
+  it('draws nothing, and stops nowhere, in a period with no delivery', () => {
+    const chart = costChart(costsFrom([line(KG.id, kilo(20), at('2026-09-01'))], PROVIDERS, 'kg', FACTORS), 'd15', TODAY, 'kg');
+    expect(chart.stops).toEqual([]);
+    expect(chart.lines.every((one) => one.points.length === 0)).toBe(true);
+    expect([chart.lowLabel, chart.highLabel]).toEqual(['', '']);
+    expect(nearestStop(chart, 0.5)).toBeNull();
+  });
+
+  it('names a period as she reads it', () => {
+    expect(periodLabel('2026-11-12', 'dia')).toBe('12 de noviembre');
+    expect(periodLabel('2026-11-02', 'semana')).toBe('Semana del 2 de noviembre');
+    expect(periodLabel('2026-11-01', 'mes')).toBe('Noviembre de 2026');
+    expect(chartFromLabel(costChart(costs, 'd15', TODAY, 'kg'))).toBe('9 de noviembre');
+    expect(chartFromLabel(costChart(costs, 'y1', TODAY, 'kg'))).toBe('24 de noviembre de 2025');
   });
 });
