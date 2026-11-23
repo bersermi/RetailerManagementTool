@@ -7,10 +7,18 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  FLING_MIN,
+  FLING_SPEED,
+  HOLD_MS,
   MAX_CARD_MS,
   MIN_CARD_MS,
   PICTURE_MS,
+  SWIPE_SHARE,
+  TAP_SLOP,
   cardMs,
+  destino,
+  gestoDe,
+  type Dedo,
   palabras,
   RECORRIDO_DUENO,
   RECORRIDO_EMPLEADO,
@@ -211,5 +219,58 @@ describe('what this phone writes (5R-n)', () => {
     marcarHistoria(store, 'manager');
     expect(historiaVista(store, 'owner')).toBe(true);
     expect(historiaVista(store, 'staff')).toBe(false);
+  });
+});
+
+// `5R-t`, the owner's report of 2026-11-23: the bar did not reset when a card
+// moved, and a card could not be swiped. One decision as the finger lifts.
+describe('what a finger did on a card (5R-t)', () => {
+  const W = 400;
+  const touch = (d: Partial<Dedo>): Dedo => ({ dx: 0, dy: 0, vx: 0, ms: 120, x: 300, width: W, ...d });
+
+  it('moves on with a quick tap right of the first third, and back with one inside it', () => {
+    expect(gestoDe(touch({ x: 300 }))).toBe('adelante');
+    expect(gestoDe(touch({ x: W / 3 }))).toBe('adelante');
+    expect(gestoDe(touch({ x: W / 3 - 1 }))).toBe('atras');
+    expect(gestoDe(touch({ x: 10 }))).toBe('atras');
+  });
+
+  it('keeps a tap a tap through a finger that wanders a little', () => {
+    expect(gestoDe(touch({ dx: TAP_SLOP, dy: -TAP_SLOP }))).toBe('adelante');
+    expect(gestoDe(touch({ dx: TAP_SLOP + 1 }))).toBe('sigue');
+  });
+
+  it('holds the card for a finger held down, and lets it run on when it lifts', () => {
+    expect(gestoDe(touch({ ms: HOLD_MS - 1 }))).toBe('adelante');
+    expect(gestoDe(touch({ ms: HOLD_MS }))).toBe('sigue');
+    expect(gestoDe(touch({ ms: 4_000, x: 10 }))).toBe('sigue');
+  });
+
+  it('goes to the next card on a swipe left, and back on a swipe right, wherever it started', () => {
+    const far = W * SWIPE_SHARE;
+    expect(gestoDe(touch({ dx: -far, ms: 600, x: 10 }))).toBe('adelante');
+    expect(gestoDe(touch({ dx: far, ms: 600, x: 390 }))).toBe('atras');
+    expect(gestoDe(touch({ dx: -(far - 1), ms: 600 }))).toBe('sigue');
+  });
+
+  it('takes a short quick flick as a swipe, and a short slow drag as nothing', () => {
+    expect(gestoDe(touch({ dx: -FLING_MIN, vx: -FLING_SPEED, ms: 90 }))).toBe('adelante');
+    expect(gestoDe(touch({ dx: FLING_MIN, vx: FLING_SPEED, ms: 90 }))).toBe('atras');
+    expect(gestoDe(touch({ dx: -FLING_MIN, vx: -(FLING_SPEED / 2), ms: 300 }))).toBe('sigue');
+    expect(gestoDe(touch({ dx: -(FLING_MIN - 1), vx: -1 }))).toBe('sigue');
+  });
+
+  it('never reads a finger moving up or down as a swipe', () => {
+    expect(gestoDe(touch({ dx: -W * 0.3, dy: W * 0.4, ms: 600 }))).toBe('sigue');
+    expect(gestoDe(touch({ dx: -FLING_MIN, dy: 40, vx: -1, ms: 90 }))).toBe('sigue');
+  });
+
+  it('moves one card at a time, and nowhere past the first or the last', () => {
+    expect(destino(0, 8, 'adelante')).toBe(1);
+    expect(destino(3, 8, 'atras')).toBe(2);
+    expect(destino(0, 8, 'atras')).toBeNull();
+    expect(destino(7, 8, 'adelante')).toBeNull();
+    expect(destino(4, 8, 'sigue')).toBeNull();
+    expect(destino(4, 5, 'adelante')).toBeNull();
   });
 });

@@ -155,3 +155,79 @@ export function abrePorSiSolo(m: Momento): boolean {
 export function esUltima(cards: readonly Tarjeta[], index: number): boolean {
   return index >= cards.length - 1;
 }
+
+// ----------------------------------------------------------------------------
+// ⚠️⚠️ WHAT A FINGER DID ON A CARD — `5R-t`, the owner's report of 2026-11-23:
+// *"The timer for each slide is behaving strange, it is not switching and
+// reseting well after a user moves from one slide to the other. Also, we should
+// allow the user to move by swiping the slides, not just by tapping."*
+//
+// ⚠️ THE CAUSE, MEASURED IN REACT NATIVE'S OWN `Pressability`: the card was a
+// `Pressable` that paused on `onPressIn`, resumed on `onPressOut` and moved on
+// `onPress`. A press shorter than its `minPressDuration` (130 ms — every quick
+// tap) fires `onPress` FIRST and `onPressOut` 130 ms later, so the tap moved to
+// the next card and then resumed THAT card's bar from where the old one had been
+// paused: a new card half full, ending early or late. A slower tap fired them the
+// other way round and worked — which is why it looked random.
+//
+// ⚠️ SO ONE HANDLER DECIDES, ONCE, WHEN THE FINGER LIFTS: this function. A swipe
+// moves a card (left: the next one; right: the one before); a quick tap moves as
+// it always did (the left third back, the rest on); anything else — a finger
+// held, a swipe given up halfway — leaves the card where it was and its bar runs
+// on from where it stopped. A card that is moved to always starts from zero.
+// ----------------------------------------------------------------------------
+
+/** How far a finger may wander and still be a tap — in points, not a size anyone looks at. */
+export const TAP_SLOP = 10;
+/** A finger down longer than this was holding the card, not tapping it. */
+export const HOLD_MS = 350;
+/** A swipe moves a card once it has travelled this share of the card's width… */
+export const SWIPE_SHARE = 0.18;
+/** …or flicked faster than this (points per millisecond), past `FLING_MIN` points. */
+export const FLING_SPEED = 0.35;
+export const FLING_MIN = 24;
+
+/** What a finger lifted from a card meant. */
+export type Gesto = 'adelante' | 'atras' | 'sigue';
+
+/** One touch, from the finger going down to it lifting. */
+export interface Dedo {
+  /** Travel since it went down, in points: `dx` negative is a swipe to the left. */
+  readonly dx: number;
+  readonly dy: number;
+  /** Horizontal speed when it lifted, in points per millisecond. */
+  readonly vx: number;
+  /** How long it was down. */
+  readonly ms: number;
+  /** Where it went down, across the screen — a tap's third is the screen's. */
+  readonly x: number;
+  /** The screen's width. */
+  readonly width: number;
+}
+
+/** A swipe, a tap or a hold — decided once, as the finger lifts. */
+export function gestoDe(d: Dedo): Gesto {
+  const across = Math.abs(d.dx);
+  const down = Math.abs(d.dy);
+  if (across > down) {
+    const far = across >= d.width * SWIPE_SHARE;
+    const flung = Math.abs(d.vx) >= FLING_SPEED && across >= FLING_MIN;
+    if (far || flung) return d.dx < 0 ? 'adelante' : 'atras';
+  }
+  if (across <= TAP_SLOP && down <= TAP_SLOP && d.ms < HOLD_MS) {
+    return d.x < d.width / 3 ? 'atras' : 'adelante';
+  }
+  return 'sigue';
+}
+
+/**
+ * The card a gesture moves to — or `null`: it stays where it is and its bar runs
+ * on. ⚠️ Nothing before the first card, and nothing after the last: the last one
+ * holds the way out (`esUltima`), so a swipe past it does not close the story.
+ */
+export function destino(index: number, count: number, gesto: Gesto): number | null {
+  if (gesto === 'sigue') return null;
+  const next = gesto === 'adelante' ? index + 1 : index - 1;
+  if (next < 0 || next > count - 1) return null;
+  return next;
+}

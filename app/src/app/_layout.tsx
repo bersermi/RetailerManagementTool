@@ -99,6 +99,10 @@ export default function RootLayout() {
               <Stack screenOptions={{ headerShown: false }}>
                 <Stack.Screen name="ajustes" options={{ presentation: 'modal' }} />
                 <Stack.Screen name="solicitudes" options={{ presentation: 'modal' }} />
+                {/* ⚠️ `5R-t`: *Conoce Wera* moves by swiping, so the iPhone's swipe
+                    from the left edge must not close it instead of going back a
+                    card. *Saltar* and Android's back still close it. */}
+                <Stack.Screen name="recorrido" options={{ gestureEnabled: false }} />
               </Stack>
               <OfflineSurfaces />
               {/* ⚠️ C11.9's banner is drawn by Inicio itself since `8g` (the owner's
