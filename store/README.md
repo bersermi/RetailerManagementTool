@@ -16,10 +16,11 @@ pictures Google asks for.
 
 **Where each stands.** *Wera: tu tienda* **1.1.0** is public in Mexico on both stores — released
 2026-11-18 on the App Store (build 4) and at 100 % on Google Play (version code 8), both read by `5R-p`
-on 2026-11-22; Google Play's title is *Wera Tienda* since 2026-11-23. **1.2.0 (`13.4`) is half built,
-from `a1d7012`:** the Android's version code 9 waits for the owner's upload, in one Play visit with the
-listing's new texts, graphic and first screenshot; the iPhone's was refused by EAS on 2026-11-23 (the
-free plan's iOS builds for November used up). Section 10 of each store's file holds 1.2's words, and the
+on 2026-11-22; Google Play's title is *Wera Tienda* since 2026-11-23. **1.2.0 (`13.4`) is built for both
+stores:** the Android's version code 9 (from `a1d7012`) waits for the owner's upload, in one Play visit with
+the listing's new texts, graphic and first screenshot; the iPhone's **1.2.0 (6)**, built on this Mac on
+2026-11-23 from `3cf8368` (EAS refused it that morning: the free plan's iOS builds for November were used up),
+waits to be sent to Apple — he stopped its upload. Section 10 of each store's file holds 1.2's words, and the
 handbook's *Wera Tienda 1.2 in both stores* his steps. (Corrected 2026-11-23: this paragraph still had
 1.1 waiting for his upload.)
 
@@ -84,9 +85,11 @@ resources, its `assets/`, the ELF headers of `base/lib/arm64-v8a/`), not off `ap
 | Icon | The cow, unchanged since `01b250f` |
 | Sign in with Apple | Not on Android: the button is drawn on an iPhone only |
 
-It is `~/RetailerToolDev/wera-builds/wera-tienda-1.2.0-9.aab` (SHA-256 `f9b334ad…`). ⚠️ **The iPhone's
-twin does not exist yet**: on 2026-11-23 EAS refused it — the free plan's iOS builds for November were used
-up (they come back on 2026-12-01, the plan's dates block). 1.1's bundles stay beside it:
+It is `~/RetailerToolDev/wera-builds/wera-tienda-1.2.0-9.aab` (SHA-256 `f9b334ad…`). **The iPhone's
+twin was built on this Mac the same day** (EAS had refused it — the free plan's iOS builds for November were
+used up): `wera-tienda-1.2.0-ios.ipa`, **1.2.0 (6)**, from `3cf8368` — so it carries `5R-t`, which Android's
+gets over the air — runtime `4f29fdaa` (`EXUpdates.bundle/fingerprint`), signed with the App Store profile of
+2026-10-21 (SHA-256 `40bfa143…`); a local build, so EAS's build list does not show it. Not sent to Apple yet. 1.1's bundles stay beside it:
 `wera-tienda-1.1.0-8.aab` (EAS `011fb071`, runtime `5d02ce3f`) and the iPhone's `wera-tienda-1.1.0-4.ipa`
 (EAS `2bb5eb1b`, runtime `72c82608`, sent with `eas submit`, submission `c2ec81ca`, to the record
 `6818418895`, named in `app/eas.json`); 1.0's, `89de4383` (version code 7), in
