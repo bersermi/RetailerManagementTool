@@ -47,10 +47,11 @@ const app = JSON.parse(
 
 describe('the app is Wera, on one identity', () => {
   // ⚠️ THE REPOSITORY AND THE PACKAGES STAY `tienda` DELIBERATELY — that is the
-  // codebase's name and the `@tienda/*` scope. `Wera` is what the shopkeeper's
-  // home screen says, and this file is the boundary between the two.
-  it('is named Wera where a person can read it', () => {
-    expect(app.expo.name).toBe('Wera');
+  // codebase's name and the `@tienda/*` scope. `Wera Tienda` is what the
+  // shopkeeper's home screen says (the owner's naming ruling of 2026-11-22, in
+  // Wera 1.2.0 — `13.4`), and this file is the boundary between the two.
+  it('is named Wera Tienda where a person can read it', () => {
+    expect(app.expo.name).toBe('Wera Tienda');
   });
 
   it('carries the same bundle identifier on both platforms', () => {

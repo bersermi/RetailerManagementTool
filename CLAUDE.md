@@ -2,8 +2,8 @@
 
 Multi-tenant retail operations for small Mexican retailers. Postgres (Supabase) +
 React Native (Expo). MXN, IVA, LFPDPPP — not GDPR, CFDI out of scope. **The names, since the
-owner's ruling of 2026-11-22 (the plan's Step 13):** the shop app is **Wera Tienda** (`app/`; *Wera*
-under its icon until `13.4`), the fondas' **Wera Cocina** (`cocina/`), and the neighbours' **Wera**
+owner's ruling of 2026-11-22 (the plan's Step 13):** the shop app is **Wera Tienda** (`app/`; under its
+icon too from Wera 1.2.0, `13.4`), the fondas' **Wera Cocina** (`cocina/`), and the neighbours' **Wera**
 (`itacate/`, once *Itacate*) — new prose says *Wera (vecinos)* wherever *Wera* alone could mean either.
 The repo, the folders, the ids, the schemes and the `@tienda/*` packages keep their names.
 
