@@ -64,7 +64,7 @@ privacidad still does, in its first section — legal text, yours to change.
 
 ## What is on your phone
 
-⏳ **23 November: Wera Tienda 1.2 — Android's version is built and ready for you to send; the iPhone's waits on your word.** 1.2 puts *Wera Tienda* under the icon and in the iPhone's camera question; everything else in it you already have over the air. Nothing on your phones changes until a store ships it. ⚠️ **From now on a fix sent over the air reaches 1.2 only**: the phones on 1.1 — yours from both stores — take the fixes again once they update Wera Tienda from their store. The iPhone's build was refused by Expo: the free plan's iOS builds for November are used up, and they come back on 1 December (*Wera Tienda 1.2 in both stores*).
+⏳ **23 November: Wera Tienda 1.2 — Android's version is built and ready for you to send; the iPhone's waits on your word.** 1.2 puts *Wera Tienda* under the icon and in the iPhone's camera question; everything else in it you already have over the air. Nothing on your phones changes until a store ships it. ⚠️ **From now on a fix sent over the air reaches 1.2 only**: the phones on 1.1 — yours from both stores — take the fixes again once they update Wera Tienda from their store. ✅ **The iPhone's version is built too** (23 November, evening, on this Mac after your `brew install fastlane`): **1.2.0 (6)**, checked inside — it also carries the new Costos and walkthrough. ⚠️ **It is not at Apple yet: you stopped the upload.** When you want it there, say so, or upload the file yourself (*Wera Tienda 1.2 in both stores*).
 
 ✅ **19 November, evening: both apps' updates are on their test builds — your iPhone's included, nothing to reinstall.** Wera Cocina's
 carries her numbers (`10.9f`) and promotions' screens (`10.9g-ii`, `10.9g-iii`); Itacate's, sent at your word that night, carries promotions
@@ -840,7 +840,7 @@ Program and Play Console — both opened 1 October), `5R-b` (cloud builds and fi
 | **16 November** | ✅ **Done 10 November** — Google approved, and you released Wera: *Wera: tu tienda* is on Google Play in Mexico since 11 November | — |
 | **25 November** | ✅ **Done 22 November** — both approved and live: you read it in the consoles during `13.1`. `5R-p` followed the same day, with your two phones | — |
 | **29 November** | ✅ **Done 23 November** — Google approved both titles; Wera's public page reads *Wera Tienda*. The new texts and feature graphics are not sent yet: they go with `13.4`'s new version, in one visit to Google Play (a session walks you through it) | — |
-| **1 December** | **Expo's free iPhone builds come back** — if Wera Tienda 1.2's iPhone version has not been built another way by then, a session builds it that day from the newest version with the same runtime as Android's, checks it and sends it to Apple; then you do the App Store's half (*Wera Tienda 1.2 in both stores*) | Every iPhone on 1.1 — yours included — takes no fix over the air until 1.2 is on it, and the App Store keeps the name *Wera: tu tienda* |
+| **1 December** | ✅ **No longer needed** — Wera Tienda 1.2's iPhone version was built on this Mac on 23 November, after your `brew install fastlane`: 1.2.0 (6), from the newest version, so it carries the new Costos and walkthrough. What is left is sending it to Apple and the App Store's half (*Wera Tienda 1.2 in both stores*) | Every iPhone on 1.1 — yours included — takes no fix over the air until 1.2 is on it, and the App Store keeps the name *Wera: tu tienda* |
 | **4 December** | **Delete the photos of businesses that no longer exist** — and, since 20 November, a kitchen's photos nothing uses — a session lists them (*Photos of a shop or a kitchen that no longer exists*); if it names one, you run the deletion. Then every 30 days | Both privacy pages promise it — a deleted business's within 30 days, an unused photo in the monthly round |
 | **30 April 2027** | **Delete the pilot's measurements** on the live database — the aviso promises it. If the pilot runs longer, change the date on the pages and tell the users first | The aviso says something false about people's data |
 
@@ -2411,7 +2411,7 @@ reaches 1.1 only** — a phone on 1.0 takes 1.1 from its store first.
 
 Google's review can take up to seven days. *Data safety* stays as it is: 1.2 adds no library and no permission.
 
-**App Store Connect — once the iPhone's build exists** and Apple's email says it is processed. Every word is in
+**App Store Connect — the iPhone's build exists: `wera-tienda-1.2.0-ios.ipa` in `~/RetailerToolDev/wera-builds/`, 1.2.0 (6).** First it goes up to Apple — tell a session *"sube la versión del iPhone"*, or do it yourself with Apple's free **Transporter** app (Mac App Store): sign in, drag the file in, *Deliver*. Then wait for Apple's email that it is processed. Every word is in
 [`store/app-store.md`](../store/app-store.md) (sections 2, 4, 7 and 10):
 
 1. *Apps* → *Wera: tu tienda* → the **+** beside *iOS App* → type `1.2.0` → *Create*. Apple copies 1.1's
@@ -2421,7 +2421,7 @@ Google's review can take up to seven days. *Data safety* stays as it is: 1.2 add
 4. *Screenshots*: in each size box that holds Wera's pictures, delete the first and add `captura-1-bienvenida.jpg`
    from `store/app-store/iphone-6.9/`, `iphone-6.5/` or `iphone-6.3/` (the folder named like the box); drag it first.
 5. *What's New in This Version* → section 10's block.
-6. *Build* → **+** → the 1.2.0 build the session names → *Done*.
+6. *Build* → **+** → **1.2.0 (6)** → *Done*.
 7. *App Review Information → Notes* → section 7's block (it now says *Wera Tienda* and what Merma's doors are).
 8. *App Store Version Release* → *Automatically release this version*, as for 1.1.
 9. *Save* → *Add for Review* → *Submit for Review*. Apple usually answers within a day or two.
