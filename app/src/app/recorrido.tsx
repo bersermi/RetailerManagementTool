@@ -38,6 +38,10 @@ import { PALETTE } from '@/theme/palette';
 // ⚠️ `merma.jpg` WAS RETAKEN AT `10.0a` (2026-10-27): the doors, Te lo compro's
 // among them, became Tirar — what Merma is for every role while it is paused.
 // Both Merma cards, the owner's and the Empleado's, show it.
+// ⚠️ `costos.jpg` WAS RETAKEN AT `5R-t` (2026-11-23), when Costos gained
+// *Cuánto ha cambiado*: the same simulator at 8:45, halved to 600 × 1304, on
+// *Pollo entero* of an invented local pollería (*Pollería y Recaudería La Güera*,
+// `docs/runbooks/demo-polleria.sql` run on the local stack) — no real shop's data.
 //
 // ⚠️⚠️ WHAT NO CHECK CAN SEE — `R9`: whether six seconds a card is enough for her
 // to read, whether the finger on the Vender card reads as a hand, and whether a
