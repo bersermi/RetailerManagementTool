@@ -148,6 +148,18 @@ slide** (`useCatalog` picks a store only when exactly one is visible). The 2026-
 Vender as the seed's cashier of one store; the 2026-10-21 set used a shop made the app's way,
 which has one store, so its owner sees *Cobrar*.
 
+⚠️ **The welcome alone, retaken 2026-11-23 (`13.4`)** — it says *Wera Tienda* and shows no data, so no
+shop and no proxy were needed. **Play's:** a debug build of the branch (`expo prebuild -p android
+--clean`, capped Gradle) on `wera-android-36` at `wm size 1080x1920`, Metro from the worktree, SystemUI's
+demo mode (`clock -e hhmm 0845`, wifi full, no mobile, battery 100). **The App Store's:** no Simulator
+build of today's code existed, and a new one needs React Native from source — so the existing
+Simulator Release build (`wera-ios-sim-worktree`'s `Release-iphonesimulator/Wera.app`; no native
+module added to `app/package.json` since it was made) was copied, its `main.jsbundle` and `assets/`
+replaced by `npx expo export:embed --platform ios --dev false` of the branch, `EXUpdatesEnabled` set
+false in its `Expo.plist`, its display name and camera question set in `Info.plist`, `codesign --force
+--deep --sign -`, installed on *iPhone 17 Pro Max* (1320 × 2868) and *iPhone 17* (1206 × 2622) with
+`simctl status_bar … override --time 8:45`; the 6.5-inch file from the large one as above.
+
 ## When something changes
 
 - **A new Android store bundle**: it replaces the one on Play's closed track, and this file's

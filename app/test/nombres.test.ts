@@ -15,10 +15,10 @@ import { ES } from '@/strings';
 // neighbours' Wera too. *Wera* stays where it is the company acting — it buys, it picks
 // up, you write to it — which is the family's name in every app.
 //
-// ⚠️ THE NAME UNDER THE ICON WAITS FOR `13.4`: `app.json`'s `name` (and the camera's
-// sentence) are native, and changing either moves the runtime of the builds in the field
-// (measured at `13.2`: iOS `72c82608` → `16a791ea`), so no over-the-air fix would reach a
-// phone until Wera's next store version — the row that builds it changes them.
+// ⚠️ THE NAME UNDER THE ICON CAME WITH `13.4` (Wera 1.2.0): `app.json`'s `name` (and the
+// camera's sentence) are native, and changing either moves the runtime of the builds in the
+// field (measured at `13.2`: iOS `72c82608` → `16a791ea`), so `13.2` left both to the store
+// version that `13.4` builds; 1.1's phones take them from their store.
 // ============================================================================
 
 const APP_JSON = JSON.parse(readFileSync(fileURLToPath(new URL('../app.json', import.meta.url)), 'utf8')).expo;
@@ -57,9 +57,12 @@ describe('13.2: Wera, the company, keeps the family’s name', () => {
   });
 });
 
-describe('13.2: the name under the icon waits for 13.4', () => {
-  it('app.json still says Wera, and its camera sentence too — both native', () => {
-    expect(APP_JSON.name).toBe('Wera');
-    expect(JSON.stringify(APP_JSON.plugins)).toContain('Wera usa la cámara para tomar fotos de tus productos.');
+describe('13.4: the name under the icon is Wera Tienda', () => {
+  it('app.json names Wera Tienda, and so does the iPhone’s camera question — both native', () => {
+    expect(APP_JSON.name).toBe('Wera Tienda');
+    const camara = (APP_JSON.plugins as unknown[]).find(
+      (p): p is [string, { cameraPermission: string }] => Array.isArray(p) && p[0] === 'expo-image-picker',
+    );
+    expect(camara?.[1].cameraPermission).toBe('Wera Tienda usa la cámara para tomar fotos de tus productos.');
   });
 });

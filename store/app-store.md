@@ -125,7 +125,7 @@ tienda,punto de venta,abarrotes,ventas,caja,tiendita,negocio,compras,merma,prove
 | Support URL | `https://tu-wera.com/` |
 | Marketing URL | leave empty |
 | Copyright | `2026` and your legal name, as the aviso prints it. **Not written in this repository** |
-| Screenshots | [`app-store/`](app-store/), six per size, in file order — the folder by the box's title: `iphone-6.9/` (1320 × 2868) for *iPhone with Dynamic Island (large display)*, `iphone-6.5/` (1284 × 2778) for *iPhone with Face ID (large display)*, the 6.5-inch box, which is the required one when no 6.9-inch set is given; `iphone-6.3/` (1206 × 2622) for *Dynamic Island (medium display)*. One large set is enough: Apple scales it down. Taken 2026-10-21 on an invented shop; no real shop's data. ⚠️ **The 6.5-inch box refuses 1320 × 2868 as *"File dimensions are invalid"*** (his upload, 2026-10-21), hence `iphone-6.5/`: the large set scaled to 1284 wide and 6 px cut from top and bottom |
+| Screenshots | [`app-store/`](app-store/), six per size, in file order — the folder by the box's title: `iphone-6.9/` (1320 × 2868) for *iPhone with Dynamic Island (large display)*, `iphone-6.5/` (1284 × 2778) for *iPhone with Face ID (large display)*, the 6.5-inch box, which is the required one when no 6.9-inch set is given; `iphone-6.3/` (1206 × 2622) for *Dynamic Island (medium display)*. One large set is enough: Apple scales it down. Taken 2026-10-21 on an invented shop; no real shop's data. ⚠️ **The first of each set, the welcome, retaken 2026-11-23 (`13.4`)**: it says *Wera Tienda* (section 10). ⚠️ **The 6.5-inch box refuses 1320 × 2868 as *"File dimensions are invalid"*** (his upload, 2026-10-21), hence `iphone-6.5/`: the large set scaled to 1284 wide and 6 px cut from top and bottom |
 
 ## 5. Age rating
 
@@ -195,9 +195,9 @@ both are still collected.
 
 <!-- max:4000 -->
 ```
-Wera is a point-of-sale and stock-record app for small shops in Mexico. The interface is in Spanish.
+Wera Tienda is a point-of-sale and stock-record app for small shops in Mexico. The interface is in Spanish.
 
-The demo account owns a shop with products already loaded. The first time an account opens its shop on a phone, a one-minute tour ("Conoce Wera") opens by itself; "Saltar" closes it. To record a sale: tab "Vender", tap + on a product, open the basket ("Total") and confirm. "Comprar" records a delivery from a supplier and "Merma" records a write-off. "Inicio" has the catalog, the last seven days, suppliers, reports ("Números") and settings ("Ajustes").
+The demo account owns a shop with products already loaded. The first time an account opens its shop on a phone, a one-minute tour ("Conoce Wera") opens by itself; "Saltar" closes it. To record a sale: tab "Vender", tap + on a product, open the basket ("Total") and confirm. "Comprar" records a delivery from a supplier. "Merma" opens on three doors: "Tirar" records a write-off; the two marked "Próximamente" ("Te lo compro", "Ofrecer a las cocinas") are services we offer to shops later, shown so a shop knows they are coming, and open nothing yet. "Inicio" has the catalog, the last seven days, suppliers, reports ("Números") and settings ("Ajustes").
 
 Wera processes no payments: it only records sales a shop made in cash. There are no in-app purchases and no ads.
 
@@ -245,3 +245,36 @@ new phone.
 1.1 no longer does (they never named *Te lo compro*); the privacy answers (section 6) and the age
 rating are unchanged. What a reviewer meets that 1.0's reviewer did not: the tour, and the iPhone's
 camera question, which since 1.1 reads *Wera usa la cámara para tomar fotos de tus productos.*
+
+## 10. Version 1.2.0 — *Wera Tienda* (`13.4`)
+
+The handbook's *Wera 1.2 in both stores* has the steps. App Store Connect copies 1.1's description,
+keywords, promotional text, screenshots and review information into the new version; these change:
+
+| Where | What |
+|---|---|
+| *App Information* → **Name** | section 2's block, **`Wera Tienda`** — greyed out while 1.1 alone was live (read at `13.1`); it opens with the new version |
+| **Subtitle**, **Keywords**, **Promotional text** | unchanged — none names the app |
+| **Description** | section 4's block, rewritten for *Wera Tienda* by `13.3` |
+| **Screenshots** | replace the **first** of each set with the new `captura-1-bienvenida.jpg` in `app-store/iphone-6.9/`, `iphone-6.5/` and `iphone-6.3/` — the welcome, retaken from this version's code on 2026-11-23, saying *Wera Tienda*; the other five stay those of 2026-10-21 (new ones, styled, are `5R-q`'s) |
+| **What's New** | the block below |
+| **Build** | the 1.2.0 build the session names |
+| **App Review notes** | section 7's block again — since `13.4` it says *Wera Tienda* and what Merma's doors are |
+
+**What's New in This Version** — the same words as Play's release notes (`google-play.md`, section 10):
+
+<!-- max:4000 -->
+```
+Novedades de Wera Tienda 1.2:
+• Wera ahora se llama Wera Tienda, también bajo el ícono de tu teléfono.
+• Los arreglos que nos pidieron las tiendas.
+```
+
+**What a reviewer meets that 1.1's did not:** the name *Wera Tienda* under the icon and on the first
+screen; the camera question, which reads *Wera Tienda usa la cámara para tomar fotos de tus productos.*;
+and Merma opening on its doors (`5R-p`), two of them shut under *Próximamente*. ⚠️ **Guideline 2.1 asks
+that temporary content be removed before review**, and a reviewer could read those two doors as that —
+hence the sentence in the notes. If Apple refuses on it, the switch is one value
+(`PROXIMAMENTE` in `app/src/navigation/pausa.ts`), sent over the air, and the version sent again; the
+owner decides. The privacy answers (section 6) and the age rating are unchanged — 1.2 adds no library.
+

@@ -86,7 +86,7 @@ Aviso de privacidad: https://tu-wera.com/privacidad/
 |---|---|---|
 | App icon, 512 × 512 PNG | `icono-512.png` | The app's icon since 2026-10-13: a cream cow on a rust square, drawn by `brand/render-icons.sh` |
 | Feature graphic, 1024 × 500 | `grafico-1024x500.jpg` | The mark and the name *Wera Tienda*, in rust on cream (*Wera* until `13.3`). Its source is `grafico.html` |
-| Phone screenshots (2 to 8) | `captura-1-bienvenida.jpg` … `captura-6-productos.jpg`, in that order: the welcome, Inicio, Vender, Números, Lo último, Productos | 1080 × 1920, taken 2026-10-21 after `8g`'s first day, from an Android emulator on an invented shop, *Abarrotes Lupita* (Abarrotes and Cremería, three days of invented sales). No real shop's data |
+| Phone screenshots (2 to 8) | `captura-1-bienvenida.jpg` … `captura-6-productos.jpg`, in that order: the welcome, Inicio, Vender, Números, Lo último, Productos | 1080 × 1920, taken 2026-10-21 after `8g`'s first day, from an Android emulator on an invented shop, *Abarrotes Lupita* (Abarrotes and Cremería, three days of invented sales). No real shop's data. ⚠️ **The first, the welcome, retaken 2026-11-23 (`13.4`)** — it says *Wera Tienda*; it shows no data |
 
 Leave the tablet, Chromebook and video fields empty.
 
@@ -385,3 +385,42 @@ released, is not kept), read with `aapt2` the same day — no `uses-feature` lin
 orientation as 1.1's version 8 — so 1.1 should restrict no device 1.0 did not. A warning, not a refusal: the release goes ahead.
 Marking them optional is a manifest change, so a native build — worth it only if a device a shop uses
 is ever refused.
+
+## 10. Wera Tienda 1.2.0 — the release, and the listing in the same visit (`13.4`)
+
+The handbook's *Wera 1.2 in both stores* has the steps. ⚠️ **One visit, one send:** the release and the
+listing changes (`13.3`'s texts and feature graphic, and the first screenshot) wait together in
+*Publishing overview* and go to Google's review once — a release sent while a listing change is in
+review moves the app to the back of the queue.
+
+**Test and release → Production → Create new release:**
+
+| Field | Answer |
+|---|---|
+| App bundle | **Upload** the `.aab` the session names (1.1.0 was version code 8) |
+| Release name | leave what Play fills in |
+| Rollout | **100 %** |
+| Countries / regions | unchanged — **Mexico** only |
+
+**Release notes** (es-419) — the same words as the App Store's *What's New* (`app-store.md`, section 10):
+
+<!-- max:500 -->
+```
+Novedades de Wera Tienda 1.2:
+• Wera ahora se llama Wera Tienda, también bajo el ícono de tu teléfono.
+• Los arreglos que nos pidieron las tiendas.
+```
+
+**Grow users → Store presence → Main store listing**, in the same visit:
+
+| Field | Answer |
+|---|---|
+| App name | `Wera Tienda` — already approved (2026-11-23); nothing to type |
+| Short description | section 2's block — unchanged |
+| Full description | section 2's block, rewritten for *Wera Tienda* by `13.3` |
+| Feature graphic | `google-play/grafico-1024x500.jpg`, redrawn by `13.3` (*Wera Tienda*, and *Merma*) |
+| Phone screenshots | replace the **first** with the new `google-play/captura-1-bienvenida.jpg` — the welcome, retaken from this version's code on 2026-11-23, saying *Wera Tienda*; the other five stay |
+
+**Data safety** — unchanged: 1.2 adds no library and no permission (the bundle is read before it is
+sent). The two hardware warnings of section 9 will show again; they restrict no device 1.1 reaches.
+

@@ -28,6 +28,12 @@
 # the 1.1 builds existed, on a clean `npm ci` of this tree (2026-11-18), and
 # CI's run of this pull request computed the same; the session that makes the
 # builds reads `build:list` and holds them to these before anything is sent.
+# ⚠️ `13.4` (Wera 1.2.0, 2026-11-23): the name under the icon becomes *Wera
+# Tienda* (`app.json`'s `name`) and the camera sentence names it — the owner's
+# naming ruling of 2026-11-22; `13.2` measured that the name moves the runtime
+# and left both to this version. 1.1's were iOS 72c82608, Android 5d02ce3f; the
+# values below were computed the same way (a clean `npm ci` of the tree, which
+# first gave 1.1's exactly) before the 1.2 builds existed.
 #
 # WHEN IT GOES RED:
 #   - a sibling app's install moved a module Wera uses → pin the sibling's
@@ -41,8 +47,8 @@
 set -euo pipefail
 cd "$(dirname "$0")/../../app"
 
-IOS_IN_THE_FIELD="72c82608b8934651ac9c1f76058f62b61f518650"
-ANDROID_IN_THE_FIELD="5d02ce3ff425a8f6b8e6640beb4e8698af4ff7f7"
+IOS_IN_THE_FIELD="4f29fdaa65b25f0a0c5c2e7bff0bccb3503fcd51"
+ANDROID_IN_THE_FIELD="b2796f98da6554e6d3527d6d054d126686107203"
 
 runtime() {   # runtime <ios|android>
   npx expo-updates fingerprint:generate --platform "$1" 2>/dev/null \
