@@ -14,12 +14,14 @@ pictures Google asks for.
 | [`cocina-itacate/`](cocina-itacate/) | Their provisional 512 px icons and feature graphics, drawn by `render.sh` from Wera's mark; and their phone screenshots |
 | `limits.py` | Measures every pasted field against its store's limit |
 
-**Where each stands.** *Wera: tu tienda* 1.0.0 is public in Mexico on both stores — the App Store
-since 2026-11-05 (build 3), Google Play since 2026-11-11 (version code 7). **1.1.0 is built (`5R-o`,
-2026-11-18), from one commit, `358771f`:** the iPhone's build 4 is uploaded to App Store Connect, and
-the Android's version code 8 waits for the owner's upload; its release notes and what was read again
-for it are section 9 of each store's file, and the handbook's *Wera 1.1 in both stores* has his steps. (Corrected 2026-11-17: this paragraph still described
-the closed test.)
+**Where each stands.** *Wera: tu tienda* **1.1.0** is public in Mexico on both stores — released
+2026-11-18 on the App Store (build 4) and at 100 % on Google Play (version code 8), both read by `5R-p`
+on 2026-11-22; Google Play's title is *Wera Tienda* since 2026-11-23. **1.2.0 (`13.4`) is half built,
+from `a1d7012`:** the Android's version code 9 waits for the owner's upload, in one Play visit with the
+listing's new texts, graphic and first screenshot; the iPhone's was refused by EAS on 2026-11-23 (the
+free plan's iOS builds for November used up). Section 10 of each store's file holds 1.2's words, and the
+handbook's *Wera Tienda 1.2 in both stores* his steps. (Corrected 2026-11-23: this paragraph still had
+1.1 waiting for his upload.)
 
 ## The limits
 
@@ -28,7 +30,7 @@ it, and names any that is over. On 2026-10-13 all eleven fit: Play's name 15 of 
 description 76 of 80, full description 1,543 of 4,000; Apple's name 15 of 30, subtitle 29 of
 30, promotional text 123 of 170, description 1,426 of 4,000, keywords 90 of 100 bytes. It is
 not in CI: a console refuses an over-long field the moment it is pasted. On 2026-11-17 (`5R-o`, with
-1.1's release notes in both stores' files) it measured 30 fields, all fitting.
+1.1's release notes in both stores' files) it measured 30 fields, all fitting. On 2026-11-23 (`13.4`, with 1.2's) 32, all fitting.
 
 ## ⚠️ Never in this folder
 
@@ -62,31 +64,33 @@ against the code: this table is the only link, as `site/README.md` is for the av
 
 ## The store build — the one that goes to Play
 
-EAS build `011fb071` — Android, profile `production`, from commit `358771f` (`5R-o`: Wera 1.1.0 —
-the camera sentence without *Te lo compro*, an Empleado's words, and everything over the air since
-1.0), finished 2026-11-18. Each line below was read off the bundle itself (`aapt2 dump xmltree` on its
-manifest, its `assets/`, the ELF headers of `base/lib/arm64-v8a/`), not off `app.json`.
+EAS build `e5de81b2` — Android, profile `production`, from commit `a1d7012` (`13.4`: Wera Tienda 1.2.0 —
+*Wera Tienda* under the icon, and everything over the air since 1.1), finished 2026-11-23. Each line
+below was read off the bundle itself (`aapt2 dump xmltree` and `dump resources` on its manifest and
+resources, its `assets/`, the ELF headers of `base/lib/arm64-v8a/`), not off `app.json`.
 
 | | |
 |---|---|
-| Package, version | `mx.wera.app`, 1.1.0, version code 8 |
+| Package, version | `mx.wera.app`, 1.2.0, version code 9 |
+| Name under the icon | ***Wera Tienda*** (`string/app_name`) — *Wera* until 1.1 |
 | Target / minimum Android | API 36 / API 24 |
-| Permissions | Six requested, the same as 1.0's: the app's own internal receiver permission, `INTERNET`, `ACCESS_NETWORK_STATE`, `ACCESS_WIFI_STATE`, `VIBRATE` and **`CAMERA`**. No location, microphone, contacts, storage or `AD_ID`. The manifest still names `android.permission.DUMP` — **not requested**: the guard on `androidx.profileinstaller.ProfileInstallReceiver`, as in 1.0 |
+| Permissions | Six requested, the same as 1.0's and 1.1's: the app's own internal receiver permission, `INTERNET`, `ACCESS_NETWORK_STATE`, `ACCESS_WIFI_STATE`, `VIBRATE` and **`CAMERA`**. No location, microphone, contacts, storage or `AD_ID`; no `uses-feature` line |
 | Update channel | `production`, checked on every launch |
-| Runtime | `5d02ce3f…` (`base/assets/fingerprint`), the same as `main`'s at `358771f` (`docs/checks/wera-runtime.sh`) — ⚠️ not 1.0's `5a4a7a5d`: from this build on, an over-the-air fix reaches 1.1 only |
+| Runtime | `b2796f98…` (`base/assets/fingerprint`), the same as `main`'s at `a1d7012` (`docs/checks/wera-runtime.sh`) — ⚠️ not 1.1's `5d02ce3f`: from this build on, an over-the-air fix reaches 1.2 only |
 | 16 KB pages | All 25 libraries in `arm64-v8a` load at 16 KB or more |
 | Pilot's measurements | Off: the bundle holds no `piloto-1` |
-| An Empleado's words | *Cuando llega el proveedor*, and *Registra ventas, compras y merma en las sucursales…*; the old *Registra ventas y compras…* is gone |
-| Server | The hosted project's address once; no local address |
+| Server | The hosted project's address once. The bundle's `localhost` and `127.0.0.1` are library text, the same in 1.1's bundle (`localhost:9999`, a font asset's development path, and two neighbouring strings that happen to spell `127.0.0.1`) |
+| Its words | *Wera Tienda* where the app names itself (`13.2`), and Merma's doors (`5R-p`) |
 | Icon | The cow, unchanged since `01b250f` |
 | Sign in with Apple | Not on Android: the button is drawn on an iPhone only |
 
-It is `~/RetailerToolDev/wera-builds/wera-tienda-1.1.0-8.aab` (SHA-256 `14dbda28…`). The iPhone's
-twin, EAS `2bb5eb1b` — 1.1.0 (4), runtime `72c82608` (`EXUpdates.bundle/fingerprint`), channel
-`production`, the camera sentence *Wera usa la cámara para tomar fotos de tus productos.*, signed by
-team `RGWA74UM3G` — is `wera-tienda-1.1.0-4.ipa` beside it, and was sent with `eas submit`
-(submission `c2ec81ca`) to the record `6818418895`, now named in `app/eas.json`. 1.0's bundle,
-`89de4383` (version code 7), stays in `~/RetailerToolDev/wera-builds/android-89de4383/`.
+It is `~/RetailerToolDev/wera-builds/wera-tienda-1.2.0-9.aab` (SHA-256 `f9b334ad…`). ⚠️ **The iPhone's
+twin does not exist yet**: on 2026-11-23 EAS refused it — the free plan's iOS builds for November were used
+up (they come back on 2026-12-01, the plan's dates block). 1.1's bundles stay beside it:
+`wera-tienda-1.1.0-8.aab` (EAS `011fb071`, runtime `5d02ce3f`) and the iPhone's `wera-tienda-1.1.0-4.ipa`
+(EAS `2bb5eb1b`, runtime `72c82608`, sent with `eas submit`, submission `c2ec81ca`, to the record
+`6818418895`, named in `app/eas.json`); 1.0's, `89de4383` (version code 7), in
+`~/RetailerToolDev/wera-builds/android-89de4383/`.
 
 ## The pictures
 

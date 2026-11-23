@@ -411,7 +411,7 @@ Novedades de Wera Tienda 1.2:
 • Los arreglos que nos pidieron las tiendas.
 ```
 
-**Grow users → Store presence → Main store listing**, in the same visit:
+***Store presence → Main store listing***, in the same visit:
 
 | Field | Answer |
 |---|---|
