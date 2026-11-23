@@ -33,12 +33,21 @@ import { PALETTE } from '@/theme/palette';
 /** How tall the plot is, before density. ⚠️ `scale.space` multiples, never a literal (`R6`). */
 const PLOT_ROWS = 8;
 
+/** `5R-t`: a line behind the one she picked — still there, clearly behind. */
+const FADED = 0.2;
+
 /** One line to draw: a stable key, its points in a unit box, and its colour. Not exported (`R15`). */
 interface GraficaLine {
   readonly key: string;
   readonly dots: readonly Plot[];
   /** A colour out of `@/theme/palette` — `serieColour(hue)` (`R11`). */
   readonly colour: string;
+  /**
+   * ⚠️ `5R-t`: drawn behind and faded, because she picked another provider in
+   * *Cuánto ha cambiado*. At once, no animation — a fade is cheap, a moving
+   * layout is what §2.11 keeps off the low-end Androids.
+   */
+  readonly faded?: boolean;
 }
 
 /**
@@ -88,15 +97,15 @@ export function Grafica({
       >
         {width === 0
           ? null
-          : lines.map((one) => (
-              <Linea
+          : // ⚠️ The faded lines first, so the picked one is drawn over them.
+            [...lines.filter((one) => one.faded === true), ...lines.filter((one) => one.faded !== true)].map((one) => (
+              <View
                 key={one.key}
-                dots={one.dots}
-                colour={one.colour}
-                width={width}
-                height={height}
-                dot={dot}
-              />
+                pointerEvents="none"
+                style={{ position: 'absolute', left: 0, top: 0, right: 0, bottom: 0, opacity: one.faded === true ? FADED : 1 }}
+              >
+                <Linea dots={one.dots} colour={one.colour} width={width} height={height} dot={dot} />
+              </View>
             ))}
       </View>
       {highLabel === '' ? null : (

@@ -271,13 +271,69 @@ function ymd(date: Date): string {
 export function asOfDay(today: string, window: Window): string {
   const y = Number(today.slice(0, 4));
   const m = Number(today.slice(5, 7));
-  const d = Number(today.slice(8, 10));
   if (window === 'anio') return `${pad(y - 1, 4)}-12-31`;
   if (window === 'mes') return ymd(new Date(Date.UTC(y, m - 1, 0)));
-  const back = MONTHS_BACK[window];
+  return monthsBefore(today, MONTHS_BACK[window]);
+}
+
+/**
+ * The same day `back` calendar months before `today`, clamped to that month's
+ * length — 31 May less three months is 28 (or 29) February. ⚠️ Exported since
+ * `5R-t` (2026-11-23) for `Costos`' windows, so the two screens count a month
+ * the same way; pure UTC arithmetic on a date that already is the shop's day.
+ */
+export function monthsBefore(today: string, back: number): string {
+  const y = Number(today.slice(0, 4));
+  const m = Number(today.slice(5, 7));
+  const d = Number(today.slice(8, 10));
   const first = new Date(Date.UTC(y, m - 1 - back, 1));
   const length = new Date(Date.UTC(first.getUTCFullYear(), first.getUTCMonth() + 1, 0)).getUTCDate();
   return ymd(new Date(Date.UTC(first.getUTCFullYear(), first.getUTCMonth(), Math.min(d, length))));
+}
+
+/** The day `back` days before `today` — `5R-t`'s fifteen days. Pure UTC arithmetic, as above. */
+export function daysBefore(today: string, back: number): string {
+  const y = Number(today.slice(0, 4));
+  const m = Number(today.slice(5, 7));
+  const d = Number(today.slice(8, 10));
+  return ymd(new Date(Date.UTC(y, m - 1, d - back)));
+}
+
+/** A price's two ends over one window, in centavos per price unit. */
+export interface Move {
+  /** The last price on or before the day the window opens from. */
+  readonly before: number;
+  /** The last price after it, up to today. */
+  readonly now: number;
+}
+
+/**
+ * The two ends `changeOf` compares — or `null` when either is missing. ⚠️ Points
+ * OLDEST FIRST; a point with no readable price is passed over, never read as a
+ * zero. ⚠️ `Costos` (`5R-t`) shares this file's calendar (`monthsBefore`,
+ * `daysBefore`) and its rounding (`tenthsOf`) but not this rule: it averages a
+ * week of deliveries at each end (`weekPrice`), because two suppliers taking turns
+ * made a single day read as a price change.
+ */
+export function moveSince(
+  points: readonly { readonly day: string; readonly centavos: number | null }[],
+  asOf: string,
+  today: string,
+): Move | null {
+  let before: number | null = null;
+  let now: number | null = null;
+  for (const point of points) {
+    if (point.centavos === null) continue;
+    if (point.day <= asOf) before = point.centavos;
+    else if (point.day <= today) now = point.centavos;
+  }
+  if (before === null || now === null || before <= 0) return null;
+  return { before, now };
+}
+
+/** A move in TENTHS OF A PERCENT, rounded once — see `changeOf`. */
+export function tenthsOf(move: Move): number {
+  return divRoundHalfUpAwayFromZero((move.now - move.before) * 1_000, move.before);
 }
 
 /**
@@ -303,15 +359,8 @@ export function changeOf(
   today: string,
   window: Window,
 ): number | null {
-  const asOf = asOfDay(today, window);
-  let before: PricePoint | null = null;
-  let now: PricePoint | null = null;
-  for (const point of points) {
-    if (point.day <= asOf) before = point;
-    else if (point.day <= today) now = point;
-  }
-  if (before === null || now === null || before.centavos <= 0) return null;
-  return divRoundHalfUpAwayFromZero((now.centavos - before.centavos) * 1_000, before.centavos);
+  const move = moveSince(points, asOfDay(today, window), today);
+  return move === null ? null : tenthsOf(move);
 }
 
 /**

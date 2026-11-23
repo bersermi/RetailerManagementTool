@@ -6,10 +6,19 @@ import {
   COSTS_ORDER_ASCENDING,
   COSTS_TABLE,
   COSTS_VARIANT_COLUMN,
+  COST_WINDOWS,
+  anyDash,
+  changeLine,
+  changePoints,
+  costAsOf,
+  costChanges,
   costsFrom,
   costsKey,
   matrixOf,
+  picksProvider,
   plotted,
+  showsChanges,
+  weekPrice,
   type CostLineRow,
 } from '@/api/costs';
 import type { Provider } from '@/api/providers';
@@ -558,3 +567,196 @@ function contrast(a: string, b: string): number {
   const lb = luminance(b);
   return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
 }
+
+// ============================================================================
+// *CUÁNTO HA CAMBIADO* — `5R-t`, drawn with the owner on 2026-11-23. Five rows
+// of pesos and percent over the chart; every provider together or one. ⚠️ The
+// fixtures are the situations walked through with him, on 23 November 2026.
+// Instants at 15:00 UTC, 09:00 in Mexico City: the same calendar day in any
+// zone this suite runs in.
+// ============================================================================
+
+const TODAY = '2026-11-23';
+/** A kilo at `pesos` — the price per gram, at scale 6. */
+const kilo = (pesos: number): string => `0.${String(pesos).padStart(3, '0')}000`;
+const at = (day: string): string => `${day}T15:00:00+00:00`;
+const DON_PEPE: Provider = { id: 'p-pepe', name: 'Don Pepe', isGeneric: false };
+const WITH_PEPE: readonly Provider[] = [...PROVIDERS, DON_PEPE];
+
+describe('cuánto ha cambiado — the windows (5R-t)', () => {
+  it('opens fifteen days back, and 1, 3, 6 and 12 calendar months back', () => {
+    expect(COST_WINDOWS).toEqual(['d15', 'm1', 'm3', 'm6', 'y1']);
+    expect(COST_WINDOWS.map((w) => costAsOf(TODAY, w))).toEqual([
+      '2026-11-08',
+      '2026-10-23',
+      '2026-08-23',
+      '2026-05-23',
+      '2025-11-23',
+    ]);
+  });
+
+  it('counts a month as Precios does — clamped to the shorter month — and crosses a year', () => {
+    expect(costAsOf('2026-03-31', 'm1')).toBe('2026-02-28');
+    expect(costAsOf('2026-05-31', 'm3')).toBe('2026-02-28');
+    expect(costAsOf('2028-02-29', 'y1')).toBe('2027-02-28');
+    expect(costAsOf('2026-03-05', 'd15')).toBe('2026-02-18');
+    expect(costAsOf('2026-01-10', 'd15')).toBe('2025-12-26');
+    expect(costAsOf('2026-01-10', 'm1')).toBe('2025-12-10');
+  });
+});
+
+describe('cuánto ha cambiado — the rows she reads (5R-t)', () => {
+  it('reads the kilo prices the fixtures mean', () => {
+    expect(kilo(24)).toBe('0.024000');
+    expect(kilo(19)).toBe('0.019000');
+  });
+
+  // Situation 1: jitomate every week from the Central, since mid-October.
+  const WEEKLY: readonly CostLineRow[] = [
+    line(KG.id, kilo(24), at('2026-11-18')),
+    line(KG.id, kilo(23), at('2026-11-11')),
+    line(KG.id, kilo(22), at('2026-11-04')),
+    line(KG.id, kilo(21), at('2026-10-28')),
+    line(KG.id, kilo(20), at('2026-10-21')),
+    line(KG.id, kilo(20), at('2026-10-14')),
+  ];
+
+  it('compares her last delivery with the last one before each window opened', () => {
+    const costs = costsFrom(WEEKLY, PROVIDERS, 'kg', FACTORS);
+    const rows = costChanges(changePoints(costs, null), TODAY);
+    expect(rows.map((r) => [r.window, r.centavos, r.tenths])).toEqual([
+      ['d15', 200, 91],
+      ['m1', 400, 200],
+      ['m3', null, null],
+      ['m6', null, null],
+      ['y1', null, null],
+    ]);
+    expect(rows.map(changeLine)).toEqual([
+      { pesos: '+$2', percent: '+9.1 %', same: false },
+      { pesos: '+$4', percent: '+20.0 %', same: false },
+      { pesos: ES.costs.change.none, percent: ES.costs.change.none, same: false },
+      { pesos: ES.costs.change.none, percent: ES.costs.change.none, same: false },
+      { pesos: ES.costs.change.none, percent: ES.costs.change.none, same: false },
+    ]);
+    expect(anyDash(rows)).toBe(true);
+  });
+
+  // Situation 2: she switched from the Central to Don Pepe.
+  const SWITCHED: readonly CostLineRow[] = [
+    line(DON_PEPE.id, kilo(19), at('2026-11-18')),
+    line(KG.id, kilo(22), at('2026-11-04')),
+    line(KG.id, kilo(20), at('2026-10-21')),
+  ];
+
+  it('reads Todos as what she pays, whoever sold it — a cheaper supplier is a fall', () => {
+    const costs = costsFrom(SWITCHED, WITH_PEPE, 'kg', FACTORS);
+    const rows = costChanges(changePoints(costs, null), TODAY);
+    expect(changeLine(rows[0]!)).toEqual({ pesos: '−$3', percent: '−13.6 %', same: false });
+    expect(changeLine(rows[1]!)).toEqual({ pesos: '−$1', percent: '−5.0 %', same: false });
+  });
+
+  it('reads one supplier by its own deliveries — a dash where it delivered nothing inside the window', () => {
+    const costs = costsFrom(SWITCHED, WITH_PEPE, 'kg', FACTORS);
+    const central = costChanges(changePoints(costs, KG.id), TODAY);
+    // Its last delivery (4 Nov, $22) is older than fifteen days; against 21 Oct it rose $2.
+    expect(central.map((r) => r.centavos)).toEqual([null, 200, null, null, null]);
+    const pepe = costChanges(changePoints(costs, DON_PEPE.id), TODAY);
+    expect(pepe.map((r) => r.centavos)).toEqual([null, null, null, null, null]);
+    expect(changePoints(costs, 'nobody')).toEqual([]);
+  });
+
+  // Situation 3: rice, once a month.
+  it('gives a short window a figure only when something was bought inside it', () => {
+    const monthly = [line(KG.id, kilo(32), at('2026-11-20')), line(KG.id, kilo(31), at('2026-10-20')), line(KG.id, kilo(30), at('2026-09-20'))];
+    const bought = costChanges(changePoints(costsFrom(monthly, PROVIDERS, 'kg', FACTORS), null), TODAY);
+    expect(bought.map((r) => r.centavos)).toEqual([100, 100, null, null, null]);
+    const notYet = costChanges(changePoints(costsFrom(monthly.slice(1), PROVIDERS, 'kg', FACTORS), null), TODAY);
+    expect(notYet.map((r) => r.centavos)).toEqual([null, null, null, null, null]);
+  });
+
+  // Situation 4: the price has not moved.
+  it('says Sin cambio across both columns when the price is the same', () => {
+    const flat = [line(KG.id, kilo(20), at('2026-11-18')), line(KG.id, kilo(20), at('2026-10-01'))];
+    const rows = costChanges(changePoints(costsFrom(flat, PROVIDERS, 'kg', FACTORS), null), TODAY);
+    expect(changeLine(rows[0]!)).toEqual({ pesos: ES.costs.change.same, percent: '', same: true });
+    expect(anyDash(rows.slice(0, 2))).toBe(false);
+  });
+
+  it('averages each end over its last week of deliveries', () => {
+    const twice = [
+      line(KG.id, kilo(25), '2026-11-18T18:00:00+00:00'),
+      line(GEN.id, kilo(21), '2026-11-18T15:00:00+00:00'),
+      line(KG.id, kilo(20), at('2026-11-01')),
+    ];
+    const costs = costsFrom(twice, PROVIDERS, 'kg', FACTORS);
+    expect(costs.all.map((p) => p.centavos)).toEqual([2000, 2100, 2500]);
+    expect(weekPrice(costs.all, TODAY, null)).toBe(2300);
+    expect(costChanges(costs.all, TODAY)[0]!.centavos).toBe(300);
+  });
+
+  // Situation 5, found on the emulator: two suppliers on alternate days, $3 apart,
+  // neither changing its price. The last delivery alone would read the weekday.
+  it('reads two suppliers taking turns as one steady price — Sin cambio, whichever day the window opens', () => {
+    const rows: CostLineRow[] = [];
+    for (let d = 0; d < 400; d += 1) {
+      const day = new Date(Date.UTC(2026, 10, 23 - d));
+      const dow = day.getUTCDay();
+      if (dow === 0) continue;
+      const iso = day.toISOString().slice(0, 10);
+      rows.push(line(dow % 2 === 1 ? KG.id : DON_PEPE.id, kilo(dow % 2 === 1 ? 52 : 49), at(iso)));
+    }
+    const costs = costsFrom(rows, WITH_PEPE, 'kg', FACTORS);
+    for (const today of ['2026-11-23', '2026-11-22', '2026-11-20', '2026-11-17']) {
+      const all = costChanges(costs.all, today);
+      expect(all.map((r) => r.centavos)).toEqual([0, 0, 0, 0, 0]);
+      expect(changeLine(all[0]!).same).toBe(true);
+    }
+    const kg = costChanges(changePoints(costs, KG.id), TODAY);
+    expect(kg.map((r) => r.centavos)).toEqual([0, 0, 0, 0, 0]);
+  });
+
+  it('never lets now reach back into then', () => {
+    const close = [line(KG.id, kilo(30), at('2026-11-10')), line(KG.id, kilo(20), at('2026-11-07'))];
+    const costs = costsFrom(close, PROVIDERS, 'kg', FACTORS);
+    expect(weekPrice(costs.all, TODAY, '2026-11-08')).toBe(3000);
+    expect(weekPrice(costs.all, '2026-11-08', null)).toBe(2000);
+    expect(costChanges(costs.all, TODAY)[0]!.centavos).toBe(1000);
+  });
+
+  it('leaves a voided delivery out of Todos, as out of the chart', () => {
+    const voided = [
+      line(KG.id, kilo(40), at('2026-11-19'), { reversalOf: 'doc-wrong' }),
+      line(KG.id, kilo(40), at('2026-11-18'), { id: 'doc-wrong' }),
+      line(KG.id, kilo(24), at('2026-11-17')),
+      line(KG.id, kilo(22), at('2026-11-04')),
+    ];
+    const costs = costsFrom(voided, PROVIDERS, 'kg', FACTORS);
+    expect(costs.all).toHaveLength(costs.deliveries);
+    expect(costChanges(costs.all, TODAY)[0]!.centavos).toBe(200);
+  });
+});
+
+describe('cuánto ha cambiado — when it shows, and its buttons (5R-t)', () => {
+  it('shows from the second delivery on, and never for a read not back', () => {
+    expect(showsChanges(costsFrom(undefined, PROVIDERS, 'kg', FACTORS))).toBe(false);
+    expect(showsChanges(costsFrom([], PROVIDERS, 'kg', FACTORS))).toBe(false);
+    expect(showsChanges(costsFrom(THREE.slice(0, 1), PROVIDERS, 'kg', FACTORS))).toBe(false);
+    expect(showsChanges(costsFrom(THREE, PROVIDERS, 'kg', FACTORS))).toBe(true);
+    const twoOnce = [line(KG.id, kilo(24), at('2026-11-18')), line(GEN.id, kilo(22), at('2026-11-01'))];
+    expect(costsFrom(twoOnce, PROVIDERS, 'kg', FACTORS).state).toBe('unlinked');
+    expect(showsChanges(costsFrom(twoOnce, PROVIDERS, 'kg', FACTORS))).toBe(true);
+  });
+
+  it('draws a button per supplier only when more than one has delivered', () => {
+    const one = [line(KG.id, kilo(24), at('2026-11-18')), line(KG.id, kilo(22), at('2026-11-01'))];
+    expect(picksProvider(costsFrom(one, PROVIDERS, 'kg', FACTORS))).toBe(false);
+    expect(picksProvider(costsFrom(THREE, PROVIDERS, 'kg', FACTORS))).toBe(true);
+  });
+
+  it('keeps Todos oldest first and whole — every standing delivery, once', () => {
+    const costs = costsFrom(THREE, PROVIDERS, 'kg', FACTORS);
+    expect(costs.all.map((p) => p.day)).toEqual(['2026-09-10', '2026-09-20', '2026-09-24']);
+    expect(changePoints(costs, null)).toBe(costs.all);
+    expect(changePoints(costs, GEN.id).map((p) => p.day)).toEqual(['2026-09-10', '2026-09-20']);
+  });
+});

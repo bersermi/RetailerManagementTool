@@ -90,12 +90,14 @@
 // §2.9's and is not built here.**
 // ============================================================================
 
-import { SCALE, lineAnchorCentavos, parseDecimal } from '@tienda/money';
+import { SCALE, divRoundHalfUpAwayFromZero, lineAnchorCentavos, parseDecimal } from '@tienda/money';
 
 import { isoDay, priceCentavos, priceLabel, type UnitFactors } from '@/api/catalog';
 import type { Online } from '@/api/connectivity';
 import type { ApiMessageKey } from '@/api/errors';
+import { daysBefore, monthsBefore, tenthsOf } from '@/api/prices';
 import type { Provider } from '@/api/providers';
+import { formatMXN } from '@/format/mxn';
 import { waitsForSignal } from '@/offline/senal';
 import { ES } from '@/strings';
 
@@ -318,6 +320,12 @@ export interface Costs {
   readonly highLabel: string;
   /** ⚠️ OLDEST FIRST. Every day that carries a delivery — the matrix's columns. */
   readonly days: readonly string[];
+  /**
+   * ⚠️ `5R-t`: EVERY STANDING DELIVERY, EVERY PROVIDER, OLDEST FIRST — the
+   * database's order (`COSTS_ORDER`) reversed once and never re-sorted here, the
+   * rule the series keep. What *Todos* compares in *Cuánto ha cambiado*.
+   */
+  readonly all: readonly CostPoint[];
 }
 
 /** Nothing read, which is not nothing bought. */
@@ -330,6 +338,7 @@ const NOTHING_READ: Costs = Object.freeze({
   lowLabel: '',
   highLabel: '',
   days: Object.freeze([]) as readonly string[],
+  all: Object.freeze([]) as readonly CostPoint[],
 }) as Costs;
 
 /**
@@ -395,6 +404,7 @@ export function costsFrom(
   // The database's order is newest first; every list below is built in that
   // order and reversed once, at the end.
   const byProvider = new Map<string, CostPoint[]>();
+  const newestFirst: CostPoint[] = [];
   const order: string[] = [];
   const dayed: string[] = [];
   const seenDay = new Set<string>();
@@ -447,6 +457,7 @@ export function costsFrom(
       order.push(doc.provider_id);
     }
     points.push(point);
+    newestFirst.push(point);
 
     deliveries += 1;
     if (!seenDay.has(point.day)) {
@@ -494,6 +505,7 @@ export function costsFrom(
     lowLabel: low === null ? '' : priceLabel(low, priceUnit),
     highLabel: high === null ? '' : priceLabel(high, priceUnit),
     days: dayed.slice().reverse(),
+    all: newestFirst.slice().reverse(),
   };
 }
 
@@ -707,6 +719,143 @@ export function matrixOf(costs: Costs): readonly MatrixRow[] {
       cells: costs.days.map((day) => ({ day, price: byDay.get(day) ?? null })),
     };
   });
+}
+
+// ----------------------------------------------------------------------------
+// ⚠️⚠️ *CUÁNTO HA CAMBIADO* — `5R-t`, the owner's ask of 2026-11-23: *"In the
+// Costos section, someone should be able to see easily how much a given product
+// has increased in price on a 15 day, 1 month, 3 month, 6 month and 1 year
+// basis. Nominal and percentage."* Drawn with him the same day: a block at the
+// top of the screen, five rows of pesos and percent, for every provider
+// together (*Todos*, what she pays whoever sold it) or — a button per provider,
+// when more than one has delivered — for one; the chart fades the others.
+//
+// ⚠️⚠️ EACH END IS A WEEK OF DELIVERIES, AVERAGED — NOT ONE DELIVERY. Built first
+// with Precios' rule (the last delivery now against the last one on or before the
+// day the window opens from), and the demo pollería on the emulator showed why
+// not: El Rancho and El Güero bring chicken on alternate days, $2.70 apart, so
+// *Todos* compared El Rancho today with El Güero fifteen days ago and read
+// +6.3 % over fifteen days and +0.2 % over a month — a supplier's weekday, not a
+// price. So the price at an end is the average of the deliveries in the seven
+// days up to the last delivery there (`WEEK`): alternating suppliers read as one
+// steady price, one supplier bought once a week reads as that one delivery, and a
+// switch to a cheaper supplier still reads as a fall. *Now* counts only
+// deliveries after the window opens, *then* only those on or before it, so the
+// two ends never share a delivery. Either end with none is the dash, never *Sin
+// cambio*: a product not bought in the last fifteen days has no price *now*, one
+// first bought inside a window has none *then*. ⚠️ The prices are this screen's
+// own — NET of IVA, per the product's price unit, as Comprar types them — so the
+// pesos are not Precios' (with IVA), and Precios, which compares single days,
+// can read a little differently for a product two suppliers share.
+// ----------------------------------------------------------------------------
+
+/** The five windows, in the order she reads them. */
+export type CostWindow = 'd15' | 'm1' | 'm3' | 'm6' | 'y1';
+export const COST_WINDOWS: readonly CostWindow[] = ['d15', 'm1', 'm3', 'm6', 'y1'];
+
+/**
+ * The day a window opens from: fifteen days back, or the same day 1, 3, 6 or 12
+ * calendar months back (clamped to that month's length — Precios' `monthsBefore`).
+ */
+export function costAsOf(today: string, window: CostWindow): string {
+  if (window === 'd15') return daysBefore(today, 15);
+  if (window === 'm1') return monthsBefore(today, 1);
+  if (window === 'm3') return monthsBefore(today, 3);
+  if (window === 'm6') return monthsBefore(today, 6);
+  return monthsBefore(today, 12);
+}
+
+/** How many days of deliveries make one end's price, the last delivery's day included. */
+export const WEEK = 7;
+
+/**
+ * The price at one end: the average, in centavos, of the deliveries in the `WEEK`
+ * days up to the last delivery on or before `upto` — counting only those after
+ * `after` when it is given (*now* never reaches back into *then*). `null` when
+ * there is no delivery there. Order-free: it reads days, not positions.
+ */
+export function weekPrice(points: readonly CostPoint[], upto: string, after: string | null): number | null {
+  const counts = (p: CostPoint): boolean => p.centavos !== null && p.day <= upto && (after === null || p.day > after);
+  let last: string | null = null;
+  for (const p of points) if (counts(p) && (last === null || p.day > last)) last = p.day;
+  if (last === null) return null;
+  const from = daysBefore(last, WEEK - 1);
+  let sum = 0;
+  let n = 0;
+  for (const p of points) {
+    if (counts(p) && p.day >= from && p.day <= last) {
+      sum += p.centavos as number;
+      n += 1;
+    }
+  }
+  return divRoundHalfUpAwayFromZero(sum, n);
+}
+
+/** One window's move — both `null` when there is nothing honest to say. */
+export interface CostChange {
+  readonly window: CostWindow;
+  /** Centavos per price unit, now less then. */
+  readonly centavos: number | null;
+  /** Tenths of a percent (`91` is 9.1 %), rounded once. */
+  readonly tenths: number | null;
+}
+
+/** The five rows, out of one list of deliveries (OLDEST FIRST) and today's date. */
+export function costChanges(points: readonly CostPoint[], today: string): readonly CostChange[] {
+  return COST_WINDOWS.map((window) => {
+    const asOf = costAsOf(today, window);
+    const before = weekPrice(points, asOf, null);
+    const now = weekPrice(points, today, asOf);
+    if (before === null || now === null || before <= 0) return { window, centavos: null, tenths: null };
+    return { window, centavos: now - before, tenths: tenthsOf({ before, now }) };
+  });
+}
+
+/** Whose deliveries the rows read: everyone's (`null`, *Todos*) or one provider's. */
+export function changePoints(costs: Costs, providerId: string | null): readonly CostPoint[] {
+  if (providerId === null) return costs.all;
+  return costs.series.find((one) => one.providerId === providerId)?.points ?? [];
+}
+
+/** The block shows once there are two deliveries: one alone has nothing to compare. */
+export function showsChanges(costs: Costs): boolean {
+  return costs.state === 'series' || costs.state === 'unlinked';
+}
+
+/** A button per provider only when more than one has delivered; one provider is just the rows. */
+export function picksProvider(costs: Costs): boolean {
+  return costs.series.length >= 2;
+}
+
+/** One row as she reads it. `same` spans both columns with *Sin cambio*. */
+export interface CostChangeLine {
+  readonly pesos: string;
+  readonly percent: string;
+  readonly same: boolean;
+}
+
+/**
+ * *+$2.00* and *+9.1 %*, *−$3.00* and *−13.6 %*, *Sin cambio*, or C3.12's dash in
+ * both. ⚠️ A SIGN AND NOT A COLOUR (§2.11): on this screen every figure is a
+ * purchase, so *+* is always *you pay more* — Números' *+$3.50 el kilo* says it
+ * the same way. ⚠️ No change in centavos is *Sin cambio*, whatever the percent.
+ */
+export function changeLine(change: CostChange): CostChangeLine {
+  if (change.centavos === null || change.tenths === null) {
+    return { pesos: ES.costs.change.none, percent: ES.costs.change.none, same: false };
+  }
+  if (change.centavos === 0) return { pesos: ES.costs.change.same, percent: '', same: true };
+  const pesos = formatMXN(Math.abs(change.centavos));
+  const size = Math.abs(change.tenths);
+  const figure = `${Math.floor(size / 10)}.${size % 10}`;
+  return change.centavos > 0
+    ? { pesos: ES.costs.change.morePesos(pesos), percent: ES.costs.change.morePercent(figure), same: false }
+    : { pesos: ES.costs.change.lessPesos(pesos), percent: ES.costs.change.lessPercent(figure), same: false };
+}
+
+/** Whether any row is a dash — the sentence that says what one means shows only then. */
+export function anyDash(changes: readonly CostChange[]): boolean {
+  return changes.some((one) => one.centavos === null);
 }
 
 // ----------------------------------------------------------------------------

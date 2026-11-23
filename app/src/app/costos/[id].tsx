@@ -3,11 +3,19 @@ import { useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { isoDay } from '@/api/catalog';
 import {
+  anyDash,
+  changeLine,
+  changePoints,
+  costChanges,
   costsLine,
   costsSpin,
   matrixOf,
+  picksProvider,
   plotted,
+  showsChanges,
+  type CostChange,
   type CostSeries,
   type Costs,
   type CostsLineInput,
@@ -150,7 +158,7 @@ export default function Costos() {
         <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>
           {ES.costs.subtitle}
         </Text>
-        <Cuerpo costs={costs} title={name === '' ? ES.costs.title : name} />
+        <Cuerpo costs={costs} title={name === '' ? ES.costs.title : name} priceUnit={entry?.priceUnit ?? ''} />
       </ScrollView>
     </View>
   );
@@ -227,13 +235,18 @@ function Banda({ title }: { title: string }) {
 function Cuerpo({
   costs,
   title,
+  priceUnit,
 }: {
   costs: CostsLineInput;
   title: string;
+  priceUnit: string;
 }) {
   const { scale } = useDensity();
   const online = useOnline();
   const line = costsLine(costs.state, costs.failed, online);
+  // ⚠️ `5R-t`: the provider she picked in *Cuánto ha cambiado* — `null` is *Todos*.
+  // A pick whose provider is no longer on the screen (a delivery voided) is *Todos*.
+  const [picked, setPicked] = useState<string | null>(null);
 
   if (costs.state === 'unknown') {
     if (!costsSpin(costs.state, online)) return <Vacio line={line} />;
@@ -260,21 +273,196 @@ function Cuerpo({
 
   if (costs.state === 'nothing') return <Vacio line={line} />;
 
+  const shown = picked !== null && costs.series.some((one) => one.providerId === picked) ? picked : null;
+
   return (
     <View style={{ gap: scale.space }}>
+      {showsChanges(costs) ? (
+        <CuantoCambio costs={costs} priceUnit={priceUnit} picked={shown} onPick={setPicked} />
+      ) : null}
       <Grafica
         lines={plotted(costs).map((one) => ({
           key: one.providerId,
           dots: one.dots,
           colour: serieColour(one.hue),
+          faded: shown !== null && one.providerId !== shown,
         }))}
         highLabel={costs.highLabel}
         lowLabel={costs.lowLabel}
       />
-      <Leyenda series={costs.series} />
+      <Leyenda series={costs.series} picked={shown} />
       {costs.state === 'single' || costs.state === 'unlinked' ? <Nota line={line} /> : null}
       <Tabla costs={costs} />
       <Compartir costs={costs} title={title} />
+    </View>
+  );
+}
+
+/**
+ * *CUÁNTO HA CAMBIADO* — `5R-t`, drawn with the owner on 2026-11-23: *"In the
+ * Costos section, someone should be able to see easily how much a given product
+ * has increased in price on a 15 day, 1 month, 3 month, 6 month and 1 year
+ * basis. Nominal and percentage."* Five rows, pesos and percent, over the chart —
+ * the answer before the detail. Every figure, every dash and every window is
+ * `@/api/costs`' (`costChanges`, `changeLine`), read by `app/test/api-costs.test.ts`;
+ * what is left here is where it sits and whether a thumb finds the buttons (`R9`).
+ *
+ * ⚠️ *TODOS* FIRST AND PICKED WHEN THE SCREEN OPENS: what she pays, whoever sold
+ * it. A button per provider — his ask, *"she switches the suppliers to see the
+ * numbers from each one"* — only when more than one has delivered; picking one
+ * reads its deliveries alone and fades the other lines on the chart (his idea:
+ * *"one shaded when she clicks over the other"*). The picked button is FILLED and
+ * the rest outlined, so which one is picked never rests on a colour (§2.11).
+ *
+ * ⚠️ TODAY IS READ HERE, `Compartir`'s rule (`R3`): the arithmetic takes the date
+ * as an argument so the suite can hold it still.
+ */
+function CuantoCambio({
+  costs,
+  priceUnit,
+  picked,
+  onPick,
+}: {
+  costs: Costs;
+  priceUnit: string;
+  picked: string | null;
+  onPick: (providerId: string | null) => void;
+}) {
+  const { scale } = useDensity();
+  const rows = costChanges(changePoints(costs, picked), isoDay(new Date()));
+  return (
+    <View
+      style={{
+        gap: scale.rowGap,
+        padding: scale.space,
+        backgroundColor: PALETTE.superficie,
+        borderWidth: 1,
+        borderColor: PALETTE.linea,
+        borderRadius: scale.space / 2,
+      }}
+    >
+      <Text style={{ fontSize: scale.bodySize * 1.1, fontWeight: '700', color: PALETTE.tinta }}>
+        {ES.costs.change.title(ES.numbers.descubre.perUnit(priceUnit))}
+      </Text>
+      {picksProvider(costs) ? (
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: scale.rowGap / 2 }}>
+          <Escoger label={ES.costs.change.all} on={picked === null} onPress={() => onPick(null)} />
+          {costs.series.map((one) => (
+            <Escoger
+              key={one.providerId}
+              label={one.name}
+              swatch={serieColour(one.hue)}
+              on={picked === one.providerId}
+              onPress={() => onPick(one.providerId)}
+            />
+          ))}
+        </View>
+      ) : null}
+      <View>
+        {rows.map((row) => (
+          <Fila key={row.window} change={row} />
+        ))}
+      </View>
+      {anyDash(rows) ? (
+        <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>{ES.costs.change.dash}</Text>
+      ) : null}
+    </View>
+  );
+}
+
+/** One provider's button, or *Todos*: filled when picked, outlined when not — never colour alone. */
+function Escoger({
+  label,
+  swatch,
+  on,
+  onPress,
+}: {
+  label: string;
+  swatch?: string;
+  on: boolean;
+  onPress: () => void;
+}) {
+  const { scale } = useDensity();
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityState={{ selected: on }}
+      accessibilityLabel={label}
+      onPress={onPress}
+      style={{
+        minHeight: scale.tapTarget,
+        maxWidth: '100%',
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: scale.rowGap / 2,
+        paddingHorizontal: scale.rowGap,
+        borderRadius: scale.tapTarget / 2,
+        borderWidth: 1,
+        borderColor: on ? PALETTE.compra : PALETTE.linea,
+        backgroundColor: on ? PALETTE.compra : PALETTE.superficie,
+      }}
+    >
+      {swatch === undefined ? null : (
+        <View
+          style={{
+            width: scale.rowGap,
+            height: scale.rowGap,
+            borderRadius: scale.rowGap / 4,
+            backgroundColor: swatch,
+            borderWidth: on ? 1 : 0,
+            borderColor: PALETTE.superficie,
+          }}
+        />
+      )}
+      <Text
+        numberOfLines={1}
+        style={{
+          flexShrink: 1,
+          fontSize: scale.bodySize,
+          fontWeight: on ? '700' : '600',
+          color: on ? PALETTE.superficie : PALETTE.tinta,
+        }}
+      >
+        {label}
+      </Text>
+    </Pressable>
+  );
+}
+
+/** One window: its name, then the pesos and the percent — or *Sin cambio*, or the dash in both. */
+function Fila({ change }: { change: CostChange }) {
+  const { scale } = useDensity();
+  const line = changeLine(change);
+  const quiet = change.centavos === null || line.same;
+  const figure = {
+    minWidth: scale.tapTarget * 1.5,
+    textAlign: 'right' as const,
+    fontSize: scale.bodySize,
+    fontVariant: ['tabular-nums' as const],
+    color: quiet ? PALETTE.tintaApagada : PALETTE.tinta,
+  };
+  return (
+    <View
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: scale.rowGap,
+        minHeight: scale.rowHeight * 0.75,
+        borderTopWidth: change.window === 'd15' ? 0 : 1,
+        borderTopColor: PALETTE.linea,
+      }}
+    >
+      <Text style={{ flex: 1, fontSize: scale.bodySize, color: PALETTE.tinta }}>
+        {ES.costs.change.window[change.window]}
+      </Text>
+      {line.same ? (
+        <Text style={figure}>{line.pesos}</Text>
+      ) : (
+        <>
+          <Text style={{ ...figure, fontWeight: quiet ? '400' : '700' }}>{line.pesos}</Text>
+          <Text style={figure}>{line.percent}</Text>
+        </>
+      )}
     </View>
   );
 }
@@ -302,14 +490,20 @@ function Nota({ line }: { line: string }) {
  * relationship are different kinds of line and the owner said he wants to see it
  * here: *"You can also look at it in Costos if there are records."*
  */
-function Leyenda({ series }: { series: readonly CostSeries[] }) {
+function Leyenda({ series, picked }: { series: readonly CostSeries[]; picked: string | null }) {
   const { scale } = useDensity();
   return (
     <View style={{ gap: scale.rowGap / 2 }}>
       {series.map((one) => (
         <View
           key={one.providerId}
-          style={{ flexDirection: 'row', alignItems: 'center', gap: scale.rowGap }}
+          // ⚠️ `5R-t`: a provider behind the one she picked fades with its line.
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: scale.rowGap,
+            opacity: picked !== null && one.providerId !== picked ? 0.4 : 1,
+          }}
         >
           <View
             style={{

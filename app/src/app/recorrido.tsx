@@ -1,15 +1,17 @@
 import { router } from 'expo-router';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
   Animated,
   Easing,
   Image,
+  PanResponder,
   Pressable,
   Text,
   useWindowDimensions,
   View,
   type ImageSourcePropType,
   type LayoutChangeEvent,
+  type PanResponderGestureState,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -18,7 +20,7 @@ import { useCollectionReaches, useMyRole, useSales, useStoreAddresses, useWorksp
 import { useReduceMotion } from '@/lib/movimiento';
 import { deviceStore, writeKey } from '@/lib/store';
 import { TE_LO_COMPRO, recorridoPrometeTeLoCompro } from '@/navigation/pausa';
-import { cardMs, esUltima, recorridoDe, type Tarjeta } from '@/navigation/recorrido';
+import { TAP_SLOP, cardMs, destino, esUltima, gestoDe, recorridoDe, type Tarjeta } from '@/navigation/recorrido';
 import { marcarHistoria } from '@/offline/ensenar';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
@@ -55,6 +57,11 @@ const SCREENS = {
 
 /** The pictures are 600 × 1304, the simulator's 1206 × 2622 halved. */
 const SCREEN_RATIO = 1206 / 2622;
+
+/** `5R-t`: a swiped-to card comes in from this share of the screen's width… */
+const ENTRADA = 0.3;
+/** …and past the first card or the last, the card follows the finger this little. */
+const BORDE = 0.3;
 
 /** Where on the Vender picture the finger goes, as fractions of the picture. */
 const FINGER = {
@@ -109,9 +116,14 @@ export default function Recorrido() {
   const cards = recorridoDe(role);
   const { sales } = useSales();
   const teLoCompro = useTeLoComproLlega();
+  const reduce = useReduceMotion();
   const [index, setIndex] = useState(0);
   const progress = useRef(new Animated.Value(0)).current;
   const pausedAt = useRef(0);
+  // ⚠️ `5R-t`: the card's words and picture follow a swiping finger across.
+  const slide = useRef(new Animated.Value(0)).current;
+  /** Which side the next card comes in from: 1 the right, −1 the left, 0 no slide. */
+  const entering = useRef<-1 | 0 | 1>(0);
 
   // ⚠️ OPENING IT IS SEEING IT: this story never opens by itself again on this
   // phone. ⚠️ `5R-n`: THE STORY OF HER ROLE, marked once the roster has said
@@ -133,10 +145,18 @@ export default function Recorrido() {
     duration.current = ms;
   }, [ms]);
 
+  // ⚠️⚠️ `5R-t`: WHAT THE TIMER AND THE FINGER READ, REFRESHED ON EVERY RENDER.
+  // A `PanResponder` keeps the handlers of the render it was built in
+  // ([[a-panresponder-keeps-its-first-handlers]]), and a timer that took `last`
+  // and the card count as dependencies was rebuilt — and its card started again
+  // from nothing — whenever the roster's read landed in the middle of a card.
+  const now = useRef({ index, count: cards.length, last, width, reduce });
+  now.current = { index, count: cards.length, last, width, reduce };
+
   const run = useCallback(
     (from: number) => {
       progress.setValue(from);
-      if (last) {
+      if (now.current.last) {
         progress.setValue(1);
         return;
       }
@@ -146,22 +166,74 @@ export default function Recorrido() {
         easing: Easing.linear,
         useNativeDriver: false,
       }).start(({ finished }) => {
-        if (finished) setIndex((i) => Math.min(i + 1, cards.length - 1));
+        if (finished) setIndex((i) => Math.min(i + 1, now.current.count - 1));
       });
     },
-    [progress, last, cards.length],
+    [progress],
   );
 
+  // ⚠️⚠️ EVERY CARD'S BAR STARTS FROM ZERO, AND ONLY WHEN THE CARD CHANGES (or the
+  // roster first says whose story this is). Nothing else restarts it.
   useEffect(() => {
     if (!known) return undefined;
     run(0);
     return () => progress.stopAnimation();
   }, [index, known, run, progress]);
 
-  function go(next: number): void {
+  // ⚠️ A CARD SWIPED TO COMES IN FROM THE SIDE THE FINGER WAS GOING — set before
+  // the frame is drawn, so the old card never flashes at the new card's place.
+  // A tap and the timer move it at once, as they always have.
+  useLayoutEffect(() => {
+    const from = entering.current;
+    entering.current = 0;
+    if (from === 0 || now.current.reduce) {
+      slide.setValue(0);
+      return;
+    }
+    slide.setValue(from * now.current.width * ENTRADA);
+    Animated.spring(slide, { toValue: 0, speed: 24, bounciness: 0, useNativeDriver: false }).start();
+  }, [index, slide]);
+
+  /** The finger lifted: one decision (`gestoDe`), then one move or one resume. */
+  const lift = useRef<(g: PanResponderGestureState, downAt: number) => void>(() => undefined);
+  lift.current = (g, downAt) => {
+    const s = now.current;
+    const gesto = gestoDe({ dx: g.dx, dy: g.dy, vx: g.vx, ms: Date.now() - downAt, x: g.x0, width: s.width });
+    const to = destino(s.index, s.count, gesto);
+    if (to === null) {
+      Animated.spring(slide, { toValue: 0, speed: 24, bounciness: 0, useNativeDriver: false }).start();
+      run(pausedAt.current);
+      return;
+    }
+    const swiped = Math.abs(g.dx) > TAP_SLOP;
+    entering.current = swiped ? (to > s.index ? 1 : -1) : 0;
     progress.stopAnimation();
-    setIndex(Math.max(0, Math.min(cards.length - 1, next)));
-  }
+    setIndex(to);
+  };
+
+  const downAt = useRef(0);
+  const finger = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      // ⚠️ A swipe that starts on *Ir a vender* is still a swipe: the button lets go.
+      onMoveShouldSetPanResponder: (_e, g) => Math.abs(g.dx) > TAP_SLOP && Math.abs(g.dx) > Math.abs(g.dy),
+      onPanResponderGrant: () => {
+        downAt.current = Date.now();
+        progress.stopAnimation((v) => {
+          pausedAt.current = v;
+        });
+      },
+      onPanResponderMove: (_e, g) => {
+        const s = now.current;
+        if (s.reduce || Math.abs(g.dx) <= Math.abs(g.dy)) return;
+        // Past the first card or the last, the finger pulls it only a little.
+        const edge = destino(s.index, s.count, g.dx < 0 ? 'adelante' : 'atras') === null;
+        slide.setValue(edge ? g.dx * BORDE : g.dx);
+      },
+      onPanResponderRelease: (_e, g) => lift.current(g, downAt.current),
+      onPanResponderTerminate: (_e, g) => lift.current({ ...g, dx: 0, dy: 0, vx: 0 }, 0),
+    }),
+  ).current;
 
   const ground = GROUND[card];
 
@@ -230,24 +302,26 @@ export default function Recorrido() {
               <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.superficie }}>{ES.recorrido.skip}</Text>
             </Pressable>
           </View>
-          <Pressable
+          <Animated.View
             // ⚠️ A TAP MOVES IT, as *Tu semana*'s does: the left third back, the
-            // rest on. A finger held down holds the card; `onLongPress` is set so
-            // letting go after a hold does not also count as a tap. ⚠️ `pageX`,
-            // the screen's, and not `locationX`: that one is measured from
-            // whatever the finger landed on, and a tap left of the picture went
+            // rest on — and since `5R-t` A SWIPE DOES TOO: left to the next card,
+            // right to the one before. A finger held down holds the card. One
+            // handler decides as the finger lifts (`gestoDe`), so a quick tap can
+            // no longer move the card AND resume the old card's bar on the new
+            // one. ⚠️ The screen's x (`x0`), not the touched view's: measured from
+            // whatever the finger landed on, a tap left of the picture went
             // forward on the emulator.
-            onPress={(e) => {
-              if (e.nativeEvent.pageX < width / 3) go(index - 1);
-              else if (!last) go(index + 1);
+            {...finger.panHandlers}
+            style={{
+              flex: 1,
+              paddingHorizontal: scale.space * 1.5,
+              paddingTop: scale.space,
+              gap: scale.space,
+              transform: [{ translateX: slide }],
             }}
-            onPressIn={() => progress.stopAnimation((v) => (pausedAt.current = v))}
-            onPressOut={() => run(pausedAt.current)}
-            onLongPress={() => undefined}
-            style={{ flex: 1, paddingHorizontal: scale.space * 1.5, paddingTop: scale.space, gap: scale.space }}
           >
             <Contenido card={card} last={last} words={words} />
-          </Pressable>
+          </Animated.View>
         </>
       ) : null}
     </View>

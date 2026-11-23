@@ -2949,6 +2949,35 @@ export const ES = {
      */
     unlinked: 'Cada proveedor te ha vendido esto una vez. Aún no hay una línea que trazar.',
 
+    /**
+     * ⚠️⚠️ *CUÁNTO HA CAMBIADO* — `5R-t`, drawn with the owner on 2026-11-23: five
+     * rows over the chart, pesos and percent, for every provider together or
+     * one. The heading names the unit (*el kilo*, `ES.numbers.descubre.perUnit`),
+     * so a row's pesos need not repeat it. ⚠️ Sentence case, as Step 11's
+     * restyle writes every heading.
+     */
+    change: {
+      title: (perUnit: string) => `Cuánto ha cambiado ${perUnit}`,
+      /** The first button: what she pays, whoever sold it. */
+      all: 'Todos',
+      window: {
+        d15: '15 días',
+        m1: '1 mes',
+        m3: '3 meses',
+        m6: '6 meses',
+        y1: '1 año',
+      } as Readonly<Record<'d15' | 'm1' | 'm3' | 'm6' | 'y1', string>>,
+      /** ⚠️ A sign, not a colour: on this screen every figure is a purchase, so *+* is *you pay more*. */
+      morePesos: (amount: string) => `+${amount}`,
+      lessPesos: (amount: string) => `−${amount}`,
+      morePercent: (figure: string) => `+${figure} %`,
+      lessPercent: (figure: string) => `−${figure} %`,
+      same: 'Sin cambio',
+      none: '—',
+      /** Said once under the rows, and only when one of them is a dash — Precios' `dash`, for purchases. */
+      dash: '— quiere decir que no hay compras para comparar en ese plazo.',
+    },
+
     /** The collapsible, shut. ⚠️ A word and never a glyph alone (C12.1). */
     showMatrix: 'Ver la tabla',
     /** The collapsible, open. */
