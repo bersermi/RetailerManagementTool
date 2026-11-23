@@ -48,6 +48,9 @@ const FADED = 0.2;
 /** `5R-t`: a line with more points than this draws them small, so they do not touch. */
 const MANY = 16;
 
+/** The finger's guide: a hairline as thick as a line's stroke (`Linea`'s `stroke`). */
+const GUIDE = 2;
+
 /** One line to draw: a stable key, its points in a unit box, and its colour. Not exported (`R15`). */
 interface GraficaLine {
   readonly key: string;
@@ -119,13 +122,13 @@ export function Grafica({
   // ([[a-panresponder-keeps-its-first-handlers]]): it reads these refs.
   const touch = useRef(onTouch);
   touch.current = onTouch;
-  const geometry = useRef({ width: 0, margin: 0, originX: 0 });
-  geometry.current.width = width;
-  geometry.current.margin = margin;
+  const geometry = useRef({ across: 0, edge: 0, originX: 0 });
+  geometry.current.across = width;
+  geometry.current.edge = margin;
   const report = (pageX: number): void => {
     const g = geometry.current;
-    if (g.width <= g.margin) return;
-    const x = (pageX - g.originX - g.margin / 2) / (g.width - g.margin);
+    if (g.across <= g.edge) return;
+    const x = (pageX - g.originX - g.edge / 2) / (g.across - g.edge);
     touch.current?.(Math.min(1, Math.max(0, x)));
   };
   const finger = useRef(
@@ -200,8 +203,8 @@ export function Grafica({
               position: 'absolute',
               top: 0,
               bottom: 0,
-              left: guide * (width - margin) + margin / 2 - 1,
-              width: 2,
+              left: guide * (width - margin) + margin / 2 - GUIDE / 2,
+              width: GUIDE,
               backgroundColor: PALETTE.tinta,
               opacity: 0.35,
             }}
