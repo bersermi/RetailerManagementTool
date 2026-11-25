@@ -20,7 +20,7 @@ on 2026-11-22; Google Play's title is *Wera Tienda* since 2026-11-23. **1.2.0 (`
 stores:** the Android's version code 9 (from `a1d7012`) waits for the owner's upload, in one Play visit with
 the listing's new texts, graphic and first screenshot; the iPhone's **1.2.0 (6)**, built on this Mac on
 2026-11-23 from `3cf8368` (EAS refused it that morning: the free plan's iOS builds for November were used up),
-waits to be sent to Apple — he stopped its upload. Section 10 of each store's file holds 1.2's words, and the
+is in App Store Connect since 2026-11-23, 21:04 UTC (submission `4936fe4d`). Section 10 of each store's file holds 1.2's words, and the
 handbook's *Wera Tienda 1.2 in both stores* his steps. (Corrected 2026-11-23: this paragraph still had
 1.1 waiting for his upload.)
 
@@ -89,7 +89,7 @@ It is `~/RetailerToolDev/wera-builds/wera-tienda-1.2.0-9.aab` (SHA-256 `f9b334ad
 twin was built on this Mac the same day** (EAS had refused it — the free plan's iOS builds for November were
 used up): `wera-tienda-1.2.0-ios.ipa`, **1.2.0 (6)**, from `3cf8368` — so it carries `5R-t`, which Android's
 gets over the air — runtime `4f29fdaa` (`EXUpdates.bundle/fingerprint`), signed with the App Store profile of
-2026-10-21 (SHA-256 `40bfa143…`); a local build, so EAS's build list does not show it. Not sent to Apple yet. 1.1's bundles stay beside it:
+2026-10-21 (SHA-256 `40bfa143…`); a local build, so EAS's build list does not show it. Sent to the record `6818418895` on 2026-11-23 — submission `4936fe4d`, finished 21:04 UTC (the upload the owner stopped had already reached Expo's servers; found 2026-11-25). 1.1's bundles stay beside it:
 `wera-tienda-1.1.0-8.aab` (EAS `011fb071`, runtime `5d02ce3f`) and the iPhone's `wera-tienda-1.1.0-4.ipa`
 (EAS `2bb5eb1b`, runtime `72c82608`, sent with `eas submit`, submission `c2ec81ca`, to the record
 `6818418895`, named in `app/eas.json`); 1.0's, `89de4383` (version code 7), in
