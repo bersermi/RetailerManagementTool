@@ -197,7 +197,7 @@ both are still collected.
 ```
 Wera Tienda is a point-of-sale and stock-record app for small shops in Mexico. The interface is in Spanish.
 
-The demo account owns a shop with products already loaded. The first time an account opens its shop on a phone, a one-minute tour ("Conoce Wera") opens by itself; "Saltar" closes it. To record a sale: tab "Vender", tap + on a product, open the basket ("Total") and confirm. "Comprar" records a delivery from a supplier. "Merma" opens on three doors: "Tirar" records a write-off; the two marked "Próximamente" ("Te lo compro", "Ofrecer a las cocinas") are services we offer to shops later, shown so a shop knows they are coming, and open nothing yet. "Inicio" has the catalog, the last seven days, suppliers, reports ("Números") and settings ("Ajustes").
+The demo account owns a shop with products already loaded. The first time an account opens its shop on a phone, a one-minute tour ("Conoce Wera Tienda") opens by itself; "Saltar" closes it. To record a sale: tab "Vender", tap + on a product, open the basket ("Total") and confirm. "Comprar" records a delivery from a supplier. "Merma" opens on three doors: "Tirar" records a write-off; the two marked "Próximamente" ("Te lo compro", "Ofrecer a las cocinas") are services we offer to shops later, shown so a shop knows they are coming, and open nothing yet. "Inicio" has the catalog, the last seven days, suppliers, reports ("Números") and settings ("Ajustes").
 
 Wera processes no payments: it only records sales a shop made in cash. There are no in-app purchases and no ads.
 
@@ -248,7 +248,7 @@ camera question, which since 1.1 reads *Wera usa la cámara para tomar fotos de 
 
 ## 10. Version 1.2.0 — *Wera Tienda* (`13.4`)
 
-The handbook's *Wera 1.2 in both stores* has the steps. App Store Connect copies 1.1's description,
+✅ **Sent for review 2026-11-25** (the owner's word), build 1.2.0 (6), automatic release on approval. The handbook's *Wera 1.2 in both stores* has the steps. App Store Connect copies 1.1's description,
 keywords, promotional text, screenshots and review information into the new version; these change:
 
 | Where | What |
