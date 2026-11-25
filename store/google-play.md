@@ -408,6 +408,8 @@ review moves the app to the back of the queue.
 ```
 Novedades de Wera Tienda 1.2:
 • Wera ahora se llama Wera Tienda, también bajo el ícono de tu teléfono.
+• En Costos ves cuánto ha cambiado lo que pagas por cada producto en 15 días, 1, 3 y 6 meses y 1 año, en pesos y en porcentaje.
+• Conoce Wera Tienda ahora también se pasa deslizando el dedo.
 • Los arreglos que nos pidieron las tiendas.
 ```
 

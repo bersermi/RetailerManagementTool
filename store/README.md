@@ -20,7 +20,7 @@ on 2026-11-22; Google Play's title is *Wera Tienda* since 2026-11-23. **1.2.0 (`
 stores:** the Android's version code 9 (from `a1d7012`) waits for the owner's upload, in one Play visit with
 the listing's new texts, graphic and first screenshot; the iPhone's **1.2.0 (6)**, built on this Mac on
 2026-11-23 from `3cf8368` (EAS refused it that morning: the free plan's iOS builds for November were used up),
-is in App Store Connect since 2026-11-23, 21:04 UTC (submission `4936fe4d`). Section 10 of each store's file holds 1.2's words, and the
+is in App Store Connect since 2026-11-23, 21:04 UTC (submission `4936fe4d`), and was sent for review on 2026-11-25. Section 10 of each store's file holds 1.2's words, and the
 handbook's *Wera Tienda 1.2 in both stores* his steps. (Corrected 2026-11-23: this paragraph still had
 1.1 waiting for his upload.)
 
