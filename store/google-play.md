@@ -388,7 +388,7 @@ is ever refused.
 
 ## 10. Wera Tienda 1.2.0 — the release, and the listing in the same visit (`13.4`)
 
-The handbook's *Wera 1.2 in both stores* has the steps. ⚠️ **One visit, one send:** the release and the
+✅ **Sent for review 2026-11-25** (the owner's word): the release — a draft already holding version code 9, edited rather than created — and the listing, in one send; release notes as below. The handbook's *Wera 1.2 in both stores* has the steps. ⚠️ **One visit, one send:** the release and the
 listing changes (`13.3`'s texts and feature graphic, and the first screenshot) wait together in
 *Publishing overview* and go to Google's review once — a release sent while a listing change is in
 review moves the app to the back of the queue.
