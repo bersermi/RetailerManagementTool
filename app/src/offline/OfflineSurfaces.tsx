@@ -17,6 +17,7 @@ import { deviceStore } from '@/lib/store';
 import { FIRST_OUTAGE_KEY, firstTime } from '@/offline/ensenar';
 import { PALETTE } from '@/theme/palette';
 import { useDensity } from '@/theme/DensityProvider';
+import { ESQUINA } from '@/theme/density';
 
 // ============================================================================
 // THE TWO THINGS A PERSON SEES ABOUT THE LINK. Plan task 5c-iv-a — C10.1's
@@ -162,7 +163,7 @@ function Notice({ words, onDismiss }: { words: string; onDismiss: () => void }) 
           minHeight: scale.tapTarget,
           justifyContent: 'center',
           paddingHorizontal: scale.space * 1.5,
-          borderRadius: scale.tapTarget / 2,
+          borderRadius: ESQUINA.hoja,
           backgroundColor: PALETTE.superficie,
           borderWidth: 1,
           borderColor: PALETTE.linea,
@@ -225,7 +226,7 @@ function Toast() {
         style={{
           paddingVertical: scale.space,
           paddingHorizontal: scale.space * 1.5,
-          borderRadius: scale.space,
+          borderRadius: ESQUINA.hoja,
           backgroundColor: PALETTE.superficie,
           borderWidth: 1,
           borderColor: PALETTE.linea,

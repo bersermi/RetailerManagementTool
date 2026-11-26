@@ -581,8 +581,8 @@ follows it, as `cocina/CLAUDE.md`'s does:
   **No sentence saying there are no penalties**: a reservation is drawn as a handover — the hour, how she pays, the code.
 - **The look:** titles in Nunito ExtraBold (`expo-font`); Itacate's blue `#24476B` for actions; Wera's terracotta `#A9501C` for
   promotions only; state first, before anything tappable (ADR-035 §2.8); one staggered entrance per screen, transform and
-  opacity only (§2.11). ⚠️ **Built by `10.5-v-b`:** `@/theme/letra` and `src/marca/letras/` are Wera's file and font byte for byte,
-  loaded by the root before the first screen (the phone's face if the load fails); `PALETTE.accion` is the blue, held to `app.json`'s
+  opacity only (§2.11). ⚠️ **Built by `10.5-v-b`:** `@/theme/letra` and `src/marca/letras/` are Wera's file and font byte for byte (until
+  Wera moved to Archivo at `11.6`; Wera Cocina's since, and Wera's again at `11.7`), loaded by the root before the first screen (the phone's face if the load fails); `PALETTE.accion` is the blue, held to `app.json`'s
   icon ground; the motion's numbers are `@/theme/movimiento`'s, drawn by `@/ui/Llega` (a screen's first blocks, once, on mount),
   `@/ui/Hoja` (a sheet's spring), since `10.5-iv-b-i` `@/ui/HojaDeLista` (the list sliding over the map) and since `10.5b-iii-a`
   `@/ui/Deslizar` (*Ya lo tengo*'s swipe) — **the only four modules that import Reanimated**, their animated styles `opacity` and

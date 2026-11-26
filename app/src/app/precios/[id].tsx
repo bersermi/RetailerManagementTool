@@ -17,9 +17,10 @@ import { useOnline } from '@/offline/useOnline';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE, serieColour } from '@/theme/palette';
-import { TITULO } from '@/theme/letra';
+import { letraTitulo } from '@/theme/letra';
 import { Grafica } from '@/ui/Grafica';
 import { Vacio } from '@/ui/Vacio';
+import { ESQUINA } from '@/theme/density';
 
 // ============================================================================
 // PRECIOS — HOW ONE PRODUCT'S PRICES HAVE MOVED, BOTH SIDES OF THE LEDGER. Plan
@@ -93,8 +94,6 @@ function Banda({ title }: { title: string }) {
         paddingTop: insets.top + scale.space,
         paddingBottom: scale.space,
         paddingHorizontal: scale.space,
-        borderBottomWidth: 1,
-        borderBottomColor: PALETTE.linea,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -103,7 +102,7 @@ function Banda({ title }: { title: string }) {
     >
       <Text
         numberOfLines={1}
-        style={{ flex: 1, fontSize: scale.titleSize, ...TITULO, color: PALETTE.tinta }}
+        style={{ flex: 1, ...letraTitulo(scale), color: PALETTE.tinta }}
       >
         {title}
       </Text>
@@ -210,7 +209,7 @@ function Muestra({ side }: { side: Side }) {
       style={{
         width: scale.rowGap,
         height: scale.rowGap,
-        borderRadius: scale.rowGap / 4,
+        borderRadius: ESQUINA.marca,
         backgroundColor: colourOf(side),
       }}
     />
@@ -272,9 +271,7 @@ function Tarjetas({ prices }: { prices: Prices }) {
             padding: scale.rowGap,
             gap: scale.rowGap / 2,
             backgroundColor: PALETTE.superficie,
-            borderWidth: 1,
-            borderColor: PALETTE.linea,
-            borderRadius: scale.space / 2,
+            borderRadius: ESQUINA.hoja,
           }}
         >
           <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.tinta }}>

@@ -69,7 +69,7 @@ import { useOnline } from '@/offline/useOnline';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
-import { TITULO } from '@/theme/letra';
+import { FAMILIA_NUMERO, letraTitulo } from '@/theme/letra';
 import { monthCsv, monthHtml } from '@/export/monthFile';
 import { shareCsv, shareHtmlAsPdf, type ShareOutcome } from '@/export/share';
 import { Boton } from '@/ui/Boton';
@@ -77,6 +77,7 @@ import { Interruptor } from '@/ui/Interruptor';
 import { Rotulo } from '@/ui/Rotulo';
 import { Separador } from '@/ui/Separador';
 import { Vacio } from '@/ui/Vacio';
+import { ESQUINA } from '@/theme/density';
 
 // ============================================================================
 // NÚMEROS — WHAT AM I SELLING, AND WHAT DID IT BRING IN. Plan task `7a`, the
@@ -343,7 +344,7 @@ function MesNav({ month, today, onMonth }: { month: string; today: string; onMon
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
       {arrow(ES.numbers.mes.previousMonth, ES.monthExport.previousMark, canBack, -1)}
-      <Text style={{ flex: 1, textAlign: 'center', fontSize: scale.titleSize, ...TITULO, color: PALETTE.tinta }}>
+      <Text style={{ flex: 1, textAlign: 'center', ...letraTitulo(scale), color: PALETTE.tinta }}>
         {monthTitle(month).charAt(0).toUpperCase() + monthTitle(month).slice(1)}
       </Text>
       {arrow(ES.numbers.mes.nextMonth, ES.monthExport.nextMark, canForward, 1)}
@@ -357,7 +358,7 @@ function PrimeraSemana({ age }: { age: number }) {
   return (
     <Tarjeta>
       <Rotulo text={ES.numbers.firstWeek.title} ink={PALETTE.accion} />
-      <Text style={{ fontSize: scale.titleSize, ...TITULO, color: PALETTE.tinta }}>
+      <Text style={{ ...letraTitulo(scale), color: PALETTE.tinta }}>
         {ES.numbers.firstWeek.days(age)}
       </Text>
       <View style={{ flexDirection: 'row', gap: scale.rowGap / 2 }}>
@@ -367,7 +368,7 @@ function PrimeraSemana({ age }: { age: number }) {
             style={{
               flex: 1,
               height: scale.rowGap,
-              borderRadius: scale.rowGap / 2,
+              borderRadius: ESQUINA.marca,
               backgroundColor: i < age ? PALETTE.accion : PALETTE.accionSuave,
             }}
           />
@@ -467,7 +468,7 @@ function Bloque({
     <View
       style={{
         backgroundColor: soft,
-        borderRadius: scale.space * 0.75,
+        borderRadius: ESQUINA.hoja,
         paddingHorizontal: scale.space,
         paddingVertical: scale.rowGap,
         flexDirection: 'row',
@@ -480,7 +481,9 @@ function Bloque({
         {amount === null ? (
           <ActivityIndicator color={ink} style={{ alignSelf: 'flex-start' }} />
         ) : (
-          <Text style={{ fontSize: scale.moneySize * 1.3, ...TITULO, color: PALETTE.tinta }}>{amount}</Text>
+          // ⚠️ `11.6`: the month's three figures in the number's face, its figures in
+          // columns, at today's size — three of them, so not the one big number's.
+          <Text style={{ fontSize: scale.moneySize * 1.3, fontFamily: FAMILIA_NUMERO, fontVariant: ['tabular-nums'], color: PALETTE.tinta }}>{amount}</Text>
         )}
         {line === '' ? null : (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: scale.rowGap / 4 }}>
@@ -547,15 +550,13 @@ function Hallazgo({ title, big, children, tip }: { title: string; big: string; c
       style={{
         width,
         backgroundColor: PALETTE.superficie,
-        borderWidth: 1,
-        borderColor: PALETTE.linea,
-        borderRadius: scale.space * 0.875,
+        borderRadius: ESQUINA.hoja,
         padding: scale.space,
         gap: scale.rowGap,
       }}
     >
       <Rotulo text={title} ink={PALETTE.accion} />
-      <Text style={{ fontSize: scale.titleSize, ...TITULO, color: PALETTE.tinta }}>{big}</Text>
+      <Text style={{ ...letraTitulo(scale), color: PALETTE.tinta }}>{big}</Text>
       {children}
       <View style={{ flexDirection: 'row', gap: scale.rowGap / 2, borderTopWidth: 1, borderTopColor: PALETTE.linea, paddingTop: scale.rowGap }}>
         <MaterialCommunityIcons name="lightbulb-on-outline" size={scale.iconSize * 0.8} color={PALETTE.accion} />
@@ -643,7 +644,7 @@ function Cliente({ ticket }: { ticket: Ticket }) {
             style={{
               width: `${Math.round((row.centavos / most) * 100)}%`,
               height: scale.rowGap,
-              borderRadius: scale.rowGap / 2,
+              borderRadius: ESQUINA.marca,
               backgroundColor: row.on ? PALETTE.accion : PALETTE.accionSuave,
             }}
           />
@@ -735,7 +736,7 @@ function Cuadritos({ year }: { year: Year }) {
                 style={{
                   width: side,
                   height: side,
-                  borderRadius: side / 4,
+                  borderRadius: ESQUINA.marca,
                   backgroundColor: cell === null ? 'transparent' : cell === 0 ? PALETTE.linea : PALETTE.accion,
                   opacity: cell === null || cell === 0 ? 1 : shade[cell],
                 }}
@@ -796,7 +797,7 @@ function Columnas({
             style={{
               flex: 1,
               height: Math.max(1, Math.round(v.share * height)),
-              borderRadius: scale.rowGap / 3,
+              borderRadius: ESQUINA.marca,
               backgroundColor: v.share === 0 ? PALETTE.linea : v.on ? PALETTE.accion : PALETTE.accionSuave,
             }}
           />
@@ -834,7 +835,7 @@ function Bloqueada({ title, when, have, need }: { title: string; when: string; h
     <View
       style={{
         backgroundColor: PALETTE.atencionSuave,
-        borderRadius: scale.space * 0.875,
+        borderRadius: ESQUINA.hoja,
         padding: scale.space,
         gap: scale.rowGap,
       }}
@@ -843,12 +844,12 @@ function Bloqueada({ title, when, have, need }: { title: string; when: string; h
         <MaterialCommunityIcons name="lock-outline" size={scale.iconSize} color={PALETTE.atencion} />
         <Text style={{ flex: 1, fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.tinta }}>{title}</Text>
       </View>
-      <View style={{ height: scale.rowGap, borderRadius: scale.rowGap / 2, backgroundColor: PALETTE.superficie }}>
+      <View style={{ height: scale.rowGap, borderRadius: ESQUINA.marca, backgroundColor: PALETTE.superficie }}>
         <View
           style={{
             width: `${Math.round((Math.min(have, need) / need) * 100)}%`,
             height: scale.rowGap,
-            borderRadius: scale.rowGap / 2,
+            borderRadius: ESQUINA.marca,
             backgroundColor: PALETTE.atencion,
           }}
         />
@@ -865,9 +866,7 @@ function Tarjeta({ children }: { children: React.ReactNode }) {
     <View
       style={{
         backgroundColor: PALETTE.superficie,
-        borderWidth: 1,
-        borderColor: PALETTE.linea,
-        borderRadius: scale.space * 0.875,
+        borderRadius: ESQUINA.hoja,
         padding: scale.space,
         gap: scale.rowGap,
       }}
@@ -888,8 +887,6 @@ function Banda({ title, onBack }: { title: string; onBack: () => void }) {
         paddingTop: insets.top + scale.space,
         paddingBottom: scale.space,
         paddingHorizontal: scale.space,
-        borderBottomWidth: 1,
-        borderBottomColor: PALETTE.linea,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -898,7 +895,7 @@ function Banda({ title, onBack }: { title: string; onBack: () => void }) {
     >
       <Text
         numberOfLines={1}
-        style={{ flex: 1, fontSize: scale.titleSize, ...TITULO, color: PALETTE.tinta }}
+        style={{ flex: 1, ...letraTitulo(scale), color: PALETTE.tinta }}
       >
         {title}
       </Text>
@@ -959,7 +956,7 @@ function Barras({
               <View
                 style={{
                   height: Math.max(1, Math.round(bar.share * height)),
-                  borderRadius: scale.rowGap / 2,
+                  borderRadius: ESQUINA.marca,
                   backgroundColor:
                     bar.share === 0 ? PALETTE.linea : on ? PALETTE.accion : PALETTE.accionSuave,
                   borderWidth: on ? 0 : 1,
@@ -1033,9 +1030,7 @@ function Tabla({
         <View
           style={{
             backgroundColor: PALETTE.superficie,
-            borderWidth: 1,
-            borderColor: PALETTE.linea,
-            borderRadius: scale.space / 2,
+            borderRadius: ESQUINA.hoja,
           }}
         >
           {report.rows.map((row, index) => (

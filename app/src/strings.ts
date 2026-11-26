@@ -1480,7 +1480,7 @@ export const ES = {
     noSalePrice: 'Sin precio de venta',
     /** The supplier card — who is delivering, in its own blue. */
     supplier: {
-      label: 'TE ENTREGA',
+      label: 'Te entrega',
       change: 'Cambiar',
       /** The magnifier, to a screen reader: it opens and closes the search. */
       search: 'Buscar producto',
@@ -1928,12 +1928,12 @@ export const ES = {
       call: 'Llamar',
       chat: 'WhatsApp',
       edit: 'Editar',
-      month: 'ESTE MES',
+      month: 'Este mes',
       monthLine: (deliveries: number, ago: string) =>
         `${deliveries === 1 ? '1 entrega' : `${deliveries} entregas`} · la última ${ago}`,
       monthNone: 'Nada este mes',
       lastVisit: (ago: string) => `La última entrega: ${ago}`,
-      brought: 'LO QUE TE TRAE',
+      brought: 'Lo que te trae',
       broughtLast: (amount: string, perUnit: string) => `La última vez: ${amount} ${perUnit}`,
       /** ⚠️ The change against the delivery before, in pesos — never a percentage. */
       change: (centavos: number, amount: string) => (centavos > 0 ? `+${amount}` : centavos < 0 ? `−${amount}` : '='),
@@ -3419,10 +3419,10 @@ export const ES = {
      * percentage. The grammar lives here (`members.shareMessage`'s rule).
      */
     mes: {
-      title: 'TU MES',
-      sold: 'VENDISTE',
-      bought: 'COMPRASTE',
-      thrown: 'SE TIRÓ',
+      title: 'Tu mes',
+      sold: 'Vendiste',
+      bought: 'Compraste',
+      thrown: 'Se tiró',
       previousMonth: 'Mes anterior',
       nextMonth: 'Mes siguiente',
       /**
@@ -3450,7 +3450,7 @@ export const ES = {
     },
     /** ⚠️ `8g`: a shop's first week — never an empty screen on day one. */
     firstWeek: {
-      title: 'TU PRIMERA SEMANA',
+      title: 'Tu primera semana',
       days: (n: number) => (n === 1 ? 'Hoy empezaste con Wera Tienda' : `Llevas ${n} días con Wera Tienda`),
       encourage: 'Cada venta que registras hace tus números más útiles.',
     },
@@ -3460,8 +3460,8 @@ export const ES = {
      * SUPPLIER — the owner's ruling of 2026-10-20: a wrong tip costs trust.
      */
     descubre: {
-      title: 'DESCUBRE',
-      hoursTitle: '¿A QUÉ HORA VENDES MÁS?',
+      title: 'Descubre',
+      hoursTitle: '¿A qué hora vendes más?',
       hoursWindow: (from: number, to: number) => {
         const twelve = (h: number) => (h % 12 === 0 ? 12 : h % 12);
         const part = (h: number) =>
@@ -3473,12 +3473,12 @@ export const ES = {
       hoursTip: (from: number) =>
         `Ten la tienda lista antes de las ${from % 12 === 0 ? 12 : from % 12}: el refri lleno y cambio en la caja.`,
       hoursBasis: 'Con tus ventas de las últimas cuatro semanas.',
-      dayTitle: 'TU MEJOR DÍA',
+      dayTitle: 'Tu mejor día',
       dayBig: (weekday: string) => `Los ${weekday.endsWith('s') ? weekday : `${weekday}s`}`,
       dayDetail: (best: string, bestAmount: string, worst: string, worstAmount: string) =>
         `Un ${best} vendes ${bestAmount}; un ${worst}, ${worstAmount}.`,
       dayTip: (best: string) => `Que no te falte nada el ${best}: es el día que más vendes.`,
-      quincenaTitle: 'EL EFECTO QUINCENA',
+      quincenaTitle: 'El efecto quincena',
       /** ⚠️ Pesos and words, never a percentage — the owner's ruling for Números. */
       quincenaBig: (way: 'mas' | 'igual' | 'menos', amount: string) =>
         way === 'igual'
@@ -3494,7 +3494,7 @@ export const ES = {
             : 'Entre quincenas vendes más: que entonces no te falte nada.',
       /** The date axis under the quincena's bars: the 1st, the middle, the end. */
       quincenaAxis: ['1', '15', '30'],
-      ticketTitle: 'CADA CLIENTE TE DEJA',
+      ticketTitle: 'Cada cliente te deja',
       ticketBig: (amount: string) => `${amount} en promedio`,
       ticketNow: 'Estas 2 semanas',
       ticketBefore: 'Las 2 anteriores',
@@ -3503,7 +3503,7 @@ export const ES = {
       ticketTip: 'Sube cuando, al cobrar, ofreces algo más: «¿le doy también su refresco?»',
       /** *el 3 de junio* — the month passed in, the grammar here. */
       dayWords: (date: number, month: string) => `el ${date} de ${month}`,
-      risesTitle: 'LO QUE MÁS SUBIÓ DE PRECIO',
+      risesTitle: 'Lo que más subió de precio',
       /** ⚠️ Per the product's own price unit, and never a percentage. */
       perUnit: (unit: string) =>
         unit === 'kg' ? 'el kilo' : unit === 'pza' ? 'la pieza' : unit === 'l' ? 'el litro' : unit === 'manojo' ? 'el manojo' : `por ${unit}`,
@@ -3515,7 +3515,7 @@ export const ES = {
       risesNoneDetail: (since: string) => `Desde ${since}, lo que compras te cuesta igual o menos.`,
       risesNoneTip: 'Cuando algo te suba, aquí lo vas a ver primero.',
       risesOpen: 'Ver cómo ha cambiado',
-      yearTitle: 'TU AÑO EN CUADRITOS',
+      yearTitle: 'Tu año en cuadritos',
       yearBig: 'Cada cuadrito es un día',
       yearDetail: 'Entre más oscuro, más vendiste. Los blancos: días sin ventas.',
       yearTip: 'Con el tiempo vas a ver tus temporadas: quincenas, regreso a clases, diciembre.',
@@ -3533,13 +3533,13 @@ export const ES = {
         centavos === 0
           ? 'Lo mismo que la semana pasada'
           : `${amount} ${centavos > 0 ? 'más' : 'menos'} que la semana pasada`,
-      bestTitle: 'TU DÍA MÁS FUERTE',
+      bestTitle: 'Tu día más fuerte',
       bestBig: (weekday: string) => `El ${weekday}`,
       bestDetail: (amount: string, sales: number | null) =>
         sales === null ? amount : `${amount} en ${sales} ${sales === 1 ? 'venta' : 'ventas'}`,
       bestRecord: (weekday: string) => `Tu mejor ${weekday} desde que usas Wera Tienda.`,
-      starTitle: 'LA ESTRELLA DE LA SEMANA',
-      thrownTitle: 'PARA ESTA SEMANA',
+      starTitle: 'La estrella de la semana',
+      thrownTitle: 'Para esta semana',
       thrownBig: (quantity: string, name: string) => `Se tiró ${quantity} de ${name}`,
       /** ⚠️ About her own shop, never a supplier or how much to order. */
       thrownTip: (reason: string | null) =>
@@ -3559,7 +3559,7 @@ export const ES = {
     },
     /** ⚠️ `8g` — what opens as a shop builds its history, and how long until it does. */
     pronto: {
-      title: 'SE ABREN PRONTO',
+      title: 'Se abren pronto',
       hours: '¿A qué hora vendes más?',
       hoursWhen: (left: number) => (left === 1 ? 'Te falta 1 venta' : `Te faltan ${left} ventas`),
       day: 'Tu mejor día de la semana',

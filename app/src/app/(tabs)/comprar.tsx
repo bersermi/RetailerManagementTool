@@ -74,6 +74,7 @@ import { Vacio } from '@/ui/Vacio';
 import { Corrigiendo } from '@/ui/Corrigiendo';
 import { VaciarCarrito } from '@/ui/VaciarCarrito';
 import { Velo } from '@/ui/Velo';
+import { ESQUINA } from '@/theme/density';
 
 // ============================================================================
 // COMPRAR — RECEIVING A DELIVERY. Plan task `5g-ii`, and the third of §2.8's
@@ -768,7 +769,7 @@ function Proveedor({
         marginTop: scale.space,
         paddingHorizontal: scale.space,
         paddingVertical: scale.rowGap,
-        borderRadius: scale.space * 1.5,
+        borderRadius: ESQUINA.hoja,
         backgroundColor: PALETTE.compra,
       }}
     >
@@ -822,7 +823,7 @@ function Proveedor({
           style={{
             width: scale.tapTarget,
             height: scale.tapTarget,
-            borderRadius: scale.tapTarget / 2,
+            borderRadius: ESQUINA.boton,
             alignItems: 'center',
             justifyContent: 'center',
             borderWidth: 1,
@@ -847,7 +848,7 @@ function Proveedor({
             minHeight: scale.tapTarget,
             justifyContent: 'center',
             paddingHorizontal: scale.space,
-            borderRadius: scale.tapTarget / 2,
+            borderRadius: ESQUINA.boton,
             borderWidth: 1,
             borderColor: PALETTE.superficie,
           }}
@@ -944,7 +945,7 @@ function Proveedores({
               // in points is a size `Letra grande` cannot change; the wrapper's own
               // padding keeps the window off the edges, and that scales.
               maxHeight: '70%',
-              borderRadius: scale.space,
+              borderRadius: ESQUINA.hoja,
               backgroundColor: PALETTE.fondo,
               overflow: 'hidden',
             }}
@@ -1143,7 +1144,7 @@ function Tarjeta({
         width,
         gap: scale.rowGap,
         padding: scale.rowGap,
-        borderRadius: scale.space,
+        borderRadius: ESQUINA.hoja,
         borderWidth: inBasket ? 2 : 1,
         borderColor: alarm ? PALETTE.atencion : inBasket ? PALETTE.accion : PALETTE.linea,
         backgroundColor: alarm ? PALETTE.atencionSuave : PALETTE.superficie,
@@ -1272,7 +1273,7 @@ function CajaCosto({
         width: compact ? scale.tapTarget * 3 : undefined,
         minHeight: scale.tapTarget,
         paddingHorizontal: scale.rowGap,
-        borderRadius: scale.space / 2,
+        borderRadius: ESQUINA.campo,
         borderWidth: changed ? 2 : 1,
         borderColor: alarm ? PALETTE.atencion : changed ? PALETTE.compra : PALETTE.linea,
         backgroundColor: PALETTE.superficie,
@@ -1341,7 +1342,7 @@ function Margen({ margin, entry }: { margin: number | 'no-sale-price'; entry: Ca
         alignSelf: 'flex-start',
         paddingHorizontal: scale.rowGap,
         paddingVertical: scale.rowGap / 4,
-        borderRadius: scale.tapTarget / 2,
+        borderRadius: ESQUINA.chip,
         backgroundColor: none ? PALETTE.fondo : loss ? PALETTE.error : PALETTE.accionSuave,
         borderWidth: none ? 1 : 0,
         borderColor: PALETTE.linea,
@@ -1492,7 +1493,7 @@ function Bloqueo({ missing }: { missing: number }) {
         justifyContent: 'center',
         alignItems: 'center',
         paddingHorizontal: scale.rowGap,
-        borderRadius: scale.tapTarget / 2,
+        borderRadius: ESQUINA.chip,
         borderWidth: 1,
         borderColor: PALETTE.atencion,
         backgroundColor: PALETTE.atencionSuave,
@@ -1674,7 +1675,8 @@ function Renglon({
         gap: scale.rowGap,
         paddingVertical: scale.space,
         paddingHorizontal: scale.space,
-        backgroundColor: alarm ? PALETTE.atencionSuave : PALETTE.fondo,
+        // ⚠️ `11.6`: the delivery's lines on a white sheet, as Vender's.
+        backgroundColor: alarm ? PALETTE.atencionSuave : PALETTE.superficie,
       }}
     >
       <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: scale.space }}>

@@ -47,10 +47,31 @@ export interface DensityScale {
   /** Screen and section headings. */
   readonly titleSize: number;
   /**
+   * A title's line — `11.6`, direction A (the owner's yes of 2026-11-26): Archivo's
+   * line box is not Nunito's, so a title says its own (26 and 32, the design
+   * system's `titulo`), or the header moves by the font's padding.
+   */
+  readonly titleLine: number;
+  /**
+   * A heading over a block — `11.6`: the spaced capitals become this, in the
+   * titles' face and in sentence case (the design system's `encabezado`).
+   */
+  readonly headingSize: number;
+  /** Its line. */
+  readonly headingLine: number;
+  /**
    * A price or a total. Its own token because it is the number the mode exists
    * for: the thing that must be readable "big and at a glance".
    */
   readonly moneySize: number;
+  /**
+   * ⚠️ `11.6`: A SCREEN'S ONE BIG NUMBER — *Inicio*'s total — in Archivo Condensed
+   * Bold with tabular figures (`@/theme/letra`'s `letraNumero`), the design system's
+   * `numero`. One per screen; money in rows, carts and buttons stays `moneySize`.
+   */
+  readonly numeroSize: number;
+  /** Its line. */
+  readonly numeroLine: number;
   /** Icon side. Paired with a word, always (C12.1) — never on its own. */
   readonly iconSize: number;
   /** The Spanish word under a tab-bar icon (C12.1). */
@@ -89,7 +110,12 @@ const normal: DensityScale = {
   bodySize: 16,
   smallSize: 13.6,
   titleSize: 22,
+  titleLine: 26,
+  headingSize: 16,
+  headingLine: 20,
   moneySize: 20,
+  numeroSize: 34,
+  numeroLine: 38,
   iconSize: 24,
   tabLabelSize: 12,
   tabBarHeight: 56,
@@ -116,7 +142,12 @@ const elder: DensityScale = {
   bodySize: 20,
   smallSize: 17,
   titleSize: 28,
+  titleLine: 32,
+  headingSize: 20,
+  headingLine: 24,
   moneySize: 30,
+  numeroSize: 44,
+  numeroLine: 48,
   iconSize: 32,
   tabLabelSize: 15,
   tabBarHeight: 76,
@@ -131,3 +162,37 @@ export type DensityMode = keyof typeof DENSITIES;
 
 /** Every mode's name, for iteration. Ordered least to most magnified. */
 export const DENSITY_MODES: readonly DensityMode[] = ['normal', 'elder'];
+
+// ============================================================================
+// ⚠️ THE CORNERS — `11.6`, direction A · *Mostrador*, the owner's yes of
+// 2026-11-26 (Step 11 of the plan; the design system's *Esquinas*). A corner says
+// what a thing is before it is read: a sheet is read, a ticket is handed over, a
+// stamp is earned, a tag is a price.
+//
+// ⚠️⚠️ THE ONE SIZE HERE THAT `Letra grande` DOES NOT CHANGE, ON PURPOSE: paper does
+// not get rounder when the letters grow. Until `11.6` most of this app's corners
+// read `scale.space` (or a fraction of it) and grew with the mode, and the pills
+// were made from `tapTarget`. So it is a constant beside the scale, not a
+// token in it — `density.test.ts`'s *strictly larger* would refuse it there, and
+// rightly — and it lives in this file because `R6` (`conventions-gate.sh`) reads a
+// numeric corner anywhere else as a size elder mode cannot change.
+//
+// A circle stays a circle — a stamp, a kitchen's initials, a dot, a coin — and is
+// half its own side, as before; the design system's `esquina-sello` is that.
+// ============================================================================
+export const ESQUINA = {
+  /** A sheet: a list, a card, a bottom sheet's top corners, a band of colour. */
+  hoja: 3,
+  /** A button, filled or not, and a door. */
+  boton: 3,
+  /** A field she types in, and the search box. */
+  campo: 3,
+  /** A chip she picks from a short set, and a badge. No pills. */
+  chip: 3,
+  /** A price tag's square end (its point is `11.9`'s). */
+  etiqueta: 2,
+  /** A ticket — a sale, a code handed over: square, its notches `11.9`'s. */
+  boleto: 0,
+  /** A mark too small to be paper: a bar, a column, a square in a grid. */
+  marca: 1,
+} as const;

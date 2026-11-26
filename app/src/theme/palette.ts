@@ -6,6 +6,17 @@
 // Vender basket, this is the one that carries meaning with HUE. Green acts,
 // amber warns, red destroys.
 //
+// ⚠️⚠️ SINCE `11.6` THE GROUNDS ARE DIRECTION A · *MOSTRADOR*'S — the counter's
+// grey with white sheets and dark ink, as tu-wera.com wears it (the owner's
+// ruling of 2026-11-20, and his yes on real screens of 2026-11-26, *"As
+// recommended, all of them"*). B's MEANINGS ARE KEPT, role by role: green still
+// acts, amber still warns, red still destroys, and Comprar's blue and Merma's
+// berenjena still mark their rooms. The values are `brand/mostrador/paleta.json`'s
+// `wera` block, measured there by `contraste.mjs` and held to it here by
+// `app/test/palette.test.ts`. The cream of B (`#FFFCF6`) is gone from every
+// screen; it stays only in the native launch screen (`app.json`), which a store
+// version changes and an update cannot.
+//
 // ⚠️ IT IS WRITTEN BEFORE THE FIRST COLOURED SCREEN ON PURPOSE, and the reason
 // is `density.ts`'s reason one step over: retrofitting colour onto finished
 // screens is an audit of every file, and the ones an audit misses are the
@@ -35,9 +46,9 @@
 // top of `density.ts`. Type is the operating system's own face: no download,
 // no layout shift on first paint, native numerals. A shop that spends its day
 // without signal cannot afford a webfont, and a brand face is a download.
-// ⚠️ EXCEPT THE TITLES, SINCE `8g` (2026-10-16): the owner chose Nunito for a
-// screen's, a sheet's and a sheet's question, and it is NOT a download — the
-// file travels inside the update. `@/theme/letra` holds it and says why.
+// ⚠️ EXCEPT THE TITLES, SINCE `8g` (2026-10-16), AND THE HEADINGS AND THE ONE BIG
+// NUMBER SINCE `11.6`: Archivo (Nunito until then), and it is NOT a download — the
+// files travel inside the update. `@/theme/letra` holds them and says why.
 //
 // ⚠️ THE KEYS ARE UNACCENTED SPANISH — `accion`, `atencion`, `linea`. The
 // domain language is Spanish (CLAUDE.md), and the accents are dropped so the
@@ -51,11 +62,20 @@
  * screen against before picking it.
  */
 export interface Palette {
-  /** The ground of every screen. */
+  /** The ground of every screen: the counter. */
   readonly fondo: string;
-  /** Lists, cards and sheets — what sits on top of `fondo`. */
+  /**
+   * Lists, cards and sheets — what sits on top of `fondo`. ⚠️ Since `11.6` a sheet
+   * has no border and no shadow: its white edge on the counter separates it.
+   */
   readonly superficie: string;
-  /** The screen header, and only the screen header. */
+  /**
+   * The screen header, and only the screen header. ⚠️ Since `11.6` the header sits
+   * on the counter with no line under it, so this is `fondo`'s grey — the ONE
+   * pair of roles that share a value, on purpose (call 3 of the design system,
+   * as recommended); `palette.test.ts` names it. It stays a role so a header can
+   * be told apart again without touching a screen.
+   */
   readonly banda: string;
   /** All primary text. Product names, totals, headings. */
   readonly tinta: string;
@@ -104,9 +124,10 @@ export interface Palette {
    * so every row draws this ground today.
    *
    * ⚠️ IT IS A GROUND AND THE INKS ARE HELD TO IT: `#F1E7D6`, the drawing's
-   * sand, put `atencion` at 4.47:1 on it, so it is one step lighter here and
-   * clears 4.5 with every ink. Nothing amber is written on it today; the
-   * matrix is asserted anyway, because a tile is where a badge would go.
+   * sand, put `atencion` at 4.47:1 on it, so it was one step lighter. Since
+   * `11.6` it is a lighter counter, `#EFEEEA`, and `atencion` is 5.06 on it.
+   * Nothing amber is written on it today; the matrix is asserted anyway,
+   * because a tile is where a badge would go.
    */
   readonly retrato: string;
   /**
@@ -116,10 +137,11 @@ export interface Palette {
    * button, never a price, never a state: green acts, amber warns, red destroys,
    * and this one only signs.
    *
-   * ⚠️ IT IS THE ICON'S RUST, ONE STEP DARKER. `brand/wera-mark.svg` is
-   * `#B5561F`, which is 4.31:1 on `banda` — under 4.5 on the very ground the
-   * name is written on. `#A9501C` is the same hue and clears every ground; the
-   * icon keeps its own.
+   * ⚠️ IT IS THE ICON'S RUST, DARKER. `brand/wera-mark.svg` is `#B5561F`, which
+   * was 4.31:1 on B's cream band — under 4.5 on the very ground the name is
+   * written on — so it was `#A9501C`. On A's counter that is 4.44, so since
+   * `11.6` it is tu-wera.com's rust, `#9A4A1A` (call 5, as recommended): 5.08 on
+   * the band. The icon keeps its own.
    */
   readonly marca: string;
   /**
@@ -138,7 +160,10 @@ export interface Palette {
    * which put `marca` at 4.50:1 on it — `retrato`'s own story, one role over.
    */
   readonly compraSuave: string;
-  /** Comprar's screen behind its cards — the drawing's blue-grey, `#F2F5F8`. */
+  /**
+   * Comprar's screen behind its cards — the drawing's blue-grey, `#F2F5F8`, until
+   * `11.6`; since then the counter tinted blue (call 4, as recommended).
+   */
   readonly compraFondo: string;
   /**
    * ⚠️ THE EIGHTEENTH ROLE, `8l` (2026-10-16): **Desperdicio's own colour,
@@ -152,7 +177,7 @@ export interface Palette {
   readonly desperdicio: string;
   /** The tint behind a chip, a tile, the door's switch — `desperdicio`'s light. */
   readonly desperdicioSuave: string;
-  /** Desperdicio's screen behind its cards. */
+  /** Desperdicio's screen behind its cards: since `11.6`, the counter tinted berenjena. */
   readonly desperdicioFondo: string;
 }
 
@@ -165,23 +190,26 @@ export interface Palette {
  * `banda` (4.22) and `accionSuave` (4.08).
  *
  * `#9A5A09` is the same hue (33.4°) and the same saturation, three steps
- * darker in lightness, and it clears 4.5:1 against EVERY ground with margin —
- * 4.69 at worst. `app/test/palette.test.ts` asserts the whole matrix, so this
+ * darker in lightness, and it cleared 4.5:1 against every cream ground. On A's
+ * counter it is 4.46, so since `11.6` it is `#935609` — the same hue again, 1.5
+ * lightness points darker (call 5, as recommended) — and 4.69 at worst, on
+ * Merma's room. `app/test/palette.test.ts` asserts the whole matrix, so this
  * cannot quietly drift back. The canvas is a drawing; this table is the
  * shipped palette, and `docs/PLAN.md` records the divergence by name.
  *
- * ⚠️ AND ONE NEAR-IDENTITY IS LEFT AS DRAWN, MEASURED AND SAID OUT LOUD.
- * `banda` and `atencionSuave` are TWO CHANNEL STEPS APART — for a shopkeeper
- * they are the same cream. They never abut today (the band is the header, the
- * attention ground is a list row), so it is not a defect; it is the sharpest
- * possible argument for the rule above it. If a row needing attention is ever
- * placed inside the header band, its colour will be telling her NOTHING and
- * the word `falta precio` will be doing all the work — which is precisely what
- * "never colour alone" already requires of it.
+ * ⚠️ B LEFT ONE NEAR-IDENTITY, AND A KEEPS IT IN ANOTHER PAIR. In B, `banda` and
+ * `atencionSuave` were two channel steps apart, the same cream to a
+ * shopkeeper. In A the header is the grey counter, and the attention row's
+ * cream is 1.10:1 from it — still barely a difference. They never abut (the
+ * band is the header, the attention ground is a list row), so it is not a
+ * defect; it is the sharpest possible argument for the rule above it. If a row
+ * needing attention is ever placed inside the header, its colour will be
+ * telling her NOTHING and the word `falta precio` will be doing all the work —
+ * which is precisely what "never colour alone" already requires of it.
  *
  * ⚠️⚠️ AND A THIRD MEASUREMENT IS THE REASON THAT RULE IS NOT POLITENESS.
- * `accion` and `atencion` — green acts, amber warns — are **1.18:1 apart in
- * luminance**. They differ in HUE and in almost nothing else, which is the
+ * `accion` and `atencion` — green acts, amber warns — are **1.10:1 apart in
+ * luminance** (1.18 before `11.6`). They differ in HUE and in almost nothing else, which is the
  * classic red-green confusion pair: to roughly one man in twelve they are two
  * greys of the same brightness. Direction B carries meaning with hue, and this
  * is the bill for that choice. It is not repaired by darkening one of them —
@@ -189,26 +217,26 @@ export interface Palette {
  * still be guessing. The word beside the colour is the fix, and it is free.
  */
 export const PALETTE: Palette = {
-  fondo: '#FFFCF6',
+  fondo: '#E9E8E3',
   superficie: '#FFFFFF',
-  banda: '#FBF0DE',
-  tinta: '#201D16',
-  tintaApagada: '#6F675A',
-  linea: '#E7E0D2',
+  banda: '#E9E8E3',
+  tinta: '#1D2230',
+  tintaApagada: '#555A66',
+  linea: '#D9D6CE',
   accion: '#1C6B4B',
   accionSuave: '#E6F0EA',
-  atencion: '#9A5A09',
+  atencion: '#935609',
   atencionSuave: '#FCF1DE',
   error: '#A32218',
-  velo: '#15130E',
-  retrato: '#F3EAD9',
-  marca: '#A9501C',
+  velo: '#11141B',
+  retrato: '#EFEEEA',
+  marca: '#9A4A1A',
   compra: '#24476B',
   compraSuave: '#E6ECF3',
-  compraFondo: '#F2F5F8',
+  compraFondo: '#E3E7EC',
   desperdicio: '#5B2B4E',
   desperdicioSuave: '#F4E9F0',
-  desperdicioFondo: '#FBF7FA',
+  desperdicioFondo: '#EAE4E8',
 };
 
 /** `'fondo' | 'superficie' | …` — derived from the table so the two cannot drift. */
@@ -260,9 +288,11 @@ export const INK_ROLES: readonly PaletteRole[] = [
 
 /**
  * ⚠️ THE ROLES A PERSON READS WORDS *ON*. `linea` is deliberately absent: it
- * is a 1 px separator and nothing is ever written on it. It is also, at 1.28:1
- * against `fondo`, far below the 3:1 non-text threshold — and that is the
- * accepted cost of direction B. Direction C carried structure in 2 px rules
+ * is a 1 px separator and nothing is ever written on it. It is also, at 1.45:1
+ * against `superficie` (1.28:1 on B's cream), far below the 3:1 non-text
+ * threshold — and that is the accepted cost: since `11.6` the line sits only
+ * between rows inside a sheet, and the sheet's white edge on the counter does
+ * the rest of the separating. Direction C carried structure in 2 px rules
  * and was REJECTED because at `Letra grande` the borders ate the screen, so
  * here the row boundary is carried by space, and the line is a hint.
  */
@@ -304,9 +334,10 @@ export const GROUND_ROLES: readonly PaletteRole[] = [
 // ----------------------------------------------------------------------------
 // ⚠️⚠️ WHAT THESE COLOURS CANNOT DO, MEASURED AND SAID OUT LOUD
 // ----------------------------------------------------------------------------
-// Every one clears the 3:1 WCAG non-text floor against all five grounds — the
-// worst is `tres` at **3.26:1** on `accionSuave`, and `uno` and `dos` clear
-// 5.5:1, so a legend may put a WORD in these colours as well as a swatch.
+// Every one clears the 3:1 WCAG non-text floor against the five grounds a
+// chart can sit on — since `11.6` the worst is `tres` at **3.09:1** on `fondo`
+// (3.26 on B's `accionSuave`), and `uno` and `dos` clear 5.2:1, so a legend
+// may put a WORD in these colours as well as a swatch.
 //
 // ⚠️ THEY DO NOT SEPARATE FROM EACH OTHER BY BRIGHTNESS, AND FIVE CATEGORICAL
 // COLOURS ON A LIGHT GROUND CANNOT. Mutual ratios run **1.19:1 to 2.65:1**: the

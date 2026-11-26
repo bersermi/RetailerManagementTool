@@ -110,7 +110,7 @@ import { comproFace, sendButton, type ComproFace } from '@/offline/teLoCompro';
 import { useOnline } from '@/offline/useOnline';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
-import { TITULO } from '@/theme/letra';
+import { letraTitulo } from '@/theme/letra';
 import { PALETTE } from '@/theme/palette';
 import { EMPTIED_BLOOM_MS } from '@/theme/pulse';
 import { BotonLleno } from '@/ui/BotonLleno';
@@ -130,6 +130,8 @@ import { Corrigiendo } from '@/ui/Corrigiendo';
 import { Pregunta as Salir } from '@/ui/Pregunta';
 import { VaciarCarrito } from '@/ui/VaciarCarrito';
 import { Velo } from '@/ui/Velo';
+import { Rotulo } from '@/ui/Rotulo';
+import { ESQUINA } from '@/theme/density';
 
 // ============================================================================
 // DESPERDICIO — what the shop lost, and what it asks Wera to collect. Plan task
@@ -267,7 +269,7 @@ function PideDireccion() {
   return (
     <View style={{ flex: 1, backgroundColor: PALETTE.desperdicioFondo }}>
       <Formulario contentContainerStyle={{ padding: scale.space * 2, gap: scale.space }}>
-        <Text style={{ fontSize: scale.titleSize, ...TITULO, color: PALETTE.tinta }}>
+        <Text style={{ ...letraTitulo(scale), color: PALETTE.tinta }}>
           {ES.onboarding.addressTitle}
         </Text>
         <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>{ES.onboarding.addressHint}</Text>
@@ -476,7 +478,7 @@ function Puertas({
   const recent = newestFirst(data ?? []).slice(0, 3);
   return (
     <ScrollView contentContainerStyle={{ padding: scale.space, gap: scale.space }}>
-      <Text style={{ fontSize: scale.titleSize, ...TITULO, color: PALETTE.tinta }}>
+      <Text style={{ ...letraTitulo(scale), color: PALETTE.tinta }}>
         {ES.waste.doors.question}
       </Text>
 
@@ -604,7 +606,7 @@ function Puerta({
         alignItems: 'center',
         gap: scale.space,
         padding: scale.space,
-        borderRadius: scale.space,
+        borderRadius: ESQUINA.boton,
         borderWidth: 1,
         borderColor: lleno ? PALETTE.desperdicio : PALETTE.linea,
         backgroundColor: ground,
@@ -625,7 +627,7 @@ function Puerta({
         <MaterialCommunityIcons name={icon} size={scale.iconSize} color={ink} />
       </View>
       <View style={{ flex: 1, gap: scale.rowGap / 2 }}>
-        <Text style={{ fontSize: scale.titleSize, ...TITULO, color: ink }}>{title}</Text>
+        <Text style={{ ...letraTitulo(scale), color: ink }}>{title}</Text>
         {hint === undefined ? null : <Text style={{ fontSize: scale.smallSize, color: sub }}>{hint}</Text>}
         {tag === undefined ? null : (
           <View
@@ -633,7 +635,7 @@ function Puerta({
               alignSelf: 'flex-start',
               paddingHorizontal: scale.rowGap,
               paddingVertical: scale.rowGap / 4,
-              borderRadius: scale.space,
+              borderRadius: ESQUINA.hoja,
               backgroundColor: lleno ? PALETTE.superficie : PALETTE.linea,
             }}
           >
@@ -926,7 +928,7 @@ function Motivos({
             style={{
               width: '100%',
               maxHeight: '70%',
-              borderRadius: scale.space,
+              borderRadius: ESQUINA.hoja,
               backgroundColor: PALETTE.fondo,
               overflow: 'hidden',
             }}
@@ -1186,7 +1188,7 @@ function PuertasPronto({ onTirar }: { onTirar: () => void }) {
   const { scale } = useDensity();
   return (
     <ScrollView contentContainerStyle={{ padding: scale.space, gap: scale.space }}>
-      <Text style={{ fontSize: scale.titleSize, ...TITULO, color: PALETTE.tinta }}>
+      <Text style={{ ...letraTitulo(scale), color: PALETTE.tinta }}>
         {ES.waste.doors.question}
       </Text>
       <Puerta
@@ -1668,9 +1670,7 @@ function Solicitar({ address, onDirty }: { address: StoreAddress; onDirty: (dirt
             alignItems: 'center',
             gap: scale.space,
             padding: scale.space,
-            borderRadius: scale.space,
-            borderWidth: 1,
-            borderColor: PALETTE.linea,
+            borderRadius: ESQUINA.hoja,
             backgroundColor: PALETTE.superficie,
           }}
         >
@@ -1716,8 +1716,7 @@ function Solicitar({ address, onDirty }: { address: StoreAddress; onDirty: (dirt
             style={{
               paddingHorizontal: scale.space,
               paddingTop: scale.space,
-              fontSize: scale.titleSize,
-              ...TITULO,
+              ...letraTitulo(scale),
               color: PALETTE.tinta,
             }}
           >
@@ -1876,7 +1875,7 @@ function Solicitar({ address, onDirty }: { address: StoreAddress; onDirty: (dirt
                         key={p.fileId}
                         source={{ uri: p.uri }}
                         accessibilityLabel={ES.collection.photo.thumb(i + 1)}
-                        style={{ width: scale.space * 3, height: scale.space * 3, borderRadius: scale.space / 2 }}
+                        style={{ width: scale.space * 3, height: scale.space * 3, borderRadius: ESQUINA.hoja }}
                       />
                     ))}
                   </View>
@@ -1909,7 +1908,7 @@ function Solicitar({ address, onDirty }: { address: StoreAddress; onDirty: (dirt
                   minHeight: scale.tapTarget,
                   paddingHorizontal: scale.space,
                   paddingVertical: scale.rowGap,
-                  borderRadius: scale.space / 2,
+                  borderRadius: ESQUINA.campo,
                   borderWidth: 1,
                   borderColor: PALETTE.linea,
                   backgroundColor: PALETTE.superficie,
@@ -2017,7 +2016,7 @@ function Fotos({
             accessibilityRole="button"
             accessibilityLabel={`${ES.collection.photo.thumb(i + 1)}. ${ES.collection.photo.remove}`}
             onPress={() => onRemove(p.fileId)}
-            style={{ width: side, height: side, borderRadius: scale.space * 0.75, overflow: 'hidden', borderWidth: 1, borderColor: PALETTE.linea }}
+            style={{ width: side, height: side, borderRadius: ESQUINA.hoja, overflow: 'hidden', borderWidth: 1, borderColor: PALETTE.linea }}
           >
             <Image source={{ uri: p.uri }} style={{ width: side, height: side }} />
             <View
@@ -2025,7 +2024,7 @@ function Fotos({
                 position: 'absolute',
                 top: scale.rowGap / 4,
                 right: scale.rowGap / 4,
-                borderRadius: scale.space,
+                borderRadius: ESQUINA.hoja,
                 backgroundColor: PALETTE.superficie,
               }}
             >
@@ -2043,7 +2042,7 @@ function Fotos({
               gap: scale.rowGap / 2,
               minHeight: side,
               paddingHorizontal: scale.space,
-              borderRadius: scale.space * 0.75,
+              borderRadius: ESQUINA.boton,
               borderWidth: 1,
               borderColor: PALETTE.desperdicio,
               backgroundColor: PALETTE.desperdicioSuave,
@@ -2119,7 +2118,7 @@ function Cuando({
 
   return (
     <>
-      <Text style={{ fontSize: scale.titleSize, ...TITULO, color: PALETTE.tinta }}>{ES.collection.whichDay}</Text>
+      <Text style={{ ...letraTitulo(scale), color: PALETTE.tinta }}>{ES.collection.whichDay}</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: scale.rowGap }}>
         {pickupDays(today).map((d) => {
           const tile = formatDayTile(d, today);
@@ -2139,7 +2138,7 @@ function Cuando({
                 paddingVertical: scale.rowGap,
                 alignItems: 'center',
                 gap: scale.rowGap / 4,
-                borderRadius: scale.space,
+                borderRadius: ESQUINA.chip,
                 borderWidth: on ? 2 : 1,
                 borderColor: on ? PALETTE.desperdicio : PALETTE.linea,
                 backgroundColor: on ? PALETTE.desperdicio : PALETTE.superficie,
@@ -2157,7 +2156,7 @@ function Cuando({
         })}
       </ScrollView>
 
-      <Text style={{ fontSize: scale.titleSize, ...TITULO, color: PALETTE.tinta }}>{ES.collection.whichTime}</Text>
+      <Text style={{ ...letraTitulo(scale), color: PALETTE.tinta }}>{ES.collection.whichTime}</Text>
       <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>{ES.collection.leadHint}</Text>
       {bands.map((b) => {
         // ⚠️ FOUR TO A ROW, AND A SHORT LAST ROW IS PADDED so its chips keep
@@ -2191,7 +2190,7 @@ function Cuando({
           style={{
             gap: scale.rowGap / 4,
             padding: scale.space,
-            borderRadius: scale.space,
+            borderRadius: ESQUINA.hoja,
             backgroundColor: PALETTE.desperdicioSuave,
           }}
         >
@@ -2213,7 +2212,7 @@ function Pasos({ at }: { at: number }) {
           <View
             style={{
               height: scale.rowGap / 2,
-              borderRadius: scale.rowGap / 4,
+              borderRadius: ESQUINA.marca,
               backgroundColor: i <= at ? PALETTE.desperdicio : PALETTE.linea,
             }}
           />
@@ -2248,7 +2247,7 @@ function Prefilled({ inset = true }: { inset?: boolean }) {
         marginTop: inset ? scale.space : 0,
         paddingHorizontal: scale.space,
         paddingVertical: scale.rowGap,
-        borderRadius: scale.space / 2,
+        borderRadius: ESQUINA.hoja,
         backgroundColor: PALETTE.desperdicioSuave,
       }}
     >
@@ -2279,9 +2278,7 @@ function Solicitudes({ requests, mayCancel }: { requests: readonly CollectionReq
           style={{
             gap: scale.rowGap / 2,
             padding: scale.space,
-            borderRadius: scale.space,
-            borderWidth: 1,
-            borderColor: PALETTE.linea,
+            borderRadius: ESQUINA.hoja,
             backgroundColor: PALETTE.superficie,
           }}
         >
@@ -2368,7 +2365,7 @@ function Estado({ status }: { status: CollectionStatus }) {
       style={{
         paddingHorizontal: scale.rowGap,
         paddingVertical: scale.rowGap / 4,
-        borderRadius: scale.space,
+        borderRadius: ESQUINA.chip,
         backgroundColor: look[status].ground,
       }}
     >
@@ -2395,32 +2392,12 @@ function Tarjeta({ children }: { children: ReactNode }) {
       style={{
         gap: scale.space,
         padding: scale.space,
-        borderRadius: scale.space,
-        borderWidth: 1,
-        borderColor: PALETTE.linea,
+        borderRadius: ESQUINA.hoja,
         backgroundColor: PALETTE.superficie,
       }}
     >
       {children}
     </View>
-  );
-}
-
-/** A small heading over a group — `¿CÓMO ESTÁ?`, `CUÁNDO`. */
-function Rotulo({ text, ink = PALETTE.tintaApagada }: { text: string; ink?: string }) {
-  const { scale } = useDensity();
-  return (
-    <Text
-      style={{
-        fontSize: scale.smallSize,
-        fontWeight: '700',
-        color: ink,
-        textTransform: 'uppercase',
-        letterSpacing: scale.rowGap / 8,
-      }}
-    >
-      {text}
-    </Text>
   );
 }
 
@@ -2472,7 +2449,7 @@ function Opcion({
         gap: scale.rowGap / 4,
         minHeight: scale.tapTarget,
         paddingHorizontal: grow ? scale.rowGap / 2 : scale.space,
-        borderRadius: scale.tapTarget / 2,
+        borderRadius: ESQUINA.chip,
         borderWidth: on ? 2 : 1,
         borderColor: on ? PALETTE.desperdicio : PALETTE.linea,
         backgroundColor: on ? PALETTE.desperdicio : PALETTE.superficie,
@@ -2504,7 +2481,7 @@ function Etiqueta({ text }: { text: string }) {
       style={{
         paddingHorizontal: scale.rowGap,
         paddingVertical: scale.rowGap / 4,
-        borderRadius: scale.space,
+        borderRadius: ESQUINA.chip,
         backgroundColor: PALETTE.desperdicioSuave,
       }}
     >
@@ -2553,7 +2530,7 @@ function Calendario({
             style={{
               width: '100%',
               maxHeight: '80%',
-              borderRadius: scale.space,
+              borderRadius: ESQUINA.hoja,
               backgroundColor: PALETTE.fondo,
               overflow: 'hidden',
             }}
@@ -2626,7 +2603,7 @@ function Calendario({
                                 minHeight: scale.tapTarget,
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                borderRadius: scale.tapTarget / 2,
+                                borderRadius: ESQUINA.chip,
                                 borderWidth: d === today ? 1 : 0,
                                 borderColor: PALETTE.desperdicio,
                                 backgroundColor: d === chosen ? PALETTE.desperdicio : PALETTE.fondo,

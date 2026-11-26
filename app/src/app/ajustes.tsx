@@ -50,10 +50,10 @@ import { DIBUJOS } from '@/marca/dibujos';
 import { useBackStaysHere } from '@/navigation/salida';
 import { useOnline } from '@/offline/useOnline';
 import { ES } from '@/strings';
-import { DENSITIES, DENSITY_MODES } from '@/theme/density';
+import { DENSITIES, DENSITY_MODES, ESQUINA } from '@/theme/density';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
-import { TITULO } from '@/theme/letra';
+import { letraTitulo, TITULO } from '@/theme/letra';
 import { Formulario } from '@/ui/Formulario';
 import { Pregunta } from '@/ui/Pregunta';
 import { BotonLleno } from '@/ui/BotonLleno';
@@ -173,7 +173,7 @@ export default function Ajustes() {
 
         {page === 'tienda' && workspace !== null && (
           <Section>
-            <Text style={{ fontSize: scale.titleSize, ...TITULO, color: PALETTE.tinta }}>
+            <Text style={{ ...letraTitulo(scale), color: PALETTE.tinta }}>
               {workspace.displayName}
             </Text>
             {/* ⚠️ `8g`, the owner's ruling of 2026-10-21: no longer asked when
@@ -300,8 +300,6 @@ function Banda({
         paddingTop: insets.top + scale.space,
         paddingBottom: scale.space,
         paddingHorizontal: scale.space,
-        borderBottomWidth: 1,
-        borderBottomColor: PALETTE.linea,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -311,7 +309,7 @@ function Banda({
       <Text
         onLongPress={onBack === null ? onLongPress : undefined}
         numberOfLines={1}
-        style={{ flex: 1, fontSize: scale.titleSize, ...TITULO, color: PALETTE.tinta }}
+        style={{ flex: 1, ...letraTitulo(scale), color: PALETTE.tinta }}
       >
         {title}
       </Text>
@@ -350,9 +348,7 @@ function Section({ title, children }: { title?: string; children: ReactNode }) {
       <View
         style={{
           backgroundColor: PALETTE.superficie,
-          borderRadius: scale.space,
-          borderWidth: 1,
-          borderColor: PALETTE.linea,
+          borderRadius: ESQUINA.hoja,
           padding: scale.space,
           gap: scale.rowGap,
         }}
@@ -482,9 +478,7 @@ function Cuadro({ square, onPress }: { square: Cuadrado; onPress: () => void }) 
         minHeight: scale.rowHeight * 1.9,
         gap: scale.rowGap / 2,
         padding: scale.space,
-        borderRadius: scale.space,
-        borderWidth: 1,
-        borderColor: PALETTE.linea,
+        borderRadius: ESQUINA.hoja,
         backgroundColor: PALETTE.superficie,
       }}
     >
@@ -506,7 +500,7 @@ function Cuadro({ square, onPress }: { square: Cuadrado; onPress: () => void }) 
             minWidth: scale.iconSize,
             height: scale.iconSize,
             paddingHorizontal: scale.rowGap / 2,
-            borderRadius: scale.iconSize / 2,
+            borderRadius: ESQUINA.chip,
             backgroundColor: PALETTE.atencion,
             alignItems: 'center',
             justifyContent: 'center',
@@ -540,9 +534,7 @@ function Identidad() {
         overflow: 'hidden',
         gap: scale.rowGap / 2,
         padding: scale.space,
-        borderRadius: scale.space,
-        borderWidth: 1,
-        borderColor: PALETTE.linea,
+        borderRadius: ESQUINA.hoja,
         backgroundColor: PALETTE.superficie,
       }}
     >
@@ -620,7 +612,7 @@ function Esperando() {
         gap: scale.rowGap,
         minHeight: scale.tapTarget,
         paddingHorizontal: scale.space,
-        borderRadius: scale.space,
+        borderRadius: ESQUINA.boton,
         backgroundColor: PALETTE.atencionSuave,
       }}
     >
@@ -864,7 +856,7 @@ function MiNombre({ onDirty }: { onDirty: (dirty: boolean) => void }) {
                 backgroundColor: PALETTE.fondo,
                 borderWidth: 1,
                 borderColor: PALETTE.linea,
-                borderRadius: scale.space / 2,
+                borderRadius: ESQUINA.campo,
                 paddingHorizontal: scale.space,
               }}
             />
@@ -965,7 +957,7 @@ function Letra() {
               justifyContent: 'center',
               gap: scale.rowGap / 2,
               paddingVertical: scale.rowGap,
-              borderRadius: scale.space,
+              borderRadius: ESQUINA.chip,
               borderWidth: chosen ? 2 : 1,
               borderColor: chosen ? PALETTE.accion : PALETTE.linea,
               backgroundColor: chosen ? PALETTE.accionSuave : PALETTE.superficie,
@@ -1128,7 +1120,7 @@ function Cuenta() {
                     backgroundColor: PALETTE.fondo,
                     borderWidth: 1,
                     borderColor: PALETTE.linea,
-                    borderRadius: scale.space / 2,
+                    borderRadius: ESQUINA.campo,
                     paddingHorizontal: scale.space,
                   }}
                 />
@@ -1151,7 +1143,7 @@ function Cuenta() {
               alignItems: 'center',
               borderWidth: 1,
               borderColor: ready ? PALETTE.error : PALETTE.linea,
-              borderRadius: scale.space / 2,
+              borderRadius: ESQUINA.boton,
             }}
           >
             <Text
@@ -1263,7 +1255,7 @@ function Opcion({
         gap: scale.rowGap,
         paddingHorizontal: scale.space,
         paddingVertical: scale.rowGap / 2,
-        borderRadius: scale.space / 2,
+        borderRadius: ESQUINA.chip,
         borderWidth: chosen ? 2 : 1,
         borderColor: chosen ? PALETTE.accion : PALETTE.linea,
         backgroundColor: chosen ? PALETTE.accionSuave : PALETTE.superficie,

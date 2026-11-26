@@ -38,6 +38,7 @@ import { type LayoutChangeEvent, PanResponder, View, Text } from 'react-native';
 import type { Plot } from '@/api/costs';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 
 /** How tall the plot is, before density. ⚠️ `scale.space` multiples, never a literal (`R6`). */
 const PLOT_ROWS = 8;
@@ -170,9 +171,7 @@ export function Grafica({
         style={{
           height,
           backgroundColor: PALETTE.superficie,
-          borderWidth: 1,
-          borderColor: PALETTE.linea,
-          borderRadius: scale.space / 2,
+          borderRadius: ESQUINA.hoja,
           overflow: 'hidden',
         }}
       >

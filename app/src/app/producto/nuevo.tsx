@@ -39,12 +39,13 @@ import { useOnline } from '@/offline/useOnline';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
-import { TITULO } from '@/theme/letra';
+import { letraTitulo } from '@/theme/letra';
 import { bannerSequence } from '@/theme/pulse';
 import { Formulario } from '@/ui/Formulario';
 import { Pregunta } from '@/ui/Pregunta';
 import { BotonLleno } from '@/ui/BotonLleno';
 import { CampoFoto } from '@/ui/CampoFoto';
+import { ESQUINA } from '@/theme/density';
 
 // ============================================================================
 // AGREGAR — THE SHORTEST FORM THAT PRODUCES A USABLE PRODUCT. Plan task `5e-ii`,
@@ -592,8 +593,6 @@ function Banda() {
         paddingTop: insets.top + scale.space,
         paddingBottom: scale.space,
         paddingHorizontal: scale.space,
-        borderBottomWidth: 1,
-        borderBottomColor: PALETTE.linea,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -602,7 +601,7 @@ function Banda() {
     >
       <Text
         numberOfLines={1}
-        style={{ flex: 1, fontSize: scale.titleSize, ...TITULO, color: PALETTE.tinta }}
+        style={{ flex: 1, ...letraTitulo(scale), color: PALETTE.tinta }}
       >
         {ES.catalog.create.title}
       </Text>
@@ -647,9 +646,7 @@ function Caja({ children }: { children: ReactNode }) {
         alignItems: 'center',
         gap: scale.rowGap,
         paddingHorizontal: scale.space,
-        borderRadius: scale.space / 2,
-        borderWidth: 1,
-        borderColor: PALETTE.linea,
+        borderRadius: ESQUINA.hoja,
         backgroundColor: PALETTE.superficie,
       }}
     >
@@ -862,7 +859,7 @@ function Opcion({
         gap: scale.rowGap,
         paddingHorizontal: scale.space,
         paddingVertical: scale.rowGap / 2,
-        borderRadius: scale.space / 2,
+        borderRadius: ESQUINA.chip,
         borderWidth: chosen ? 2 : 1,
         borderColor: chosen ? PALETTE.accion : PALETTE.linea,
         backgroundColor: chosen ? PALETTE.accionSuave : PALETTE.superficie,
@@ -949,7 +946,7 @@ function Unidades({
               justifyContent: 'center',
               alignItems: 'center',
               paddingHorizontal: scale.space,
-              borderRadius: scale.space / 2,
+              borderRadius: ESQUINA.chip,
               borderWidth: isChosen ? 2 : 1,
               borderColor: isChosen ? PALETTE.accion : PALETTE.linea,
               backgroundColor: isChosen ? PALETTE.accionSuave : PALETTE.superficie,

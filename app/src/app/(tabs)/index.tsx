@@ -39,10 +39,11 @@ import { deviceStore, readKey, writeKey } from '@/lib/store';
 import { WEEK_SEEN_KEY, lastWeek, offersWeek, weekRange } from '@/api/semana';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
-import { TITULO } from '@/theme/letra';
+import { letraNumero } from '@/theme/letra';
 import { PALETTE } from '@/theme/palette';
 import { Hecho } from '@/ui/Hecho';
 import { Rotulo } from '@/ui/Rotulo';
+import { ESQUINA } from '@/theme/density';
 
 // ============================================================================
 // INICIO — §2.8's Home row, redrawn by `8g` from the owner's playable page of
@@ -234,9 +235,7 @@ function Hoy({ focused, onCelebrate }: { focused: boolean; onCelebrate: (word: s
       style={{
         gap: scale.rowGap / 2,
         padding: scale.space,
-        borderRadius: scale.space,
-        borderWidth: 1,
-        borderColor: PALETTE.linea,
+        borderRadius: ESQUINA.hoja,
         backgroundColor: PALETTE.superficie,
       }}
     >
@@ -275,10 +274,15 @@ function weekdayOf(day: string): string {
  * tall, moved by `translateY` on the native driver. A digit keeps its place by
  * its distance from the RIGHT, so `$999` becoming `$1,004` rolls the units and
  * slides in the thousands rather than re-drawing the lot.
+ *
+ * ⚠️ `11.6`: THE SCREEN'S ONE BIG NUMBER — Archivo Condensed Bold, its figures in
+ * columns, at `numeroSize` (`@/theme/letra`'s `letraNumero`). The window is its
+ * line. The register's stagger, each place a little after the one to its right,
+ * is `11.9`'s (call 8); until then every wheel turns at once, as before.
  */
 function Rodillo({ text, reduce }: { text: string; reduce: boolean }) {
   const { scale } = useDensity();
-  const line = Math.round(scale.moneySize * 1.2);
+  const { lineHeight: line, ...face } = letraNumero(scale);
   const chars = [...text];
   return (
     <View style={{ flexDirection: 'row', height: line, overflow: 'hidden' }} accessibilityLabel={text}>
@@ -287,10 +291,7 @@ function Rodillo({ text, reduce }: { text: string; reduce: boolean }) {
         return /[0-9]/.test(ch) ? (
           <Digito key={`d${fromRight}`} digit={Number(ch)} line={line} reduce={reduce} />
         ) : (
-          <Text
-            key={`c${fromRight}`}
-            style={{ fontSize: scale.moneySize, lineHeight: line, height: line, fontWeight: '700', color: PALETTE.tinta, includeFontPadding: false }}
-          >
+          <Text key={`c${fromRight}`} style={{ ...face, lineHeight: line, height: line, color: PALETTE.tinta }}>
             {ch}
           </Text>
         );
@@ -303,6 +304,7 @@ const DIGITS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] as const;
 
 function Digito({ digit, line, reduce }: { digit: number; line: number; reduce: boolean }) {
   const { scale } = useDensity();
+  const { lineHeight: _line, ...face } = letraNumero(scale);
   const y = useRef(new Animated.Value(-digit * line)).current;
   // ⚠️ STARTED IN AN EFFECT, NEVER IN A HANDLER — on the native driver that is
   // motion versus silence (`8g`'s Hecho learned it).
@@ -326,15 +328,7 @@ function Digito({ digit, line, reduce }: { digit: number; line: number; reduce: 
         {DIGITS.map((d) => (
           <Text
             key={d}
-            style={{
-              fontSize: scale.moneySize,
-              lineHeight: line,
-              height: line,
-              fontWeight: '700',
-              color: PALETTE.tinta,
-              fontVariant: ['tabular-nums'],
-              includeFontPadding: false,
-            }}
+            style={{ ...face, lineHeight: line, height: line, color: PALETTE.tinta }}
           >
             {d}
           </Text>
@@ -362,7 +356,7 @@ function Flota({ amount }: { amount: number }) {
         top: 0,
         paddingHorizontal: scale.rowGap,
         paddingVertical: scale.rowGap / 4,
-        borderRadius: scale.space,
+        borderRadius: ESQUINA.chip,
         backgroundColor: PALETTE.accion,
         opacity: t.interpolate({ inputRange: [0, 0.15, 0.7, 1], outputRange: [0, 1, 1, 0] }),
         transform: [{ translateY: t.interpolate({ inputRange: [0, 1], outputRange: [scale.space * 1.5, -scale.space] }) }],
@@ -399,12 +393,12 @@ function Marca({ gross, best, weekday, reduce }: { gross: number; best: number; 
     <View style={{ gap: scale.rowGap / 2, marginTop: scale.rowGap / 2 }}>
       <View
         onLayout={(e) => setWidth(e.nativeEvent.layout.width)}
-        style={{ height: scale.rowGap, borderRadius: scale.rowGap, overflow: 'hidden', backgroundColor: PALETTE.accionSuave }}
+        style={{ height: scale.rowGap, borderRadius: ESQUINA.marca, overflow: 'hidden', backgroundColor: PALETTE.accionSuave }}
       >
         <Animated.View
           style={{
             height: '100%',
-            borderRadius: scale.rowGap,
+            borderRadius: ESQUINA.marca,
             backgroundColor: broken ? PALETTE.marca : PALETTE.accion,
             // ⚠️ HIDDEN UNTIL MEASURED: a bar drawn full before its width is known
             // would flash the record as already beaten.
@@ -454,9 +448,7 @@ function ConoceWera() {
         alignItems: 'center',
         gap: scale.rowGap,
         padding: scale.space,
-        borderRadius: scale.space,
-        borderWidth: 1,
-        borderColor: PALETTE.linea,
+        borderRadius: ESQUINA.hoja,
         backgroundColor: PALETTE.superficie,
       }}
     >
@@ -516,9 +508,7 @@ function SemanaLista() {
         alignItems: 'center',
         gap: scale.rowGap,
         padding: scale.space,
-        borderRadius: scale.space,
-        borderWidth: 1,
-        borderColor: PALETTE.linea,
+        borderRadius: ESQUINA.hoja,
         backgroundColor: PALETTE.superficie,
       }}
     >
@@ -571,10 +561,10 @@ function Racha({ onCelebrate }: { onCelebrate: (word: string) => void }) {
         alignItems: 'center',
         gap: scale.rowGap,
         padding: scale.space,
-        borderRadius: scale.space,
-        borderWidth: 1,
-        borderColor: PALETTE.linea,
-        backgroundColor: PALETTE.banda,
+        borderRadius: ESQUINA.hoja,
+        // ⚠️ `11.6`: a sheet, as every block on Inicio — `banda` is the counter's grey
+        // since the header sits on it, and a card in it would have no edge at all.
+        backgroundColor: PALETTE.superficie,
       }}
     >
       <MaterialCommunityIcons name="fire" size={scale.iconSize * 1.2} color={PALETTE.marca} />
@@ -589,7 +579,7 @@ function Racha({ onCelebrate }: { onCelebrate: (word: string) => void }) {
             style={{
               width: scale.rowGap,
               height: scale.rowGap * 2,
-              borderRadius: scale.rowGap / 4,
+              borderRadius: ESQUINA.marca,
               backgroundColor: sold ? PALETTE.marca : PALETTE.linea,
               opacity: sold && i < week.length - 1 ? 0.55 : 1,
             }}
@@ -628,7 +618,7 @@ function Puertas() {
             justifyContent: 'center',
             gap: scale.rowGap / 2,
             paddingVertical: scale.space,
-            borderRadius: scale.space,
+            borderRadius: ESQUINA.boton,
             backgroundColor: ground[door.key] ?? PALETTE.accion,
           }}
         >
@@ -667,7 +657,7 @@ function Ultimo({ focused }: { focused: boolean }) {
   const seen = useRef<Set<string> | null>(null);
   if (seen.current === null && rows.length > 0) seen.current = new Set(rows.map((r) => r.id));
   return (
-    <View style={{ padding: scale.space, borderRadius: scale.space, borderWidth: 1, borderColor: PALETTE.linea, backgroundColor: PALETTE.superficie }}>
+    <View style={{ padding: scale.space, borderRadius: ESQUINA.hoja, backgroundColor: PALETTE.superficie }}>
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={`${ES.documents.title}. ${ES.home.feed.seeAll}`}
@@ -749,7 +739,7 @@ function Ahorros({ focused }: { focused: boolean }) {
   return (
     <View style={{ flexDirection: 'row', gap: scale.rowGap }}>
       {showSaved ? (
-        <View style={{ flex: 1, gap: scale.rowGap / 4, padding: scale.space, borderRadius: scale.space, backgroundColor: PALETTE.compraSuave }}>
+        <View style={{ flex: 1, gap: scale.rowGap / 4, padding: scale.space, borderRadius: ESQUINA.hoja, backgroundColor: PALETTE.compraSuave }}>
           <Rotulo text={ES.home.savings.title} ink={PALETTE.compra} />
           <Text style={{ fontSize: scale.moneySize * 0.8, fontWeight: '700', color: PALETTE.compra }}>{formatMXN(saved)}</Text>
           <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>{ES.home.savings.line}</Text>
@@ -784,7 +774,7 @@ function Rescatado({ paid, focused }: { paid: number; focused: boolean }) {
     <View
       accessible
       accessibilityLabel={`${ES.home.rescued.title}, ${formatMXN(paid)}. ${ES.home.rescued.line}`}
-      style={{ flex: 1, gap: scale.rowGap / 4, padding: scale.space, borderRadius: scale.space, backgroundColor: PALETTE.desperdicioSuave }}
+      style={{ flex: 1, gap: scale.rowGap / 4, padding: scale.space, borderRadius: ESQUINA.hoja, backgroundColor: PALETTE.desperdicioSuave }}
     >
       <Rotulo text={ES.home.rescued.title} ink={PALETTE.desperdicio} />
       <View style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', gap: scale.rowGap }}>
@@ -886,7 +876,7 @@ function Recoleccion() {
         alignItems: 'center',
         gap: scale.rowGap,
         padding: scale.space,
-        borderRadius: scale.space,
+        borderRadius: ESQUINA.hoja,
         borderWidth: 1,
         borderColor: PALETTE.desperdicioSuave,
         backgroundColor: PALETTE.superficie,
@@ -948,9 +938,7 @@ function Mas() {
                   justifyContent: 'center',
                   gap: scale.rowGap / 2,
                   padding: scale.rowGap,
-                  borderRadius: scale.space,
-                  borderWidth: 1,
-                  borderColor: PALETTE.linea,
+                  borderRadius: ESQUINA.hoja,
                   backgroundColor: PALETTE.superficie,
                 }}
               >
@@ -979,7 +967,7 @@ function Insignia({ count }: { count: number }) {
         right: scale.rowGap / 2,
         minWidth: scale.iconSize,
         paddingHorizontal: scale.rowGap / 2,
-        borderRadius: scale.iconSize,
+        borderRadius: ESQUINA.chip,
         backgroundColor: PALETTE.atencionSuave,
         borderWidth: 1,
         borderColor: PALETTE.atencion,
@@ -1032,7 +1020,7 @@ function Confeti({ burst }: { burst: number }) {
             top: scale.rowHeight * 2,
             width: scale.rowGap,
             height: scale.rowGap / 2,
-            borderRadius: scale.rowGap / 8,
+            borderRadius: ESQUINA.marca,
             backgroundColor: p.color,
             opacity: t.interpolate({ inputRange: [0, 0.8, 1], outputRange: [1, 1, 0] }),
             transform: [

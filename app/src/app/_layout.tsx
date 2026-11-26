@@ -26,7 +26,7 @@ import { PILOT_BUILD } from '@/lib/pilotFlag';
 import { OfflineSurfaces } from '@/offline/OfflineSurfaces';
 import { send as sendReadings, touchedApp } from '@/pilot/recorder';
 import { DensityProvider } from '@/theme/DensityProvider';
-import { FUENTES } from '@/theme/letra';
+import { FUENTES } from '@/marca/fuentes';
 
 // ⚠️ `8g`: the splash waits for the screen she will see (`@/lib/splash`) —
 // ⚠️ `5R-n`: and on a build's own first code, first for the newest update

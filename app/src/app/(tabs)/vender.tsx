@@ -60,6 +60,7 @@ import { TotalCarrito } from '@/ui/TotalCarrito';
 import { Vacio } from '@/ui/Vacio';
 import { Corrigiendo } from '@/ui/Corrigiendo';
 import { VaciarCarrito } from '@/ui/VaciarCarrito';
+import { ESQUINA } from '@/theme/density';
 
 // ============================================================================
 // VENDER — the counter. Plan tasks `5f-ii` (the list, the row, the quantity
@@ -680,7 +681,9 @@ function Fila({
         gap: scale.space,
         paddingVertical: scale.space,
         paddingHorizontal: scale.space,
-        backgroundColor: alarm ? PALETTE.atencionSuave : PALETTE.fondo,
+        // ⚠️ `11.6`: a list is a sheet on the counter — its rows white, a `linea`
+        // between them (`Separador`); the attention row keeps its amber ground.
+        backgroundColor: alarm ? PALETTE.atencionSuave : PALETTE.superficie,
       }}
     >
       <Retrato name={entry.name} picture={entry.picture} />
@@ -806,7 +809,7 @@ function Precio({ entry, onPrice }: { entry: CatalogEntry; onPrice: (() => void)
       style={{
         paddingHorizontal: scale.rowGap,
         paddingVertical: scale.rowGap / 2,
-        borderRadius: scale.space,
+        borderRadius: ESQUINA.boton,
         // ⚠️ A PRODUCT WITH NO PRICE GETS THE CHIP'S OUTLINE AND NOT ITS FILL:
         // on a new shop's first day that is nearly every row, and a list of green
         // chips is a list of shouting. Measured on the emulator, 2026-10-15.
@@ -845,7 +848,7 @@ function Nota({ name, onDone }: { name: string; onDone: () => void }) {
         flexDirection: 'row',
         gap: scale.space,
         padding: scale.space,
-        borderRadius: scale.space,
+        borderRadius: ESQUINA.hoja,
         borderWidth: 1,
         borderColor: PALETTE.linea,
         backgroundColor: PALETTE.superficie,
@@ -1177,7 +1180,7 @@ function Renglon({
         gap: scale.rowGap,
         paddingVertical: scale.space,
         paddingHorizontal: scale.space,
-        backgroundColor: PALETTE.fondo,
+        backgroundColor: PALETTE.superficie,
       }}
     >
       {/* ⚠️ `8g`, THE OWNER'S *BOARD 1*: A LINE READS LIKE A TICKET — the name,
@@ -1295,7 +1298,7 @@ function Unitario({
         gap: scale.rowGap / 2,
         paddingHorizontal: scale.rowGap,
         paddingVertical: scale.rowGap / 2,
-        borderRadius: scale.space,
+        borderRadius: ESQUINA.boton,
         backgroundColor: PALETTE.accionSuave,
       }}
     >

@@ -16,6 +16,7 @@ import { Pressable, Text, View } from 'react-native';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 
 export function Corrigiendo({ line, onCancel }: { line: string; onCancel: () => void }) {
   const { scale } = useDensity();
@@ -26,7 +27,7 @@ export function Corrigiendo({ line, onCancel }: { line: string; onCancel: () => 
         alignItems: 'center',
         gap: scale.rowGap,
         backgroundColor: PALETTE.atencionSuave,
-        borderRadius: scale.space * 0.75,
+        borderRadius: ESQUINA.hoja,
         paddingHorizontal: scale.space,
         paddingVertical: scale.rowGap / 2,
       }}

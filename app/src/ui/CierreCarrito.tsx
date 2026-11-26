@@ -32,6 +32,7 @@ import { releaseCommits, releaseTaps } from '@/cart/commit';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 
 export function CierreCarrito({
   onEmpty,
@@ -296,7 +297,7 @@ function Deslizador({
       onLayout={(e) => setTrack(e.nativeEvent.layout.width)}
       style={{
         height,
-        borderRadius: height / 2,
+        borderRadius: ESQUINA.boton,
         borderWidth: 1,
         borderColor: PALETTE.accion,
         backgroundColor: PALETTE.accionSuave,
@@ -358,7 +359,7 @@ function Deslizador({
         style={{
           width: height,
           height,
-          borderRadius: height / 2,
+          borderRadius: ESQUINA.boton,
           backgroundColor: PALETTE.accion,
           alignItems: 'center',
           justifyContent: 'center',

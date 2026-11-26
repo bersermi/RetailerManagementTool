@@ -108,6 +108,12 @@ on:
       - "cocina/package.json"
       - "itacate/package.json"
       - "docs/checks/wera-runtime.sh"
+      # ⚠️ AND THE LOOK'S SOURCES, ADDED 2026-11-26 (`11.6`): `app/test/palette.test.ts`
+      # holds Wera's colours to `paleta.json`'s `wera` block, and `letra.test.ts` its
+      # two Archivo files to `brand/letras/`'s, so an edit to either source alone must
+      # re-run the suite that holds the copy to it.
+      - "brand/mostrador/paleta.json"
+      - "brand/letras/**"
 
 concurrency:
   group: app-${{ github.ref }}

@@ -24,6 +24,7 @@ import { PALETTE } from '@/theme/palette';
 import { Boton } from '@/ui/Boton';
 import { Frase } from '@/ui/Frase';
 import { Velo } from '@/ui/Velo';
+import { ESQUINA } from '@/theme/density';
 
 export function RetiroProducto({
   asking,
@@ -55,7 +56,7 @@ export function RetiroProducto({
         <View
           style={{
             width: '100%',
-            borderRadius: scale.space,
+            borderRadius: ESQUINA.hoja,
             backgroundColor: PALETTE.fondo,
             padding: scale.space * 1.5,
             gap: scale.space,

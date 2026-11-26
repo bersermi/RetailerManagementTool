@@ -26,6 +26,7 @@ import { Pressable, Text, View } from 'react-native';
 
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 
 export function Interruptor<K extends string>({
   options,
@@ -62,7 +63,7 @@ export function Interruptor<K extends string>({
               minHeight: scale.tapTarget,
               justifyContent: 'center',
               alignItems: 'center',
-              borderRadius: scale.rowGap,
+              borderRadius: ESQUINA.boton,
               borderWidth: 1,
               borderColor: on ? ink : PALETTE.linea,
               backgroundColor: on ? soft : PALETTE.superficie,

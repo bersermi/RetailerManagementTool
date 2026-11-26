@@ -17,6 +17,7 @@ import {
 import { ES } from '@/strings';
 import { PALETTE } from '@/theme/palette';
 import { useDensity } from '@/theme/DensityProvider';
+import { ESQUINA } from '@/theme/density';
 
 // ============================================================================
 // C11.9 — THE LEAST INVASIVE THING THAT WORKS, AND IT IS A BANNER AND NOT A
@@ -143,10 +144,8 @@ function Banner({ value, onDismiss }: { value: QueueValue; onDismiss: () => void
           justifyContent: 'center',
           paddingVertical: scale.space,
           paddingHorizontal: scale.space * 1.5,
-          borderRadius: scale.space,
+          borderRadius: ESQUINA.hoja,
           backgroundColor: PALETTE.superficie,
-          borderWidth: 1,
-          borderColor: PALETTE.linea,
         }}
       >
         <Text style={{ fontSize: scale.bodySize, color: PALETTE.tinta }}>

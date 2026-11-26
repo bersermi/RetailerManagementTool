@@ -12,7 +12,7 @@ import { Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useDensity } from '@/theme/DensityProvider';
-import { TITULO } from '@/theme/letra';
+import { letraTitulo } from '@/theme/letra';
 import { PALETTE } from '@/theme/palette';
 import { Rotulo } from '@/ui/Rotulo';
 
@@ -35,8 +35,6 @@ export function Banda({
         paddingTop: insets.top + scale.rowGap,
         paddingBottom: scale.space + scale.rowGap,
         paddingHorizontal: scale.space * 2,
-        borderBottomWidth: 1,
-        borderBottomColor: PALETTE.linea,
         gap: scale.rowGap / 2,
       }}
     >
@@ -55,7 +53,7 @@ export function Banda({
         <View style={{ height: scale.space }} />
       )}
       {antetitulo !== null && <Rotulo text={antetitulo} ink={PALETTE.marca} />}
-      <Text style={{ fontSize: scale.titleSize, ...TITULO, color: PALETTE.tinta }}>{titulo}</Text>
+      <Text style={{ ...letraTitulo(scale), color: PALETTE.tinta }}>{titulo}</Text>
     </View>
   );
 }

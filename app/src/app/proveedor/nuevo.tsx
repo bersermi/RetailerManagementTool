@@ -19,11 +19,12 @@ import { useAskBeforeLeaving } from '@/navigation/salida';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
-import { TITULO } from '@/theme/letra';
+import { letraTitulo } from '@/theme/letra';
 import { Formulario } from '@/ui/Formulario';
 import { Pregunta } from '@/ui/Pregunta';
 import { BotonLleno } from '@/ui/BotonLleno';
 import { TecladoListo } from '@/ui/TecladoListo';
+import { ESQUINA } from '@/theme/density';
 
 // ============================================================================
 // NUEVO PROVEEDOR — the form behind the create row on Proveedores. Plan task
@@ -188,7 +189,7 @@ export default function NuevoProveedor() {
               gap: scale.rowGap / 2,
               paddingHorizontal: scale.space,
               paddingVertical: scale.rowGap,
-              borderRadius: scale.space * 0.75,
+              borderRadius: ESQUINA.hoja,
               backgroundColor: PALETTE.atencionSuave,
             }}
           >
@@ -347,8 +348,6 @@ function Banda() {
         paddingTop: insets.top + scale.space,
         paddingBottom: scale.space,
         paddingHorizontal: scale.space,
-        borderBottomWidth: 1,
-        borderBottomColor: PALETTE.linea,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -359,8 +358,7 @@ function Banda() {
         numberOfLines={1}
         style={{
           flex: 1,
-          fontSize: scale.titleSize,
-          ...TITULO,
+          ...letraTitulo(scale),
           color: PALETTE.tinta,
         }}
       >
@@ -420,9 +418,7 @@ function Caja({ children }: { children: ReactNode }) {
         alignItems: 'center',
         gap: scale.rowGap,
         paddingHorizontal: scale.space,
-        borderRadius: scale.space / 2,
-        borderWidth: 1,
-        borderColor: PALETTE.linea,
+        borderRadius: ESQUINA.hoja,
         backgroundColor: PALETTE.superficie,
       }}
     >

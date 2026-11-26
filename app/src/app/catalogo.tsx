@@ -8,7 +8,7 @@ import { choiceFrom, importCount, notAddedOf, offeredGroups, toggled } from '@/a
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
-import { TITULO } from '@/theme/letra';
+import { letraTitulo } from '@/theme/letra';
 import { BotonLleno } from '@/ui/BotonLleno';
 import { SelectorCatalogo } from '@/ui/SelectorCatalogo';
 
@@ -95,8 +95,6 @@ export default function Catalogo() {
           paddingTop: insets.top + scale.space,
           paddingBottom: scale.space,
           paddingHorizontal: scale.space,
-          borderBottomWidth: 1,
-          borderBottomColor: PALETTE.linea,
           flexDirection: 'row',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -105,7 +103,7 @@ export default function Catalogo() {
       >
         <Text
           numberOfLines={1}
-          style={{ flex: 1, fontSize: scale.titleSize, ...TITULO, color: PALETTE.tinta }}
+          style={{ flex: 1, ...letraTitulo(scale), color: PALETTE.tinta }}
         >
           {ES.starter.title}
         </Text>

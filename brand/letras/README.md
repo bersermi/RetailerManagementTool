@@ -2,8 +2,9 @@
 
 Step 11, row `11.1` (2026-11-21). These are the sources; no app reads this folder. A build row
 (`11.6` for Wera, `11.7` for Wera Cocina and Itacate) copies the files it needs into the app's own
-`src/marca/letras/`, as Nunito was copied there in `8g`. **Until his yes at `11.5`, Nunito stays the
-titles' face in all three apps** (his ruling of 2026-10-16), and nothing here is on a phone.
+`src/marca/letras/`, as Nunito was copied there in `8g`. **His yes came on 2026-11-26 (Archivo).**
+**Wera carries both Archivo cuts since `11.6`** — `app/test/letra.test.ts` holds its copies to these
+files byte for byte, so `app.yml` fires on this folder; Wera Cocina and Itacate keep Nunito until `11.7`.
 
 | File | For | Where it came from |
 |---|---|---|
@@ -19,9 +20,8 @@ What was measured on the files themselves (fontTools 4.68, 2026-11-21):
 - ⚠️ **Archivo's figures are proportional by default.** Tabular figures are its OpenType `tnum`
   feature, so the big number asks for them in its style: `fontVariant: ['tabular-nums']` in React
   Native. That reaches a custom font on iOS through Core Text and on Android through
-  `fontFeatureSettings`. **Nobody has checked it on a phone yet. `11.5` checks it on both.** If one
-  platform ignores it, the fix is a copy of the file with `tnum` frozen in, which the OFL allows
-  under a new name.
+  `fontFeatureSettings`. **Measured at `11.5-i` (2026-11-21), by each phone's own layout: with it the figures hold a column on
+  Android and the iPhone simulator (0.00 pt spread), and without it they do not (8.76 and 8.33 pt).**
 - Archivo's lowercase is 9% taller than Nunito's (x-height 527 against 484 per 1,000), and
   SemiExpanded runs about 20% wider at the same size: *Fonda Doña Mari* is 206 points at 22 against
   Nunito's 178. That is why the titles keep their 22/28 tokens instead of growing.

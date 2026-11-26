@@ -474,8 +474,8 @@ follows it, as `itacate/CLAUDE.md`'s does:
   `test/palabras.test.ts` refuses them in `src/strings.ts` and the aviso since `10.5-v-a` — Wera's *Merma* only in the one line
   that names it to a shop's owner.
   **No sentence saying there are no penalties**: a reservation is drawn as a handover — the hour, how she pays, the code.
-- **The look:** titles in Nunito ExtraBold (`expo-font`; Wera's file byte for byte in `src/marca/letras/`, loaded before the first screen,
-  since `10.5-v-c-i`); Wera Cocina's green `#1C6B4B` for actions; Wera's terracotta `#A9501C` for
+- **The look:** titles in Nunito ExtraBold (`expo-font`; Wera's file byte for byte in `src/marca/letras/` until Wera moved to Archivo at `11.6`,
+  held to Itacate's copy since — and to Wera's again at `11.7` — loaded before the first screen, since `10.5-v-c-i`); Wera Cocina's green `#1C6B4B` for actions; Wera's terracotta `#A9501C` for
   promotions and for what waits for her — an order's *pronto* and dot (`10.5b-iv-a`), a tile's dot and *Falta* (`10.9a-iii`) — never an action; state first, before anything tappable (ADR-035 §2.8); one staggered entrance per screen (`@/ui/Llega`, Itacate's), transform and
   opacity only (§2.11) — `test/pestanas.test.ts` lets Reanimated into `@/ui/Llega`, `@/ui/Nota`, since `10.5-v-d`
   the opening's `@/ui/Apertura` and, since `10.9a-iii`, *Publicar*'s glow `@/ui/Brillo` alone (`scaleX` and `scaleY` count as the transform).

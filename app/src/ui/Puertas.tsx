@@ -15,6 +15,7 @@ import { Pressable, Text, View } from 'react-native';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 
 type Icono = ComponentProps<typeof MaterialCommunityIcons>['name'];
 
@@ -41,7 +42,7 @@ export function Puertas({
         alignItems: 'center',
         gap: scale.space,
         paddingHorizontal: scale.space + scale.rowGap,
-        borderRadius: scale.space + scale.rowGap / 2,
+        borderRadius: ESQUINA.boton,
         borderWidth: 1.5,
         borderColor: PALETTE.accion,
         backgroundColor: lleno ? PALETTE.accion : PALETTE.superficie,

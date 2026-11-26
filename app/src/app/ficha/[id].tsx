@@ -23,12 +23,14 @@ import { formatMXN } from '@/format/mxn';
 import { useOnline } from '@/offline/useOnline';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
-import { TITULO } from '@/theme/letra';
+import { letraTitulo } from '@/theme/letra';
 import { PALETTE } from '@/theme/palette';
 import { PrecioRapido } from '@/ui/PrecioRapido';
 import { RetiroProducto } from '@/ui/RetiroProducto';
 import { Foto } from '@/ui/Foto';
 import { Vacio } from '@/ui/Vacio';
+import { Rotulo } from '@/ui/Rotulo';
+import { ESQUINA } from '@/theme/density';
 
 // ============================================================================
 // LA FICHA — ONE PRODUCT, OPENED. Plan task `8g`, the owner's rulings of
@@ -115,7 +117,7 @@ export default function Ficha() {
       <ScrollView contentContainerStyle={{ padding: scale.space, gap: scale.space, paddingBottom: scale.space * 2 }}>
         <View style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', gap: scale.space }}>
           <View style={{ flex: 1, gap: scale.rowGap / 4 }}>
-            <Text style={{ fontSize: scale.titleSize, ...TITULO, color: PALETTE.tinta }}>{entry.name}</Text>
+            <Text style={{ ...letraTitulo(scale), color: PALETTE.tinta }}>{entry.name}</Text>
             <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>
               {ES.products.page.sub(entry.familyName, unit)}
             </Text>
@@ -128,7 +130,7 @@ export default function Ficha() {
               <Pressable
                 accessibilityRole="button"
                 onPress={() => setPricing(true)}
-                style={{ paddingHorizontal: scale.space, paddingVertical: scale.rowGap / 2, borderRadius: scale.tapTarget, backgroundColor: PALETTE.accion }}
+                style={{ paddingHorizontal: scale.space, paddingVertical: scale.rowGap / 2, borderRadius: ESQUINA.boton, backgroundColor: PALETTE.accion }}
               >
                 <Text style={{ fontSize: scale.smallSize, fontWeight: '700', color: PALETTE.superficie }}>{ES.products.page.changePrice}</Text>
               </Pressable>
@@ -164,14 +166,12 @@ export default function Ficha() {
             alignItems: 'flex-end',
             gap: scale.space,
             padding: scale.space,
-            borderRadius: scale.space,
-            borderWidth: 1,
-            borderColor: PALETTE.linea,
+            borderRadius: ESQUINA.hoja,
             backgroundColor: PALETTE.superficie,
           }}
         >
           <View style={{ flex: 1, gap: scale.rowGap / 4 }}>
-            <Rotulo text={ES.products.page.weekTitle} ink={PALETTE.tintaApagada} />
+            <Rotulo text={ES.products.page.weekTitle} />
             <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.tinta }}>
               {week.quantity === null ? weekNoneLine(sales.state, online) : ES.products.page.week(week.quantity, formatMXN(week.centavos))}
             </Text>
@@ -189,7 +189,7 @@ export default function Ficha() {
                     style={{
                       width: scale.rowGap,
                       height: Math.max(scale.rowGap / 3, (value / tallest) * scale.tapTarget),
-                      borderRadius: scale.rowGap / 3,
+                      borderRadius: ESQUINA.marca,
                       backgroundColor: i === week.today ? PALETTE.marca : i > week.today ? PALETTE.linea : PALETTE.accion,
                     }}
                   />
@@ -203,7 +203,7 @@ export default function Ficha() {
         {family.shown.length === 0 ? null : (
           <View style={{ gap: scale.rowGap / 2 }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Rotulo text={ES.products.page.moreOf(entry.familyName)} ink={PALETTE.tintaApagada} />
+              <Rotulo text={ES.products.page.moreOf(entry.familyName)} />
               <Pressable
                 accessibilityRole="button"
                 // ⚠️ `8g`'s review (2026-10-20): BACK TO THE PRODUCTOS ALREADY OPEN, on
@@ -316,21 +316,12 @@ function Atras({ label }: { label: string }) {
         minHeight: scale.tapTarget * 0.8,
         justifyContent: 'center',
         paddingHorizontal: scale.space,
-        borderRadius: scale.tapTarget,
+        borderRadius: ESQUINA.boton,
         backgroundColor: PALETTE.superficie,
       }}
     >
       <Text style={{ fontSize: scale.smallSize, fontWeight: '700', color: PALETTE.accion }}>{label}</Text>
     </Pressable>
-  );
-}
-
-function Rotulo({ text, ink }: { text: string; ink: string }) {
-  const { scale } = useDensity();
-  return (
-    <Text style={{ fontSize: scale.smallSize * 0.85, fontWeight: '700', letterSpacing: scale.smallSize * 0.08, textTransform: 'uppercase', color: ink }}>
-      {text}
-    </Text>
   );
 }
 
@@ -342,9 +333,7 @@ function Tarjeta({ title, ink, ground, figure, line }: { title: string; ink: str
         flex: 1,
         gap: scale.rowGap / 4,
         padding: scale.space,
-        borderRadius: scale.space,
-        borderWidth: ground === PALETTE.superficie ? 1 : 0,
-        borderColor: PALETTE.linea,
+        borderRadius: ESQUINA.hoja,
         backgroundColor: ground,
       }}
     >
@@ -367,7 +356,7 @@ function Vecino({ entry }: { entry: CatalogEntry }) {
       // previous size instead of the aisle. Now one *Volver* goes back to where
       // this page was opened from.
       onPress={() => router.replace({ pathname: '/ficha/[id]', params: { id: entry.id } })}
-      style={{ width: side, borderRadius: scale.space, borderWidth: 1, borderColor: PALETTE.linea, backgroundColor: PALETTE.superficie, overflow: 'hidden' }}
+      style={{ width: side, borderRadius: ESQUINA.hoja, backgroundColor: PALETTE.superficie, overflow: 'hidden' }}
     >
       <View style={{ height: side * 0.7, alignItems: 'center', justifyContent: 'center', backgroundColor: PALETTE.accionSuave }}>
         <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.tintaApagada }}>{entry.initials}</Text>
@@ -392,7 +381,7 @@ function Accion({ label, ink, onPress }: { label: string; ink: string; onPress: 
         minHeight: scale.tapTarget,
         alignItems: 'center',
         justifyContent: 'center',
-        borderRadius: scale.space * 0.75,
+        borderRadius: ESQUINA.boton,
         borderWidth: 1,
         borderColor: ink,
         backgroundColor: PALETTE.superficie,

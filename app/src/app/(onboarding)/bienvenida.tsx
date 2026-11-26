@@ -31,6 +31,7 @@ import { Formulario } from '@/ui/Formulario';
 import { NegociosQueSeBorran } from '@/ui/NegociosQueSeBorran';
 import { Puertas } from '@/ui/Puertas';
 import { SelectorCatalogo } from '@/ui/SelectorCatalogo';
+import { ESQUINA } from '@/theme/density';
 
 const NOTHING_EXCLUDED: ReadonlySet<string> = new Set();
 
@@ -279,7 +280,7 @@ export default function Bienvenida() {
               alignItems: 'center',
               borderWidth: 1,
               borderColor: leaveReady ? PALETTE.error : PALETTE.linea,
-              borderRadius: scale.space / 2,
+              borderRadius: ESQUINA.boton,
             }}
           >
             <Text
@@ -419,9 +420,7 @@ export default function Bienvenida() {
           {pending !== null && (
             <View
               style={{
-                borderWidth: 1,
-                borderColor: PALETTE.linea,
-                borderRadius: scale.space,
+                borderRadius: ESQUINA.hoja,
                 backgroundColor: PALETTE.superficie,
                 padding: scale.space + scale.rowGap,
                 gap: scale.rowGap,

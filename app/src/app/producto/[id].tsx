@@ -33,7 +33,8 @@ import { CampoFoto } from '@/ui/CampoFoto';
 import { RetiroProducto } from '@/ui/RetiroProducto';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
-import { TITULO } from '@/theme/letra';
+import { letraTitulo } from '@/theme/letra';
+import { ESQUINA } from '@/theme/density';
 
 // ============================================================================
 // ⚠️⚠️ `8g`, THE OWNER'S RULINGS OF 2026-10-17, AND THIS HEADER PREDATES THEM:
@@ -408,7 +409,7 @@ export default function EditarProducto() {
                     justifyContent: 'space-between',
                     minHeight: scale.tapTarget,
                     paddingHorizontal: scale.space,
-                    borderRadius: scale.space,
+                    borderRadius: ESQUINA.campo,
                     borderWidth: 1,
                     borderColor: PALETTE.linea,
                     backgroundColor: PALETTE.superficie,
@@ -436,7 +437,7 @@ export default function EditarProducto() {
                               minHeight: scale.tapTarget * 0.8,
                               justifyContent: 'center',
                               paddingHorizontal: scale.space,
-                              borderRadius: scale.tapTarget,
+                              borderRadius: ESQUINA.chip,
                               borderWidth: 1,
                               borderColor: on ? PALETTE.accion : PALETTE.linea,
                               backgroundColor: on ? PALETTE.accion : PALETTE.superficie,
@@ -550,8 +551,6 @@ function Banda({ subtitle }: { subtitle: string }) {
         paddingTop: insets.top + scale.space,
         paddingBottom: scale.space,
         paddingHorizontal: scale.space,
-        borderBottomWidth: 1,
-        borderBottomColor: PALETTE.linea,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -561,7 +560,7 @@ function Banda({ subtitle }: { subtitle: string }) {
       <View style={{ flex: 1 }}>
         <Text
           numberOfLines={1}
-          style={{ fontSize: scale.titleSize, ...TITULO, color: PALETTE.tinta }}
+          style={{ ...letraTitulo(scale), color: PALETTE.tinta }}
         >
           {ES.catalog.edit.title}
         </Text>
@@ -615,9 +614,7 @@ function Caja({ children }: { children: ReactNode }) {
         alignItems: 'center',
         gap: scale.rowGap,
         paddingHorizontal: scale.space,
-        borderRadius: scale.space / 2,
-        borderWidth: 1,
-        borderColor: PALETTE.linea,
+        borderRadius: ESQUINA.hoja,
         backgroundColor: PALETTE.superficie,
       }}
     >

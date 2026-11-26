@@ -116,15 +116,18 @@ describe('Itacate’s blue for actions (the ruling of 2026-11-05)', () => {
   });
 });
 
-describe('Nunito titles — Wera’s file, byte for byte (the ruling of 2026-11-05)', () => {
-  it('the font and its licence are Wera’s files', () => {
-    expect(bytes('itacate/src/marca/letras/Nunito-ExtraBold.ttf')).toBe(bytes('app/src/marca/letras/Nunito-ExtraBold.ttf'));
-    expect(bytes('itacate/src/marca/letras/OFL-Nunito.txt')).toBe(bytes('app/src/marca/letras/OFL-Nunito.txt'));
+// ⚠️ SINCE `11.6` (2026-11-26) WERA'S TITLES ARE ARCHIVO and its Nunito is gone, so until `11.7`
+// gives both siblings direction A's face, their Nunito and their `@/theme/letra` are held to EACH
+// OTHER — still one font and one code across the two apps — and `11.7` holds them to Wera's again.
+describe('Nunito titles — one file in both siblings, byte for byte (the ruling of 2026-11-05; Wera’s until `11.6`)', () => {
+  it('the font and its licence are Wera Cocina’s files', () => {
+    expect(bytes('itacate/src/marca/letras/Nunito-ExtraBold.ttf')).toBe(bytes('cocina/src/marca/letras/Nunito-ExtraBold.ttf'));
+    expect(bytes('itacate/src/marca/letras/OFL-Nunito.txt')).toBe(bytes('cocina/src/marca/letras/OFL-Nunito.txt'));
   });
 
-  it('`@/theme/letra` is Wera’s code, comments aside', () => {
+  it('`@/theme/letra` is Wera Cocina’s code, comments aside', () => {
     const fold = (text: string) => text.replace(/^\s*\/\/.*$/gm, '').replace(/\/\*\*[\s\S]*?\*\//g, '').replace(/\s+/g, ' ').trim();
-    expect(fold(read('theme/letra.ts'))).toBe(fold(readFileSync(join(ROOT, 'app/src/theme/letra.ts'), 'utf8')));
+    expect(fold(read('theme/letra.ts'))).toBe(fold(readFileSync(join(ROOT, 'cocina/src/theme/letra.ts'), 'utf8')));
   });
 
   it('loaded before any screen draws, and a failed load never holds the app', () => {

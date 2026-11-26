@@ -32,9 +32,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
-import { TITULO } from '@/theme/letra';
+import { letraTitulo } from '@/theme/letra';
 import { PALETTE } from '@/theme/palette';
 import { Velo } from '@/ui/Velo';
+import { ESQUINA } from '@/theme/density';
 
 export function HojaCarrito({
   open,
@@ -69,8 +70,8 @@ export function HojaCarrito({
           <View
             style={{
               height: '72%',
-              borderTopLeftRadius: scale.space,
-              borderTopRightRadius: scale.space,
+              borderTopLeftRadius: ESQUINA.hoja,
+              borderTopRightRadius: ESQUINA.hoja,
               backgroundColor: PALETTE.fondo,
               paddingBottom: insets.bottom,
             }}
@@ -87,7 +88,7 @@ export function HojaCarrito({
               }}
             >
               <View style={{ flex: 1, gap: scale.rowGap / 4 }}>
-                <Text style={{ fontSize: scale.titleSize, ...TITULO, color: PALETTE.tinta }}>
+                <Text style={{ ...letraTitulo(scale), color: PALETTE.tinta }}>
                   {ES.counter.cart.title}
                 </Text>
                 <Text numberOfLines={1} style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>
