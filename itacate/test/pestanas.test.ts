@@ -132,8 +132,6 @@ describe('Archivo titles, headings and the big number — Wera’s files and cod
     const fold = (text: string) => text.replace(/^\s*\/\/.*$/gm, '').replace(/\/\*\*[\s\S]*?\*\//g, '').replace(/\s+/g, ' ').trim();
     expect(fold(read('theme/letra.ts'))).toBe(fold(readFileSync(join(ROOT, 'app/src/theme/letra.ts'), 'utf8')));
     expect(fold(read('marca/fuentes.ts'))).toBe(fold(readFileSync(join(ROOT, 'app/src/marca/fuentes.ts'), 'utf8')));
-    // And a heading's first letter the way Wera capitalises one that arrives built.
-    expect(fold(read('format/oracion.ts'))).toBe(fold(readFileSync(join(ROOT, 'app/src/format/oracion.ts'), 'utf8')));
   });
 
   it('loaded before any screen draws, and a failed load never holds the app', () => {

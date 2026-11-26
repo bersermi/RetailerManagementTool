@@ -4,36 +4,18 @@
 // (`app/test/oracion.test.ts`, this file's twin). The spaced capitals became headings, and the only words
 // Step 11 changes are their case: *LO QUE SIGUE* → *Lo que sigue*.
 //
-// ⚠️ A VALUE A CUSTOMER SEES (ADR-035 §2.11): the words on the screen. Two
-// halves — the words are WRITTEN in sentence case in `@/strings`, and
-// `@/format/oracion` capitalises only the first letter of one that arrives built.
+// ⚠️ A VALUE A CUSTOMER SEES (ADR-035 §2.11): the words on the screen, WRITTEN in
+// sentence case in `@/strings`. Until `11.7-i` this app capitalised them with a
+// style (`textTransform`), which `test/pestanas.test.ts` now refuses; no heading
+// here arrives built, so Wera's `@/format/oracion` is not copied — the row that
+// builds one copies it.
 // ============================================================================
 
 import { describe, expect, it } from 'vitest';
 
-import { enOracion } from '@/format/oracion';
 import { ES } from '@/strings';
 
-describe('`11.7-i` — a heading’s first letter, and nothing else', () => {
-  it('capitalises a date that arrives in lower case', () => {
-    expect(enOracion('lunes 3 · 2 ventas')).toBe('Lunes 3 · 2 ventas');
-    expect(enOracion('noviembre')).toBe('Noviembre');
-  });
-
-  it('keeps a name’s own capitals — never a lower-casing', () => {
-    expect(enOracion('Más de Coca-Cola')).toBe('Más de Coca-Cola');
-    expect(enOracion('Tu semana · 3 al 9 de nov')).toBe('Tu semana · 3 al 9 de nov');
-  });
-
-  it('reads past an opening question or exclamation mark, and leaves a figure alone', () => {
-    expect(enOracion('¿cómo está?')).toBe('¿Cómo está?');
-    expect(enOracion('¡listo!')).toBe('¡Listo!');
-    expect(enOracion('3 de noviembre')).toBe('3 de noviembre');
-    expect(enOracion('')).toBe('');
-  });
-});
-
-describe('`11.7-i` — no word in `@/strings` is written in capitals any more', () => {
+describe('`11.7-i` — no word in `@/strings` is written in capitals', () => {
   it('every string the app shows, walked: none is a run of capitals but an abbreviation', () => {
     // An abbreviation is a word, not a heading: *IVA*, *PDF*, *CSV*.
     const ABBREVIATIONS = new Set(['IVA', 'PDF', 'CSV', 'WhatsApp']);
