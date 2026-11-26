@@ -13,7 +13,8 @@
 // carry no words, and the apps' rule is that no state is told by colour alone.
 //
 // No workflow runs it. Since 11.6 Wera's suite reads paleta.json (app.yml fires on
-// it) and asserts the same matrix on app/src/theme/palette.ts. Run:
+// it) and asserts the same matrix on app/src/theme/palette.ts; since 11.7-i each
+// sibling's does too (cocina-itacate.yml), on its own palette.ts. Run:
 //   node brand/mostrador/contraste.mjs          the matrix, then the verdict
 //   node brand/mostrador/contraste.mjs --json   the same numbers as JSON
 // ============================================================================
