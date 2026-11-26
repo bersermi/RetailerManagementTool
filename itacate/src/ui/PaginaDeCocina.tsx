@@ -10,7 +10,7 @@ import { bandasDe, calificacionDe, calleDe, comoLlegarUrl, hoyDe, pagosDe, queYD
 import { ES } from '@/strings';
 import { HUES } from '@/theme/colores';
 import { ENCABEZADO, FRASE, TITULO, lineaDe, oracion } from '@/theme/letra';
-import { ES_A, borde, esq, sondaY } from '@/theme/piel';
+import { ES_A, borde, esq, useSonda } from '@/theme/piel';
 import { PALETTE, SIZE } from '@/theme/palette';
 import { Atras } from '@/ui/Atras';
 import { BandaPromocion } from '@/ui/BandaPromocion';
@@ -92,6 +92,7 @@ export function PaginaDeCocina({
    */
   tarjeta?: ReactNode;
 }) {
+  const sonda = useSonda();
   const insets = useSafeAreaInsets();
   const [jalando, setJalando] = useState(false);
   // `10.9g-iii`: *y 2 más* tapped, and the bands whose *Condiciones* are open.
@@ -129,7 +130,7 @@ export function PaginaDeCocina({
 
   return (
     <ScrollView
-      contentOffset={{ x: 0, y: sondaY() }}
+      {...sonda}
       style={{ flex: 1, backgroundColor: PALETTE.fondo }}
       contentContainerStyle={{ paddingTop: insets.top, paddingBottom: insets.bottom + SIZE.space * 3 }}
       refreshControl={

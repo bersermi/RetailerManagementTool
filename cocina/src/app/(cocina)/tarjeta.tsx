@@ -12,7 +12,7 @@ import { useAhora } from '@/lib/useAhora';
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
 import { NUMERO } from '@/theme/letra';
-import { borde, ES_A, esq } from '@/theme/piel';
+import { borde, ES_A, esq, useSonda } from '@/theme/piel';
 import { AsiFunciona, useAsiFunciona } from '@/ui/AsiFunciona';
 import { Banda } from '@/ui/Banda';
 import { BotonLleno } from '@/ui/BotonLleno';
@@ -38,6 +38,7 @@ import { TarjetaDeLealtad } from '@/ui/TarjetaDeLealtad';
 // ============================================================================
 
 export default function Tarjeta() {
+  const sonda = useSonda();
   const kitchen = useKitchen();
   const kitchenId = kitchen?.id ?? null;
   const servicios = useServicios(kitchenId);
@@ -103,7 +104,7 @@ export default function Tarjeta() {
   return (
     <View style={{ flex: 1, backgroundColor: PALETTE.fondo }}>
       {banda}
-      <ScrollView contentContainerStyle={{ padding: SIZE.space * 1.5, paddingBottom: SIZE.space * 6, gap: SIZE.space * 1.5 }}>
+      <ScrollView {...sonda} contentContainerStyle={{ padding: SIZE.space * 1.5, paddingBottom: SIZE.space * 6, gap: SIZE.space * 1.5 }}>
         {asi.visible && kitchenId !== null && (
           <Llega i={0}>
             <AsiFunciona servicio="tarjeta" onCerrar={asi.cerrar} />

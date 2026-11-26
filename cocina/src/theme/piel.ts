@@ -13,6 +13,8 @@
 // key–value table `storage`), before any screen's styles are made, and set from
 // outside the app (adb / simctl) — so changing it needs a cold start.
 // ============================================================================
+import { useRef } from 'react';
+import type { ScrollView } from 'react-native';
 import Storage from 'expo-sqlite/kv-store';
 
 export type Piel = 'hoy' | 'a';
@@ -52,4 +54,22 @@ export function sondaY(): number {
   } catch {
     return 0;
   }
+}
+
+/**
+ * The probe as props for a ScrollView: once its content is tall enough, scroll to `wera.sonda.y` once, with
+ * no animation. (An initial `contentOffset` is clamped to 0 while the screen's data is still being read.)
+ */
+export function useSonda() {
+  const ref = useRef<ScrollView>(null);
+  const reloj = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const y = useRef(sondaY()).current;
+  return {
+    ref,
+    onContentSizeChange: () => {
+      if (y <= 0) return;
+      if (reloj.current !== null) clearTimeout(reloj.current);
+      reloj.current = setTimeout(() => ref.current?.scrollTo({ y, animated: false }), 700);
+    },
+  };
 }

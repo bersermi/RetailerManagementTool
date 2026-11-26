@@ -41,7 +41,7 @@ import { useAlAbrir } from '@/lib/useGoogle';
 import { useRepetir } from '@/lib/useRepetir';
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
-import { esq } from '@/theme/piel';
+import { esq, useSonda } from '@/theme/piel';
 import { Banda } from '@/ui/Banda';
 import { BotonLleno } from '@/ui/BotonLleno';
 import { Brillo } from '@/ui/Brillo';
@@ -151,6 +151,7 @@ export default function Hoy() {
 }
 
 function HoyDe({ kitchen }: { kitchen: Kitchen }) {
+  const sonda = useSonda();
   const giros = useKitchenGiros();
   const place = usePlace(kitchen.id);
   const page = usePage(kitchen.id);
@@ -258,7 +259,7 @@ function HoyDe({ kitchen }: { kitchen: Kitchen }) {
   return (
     <View style={{ flex: 1, backgroundColor: PALETTE.fondo }}>
       <Banda titulo={kitchen.displayName} antetitulo={ayudante ? ES.ayudante.antetitulo : (trade ?? ES.cocina.antetitulo)} />
-      <ScrollView contentContainerStyle={{ padding: SIZE.space * 1.5, paddingBottom: SIZE.space * 8, gap: SIZE.space * 1.5 }}>
+      <ScrollView {...sonda} contentContainerStyle={{ padding: SIZE.space * 1.5, paddingBottom: SIZE.space * 8, gap: SIZE.space * 1.5 }}>
         <SinSenal sinSenal={apartados.sinSenal} leidoEn={apartados.leidoEn} porEnviar={apartados.porEnviar} ahora={ahora} />
         <Llega i={0}>
           {vista?.invitacion ? (

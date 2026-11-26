@@ -67,9 +67,10 @@ export function Boleto({
 }) {
   return (
     <View style={style}>
-      <View style={{ backgroundColor: color, padding, paddingBottom: padding * 0.75 }}>{cuerpo}</View>
+      {/* Each part overlaps the band by a point: views meeting on a fractional pixel leave a hairline of the counter. */}
+      <View style={{ backgroundColor: color, padding, paddingBottom: padding * 0.75, marginBottom: -1 }}>{cuerpo}</View>
       <Banda color={color} raya={raya} />
-      <View style={{ backgroundColor: color, paddingHorizontal: padding, paddingTop: padding * 0.5, paddingBottom: padding * 0.75 }}>{talon}</View>
+      <View style={{ backgroundColor: color, marginTop: -1, paddingHorizontal: padding, paddingTop: padding * 0.5 + 1, paddingBottom: padding * 0.75 }}>{talon}</View>
     </View>
   );
 }

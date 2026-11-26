@@ -62,8 +62,8 @@ export function LoQueSigue({
         talon={
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: SIZE.space }}>
             {mas > 0 ? (
-              <Pressable accessibilityRole="button" accessibilityLabel={ES.loQueSigue.mas(mas)} onPress={onApartados} style={{ flexDirection: 'row', alignItems: 'center', minHeight: SIZE.tapTarget - 12 }}>
-                <Text style={{ fontSize: SIZE.smallSize, fontWeight: '700', color: PALETTE.accion }}>{ES.loQueSigue.mas(mas)}</Text>
+              <Pressable accessibilityRole="button" accessibilityLabel={ES.loQueSigue.mas(mas)} onPress={onApartados} style={{ flexShrink: 1, flexDirection: 'row', alignItems: 'center', minHeight: SIZE.tapTarget - 12 }}>
+                <Text style={{ flexShrink: 1, fontSize: SIZE.smallSize, fontWeight: '700', color: PALETTE.accion }}>{ES.loQueSigue.mas(mas)}</Text>
                 <MaterialCommunityIcons name="chevron-right" size={17} color={PALETTE.accion} />
               </Pressable>
             ) : (
