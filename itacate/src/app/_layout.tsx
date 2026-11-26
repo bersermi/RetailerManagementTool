@@ -10,7 +10,7 @@ import { groupOf, paraDespues, redirectFor } from '@/auth/guard';
 import { ColaProvider } from '@/lib/ColaProvider';
 import { DistanciasProvider } from '@/lib/DistanciasProvider';
 import { DondeBuscarProvider } from '@/lib/DondeBuscarProvider';
-import { FUENTES } from '@/theme/letra';
+import { FUENTES } from '@/marca/fuentes';
 
 // ============================================================================
 // THE ROOT OF ITACATE. Plan tasks `10.2a` (one screen), `10.5-iii-a` (signing

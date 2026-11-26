@@ -6,7 +6,7 @@ import { useInvitar } from '@/api/hooks';
 import { codigoAgrupado, compartirTexto } from '@/api/invitar';
 import { clockOf } from '@/lib/ventana';
 import { ES } from '@/strings';
-import { TITULO } from '@/theme/letra';
+import { TITULO, letraTitulo } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
 import { BotonLleno } from '@/ui/BotonLleno';
 import { CodigoQR } from '@/ui/CodigoQR';
@@ -68,7 +68,7 @@ export function HojaInvitar({
             gap: SIZE.space,
           }}
         >
-          <Text accessibilityRole="header" style={{ fontSize: SIZE.titleSize, ...TITULO, color: PALETTE.tinta }}>
+          <Text accessibilityRole="header" style={{ ...letraTitulo(SIZE), color: PALETTE.tinta }}>
             {ES.invitar.titulo}
           </Text>
           <Text style={texto}>{ES.invitar.texto}</Text>

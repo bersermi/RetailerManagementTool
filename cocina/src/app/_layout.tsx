@@ -11,7 +11,7 @@ import { groupOf, redirectFor, screenOf } from '@/auth/guard';
 import { ColaProvider } from '@/lib/ColaProvider';
 import { NotaProvider } from '@/lib/NotaProvider';
 import { holdSplash, releaseSplash } from '@/lib/splash';
-import { FUENTES } from '@/theme/letra';
+import { FUENTES } from '@/marca/fuentes';
 
 // ============================================================================
 // THE ROOT OF WERA COCINA. Plan tasks `10.2a` (one screen), `10.4b-iii-a`

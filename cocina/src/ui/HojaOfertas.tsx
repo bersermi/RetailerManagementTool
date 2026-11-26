@@ -8,7 +8,7 @@ import { pedirPermisoParaAvisos } from '@/lib/avisos';
 import { marcarPreguntado } from '@/lib/ofertas';
 import { deviceStore } from '@/lib/store';
 import { ES } from '@/strings';
-import { TITULO } from '@/theme/letra';
+import { letraTitulo } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
 import { BotonLleno } from '@/ui/BotonLleno';
 
@@ -93,7 +93,7 @@ export function HojaOfertas({
             gap: SIZE.space,
           }}
         >
-          <Text accessibilityRole="header" style={{ fontSize: SIZE.titleSize, ...TITULO, color: PALETTE.tinta }}>
+          <Text accessibilityRole="header" style={{ ...letraTitulo(SIZE), color: PALETTE.tinta }}>
             {hoja.titulo}
           </Text>
           <Text style={{ fontSize: SIZE.bodySize, lineHeight: 22, color: PALETTE.tinta }}>{hoja.texto}</Text>

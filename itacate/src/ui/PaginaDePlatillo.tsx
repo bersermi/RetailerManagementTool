@@ -9,7 +9,7 @@ import { ventanaTexto } from '@/lib/lista';
 import { alergiaDe, bandaVistaDe, calleDe, comerTexto, comoLlegarUrl, etiquetasDe, pagosTexto, promocionDe } from '@/lib/paginas';
 import { ES } from '@/strings';
 import { HUES } from '@/theme/colores';
-import { TITULO } from '@/theme/letra';
+import { letraTitulo } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
 import { Atras } from '@/ui/Atras';
 import { BandaPromocion } from '@/ui/BandaPromocion';
@@ -93,7 +93,7 @@ export function PaginaDePlatillo({
 
           <View style={{ gap: SIZE.rowGap / 2 }}>
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: SIZE.rowGap }}>
-              <Text accessibilityRole="header" style={{ flexShrink: 1, fontSize: SIZE.titleSize, ...TITULO, color: PALETTE.tinta }}>
+              <Text accessibilityRole="header" style={{ flexShrink: 1, ...letraTitulo(SIZE), color: PALETTE.tinta }}>
                 {platillo.name}
               </Text>
               {platillo.surprise && <Sorpresa />}

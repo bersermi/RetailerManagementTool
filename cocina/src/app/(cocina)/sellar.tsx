@@ -16,7 +16,7 @@ import { useFestejoDelSello } from '@/lib/useFestejos';
 import { useSenal } from '@/lib/useSenal';
 import { clockOf } from '@/lib/ventana';
 import { ES } from '@/strings';
-import { TITULO } from '@/theme/letra';
+import { TITULO, letraEncabezado } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
 import { Banda } from '@/ui/Banda';
 import { BotonLleno } from '@/ui/BotonLleno';
@@ -142,7 +142,7 @@ export default function Sellar() {
           </View>
         )}
         <Llega i={2} style={{ gap: SIZE.rowGap }}>
-          <Text style={{ fontSize: SIZE.smallSize, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase', color: PALETTE.tintaApagada }}>
+          <Text style={{ ...letraEncabezado(SIZE), color: PALETTE.tinta }}>
             {ES.sellar.hoy}
           </Text>
           <View style={{ borderRadius: 16, borderWidth: 1, borderColor: PALETTE.linea, backgroundColor: PALETTE.superficie, overflow: 'hidden' }}>

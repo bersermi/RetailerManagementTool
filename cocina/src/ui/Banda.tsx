@@ -14,7 +14,7 @@
 import { Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { TITULO } from '@/theme/letra';
+import { letraEncabezado, letraTitulo } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
 
 export function Banda({
@@ -52,18 +52,12 @@ export function Banda({
       )}
       {antetitulo !== null && (
         <Text
-          style={{
-            fontSize: SIZE.smallSize,
-            fontWeight: '700',
-            letterSpacing: 1,
-            textTransform: 'uppercase',
-            color: PALETTE.marca,
-          }}
+          style={{ ...letraEncabezado(SIZE), color: PALETTE.marca }}
         >
           {antetitulo}
         </Text>
       )}
-      <Text accessibilityRole="header" style={{ fontSize: SIZE.titleSize, ...TITULO, color: PALETTE.tinta }}>
+      <Text accessibilityRole="header" style={{ ...letraTitulo(SIZE), color: PALETTE.tinta }}>
         {titulo}
       </Text>
     </View>

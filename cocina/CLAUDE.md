@@ -395,7 +395,8 @@ switch `promociones` keeps them off for everyone. The code on
   legacy icon from `icon`); Android 8 and later draw the adaptive icon, Wera's mark files
   (`../app/assets/images/`) on `adaptiveIcon.backgroundColor`, the same green. `assets/images/splash-icon.png`
   is the cow in this app's green on nothing, so the cream round it is the splash's `backgroundColor` —
-  the palette's `fondo`. Both drawn from `brand/wera-mark.svg` by `store/cocina-itacate/render.sh`, beside
+  B's `fondo`, `#FFFCF6`, Wera's launch cream: ⚠️ since `11.7-i` the screens are the counter's grey and this stays cream, held to Wera's
+  `app.json` by `test/icon.test.ts` until `11.11` moves the three apps' launch screens together (a native change, and a look). Both drawn from `brand/wera-mark.svg` by `store/cocina-itacate/render.sh`, beside
   the Play listing's icon, and held by `test/icon.test.ts`: the paths, the icon 1024 square with **no alpha
   channel** (App Store Connect refuses an icon with one — at the first upload, long after the build), and
   each picture's colours read off its pixels. ⚠️ **Both files are hashed into the runtime on both
@@ -474,8 +475,11 @@ follows it, as `itacate/CLAUDE.md`'s does:
   `test/palabras.test.ts` refuses them in `src/strings.ts` and the aviso since `10.5-v-a` — Wera's *Merma* only in the one line
   that names it to a shop's owner.
   **No sentence saying there are no penalties**: a reservation is drawn as a handover — the hour, how she pays, the code.
-- **The look:** titles in Nunito ExtraBold (`expo-font`; Wera's file byte for byte in `src/marca/letras/` until Wera moved to Archivo at `11.6`,
-  held to Itacate's copy since — and to Wera's again at `11.7` — loaded before the first screen, since `10.5-v-c-i`); Wera Cocina's green `#1C6B4B` for actions; Wera's terracotta `#A9501C` for
+- **The look — direction A · *Mostrador* since `11.7-i`** (Nunito and B's cream until then): the counter's grey with white sheets, each colour
+  `brand/mostrador/paleta.json`'s `cocina` block, held and measured by `test/palette.test.ts` (every ink at 4.5:1 or more on every ground); titles,
+  and the headings that were spaced capitals, in Archivo (`@/theme/letra`'s `letraTitulo` and `letraEncabezado` — Wera's file, its two `.ttf` files and
+  `@/marca/fuentes` code for code and byte for byte, `test/pestanas.test.ts`; loaded before the first screen); a screen's one big number in Archivo
+  Condensed (`letraNumero`); the words written in sentence case in `@/strings` (`test/oracion.test.ts`), never `textTransform`; Wera Cocina's green `#1C6B4B` for actions; Wera's rust (`#9A4A1A` since `11.7-i`) for
   promotions and for what waits for her — an order's *pronto* and dot (`10.5b-iv-a`), a tile's dot and *Falta* (`10.9a-iii`) — never an action; state first, before anything tappable (ADR-035 §2.8); one staggered entrance per screen (`@/ui/Llega`, Itacate's), transform and
   opacity only (§2.11) — `test/pestanas.test.ts` lets Reanimated into `@/ui/Llega`, `@/ui/Nota`, since `10.5-v-d`
   the opening's `@/ui/Apertura` and, since `10.9a-iii`, *Publicar*'s glow `@/ui/Brillo` alone (`scaleX` and `scaleY` count as the transform).

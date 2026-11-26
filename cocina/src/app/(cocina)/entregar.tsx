@@ -36,7 +36,7 @@ import { SUPPORT_WHATSAPP } from '@/lib/supportWhatsapp';
 import { useAhora } from '@/lib/useAhora';
 import { clockOf, dayOf } from '@/lib/ventana';
 import { ES } from '@/strings';
-import { TITULO } from '@/theme/letra';
+import { TITULO, letraEncabezado } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
 import { Banda } from '@/ui/Banda';
 import { BotonLleno } from '@/ui/BotonLleno';
@@ -420,7 +420,7 @@ function Encontrada({
             <Text style={{ fontSize: SIZE.bodySize + 1, fontWeight: '700', color: PALETTE.tinta }}>{ES.entregar.comerGrande[orden.comer]}</Text>
           </View>
           <View style={{ gap: 6, padding: SIZE.space, borderRadius: SIZE.space - 2, borderWidth: 1.5, borderColor: PALETTE.accion, backgroundColor: PALETTE.superficie }}>
-            <Text style={{ fontSize: SIZE.smallSize, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase', color: PALETTE.tintaApagada }}>
+            <Text style={{ ...letraEncabezado(SIZE), color: PALETTE.tinta }}>
               {ES.entregar.pago[orden.pago]}
             </Text>
             <Text style={{ fontSize: orden.pago === 'transferencia' ? 19 : 24, lineHeight: orden.pago === 'transferencia' ? 25 : 30, fontWeight: '800', color: PALETTE.tinta }}>

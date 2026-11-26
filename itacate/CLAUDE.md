@@ -579,10 +579,13 @@ follows it, as `cocina/CLAUDE.md`'s does:
   `test/palabras.test.ts` refuses them in `src/strings.ts` since `10.5-v-a` — Wera's *Merma* only in the one line
   that names it to a shop's owner.
   **No sentence saying there are no penalties**: a reservation is drawn as a handover — the hour, how she pays, the code.
-- **The look:** titles in Nunito ExtraBold (`expo-font`); Itacate's blue `#24476B` for actions; Wera's terracotta `#A9501C` for
+- **The look — direction A · *Mostrador* since `11.7-i`** (Nunito and B's cream until then): the counter's grey with white sheets, each colour
+  `brand/mostrador/paleta.json`'s `itacate` block, held and measured by `test/palette.test.ts`; titles, and the headings that were spaced capitals
+  (on a kitchen's page in ink, not her colour), in Archivo (`@/theme/letra`, Wera's code; `test/pestanas.test.ts`), a tab's head on up to two lines; the
+  words in sentence case in `@/strings` (`test/oracion.test.ts`); Itacate's blue `#24476B` for actions; Wera's rust (`#9A4A1A` since `11.7-i`) for
   promotions only; state first, before anything tappable (ADR-035 §2.8); one staggered entrance per screen, transform and
-  opacity only (§2.11). ⚠️ **Built by `10.5-v-b`:** `@/theme/letra` and `src/marca/letras/` are Wera's file and font byte for byte (until
-  Wera moved to Archivo at `11.6`; Wera Cocina's since, and Wera's again at `11.7`), loaded by the root before the first screen (the phone's face if the load fails); `PALETTE.accion` is the blue, held to `app.json`'s
+  opacity only (§2.11). ⚠️ **Built by `10.5-v-b`:** `@/theme/letra` and `src/marca/letras/` are Wera's file and fonts byte for byte (Nunito until
+  `11.7-i`, Archivo since, with `@/marca/fuentes`), loaded by the root before the first screen (the phone's face if the load fails); `PALETTE.accion` is the blue, held to `app.json`'s
   icon ground; the motion's numbers are `@/theme/movimiento`'s, drawn by `@/ui/Llega` (a screen's first blocks, once, on mount),
   `@/ui/Hoja` (a sheet's spring), since `10.5-iv-b-i` `@/ui/HojaDeLista` (the list sliding over the map) and since `10.5b-iii-a`
   `@/ui/Deslizar` (*Ya lo tengo*'s swipe) — **the only four modules that import Reanimated**, their animated styles `opacity` and

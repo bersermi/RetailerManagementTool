@@ -46,6 +46,7 @@ import {
 import { direccionCorta } from '@/lib/tarjeta';
 import { useAhora } from '@/lib/useAhora';
 import { ES } from '@/strings';
+import { letraEncabezado } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
 import { Banda } from '@/ui/Banda';
 import { BandaPromocion, MarcaPromocion } from '@/ui/BandaPromocion';
@@ -393,7 +394,7 @@ export default function NuevaPromocion() {
         )}
 
         <View style={{ gap: SIZE.rowGap, padding: SIZE.rowGap, borderRadius: 18, borderWidth: 1, borderStyle: 'dashed', borderColor: PALETTE.linea, backgroundColor: PALETTE.banda }}>
-          <Text style={{ marginHorizontal: 4, marginTop: 2, fontSize: SIZE.smallSize - 2.5, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase', color: PALETTE.marca }}>
+          <Text style={{ marginHorizontal: 4, marginTop: 2, ...letraEncabezado(SIZE), color: PALETTE.marca }}>
             {ES.nuevaPromocion.asiLaVeran}
           </Text>
           {/* A preview: nothing on it opens. */}

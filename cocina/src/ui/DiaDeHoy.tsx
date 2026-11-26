@@ -3,6 +3,7 @@ import { Pressable, Text, View } from 'react-native';
 
 import { RENGLONES_EN_LA_TARJETA, faltaTexto, fraccionDe, hastaTexto, ultimaTexto, type Dia } from '@/lib/hoy';
 import { ES } from '@/strings';
+import { letraEncabezado, letraNumero } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
 
 // ============================================================================
@@ -98,12 +99,12 @@ export function DiaDeHoy({
       })}
     >
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', gap: SIZE.rowGap }}>
-        <Text style={{ fontSize: SIZE.smallSize, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase', color: PALETTE.sobreAccionApagada }}>
+        <Text style={{ ...letraEncabezado(SIZE), color: PALETTE.sobreAccionApagada }}>
           {ES.hoy.enItacate}
         </Text>
         <Text style={{ fontSize: SIZE.smallSize, fontWeight: '600', color: PALETTE.sobreAccionApagada }}>{hasta}</Text>
       </View>
-      <Text style={{ fontSize: SIZE.titleSize + 4, fontWeight: '800', color: PALETTE.sobreAccion }}>{grande}</Text>
+      <Text style={{ ...letraNumero(SIZE), color: PALETTE.sobreAccion }}>{grande}</Text>
       <View style={{ height: 6, borderRadius: 3, overflow: 'hidden', backgroundColor: PALETTE.barraSobreAccion }}>
         <View style={{ width: `${Math.round(fraccion * 100)}%`, height: 6, borderRadius: 3, backgroundColor: PALETTE.sobreAccion }} />
       </View>

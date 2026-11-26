@@ -6,6 +6,7 @@ import { CANTIDAD_MAXIMA, lineDetail, listingState, type Listing } from '@/api/l
 import { claveDePlato } from '@/lib/apartados';
 import { slotOf } from '@/lib/ventana';
 import { ES } from '@/strings';
+import { letraEncabezado } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
 
 // ============================================================================
@@ -70,13 +71,7 @@ export function OfertaDeHoy({
       }}
     >
       <Text
-        style={{
-          fontSize: SIZE.smallSize,
-          fontWeight: '700',
-          letterSpacing: 1,
-          textTransform: 'uppercase',
-          color: enOferta ? PALETTE.accion : PALETTE.tintaApagada,
-        }}
+        style={{ ...letraEncabezado(SIZE), color: enOferta ? PALETTE.accion : PALETTE.tintaApagada }}
       >
         {enOferta ? ES.ofertas.estado.oferta : ES.ofertas.estado.terminada}
       </Text>

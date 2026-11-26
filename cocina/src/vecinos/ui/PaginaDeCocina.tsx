@@ -9,7 +9,7 @@ import { colorOf, defaultsFor } from '@/api/pagina';
 import { bandasDe, calificacionDe, calleDe, comoLlegarUrl, hoyDe, pagosDe, queYDondeDe, repetidosDe, verEnMapsUrl } from '@/vecinos/paginas';
 import { VECINOS as ES } from '@/strings';
 import { HUES } from '@/theme/colores';
-import { TITULO } from '@/theme/letra';
+import { TITULO, letraEncabezado } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
 import { Atras } from '@/vecinos/ui/Atras';
 import { BandaPromocion } from '@/ui/BandaPromocion';
@@ -97,7 +97,7 @@ export function PaginaDeCocina({
   const calificacion = calificacionDe(cocina);
   const pagos = pagosDe(cocina);
   const bandas = bandasDe(cocina);
-  const titulo = { fontSize: SIZE.smallSize, fontWeight: '800', letterSpacing: 1, textTransform: 'uppercase', color: HUES[color] } as const;
+  const titulo = { ...letraEncabezado(SIZE), color: PALETTE.tinta } as const;
 
   return (
     <ScrollView
