@@ -1,0 +1,108 @@
+{
+  "_": "Step 11, row 11.4 (2026-11-26): the apps' drawings — the empty screens, a kitchen without a photo, a reward won — in the icons' line. Each drawing: its kind (vacio, oficio, premio), its size in points as the pictures are drawn (render-dibujos.sh), its ink as a palette token (brand/mostrador/paleta.json), and where it sits: the screen's file, a text that file must still contain, the sentence beside it as a key of that app's strings.ts, and what the screen shows there today. dibujos.mjs checks every entry against the code. No app reads this folder until row 11.10.",
+  "linea": { "cuadricula": 64, "trazo": 3 },
+  "reglas": {
+    "vacio": "A drawing only where a whole screen, or its one list, has nothing yet: never while it loads, without signal, on a failure, or when a search matched nothing. Above the sentence, centred, 96 points (Wera's Letra grande 120), in the screen's own colour, on the counter; it replaces today's glyph and its disc.",
+    "oficio": "A kitchen or a dish without a photo: her colour, and her trade's drawing once, in white, centred, 60% of the frame's height (64% in a dish row's square). The map's pins keep today's solid drawings (brand/giros.svg): at 20 points a line is a smudge.",
+    "premio": "¡Ganaste!: a sheet in the kitchen's colour holding the drawing in white, 150 points, above the reward in `premio` (Mansalva, white on her colour, as row 11.1 ruled) — in place of today's disc, cow and three badges."
+  },
+  "dibujos": {
+    "recibo": {
+      "tipo": "vacio", "puntos": 120, "que": "a till receipt with nothing on it",
+      "donde": [
+        { "app": "app", "archivo": "app/src/app/documentos.tsx", "busca": "ES.documents.emptyWeek", "textos": ["documents.emptyWeek.sale.title", "documents.emptyWeek.purchase.title", "documents.emptyWeek.waste.title"], "tinta": ["accion", "compra", "desperdicio"], "hoy": "the tab's glyph (cash-register, truck, basket-minus) in a soft disc of its counter's colour (8g)" }
+      ]
+    },
+    "barras": {
+      "tipo": "vacio", "puntos": 120, "que": "a chart whose bars are not there yet",
+      "donde": [
+        { "app": "app", "archivo": "app/src/app/numeros.tsx", "busca": "ES.numbers.emptyPeriod", "textos": ["numbers.emptyPeriod"], "tinta": ["accion"], "hoy": "the sentence alone (Vacio)" }
+      ]
+    },
+    "diablito": {
+      "tipo": "vacio", "puntos": 120, "que": "a hand truck with two crates, the way a supplier's delivery arrives",
+      "donde": [
+        { "app": "app", "archivo": "app/src/app/proveedores.tsx", "busca": "providerLine(", "textos": ["providers.empty.none"], "tinta": ["accion"], "hoy": "the sentence alone (Vacio)" }
+      ]
+    },
+    "puerta": {
+      "tipo": "vacio", "puntos": 120, "que": "the shop's door with nobody on its mat",
+      "donde": [
+        { "app": "app", "archivo": "app/src/app/solicitudes.tsx", "busca": "ES.approvals.emptyTitle", "textos": ["approvals.emptyTitle", "approvals.emptyHint"], "tinta": ["accion"], "hoy": "door-open in a soft green disc (8g)" }
+      ]
+    },
+    "pizarron": {
+      "tipo": "vacio", "puntos": 120, "que": "the menu board on its easel that a fonda puts out",
+      "donde": [
+        { "app": "cocina", "archivo": "cocina/src/app/(cocina)/ofertas.tsx", "busca": "ES.ofertas.ninguna", "textos": ["ofertas.ninguna"], "tinta": ["accion"], "hoy": "the sentence alone, under Anteriores" }
+      ]
+    },
+    "estrellas": {
+      "tipo": "vacio", "puntos": 120, "que": "a speech bubble holding three stars",
+      "donde": [
+        { "app": "cocina", "archivo": "cocina/src/app/(cocina)/calificaciones.tsx", "busca": "c.pocas(", "textos": ["ajustes.calificaciones.pocas"], "tinta": ["accion"], "hoy": "the sentence alone, in a card" }
+      ]
+    },
+    "boleto": {
+      "tipo": "vacio", "puntos": 120, "que": "an apartado's ticket with its code still blank",
+      "donde": [
+        { "app": "cocina", "archivo": "cocina/src/app/(cocina)/(tabs)/apartados.tsx", "busca": "ES.apartados.vacioHoy", "textos": ["apartados.vacioHoy", "apartados.vacioHoyDetalle"], "tinta": ["accion"], "hoy": "the two sentences alone" },
+        { "app": "itacate", "archivo": "itacate/src/app/(vecino)/apartados.tsx", "busca": "ES.apartados.vacio}", "textos": ["apartados.vacio", "apartados.vacioDetalle"], "tinta": ["accion"], "hoy": "ticket-confirmation-outline at 52 points, in linea" }
+      ]
+    },
+    "mapa": {
+      "tipo": "vacio", "puntos": 120, "que": "a folded map, a pin and the ring around it",
+      "donde": [
+        { "app": "itacate", "archivo": "itacate/src/app/(vecino)/(tabs)/index.tsx", "busca": "ES.cerca.vacio", "textos": ["cerca.vacio", "mapa.nadaAqui"], "tinta": ["accion"], "hoy": "the sentence alone (Aviso)" }
+      ]
+    },
+    "toldo": {
+      "tipo": "vacio", "puntos": 120, "que": "a kitchen's awning with a heart where its window is",
+      "donde": [
+        { "app": "itacate", "archivo": "itacate/src/app/(vecino)/(tabs)/mis-cocinas.tsx", "busca": "ES.misCocinas.vacio", "textos": ["misCocinas.vacio", "misCocinas.vacioDetalle", "misCocinas.vacioDetalleConTarjeta"], "tinta": ["accion"], "hoy": "heart-outline at 44 points, in linea" }
+      ]
+    },
+    "cazuela": { "tipo": "oficio", "puntos": 160, "giro": "giro-fonda", "que": "a clay pot, steaming" },
+    "plato": { "tipo": "oficio", "puntos": 160, "giro": "giro-restaurante", "que": "a plate between a fork and a knife" },
+    "taza": { "tipo": "oficio", "puntos": 160, "giro": "giro-cafeteria", "que": "a cup on its saucer, steaming" },
+    "concha": { "tipo": "oficio", "puntos": 160, "giro": "giro-panaderia", "que": "a concha, its shell scored" },
+    "bolsa": { "tipo": "oficio", "puntos": 160, "giro": "giro-comida-para-llevar", "que": "a bag to take away" },
+    "pollo": { "tipo": "oficio", "puntos": 160, "giro": "giro-rosticeria", "que": "a drumstick" },
+    "taco": { "tipo": "oficio", "puntos": 160, "giro": "giro-taqueria", "que": "a taco from the side, its filling over the tortilla" },
+    "elote": { "tipo": "oficio", "puntos": 160, "giro": "giro-antojitos", "que": "an elote on its stick, the husk around it" },
+    "pescado": { "tipo": "oficio", "puntos": 160, "giro": "giro-mariscos", "que": "a fish" },
+    "premio": {
+      "tipo": "premio", "puntos": 160, "que": "a gift whose lid is coming off",
+      "donde": [
+        { "app": "itacate", "archivo": "itacate/src/app/(vecino)/gano/[cocina].tsx", "busca": "ES.gano.titulo", "textos": ["gano.titulo", "gano.detalle"], "tinta": ["superficie on the kitchen's colour"], "hoy": "the rust cow in a white disc on the kitchen's colour, with gift-outline, star and stamper badges around it" }
+      ]
+    }
+  },
+  "sinFoto": {
+    "_": "Where a kitchen or a dish without a photo draws her trade today (Dibujo, modo portada = the wallpaper: 28 faint drawings and one large; modo cuadro = one drawing). Row 11.10 draws one, in the line, in each.",
+    "lugares": [
+      { "archivo": "itacate/src/ui/PaginaDeCocina.tsx", "modo": "portada", "que": "a kitchen's page, its cover (16:9)" },
+      { "archivo": "itacate/src/ui/TarjetaPlatillo.tsx", "modo": "portada", "que": "a dish's card on Cerca (16:7)" },
+      { "archivo": "itacate/src/ui/PaginaDePlatillo.tsx", "modo": "portada", "que": "a dish's page (4:3)" },
+      { "archivo": "itacate/src/ui/RenglonPlatillo.tsx", "modo": "cuadro", "que": "a dish's row, its square (76)" },
+      { "archivo": "cocina/src/ui/Portada.tsx", "modo": "portada", "que": "her page's cover in Mi cocina" },
+      { "archivo": "cocina/src/app/(cocina)/pagina.tsx", "modo": "portada", "que": "her cover while she edits her page" },
+      { "archivo": "cocina/src/ui/Renglon.tsx", "modo": "cuadro", "que": "a dish's row in her offers" },
+      { "archivo": "cocina/src/vecinos/ui/PaginaDeCocina.tsx", "modo": "portada", "que": "her page as neighbours see it (Así la ven)" },
+      { "archivo": "cocina/src/vecinos/ui/TarjetaPlatillo.tsx", "modo": "portada", "que": "her dish's card as neighbours see it" },
+      { "archivo": "cocina/src/vecinos/ui/PaginaDePlatillo.tsx", "modo": "portada", "que": "her dish's page as neighbours see it" },
+      { "archivo": "cocina/src/vecinos/ui/RenglonPlatillo.tsx", "modo": "cuadro", "que": "her dish's row as neighbours see it" }
+    ],
+    "pines": { "archivo": "itacate/src/ui/MapaDeCocinas.tsx", "busca": "DIBUJO[pin.dibujo]", "que": "the map's pins keep today's solid drawings" }
+  },
+  "sinDibujo": {
+    "_": "Empty states looked at and left without a drawing, and why — so a later session does not take them for forgotten.",
+    "lista": [
+      { "archivo": "app/src/app/productos.tsx", "texto": "catalog.empty", "porque": "every shop starts with its giro's catalog (Step 9), so the empty catalog is all but never seen; and catalogLine's other three lines (loading, no signal, no match) take none" },
+      { "archivo": "app/src/app/(tabs)/vender.tsx", "texto": "counter.emptyCart", "porque": "a line inside the cart's sheet, not a screen" },
+      { "archivo": "cocina/src/app/(cocina)/sellar.tsx", "texto": "sellar.nadieHoy", "porque": "a line under her code, which is the screen" },
+      { "archivo": "cocina/src/app/(cocina)/(tabs)/apartados.tsx", "texto": "apartados.vacioHistorial", "porque": "a line in Historial, under today's" },
+      { "archivo": "itacate/src/app/(vecino)/premios/[cocina].tsx", "texto": "premios.ninguno", "porque": "seen once, after her last reward is collected; gift-outline there becomes the font's regalo at row 11.10" }
+    ]
+  }
+}
