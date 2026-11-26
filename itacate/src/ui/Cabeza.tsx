@@ -3,7 +3,7 @@ import { Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { TITULO, lineaDe } from '@/theme/letra';
-import { borde } from '@/theme/piel';
+import { ES_A, borde } from '@/theme/piel';
 import { PALETTE, SIZE } from '@/theme/palette';
 
 // ============================================================================
@@ -46,7 +46,7 @@ export function Cabeza({
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: SIZE.rowGap, minHeight: 36 }}>
         <Text
           accessibilityRole="header"
-          numberOfLines={1}
+          numberOfLines={ES_A ? 2 : 1}
           style={{ flex: 1, fontSize: SIZE.titleSize, ...TITULO, ...lineaDe(SIZE.titleSize), color: PALETTE.tinta }}
         >
           {titulo}
