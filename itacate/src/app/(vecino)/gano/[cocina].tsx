@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import MaterialCommunityIcons from '@/marca/Icono';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect } from 'react';
 import { Image, Text, View } from 'react-native';

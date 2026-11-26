@@ -1,9 +1,12 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import MaterialCommunityIcons from '@/marca/Icono';
 import { Pressable, Text, View } from 'react-native';
 
 import { RENGLONES_EN_LA_TARJETA, faltaTexto, fraccionDe, hastaTexto, ultimaTexto, type Dia } from '@/lib/hoy';
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { NUMERO } from '@/theme/letra';
+import { ES_A, borde, esq } from '@/theme/piel';
+import { Boleto, Encabezado } from '@/ui/Mostrador';
 
 // ============================================================================
 // *HOY*'S FIRST ZONE — THE DAY AT A GLANCE (the family-shell page's green card, round
@@ -50,8 +53,8 @@ export function DiaDeHoy({
           alignItems: 'center',
           gap: SIZE.space,
           padding: SIZE.space * 1.25,
-          borderRadius: SIZE.space * 1.25,
-          borderWidth: 1,
+          borderRadius: esq(SIZE.space * 1.25),
+          borderWidth: borde(1),
           borderColor: PALETTE.linea,
           backgroundColor: pressed ? PALETTE.fondo : PALETTE.superficie,
         })}
@@ -78,6 +81,70 @@ export function DiaDeHoy({
   const hasta = hastaTexto(dia.hasta, ahora);
   const sinEntregados = faltaTexto(dia.desde, dia.hasta, ahora);
   const falta = dia.entregados === null || dia.entregados === 0 ? sinEntregados : ES.hoy.yEntregados(sinEntregados, dia.entregados);
+  // ⚠️ 11.5-ii (never merged): under A her offer is a ticket in her green — *Quedan 9 de 14* in the number's
+  // face, the band where it tears, and the stub holding *Te siguen* and *Tus ofertas* (the *Boleto* card).
+  if (ES_A) {
+    return (
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={oraciones(
+          `${ES.hoy.enItacate}, ${hasta}`,
+          grande,
+          ...(siguen === null ? [] : [`${ES.hoy.teSiguen(teSiguen ?? 0)} ${siguen}`]),
+          falta,
+          ES.hoy.verOfertas,
+        )}
+        onPress={onPress}
+        style={({ pressed }) => ({ opacity: pressed ? 0.92 : 1 })}
+      >
+        <Boleto
+          color={PALETTE.accion}
+          raya={PALETTE.barraSobreAccion}
+          padding={SIZE.space * 1.25}
+          cuerpo={
+            <View style={{ gap: SIZE.rowGap + 2 }}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', gap: SIZE.rowGap }}>
+                <Encabezado texto={ES.hoy.enItacate} color={PALETTE.sobreAccionApagada} />
+                <Text style={{ fontSize: SIZE.smallSize, fontWeight: '600', color: PALETTE.sobreAccionApagada }}>{hasta}</Text>
+              </View>
+              <Text style={{ ...NUMERO, color: PALETTE.sobreAccion }}>{grande}</Text>
+              <View style={{ height: 6, overflow: 'hidden', backgroundColor: PALETTE.barraSobreAccion }}>
+                <View style={{ width: `${Math.round(fraccion * 100)}%`, height: 6, backgroundColor: PALETTE.sobreAccion }} />
+              </View>
+              <View style={{ gap: 4 }}>
+                {dia.renglones.slice(0, RENGLONES_EN_LA_TARJETA).map((renglon) => (
+                  <View key={renglon.key} style={{ flexDirection: 'row', justifyContent: 'space-between', gap: SIZE.space }}>
+                    <Text numberOfLines={1} style={{ flex: 1, fontSize: SIZE.bodySize - 1, color: PALETTE.sobreAccion }}>
+                      {renglon.nombre}
+                    </Text>
+                    <Text style={{ fontSize: SIZE.bodySize - 1, fontWeight: '700', color: renglon.terminada ? PALETTE.sobreAccionApagada : PALETTE.sobreAccion }}>
+                      {renglon.terminada
+                        ? ES.hoy.terminada
+                        : renglon.de === null
+                          ? ES.hoy.enOferta(renglon.cuantos)
+                          : ES.hoy.quedanRenglon(renglon.cuantos, renglon.de)}
+                    </Text>
+                  </View>
+                ))}
+                {quedan > 0 && <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.sobreAccionApagada }}>{ES.hoy.masRenglones(quedan)}</Text>}
+                <Text style={{ fontSize: SIZE.smallSize, fontWeight: '600', color: PALETTE.sobreAccionApagada }}>{falta}</Text>
+              </View>
+            </View>
+          }
+          talon={
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: SIZE.rowGap }}>
+              <Text style={{ flex: 1, fontSize: SIZE.smallSize, color: PALETTE.sobreAccion }}>
+                {siguen === null ? '' : `${ES.hoy.teSiguen(teSiguen ?? 0)} `}
+                {siguen !== null && <Text style={{ fontWeight: '700' }}>{siguen}</Text>}
+              </Text>
+              <Puerta color={PALETTE.sobreAccion} />
+            </View>
+          }
+        />
+      </Pressable>
+    );
+  }
+
   return (
     <Pressable
       accessibilityRole="button"
@@ -155,7 +222,7 @@ export function Invitacion({ onPress }: { onPress: () => void }) {
       style={({ pressed }) => ({
         gap: 4,
         padding: SIZE.space * 1.25,
-        borderRadius: SIZE.space * 1.25,
+        borderRadius: esq(SIZE.space * 1.25),
         borderWidth: 1.5,
         borderStyle: 'dashed',
         borderColor: PALETTE.accion,

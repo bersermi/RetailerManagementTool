@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import MaterialCommunityIcons from '@/marca/Icono';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Image, Pressable, Text, View } from 'react-native';
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
@@ -9,6 +9,7 @@ import { ES } from '@/strings';
 import { HUES } from '@/theme/colores';
 import { DIBUJO } from '@/theme/dibujos';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { esq } from '@/theme/piel';
 
 // ============================================================================
 // THE KITCHENS ON GOOGLE'S MAP. Plan task `10.5-iv-b-i`, the owner's answers of
@@ -232,7 +233,7 @@ export function MapaDeCocinas({
             right: SIZE.space,
             width: SIZE.tapTarget - 4,
             height: SIZE.tapTarget - 4,
-            borderRadius: SIZE.tapTarget,
+            borderRadius: esq(SIZE.tapTarget),
             alignItems: 'center',
             justifyContent: 'center',
             backgroundColor: PALETTE.superficie,
@@ -258,7 +259,7 @@ export function MapaDeCocinas({
               alignItems: 'center',
               gap: SIZE.rowGap / 2,
               paddingHorizontal: SIZE.space,
-              borderRadius: SIZE.tapTarget,
+              borderRadius: esq(SIZE.tapTarget),
               backgroundColor: PALETTE.superficie,
               borderWidth: 1,
               borderColor: PALETTE.linea,

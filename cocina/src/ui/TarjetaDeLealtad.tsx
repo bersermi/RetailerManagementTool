@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import MaterialCommunityIcons from '@/marca/Icono';
 import { Text, View } from 'react-native';
 
 import type { ColorCode } from '@/api/pagina';
@@ -7,6 +7,9 @@ import { ES } from '@/strings';
 import { HUES } from '@/theme/colores';
 import { TITULO } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ENCABEZADO } from '@/theme/letra';
+import { ES_A, esq } from '@/theme/piel';
+import { SelloVaca } from '@/ui/Mostrador';
 import { Iniciales } from '@/ui/Iniciales';
 import { Foto } from '@/vecinos/ui/Foto';
 
@@ -47,7 +50,7 @@ export function TarjetaDeLealtad({
     <View
       accessible
       accessibilityLabel={`${ES.tarjeta.nombre}, ${nombre}. ${ES.tarjeta.cuenta(sellos, de)}. ${ES.tarjeta.igual(de, enFrase(premio))}.`}
-      style={{ backgroundColor: hue, borderRadius: 18, padding: SIZE.space + 2, gap: SIZE.space }}
+      style={{ backgroundColor: hue, borderRadius: esq(18), padding: SIZE.space + 2, gap: SIZE.space }}
     >
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: SIZE.rowGap + 2 }}>
         <View
@@ -65,7 +68,7 @@ export function TarjetaDeLealtad({
           <Foto path={logo} cocinaId={cocinaId} />
         </View>
         <View style={{ flex: 1 }}>
-          <Text style={{ fontSize: SIZE.bodySize, ...TITULO, color: PALETTE.superficie }}>{ES.tarjeta.nombre}</Text>
+          <Text style={ES_A ? { ...ENCABEZADO, color: PALETTE.superficie } : { fontSize: SIZE.bodySize, ...TITULO, color: PALETTE.superficie }}>{ES.tarjeta.nombre}</Text>
           <Text numberOfLines={1} style={{ fontSize: SIZE.smallSize, color: claro }}>
             {nombre}
           </Text>
@@ -82,12 +85,12 @@ export function TarjetaDeLealtad({
               borderRadius: 15,
               alignItems: 'center',
               justifyContent: 'center',
-              borderWidth: 1.5,
+              borderWidth: i < sellos && ES_A ? 0 : 1.5,
               borderColor: 'rgba(255, 255, 255, 0.6)',
-              backgroundColor: i < sellos ? PALETTE.superficie : 'transparent',
+              backgroundColor: i < sellos && !ES_A ? PALETTE.superficie : 'transparent',
             }}
           >
-            {i < sellos && <MaterialCommunityIcons name="cow" size={17} color={hue} />}
+            {i < sellos && (ES_A ? <SelloVaca i={i} tinta={PALETTE.superficie} /> : <MaterialCommunityIcons name="cow" size={17} color={hue} />)}
           </View>
         ))}
       </View>

@@ -2,7 +2,8 @@ import type { ReactNode } from 'react';
 import { Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { TITULO } from '@/theme/letra';
+import { TITULO, lineaDe } from '@/theme/letra';
+import { borde } from '@/theme/piel';
 import { PALETTE, SIZE } from '@/theme/palette';
 
 // ============================================================================
@@ -37,7 +38,7 @@ export function Cabeza({
         paddingTop: enHoja ? SIZE.rowGap / 2 : insets.top + SIZE.space,
         paddingBottom: SIZE.space,
         paddingHorizontal: SIZE.space * 1.5,
-        borderBottomWidth: 1,
+        borderBottomWidth: borde(1),
         borderBottomColor: PALETTE.linea,
         gap: SIZE.rowGap / 2,
       }}
@@ -46,7 +47,7 @@ export function Cabeza({
         <Text
           accessibilityRole="header"
           numberOfLines={1}
-          style={{ flex: 1, fontSize: SIZE.titleSize, ...TITULO, color: PALETTE.tinta }}
+          style={{ flex: 1, fontSize: SIZE.titleSize, ...TITULO, ...lineaDe(SIZE.titleSize), color: PALETTE.tinta }}
         >
           {titulo}
         </Text>

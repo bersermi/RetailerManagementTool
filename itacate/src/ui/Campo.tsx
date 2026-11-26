@@ -8,7 +8,7 @@
 // `grows` shares a row (*Nombre* · *Apellido*).
 // ============================================================================
 
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import MaterialCommunityIcons from '@/marca/Icono';
 import { useState, type Ref } from 'react';
 import { Pressable, Text, TextInput, View, type TextInputProps } from 'react-native';
 

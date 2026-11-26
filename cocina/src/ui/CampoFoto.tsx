@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import MaterialCommunityIcons from '@/marca/Icono';
 import type { ComponentProps, ReactNode } from 'react';
 import { Pressable, Text, View } from 'react-native';
 

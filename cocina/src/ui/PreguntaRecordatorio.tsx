@@ -1,9 +1,10 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import MaterialCommunityIcons from '@/marca/Icono';
 import { Pressable, Text, View } from 'react-native';
 
 import { diasTexto, horaTexto, type Propuesta } from '@/lib/recordatorio';
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { borde, esq } from '@/theme/piel';
 import { BotonLleno } from '@/ui/BotonLleno';
 
 // ============================================================================
@@ -33,8 +34,8 @@ export function PreguntaRecordatorio({
       style={{
         gap: SIZE.space,
         padding: SIZE.space,
-        borderRadius: SIZE.space,
-        borderWidth: 1,
+        borderRadius: esq(SIZE.space),
+        borderWidth: borde(1),
         borderColor: PALETTE.linea,
         backgroundColor: PALETTE.superficie,
       }}

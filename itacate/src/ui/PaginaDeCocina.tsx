@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import MaterialCommunityIcons from '@/marca/Icono';
 import { useState, type ReactNode } from 'react';
 import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -9,7 +9,8 @@ import { colorOf, defaultsFor } from '@/api/pagina';
 import { bandasDe, calificacionDe, calleDe, comoLlegarUrl, hoyDe, pagosDe, queYDondeDe, repetidosDe, verEnMapsUrl } from '@/lib/paginas';
 import { ES } from '@/strings';
 import { HUES } from '@/theme/colores';
-import { TITULO } from '@/theme/letra';
+import { ENCABEZADO, FRASE, TITULO, lineaDe, oracion } from '@/theme/letra';
+import { ES_A, borde, esq, sondaY } from '@/theme/piel';
 import { PALETTE, SIZE } from '@/theme/palette';
 import { Atras } from '@/ui/Atras';
 import { BandaPromocion } from '@/ui/BandaPromocion';
@@ -118,10 +119,17 @@ export function PaginaDeCocina({
   const calificacion = calificacionDe(cocina);
   const pagos = pagosDe(cocina);
   const bandas = bandasDe(cocina);
-  const titulo = { fontSize: SIZE.smallSize, fontWeight: '800', letterSpacing: 1, textTransform: 'uppercase', color: HUES[color] } as const;
+  // ⚠️ 11.5-ii (never merged): under A a spaced capital is a heading in sentence case, in ink.
+  const titulo = ES_A
+    ? ({ ...ENCABEZADO, color: PALETTE.tinta, marginBottom: 2 } as const)
+    : ({ fontSize: SIZE.smallSize, fontWeight: '800', letterSpacing: 1, textTransform: 'uppercase', color: HUES[color] } as const);
+  const mayus = (t: string) => (ES_A ? oracion(t) : t);
+  /** Under A what is read sits on a sheet: the lists of dishes. */
+  const hoja = ES_A ? { backgroundColor: PALETTE.superficie, borderRadius: 3, paddingHorizontal: SIZE.space, marginTop: SIZE.rowGap } : {};
 
   return (
     <ScrollView
+      contentOffset={{ x: 0, y: sondaY() }}
       style={{ flex: 1, backgroundColor: PALETTE.fondo }}
       contentContainerStyle={{ paddingTop: insets.top, paddingBottom: insets.bottom + SIZE.space * 3 }}
       refreshControl={
@@ -140,7 +148,7 @@ export function PaginaDeCocina({
             <Circulo cocina={cocina} size={CIRCULO} />
           </View>
           <View style={{ flex: 1, paddingTop: SIZE.rowGap, gap: 2 }}>
-            <Text accessibilityRole="header" style={{ fontSize: SIZE.titleSize - 2, ...TITULO, color: PALETTE.tinta }}>
+            <Text accessibilityRole="header" style={{ fontSize: SIZE.titleSize - 2, ...TITULO, ...lineaDe(SIZE.titleSize - 2), color: PALETTE.tinta }}>
               {cocina.name}
             </Text>
             {queYDonde !== null && <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada }}>{queYDonde}</Text>}
@@ -163,7 +171,7 @@ export function PaginaDeCocina({
           </View>
         </View>
         {cocina.page.sentence !== null && (
-          <Text style={{ fontSize: SIZE.bodySize, lineHeight: 22, color: PALETTE.tinta }}>{cocina.page.sentence}</Text>
+          <Text style={ES_A ? { ...FRASE, color: PALETTE.tinta } : { fontSize: SIZE.bodySize, lineHeight: 22, color: PALETTE.tinta }}>{cocina.page.sentence}</Text>
         )}
         {mapas !== null && <Enlace texto={ES.pagina.verEnMaps} ayuda={ES.pagina.verEnMapsAyuda} url={mapas} color={HUES[color]} />}
         <View style={{ gap: SIZE.rowGap / 2, paddingTop: SIZE.rowGap / 2 }}>
@@ -175,7 +183,7 @@ export function PaginaDeCocina({
                 style={{
                   paddingHorizontal: SIZE.space,
                   paddingVertical: SIZE.rowGap / 2,
-                  borderRadius: 999,
+                  borderRadius: esq(999),
                   borderWidth: 1,
                   borderColor: PALETTE.linea,
                   backgroundColor: PALETTE.superficie,
@@ -192,7 +200,7 @@ export function PaginaDeCocina({
       {bandas.length > 0 && (
         <View style={{ marginTop: SIZE.space * 1.5, paddingHorizontal: MARGEN, gap: SIZE.rowGap }}>
           <Text accessibilityRole="header" style={titulo}>
-            {ES.pagina.promocion}
+            {mayus(ES.pagina.promocion)}
           </Text>
           {(todas ? bandas : bandas.slice(0, 1)).map((banda) => (
             <View key={banda.key} style={{ gap: SIZE.rowGap / 2 }}>
@@ -255,8 +263,9 @@ export function PaginaDeCocina({
         {hoy.kind === 'oferta' ? (
           <>
             <Text accessibilityRole="header" style={titulo}>
-              {ES.pagina.hoy}
+              {mayus(ES.pagina.hoy)}
             </Text>
+            <View style={hoja}>
             {hoy.ofertas.flatMap((oferta) =>
               oferta.dishes.map((platillo) => (
                 <RenglonPlatillo
@@ -269,14 +278,15 @@ export function PaginaDeCocina({
                 />
               )),
             )}
+            </View>
           </>
         ) : (
           <View
             style={{
               gap: 2,
               padding: SIZE.space,
-              borderRadius: SIZE.space,
-              borderWidth: 1,
+              borderRadius: esq(SIZE.space),
+              borderWidth: borde(1),
               borderColor: PALETTE.linea,
               backgroundColor: PALETTE.superficie,
             }}
@@ -292,8 +302,9 @@ export function PaginaDeCocina({
       {repetidos.length > 0 && (
         <View style={{ marginTop: SIZE.space * 2, paddingHorizontal: MARGEN }}>
           <Text accessibilityRole="header" style={titulo}>
-            {ES.pagina.loQueSuele}
+            {mayus(ES.pagina.loQueSuele)}
           </Text>
+          <View style={hoja}>
           {repetidos.map((repetido) => (
             <View
               key={repetido.key}
@@ -303,6 +314,7 @@ export function PaginaDeCocina({
               <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada }}>{repetido.detalle}</Text>
             </View>
           ))}
+          </View>
         </View>
       )}
     </ScrollView>

@@ -2,7 +2,7 @@ import { useFonts } from 'expo-font';
 import { Stack, router, usePathname, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
-import { View } from 'react-native';
+import { LogBox, View } from 'react-native';
 
 import { QueryProvider } from '@/api/QueryProvider';
 import { useMembership } from '@/api/hooks';
@@ -12,6 +12,9 @@ import { ColaProvider } from '@/lib/ColaProvider';
 import { NotaProvider } from '@/lib/NotaProvider';
 import { holdSplash, releaseSplash } from '@/lib/splash';
 import { FUENTES } from '@/theme/letra';
+
+// ⚠️ 11.5-ii (never merged): the shots are taken on debug builds — no warning box over the screens.
+LogBox.ignoreAllLogs();
 
 // ============================================================================
 // THE ROOT OF WERA COCINA. Plan tasks `10.2a` (one screen), `10.4b-iii-a`

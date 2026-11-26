@@ -1,10 +1,11 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import MaterialCommunityIcons from '@/marca/Icono';
 import { router } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 
 import { ICONO_DE, type Mosaico } from '@/lib/loQueUsas';
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { borde, esq } from '@/theme/piel';
 
 // ============================================================================
 // *HOY*'S TILES — ONE PER FEATURE SHE USES, TWO PER ROW (the family-shell page's zone 4, `htile`).
@@ -53,7 +54,7 @@ function Tesela({ mosaico }: { mosaico: Mosaico }) {
           alignItems: 'center',
           justifyContent: 'center',
           gap: 6,
-          borderRadius: 999,
+          borderRadius: esq(999),
           backgroundColor: pressed ? PALETTE.tinta : PALETTE.accion,
         })}
       >
@@ -79,8 +80,8 @@ function Cara({ mosaico }: { mosaico: Mosaico }) {
         gap: 4,
         minHeight: SIZE.tapTarget * 2 + SIZE.space,
         padding: SIZE.space,
-        borderRadius: SIZE.space + 4,
-        borderWidth: primera ? 1.5 : 1,
+        borderRadius: esq(SIZE.space + 4),
+        borderWidth: primera ? 1.5 : borde(1),
         borderStyle: primera ? 'dashed' : 'solid',
         borderColor: primera ? PALETTE.accion : PALETTE.linea,
         backgroundColor: pressed ? PALETTE.accionSuave : primera ? 'transparent' : PALETTE.superficie,
@@ -91,7 +92,7 @@ function Cara({ mosaico }: { mosaico: Mosaico }) {
           style={{
             width: 24,
             height: 24,
-            borderRadius: 9,
+            borderRadius: esq(9),
             alignItems: 'center',
             justifyContent: 'center',
             backgroundColor: PALETTE.accionSuave,

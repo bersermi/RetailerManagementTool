@@ -11,7 +11,7 @@
 // Drawn by the sign-up form and by *Giro y dirección*.
 // ============================================================================
 
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import MaterialCommunityIcons from '@/marca/Icono';
 import { Pressable, Text, View } from 'react-native';
 
 import type { Giro } from '@/api/kitchen';

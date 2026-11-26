@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import MaterialCommunityIcons from '@/marca/Icono';
 import { Redirect, router } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
@@ -11,6 +11,8 @@ import { cuentasDe, diaDeTexto, seLee, tarjetaGuardada, tarjetaViva } from '@/li
 import { useAhora } from '@/lib/useAhora';
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { NUMERO } from '@/theme/letra';
+import { borde, ES_A, esq } from '@/theme/piel';
 import { AsiFunciona, useAsiFunciona } from '@/ui/AsiFunciona';
 import { Banda } from '@/ui/Banda';
 import { BotonLleno } from '@/ui/BotonLleno';
@@ -129,9 +131,9 @@ export default function Tarjeta() {
           {cuentasDe(card).map((c) => (
             <View
               key={c.que}
-              style={{ flex: 1, padding: SIZE.space, gap: 2, borderRadius: 14, borderWidth: 1, borderColor: PALETTE.linea, backgroundColor: PALETTE.superficie }}
+              style={{ flex: 1, padding: SIZE.space, gap: 2, borderRadius: esq(14), borderWidth: borde(1), borderColor: PALETTE.linea, backgroundColor: PALETTE.superficie }}
             >
-              <Text style={{ fontSize: SIZE.titleSize, fontWeight: '800', color: PALETTE.tinta }}>{c.n}</Text>
+              <Text style={ES_A ? { fontFamily: NUMERO.fontFamily, fontVariant: NUMERO.fontVariant, fontSize: SIZE.titleSize + 4, lineHeight: SIZE.titleSize + 8, color: PALETTE.tinta } : { fontSize: SIZE.titleSize, fontWeight: '800', color: PALETTE.tinta }}>{c.n}</Text>
               <Text style={{ fontSize: SIZE.smallSize - 1, lineHeight: 16, color: PALETTE.tintaApagada }}>{c.que}</Text>
             </View>
           ))}

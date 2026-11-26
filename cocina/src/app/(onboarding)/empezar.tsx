@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import MaterialCommunityIcons from '@/marca/Icono';
 import { router, type Href } from 'expo-router';
 import type { ComponentProps } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';

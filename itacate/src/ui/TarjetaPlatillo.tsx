@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import MaterialCommunityIcons from '@/marca/Icono';
 import { Pressable, Text, View } from 'react-native';
 
 import type { Dish, Kitchen, Offer } from '@/api/cocinas';
@@ -8,6 +8,7 @@ import { marcaDeOferta } from '@/lib/paginas';
 import { ES } from '@/strings';
 import { HUES } from '@/theme/colores';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { borde, esq } from '@/theme/piel';
 import { Circulo } from '@/ui/Circulo';
 import { Dibujo } from '@/ui/Dibujo';
 import { Foto } from '@/ui/Foto';
@@ -72,9 +73,9 @@ export function TarjetaPlatillo({
       accessibilityLabel={[ES.cerca.abrirPlatillo(platillo.name, cocina.name), promocion?.ayuda, marca?.ayuda].filter(Boolean).join('. ')}
       onPress={onPress}
       style={({ pressed }) => ({
-        borderWidth: 1,
+        borderWidth: borde(1),
         borderColor: PALETTE.linea,
-        borderRadius: SIZE.space,
+        borderRadius: esq(SIZE.space),
         overflow: 'hidden',
         backgroundColor: PALETTE.superficie,
         opacity: pressed ? 0.75 : 1,
@@ -95,7 +96,7 @@ export function TarjetaPlatillo({
               gap: 4,
               paddingHorizontal: 7,
               paddingVertical: 4,
-              borderRadius: 6,
+              borderRadius: esq(6),
               backgroundColor: PALETTE.superficie,
             }}
           >

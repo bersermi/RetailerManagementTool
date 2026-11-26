@@ -7,7 +7,7 @@
 // ticks it — a box that arrived ticked would be the app agreeing for her.
 // ============================================================================
 
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import MaterialCommunityIcons from '@/marca/Icono';
 import type { ReactNode } from 'react';
 import { Pressable } from 'react-native';
 

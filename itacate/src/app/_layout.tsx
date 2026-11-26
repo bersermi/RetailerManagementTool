@@ -11,6 +11,10 @@ import { ColaProvider } from '@/lib/ColaProvider';
 import { DistanciasProvider } from '@/lib/DistanciasProvider';
 import { DondeBuscarProvider } from '@/lib/DondeBuscarProvider';
 import { FUENTES } from '@/theme/letra';
+import { LogBox } from 'react-native';
+
+// ⚠️ 11.5-ii (never merged): the shots are taken on debug builds — no warning box over the screens.
+LogBox.ignoreAllLogs();
 
 // ============================================================================
 // THE ROOT OF ITACATE. Plan tasks `10.2a` (one screen), `10.5-iii-a` (signing

@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import MaterialCommunityIcons from '@/marca/Icono';
 import type { BottomTabBarProps } from 'expo-router/js-tabs';
 import { Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -9,6 +9,8 @@ import { useAhora } from '@/lib/useAhora';
 import { pestanaDe } from '@/navigation/pestanas';
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ES_A, borde } from '@/theme/piel';
+import { Trazo } from '@/ui/Mostrador';
 
 // ============================================================================
 // THE TAB BAR ITSELF. Plan task `10.5-v-b`, drawn as the family-shell page draws it:
@@ -45,7 +47,7 @@ export function Pestanas({ state, navigation }: BottomTabBarProps) {
         flexDirection: 'row',
         justifyContent: 'space-around',
         backgroundColor: PALETTE.superficie,
-        borderTopWidth: 1,
+        borderTopWidth: borde(1),
         borderTopColor: PALETTE.linea,
         paddingTop: SIZE.rowGap - 2,
         paddingBottom: insets.bottom + SIZE.rowGap,
@@ -79,7 +81,7 @@ export function Pestanas({ state, navigation }: BottomTabBarProps) {
                 // ⚠️ THE BAR'S OWN WHITE, NEVER `transparent` (`10.5-v-c-i`, measured on the emulator):
                 // Android drops a view's rounded corners when its background goes from transparent
                 // to a colour, so after the first tab switch every pill drew square.
-                backgroundColor: enUso ? PALETTE.accionSuave : PALETTE.superficie,
+                backgroundColor: enUso && !ES_A ? PALETTE.accionSuave : PALETTE.superficie,
               }}
             >
               <MaterialCommunityIcons name={pestana.icono} size={SIZE.iconSize} color={color} />
@@ -100,6 +102,7 @@ export function Pestanas({ state, navigation }: BottomTabBarProps) {
               )}
             </View>
             <Text style={{ fontSize: 12, fontWeight: enUso ? '700' : '600', color }}>{pestana.label}</Text>
+            {ES_A && <Trazo on={enUso} color={PALETTE.accion} />}
           </Pressable>
         );
       })}

@@ -17,7 +17,9 @@
 // line, the *Sorpresa* tag and since `10.9g-iii` a promotion's mark and band — never an action.
 // ============================================================================
 
-export const PALETTE = {
+import { ES_A } from '@/theme/piel';
+
+const PALETTE_HOY = {
   fondo: '#FFFCF6',
   superficie: '#FFFFFF',
   banda: '#FBF0DE',
@@ -40,6 +42,25 @@ export const PALETTE = {
   estrella: '#D99A1E',
   estrellaApagada: '#C9BFAE',
 } as const;
+
+// ⚠️ 11.5-ii (never merged): direction A's values, copied from brand/mostrador/paleta.json.
+const PALETTE_A: { readonly [K in keyof typeof PALETTE_HOY]: string } = {
+  fondo: '#E9E8E3',
+  superficie: '#FFFFFF',
+  banda: '#E9E8E3',
+  tinta: '#1D2230',
+  tintaApagada: '#555A66',
+  linea: '#D9D6CE',
+  accion: '#24476B',
+  accionSuave: '#E3EAF2',
+  error: '#A32218',
+  marca: '#9A4A1A',
+  marcaSuave: '#F7E7DC',
+  estrella: '#D99A1E',
+  estrellaApagada: '#C4C2BA',
+};
+
+export const PALETTE: { readonly [K in keyof typeof PALETTE_HOY]: string } = ES_A ? PALETTE_A : PALETTE_HOY;
 
 /** Wera's `normal` density, fixed. */
 export const SIZE = {

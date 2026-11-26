@@ -9,7 +9,9 @@
 // yet, and a second size is a decision for the row that gives her one.
 // ============================================================================
 
-export const PALETTE = {
+import { ES_A } from '@/theme/piel';
+
+const PALETTE_HOY = {
   fondo: '#FFFCF6',
   superficie: '#FFFFFF',
   banda: '#FBF0DE',
@@ -43,6 +45,29 @@ export const PALETTE = {
   sobreAccionApagada: '#CDE3D6',
   barraSobreAccion: '#3E8766',
 } as const;
+
+// ⚠️ 11.5-ii (never merged): direction A's values, copied from brand/mostrador/paleta.json.
+const PALETTE_A: { readonly [K in keyof typeof PALETTE_HOY]: string } = {
+  fondo: '#E9E8E3',
+  superficie: '#FFFFFF',
+  banda: '#E9E8E3',
+  tinta: '#1D2230',
+  tintaApagada: '#555A66',
+  linea: '#D9D6CE',
+  accion: '#1C6B4B',
+  accionSuave: '#E6F0EA',
+  error: '#A32218',
+  marca: '#9A4A1A',
+  estrella: '#D99A1E',
+  estrellaApagada: '#C4C2BA',
+  marcaSuave: '#F7E7DC',
+  errorSuave: '#F7DEDA',
+  sobreAccion: '#FFFFFF',
+  sobreAccionApagada: '#CDE3D6',
+  barraSobreAccion: '#3E8766',
+};
+
+export const PALETTE: { readonly [K in keyof typeof PALETTE_HOY]: string } = ES_A ? PALETTE_A : PALETTE_HOY;
 
 /** Wera's `normal` density, fixed. */
 export const SIZE = {

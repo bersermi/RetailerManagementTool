@@ -9,6 +9,8 @@ import { condicionesDeCocina, enFrase, vistaDe } from '@/lib/tarjeta';
 import { ES } from '@/strings';
 import { HUES } from '@/theme/colores';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ENCABEZADO, oracion } from '@/theme/letra';
+import { ES_A, esq } from '@/theme/piel';
 import { BotonLleno } from '@/ui/BotonLleno';
 import { Circulo } from '@/ui/Circulo';
 import { TarjetaDeLealtad } from '@/ui/TarjetaDeLealtad';
@@ -38,12 +40,14 @@ export function SeccionTarjeta({ cocina }: { cocina: Kitchen }) {
   const hue = HUES[colorOf(cocina.page, cocina.giro)];
   const escanear = () => router.push({ pathname: '/escanear', params: { cocina: cocina.id } });
   const miCodigo = () => router.push('/mi-codigo');
-  const titulo = { fontSize: SIZE.smallSize, fontWeight: '800', letterSpacing: 1, textTransform: 'uppercase', color: hue } as const;
+  const titulo = ES_A
+    ? ({ ...ENCABEZADO, color: PALETTE.tinta } as const)
+    : ({ fontSize: SIZE.smallSize, fontWeight: '800', letterSpacing: 1, textTransform: 'uppercase', color: hue } as const);
 
   return (
     <View style={{ gap: SIZE.rowGap }}>
       <Text accessibilityRole="header" style={titulo}>
-        {ES.tarjeta.nombre}
+        {ES_A ? oracion(ES.tarjeta.nombre) : ES.tarjeta.nombre}
       </Text>
       {vista !== null ? (
         <TarjetaDeLealtad
@@ -58,7 +62,7 @@ export function SeccionTarjeta({ cocina }: { cocina: Kitchen }) {
             style={{
               gap: SIZE.rowGap,
               padding: SIZE.space,
-              borderRadius: SIZE.space,
+              borderRadius: esq(SIZE.space),
               borderWidth: 1.5,
               borderColor: hue,
               backgroundColor: PALETTE.superficie,

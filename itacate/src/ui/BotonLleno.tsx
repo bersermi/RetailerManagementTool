@@ -8,11 +8,12 @@
 // second round trip.
 // ============================================================================
 
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import MaterialCommunityIcons from '@/marca/Icono';
 import type { ComponentProps } from 'react';
 import { ActivityIndicator, Pressable, Text } from 'react-native';
 
 import { PALETTE, SIZE } from '@/theme/palette';
+import { esq } from '@/theme/piel';
 
 export function BotonLleno({
   label,
@@ -45,7 +46,7 @@ export function BotonLleno({
         justifyContent: 'center',
         gap: SIZE.rowGap,
         paddingHorizontal: SIZE.space,
-        borderRadius: SIZE.space / 2,
+        borderRadius: esq(SIZE.space / 2),
         borderWidth: 1,
         borderColor: edge,
         backgroundColor: ground,

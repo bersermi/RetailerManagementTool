@@ -6,6 +6,8 @@ import { precioTexto, quedanTexto } from '@/lib/lista';
 import { ES } from '@/strings';
 import { HUES } from '@/theme/colores';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { Etiqueta } from '@/ui/Mostrador';
+import { ES_A, esq } from '@/theme/piel';
 
 // ============================================================================
 // A DISH'S PRICE AND ITS TWO SMALL BADGES — what the list's card, a kitchen's page and
@@ -21,9 +23,15 @@ export function Precio({ platillo, color, grande = false }: { platillo: Dish; co
   const precio = precioTexto(platillo);
   return (
     <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: SIZE.rowGap }}>
-      <Text style={{ fontSize: grande ? SIZE.titleSize : SIZE.bodySize + 1, fontWeight: '800', color: PALETTE.tinta }}>
-        {precio.precio}
-      </Text>
+      {ES_A && !grande ? (
+        <Etiqueta>
+          <Text style={{ paddingVertical: 3, fontSize: SIZE.bodySize + 1, fontWeight: '800', color: PALETTE.tinta }}>{precio.precio}</Text>
+        </Etiqueta>
+      ) : (
+        <Text style={{ fontSize: grande ? SIZE.titleSize : SIZE.bodySize + 1, fontWeight: '800', color: PALETTE.tinta }}>
+          {precio.precio}
+        </Text>
+      )}
       {precio.vale !== null && (
         <Text
           style={{
@@ -44,7 +52,7 @@ export function Precio({ platillo, color, grande = false }: { platillo: Dish; co
             backgroundColor: HUES[color],
             paddingHorizontal: 5,
             paddingVertical: 2,
-            borderRadius: 5,
+            borderRadius: esq(5),
             overflow: 'hidden',
           }}
         >
@@ -68,7 +76,7 @@ export function Quedan({ platillo }: { platillo: Dish }) {
         backgroundColor: PALETTE.banda,
         paddingHorizontal: 7,
         paddingVertical: 3,
-        borderRadius: 6,
+        borderRadius: esq(6),
         overflow: 'hidden',
       }}
     >
@@ -88,7 +96,7 @@ export function Sorpresa() {
         backgroundColor: PALETTE.banda,
         paddingHorizontal: 6,
         paddingVertical: 2,
-        borderRadius: 6,
+        borderRadius: esq(6),
         overflow: 'hidden',
       }}
     >

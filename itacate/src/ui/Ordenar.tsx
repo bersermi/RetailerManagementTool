@@ -1,10 +1,11 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import MaterialCommunityIcons from '@/marca/Icono';
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
 import { ORDENES, type Orden } from '@/lib/lista';
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { esq } from '@/theme/piel';
 import { Hoja } from '@/ui/Hoja';
 import { Opcion } from '@/ui/Opcion';
 
@@ -38,7 +39,7 @@ export function Ordenar({ orden, onOrden }: { orden: Orden; onOrden: (orden: Ord
           alignItems: 'center',
           gap: SIZE.rowGap / 2 + 2,
           paddingHorizontal: SIZE.space,
-          borderRadius: SIZE.tapTarget,
+          borderRadius: esq(SIZE.tapTarget),
           borderWidth: 1,
           borderColor: PALETTE.linea,
           backgroundColor: PALETTE.superficie,

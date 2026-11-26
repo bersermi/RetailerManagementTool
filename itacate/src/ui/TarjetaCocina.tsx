@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import MaterialCommunityIcons from '@/marca/Icono';
 import { Pressable, Text, View } from 'react-native';
 
 import { distanciaTexto } from '@/lib/distancia';
@@ -6,6 +6,7 @@ import { cuandoPublica, type Tarjeta } from '@/lib/lista';
 import { distanciaYEstrellas, marcaDeSuPromocion } from '@/lib/paginas';
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { borde, esq } from '@/theme/piel';
 import { MarcaPromocion } from '@/ui/BandaPromocion';
 import { Circulo } from '@/ui/Circulo';
 
@@ -58,9 +59,9 @@ export function TarjetaCocina({
         alignItems: 'center',
         gap: SIZE.space,
         padding: SIZE.space,
-        borderWidth: 1,
+        borderWidth: borde(1),
         borderColor: PALETTE.linea,
-        borderRadius: SIZE.space,
+        borderRadius: esq(SIZE.space),
         backgroundColor: PALETTE.superficie,
       })}
     >

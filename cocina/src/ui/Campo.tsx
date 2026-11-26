@@ -8,7 +8,7 @@
 // Sign-in draws it now; `10.4b-iii-b`'s kitchen form draws it next.
 // ============================================================================
 
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import MaterialCommunityIcons from '@/marca/Icono';
 import { useState, type Ref } from 'react';
 import { Pressable, Text, TextInput, View, type TextInputProps } from 'react-native';
 

@@ -7,6 +7,7 @@ import { nivelAlSoltar, siguienteAlTocar, type Nivel, type Posiciones } from '@/
 import { ES } from '@/strings';
 import { HOJA } from '@/theme/movimiento';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ES_A, esq } from '@/theme/piel';
 
 // ============================================================================
 // THE LIST, SLIDING OVER THE MAP. Plan task `10.5-iv-b-i`, the owner's answer 4 of
@@ -91,13 +92,13 @@ export function HojaDeLista({
           top: 0,
           height: Math.max(0, alto - lleno),
           backgroundColor: PALETTE.fondo,
-          borderTopLeftRadius: 22,
-          borderTopRightRadius: 22,
+          borderTopLeftRadius: esq(22),
+          borderTopRightRadius: esq(22),
           shadowColor: PALETTE.tinta,
-          shadowOpacity: 0.16,
+          shadowOpacity: ES_A ? 0 : 0.16,
           shadowRadius: 11,
           shadowOffset: { width: 0, height: -6 },
-          elevation: 12,
+          elevation: ES_A ? 0 : 12,
         },
         estilo,
       ]}

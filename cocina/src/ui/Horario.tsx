@@ -9,7 +9,7 @@
 // No keyboard, and no native picker — none is in this build.
 // ============================================================================
 
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import MaterialCommunityIcons from '@/marca/Icono';
 import { Pressable, Text, View } from 'react-native';
 
 import { canMoveEnd, canMoveStart, momentOf, moveEnd, moveStart, type Ventana } from '@/lib/ventana';

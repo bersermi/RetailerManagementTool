@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import MaterialCommunityIcons from '@/marca/Icono';
 import { useCallback } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
@@ -6,6 +6,7 @@ import { asiFuncionaVisible, asiFuncionaVisto, useMemoria } from '@/lib/empujone
 import { PASOS_DE, type Elegible } from '@/lib/loQueUsas';
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { esq } from '@/theme/piel';
 
 // ============================================================================
 // *ASÍ FUNCIONA* — THREE PICTURES, THE FIRST TIME SHE OPENS A FEATURE (the family-shell page's
@@ -32,7 +33,7 @@ export function AsiFunciona({ servicio, onCerrar }: { servicio: Elegible; onCerr
       style={{
         gap: SIZE.rowGap,
         padding: SIZE.space,
-        borderRadius: SIZE.space,
+        borderRadius: esq(SIZE.space),
         backgroundColor: PALETTE.accionSuave,
       }}
     >

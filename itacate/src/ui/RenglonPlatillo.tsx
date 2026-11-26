@@ -6,6 +6,7 @@ import { ventanaTexto } from '@/lib/lista';
 import { marcaDeOferta } from '@/lib/paginas';
 import { HUES } from '@/theme/colores';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { esq } from '@/theme/piel';
 import { MarcaPromocion } from '@/ui/BandaPromocion';
 import { Dibujo } from '@/ui/Dibujo';
 import { Foto } from '@/ui/Foto';
@@ -64,7 +65,7 @@ export function RenglonPlatillo({
           <Quedan platillo={platillo} />
         </View>
       </View>
-      <View style={{ width: CUADRO, height: CUADRO, borderRadius: SIZE.space, overflow: 'hidden', backgroundColor: HUES[color] }}>
+      <View style={{ width: CUADRO, height: CUADRO, borderRadius: esq(SIZE.space), overflow: 'hidden', backgroundColor: HUES[color] }}>
         <Dibujo dibujo={defaultsFor(cocina.giro).dibujo} color={color} modo="cuadro" />
         <Foto path={platillo.photo} cocinaId={cocina.id} size="chica" />
       </View>

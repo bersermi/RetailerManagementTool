@@ -1,10 +1,13 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import MaterialCommunityIcons from '@/marca/Icono';
 import { Pressable, Text, View } from 'react-native';
 
 import { formatMXN } from '@/format/mxn';
 import { horaTexto, prontoTexto, queTexto, type Orden } from '@/lib/apartados';
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ENCABEZADO } from '@/theme/letra';
+import { ES_A } from '@/theme/piel';
+import { Boleto, Encabezado } from '@/ui/Mostrador';
 import { Accion } from '@/ui/TarjetaOrden';
 
 // ============================================================================
@@ -35,6 +38,44 @@ export function LoQueSigue({
     formatMXN(siguiente.cobroCentavos),
     ES.loQueSigue.pago[siguiente.pago],
   );
+  // ⚠️ 11.5-ii (never merged): under A the next handover is a white ticket — its hour in the heading's face,
+  // the code and what to charge, the band, and the stub holding *Entregar* (the *Boleto* card).
+  if (ES_A) {
+    return (
+      <Boleto
+        padding={SIZE.space * 1.25}
+        cuerpo={
+          <View style={{ gap: SIZE.rowGap }}>
+            <Encabezado texto={ES.loQueSigue.titulo} color={PALETTE.tintaApagada} />
+            <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: SIZE.rowGap }}>
+              <Text style={{ ...ENCABEZADO, fontVariant: ['tabular-nums'], color: PALETTE.tinta }}>{horaTexto(siguiente.hora, ahora)}</Text>
+              {pronto !== null && <Text style={{ fontSize: SIZE.smallSize, fontWeight: '700', color: PALETTE.marca }}>{pronto}</Text>}
+            </View>
+            <Pressable accessibilityRole="button" accessibilityLabel={`${ES.entregar.codigo(siguiente.codigo)}. ${detalle}`} onPress={onApartados} style={{ gap: 2 }}>
+              <Text style={{ fontSize: SIZE.bodySize, fontWeight: '700', color: PALETTE.tinta }}>{ES.entregar.codigo(siguiente.codigo)}</Text>
+              <Text numberOfLines={2} style={{ fontSize: SIZE.smallSize, lineHeight: 18, color: PALETTE.tintaApagada }}>
+                {detalle}
+              </Text>
+            </Pressable>
+          </View>
+        }
+        talon={
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: SIZE.space }}>
+            {mas > 0 ? (
+              <Pressable accessibilityRole="button" accessibilityLabel={ES.loQueSigue.mas(mas)} onPress={onApartados} style={{ flexDirection: 'row', alignItems: 'center', minHeight: SIZE.tapTarget - 12 }}>
+                <Text style={{ fontSize: SIZE.smallSize, fontWeight: '700', color: PALETTE.accion }}>{ES.loQueSigue.mas(mas)}</Text>
+                <MaterialCommunityIcons name="chevron-right" size={17} color={PALETTE.accion} />
+              </Pressable>
+            ) : (
+              <View />
+            )}
+            <Accion label={ES.apartados.entregar} tipo="ir" onPress={onEntregar} />
+          </View>
+        }
+      />
+    );
+  }
+
   return (
     <View style={{ gap: SIZE.rowGap, padding: SIZE.space * 1.25, borderRadius: SIZE.space * 1.25, borderWidth: 1, borderColor: PALETTE.linea, backgroundColor: PALETTE.superficie }}>
       <Text style={{ fontSize: SIZE.smallSize, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase', color: PALETTE.tintaApagada }}>

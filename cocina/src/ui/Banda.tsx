@@ -14,7 +14,8 @@
 import { Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { TITULO } from '@/theme/letra';
+import { ENCABEZADO, TITULO, lineaDe, oracion } from '@/theme/letra';
+import { ES_A, borde } from '@/theme/piel';
 import { PALETTE, SIZE } from '@/theme/palette';
 
 export function Banda({
@@ -34,7 +35,7 @@ export function Banda({
         paddingTop: insets.top + (volver !== null ? SIZE.rowGap : SIZE.space * 2),
         paddingBottom: SIZE.space + SIZE.rowGap,
         paddingHorizontal: SIZE.space * 2,
-        borderBottomWidth: 1,
+        borderBottomWidth: borde(1),
         borderBottomColor: PALETTE.linea,
         gap: SIZE.rowGap / 2,
       }}
@@ -52,18 +53,22 @@ export function Banda({
       )}
       {antetitulo !== null && (
         <Text
-          style={{
-            fontSize: SIZE.smallSize,
-            fontWeight: '700',
-            letterSpacing: 1,
-            textTransform: 'uppercase',
-            color: PALETTE.marca,
-          }}
+          style={
+            ES_A
+              ? { ...ENCABEZADO, color: PALETTE.marca }
+              : {
+                  fontSize: SIZE.smallSize,
+                  fontWeight: '700',
+                  letterSpacing: 1,
+                  textTransform: 'uppercase',
+                  color: PALETTE.marca,
+                }
+          }
         >
-          {antetitulo}
+          {ES_A ? oracion(antetitulo) : antetitulo}
         </Text>
       )}
-      <Text accessibilityRole="header" style={{ fontSize: SIZE.titleSize, ...TITULO, color: PALETTE.tinta }}>
+      <Text accessibilityRole="header" style={{ fontSize: SIZE.titleSize, ...TITULO, ...lineaDe(SIZE.titleSize), color: PALETTE.tinta }}>
         {titulo}
       </Text>
     </View>

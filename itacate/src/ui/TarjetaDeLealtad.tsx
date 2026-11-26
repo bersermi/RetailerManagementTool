@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import MaterialCommunityIcons from '@/marca/Icono';
 import { Pressable, Text, View } from 'react-native';
 
 import { enFrase, premiosTexto, type VistaDeTarjeta } from '@/lib/tarjeta';
@@ -6,6 +6,9 @@ import { ES } from '@/strings';
 import { HUES } from '@/theme/colores';
 import { TITULO } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ENCABEZADO } from '@/theme/letra';
+import { ES_A, esq } from '@/theme/piel';
+import { SelloVaca } from '@/ui/Mostrador';
 import { BotonLleno } from '@/ui/BotonLleno';
 import { Foto } from '@/ui/Foto';
 import { Iniciales } from '@/ui/Iniciales';
@@ -39,7 +42,7 @@ export function TarjetaDeLealtad({
   const claro = 'rgba(255, 255, 255, 0.82)';
   const premios = premiosTexto(vista.premios);
   return (
-    <View style={{ backgroundColor: hue, borderRadius: 18, padding: SIZE.space + 2, gap: SIZE.space }}>
+    <View style={{ backgroundColor: hue, borderRadius: esq(18), padding: SIZE.space + 2, gap: SIZE.space }}>
       <View
         accessible
         accessibilityLabel={ES.tarjeta.ayuda(vista.nombre, vista.sellos, vista.de, enFrase(vista.premio))}
@@ -61,7 +64,7 @@ export function TarjetaDeLealtad({
             <Foto path={vista.logo} cocinaId={vista.cocinaId} />
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={{ fontSize: SIZE.bodySize, ...TITULO, color: PALETTE.superficie }}>{ES.tarjeta.nombre}</Text>
+            <Text style={ES_A ? { ...ENCABEZADO, color: PALETTE.superficie } : { fontSize: SIZE.bodySize, ...TITULO, color: PALETTE.superficie }}>{ES.tarjeta.nombre}</Text>
             <Text numberOfLines={1} style={{ fontSize: SIZE.smallSize, color: claro }}>
               {vista.nombre}
             </Text>
@@ -78,12 +81,12 @@ export function TarjetaDeLealtad({
                 borderRadius: 15,
                 alignItems: 'center',
                 justifyContent: 'center',
-                borderWidth: 1.5,
+                borderWidth: i < vista.sellos && ES_A ? 0 : 1.5,
                 borderColor: 'rgba(255, 255, 255, 0.6)',
-                backgroundColor: i < vista.sellos ? PALETTE.superficie : 'transparent',
+                backgroundColor: i < vista.sellos && !ES_A ? PALETTE.superficie : 'transparent',
               }}
             >
-              {i < vista.sellos && <MaterialCommunityIcons name="cow" size={17} color={hue} />}
+              {i < vista.sellos && (ES_A ? <SelloVaca i={i} tinta={PALETTE.superficie} /> : <MaterialCommunityIcons name="cow" size={17} color={hue} />)}
             </View>
           ))}
         </View>
@@ -104,7 +107,7 @@ export function TarjetaDeLealtad({
             alignItems: 'center',
             gap: SIZE.rowGap,
             padding: SIZE.rowGap + 2,
-            borderRadius: 12,
+            borderRadius: esq(12),
             backgroundColor: pressed ? 'rgba(255, 255, 255, 0.32)' : 'rgba(255, 255, 255, 0.2)',
           })}
         >

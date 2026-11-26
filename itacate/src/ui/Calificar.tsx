@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import MaterialCommunityIcons from '@/marca/Icono';
 import { useRef, useState } from 'react';
 import { Pressable, Text, TextInput, View } from 'react-native';
 
