@@ -345,8 +345,11 @@ export function costsHtml(costs: Costs, title: string, madeOn: string): string {
      renders at 612px so the bound is a no-op there — it is what keeps the file
      laying out the same way when somebody opens it in a browser instead, which
      is how the owner read the first version of this document. */
+  /* ⚠️ 11.6: THE PAGE IS A SHEET — white, as paper is. Since direction A
+     the ground (fondo) is the counter's grey, which a printer would lay over every page;
+     the grey stays only in the zebra and the head row. */
   body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-         background: ${PALETTE.fondo}; color: ${PALETTE.tinta}; margin: ${PAGE.edge}px;
+         background: ${PALETTE.superficie}; color: ${PALETTE.tinta}; margin: ${PAGE.edge}px;
          max-width: ${PAGE.pageWidth - PAGE.edge * 2}px; }
   h1 { font-size: ${PAGE.titleSize}px; margin-top: 0;
        margin-bottom: ${PAGE.titleGap}px; }

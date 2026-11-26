@@ -1,5 +1,5 @@
 {
-  "_nota": "Step 11, row 11.1 (2026-11-21): the three apps' colour roles in direction A · Mostrador, proposed for his look at 11.5. The role names are the apps' own (app/src/theme/palette.ts, cocina/src/theme/palette.ts, itacate/src/theme/palette.ts); 11.6 and 11.7 copy one block each into those files and their tests assert it again. Until then the apps' palette files are what ships. Measured by contraste.mjs beside this file; the reference page is https://claude.ai/artifact/WhCNyqR8PhzkFom7gavTX5",
+  "_nota": "Step 11, row 11.1 (2026-11-21): the three apps' colour roles in direction A · Mostrador, proposed for his look at 11.5. The role names are the apps' own (app/src/theme/palette.ts, cocina/src/theme/palette.ts, itacate/src/theme/palette.ts); 11.6 and 11.7 copy one block each into those files and their tests assert it again. Wera's since 11.6 (app/test/palette.test.ts holds app/src/theme/palette.ts to the wera block); until 11.7 the siblings' palette files are what ships. Measured by contraste.mjs beside this file; the reference page is https://claude.ai/artifact/WhCNyqR8PhzkFom7gavTX5",
   "apps": {
     "wera": {
       "fondo": "#E9E8E3",

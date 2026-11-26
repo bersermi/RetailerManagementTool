@@ -40,7 +40,7 @@ import { useUnsent } from '@/offline/useUnsent';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
-import { TITULO } from '@/theme/letra';
+import { letraTitulo } from '@/theme/letra';
 import { Boton } from '@/ui/Boton';
 import { BotonLleno } from '@/ui/BotonLleno';
 import { Frase } from '@/ui/Frase';
@@ -49,6 +49,7 @@ import { Rotulo } from '@/ui/Rotulo';
 import { Separador } from '@/ui/Separador';
 import { Vacio } from '@/ui/Vacio';
 import { Velo } from '@/ui/Velo';
+import { ESQUINA } from '@/theme/density';
 
 // ============================================================================
 // LO ÚLTIMO — WHAT THE SHOP BOUGHT AND SOLD LATELY. Plan task `5h-ii-a`, and
@@ -316,12 +317,12 @@ export default function Documentos() {
             style={{
               gap: scale.rowGap,
               padding: scale.space,
-              borderRadius: scale.space,
+              borderRadius: ESQUINA.hoja,
               backgroundColor: PALETTE.atencionSuave,
             }}
           >
             <Rotulo text={`${ES.documents.unsent} · ${unsent.documents.length}`} ink={PALETTE.atencion} />
-            <View style={{ borderRadius: scale.rowGap, backgroundColor: PALETTE.superficie, overflow: 'hidden' }}>
+            <View style={{ borderRadius: ESQUINA.hoja, backgroundColor: PALETTE.superficie, overflow: 'hidden' }}>
               {unsent.documents.map((one, i) => (
                 <Fila
                   key={one.id}
@@ -391,8 +392,6 @@ function Banda() {
         paddingTop: insets.top + scale.space,
         paddingBottom: scale.space,
         paddingHorizontal: scale.space,
-        borderBottomWidth: 1,
-        borderBottomColor: PALETTE.linea,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -401,7 +400,7 @@ function Banda() {
     >
       <Text
         numberOfLines={1}
-        style={{ flex: 1, fontSize: scale.titleSize, ...TITULO, color: PALETTE.tinta }}
+        style={{ flex: 1, ...letraTitulo(scale), color: PALETTE.tinta }}
       >
         {ES.documents.title}
       </Text>
@@ -496,9 +495,7 @@ function Cuerpo({
           </View>
           <View
             style={{
-              borderRadius: scale.space,
-              borderWidth: 1,
-              borderColor: PALETTE.linea,
+              borderRadius: ESQUINA.hoja,
               backgroundColor: PALETTE.superficie,
               overflow: 'hidden',
             }}
@@ -658,7 +655,7 @@ function SemanaVacia({ kind }: { kind: DocumentKind }) {
       >
         <MaterialCommunityIcons name={KIND_ICON[kind]} size={scale.iconSize * 1.6} color={tone.ink} />
       </View>
-      <Text style={{ fontSize: scale.titleSize, ...TITULO, color: PALETTE.tinta, textAlign: 'center' }}>{copy.title}</Text>
+      <Text style={{ ...letraTitulo(scale), color: PALETTE.tinta, textAlign: 'center' }}>{copy.title}</Text>
       <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada, textAlign: 'center' }}>{copy.hint}</Text>
     </View>
   );
@@ -732,7 +729,7 @@ function Confirmacion({
         <View
           style={{
             width: '100%',
-            borderRadius: scale.space,
+            borderRadius: ESQUINA.hoja,
             backgroundColor: PALETTE.fondo,
             padding: scale.space * 1.5,
             gap: scale.space,

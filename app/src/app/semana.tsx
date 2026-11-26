@@ -24,6 +24,7 @@ import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
 import { TITULO } from '@/theme/letra';
 import { Rotulo } from '@/ui/Rotulo';
+import { ESQUINA } from '@/theme/density';
 
 // ============================================================================
 // TU SEMANA — last week as four cards, swiped like a story. Plan task `8g`,
@@ -82,7 +83,7 @@ export default function Semana() {
         {Array.from({ length: CARDS }, (_, i) => (
           <View
             key={i}
-            style={{ flex: 1, height: scale.rowGap / 3, borderRadius: scale.rowGap, backgroundColor: PALETTE.superficie, opacity: i <= page ? 1 : 0.35 }}
+            style={{ flex: 1, height: scale.rowGap / 3, borderRadius: ESQUINA.marca, backgroundColor: PALETTE.superficie, opacity: i <= page ? 1 : 0.35 }}
           />
         ))}
       </View>
@@ -150,7 +151,7 @@ export default function Semana() {
               onPress={() => router.replace('/numeros')}
               style={{
                 minHeight: scale.tapTarget,
-                borderRadius: scale.space * 0.75,
+                borderRadius: ESQUINA.boton,
                 backgroundColor: PALETTE.superficie,
                 alignItems: 'center',
                 justifyContent: 'center',

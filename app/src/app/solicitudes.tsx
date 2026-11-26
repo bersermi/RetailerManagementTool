@@ -22,8 +22,10 @@ import { useOnline } from '@/offline/useOnline';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
-import { TITULO } from '@/theme/letra';
+import { letraTitulo } from '@/theme/letra';
 import { BotonLleno } from '@/ui/BotonLleno';
+import { Rotulo } from '@/ui/Rotulo';
+import { ESQUINA } from '@/theme/density';
 
 // ============================================================================
 // SOLICITUDES — WHO IS WAITING TO BE LET IN. Plan task `5b-iii-d-1`, and the
@@ -178,17 +180,7 @@ export default function Solicitudes() {
           <>
             {/* ⚠️ `8g` (2026-10-19): HOW MANY ARE AT THE DOOR, in Inicio's small
                 capitals and in amber — the colour of a wait, never of an error. */}
-            <Text
-              style={{
-                fontSize: scale.smallSize,
-                fontWeight: '700',
-                color: PALETTE.atencion,
-                textTransform: 'uppercase',
-                letterSpacing: scale.rowGap / 8,
-              }}
-            >
-              {ES.approvals.waiting(queue.entries.length)}
-            </Text>
+            <Rotulo text={ES.approvals.waiting(queue.entries.length)} ink={PALETTE.atencion} />
             {queue.entries.map((entry) => (
               <Solicitud
                 key={entry.requestId}
@@ -231,15 +223,13 @@ function Banda() {
         paddingTop: insets.top + scale.space,
         paddingBottom: scale.space,
         paddingHorizontal: scale.space,
-        borderBottomWidth: 1,
-        borderBottomColor: PALETTE.linea,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
         gap: scale.space,
       }}
     >
-      <Text style={{ fontSize: scale.titleSize, ...TITULO, color: PALETTE.tinta }}>
+      <Text style={{ ...letraTitulo(scale), color: PALETTE.tinta }}>
         {ES.approvals.title}
       </Text>
       <Pressable
@@ -269,9 +259,7 @@ function Tarjeta({ children }: { children: ReactNode }) {
     <View
       style={{
         backgroundColor: PALETTE.superficie,
-        borderRadius: scale.space,
-        borderWidth: 1,
-        borderColor: PALETTE.linea,
+        borderRadius: ESQUINA.hoja,
         padding: scale.space,
         gap: scale.space,
       }}
@@ -354,7 +342,7 @@ function Solicitud({
       style={{
         gap: scale.rowGap,
         padding: scale.space,
-        borderRadius: scale.space,
+        borderRadius: ESQUINA.hoja,
         borderWidth: open ? 2 : 1,
         borderColor: open ? PALETTE.accion : PALETTE.linea,
         backgroundColor: PALETTE.superficie,
@@ -402,7 +390,7 @@ function Solicitud({
             gap: scale.rowGap / 2,
             paddingVertical: scale.rowGap / 2,
             paddingHorizontal: scale.rowGap,
-            borderRadius: scale.tapTarget,
+            borderRadius: ESQUINA.chip,
             backgroundColor: PALETTE.atencionSuave,
           }}
         >
@@ -513,7 +501,7 @@ function Opcion({
         gap: scale.rowGap,
         paddingHorizontal: scale.space,
         paddingVertical: scale.rowGap / 2,
-        borderRadius: scale.space / 2,
+        borderRadius: ESQUINA.chip,
         borderWidth: chosen ? 2 : 1,
         borderColor: chosen ? PALETTE.accion : PALETTE.linea,
         backgroundColor: chosen ? PALETTE.accionSuave : PALETTE.superficie,
@@ -564,7 +552,7 @@ function Vacia() {
       >
         <MaterialCommunityIcons name="door-open" size={scale.iconSize * 1.8} color={PALETTE.accion} />
       </View>
-      <Text style={{ fontSize: scale.titleSize, ...TITULO, color: PALETTE.tinta, textAlign: 'center' }}>
+      <Text style={{ ...letraTitulo(scale), color: PALETTE.tinta, textAlign: 'center' }}>
         {ES.approvals.emptyTitle}
       </Text>
       <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada, textAlign: 'center' }}>
@@ -578,23 +566,11 @@ function Vacia() {
             gap: scale.rowGap,
             marginTop: scale.rowGap,
             padding: scale.space,
-            borderRadius: scale.space,
-            borderWidth: 1,
-            borderColor: PALETTE.linea,
+            borderRadius: ESQUINA.hoja,
             backgroundColor: PALETTE.superficie,
           }}
         >
-          <Text
-            style={{
-              fontSize: scale.smallSize,
-              fontWeight: '700',
-              color: PALETTE.tintaApagada,
-              textTransform: 'uppercase',
-              letterSpacing: scale.rowGap / 8,
-            }}
-          >
-            {ES.approvals.codeLabel}
-          </Text>
+          <Rotulo text={ES.approvals.codeLabel} />
           <Text style={{ fontSize: scale.moneySize * 1.3, fontWeight: '700', color: PALETTE.tinta, letterSpacing: scale.space / 3 }}>
             {groupedCode(workspace.code)}
           </Text>

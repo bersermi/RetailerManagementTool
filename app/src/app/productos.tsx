@@ -16,12 +16,13 @@ import { useOnline } from '@/offline/useOnline';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
-import { TITULO } from '@/theme/letra';
+import { letraTitulo } from '@/theme/letra';
 import { Buscador } from '@/ui/Buscador';
 import { Destello } from '@/ui/Destello';
 import { Foto } from '@/ui/Foto';
 import { Separador } from '@/ui/Separador';
 import { Vacio } from '@/ui/Vacio';
+import { ESQUINA } from '@/theme/density';
 
 // ============================================================================
 // PRODUCTOS — EVERYTHING THIS SHOP SELLS, IN ONE FLAT LIST. Plan task `5d-ii`,
@@ -307,8 +308,6 @@ function Banda({ vista, onVista }: { vista: Vista; onVista: (next: Vista) => voi
         paddingTop: insets.top + scale.space,
         paddingBottom: scale.space,
         paddingHorizontal: scale.space,
-        borderBottomWidth: 1,
-        borderBottomColor: PALETTE.linea,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -319,8 +318,7 @@ function Banda({ vista, onVista }: { vista: Vista; onVista: (next: Vista) => voi
         numberOfLines={1}
         style={{
           flex: 1,
-          fontSize: scale.titleSize,
-          ...TITULO,
+          ...letraTitulo(scale),
           color: PALETTE.tinta,
         }}
       >
@@ -329,7 +327,7 @@ function Banda({ vista, onVista }: { vista: Vista; onVista: (next: Vista) => voi
 
       {/* ⚠️ `8g`: *"list and mosaic switch"* — two glyphs, each with its word
           for a screen reader (C12.1's icon-and-word rule is met by the label). */}
-      <View style={{ flexDirection: 'row', borderRadius: scale.space / 2, borderWidth: 1, borderColor: PALETTE.linea, overflow: 'hidden' }}>
+      <View style={{ flexDirection: 'row', borderRadius: ESQUINA.boton, borderWidth: 1, borderColor: PALETTE.linea, overflow: 'hidden' }}>
         {(['lista', 'mosaico'] as const).map((one) => (
           <Pressable
             key={one}
@@ -518,7 +516,7 @@ function Crear({ name, familyId }: { name: string; familyId: string | null }) {
         style={{
           width: scale.tapTarget,
           height: scale.tapTarget,
-          borderRadius: scale.space / 2,
+          borderRadius: ESQUINA.boton,
           borderWidth: 1,
           borderColor: PALETTE.accion,
           backgroundColor: PALETTE.accionSuave,
@@ -577,7 +575,7 @@ function Iniciales({ text, picture }: { text: string; picture: Picture | null })
       style={{
         width: side,
         height: side,
-        borderRadius: scale.space / 2,
+        borderRadius: ESQUINA.hoja,
         borderWidth: 1,
         borderColor: PALETTE.linea,
         backgroundColor: PALETTE.accionSuave,
@@ -663,7 +661,7 @@ function Pasillo({
         style={{
           width: side,
           height: side,
-          borderRadius: scale.space,
+          borderRadius: ESQUINA.hoja,
           borderWidth: on ? 3 : 1,
           borderColor: on ? PALETTE.accion : PALETTE.linea,
           backgroundColor: initials === '' ? PALETTE.superficie : PALETTE.accionSuave,
@@ -709,9 +707,7 @@ function Tarjeta({ entry, nuevo }: { entry: CatalogEntry; nuevo: boolean }) {
           accessibilityLabel={[entry.name, entry.price].filter((part) => part !== '').join('. ')}
           onPress={() => router.push({ pathname: '/ficha/[id]', params: { id: entry.id } })}
           style={{
-            borderRadius: scale.space,
-            borderWidth: 1,
-            borderColor: PALETTE.linea,
+            borderRadius: ESQUINA.hoja,
             backgroundColor: PALETTE.superficie,
             overflow: 'hidden',
           }}

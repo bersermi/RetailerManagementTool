@@ -20,11 +20,12 @@ import { useOnline } from '@/offline/useOnline';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
-import { TITULO } from '@/theme/letra';
+import { letraTitulo } from '@/theme/letra';
 import { Buscador } from '@/ui/Buscador';
 import { Destello } from '@/ui/Destello';
 import { Separador } from '@/ui/Separador';
 import { Vacio } from '@/ui/Vacio';
+import { ESQUINA } from '@/theme/density';
 
 // ============================================================================
 // PROVEEDORES — WHO THIS SHOP BUYS FROM. Plan task `6b`, and the screen behind
@@ -214,8 +215,6 @@ function Banda() {
         paddingTop: insets.top + scale.space,
         paddingBottom: scale.space,
         paddingHorizontal: scale.space,
-        borderBottomWidth: 1,
-        borderBottomColor: PALETTE.linea,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -226,8 +225,7 @@ function Banda() {
         numberOfLines={1}
         style={{
           flex: 1,
-          fontSize: scale.titleSize,
-          ...TITULO,
+          ...letraTitulo(scale),
           color: PALETTE.tinta,
         }}
       >
@@ -369,7 +367,7 @@ function NuevoProveedor() {
           justifyContent: 'center',
           gap: scale.rowGap,
           minHeight: scale.tapTarget,
-          borderRadius: scale.space * 0.75,
+          borderRadius: ESQUINA.boton,
           borderWidth: 1,
           borderColor: PALETTE.accion,
           backgroundColor: PALETTE.accionSuave,
@@ -413,7 +411,7 @@ function Crear({ name }: { name: string }) {
         style={{
           width: scale.tapTarget,
           height: scale.tapTarget,
-          borderRadius: scale.space / 2,
+          borderRadius: ESQUINA.boton,
           borderWidth: 1,
           borderColor: PALETTE.accion,
           backgroundColor: PALETTE.accionSuave,
@@ -468,7 +466,7 @@ function Iniciales({ text }: { text: string }) {
       style={{
         width: side,
         height: side,
-        borderRadius: scale.space / 2,
+        borderRadius: ESQUINA.hoja,
         borderWidth: 1,
         borderColor: PALETTE.linea,
         backgroundColor: PALETTE.accionSuave,

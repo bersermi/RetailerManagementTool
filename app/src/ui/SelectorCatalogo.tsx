@@ -40,6 +40,7 @@ import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
 import { Casilla } from '@/ui/Casilla';
+import { ESQUINA } from '@/theme/density';
 
 export function SelectorCatalogo({
   template,
@@ -102,7 +103,7 @@ export function SelectorCatalogo({
                 minHeight: scale.tapTarget,
                 justifyContent: 'center',
                 paddingHorizontal: scale.space,
-                borderRadius: scale.rowGap,
+                borderRadius: ESQUINA.chip,
                 borderWidth: 1,
                 borderColor: on ? PALETTE.accion : PALETTE.linea,
                 backgroundColor: on ? PALETTE.accionSuave : PALETTE.superficie,

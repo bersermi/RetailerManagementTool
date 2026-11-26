@@ -45,6 +45,7 @@ import { Keyboard, Pressable, Text, TextInput, View } from 'react-native';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 
 /**
  * The box above a catalog list, on all three capture screens and on Productos.
@@ -96,7 +97,7 @@ export function Buscador({
           gap: scale.rowGap,
           minHeight: scale.tapTarget,
           paddingHorizontal: scale.space,
-          borderRadius: scale.space / 2,
+          borderRadius: ESQUINA.campo,
           borderWidth: 1,
           borderColor: PALETTE.linea,
           backgroundColor: PALETTE.superficie,

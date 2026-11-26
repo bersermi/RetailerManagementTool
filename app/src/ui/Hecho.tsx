@@ -26,6 +26,7 @@ import { Animated, Easing, Text, View } from 'react-native';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
 import { DONE_HOLD_MS, DONE_IN_MS, DONE_NOTE_HOLD_MS, DONE_OUT_MS } from '@/theme/pulse';
+import { ESQUINA } from '@/theme/density';
 
 export function Hecho({
   shown,
@@ -88,7 +89,7 @@ export function Hecho({
           gap: scale.rowGap,
           paddingHorizontal: scale.space * 2,
           paddingVertical: scale.space * 1.5,
-          borderRadius: scale.space,
+          borderRadius: ESQUINA.hoja,
           borderWidth: 1,
           borderColor: PALETTE.linea,
           backgroundColor: PALETTE.superficie,

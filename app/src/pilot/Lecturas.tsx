@@ -24,6 +24,7 @@ import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
 import { Interruptor } from '@/ui/Interruptor';
+import { ESQUINA } from '@/theme/density';
 
 type Period = 'hoy' | 'semana';
 const PERIODS: readonly Period[] = ['hoy', 'semana'];
@@ -46,8 +47,6 @@ export function Lecturas({ open, onClose }: { open: boolean; onClose: () => void
             justifyContent: 'space-between',
             padding: scale.space,
             backgroundColor: PALETTE.banda,
-            borderBottomWidth: 1,
-            borderBottomColor: PALETTE.linea,
           }}
         >
           <Text style={{ fontSize: scale.titleSize, fontWeight: '700', color: PALETTE.tinta }}>
@@ -98,9 +97,7 @@ function Bloque({ summary }: { summary: ScreenSummary }) {
       style={{
         gap: scale.rowGap,
         padding: scale.space,
-        borderRadius: scale.rowGap,
-        borderWidth: 1,
-        borderColor: PALETTE.linea,
+        borderRadius: ESQUINA.hoja,
         backgroundColor: PALETTE.superficie,
       }}
     >

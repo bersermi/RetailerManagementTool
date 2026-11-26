@@ -57,6 +57,7 @@ import { Pressable, Text } from 'react-native';
 
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 
 /**
  * One outlined button.
@@ -99,7 +100,7 @@ export function Boton({
         minHeight: scale.tapTarget,
         alignItems: 'center',
         justifyContent: 'center',
-        borderRadius: scale.space / 2,
+        borderRadius: ESQUINA.boton,
         borderWidth: 1,
         borderColor: tone,
         backgroundColor: lleno ? tone : undefined,

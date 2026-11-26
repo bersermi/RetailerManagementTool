@@ -11,7 +11,7 @@ import { TABS } from '@/navigation/tabs';
 import { currentTabGuard } from '@/navigation/salida';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
-import { TITULO } from '@/theme/letra';
+import { letraTitulo } from '@/theme/letra';
 
 // ============================================================================
 // THE TAB SHELL. Plan task 5a-ii. The tabs themselves are `src/navigation/
@@ -47,10 +47,14 @@ export default function TabsLayout() {
         // `palette.ts` names *the active tab* in `accion`'s own sentence.
         tabBarActiveTintColor: PALETTE.accion,
         tabBarInactiveTintColor: PALETTE.tintaApagada,
+        // ⚠️ `11.6`: THE BAR IS A SHEET ON THE COUNTER — white, with a `linea` top edge
+        // (the design system's *Inicio*), stated rather than left to the theme.
         tabBarStyle: {
           height: scale.tabBarHeight + insets.bottom,
           paddingBottom: insets.bottom,
           paddingTop: scale.rowGap / 2,
+          backgroundColor: PALETTE.superficie,
+          borderTopColor: PALETTE.linea,
         },
       }}
     >
@@ -84,6 +88,12 @@ export default function TabsLayout() {
                   ? PALETTE.desperdicio
                   : PALETTE.accion,
             header: () => <Banda title={tab.label} />,
+            // ⚠️ `11.6`: NEVER THE COLOUR ALONE — the tab she is on is its colour AND a
+            // heavier word (the design system's *Pestanas*); the marker's stroke under
+            // it is an object, `11.9`'s.
+            tabBarLabel: ({ focused, color }) => (
+              <Text style={{ fontSize: scale.tabLabelSize, fontWeight: focused ? '700' : '500', color }}>{tab.label}</Text>
+            ),
             tabBarIcon: ({ color }) => (
               <MaterialCommunityIcons
                 // The glyph names are checked against the shipped map in
@@ -117,6 +127,11 @@ const SELLO_OPACITY = 0.14;
  * someone pays attention, shouldn't be noisy."* He chose it knowing old eyes
  * may not see it.
  *
+ * ⚠️ SINCE `11.6` (direction A, his yes of 2026-11-26) THE BAND IS THE COUNTER:
+ * `banda` is `fondo`'s grey, no line under it, the title in Archivo with its
+ * line, and the shop's name in its own case — no capitals, no spacing — in the
+ * rust, its one sign.
+ *
  * ⚠️ THE TABS ONLY. A pushed screen keeps its own band with *Volver* or
  * *Cerrar* where the drawing would sit.
  *
@@ -138,8 +153,6 @@ function Banda({ title }: { title: string }) {
         paddingTop: insets.top + scale.space,
         paddingBottom: scale.space,
         paddingHorizontal: scale.space,
-        borderBottomWidth: 1,
-        borderBottomColor: PALETTE.linea,
         gap: scale.rowGap / 4,
       }}
     >
@@ -167,7 +180,7 @@ function Banda({ title }: { title: string }) {
       <Text
         accessibilityRole="header"
         numberOfLines={1}
-        style={{ fontSize: scale.titleSize, ...TITULO, color: PALETTE.tinta }}
+        style={{ ...letraTitulo(scale), color: PALETTE.tinta }}
       >
         {title}
       </Text>
@@ -176,9 +189,7 @@ function Banda({ title }: { title: string }) {
           numberOfLines={1}
           style={{
             fontSize: scale.smallSize,
-            fontWeight: '700',
-            letterSpacing: scale.rowGap / 8,
-            textTransform: 'uppercase',
+            fontWeight: '600',
             color: PALETTE.marca,
           }}
         >

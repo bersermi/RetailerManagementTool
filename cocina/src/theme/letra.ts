@@ -9,9 +9,10 @@
 // face. ONE weight, ExtraBold, and no `fontWeight` beside the family — on Android a
 // custom family asked for a weight it does not have falls back to the system face.
 // The `.ttf` travels inside the update (`src/marca/letras/`, Wera's file byte for
-// byte, with its licence, the SIL Open Font License 1.1); `expo-font` was in this
-// app's first build, so no build carries it. `test/pestanas.test.ts` holds this code
-// and the font's bytes to Wera's files.
+// byte until `11.6` moved Wera to Archivo, with its licence, the SIL Open Font
+// License 1.1); `expo-font` was in this app's first build, so no build carries it.
+// `test/pestanas.test.ts` holds this code and the font's bytes to Itacate's files
+// until `11.7` (Wera's until `11.6`).
 // ============================================================================
 
 /** The family name `useFonts` registers and every title asks for. */

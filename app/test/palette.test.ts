@@ -25,6 +25,8 @@
 // repository has now recorded seven times.
 // ============================================================================
 
+import { readFileSync } from 'node:fs';
+
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -34,6 +36,18 @@ import {
   PALETTE_ROLES,
   type PaletteRole,
 } from '@/theme/palette';
+
+/**
+ * ⚠️ `11.6`: direction A's source — the design system's colours, measured there by
+ * `brand/mostrador/contraste.mjs`. Read, never copied: the one place a hex may be
+ * spelled twice is that file and the table, and this suite holds them equal.
+ */
+const MOSTRADOR = JSON.parse(
+  readFileSync(new URL('../../brand/mostrador/paleta.json', import.meta.url), 'utf8'),
+) as {
+  apps: { wera: Record<string, string> };
+  medir: { wera: { tintas: string[]; fondos: string[]; rellenos: [string, string][] } };
+};
 
 /** WCAG 2.1's floor for normal-size text. The reason área 13 happened. */
 const AA_NORMAL_TEXT = 4.5;
@@ -88,11 +102,29 @@ describe('área 13 — the palette is a table with twenty complete rows', () => 
     }
   });
 
-  it('gives every role its own value — twenty roles, twenty colours', () => {
+  it('gives every role its own value — but for the header on the counter', () => {
     // Two roles sharing a value is one role wearing two hats, and the second
     // hat is the one nobody remembers to change.
-    const values = PALETTE_ROLES.map((r) => PALETTE[r]);
+    // ⚠️ ONE PAIR SHARES ON PURPOSE SINCE `11.6`: the header sits on the counter
+    // (call 3, as recommended), so `banda` is `fondo`'s grey. Named here, so a
+    // second shared pair is still refused.
+    expect(PALETTE.banda, 'the header no longer sits on the counter').toBe(PALETTE.fondo);
+    const values = PALETTE_ROLES.filter((r) => r !== 'banda').map((r) => PALETTE[r]);
     expect(new Set(values).size, 'two roles share a hex').toBe(values.length);
+  });
+});
+
+describe('`11.6` — the table is direction A · Mostrador, as the design system measured it', () => {
+  it('is `brand/mostrador/paleta.json`’s `wera` block, role by role, in both directions', () => {
+    expect(Object.keys(MOSTRADOR.apps.wera).length, 'no roles read from the source').toBe(PALETTE_ROLES.length);
+    for (const role of PALETTE_ROLES) {
+      expect(PALETTE[role], `${role} is not the design system's`).toBe(MOSTRADOR.apps.wera[role]);
+    }
+  });
+
+  it('measures the inks and grounds the design system measures, so the matrix below is its', () => {
+    expect([...INK_ROLES]).toEqual(MOSTRADOR.medir.wera.tintas);
+    expect([...GROUND_ROLES]).toEqual(MOSTRADOR.medir.wera.fondos);
   });
 });
 
@@ -112,6 +144,15 @@ describe('área 13 — every word is legible on every ground it can land on', ()
       }
     }
     expect(failures, 'below 4.5:1 — the pilot cannot read these').toEqual([]);
+  });
+
+  it('covers every filled button the design system lists', () => {
+    // ⚠️ `11.6`: `paleta.json`'s `rellenos` — white words on each fill.
+    expect(MOSTRADOR.medir.wera.rellenos.length, 'no fills listed').toBeGreaterThan(3);
+    for (const [ink, fill] of MOSTRADOR.medir.wera.rellenos) {
+      const ratio = contrast(PALETTE[ink as PaletteRole], PALETTE[fill as PaletteRole]);
+      expect(ratio, `${ink} on ${fill}`).toBeGreaterThanOrEqual(AA_NORMAL_TEXT);
+    }
   });
 
   it('covers the filled action too, by the symmetry of the ratio', () => {

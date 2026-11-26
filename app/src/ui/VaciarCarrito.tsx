@@ -30,6 +30,7 @@ import { Boton } from '@/ui/Boton';
 import { BotonLleno } from '@/ui/BotonLleno';
 import { Frase } from '@/ui/Frase';
 import { Velo } from '@/ui/Velo';
+import { ESQUINA } from '@/theme/density';
 
 export function VaciarCarrito({
   asking,
@@ -66,7 +67,7 @@ export function VaciarCarrito({
             width: '100%',
             // ⚠️ NO `maxWidth` — `R6`: a cap in points is a size `Letra grande`
             // cannot change; the wrapper's padding keeps the box off the edges.
-            borderRadius: scale.space,
+            borderRadius: ESQUINA.hoja,
             backgroundColor: PALETTE.fondo,
             padding: scale.space * 1.5,
             gap: scale.space,

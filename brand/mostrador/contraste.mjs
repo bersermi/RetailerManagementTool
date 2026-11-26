@@ -12,7 +12,8 @@
 // the sheet's edge on the counter, a star) are printed and not asserted: they
 // carry no words, and the apps' rule is that no state is told by colour alone.
 //
-// No workflow runs it (brand/ is read by none). Run:
+// No workflow runs it. Since 11.6 Wera's suite reads paleta.json (app.yml fires on
+// it) and asserts the same matrix on app/src/theme/palette.ts. Run:
 //   node brand/mostrador/contraste.mjs          the matrix, then the verdict
 //   node brand/mostrador/contraste.mjs --json   the same numbers as JSON
 // ============================================================================

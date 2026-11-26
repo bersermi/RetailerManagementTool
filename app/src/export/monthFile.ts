@@ -231,8 +231,11 @@ export function monthHtml(lines: readonly ExportLine[], month: string, madeOn: s
 <html lang="es"><head><meta charset="utf-8">
 <title>${safe(exportFileName(month, 'pdf'))}</title>
 <style>
+  /* ⚠️ 11.6: THE PAGE IS A SHEET — white, as paper is. Since direction A
+     the ground (fondo) is the counter's grey, which a printer would lay over every page;
+     the grey stays only in the zebra and the head row. */
   body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-         background: ${PALETTE.fondo}; color: ${PALETTE.tinta}; margin: ${PAGE.edge}px;
+         background: ${PALETTE.superficie}; color: ${PALETTE.tinta}; margin: ${PAGE.edge}px;
          max-width: ${PAGE.pageWidth - PAGE.edge * 2}px; }
   h1 { font-size: ${PAGE.titleSize}px; margin-top: ${PAGE.none}px; margin-bottom: ${PAGE.titleGap}px; }
   h2 { font-size: ${PAGE.subtitleSize}px; font-weight: 600; color: ${PALETTE.tintaApagada};

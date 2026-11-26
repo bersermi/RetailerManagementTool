@@ -33,12 +33,13 @@ import { KeyboardAvoidingView, Modal, Text, TextInput, View } from 'react-native
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useDensity } from '@/theme/DensityProvider';
-import { TITULO } from '@/theme/letra';
+import { letraTitulo } from '@/theme/letra';
 import { PALETTE } from '@/theme/palette';
 import { BotonLleno } from '@/ui/BotonLleno';
 import type { Picture } from '@/api/photos';
 import { Retrato } from '@/ui/Retrato';
 import { Velo } from '@/ui/Velo';
+import { ESQUINA } from '@/theme/density';
 
 export function HojaPrecio({
   name,
@@ -99,8 +100,8 @@ export function HojaPrecio({
       <KeyboardAvoidingView behavior="padding" style={{ flex: 1, justifyContent: 'flex-end' }}>
         <View
           style={{
-            borderTopLeftRadius: scale.space * 2,
-            borderTopRightRadius: scale.space * 2,
+            borderTopLeftRadius: ESQUINA.hoja,
+            borderTopRightRadius: ESQUINA.hoja,
             backgroundColor: PALETTE.fondo,
             padding: scale.space * 1.5,
             paddingBottom: scale.space * 1.5 + insets.bottom,
@@ -115,7 +116,7 @@ export function HojaPrecio({
             </View>
           </View>
 
-          <Text style={{ fontSize: scale.titleSize, ...TITULO, color: PALETTE.tinta }}>{question}</Text>
+          <Text style={{ ...letraTitulo(scale), color: PALETTE.tinta }}>{question}</Text>
 
           <View
             style={{
@@ -124,7 +125,7 @@ export function HojaPrecio({
               gap: scale.rowGap,
               minHeight: scale.tapTarget * 1.4,
               paddingHorizontal: scale.space,
-              borderRadius: scale.space,
+              borderRadius: ESQUINA.campo,
               borderWidth: 2,
               borderColor: tone,
               backgroundColor: PALETTE.superficie,

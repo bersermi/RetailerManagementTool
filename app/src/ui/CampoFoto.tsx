@@ -24,6 +24,7 @@ import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
 import { Foto } from '@/ui/Foto';
+import { ESQUINA } from '@/theme/density';
 
 export function CampoFoto({
   name,
@@ -62,7 +63,7 @@ export function CampoFoto({
           style={{
             width: side,
             height: side,
-            borderRadius: scale.space,
+            borderRadius: ESQUINA.hoja,
             borderWidth: dashed && !has ? 2 : 1,
             borderStyle: dashed && !has ? 'dashed' : 'solid',
             borderColor: dashed && !has ? PALETTE.accion : PALETTE.linea,
@@ -90,7 +91,7 @@ export function CampoFoto({
               gap: scale.rowGap / 2,
               minHeight: scale.tapTarget,
               paddingHorizontal: scale.space,
-              borderRadius: scale.space * 0.75,
+              borderRadius: ESQUINA.boton,
               borderWidth: 1,
               borderColor: PALETTE.accion,
               backgroundColor: PALETTE.accionSuave,

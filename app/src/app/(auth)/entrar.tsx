@@ -23,6 +23,7 @@ import { BotonLleno } from '@/ui/BotonLleno';
 import { Campo } from '@/ui/Campo';
 import { Casilla } from '@/ui/Casilla';
 import { Formulario } from '@/ui/Formulario';
+import { ESQUINA } from '@/theme/density';
 
 // ============================================================================
 // THE WAY IN THAT NEEDS NO DEEP LINK (C1.4). Plan task 5a-iii-a, and the screen
@@ -258,7 +259,7 @@ export default function Entrar() {
             alignItems: 'center',
             justifyContent: 'center',
             gap: scale.rowGap,
-            borderRadius: scale.space * 0.75,
+            borderRadius: ESQUINA.boton,
             borderWidth: 1,
             borderColor: PALETTE.linea,
             backgroundColor: PALETTE.superficie,

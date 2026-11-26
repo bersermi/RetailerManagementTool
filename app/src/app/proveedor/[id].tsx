@@ -42,7 +42,7 @@ import { useOnline } from '@/offline/useOnline';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
-import { TITULO } from '@/theme/letra';
+import { letraTitulo, TITULO } from '@/theme/letra';
 import { Boton } from '@/ui/Boton';
 import { BotonLleno } from '@/ui/BotonLleno';
 import { Formulario } from '@/ui/Formulario';
@@ -50,6 +50,8 @@ import { Frase } from '@/ui/Frase';
 import { TecladoListo } from '@/ui/TecladoListo';
 import { Pregunta } from '@/ui/Pregunta';
 import { Velo } from '@/ui/Velo';
+import { Rotulo } from '@/ui/Rotulo';
+import { ESQUINA } from '@/theme/density';
 
 // ============================================================================
 // ONE SUPPLIER — WHAT WE KNOW ABOUT HER, AND THE TWO THINGS THAT CHANGE IT.
@@ -465,14 +467,12 @@ function Ficha({
       <View
         style={{
           backgroundColor: PALETTE.compraSuave,
-          borderRadius: scale.space * 0.875,
+          borderRadius: ESQUINA.hoja,
           padding: scale.space,
           gap: scale.rowGap / 2,
         }}
       >
-        <Text style={{ fontSize: scale.smallSize, fontWeight: '700', color: PALETTE.compra, textTransform: 'uppercase', letterSpacing: scale.rowGap / 8 }}>
-          {ES.providers.page.month}
-        </Text>
+        <Rotulo text={ES.providers.page.month} ink={PALETTE.compra} />
         <Text style={{ fontSize: scale.titleSize * 1.2, ...TITULO, color: PALETTE.tinta }}>
           {month}
         </Text>
@@ -488,16 +488,12 @@ function Ficha({
         <View
           style={{
             backgroundColor: PALETTE.superficie,
-            borderWidth: 1,
-            borderColor: PALETTE.linea,
-            borderRadius: scale.space * 0.875,
+            borderRadius: ESQUINA.hoja,
             paddingHorizontal: scale.space,
             paddingTop: scale.space,
           }}
         >
-          <Text style={{ fontSize: scale.smallSize, fontWeight: '700', color: PALETTE.tintaApagada, textTransform: 'uppercase', letterSpacing: scale.rowGap / 8 }}>
-            {ES.providers.page.brought}
-          </Text>
+          <Rotulo text={ES.providers.page.brought} />
           {brought.map((one, i) => (
             <Pressable
               key={one.variantId}
@@ -574,8 +570,6 @@ function Banda({
         paddingTop: insets.top + scale.space,
         paddingBottom: scale.space,
         paddingHorizontal: scale.space,
-        borderBottomWidth: 1,
-        borderBottomColor: PALETTE.linea,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -585,7 +579,7 @@ function Banda({
       <View style={{ flex: 1 }}>
         <Text
           numberOfLines={1}
-          style={{ fontSize: scale.titleSize, ...TITULO, color: PALETTE.tinta }}
+          style={{ ...letraTitulo(scale), color: PALETTE.tinta }}
         >
           {title}
         </Text>
@@ -718,9 +712,7 @@ function Caja({ children }: { children: ReactNode }) {
         alignItems: 'center',
         gap: scale.rowGap,
         paddingHorizontal: scale.space,
-        borderRadius: scale.space / 2,
-        borderWidth: 1,
-        borderColor: PALETTE.linea,
+        borderRadius: ESQUINA.hoja,
         backgroundColor: PALETTE.superficie,
       }}
     >
@@ -798,7 +790,7 @@ function Confirmacion({
         <View
           style={{
             width: '100%',
-            borderRadius: scale.space,
+            borderRadius: ESQUINA.hoja,
             backgroundColor: PALETTE.fondo,
             padding: scale.space * 1.5,
             gap: scale.space,

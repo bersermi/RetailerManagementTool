@@ -39,6 +39,7 @@ import { ActivityIndicator, Pressable, Text } from 'react-native';
 
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 
 export function BotonLleno({
   label,
@@ -82,7 +83,7 @@ export function BotonLleno({
         justifyContent: 'center',
         gap: scale.rowGap,
         paddingHorizontal: scale.space,
-        borderRadius: scale.space / 2,
+        borderRadius: ESQUINA.boton,
         borderWidth: 1,
         borderColor: edge,
         backgroundColor: ground,

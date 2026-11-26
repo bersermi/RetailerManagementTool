@@ -34,11 +34,12 @@ import { useOnline } from '@/offline/useOnline';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE, serieColour } from '@/theme/palette';
-import { TITULO } from '@/theme/letra';
+import { letraTitulo } from '@/theme/letra';
 import { Grafica } from '@/ui/Grafica';
 import { Separador } from '@/ui/Separador';
 import { BotonLleno } from '@/ui/BotonLleno';
 import { Vacio } from '@/ui/Vacio';
+import { ESQUINA } from '@/theme/density';
 
 // ============================================================================
 // COSTOS — WHAT EACH PROVIDER HAS CHARGED FOR ONE PRODUCT, THROUGH TIME. Plan
@@ -182,8 +183,6 @@ function Banda({ title }: { title: string }) {
         paddingTop: insets.top + scale.space,
         paddingBottom: scale.space,
         paddingHorizontal: scale.space,
-        borderBottomWidth: 1,
-        borderBottomColor: PALETTE.linea,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -196,7 +195,7 @@ function Banda({ title }: { title: string }) {
           label where a name belongs. The module word is the fallback. */}
       <Text
         numberOfLines={1}
-        style={{ flex: 1, fontSize: scale.titleSize, ...TITULO, color: PALETTE.tinta }}
+        style={{ flex: 1, ...letraTitulo(scale), color: PALETTE.tinta }}
       >
         {title}
       </Text>
@@ -390,9 +389,7 @@ function CuantoCambio({
         gap: scale.rowGap,
         padding: scale.space,
         backgroundColor: PALETTE.superficie,
-        borderWidth: 1,
-        borderColor: PALETTE.linea,
-        borderRadius: scale.space / 2,
+        borderRadius: ESQUINA.hoja,
       }}
     >
       <Text style={{ fontSize: scale.bodySize * 1.1, fontWeight: '700', color: PALETTE.tinta }}>
@@ -466,7 +463,7 @@ function Escoger({
         alignItems: 'center',
         gap: scale.rowGap / 2,
         paddingHorizontal: scale.rowGap,
-        borderRadius: scale.tapTarget / 2,
+        borderRadius: ESQUINA.chip,
         borderWidth: 1,
         borderColor: on ? PALETTE.compra : PALETTE.linea,
         backgroundColor: on ? PALETTE.compra : PALETTE.superficie,
@@ -477,7 +474,7 @@ function Escoger({
           style={{
             width: scale.rowGap,
             height: scale.rowGap,
-            borderRadius: scale.rowGap / 4,
+            borderRadius: ESQUINA.marca,
             backgroundColor: swatch,
             borderWidth: on ? 1 : 0,
             borderColor: PALETTE.superficie,
@@ -523,7 +520,7 @@ function Fila({ change, on }: { change: CostChange; on: boolean }) {
         // ⚠️ The chart's period, marked by a band AND a bolder name — never the band alone.
         marginHorizontal: -scale.rowGap / 2,
         paddingHorizontal: scale.rowGap / 2,
-        borderRadius: on ? scale.rowGap / 2 : 0,
+        borderRadius: on ? ESQUINA.marca : 0,
         backgroundColor: on ? PALETTE.banda : 'transparent',
       }}
     >
@@ -600,7 +597,7 @@ function Leyenda({
             style={{
               width: scale.rowGap,
               height: scale.rowGap,
-              borderRadius: scale.rowGap / 4,
+              borderRadius: ESQUINA.marca,
               backgroundColor: serieColour(one.hue),
             }}
           />
@@ -682,9 +679,7 @@ function Tabla({ costs }: { costs: Costs }) {
           horizontal
           showsHorizontalScrollIndicator
           style={{
-            borderWidth: 1,
-            borderColor: PALETTE.linea,
-            borderRadius: scale.space / 2,
+            borderRadius: ESQUINA.hoja,
             backgroundColor: PALETTE.superficie,
           }}
         >
