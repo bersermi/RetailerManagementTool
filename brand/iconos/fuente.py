@@ -31,7 +31,7 @@ from fontTools.pens.cu2quPen import Cu2QuPen
 from fontTools.pens.transformPen import TransformPen
 from fontTools.pens.ttGlyphPen import TTGlyphPen
 from fontTools.svgLib.path import parse_path
-from pathops import Path as Trazo
+from pathops import Path as Trazo, PathOp, op
 from picosvg.svg import SVG
 
 AQUI = Path(__file__).resolve().parent
@@ -45,13 +45,17 @@ ESCALA = EM / GRID
 FECHA = 3_975_350_400  # 2026-01-01, seconds since 1904: a fixed date, so the bytes repeat
 
 
+BLANCO = {"#fff", "#ffffff", "white"}
+
+
 def contornos(svg_path: Path):
-    """The drawing as filled outlines: strokes outlined at their width, shapes as paths."""
+    """The drawing as filled outlines: strokes outlined at their width, shapes as paths —
+    each with whether it is a cut (drawn in white: README.md, *the line*)."""
     pico = SVG.parse(str(svg_path)).topicosvg()
     vista = pico.view_box()
     if (vista.x, vista.y, vista.w, vista.h) != (0, 0, GRID, GRID):
         sys.exit(f"FAIL: {svg_path.name} is not on the {GRID}-unit grid (viewBox {vista})")
-    return [forma.d for forma in pico.shapes()]
+    return [(forma.d, forma.fill.lower() in BLANCO) for forma in pico.shapes()]
 
 
 def glifo(svg_path: Path, glyph_set):
@@ -63,13 +67,25 @@ def glifo(svg_path: Path, glyph_set):
     # `play` as a hollow triangle and cut the tie out of `proveedor` — measured
     # 2026-11-21. So each shape is simplified on its own first (its outer edge
     # clockwise, a ring's hole the other way), then the whole.
+    #
+    # ⚠️ A CUT IS TAKEN OUT AFTER (row 11.3-ii, 2026-11-26): a part drawn in white
+    # — the check in a ticked box, the cross in a filled circle — is a hole in the
+    # ink, so the ground shows through as it does in a browser on white. Every
+    # cut merges first, then leaves the ink in one difference; a drawing with no
+    # cut is built exactly as before, byte for byte.
     unida = Trazo()
-    for d in contornos(svg_path):
+    cortes = Trazo()
+    hay_corte = False
+    for d, es_corte in contornos(svg_path):
         forma = Trazo()
         parse_path(d, forma.getPen())
         forma.simplify(fix_winding=True)
-        forma.draw(unida.getPen())
+        forma.draw((cortes if es_corte else unida).getPen())
+        hay_corte = hay_corte or es_corte
     unida.simplify(fix_winding=True)
+    if hay_corte:
+        cortes.simplify(fix_winding=True)
+        unida = op(unida, cortes, PathOp.DIFFERENCE, fix_winding=True)
     pen = TTGlyphPen(glyph_set)
     # SVG's y grows down; a font's grows up from the baseline.
     unida.draw(TransformPen(Cu2QuPen(pen, max_err=0.5, reverse_direction=False),
