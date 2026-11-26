@@ -236,7 +236,10 @@ the data is there — **the default is simply not the country the phone is in.**
 ### R6 — A size a person looks at comes from `useDensity()`, never from a literal
 
 `fontSize`, `height`, `gap`, `padding*`, `margin*`, `borderRadius`,
-`lineHeight` — all from `scale`, never a number.
+`lineHeight` — all from `scale`, never a number. ⚠️ **Except a corner, since `11.6`:**
+`borderRadius` reads `ESQUINA` (`@/theme/density`), a corner per role — sheet, button,
+field, chip, tag, ticket, a small mark — that `Letra grande` deliberately does not change
+(paper does not get rounder when the letters grow); a circle stays half its own side.
 
 C3.18: *"many users are old; we want to prioritise the visibility of essential
 things big and at a glance."* Two modes, normal and `Letra grande`. A literal
@@ -650,8 +653,8 @@ carry the second kind into the primitive.**
   against 6 / 8 — and that had to be answered rather than made configurable.
 
 ⚠️⚠️ **THE TIE-BREAK IS A COUNT, NOT A TASTE, AND BOTH TIMES IT HAS BEEN ONE.**
-`Vacio` centred because it was *"two files against one"*. `Boton` rounds by
-`scale.space / 2` because that is **42 of the 61 `borderRadius` spellings** under
+`Vacio` centred because it was *"two files against one"*. `Boton` rounded by
+`scale.space / 2` (until `11.6` gave every corner its role's `ESQUINA`) because that was **42 of the 61 `borderRadius` spellings** under
 `src/app/` and `src/ui/`, in **12 of the 13 route files**, while `scale.rowGap`
 appears three times and all three are in `documentos.tsx` — the newest file in the
 app. **Measure it, write the number down, and say what a person will see change.**
