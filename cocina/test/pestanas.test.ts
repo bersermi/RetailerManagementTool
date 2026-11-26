@@ -15,13 +15,13 @@ import { PALETTE } from '@/theme/palette';
 // ============================================================================
 // WERA COCINA'S SHELL. Plan task `10.5-v-c-i`, the owner's rulings of 2026-11-05 and
 // his directions of 2026-11-06 (the family-shell page): the tab bar *Hoy · Apartados ·
-// Clientes · Mi cocina*, *Mi cocina*'s rows, Nunito titles, Wera Cocina's green for
+// Clientes · Mi cocina*, *Mi cocina*'s rows, Archivo titles (Nunito until `11.7-i`), Wera Cocina's green for
 // actions, one staggered entrance per screen and the toast on Reanimated, transform and
 // opacity only (ADR-035 §2.11). Its twin is Itacate's (`itacate/test/pestanas.test.ts`).
 //
 // ⚠️ WHAT THIS CAN AND CANNOT SEE: it pins values and reads source as text — the
 // order, the words, the glyphs, the colour, the font's bytes, the motion's numbers and
-// which keys an animated style may touch. That the bar draws, a title wears Nunito or
+// which keys an animated style may touch. That the bar draws, a title wears Archivo or
 // a card rises is the phone's to show (§2.11); the session's emulator run and the
 // owner's look are its evidence.
 // ============================================================================
@@ -112,31 +112,47 @@ describe('Wera Cocina’s green for actions (ruled 2026-11-02, with its icon)', 
   });
 });
 
-// ⚠️ SINCE `11.6` (2026-11-26) WERA'S TITLES ARE ARCHIVO and its Nunito is gone, so until `11.7`
-// gives both siblings direction A's face, their Nunito and their `@/theme/letra` are held to EACH
-// OTHER — still one font and one code across the two apps — and `11.7` holds them to Wera's again.
-describe('Nunito titles — one file in both siblings, byte for byte (the ruling of 2026-11-05; Wera’s until `11.6`)', () => {
-  it('the font and its licence are Itacate’s files', () => {
-    expect(bytes('cocina/src/marca/letras/Nunito-ExtraBold.ttf')).toBe(bytes('itacate/src/marca/letras/Nunito-ExtraBold.ttf'));
-    expect(bytes('cocina/src/marca/letras/OFL-Nunito.txt')).toBe(bytes('itacate/src/marca/letras/OFL-Nunito.txt'));
+// ⚠️ `11.7-i` (2026-11-26): DIRECTION A'S FACE, AND WERA'S AGAIN. Wera moved to Archivo at `11.6`; between that
+// row and this one the two siblings' Nunito was held to each other. Now both carry Wera's two Archivo files, its
+// licence, its `@/theme/letra` and its `@/marca/fuentes`, and are held to them as they were to its Nunito.
+describe('Archivo titles, headings and the big number — Wera’s files and code (`11.7-i`, his yes at `11.5-ii`)', () => {
+  it('the two cuts and their licence are Wera’s files, byte for byte — and Nunito is gone', () => {
+    for (const file of ['ArchivoSemiExpanded-ExtraBold.ttf', 'ArchivoCondensed-Bold.ttf', 'OFL-Archivo.txt']) {
+      expect(bytes(`cocina/src/marca/letras/${file}`), file).toBe(bytes(`app/src/marca/letras/${file}`));
+    }
+    expect(readdirSync(join(SRC, 'marca/letras')).sort()).toEqual(readdirSync(join(ROOT, 'app/src/marca/letras')).sort());
+    for (const file of files) expect(file.text, file.name).not.toMatch(/Nunito-ExtraBold\.ttf/);
   });
 
-  it('`@/theme/letra` is Itacate’s code, comments aside', () => {
+  it('`@/theme/letra` and `@/marca/fuentes` are Wera’s code, comments aside', () => {
     const fold = (text: string) => text.replace(/^\s*\/\/.*$/gm, '').replace(/\/\*\*[\s\S]*?\*\//g, '').replace(/\s+/g, ' ').trim();
-    expect(fold(read('theme/letra.ts'))).toBe(fold(readFileSync(join(ROOT, 'itacate/src/theme/letra.ts'), 'utf8')));
+    expect(fold(read('theme/letra.ts'))).toBe(fold(readFileSync(join(ROOT, 'app/src/theme/letra.ts'), 'utf8')));
+    expect(fold(read('marca/fuentes.ts'))).toBe(fold(readFileSync(join(ROOT, 'app/src/marca/fuentes.ts'), 'utf8')));
+    // And a heading's first letter the way Wera capitalises one that arrives built.
+    expect(fold(read('format/oracion.ts'))).toBe(fold(readFileSync(join(ROOT, 'app/src/format/oracion.ts'), 'utf8')));
   });
 
   it('loaded before any screen draws, and a failed load never holds the app', () => {
     const root = code('app/_layout.tsx');
+    expect(root).toMatch(/import \{ FUENTES \} from '@\/marca\/fuentes';/);
     expect(root).toMatch(/const \[fontsReady, fontError\] = useFonts\(FUENTES\);/);
     expect(root).toMatch(/if \(!fontsReady && fontError === null\) return null;/);
   });
 
+  it('a title at the title’s size says its line — `letraTitulo(SIZE)`, never the size alone beside the face', () => {
+    // ⚠️ Archivo's line box is not Nunito's: a title at `titleSize` with no line moves its header.
+    for (const file of files) expect(file.text, file.name).not.toMatch(/fontSize: SIZE\.titleSize, \.\.\.TITULO/);
+  });
+
+  it('the spaced capitals are headings — no `uppercase` anywhere, the words written in sentence case in `@/strings`', () => {
+    for (const file of files) expect(file.text, file.name).not.toMatch(/textTransform: 'uppercase'/);
+  });
+
   it('every title wears it — the band, and her kitchen’s name on her page’s head — with no weight beside it', () => {
-    expect(code('ui/Banda.tsx')).toMatch(/accessibilityRole="header" style=\{\{ fontSize: SIZE\.titleSize, \.\.\.TITULO, color: PALETTE\.tinta \}\}/);
+    expect(code('ui/Banda.tsx')).toMatch(/accessibilityRole="header" style=\{\{ \.\.\.letraTitulo\(SIZE\), color: PALETTE\.tinta \}\}/);
     expect(code('ui/Portada.tsx')).toMatch(/style=\{\{ fontSize: SIZE\.bodySize \+ 1, \.\.\.TITULO, color: PALETTE\.tinta \}\}>\s*\{nombre\}/);
     for (const file of files) {
-      expect(file.text, file.name).not.toMatch(/\.\.\.TITULO[^}]*fontWeight|fontWeight[^}]*\.\.\.TITULO/);
+      expect(file.text, file.name).not.toMatch(/\.\.\.(TITULO|letra[A-Z]\w*\(SIZE\))[^}]*fontWeight|fontWeight[^}]*\.\.\.(TITULO|letra[A-Z]\w*\(SIZE\))/);
     }
   });
 
@@ -144,7 +160,7 @@ describe('Nunito titles — one file in both siblings, byte for byte (the ruling
     const itacate = (path: string) => readFileSync(join(ROOT, 'itacate/src', path), 'utf8');
     expect(itacate('ui/PaginaDeCocina.tsx')).toMatch(/accessibilityRole="header" style=\{\{ fontSize: SIZE\.titleSize - 2, \.\.\.TITULO, color: PALETTE\.tinta \}\}/);
     expect(itacate('ui/PaginaDePlatillo.tsx')).toMatch(
-      /accessibilityRole="header" style=\{\{ flexShrink: 1, fontSize: SIZE\.titleSize, \.\.\.TITULO, color: PALETTE\.tinta \}\}/,
+      /accessibilityRole="header" style=\{\{ flexShrink: 1, \.\.\.letraTitulo\(SIZE\), color: PALETTE\.tinta \}\}/,
     );
   });
 });

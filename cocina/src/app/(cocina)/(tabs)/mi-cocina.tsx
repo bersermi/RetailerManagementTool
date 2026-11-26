@@ -33,6 +33,7 @@ import { cuandoTexto } from '@/lib/recordatorio';
 import { SUPPORT_WHATSAPP } from '@/lib/supportWhatsapp';
 import { useDondeEstaSuCocina } from '@/lib/useGoogle';
 import { ES } from '@/strings';
+import { letraEncabezado } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
 import { Banda } from '@/ui/Banda';
 import { BotonLleno } from '@/ui/BotonLleno';
@@ -163,7 +164,7 @@ function MiCocinaDe({ kitchen, rol }: { kitchen: Kitchen; rol: Rol | null | unde
           }),
         );
 
-  const seccion = { fontSize: SIZE.smallSize, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase', color: PALETTE.tintaApagada } as const;
+  const seccion = { ...letraEncabezado(SIZE), color: PALETTE.tinta } as const;
   const quiet = { fontSize: SIZE.bodySize, color: PALETTE.tintaApagada } as const;
   const missing = { fontSize: SIZE.bodySize, fontWeight: '600', color: PALETTE.error } as const;
   const wheel = (
@@ -378,7 +379,7 @@ function MiCocinaDeAyudante({ kitchen }: { kitchen: Kitchen }) {
   const [hoja, setHoja] = useState(false);
   const cuenta = cuentaDe(session?.user);
   const numero = SUPPORT_WHATSAPP;
-  const seccion = { fontSize: SIZE.smallSize, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase', color: PALETTE.tintaApagada } as const;
+  const seccion = { ...letraEncabezado(SIZE), color: PALETTE.tinta } as const;
 
   return (
     <View style={{ flex: 1, backgroundColor: PALETTE.fondo }}>

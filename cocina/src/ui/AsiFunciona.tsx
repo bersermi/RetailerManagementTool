@@ -5,6 +5,7 @@ import { Pressable, Text, View } from 'react-native';
 import { asiFuncionaVisible, asiFuncionaVisto, useMemoria } from '@/lib/empujones';
 import { PASOS_DE, type Elegible } from '@/lib/loQueUsas';
 import { ES } from '@/strings';
+import { letraEncabezado } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
 
 // ============================================================================
@@ -37,7 +38,7 @@ export function AsiFunciona({ servicio, onCerrar }: { servicio: Elegible; onCerr
       }}
     >
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Text style={{ fontSize: SIZE.smallSize, fontWeight: '700', letterSpacing: 0.5, color: PALETTE.accion }}>
+        <Text style={{ ...letraEncabezado(SIZE), color: PALETTE.accion }}>
           {ES.asiFunciona.titulo}
         </Text>
         <Pressable

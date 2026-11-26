@@ -2,11 +2,11 @@ import type { ReactNode } from 'react';
 import { Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { TITULO } from '@/theme/letra';
+import { letraTitulo } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
 
 // ============================================================================
-// A TAB'S HEAD — ITS NAME IN NUNITO, A LINE OF STATE UNDER IT, AND AT MOST ONE THING
+// A TAB'S HEAD — ITS NAME IN ARCHIVO (NUNITO UNTIL `11.7-i`), A LINE OF STATE UNDER IT, AND AT MOST ONE THING
 // AT ITS RIGHT. Plan task `10.5-v-b`, the family-shell page's head (`.hd`): on the
 // screen's own cream, with no *Volver* — a tab is never closed. A screen pushed over
 // the tabs keeps `@/ui/Banda`, with its *Volver*.
@@ -16,6 +16,10 @@ import { PALETTE, SIZE } from '@/theme/palette';
 // screen's actions come after it. ⚠️ On *Cerca* it is the head of the sheet that slides
 // over the map (`10.5-iv-b-i`, the owner's C) — `enHoja`: under the sheet's handle, so
 // with no room for the phone's clock above it.
+//
+// ⚠️ `11.7-i`: THE NAME MAY TAKE TWO LINES. Archivo is wider than Nunito, and at the
+// iPhone's largest text it cut *Cerca de ti* to *Cerca d…* while held to one (found on
+// `11.5-ii`'s screens; the design system: *titles may take two lines*).
 // ============================================================================
 
 export function Cabeza({
@@ -45,8 +49,8 @@ export function Cabeza({
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: SIZE.rowGap, minHeight: 36 }}>
         <Text
           accessibilityRole="header"
-          numberOfLines={1}
-          style={{ flex: 1, fontSize: SIZE.titleSize, ...TITULO, color: PALETTE.tinta }}
+          numberOfLines={2}
+          style={{ flex: 1, ...letraTitulo(SIZE), color: PALETTE.tinta }}
         >
           {titulo}
         </Text>

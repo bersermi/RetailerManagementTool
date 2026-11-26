@@ -5,6 +5,7 @@ import { useElegirServicios, useServicios } from '@/api/hooks';
 import { construidos, detalleDe, filasDe, hayLoQueUsas, menuDe } from '@/lib/loQueUsas';
 import { useNota } from '@/lib/NotaProvider';
 import { ES } from '@/strings';
+import { letraEncabezado } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
 import { BotonLleno } from '@/ui/BotonLleno';
 import { FilaMenu, FilaServicio } from '@/ui/FilaServicio';
@@ -30,7 +31,7 @@ export function LoQueUsas({ kitchenId, i }: { kitchenId: string; i: number }) {
   const { elegir, busy } = useElegirServicios(kitchenId);
   const { avisar } = useNota();
 
-  const seccion = { fontSize: SIZE.smallSize, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase', color: PALETTE.tintaApagada } as const;
+  const seccion = { ...letraEncabezado(SIZE), color: PALETTE.tinta } as const;
   const titulo = <Text style={seccion}>{ES.loQueUsas.titulo}</Text>;
 
   if (servicios.data === undefined) {

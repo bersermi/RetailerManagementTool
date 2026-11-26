@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MENU_MAXIMO } from '@/api/servicios';
 import { ICONO_DE, revisarMenu } from '@/lib/loQueUsas';
 import { ES } from '@/strings';
-import { TITULO } from '@/theme/letra';
+import { letraTitulo } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
 import { BotonLleno } from '@/ui/BotonLleno';
 
@@ -106,7 +106,7 @@ export function HojaCuentanos({
             gap: SIZE.space,
           }}
         >
-          <Text accessibilityRole="header" style={{ fontSize: SIZE.titleSize, ...TITULO, color: PALETTE.tinta }}>
+          <Text accessibilityRole="header" style={{ ...letraTitulo(SIZE), color: PALETTE.tinta }}>
             {ES.cuentanos.titulo}
           </Text>
           <Text style={{ fontSize: SIZE.bodySize - 1, lineHeight: 20, color: PALETTE.tinta }}>{ES.cuentanos.texto}</Text>

@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useElegirServicios, useKitchen, useServicios } from '@/api/hooks';
 import { ICONO_DE, PREPARAR, filasDe, type Elegible } from '@/lib/loQueUsas';
 import { ES } from '@/strings';
-import { TITULO } from '@/theme/letra';
+import { TITULO, letraEncabezado } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
 import { Banda } from '@/ui/Banda';
 import { BotonLleno } from '@/ui/BotonLleno';
@@ -121,7 +121,7 @@ export default function Activar() {
           i={1}
           style={{ backgroundColor: PALETTE.superficie, borderWidth: 1, borderColor: PALETTE.linea, borderRadius: 14, padding: SIZE.space, gap: 4 }}
         >
-          <Text style={{ fontSize: SIZE.smallSize, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase', color: PALETTE.tintaApagada }}>
+          <Text style={{ ...letraEncabezado(SIZE), color: PALETTE.tinta }}>
             {ES.loQueUsas.loQueTePide}
           </Text>
           <Text style={{ fontSize: SIZE.bodySize, fontWeight: '600', color: PALETTE.tinta }}>{ES.loQueUsas.pide[x]}</Text>

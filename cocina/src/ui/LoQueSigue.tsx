@@ -4,6 +4,7 @@ import { Pressable, Text, View } from 'react-native';
 import { formatMXN } from '@/format/mxn';
 import { horaTexto, prontoTexto, queTexto, type Orden } from '@/lib/apartados';
 import { ES } from '@/strings';
+import { letraEncabezado } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
 import { Accion } from '@/ui/TarjetaOrden';
 
@@ -37,7 +38,7 @@ export function LoQueSigue({
   );
   return (
     <View style={{ gap: SIZE.rowGap, padding: SIZE.space * 1.25, borderRadius: SIZE.space * 1.25, borderWidth: 1, borderColor: PALETTE.linea, backgroundColor: PALETTE.superficie }}>
-      <Text style={{ fontSize: SIZE.smallSize, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase', color: PALETTE.tintaApagada }}>
+      <Text style={{ ...letraEncabezado(SIZE), color: PALETTE.tinta }}>
         {ES.loQueSigue.titulo}
       </Text>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: SIZE.space }}>

@@ -11,6 +11,7 @@ import { useNota } from '@/lib/NotaProvider';
 import { useAhora } from '@/lib/useAhora';
 import { useRepetir } from '@/lib/useRepetir';
 import { ES } from '@/strings';
+import { letraEncabezado } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
 import { Anterior } from '@/ui/Anterior';
 import { Banda } from '@/ui/Banda';
@@ -56,7 +57,7 @@ export default function TusOfertas() {
 
   const volver = () => (router.canGoBack() ? router.back() : router.replace('/'));
   const quiet = { fontSize: SIZE.bodySize, color: PALETTE.tintaApagada } as const;
-  const seccion = { fontSize: SIZE.smallSize, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase', color: PALETTE.tintaApagada } as const;
+  const seccion = { ...letraEncabezado(SIZE), color: PALETTE.tinta } as const;
 
   async function terminar(listing: Listing) {
     setProblema(null);

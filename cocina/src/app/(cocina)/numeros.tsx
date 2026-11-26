@@ -23,6 +23,7 @@ import {
 } from '@/lib/numeros';
 import { useAhora } from '@/lib/useAhora';
 import { ES } from '@/strings';
+import { FAMILIA_NUMERO } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
 import { AsiFunciona, useAsiFunciona } from '@/ui/AsiFunciona';
 import { Banda } from '@/ui/Banda';
@@ -195,7 +196,7 @@ function Tarjeta({ respuesta, onCambiar }: { respuesta: Respuesta; onCambiar?: (
         style={{ gap: 2, padding: SIZE.space }}
       >
         <Text style={{ fontSize: SIZE.smallSize, fontWeight: '700', color: PALETTE.tintaApagada }}>{respuesta.pregunta}</Text>
-        <Text style={{ fontSize: SIZE.titleSize + 4, fontWeight: '800', color: PALETTE.tinta }}>{respuesta.respuesta}</Text>
+        <Text style={{ fontSize: SIZE.titleSize + 4, lineHeight: SIZE.titleSize + 8, fontFamily: FAMILIA_NUMERO, fontVariant: ['tabular-nums'], color: PALETTE.tinta }}>{respuesta.respuesta}</Text>
         <Text style={{ fontSize: SIZE.smallSize, lineHeight: 18, color: PALETTE.tintaApagada }}>{respuesta.detalle}</Text>
         {respuesta.barra !== null && (
           <View style={{ marginTop: 6, height: 8, borderRadius: 4, backgroundColor: PALETTE.accionSuave, overflow: 'hidden' }}>
@@ -251,7 +252,7 @@ function Resumen({ numeros }: { numeros: readonly DelResumen[] }) {
             backgroundColor: PALETTE.superficie,
           }}
         >
-          <Text style={{ fontSize: SIZE.titleSize + 4, fontWeight: '800', color: PALETTE.tinta }}>{n.cifra}</Text>
+          <Text style={{ fontSize: SIZE.titleSize + 4, lineHeight: SIZE.titleSize + 8, fontFamily: FAMILIA_NUMERO, fontVariant: ['tabular-nums'], color: PALETTE.tinta }}>{n.cifra}</Text>
           <Text style={{ fontSize: SIZE.smallSize, fontWeight: '600', color: PALETTE.tinta }}>{n.que}</Text>
           <Text style={{ fontSize: SIZE.smallSize - 1.6, color: PALETTE.tintaApagada, textAlign: 'center' }}>{n.antes}</Text>
         </View>

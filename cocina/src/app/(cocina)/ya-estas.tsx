@@ -10,7 +10,7 @@ import { cocinaComoLaVen, seVeEnItacate } from '@/lib/comoLaVen';
 import { useAhora } from '@/lib/useAhora';
 import { useLoQueVen } from '@/lib/useLoQueVen';
 import { ES } from '@/strings';
-import { TITULO } from '@/theme/letra';
+import { letraTitulo } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
 import { BotonLleno } from '@/ui/BotonLleno';
 import { Llega } from '@/ui/Llega';
@@ -100,7 +100,7 @@ export default function YaEstas() {
         style={{ paddingTop: insets.top + SIZE.space, paddingHorizontal: SIZE.space * 2, paddingBottom: SIZE.space, gap: SIZE.rowGap / 2, alignItems: 'center' }}
       >
         {seVe && <MaterialCommunityIcons name="check-circle" size={SIZE.iconSize * 1.5} color={PALETTE.accion} />}
-        <Text accessibilityRole="header" style={{ fontSize: SIZE.titleSize, ...TITULO, color: PALETTE.tinta, textAlign: 'center' }}>
+        <Text accessibilityRole="header" style={{ ...letraTitulo(SIZE), color: PALETTE.tinta, textAlign: 'center' }}>
           {seVe ? ES.primera.yaEsta : ES.primera.asiTeVeran}
         </Text>
         <Text style={{ fontSize: SIZE.smallSize, lineHeight: 19, color: PALETTE.tintaApagada, textAlign: 'center' }}>

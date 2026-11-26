@@ -8,6 +8,7 @@ import { colorOf } from '@/api/pagina';
 import { condicionesDeCocina, enFrase, vistaDe } from '@/lib/tarjeta';
 import { ES } from '@/strings';
 import { HUES } from '@/theme/colores';
+import { letraEncabezado } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
 import { BotonLleno } from '@/ui/BotonLleno';
 import { Circulo } from '@/ui/Circulo';
@@ -38,7 +39,7 @@ export function SeccionTarjeta({ cocina }: { cocina: Kitchen }) {
   const hue = HUES[colorOf(cocina.page, cocina.giro)];
   const escanear = () => router.push({ pathname: '/escanear', params: { cocina: cocina.id } });
   const miCodigo = () => router.push('/mi-codigo');
-  const titulo = { fontSize: SIZE.smallSize, fontWeight: '800', letterSpacing: 1, textTransform: 'uppercase', color: hue } as const;
+  const titulo = { ...letraEncabezado(SIZE), color: PALETTE.tinta } as const;
 
   return (
     <View style={{ gap: SIZE.rowGap }}>

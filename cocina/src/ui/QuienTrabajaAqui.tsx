@@ -7,6 +7,7 @@ import { useAuth } from '@/auth/AuthProvider';
 import { podraTexto, quitarTexto } from '@/lib/ayudante';
 import { useNota } from '@/lib/NotaProvider';
 import { ES } from '@/strings';
+import { letraEncabezado } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
 import { Fila } from '@/ui/Fila';
 import { Grupo } from '@/ui/Grupo';
@@ -41,7 +42,7 @@ export function QuienTrabajaAqui({ kitchenId, cocina, rol }: { kitchenId: string
 
   const personas = equipoDe(equipo.data, session?.user.id ?? null);
 
-  const seccion = { fontSize: SIZE.smallSize, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase', color: PALETTE.tintaApagada } as const;
+  const seccion = { ...letraEncabezado(SIZE), color: PALETTE.tinta } as const;
 
   async function confirmar(persona: Persona): Promise<string | null> {
     const problema = await quitar(persona.userId);

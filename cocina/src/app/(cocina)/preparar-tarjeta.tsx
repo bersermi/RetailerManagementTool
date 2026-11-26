@@ -24,7 +24,7 @@ import {
   type Borrador,
 } from '@/lib/tarjeta';
 import { ES } from '@/strings';
-import { TITULO } from '@/theme/letra';
+import { TITULO, letraEncabezado } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
 import { Banda } from '@/ui/Banda';
 import { BotonLleno } from '@/ui/BotonLleno';
@@ -216,7 +216,7 @@ export default function PrepararTarjeta() {
           }}
         />
         <View style={{ gap: SIZE.rowGap, padding: SIZE.space, borderRadius: 16, borderWidth: 1, borderColor: PALETTE.linea, backgroundColor: PALETTE.superficie }}>
-          <Text style={{ fontSize: SIZE.smallSize, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase', color: PALETTE.tintaApagada }}>
+          <Text style={{ ...letraEncabezado(SIZE), color: PALETTE.tinta }}>
             {ES.prepararTarjeta.asiLaVeran}
           </Text>
           <TarjetaDeLealtad

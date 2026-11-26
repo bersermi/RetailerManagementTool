@@ -114,9 +114,18 @@ describe('the icon', () => {
 });
 
 describe('the launch screen', () => {
-  it('is this app’s own cow, on the app’s cream', () => {
+  it('is this app’s own cow, on Wera’s launch cream — which `11.11` moves, for the three apps at once', () => {
     expect(splash?.image).toBe('./assets/images/splash-icon.png');
-    expect(splash?.backgroundColor).toBe(PALETTE.fondo);
+    // ⚠️ `11.7-i`: THE SCREENS ARE THE COUNTER'S GREY SINCE THEN (`PALETTE.fondo`) AND THIS STAYS B'S CREAM, ON
+    // PURPOSE. The launch screen is native — a new runtime — and Wera's keeps the same cream since `11.6` for the
+    // same reason; `11.11` sets all three apps' together, a look the owner sees first. So a cold start shows the
+    // cream, then the opening on the grey, as Wera's does. Held to Wera's value, so the two cannot drift.
+    const wera = JSON.parse(readFileSync(new URL('../../app/app.json', import.meta.url), 'utf8')).expo;
+    const weraSplash = (wera.plugins as unknown[]).find(
+      (p): p is [string, { backgroundColor: string }] => Array.isArray(p) && p[0] === 'expo-splash-screen',
+    );
+    expect(splash?.backgroundColor).toBe(weraSplash?.[1].backgroundColor);
+    expect(splash?.backgroundColor, 'the launch screen moved: `11.11`’s, with the other two apps').not.toBe(PALETTE.fondo);
   });
 
   it('is the cow in this app’s green on nothing, so the cream shows round it and through it', () => {

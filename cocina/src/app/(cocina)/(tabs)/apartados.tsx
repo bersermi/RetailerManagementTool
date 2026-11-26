@@ -7,6 +7,7 @@ import type { Kitchen } from '@/api/kitchen';
 import { deHoy, historial, ordenesDe, porCalificar, porEntregar, type Orden } from '@/lib/apartados';
 import { useAhora } from '@/lib/useAhora';
 import { ES } from '@/strings';
+import { letraEncabezado } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
 import { useTerminos } from '@/ui/AntesDeCalificar';
 import { Banda } from '@/ui/Banda';
@@ -62,7 +63,7 @@ function ApartadosDe({ kitchen }: { kitchen: Kitchen }) {
   const terminos = useTerminos();
 
   const quiet = { fontSize: SIZE.bodySize, color: PALETTE.tintaApagada } as const;
-  const seccion = { fontSize: SIZE.smallSize, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase', color: PALETTE.tintaApagada } as const;
+  const seccion = { ...letraEncabezado(SIZE), color: PALETTE.tinta } as const;
 
   const abrir = (orden: Orden) => router.push({ pathname: '/apartado/[id]', params: { id: orden.id } });
 
