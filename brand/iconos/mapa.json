@@ -52,9 +52,10 @@
     "camion-reparto": {
       "codigo": "E002",
       "reemplaza": [
-        "truck-delivery"
+        "truck-delivery",
+        "truck-delivery-outline"
       ],
-      "donde": "Wera: la pestaña Comprar y su puerta en Inicio"
+      "donde": "Wera: la pestaña Comprar y su puerta en Inicio; una compra, en los documentos"
     },
     "canasta-menos": {
       "codigo": "E003",
@@ -73,9 +74,10 @@
     "boleto": {
       "codigo": "E005",
       "reemplaza": [
-        "ticket-confirmation-outline"
+        "ticket-confirmation-outline",
+        "ticket-outline"
       ],
-      "donde": "Wera Cocina: la pestaña Apartados; Itacate: su apartado"
+      "donde": "Wera Cocina: la pestaña Apartados; Itacate: su apartado; Wera Cocina: cada entrega cuenta, en Así funciona"
     },
     "puesto": {
       "codigo": "E006",
@@ -265,6 +267,527 @@
         "wifi-off"
       ],
       "donde": "Wera Cocina: sin señal, en Hoy"
+    },
+    "palomita": {
+      "codigo": "E021",
+      "reemplaza": [
+        "check"
+      ],
+      "donde": "Las tres apps: guardar y aprobar en sus botones, y un código leído; Wera Cocina: Ya la serví y Ya cobré al entregar"
+    },
+    "menos": {
+      "codigo": "E022",
+      "reemplaza": [
+        "minus"
+      ],
+      "donde": "Wera: quitar uno, en Cantidad; Wera Cocina: menos, en su oferta y en el horario"
+    },
+    "flecha-izquierda": {
+      "codigo": "E023",
+      "reemplaza": [
+        "chevron-left"
+      ],
+      "donde": "Wera Cocina e Itacate: Atrás, en la página de una cocina y de un platillo"
+    },
+    "flecha-abajo": {
+      "codigo": "E024",
+      "reemplaza": [
+        "chevron-down"
+      ],
+      "donde": "Wera: abrir un documento, y una opción de Merma; Itacate: abrir las formas de pago al apartar"
+    },
+    "flecha-arriba": {
+      "codigo": "E025",
+      "reemplaza": [
+        "chevron-up"
+      ],
+      "donde": "Wera: cerrar un documento abierto; Itacate: cerrar las formas de pago"
+    },
+    "flecha-doble-derecha": {
+      "codigo": "E026",
+      "reemplaza": [
+        "chevron-double-right"
+      ],
+      "donde": "Wera: deslizar para cobrar; Itacate: deslizar Ya lo tengo"
+    },
+    "sube": {
+      "codigo": "E027",
+      "reemplaza": [
+        "arrow-up"
+      ],
+      "donde": "Wera: vendiste más, en Números"
+    },
+    "baja": {
+      "codigo": "E028",
+      "reemplaza": [
+        "arrow-down"
+      ],
+      "donde": "Wera: vendiste menos, en Números"
+    },
+    "circulo": {
+      "codigo": "E029",
+      "reemplaza": [
+        "circle-outline",
+        "radiobox-blank"
+      ],
+      "donde": "Wera: una opción sin elegir (Ajustes, Solicitudes, un producto nuevo); Wera Cocina: un giro sin elegir"
+    },
+    "palomita-circulo-llena": {
+      "codigo": "E02A",
+      "reemplaza": [
+        "check-circle"
+      ],
+      "donde": "Las tres apps: una opción elegida, y listo (un servicio activado, la tarjeta preparada, un apartado hecho)"
+    },
+    "cerrar-circulo-lleno": {
+      "codigo": "E02B",
+      "reemplaza": [
+        "close-circle"
+      ],
+      "donde": "Wera Cocina: borrar lo escrito en el buscador"
+    },
+    "alerta-circulo": {
+      "codigo": "E02C",
+      "reemplaza": [
+        "alert-circle-outline"
+      ],
+      "donde": "Wera Cocina e Itacate: un código que no sirve, al escanear y al sellar"
+    },
+    "info-circulo": {
+      "codigo": "E02D",
+      "reemplaza": [
+        "information-outline"
+      ],
+      "donde": "Wera: una venta que no se pudo, en Vender; Wera Cocina e Itacate: lo que dice el escáner"
+    },
+    "play-circulo": {
+      "codigo": "E02E",
+      "reemplaza": [
+        "play-circle-outline"
+      ],
+      "donde": "Wera: ver el recorrido otra vez, en Ajustes"
+    },
+    "radio-marcado": {
+      "codigo": "E02F",
+      "reemplaza": [
+        "radiobox-marked"
+      ],
+      "donde": "Wera Cocina: el giro elegido"
+    },
+    "mira-ubicacion": {
+      "codigo": "E030",
+      "reemplaza": [
+        "crosshairs-gps"
+      ],
+      "donde": "Itacate: usar mi ubicación, en Cerca y en el mapa"
+    },
+    "casilla": {
+      "codigo": "E031",
+      "reemplaza": [
+        "checkbox-blank-outline"
+      ],
+      "donde": "Las tres apps: una casilla sin marcar"
+    },
+    "casilla-marcada": {
+      "codigo": "E032",
+      "reemplaza": [
+        "checkbox-marked"
+      ],
+      "donde": "Las tres apps: una casilla marcada"
+    },
+    "estrella": {
+      "codigo": "E033",
+      "reemplaza": [
+        "star-outline"
+      ],
+      "donde": "Itacate: una estrella sin dar, al calificar; Wera Cocina: Tus calificaciones, en Mi cocina"
+    },
+    "estrella-llena": {
+      "codigo": "E034",
+      "reemplaza": [
+        "star"
+      ],
+      "donde": "Itacate: las estrellas dadas, y las de una cocina y de un platillo; Wera: el catálogo recomendado"
+    },
+    "corazon-lleno": {
+      "codigo": "E035",
+      "reemplaza": [
+        "heart"
+      ],
+      "donde": "Itacate: ya la sigues (Seguir); el corazón de Mis cocinas, lleno"
+    },
+    "campana-llena": {
+      "codigo": "E036",
+      "reemplaza": [
+        "bell"
+      ],
+      "donde": "Itacate: te avisa de esta cocina (Seguir, Mis cocinas); la misma campana, llena"
+    },
+    "campana-suena": {
+      "codigo": "E037",
+      "reemplaza": [
+        "bell-ring-outline"
+      ],
+      "donde": "Wera Cocina: los avisos de sus apartados; Itacate: un aviso que pediste"
+    },
+    "campana-apagada": {
+      "codigo": "E038",
+      "reemplaza": [
+        "bell-off-outline"
+      ],
+      "donde": "Itacate: sin avisos, en Notificaciones"
+    },
+    "pin-tachado": {
+      "codigo": "E039",
+      "reemplaza": [
+        "map-marker-off-outline"
+      ],
+      "donde": "Itacate: tu ubicación no se guarda, en Lo que ven"
+    },
+    "puesto-cerrado": {
+      "codigo": "E03A",
+      "reemplaza": [
+        "store-off-outline"
+      ],
+      "donde": "Itacate: una cocina que ya no está, en Mis cocinas"
+    },
+    "persona": {
+      "codigo": "E03B",
+      "reemplaza": [
+        "account-outline"
+      ],
+      "donde": "Las tres apps: tu nombre y tu cuenta (Ajustes, Mi cocina, Tú)"
+    },
+    "persona-mas": {
+      "codigo": "E03C",
+      "reemplaza": [
+        "account-plus",
+        "account-plus-outline"
+      ],
+      "donde": "Wera: invitar a alguien, en Ajustes; Wera Cocina: invitar a quien trabaja aquí"
+    },
+    "persona-palomita": {
+      "codigo": "E03D",
+      "reemplaza": [
+        "account-check"
+      ],
+      "donde": "Wera: aprobar una solicitud"
+    },
+    "persona-reloj": {
+      "codigo": "E03E",
+      "reemplaza": [
+        "account-clock-outline"
+      ],
+      "donde": "Wera: una solicitud que espera (Ajustes, Solicitudes)"
+    },
+    "personas": {
+      "codigo": "E03F",
+      "reemplaza": [
+        "account-group-outline"
+      ],
+      "donde": "Wera: tu equipo, en Ajustes; Wera Cocina: unirme a una cocina, y cuántos vecinos regresan"
+    },
+    "escudo-persona": {
+      "codigo": "E040",
+      "reemplaza": [
+        "shield-account-outline"
+      ],
+      "donde": "Wera: tu cuenta, en Ajustes"
+    },
+    "escudo-candado": {
+      "codigo": "E041",
+      "reemplaza": [
+        "shield-lock-outline"
+      ],
+      "donde": "Wera Cocina e Itacate: tu privacidad, en Mi cocina y en Tú"
+    },
+    "candado": {
+      "codigo": "E042",
+      "reemplaza": [
+        "lock-outline"
+      ],
+      "donde": "Wera: lo que se abre con más días, en Números"
+    },
+    "llave": {
+      "codigo": "E043",
+      "reemplaza": [
+        "key-outline"
+      ],
+      "donde": "Wera: entrar con una invitación, al empezar"
+    },
+    "lupa": {
+      "codigo": "E044",
+      "reemplaza": [
+        "magnify"
+      ],
+      "donde": "Las tres apps: buscar"
+    },
+    "lapiz": {
+      "codigo": "E045",
+      "reemplaza": [
+        "pencil",
+        "pencil-outline"
+      ],
+      "donde": "Wera: corregir (Vender, Ajustes); Wera Cocina: editar tu página"
+    },
+    "compartir": {
+      "codigo": "E046",
+      "reemplaza": [
+        "share-variant",
+        "share-variant-outline"
+      ],
+      "donde": "Wera: compartir una invitación; Wera Cocina: compartir tu cartel"
+    },
+    "controles": {
+      "codigo": "E047",
+      "reemplaza": [
+        "tune-variant"
+      ],
+      "donde": "Wera Cocina: ajustes de los apartados, en Mi cocina"
+    },
+    "bote": {
+      "codigo": "E048",
+      "reemplaza": [
+        "delete-outline"
+      ],
+      "donde": "Wera: Tirar, en Merma"
+    },
+    "reloj": {
+      "codigo": "E049",
+      "reemplaza": [
+        "clock-outline"
+      ],
+      "donde": "Wera Cocina e Itacate: la hora de recoger, en un platillo"
+    },
+    "historial": {
+      "codigo": "E04A",
+      "reemplaza": [
+        "history"
+      ],
+      "donde": "Wera: lo de la última vez, en Merma"
+    },
+    "reabrir": {
+      "codigo": "E04B",
+      "reemplaza": [
+        "restore"
+      ],
+      "donde": "Wera Cocina: abrir otra vez la tarjeta de lealtad"
+    },
+    "calendario": {
+      "codigo": "E04C",
+      "reemplaza": [
+        "calendar-blank-outline"
+      ],
+      "donde": "Wera Cocina: hasta cuándo, en una promoción nueva"
+    },
+    "calendario-estrella": {
+      "codigo": "E04D",
+      "reemplaza": [
+        "calendar-star"
+      ],
+      "donde": "Wera Cocina e Itacate: la promoción de un día"
+    },
+    "teclado": {
+      "codigo": "E04E",
+      "reemplaza": [
+        "dialpad"
+      ],
+      "donde": "Wera Cocina: escribir otro código, al entregar"
+    },
+    "borrar-tecla": {
+      "codigo": "E04F",
+      "reemplaza": [
+        "backspace-outline"
+      ],
+      "donde": "Wera Cocina: borrar una cifra, en el teclado"
+    },
+    "ojo": {
+      "codigo": "E050",
+      "reemplaza": [
+        "eye-outline"
+      ],
+      "donde": "Las tres apps: ver la contraseña; Wera Cocina: ver cómo la ven; Itacate: lo que ven de ti"
+    },
+    "ojo-tachado": {
+      "codigo": "E051",
+      "reemplaza": [
+        "eye-off-outline"
+      ],
+      "donde": "Las tres apps: ocultar la contraseña"
+    },
+    "billete": {
+      "codigo": "E052",
+      "reemplaza": [
+        "cash"
+      ],
+      "donde": "Wera Cocina e Itacate: pago en efectivo, y el precio de un platillo"
+    },
+    "billetes": {
+      "codigo": "E053",
+      "reemplaza": [
+        "cash-multiple"
+      ],
+      "donde": "Wera Cocina: cómo te pagan, en Mi cocina"
+    },
+    "tarjeta-banco": {
+      "codigo": "E054",
+      "reemplaza": [
+        "credit-card-outline"
+      ],
+      "donde": "Wera Cocina e Itacate: pago con tarjeta"
+    },
+    "transferencia": {
+      "codigo": "E055",
+      "reemplaza": [
+        "bank-transfer"
+      ],
+      "donde": "Wera Cocina e Itacate: pago por transferencia"
+    },
+    "etiqueta": {
+      "codigo": "E056",
+      "reemplaza": [
+        "tag-outline"
+      ],
+      "donde": "Wera Cocina: tus ofertas llevan su marca, en Así funciona; Itacate: un aviso de promoción"
+    },
+    "bolsa": {
+      "codigo": "E057",
+      "reemplaza": [
+        "shopping-outline"
+      ],
+      "donde": "Wera Cocina e Itacate: para llevar"
+    },
+    "cubiertos": {
+      "codigo": "E058",
+      "reemplaza": [
+        "silverware-fork-knife"
+      ],
+      "donde": "Wera Cocina e Itacate: para comer aquí, y los apartados en Tus números; Wera: Ofrecer a una fonda, en Merma"
+    },
+    "regalo": {
+      "codigo": "E059",
+      "reemplaza": [
+        "gift-outline"
+      ],
+      "donde": "Wera Cocina e Itacate: el premio de la tarjeta de lealtad, y una promoción para tus clientes"
+    },
+    "hoja-arbol": {
+      "codigo": "E05A",
+      "reemplaza": [
+        "leaf"
+      ],
+      "donde": "Wera Cocina e Itacate: la promoción de temporada"
+    },
+    "hoja-texto": {
+      "codigo": "E05B",
+      "reemplaza": [
+        "file-document-outline"
+      ],
+      "donde": "Wera Cocina: tu cartel, en la tarjeta de lealtad"
+    },
+    "imagen": {
+      "codigo": "E05C",
+      "reemplaza": [
+        "image-outline"
+      ],
+      "donde": "Wera Cocina: elegir una foto"
+    },
+    "impresora": {
+      "codigo": "E05D",
+      "reemplaza": [
+        "printer-outline"
+      ],
+      "donde": "Wera Cocina: imprimir tu cartel"
+    },
+    "tamano-letra": {
+      "codigo": "E05E",
+      "reemplaza": [
+        "format-size"
+      ],
+      "donde": "Wera: Letra grande, en Ajustes"
+    },
+    "cuadricula": {
+      "codigo": "E05F",
+      "reemplaza": [
+        "view-grid",
+        "view-grid-outline"
+      ],
+      "donde": "Wera: Productos en cuadrícula, y un producto sin foto ni iniciales"
+    },
+    "lista": {
+      "codigo": "E060",
+      "reemplaza": [
+        "view-list"
+      ],
+      "donde": "Wera: Productos en lista"
+    },
+    "ordenar": {
+      "codigo": "E061",
+      "reemplaza": [
+        "sort"
+      ],
+      "donde": "Itacate: ordenar las cocinas"
+    },
+    "megafono": {
+      "codigo": "E062",
+      "reemplaza": [
+        "bullhorn-outline"
+      ],
+      "donde": "Wera Cocina: las novedades de Wera, si dijo que sí"
+    },
+    "escanear-qr": {
+      "codigo": "E063",
+      "reemplaza": [
+        "qrcode-scan"
+      ],
+      "donde": "Wera Cocina e Itacate: escanear un código"
+    },
+    "foco": {
+      "codigo": "E064",
+      "reemplaza": [
+        "lightbulb-on-outline"
+      ],
+      "donde": "Wera: una idea, en Números"
+    },
+    "pulgar-arriba": {
+      "codigo": "E065",
+      "reemplaza": [
+        "thumb-up-outline"
+      ],
+      "donde": "Itacate: tus calificaciones, en Lo que ven"
+    },
+    "puerta-abierta": {
+      "codigo": "E066",
+      "reemplaza": [
+        "door-open"
+      ],
+      "donde": "Wera: nadie espera, en Solicitudes"
+    },
+    "cerrar-sesion": {
+      "codigo": "E067",
+      "reemplaza": [
+        "logout"
+      ],
+      "donde": "Wera: Cerrar sesión, en Ajustes"
+    },
+    "salida": {
+      "codigo": "E068",
+      "reemplaza": [
+        "exit-run"
+      ],
+      "donde": "Wera Cocina: dejar de trabajar aquí, en Mi cocina"
+    },
+    "vaca": {
+      "codigo": "E069",
+      "reemplaza": [
+        "cow"
+      ],
+      "donde": "Wera Cocina e Itacate: cada sello de la tarjeta de lealtad — la vaca de Wera (brand/wera-mark.svg) en la línea"
     }
+  },
+  "marcas": {
+    "_": "A company's own mark is never ours to draw, and MaterialCommunityIcons' licence leaves its brand icons out (pictogrammers.com/docs/general/license, read 2026-11-26): each stays as the apps draw it today until row 11.10 settles how, by its owner's own rules. inventario.json marks it `marca: true`.",
+    "google": "Las tres apps: Entrar con Google",
+    "whatsapp": "Las tres apps: escribir por WhatsApp"
   }
 }

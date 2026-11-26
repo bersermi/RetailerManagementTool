@@ -1,5 +1,6 @@
 // ============================================================================
-// THE DRAWN ICONS AND THEIR FONT, CHECKED — Step 11, row 11.3-i (2026-11-21).
+// THE DRAWN ICONS AND THEIR FONT, CHECKED — Step 11, rows 11.3-i (2026-11-21)
+// and 11.3-ii (2026-11-26: the whole font, the cuts, the two marks).
 //
 // Reads, beside it: mapa.json (each drawing, its code point, the names it
 // replaces), the drawings (*.svg), WeraIconos.ttf and WeraIconos.json (built from
@@ -8,10 +9,12 @@
 // node_modules. Asserts, by group:
 //   1. the drawings and their map agree — a file per drawing and a drawing per
 //      file, one code point each in the Private Use Area, every name it replaces
-//      a real MaterialCommunityIcons glyph replaced once, and WeraIconos.json
-//      exactly the map mapa.json implies;
+//      a real MaterialCommunityIcons glyph replaced once, WeraIconos.json
+//      exactly the map mapa.json implies, and every mark (`marcas`) a real glyph
+//      no drawing replaces;
 //   2. every drawing keeps the line (README.md): the 24-unit grid, one stroke of
-//      2 with round ends and joins, ink only, no transform, no style;
+//      2 with round ends and joins, ink only, no transform, no style — and a
+//      cut (white) only over a solid part drawn before it;
 //   3. ⚠️ THE FONT SITS WHERE MaterialCommunityIcons' DOES — the same em, ascent,
 //      descent, line gap and Windows metrics, every glyph as wide as the em —
 //      so a glyph lands in the same box of the same <Text> on both platforms;
@@ -20,9 +23,14 @@
 //   5. ⚠️ THE FONT DRAWS ITS SOURCES: Chrome draws each SVG and its glyph in the
 //      same 96-pixel square, and their ink overlaps (intersection over union)
 //      — a glyph missing, misplaced, or not rebuilt after a drawing changed;
+//      and in a drawing with a cut, its holes (the ground the outside cannot
+//      reach) overlap too: a filled disc that lost its check still overlaps
+//      in ink (row 11.3-ii);
 //   6. the inventory is current, every drawing replaces a glyph some app names,
-//      and the first half is whole: every glyph the three tab bars, Wera's
-//      Inicio and Wera Cocina's Hoy name is drawn.
+//      the first half is whole — every glyph the three tab bars, Wera's Inicio
+//      and Wera Cocina's Hoy name is drawn — and ⚠️ SO IS THE FONT: every glyph
+//      the three apps draw is drawn here or is a company's own mark, none
+//      waiting (row 11.10's gate).
 //
 // It exits 1 on any failure. No workflow runs it (brand/ is read by none). Run:
 //   node brand/iconos/iconos.mjs
@@ -44,6 +52,7 @@ const MCI_MAPA = require('@expo/vector-icons/build/vendor/react-native-vector-ic
 const MCI_TTF = require.resolve('@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/MaterialCommunityIcons.ttf');
 const CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const UMBRAL = 0.9; // intersection over union of a glyph's ink and its drawing's, at 96 px
+const HUECO_MIN = 24; // pixels at 96 px (about 1.2 units square): a smaller hole is antialiasing's
 
 let fallos = 0;
 let grupo = 0;
@@ -76,6 +85,12 @@ abrir('the drawings and their map agree');
   const esperado = Object.fromEntries(dibujos.flatMap(([, d]) => d.reemplaza.map((n) => [n, parseInt(d.codigo, 16)])).sort(([a], [b]) => (a < b ? -1 : 1)));
   const escrito = JSON.parse(readFileSync(join(aqui, 'WeraIconos.json'), 'utf8'));
   afirmar(JSON.stringify(escrito) === JSON.stringify(esperado), `WeraIconos.json is the glyph map mapa.json implies (${Object.keys(esperado).length} names)`);
+  const marcas = Object.keys(mapa.marcas ?? {}).filter((k) => k !== '_');
+  const marcaFalsa = marcas.filter((n) => !Object.hasOwn(MCI_MAPA, n));
+  const marcaDibujada = marcas.filter((n) => reemplazos.includes(n));
+  afirmar(marcaFalsa.length === 0 && marcaDibujada.length === 0,
+    `each of the ${marcas.length} marks kept as their owners draw them (${marcas.join(', ')}) is a MaterialCommunityIcons glyph no drawing replaces` +
+    `${marcaFalsa.length ? ` — not a glyph: ${marcaFalsa.join(', ')}` : ''}${marcaDibujada.length ? ` — also drawn: ${marcaDibujada.join(', ')}` : ''}`);
 }
 
 // ---------------------------------------------------------------------------
@@ -101,8 +116,11 @@ abrir(`every drawing keeps the line — a ${linea.cuadricula}-unit grid, one str
     if (/stroke-line(cap|join)=/.test(sinRaiz)) malos.push(`${nombre}: a part with other ends or joins`);
     if (/\b(transform|style|class|opacity|fill-opacity|stroke-opacity|filter|mask|clip-path)=/.test(svg)) malos.push(`${nombre}: a transform, style or opacity`);
     for (const m of svg.matchAll(/\b(fill|stroke)="([^"]*)"/g)) {
-      if (!['#000', 'none'].includes(m[2])) malos.push(`${nombre}: ${m[1]}="${m[2]}" (ink is #000, or none)`);
+      if (!['#000', 'none', '#fff'].includes(m[2])) malos.push(`${nombre}: ${m[1]}="${m[2]}" (ink is #000, a cut #fff, or none)`);
     }
+    // A cut is a hole in a solid part, so a solid part comes first.
+    const corte = sinRaiz.search(/="#fff"/);
+    if (corte >= 0 && !/fill="#000"/.test(sinRaiz.slice(0, corte))) malos.push(`${nombre}: a cut (#fff) with no solid part drawn before it`);
   }
   afirmar(malos.length === 0, `all ${dibujos.length} drawings${malos.length ? ` — ${malos.join('; ')}` : ''}`);
 }
@@ -223,6 +241,9 @@ abrir(`the font draws its sources — each glyph's ink against its drawing's, in
   rmSync(dir, { recursive: true, force: true });
   const tinta = (x, y) => { const o = 4 * (y * png.width + x); return png.rgba[o] + png.rgba[o + 1] + png.rgba[o + 2] < 3 * 128; };
   const bajos = []; let peor = 1; let peorNombre = '';
+  const bajosFondo = []; let peorFondo = 1; let peorFondoNombre = '';
+  // The drawings with a cut (a part in white): their holes are the cut, compared on their own.
+  const conCorte = new Set(dibujos.map(([n]) => n).filter((n) => existsSync(join(aqui, `${n}.svg`)) && /="#fff"/.test(readFileSync(join(aqui, `${n}.svg`), 'utf8'))));
   dibujos.forEach(([nombre], i) => {
     const x0 = (i % POR_FILA) * CELDA; const y0 = Math.floor(i / POR_FILA) * CELDA;
     let ambos = 0; let alguno = 0; let a = 0; let f = 0;
@@ -233,12 +254,49 @@ abrir(`the font draws its sources — each glyph's ink against its drawing's, in
         if (s && g) ambos += 1; if (s || g) alguno += 1;
       }
     }
+    // The holes: ground the outside cannot reach — a ring's middle, a box's inside, a cut.
+    const huecos = (dy) => {
+      const fuera = new Uint8Array(LADO * LADO); const pila = [];
+      for (let k = 0; k < LADO; k += 1) pila.push([k, 0], [k, LADO - 1], [0, k], [LADO - 1, k]);
+      while (pila.length) {
+        const [x, y] = pila.pop();
+        if (x < 0 || y < 0 || x >= LADO || y >= LADO || fuera[y * LADO + x] || tinta(x0 + x, y0 + dy + y)) continue;
+        fuera[y * LADO + x] = 1;
+        pila.push([x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]);
+      }
+      const h = new Uint8Array(LADO * LADO);
+      for (let y = 0; y < LADO; y += 1) for (let x = 0; x < LADO; x += 1) h[y * LADO + x] = !fuera[y * LADO + x] && !tinta(x0 + x, y0 + dy + y) ? 1 : 0;
+      // A pocket under HUECO_MIN pixels is antialiasing's to open or close (where an
+      // arrowhead meets its arc, between a sparkle's points), not a shape: dropped.
+      const visto = new Uint8Array(LADO * LADO);
+      for (let k = 0; k < LADO * LADO; k += 1) {
+        if (!h[k] || visto[k]) continue;
+        const parte = []; const cola = [k]; visto[k] = 1;
+        while (cola.length) {
+          const q = cola.pop(); parte.push(q);
+          const x = q % LADO; const y = (q - x) / LADO;
+          for (const [nx, ny] of [[x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]]) {
+            const n = ny * LADO + nx;
+            if (nx >= 0 && ny >= 0 && nx < LADO && ny < LADO && h[n] && !visto[n]) { visto[n] = 1; cola.push(n); }
+          }
+        }
+        if (parte.length < HUECO_MIN) for (const q of parte) h[q] = 0;
+      }
+      return h;
+    };
+    const hs = huecos(0); const hg = huecos(filas * CELDA);
+    let fondoAmbos = 0; let fondoAlguno = 0;
+    for (let k = 0; k < LADO * LADO; k += 1) { if (hs[k] && hg[k]) fondoAmbos += 1; if (hs[k] || hg[k]) fondoAlguno += 1; }
     const iou = alguno ? ambos / alguno : 0;
+    const fondo = fondoAlguno ? fondoAmbos / fondoAlguno : 1; // no hole in either: nothing to compare
     if (a === 0 || f === 0 || iou < UMBRAL) bajos.push(`${nombre} ${iou.toFixed(3)}${f === 0 ? ' (the glyph drew nothing)' : ''}`);
+    if (conCorte.has(nombre) && fondo < UMBRAL) bajosFondo.push(`${nombre} ${fondo.toFixed(3)}`);
     if (iou < peor) { peor = iou; peorNombre = nombre; }
-    if (process.env.ICONOS_VER) console.log(`        ${nombre} ${iou.toFixed(3)}`);
+    if (conCorte.has(nombre) && fondo < peorFondo) { peorFondo = fondo; peorFondoNombre = nombre; }
+    if (process.env.ICONOS_VER) console.log(`        ${nombre} ${iou.toFixed(3)} ${fondo.toFixed(3)}`);
   });
   afirmar(bajos.length === 0, `all ${dibujos.length} — the lowest ${peor.toFixed(3)} (${peorNombre})${bajos.length ? ` — under: ${bajos.join(', ')}` : ''}`);
+  afirmar(conCorte.size > 0 && bajosFondo.length === 0, `the holes of the ${conCorte.size} drawings with a cut (${[...conCorte].join(', ')}): the cut is where it was drawn — the lowest ${peorFondo.toFixed(3)} (${peorFondoNombre})${bajosFondo.length ? ` — under: ${bajosFondo.join(', ')}` : ''}`);
 }
 
 // ---------------------------------------------------------------------------
@@ -273,7 +331,11 @@ abrir('the inventory is current, and the first half is whole');
       `${superficie}: all ${pide.size} glyphs drawn${sinDibujo.length ? ` — not drawn: ${sinDibujo.join(', ')}` : ''}${sinArchivo.length ? ` — no such file: ${sinArchivo.join(', ')}` : ''}`);
   }
   const total = Object.keys(inv).length;
-  console.log(`  ·     ${dibujado.size} of the ${total} glyphs the apps draw are drawn here; ${total - [...dibujado].filter((n) => inv[n]).length} wait for 11.3-ii`);
+  const marcas = new Set(Object.keys(mapa.marcas ?? {}).filter((k) => k !== '_'));
+  const esperan = Object.keys(inv).filter((g) => !dibujado.has(g) && !marcas.has(g));
+  afirmar(esperan.length === 0,
+    `the font is whole: ${total - esperan.length - [...marcas].filter((m) => inv[m]).length} of the ${total} glyphs the three apps draw are drawn here and ${[...marcas].filter((m) => inv[m]).length} are a company's own mark` +
+    (esperan.length ? ` — ${esperan.length} not drawn: ${esperan.join(', ')}` : ', none waiting'));
 }
 
 console.log(fallos ? `\n${fallos} assertion(s) FAILED` : `\nall ${grupo} assertion groups passed`);

@@ -10,7 +10,9 @@
 //
 // Writes brand/iconos/inventario.json: every glyph, the files that name it in
 // each app, and the drawing that replaces it (mapa.json), or null while it is
-// still MaterialCommunityIcons'. Prints the totals.
+// still MaterialCommunityIcons' — and `marca: true` on a company's own mark,
+// which is never ours to draw (mapa.json's `marcas`, row 11.3-ii). Prints the
+// totals.
 //
 //   node brand/iconos/inventario.mjs           # writes inventario.json
 //   node brand/iconos/inventario.mjs --check   # exits 1 if it would change
@@ -110,16 +112,20 @@ for (const app of APPS) {
   }
 }
 
-// Which drawing replaces each glyph: mapa.json, the drawings' own list.
-const mapaDibujos = JSON.parse(readFileSync(join(aqui, 'mapa.json'), 'utf8')).dibujos;
+// Which drawing replaces each glyph: mapa.json, the drawings' own list; and the
+// marks that stay their owners' (mapa.json's `marcas`).
+const mapaJson = JSON.parse(readFileSync(join(aqui, 'mapa.json'), 'utf8'));
+const mapaDibujos = mapaJson.dibujos;
 const dibujoDe = new Map();
 for (const [dibujo, d] of Object.entries(mapaDibujos)) for (const mci of d.reemplaza) dibujoDe.set(mci, dibujo);
+const marcas = new Set(Object.keys(mapaJson.marcas ?? {}).filter((k) => k !== '_'));
 
 const glifos = {};
 for (const nombre of [...porGlifo.keys()].sort()) {
   const deApp = porGlifo.get(nombre);
   glifos[nombre] = {
     dibujo: dibujoDe.get(nombre) ?? null,
+    ...(marcas.has(nombre) ? { marca: true } : {}),
     apps: Object.fromEntries(APPS.filter((a) => deApp[a]).map((a) => [a, [...deApp[a]].sort()])),
   };
 }
@@ -128,7 +134,7 @@ const archivos = new Set();
 for (const v of Object.values(glifos)) for (const fs of Object.values(v.apps)) for (const f of fs) archivos.add(f);
 
 const salida = {
-  _: 'Written by brand/iconos/inventario.mjs — do not edit by hand. Every MaterialCommunityIcons glyph a screen of the three apps names (tests excluded), the files that name it, and the drawing that replaces it (null: not drawn yet).',
+  _: 'Written by brand/iconos/inventario.mjs — do not edit by hand. Every MaterialCommunityIcons glyph a screen of the three apps names (tests excluded), the files that name it, and the drawing that replaces it (null: not drawn yet; marca: a company\'s own mark, never ours to draw).',
   glifos,
 };
 const texto = `${JSON.stringify(salida, null, 2)}\n`;
@@ -137,10 +143,11 @@ const destino = join(aqui, 'inventario.json');
 const cuenta = Object.keys(glifos).length;
 const porApp = Object.fromEntries(APPS.map((a) => [a, Object.values(glifos).filter((g) => g.apps[a]).length]));
 const dibujados = Object.values(glifos).filter((g) => g.dibujo).length;
+const deMarca = Object.values(glifos).filter((g) => g.marca).length;
 console.log(`${cuenta} distinct glyphs named in ${archivos.size} files — Wera ${porApp.app}, Wera Cocina ${porApp.cocina}, Itacate ${porApp.itacate}`);
-console.log(`${dibujados} of them drawn (${new Set(Object.values(glifos).map((g) => g.dibujo).filter(Boolean)).size} drawings); ${cuenta - dibujados} still MaterialCommunityIcons`);
-const sobran = [...dibujoDe.keys()].filter((n) => !glifos[n]);
-if (sobran.length) console.log(`⚠️ mapa.json replaces glyphs no app names: ${sobran.join(', ')}`);
+console.log(`${dibujados} of them drawn (${new Set(Object.values(glifos).map((g) => g.dibujo).filter(Boolean)).size} drawings), ${deMarca} a company's own mark; ${cuenta - dibujados - deMarca} still to draw`);
+const sobran = [...dibujoDe.keys(), ...marcas].filter((n) => !glifos[n]);
+if (sobran.length) console.log(`⚠️ mapa.json names glyphs no app names: ${sobran.join(', ')}`);
 
 if (process.argv.includes('--check')) {
   const antes = existsSync(destino) ? readFileSync(destino, 'utf8') : '';
