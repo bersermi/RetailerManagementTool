@@ -109,6 +109,15 @@ on:
       # inserts from the owner's runbook (*on 1*), under the version the app carries — and both suites hold the
       # sheet's text to that line (`cocina/test/push.test.ts`, `itacate/test/push.test.ts`).
       - "docs/runbooks/campaigns.sql"
+      # ⚠️ `11.7-i`, DIRECTION A IN BOTH APPS: each palette is `paleta.json`'s block, measured by each app's
+      # `test/palette.test.ts`, which also holds the sizes to Wera's `normal` row (`density.ts`); the font loader
+      # is Wera's code for code (`test/pestanas.test.ts`); and Wera Cocina's launch cream is held to Wera's
+      # `app.json` until `11.11` moves the three (`cocina/test/icon.test.ts`). Wera's font files and `letra.ts`
+      # are already above.
+      - "brand/mostrador/paleta.json"
+      - "app/src/theme/density.ts"
+      - "app/src/marca/fuentes.ts"
+      - "app/app.json"
       - "package.json"
       - "package-lock.json"
       - ".github/workflows/cocina-itacate.yml"
