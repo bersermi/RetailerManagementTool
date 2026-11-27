@@ -1632,9 +1632,12 @@ function Bloqueo({ missing }: { missing: number }) {
         backgroundColor: PALETTE.atencionSuave,
       }}
     >
+      {/* ⚠️ TWO LINES, NEVER CUT (`14.3`): at *Letra grande* one line read *Falta
+          el costo de 1 pro…* beside *Vaciar carrito* (seen on the Simulator) —
+          the sentence is the only thing saying why the slide is gone. */}
       <Text
-        numberOfLines={1}
-        style={{ fontSize: scale.bodySize * 0.9, fontWeight: '700', color: PALETTE.atencion }}
+        numberOfLines={2}
+        style={{ textAlign: 'center', fontSize: scale.bodySize * 0.9, fontWeight: '700', color: PALETTE.atencion }}
       >
         {ES.buy.blocked(missing)}
       </Text>

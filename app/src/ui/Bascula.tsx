@@ -75,7 +75,11 @@ export function Bascula({
   const sheet = (
     <View style={{ flex: 1 }}>
       <Velo label={ES.counter.cart.close} onPress={onClose} />
-      <View style={{ flex: 1, justifyContent: 'flex-end' }} pointerEvents="box-none">
+      {/* ⚠️ NEVER ABOVE THE STATUS BAR (`14.3`): Comprar's pad — two boxes, two
+          rows of chips — is taller than an iPhone at *Letra grande*, and inside
+          the Carrito's `Modal` its head went under the Dynamic Island (seen on
+          the Simulator). Held below the top inset, the sheet scrolls instead. */}
+      <View style={{ flex: 1, justifyContent: 'flex-end', paddingTop: insets.top }} pointerEvents="box-none">
         <ScrollView
           bounces={false}
           style={{ flexGrow: 0 }}

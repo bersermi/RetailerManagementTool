@@ -213,7 +213,11 @@ export function Baldosa({
         style={{
           // ⚠️ TWO LINES HELD EVEN WHEN THE NAME NEEDS ONE, so every row of the
           // grid is the same height and a scroll lands where the thumb expects.
-          minHeight: linea * 2,
+          // ⚠️ PLUS ITS TOP PADDING (`14.3`): `minHeight` counts the padding, so
+          // two lines alone left a one-line name half a gap short of a two-line
+          // one, and Comprar's line under it sat lower on some tiles than others
+          // (seen on the Simulator).
+          minHeight: linea * 2 + scale.rowGap / 2,
           lineHeight: linea,
           paddingHorizontal: scale.rowGap,
           paddingTop: scale.rowGap / 2,
