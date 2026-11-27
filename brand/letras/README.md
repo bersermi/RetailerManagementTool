@@ -7,7 +7,7 @@ Step 11, row `11.1` (2026-11-21). These are the sources; no app reads this folde
 files byte for byte, so `app.yml` fires on this folder; **Wera Cocina and Itacate since `11.7-i`**, held to
 Wera's copies (`cocina/test/pestanas.test.ts`, `itacate/test/pestanas.test.ts`). **Mansalva is Wera Cocina's and Itacate's since `11.7-ii`** — a kitchen's phrase only, in each app's
 `src/marca/frase/`, held to this folder's file byte for byte (`cocina/test/esquinas.test.ts`, `itacate/test/esquinas.test.ts`);
-the reward won (`premio`) is not drawn in it yet.
+and since `11.8-i` the reward won too (`premio`, 32/38: the neighbours' app's *¡Ganaste …!*).
 
 | File | For | Where it came from |
 |---|---|---|

@@ -7,6 +7,7 @@ import { ES } from '@/strings';
 import { HUES } from '@/theme/colores';
 import { PALETTE, SIZE } from '@/theme/palette';
 import { ESQUINA } from '@/theme/density';
+import { Etiqueta } from '@/ui/Mostrador';
 
 // ============================================================================
 // A DISH'S PRICE AND ITS TWO SMALL BADGES — what the list's card, a kitchen's page and
@@ -20,11 +21,18 @@ import { ESQUINA } from '@/theme/density';
 /** The price, the *vale* struck through, the saving on her colour. `grande` is the dish's own page. */
 export function Precio({ platillo, color, grande = false }: { platillo: Dish; color: ColorCode; grande?: boolean }) {
   const precio = precioTexto(platillo);
+  // ⚠️ `11.8-i`: A PRICE ON A LIST IS A TAG (`@/ui/Mostrador`'s `Etiqueta`, the design system's *Etiqueta*) — in
+  // the phone's face, as prices in lists stay; the dish's own page keeps its large price on the sheet, and the
+  // *vale* struck through and the saving stay beside it.
   return (
     <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: SIZE.rowGap }}>
-      <Text style={{ fontSize: grande ? SIZE.titleSize : SIZE.bodySize + 1, fontWeight: '800', color: PALETTE.tinta }}>
-        {precio.precio}
-      </Text>
+      {grande ? (
+        <Text style={{ fontSize: SIZE.titleSize, fontWeight: '800', color: PALETTE.tinta }}>{precio.precio}</Text>
+      ) : (
+        <Etiqueta>
+          <Text style={{ fontSize: SIZE.bodySize + 1, fontWeight: '800', color: PALETTE.tinta }}>{precio.precio}</Text>
+        </Etiqueta>
+      )}
       {precio.vale !== null && (
         <Text
           style={{
