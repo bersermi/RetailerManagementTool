@@ -1,7 +1,7 @@
 import * as Print from 'expo-print';
 import { router } from 'expo-router';
 import * as Sharing from 'expo-sharing';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -9,7 +9,8 @@ import { esDuena } from '@/api/equipo';
 import { useKitchen, useLogoDelCartel, usePage, usePlace, useSuRol, useTarjeta } from '@/api/hooks';
 import { colorOf, kitchenInitials } from '@/api/pagina';
 import { cartelHtml, direccionDeCocina, type DatosDelCartel } from '@/lib/cartel';
-import { direccionCorta, enFrase } from '@/lib/tarjeta';
+import { deviceStore } from '@/lib/store';
+import { cartelVisto, direccionCorta, enFrase } from '@/lib/tarjeta';
 import { ES } from '@/strings';
 import { HUES } from '@/theme/colores';
 import { TITULO } from '@/theme/letra';
@@ -50,6 +51,10 @@ export default function Cartel() {
   const [haciendo, setHaciendo] = useState<'imprimir' | 'compartir' | null>(null);
   const [problema, setProblema] = useState<string | null>(null);
 
+  // `10.9m`: she opened her poster — the card screen's *Cambiaste tu tarjeta: imprímelo otra vez* has said what it had to.
+  useEffect(() => {
+    if (kitchenId !== null) cartelVisto(deviceStore(), kitchenId);
+  }, [kitchenId]);
   const volver = () => (router.canGoBack() ? router.back() : router.replace('/tarjeta'));
   const banda = <Banda titulo={ES.cartel.titulo} antetitulo={kitchen?.displayName ?? null} volver={{ label: ES.cartel.volver, onPress: volver }} />;
 
@@ -87,7 +92,7 @@ export default function Cartel() {
     color: HUES[color],
     logo: logo.data ?? null,
     direccion,
-    tarjeta: terms === null ? null : { sellos: terms.stamps, premio: terms.reward },
+    tarjeta: terms === null ? null : { sellos: terms.stamps, premio: terms.reward, condicion: terms.conditions },
   };
   const listo = logo.data !== undefined || page.data.logo === null || logo.isError;
 
@@ -127,6 +132,9 @@ export default function Cartel() {
           <View style={{ alignItems: 'center', padding: SIZE.space * 1.5, gap: SIZE.rowGap + 2 }}>
             <Text style={{ fontSize: SIZE.titleSize + 4, ...TITULO, color: PALETTE.tinta, textAlign: 'center' }}>{kitchen.displayName}</Text>
             <Text style={{ fontSize: SIZE.bodySize + 1, fontWeight: '700', color: HUES[color], textAlign: 'center' }}>{titulo}</Text>
+            {terms !== null && terms.conditions !== null && (
+              <Text style={{ marginTop: -SIZE.rowGap, fontSize: SIZE.smallSize, color: PALETTE.tintaApagada, textAlign: 'center' }}>{terms.conditions}</Text>
+            )}
             <CodigoQR texto={direccionDeCocina(kitchen.id, kitchen.displayName)} lado={150} etiqueta={ES.cartel.escanea} />
             <Text style={{ fontSize: SIZE.bodySize, fontWeight: '600', color: PALETTE.tinta }}>{ES.cartel.escanea}</Text>
             {direccion !== null && <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada, textAlign: 'center' }}>{direccion}</Text>}

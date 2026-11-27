@@ -85,12 +85,13 @@ describe('keyed on her, held to `0085`', () => {
 
   it('a kitchen’s terms before her first stamp come through the one door, its `card` — only while open and switched on (G12, ADR-035 §2.7)', () => {
     const { file, body } = ultimaQueDefine('on_offer_now');
-    // `0085` made it; a later migration re-making the door (`0087`'s promotions) carries it unchanged.
-    expect(Number(file.slice(0, 4))).toBeGreaterThanOrEqual(85);
+    // `0085` made it; a later migration re-making the door (`0087`'s promotions) carries it — with, since `0099`
+    // (`10.9m`), the kitchen's condition.
+    expect(Number(file.slice(0, 4))).toBeGreaterThanOrEqual(99);
     expect(body).toContain(
-      "'card', (select jsonb_build_object('reward', t.reward, 'stamps', t.stamps, 'expiry_days', t.expiry_days) from servicio.card_terms t where t.workspace_id = k.id and t.replaced_at is null and t.closed_at is null and servicio.card_switched_on()),",
+      "'card', (select jsonb_build_object('reward', t.reward, 'stamps', t.stamps, 'expiry_days', t.expiry_days, 'conditions', t.conditions) from servicio.card_terms t where t.workspace_id = k.id and t.replaced_at is null and t.closed_at is null and servicio.card_switched_on()),",
     );
-    // Itacate declares the key and its three fields, so the door's contract check holds every key.
+    // Itacate declares the key and its four fields, so the door's contract check holds every key.
     const cocinas = leer(fileURLToPath(new URL('../src/api/cocinas.ts', import.meta.url)), 'utf8');
     expect(cocinas).toMatch(/readonly card: DoorCardRow \| null;/);
     const campos = cocinas
@@ -98,7 +99,7 @@ describe('keyed on her, held to `0085`', () => {
       .split('\n}')[0]
       .match(/readonly ([a-z_]+):/g)
       ?.map((m) => m.slice(9, -1));
-    expect(campos).toEqual(['reward', 'stamps', 'expiry_days']);
+    expect(campos).toEqual(['reward', 'stamps', 'expiry_days', 'conditions']);
     // And no second door: no function of the card hands her a kitchen's terms.
     expect(() => ultimaQueDefine('card_terms_of')).toThrow();
   });
@@ -129,6 +130,7 @@ describe('the answers read', () => {
     of: 8,
     reward: 'Una comida corrida',
     expiry_days: 30,
+    conditions: null,
     expires_on: '2026-12-19',
     stamped_today: false,
     rewards: [

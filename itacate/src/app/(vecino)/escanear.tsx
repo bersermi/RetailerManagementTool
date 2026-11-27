@@ -12,6 +12,7 @@ import {
   cocinaDelEscaneo,
   codigoDeCocinaDe,
   condicionesDeSuTarjeta,
+  muestraCondiciones,
   desenlaceDe,
   dio,
   enFrase,
@@ -40,7 +41,8 @@ import { TarjetaDeLealtad } from '@/ui/TarjetaDeLealtad';
 // kitchen's page (`cocina`: six digits typed are tried at that kitchen first — `p_workspace_id`).
 //   - ⚠️ THE CAMERA IS ASKED FOR THE FIRST TIME HERE, WHEN SHE TAPS (`@/ui/Escaner`, Wera Cocina's, copied):
 //     until then a button; refused, the six digits under the kitchen's code are her way;
-//   - WHAT IT GAVE, as the database answered (`stamp_with_code`): *Tu primer sello en …* with its conditions,
+//   - WHAT IT GAVE, as the database answered (`stamp_with_code`): *Tu primer sello en …* with its conditions (and since
+//     `10.9m` the first stamp of every new card with them, `muestraCondiciones`),
 //     *Sello en … · 3 de 8*, *Hoy ya tienes tu sello en …*, or why not — and, where she has a reward there,
 //     *¿Cobrar tu premio ahora?* (she chooses which), claimed with the same code (`claim_with_code`);
 //   - `premio`: from *Cobras: …*'s *O escanea su código* — the scan claims that reward instead.
@@ -208,7 +210,8 @@ function Resultado({
   const puerta = desenlace.kind === 'nada' ? null : puertaDe(desenlace.cocina.id);
   const card = desenlace.kind === 'nada' || desenlace.card === null ? null : cardDeEscaneo(desenlace.cocina, desenlace.card);
   const vista = card === null ? null : vistaDe(card, puerta);
-  const condiciones = desenlace.kind === 'primer' && card !== null ? condicionesDeSuTarjeta(card, puerta) : null;
+  // `10.9m`: at the first stamp of every new card, not only her first ever there.
+  const condiciones = muestraCondiciones(desenlace) && card !== null ? condicionesDeSuTarjeta(card, puerta) : null;
   return (
     <>
       <Llega i={0} style={{ alignItems: 'center', gap: SIZE.rowGap, paddingVertical: SIZE.space }}>

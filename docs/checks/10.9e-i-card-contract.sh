@@ -279,6 +279,16 @@ def code(a, want):
     got = a.get('code') if isinstance(a, dict) else None
     return None if got == want else 'refused with %r — the app reads %r' % (got, want)
 
+def said(a, path, want):
+    """`10.9m`: one value deep in an answer — `terms.conditions`, `0.conditions` — is what was saved."""
+    v = a
+    for part in path.split('.'):
+        try:
+            v = v[int(part)] if isinstance(v, list) else v.get(part)
+        except Exception:
+            return '%s was not in the answer' % path
+    return None if v == want else '%s came back %r, not %r' % (path, v, want)
+
 def closed(a):
     return None if isinstance(a, dict) and a.get('open') is False and a.get('closed_at') else 'the card came back %r' % (a,)
 
@@ -316,8 +326,11 @@ A="$(tr -d '"' <<< "$(body "$out")")"
 ok "Wera's switch on for this run; a fonda and her kitchen made through Wera Cocina's names ($ONBOARD), a neighbour signed up"
 
 # --- 2. Activar --------------------------------------------------------------------------------
-if call t1 "$C_TERMS" "$(by_names "$C_TERMS_ARGS" "\"$A\"" '"Un agua fresca"' 4 0)"; then
+# `10.9m`: her condition is TermsArgs' fifth name — sent here, so a check that read only four would leave it unasked.
+COND='Compra mínima de $80'
+if call t1 "$C_TERMS" "$(by_names "$C_TERMS_ARGS" "\"$A\"" '"Un agua fresca"' 4 0 "\"$COND\"")"; then
   check "Activar by Wera Cocina's names: the app's keys, its terms' keys, open, nothing yet" card "$SCRATCH/t1.json" "$C_CARD_KEYS" "$C_TERMS_KEYS" "$C_TODAY_KEYS" true 0 0 0
+  check "her condition (10.9m), sent by its name, comes back in her terms" said "$SCRATCH/t1.json" terms.conditions "$COND"
 fi
 
 # --- 3. each phone's key ---------------------------------------------------------------------
@@ -344,6 +357,7 @@ TOKEN="$FONDA"
 VCODE="$(code_at "$VSECRET" "$(date +%s)")"
 if call c1 "$C_OF_CODE" "$(by_names "$C_CODE_ARGS" "\"$A\"" "\"$VCODE\"" "\"$VKEY\"")"; then
   check "the kitchen scans her code, by Wera Cocina's names: her name and card, the app's keys" scan "$SCRATCH/c1.json" "$C_SEEN_KEYS" suya 1
+  check "the scan shows her card's condition (10.9m), for the helper to check" said "$SCRATCH/c1.json" conditions "$COND"
 fi
 
 # --- 7. three past days from the kitchen's queue; the fourth stamp wins ------------------------
@@ -360,6 +374,7 @@ TOKEN="$VECINA"
 RID=""
 if call m1 "$I_CARDS" '{}'; then
   check "her cards, by Itacate's names: the app's keys at each level, her one reward" mine "$SCRATCH/m1.json" "$I_MINE_ALL_KEYS" "$I_REWARD_KEYS" "$A" 1
+  check "her cards carry the condition her next card starts on (10.9m)" said "$SCRATCH/m1.json" 0.conditions "$COND"
   RID="$(python3 "$SCRATCH/v.py" first_reward "$SCRATCH/m1.json")"
 fi
 

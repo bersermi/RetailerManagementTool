@@ -14,7 +14,8 @@ import { Foto } from '@/vecinos/ui/Foto';
 // ============================================================================
 // THE CARD AS HER NEIGHBOURS SEE IT — IN HER KITCHEN'S COLOUR AND LOGO (G41: Itacate is the wallet,
 // the kitchen is the brand). Plan task `10.9e-ii`, the family-shell page's `kcardHtml`: her circle and
-// *Tarjeta de lealtad* over her name, *3 de 8*, a row of stamps, *8 sellos = una comida corrida*. On the
+// *Tarjeta de lealtad* over her name, *3 de 8*, a row of stamps, *8 sellos = una comida corrida* — and since `10.9m`
+// her condition, when she has one, as ONE small line in the date's style (never a colour, a tag or a box). On the
 // card's screen (with three stamps drawn, as the page does) and in the setup's preview (none).
 // ⚠️ ITS COLOUR IS HER PAGE'S (`colorOf` — the one Itacate draws her circle in), its logo her page's
 // logo, else her initials on that colour. Nothing here is read from the network but the logo, which
@@ -30,6 +31,7 @@ export function TarjetaDeLealtad({
   de,
   premio,
   dias,
+  condicion = null,
 }: {
   cocinaId: string;
   nombre: string;
@@ -41,13 +43,15 @@ export function TarjetaDeLealtad({
   premio: string;
   /** Days without coming before the stamps go; 0 is *Nunca*. */
   dias: number;
+  /** `10.9m`: her condition, or `null` — none, and the card exactly as before. */
+  condicion?: string | null;
 }) {
   const hue = HUES[color];
   const claro = 'rgba(255, 255, 255, 0.82)';
   return (
     <View
       accessible
-      accessibilityLabel={`${ES.tarjeta.nombre}, ${nombre}. ${ES.tarjeta.cuenta(sellos, de)}. ${ES.tarjeta.igual(de, enFrase(premio))}.`}
+      accessibilityLabel={`${ES.tarjeta.nombre}, ${nombre}. ${ES.tarjeta.cuenta(sellos, de)}. ${ES.tarjeta.igual(de, enFrase(premio))}.${condicion === null ? '' : ` ${condicion}.`}`}
       style={{ backgroundColor: hue, borderRadius: ESQUINA.hoja, padding: SIZE.space + 2, gap: SIZE.space }}
     >
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: SIZE.rowGap + 2 }}>
@@ -96,7 +100,15 @@ export function TarjetaDeLealtad({
         {ES.tarjeta.igual(de, '')}
         <Text style={{ fontWeight: '800' }}>{enFrase(premio)}</Text>
       </Text>
-      {dias > 0 && <Text style={{ fontSize: SIZE.smallSize - 1, color: claro }}>{ES.tarjeta.venceSiNoVienen(dias)}</Text>}
+      {condicion === null ? (
+        dias > 0 && <Text style={{ fontSize: SIZE.smallSize - 1, color: claro }}>{ES.tarjeta.venceSiNoVienen(dias)}</Text>
+      ) : (
+        // Her condition and the date as one quiet pair — without one, the card is exactly as before.
+        <View style={{ gap: 2 }}>
+          <Text style={{ fontSize: SIZE.smallSize - 1, color: claro }}>{condicion}</Text>
+          {dias > 0 && <Text style={{ fontSize: SIZE.smallSize - 1, color: claro }}>{ES.tarjeta.venceSiNoVienen(dias)}</Text>}
+        </View>
+      )}
     </View>
   );
 }

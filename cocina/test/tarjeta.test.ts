@@ -7,6 +7,7 @@ import { describe, expect, it } from 'vitest';
 import {
   CARD_OF_CODE,
   CLOSE_CARD,
+  CONDICION_MAX,
   DIAS_AL_CERRAR,
   DIAS_MAX,
   DIAS_MIN,
@@ -57,8 +58,11 @@ function ultimaQueDefine(fn: string): { readonly file: string; readonly body: st
   return { file, body: text.slice(start, end).replace(/\s+/g, ' ') };
 }
 
-/** Where each function is defined last: `0085`, but `set_card_terms`, re-made by `0089` (`10.9k`) with its signature. */
-const DEFINIDA_EN: Readonly<Record<string, string>> = { [SET_CARD_TERMS]: '0089_' };
+/**
+ * Where each function is defined last: `0085`, but `set_card_terms` — re-made by `0089` (`10.9k`) with its signature, then
+ * by `0099` (`10.9m`) with a fifth argument, defaulted — and `kitchen_card`, re-made by `0099` with its terms' condition.
+ */
+const DEFINIDA_EN: Readonly<Record<string, string>> = { [SET_CARD_TERMS]: '0099_', [KITCHEN_CARD]: '0099_' };
 
 /** The last `card_terms_expiry` check a migration sets, its whitespace folded. */
 function ultimoCheckDeDias(): string {
@@ -70,12 +74,12 @@ function ultimoCheckDeDias(): string {
   return checks[checks.length - 1];
 }
 
-describe('the names and their arguments, held to `0085` (and `0089`)', () => {
+describe('the names and their arguments, held to `0085` (and `0089`, `0099`)', () => {
   const cases: Array<[string, RegExp, string[]]> = [
     [
       SET_CARD_TERMS,
-      /set_card_terms\( p_workspace_id uuid, p_reward text, p_stamps integer, p_expiry_days integer \) returns jsonb/,
-      Object.keys(termsArgs('k', 'r', 8, 30)),
+      /set_card_terms\( p_workspace_id uuid, p_reward text, p_stamps integer, p_expiry_days integer, p_conditions text default null \) returns jsonb/,
+      Object.keys(termsArgs('k', 'r', 8, 30, null)),
     ],
     [CLOSE_CARD, /close_card\(p_workspace_id uuid\) returns jsonb/, Object.keys(kitchenArgs('k'))],
     [KITCHEN_CARD, /kitchen_card\(p_workspace_id uuid\) returns jsonb/, Object.keys(kitchenArgs('k'))],
@@ -154,7 +158,17 @@ describe('the bounds and the results, held to `0085`', () => {
   it('the app takes the days the database takes: 0, every chip, 14 to 365 whole — never 13, 366, a fraction or a sign (`10.9k`)', () => {
     for (const d of [0, ...DIAS_SIN_VENIR, 14, 15, 21, 45, 120, 365]) expect(diasValidos(d), String(d)).toBe(true);
     for (const d of [1, 7, 13, 366, 999, -14, 20.5, Number.NaN]) expect(diasValidos(d), String(d)).toBe(false);
-    expect(termsArgs('k', 'Un taco', 8, 21)).toEqual({ p_workspace_id: 'k', p_reward: 'Un taco', p_stamps: 8, p_expiry_days: 21 });
+    expect(termsArgs('k', 'Un taco', 8, 21, null)).toEqual({ p_workspace_id: 'k', p_reward: 'Un taco', p_stamps: 8, p_expiry_days: 21, p_conditions: '' });
+  });
+
+  it('her condition (`10.9m`): up to 60 characters, sent trimmed — none is `\'\'`, which clears it, never left out', () => {
+    expect(CONDICION_MAX).toBe(60);
+    const terms = ultimaQueDefine(SET_CARD_TERMS).body;
+    expect(terms).toContain('char_length(btrim(p_conditions)) > 60');
+    expect(terms).toContain("else nullif(btrim(p_conditions), '') end");
+    expect(termsArgs('k', 'Un taco', 8, 21, '  Compra mínima de $80 ').p_conditions).toBe('Compra mínima de $80');
+    expect(termsArgs('k', 'Un taco', 8, 21, null).p_conditions).toBe('');
+    expect(termsArgs('k', 'Un taco', 8, 21, '   ').p_conditions).toBe('');
   });
 
   it('a closed card is kept 30 days for those who started it (G12)', () => {
@@ -195,6 +209,14 @@ describe('the answers read', () => {
     expect(read?.terms?.expiry_days).toBe(30);
     expect(read?.today.map((l) => l.kind)).toEqual(['sello', 'cobro']);
     expect(kitchenCardFrom({ ...card, terms: null })?.terms).toBeNull();
+  });
+
+  it('her condition (`10.9m`): read from the terms and from a scan; missing — an answer from before `0099` — or empty, none', () => {
+    expect(kitchenCardFrom(card)?.terms?.conditions).toBeNull();
+    expect(kitchenCardFrom({ ...card, terms: { ...card.terms, conditions: 'Compra mínima de $80' } })?.terms?.conditions).toBe('Compra mínima de $80');
+    expect(kitchenCardFrom({ ...card, terms: { ...card.terms, conditions: '' } })?.terms?.conditions).toBeNull();
+    expect(cardFrom({ result: 'suya', stamps: 5, of: 8, conditions: 'Compra mínima de $80', rewards: [] })?.conditions).toBe('Compra mínima de $80');
+    expect(cardFrom({ result: 'suya', stamps: 5, of: 8, rewards: [] })?.conditions).toBeNull();
   });
 
   it('anything else is `null` — never zeros that are not counts', () => {
