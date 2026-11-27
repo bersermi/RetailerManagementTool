@@ -1752,8 +1752,11 @@ export const ES = {
     sellar: 'Sellar',
     cartel: 'Tu cartel para el mostrador',
     cartelDetalle: 'Con el nombre de tu cocina, para imprimir',
-    cambiar: 'Cambiar el premio, los sellos o cuándo se borran',
-    cambiarDetalle: 'Vale para las tarjetas nuevas',
+    /** `10.9m` (the owner's approval of 2026-11-27): the same screen, renamed, with the pencil. */
+    cambiar: 'Editar tu tarjeta',
+    cambiarDetalle: 'El premio, los sellos, los días y las condiciones',
+    /** `10.9m`: the poster's row after a save that changed what it prints, until she opens it (kept on this phone). */
+    cartelOtraVez: 'Cambiaste tu tarjeta: imprímelo otra vez',
     cerrar: 'Cerrar la tarjeta',
     cerrarTitulo: '¿Cerrar tu tarjeta?',
     cerrarTexto: 'Nadie empieza una nueva. Quienes ya la tienen pueden completarla y cobrar su premio 30 días más.',
@@ -1779,7 +1782,8 @@ export const ES = {
   /** `10.9e-ii` (G7, G8, G15, G34): the setup on one screen, nothing pre-chosen, hints only. */
   prepararTarjeta: {
     titulo: 'Tu tarjeta de lealtad',
-    editar: 'Los cambios valen para las tarjetas nuevas',
+    /** `10.9m`: the same screen once her card is open — *Editar tu tarjeta*, *Guardar cambios*. */
+    tituloEditar: 'Editar tu tarjeta',
     volver: 'Volver',
     premio: '¿Qué les das al completarla?',
     premioEjemplo: 'Una comida corrida',
@@ -1809,6 +1813,15 @@ export const ES = {
       listo: 'Listo',
       cerrar: 'Cerrar',
     },
+    /**
+     * ⚠️ `10.9m` (the owner's approval of 2026-11-27: *"discrete and fully optional"*): her condition — one quiet line
+     * until she taps it; opened, *Condición* with *Quitar* and a box of up to 60 characters, its hint grey (a hint,
+     * never a value). Nothing asks for it.
+     */
+    agregarCondicion: '+ Agregar una condición',
+    condicion: 'Condición',
+    quitar: 'Quitar',
+    condicionEjemplo: 'Compra mínima de $80',
     asiLaVeran: 'Así la verán tus vecinos',
     /** The preview before she wrote her reward. */
     premioDeMuestra: 'Tu premio',
@@ -1817,9 +1830,26 @@ export const ES = {
     faltanDias: 'Elige cuándo se borran sus sellos.',
     activar: 'Activar',
     activando: 'Activando…',
-    guardar: 'Guardar',
+    guardar: 'Guardar cambios',
     guardando: 'Guardando…',
     guardado: 'Guardado: vale para las tarjetas nuevas',
+    /** `10.9m`: a change that only makes it easier reached those who already collect. */
+    guardadoYaVale: 'Guardado. Ya vale para quienes juntan sellos.',
+    /**
+     * ⚠️ `10.9m`: the line above *Guardar cambios*, only while someone holds her card — what her change does to them (the
+     * rule added to G12: what only makes it easier reaches them today; anything else waits for their next card).
+     */
+    cambio: {
+      desdeHoy: (n: number) =>
+        n === 1 ? 'El vecino que ya junta sellos la tiene así desde hoy.' : `Los ${n} vecinos que ya juntan sellos la tienen así desde hoy.`,
+      ganan: (sellos: number) => `Quien ya tenga ${sellos} sellos o más gana su premio hoy.`,
+      siguen: (n: number) =>
+        n === 1 ? 'El vecino que ya junta sellos sigue con lo que empezó' : `Los ${n} vecinos que ya juntan sellos siguen con lo que empezaron`,
+      hastaCompletarla: (sellos: number, premio: string) =>
+        `hasta completarla: ${sellos} sellos y ${premio}. Lo nuevo es para las tarjetas nuevas.`,
+    },
+    /** What a screen reader says of the chip her card has now, drawn dashed while she chose another (`10.9m`). */
+    actual: 'el que tiene ahora',
     abierta: 'Tu tarjeta está abierta otra vez',
     /** What a screen reader says of a hint chip. */
     sugerido: 'sugerido',

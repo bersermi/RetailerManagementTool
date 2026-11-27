@@ -165,7 +165,7 @@ select public.chk('1.3 the nightly job is scheduled at 09:21 UTC and active, and
 select public.chk('1.4 the eleven functions: the signed-in may call each, nobody signed out may; the internal functions nobody',
   (select bool_and(has_function_privilege('authenticated', f, 'execute')
                    and not has_function_privilege('anon', f, 'execute'))
-     from unnest(array['public.set_card_terms(uuid, text, integer, integer)', 'public.close_card(uuid)',
+     from unnest(array['public.set_card_terms(uuid, text, integer, integer, text)', 'public.close_card(uuid)',
                        'public.kitchen_card(uuid)', 'public.register_kitchen_key(uuid)',
                        'public.card_of_code(uuid, text, uuid)', 'public.give_stamp(uuid, text, uuid, timestamptz)',
                        'public.give_reward(uuid, text, uuid, uuid, timestamptz)', 'public.register_my_key()',
@@ -310,7 +310,7 @@ select public.chk('3.3 a key at a kitchen is a member''s: another kitchen''s coo
 select public.chk('3.4 before her first stamp, through the one door: the kitchen''s card terms, beside its name and address (G12, G41, ADR-035 §2.7)',
   :'door_open' = 'ok'
   and (select k -> 'card' from jsonb_array_elements(public._a('door-open')) k where k ->> 'id' = :'ws_m')
-      = '{"reward": "Una comida corrida", "stamps": 8, "expiry_days": 30}'::jsonb
+      = '{"reward": "Una comida corrida", "stamps": 8, "expiry_days": 30, "conditions": null}'::jsonb
   and (select k ->> 'name' from jsonb_array_elements(public._a('door-open')) k where k ->> 'id' = :'ws_m') = 'Fonda Doña Mari 0085'
   and (select k -> 'address' ->> 'street' from jsonb_array_elements(public._a('door-open')) k where k ->> 'id' = :'ws_m') = 'Sabino'
   and to_regprocedure('public.card_terms_of(uuid)') is null,
@@ -456,6 +456,7 @@ reset role;
 select public.chk('6.1 new terms are a new version; Ana''s card keeps the 8 and the meal it started with (G12)',
   :'v2' = 'ok' and (select count(*) from servicio.card_terms where workspace_id = :'ws_m') = 2
   and public._a('v2') -> 'terms' = jsonb_build_object('reward', 'Un agua fresca', 'stamps', 4, 'expiry_days', null,
+                                                       'conditions', null,
                                                        'since', public._a('v2') -> 'terms' -> 'since')
   and (public._a('ana-cards-v2') -> 0 ->> 'of')::int = 8
   and public._a('ana-cards-v2') -> 0 ->> 'reward' = 'Una comida corrida'

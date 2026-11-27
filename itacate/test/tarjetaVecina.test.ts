@@ -19,6 +19,7 @@ import {
   condicionesDeSuTarjeta,
   conPremios,
   desenlaceDe,
+  muestraCondiciones,
   dio,
   festejoDe,
   hayTarjetas,
@@ -64,6 +65,7 @@ function card(over: Partial<MyCardRow> = {}): MyCardRow {
     of: 8,
     reward: 'Una comida corrida',
     expiry_days: 30,
+    conditions: null,
     expires_on: '2026-12-19',
     stamped_today: false,
     rewards: [],
@@ -107,13 +109,22 @@ function memoria(): DeviceStore & { readonly datos: Map<string, string> } {
 
 describe('the door’s `card` — the terms a first stamp starts on (`tarjetaOf`)', () => {
   it('reads the reward, the stamps and the days; *Nunca* is null in the door and 0 here', () => {
-    expect(tarjetaOf({ reward: 'Una comida corrida', stamps: 8, expiry_days: 30 })).toEqual({ premio: 'Una comida corrida', sellos: 8, dias: 30 });
-    expect(tarjetaOf({ reward: 'Un pan', stamps: 4, expiry_days: null })).toEqual({ premio: 'Un pan', sellos: 4, dias: 0 });
+    expect(tarjetaOf({ reward: 'Una comida corrida', stamps: 8, expiry_days: 30, conditions: null })).toEqual({ premio: 'Una comida corrida', sellos: 8, dias: 30, condicion: null });
+    expect(tarjetaOf({ reward: 'Un pan', stamps: 4, expiry_days: null })).toEqual({ premio: 'Un pan', sellos: 4, dias: 0, condicion: null });
+  });
+
+  it('`10.9m`: the kitchen’s condition, her words — missing (a door from before `0099`), empty or unreadable, none; never the card dropped', () => {
+    expect(tarjetaOf({ reward: 'Pan', stamps: 8, expiry_days: 30, conditions: 'Compra mínima de $80' })?.condicion).toBe('Compra mínima de $80');
+    for (const conditions of [undefined, null, '', '   ', 80, 'x'.repeat(61)]) {
+      const t = tarjetaOf({ reward: 'Pan', stamps: 8, expiry_days: 30, conditions });
+      expect(t, JSON.stringify(conditions)).not.toBeNull();
+      expect(t?.condicion, JSON.stringify(conditions)).toBeNull();
+    }
   });
 
   it('`10.9k`: any whole number of days from 14 to 365 — the chips’ 14, 30, 60, 90, *Otro…*’s 21, and 0085’s 15 and 45', () => {
     for (const dias of [14, 15, 21, 30, 45, 60, 90, 365]) {
-      expect(tarjetaOf({ reward: 'Pan', stamps: 8, expiry_days: dias }), String(dias)).toEqual({ premio: 'Pan', sellos: 8, dias });
+      expect(tarjetaOf({ reward: 'Pan', stamps: 8, expiry_days: dias }), String(dias)).toEqual({ premio: 'Pan', sellos: 8, dias, condicion: null });
     }
   });
 
@@ -162,11 +173,11 @@ describe('her card, as drawn (G41)', () => {
 
 describe('the invitation and its conditions (G12): the kitchen promises, with its address', () => {
   it('from the door, before her first stamp — Wera Cocina’s words', () => {
-    const k = kitchen({ tarjeta: { premio: 'Una comida corrida', sellos: 8, dias: 30 } });
+    const k = kitchen({ tarjeta: { premio: 'Una comida corrida', sellos: 8, dias: 30, condicion: null } });
     expect(condicionesDeCocina(k)).toBe(
       'Junta 8 sellos en Fonda Doña Mari y te dan una comida corrida. Un sello por visita, uno al día. Tus sellos se borran si pasa un mes sin que vengas. La promesa es de Fonda Doña Mari, Sabino 52, Santa María la Ribera.',
     );
-    expect(condicionesDeCocina(kitchen({ tarjeta: { premio: 'Un pan', sellos: 6, dias: 0 } }))).toContain('Tus sellos no se borran.');
+    expect(condicionesDeCocina(kitchen({ tarjeta: { premio: 'Un pan', sellos: 6, dias: 0, condicion: null } }))).toContain('Tus sellos no se borran.');
     expect(condicionesDeCocina(kitchen())).toBeNull();
   });
 
@@ -182,7 +193,7 @@ describe('where the card shows at all — with Wera’s switch off, nowhere', ()
   it('*Escanear* and *Mi código* at the top of *Mis cocinas*: a kitchen with a card, or one she holds', () => {
     expect(hayTarjetas(undefined, undefined)).toBe(false);
     expect(hayTarjetas([kitchen(), kitchen({ id: ESPIGA })], [])).toBe(false);
-    expect(hayTarjetas([kitchen({ tarjeta: { premio: 'Pan', sellos: 6, dias: 0 } })], [])).toBe(true);
+    expect(hayTarjetas([kitchen({ tarjeta: { premio: 'Pan', sellos: 6, dias: 0, condicion: null } })], [])).toBe(true);
     expect(hayTarjetas([], [card()])).toBe(true);
   });
 
@@ -409,5 +420,37 @@ describe('before *Eliminar mi cuenta*: what goes of the card', () => {
     expect(alEliminarDe([card({ rewards: [premio('r1'), premio('r2')] }), card({ id: ESPIGA, name: 'La Espiga', rewards: [premio('r3')] }), card({ id: 'x', name: 'Tacos El Güero' })])).toBe(
       'Con tu cuenta se borran tus 3 premios por cobrar en Fonda Doña Mari y La Espiga. Y tus sellos en Fonda Doña Mari, La Espiga y Tacos El Güero.',
     );
+  });
+});
+
+describe('her condition (`10.9m`, the owner’s approval of 2026-11-27) — one small grey line, one sentence', () => {
+  const CON = 'Compra mínima de $80';
+
+  it('the invitation’s conditions carry the kitchen’s, one sentence after *Un sello por visita, uno al día.*; none, the words as before', () => {
+    expect(condicionesDeCocina(kitchen({ tarjeta: { premio: 'Una comida corrida', sellos: 8, dias: 30, condicion: CON } }))).toBe(
+      'Junta 8 sellos en Fonda Doña Mari y te dan una comida corrida. Un sello por visita, uno al día. Compra mínima de $80. Tus sellos se borran si pasa un mes sin que vengas. La promesa es de Fonda Doña Mari, Sabino 52, Santa María la Ribera.',
+    );
+    expect(condicionesDeCocina(kitchen({ tarjeta: { premio: 'Una comida corrida', sellos: 8, dias: 30, condicion: null } }))).toBe(
+      'Junta 8 sellos en Fonda Doña Mari y te dan una comida corrida. Un sello por visita, uno al día. Tus sellos se borran si pasa un mes sin que vengas. La promesa es de Fonda Doña Mari, Sabino 52, Santa María la Ribera.',
+    );
+  });
+
+  it('a card she holds: ITS condition — none for a card started before the kitchen added one', () => {
+    expect(condicionesDeSuTarjeta(card({ conditions: CON }), kitchen())).toContain('Un sello por visita, uno al día. Compra mínima de $80. Tus sellos');
+    expect(condicionesDeSuTarjeta(card({ conditions: null }), kitchen())).toContain('Un sello por visita, uno al día. Tus sellos');
+    expect(vistaDe(card({ conditions: CON }), kitchen())?.condicion).toBe(CON);
+    expect(vistaDe(card(), kitchen())?.condicion).toBeNull();
+  });
+
+  it('⚠️ the conditions at the first stamp of EVERY new card — her first ever, or *1 de 6* after a reward or her stamps erased; never later stamps', () => {
+    const cocina = { id: MARI, name: 'Fonda Doña Mari' };
+    const estado = (stamps: number) => ({ ...card({ stamps }), id: undefined, name: undefined, colonia: undefined, page: undefined });
+    const de = (kind: 'primer' | 'sello' | 'gano' | 'yaHoy', stamps: number) => ({ kind, cocina, card: estado(stamps) }) as const;
+    expect(muestraCondiciones(de('primer', 1))).toBe(true);
+    expect(muestraCondiciones(de('sello', 1))).toBe(true);
+    expect(muestraCondiciones(de('sello', 2))).toBe(false);
+    expect(muestraCondiciones(de('gano', 0))).toBe(false);
+    expect(muestraCondiciones(de('yaHoy', 1))).toBe(false);
+    expect(muestraCondiciones({ kind: 'nada', texto: 'x' })).toBe(false);
   });
 });
