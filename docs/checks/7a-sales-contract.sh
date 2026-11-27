@@ -302,6 +302,11 @@ for row in rows:
             print('%s came back as %s, not a string — parseDecimal refuses a JSON number, '
                   'and every total on the screen would be withheld' % (figure, type(row[figure]).__name__))
             raise SystemExit
+    # `0100`, plan `14.2`: Vender's order counts this — a whole JSON number.
+    if not isinstance(row.get('times_sold'), int) or isinstance(row.get('times_sold'), bool):
+        print('times_sold came back as %r, not a whole number — Vender orders its tiles by it'
+              % (row.get('times_sold'),))
+        raise SystemExit
     if not re.fullmatch(r'\d{4}-\d{2}-\d{2}', str(row.get('day', ''))):
         print('day came back as %r, not a YYYY-MM-DD date — bucketOf reads it as one' % (row.get('day'),))
         raise SystemExit
@@ -327,7 +332,12 @@ if (h['qty_base_sold'], h['revenue_gross']) != ('12.000', '36.00'):
     print('THE VOID DID NOT NET: huevo sold 12 + 6, then voided the 6, and reads %r / %r '
           'rather than 12.000 / 36.00' % (h['qty_base_sold'], h['revenue_gross']))
     raise SystemExit
-print('ok — gross exactly as keyed, the unsold product filtered out, the void netted, the day local')
+if (q['times_sold'], h['times_sold']) != (1, 1):
+    print('THE COUNT DID NOT NET: queso sold once and huevo twice with one sale voided, so '
+          'times_sold should be 1 and 1 (0100), and reads %r / %r — a count that takes no sale '
+          'back puts a product voided often first on Vender' % (q['times_sold'], h['times_sold']))
+    raise SystemExit
+print('ok — gross exactly as keyed, the unsold product filtered out, the void netted in the figures and the count, the day local')
 PY
 verdict "the rows are the sales, in gross, netted" \
   "$SCRATCH/owner.py" "$OWNER_FILE" "$SALES_KEYS" "$TODAY" "$QUESO" "$HUEVO" "$CREMA"

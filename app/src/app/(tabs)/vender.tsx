@@ -1,9 +1,10 @@
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from 'react';
 import {
   Animated,
   Easing,
   FlatList,
+  Image,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -16,7 +17,8 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
 
-import { catalogLine, isoDay, priceCentavos, search, type CatalogEntry, type UnitFactors } from '@/api/catalog';
+import { catalogLine, priceCentavos, type CatalogEntry, type UnitFactors } from '@/api/catalog';
+import { aislesOf, type Aisle } from '@/api/productPage';
 import { checkEdit, editLine, editPlan, editTouches, type EditIssue } from '@/api/catalogEdit';
 import { canWriteCatalog } from '@/api/catalogWrite';
 import {
@@ -33,6 +35,9 @@ import { reviewOf, stepOf, type Basket, type Quotes, type Review, type ReviewRow
 import { qtyShown, shownUnitOf } from '@/cart/quantity';
 import { canCommit, commitOf, type Basketful } from '@/cart/commit';
 import { sellGate } from '@/cart/gate';
+import { porOrden } from '@/cart/orden';
+import { useOrdenDelDia } from '@/cart/useOrdenDelDia';
+import { columnasDe, conMenos, toqueDe, toqueLargoDe, vitrinaDe, type Toque } from '@/cart/vitrina';
 import { useCart, useCartStore, useCorrects, useTyped } from '@/cart/store';
 import { formatMXN } from '@/format/mxn';
 import { commitToQueue } from '@/lib/commitRunner';
@@ -49,6 +54,7 @@ import { EMPTIED_BLOOM_MS, REFUSED_NOTE_MS } from '@/theme/pulse';
 import { Buscador } from '@/ui/Buscador';
 import { Cantidad } from '@/ui/Cantidad';
 import { CierreCarrito } from '@/ui/CierreCarrito';
+import { Foto } from '@/ui/Foto';
 import { Hecho } from '@/ui/Hecho';
 import { FIRST_SALE_KEY, firstTime } from '@/offline/ensenar';
 import { deviceStore } from '@/lib/store';
@@ -149,10 +155,22 @@ import { Velo } from '@/ui/Velo';
 // `...` here, so there is nothing to preserve — and a permanently dead button
 // on the surface she opens four hundred times a day is furniture.
 //
-// ⚠️ THE INITIALS TILE IS ABSENT TOO, and for width rather than for a ruling.
-// C3.2 does not list one, and the row here carries a `−`, a box and a `+` that
-// Productos' row does not; C8.14's tile is what an un-pictured product wears in
-// the CATALOG, where the row's whole job is to be recognised.
+// ~~⚠️ THE INITIALS TILE IS ABSENT TOO, and for width rather than for a ruling.~~
+// Corrected at `14.2`: every product is a tile now, its photo or its initials
+// (C8.14) — see below.
+//
+// ----------------------------------------------------------------------------
+// ⚠️⚠️ `14.2`, LA VITRINA — THE ROWS BECAME TILES (the owner's ruling of 2026-11-27)
+// ----------------------------------------------------------------------------
+// *"It is very difficult to do it with just one product per row and without
+// categories."* So the counter is the aisles across the top as names (`Pasillos`),
+// and the products as tiles three across, two at *Letra grande* (`Baldosa`), in
+// the order the shop sells them — four weeks of sales, counted as sales, set once
+// a day (`@/cart/orden`, `@/cart/useOrdenDelDia`). A tap adds one, a weighed one
+// opens the pad, a long press opens it on anything (`@/cart/vitrina`); after the
+// slide the counter is back on *Todo* at the top. ⚠️ THE PARTS ARE DRAWN HERE AND
+// NOT IN `src/ui/` (`R14`): Vender is their only drawer until Comprar draws them
+// at `14.3`, which moves them — the row said *`src/ui/` parts*, and the rule wins.
 //
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
@@ -223,7 +241,7 @@ import { Velo } from '@/ui/Velo';
 // and the counter's own pad has its *Agregar* and *Listo* on it.
 
 export default function Vender() {
-  const { scale } = useDensity();
+  const { scale, mode } = useDensity();
   const insets = useSafeAreaInsets();
   // ⚠️ `8g`, 2026-10-22: on Android 15+ the keyboard's room counts from where this counter starts (`@/lib/useDesfaseTeclado`).
   const desfase = useDesfaseTeclado(scale.tabBarHeight + insets.bottom);
@@ -244,7 +262,33 @@ export default function Vender() {
 
   const [typed, setTyped] = useState('');
   const box = useRef<TextInput>(null);
-  const rows = search(entries, typed);
+
+  // ⚠️⚠️ `14.2`, LA VITRINA — THE DAY'S ORDER, THE AISLES AND THE TILES (the owner's
+  // ruling of 2026-11-27). What sells most comes first, in *Todo* and in every
+  // aisle, by four weeks of sales counted as sales (`@/cart/orden`); the aisles
+  // come in the same order. ⚠️ The order is drawn when the screen is reached and
+  // after a sale — never when the read lands under her thumb (`useOrdenDelDia`).
+  const { orden, tomar } = useOrdenDelDia();
+  const ordered = useMemo(() => porOrden(entries, orden?.productos ?? [], (entry) => entry.id), [entries, orden]);
+  const aisles = useMemo(
+    () => porOrden(aislesOf(entries), orden?.pasillos ?? [], (one) => one.familyId),
+    [entries, orden],
+  );
+  // ⚠️ The aisle stays where she left it during a sale, and goes back to *Todo*
+  // after one (call 8) — see `commit`.
+  const [aisle, setAisle] = useState<string | null>(null);
+  const shown = vitrinaDe(ordered, typed, aisle);
+  const columns = columnasDe(mode);
+  // ⚠️ AN ODD LAST ROW WOULD STRETCH ITS TILES ACROSS IT, so the grid is padded
+  // with empty cells — Productos' mosaic's arrangement.
+  const cells: readonly (CatalogEntry | null)[] =
+    shown.length % columns === 0 ? shown : [...shown, ...Array<null>(columns - (shown.length % columns)).fill(null)];
+  const grid = useRef<FlatList<CatalogEntry | null>>(null);
+  const strip = useRef<ScrollView>(null);
+  const choose = useCallback((familyId: string | null) => {
+    setAisle(familyId);
+    grid.current?.scrollToOffset({ offset: 0, animated: false });
+  }, []);
 
 
   const cart = useCart('sell');
@@ -371,7 +415,9 @@ export default function Vender() {
     useCallback(() => {
       const arrival = takeArrival();
       if (arrival !== null) setArrived(arrival.word);
-    }, []),
+      // ⚠️ `14.2`: today's order, if the phone has set it since — on arriving.
+      tomar();
+    }, [tomar]),
   );
   // ⚠️ `8g`, 2026-10-21: and once that line has been read, *Conoce Wera* — the
   // owner's eight cards, an Empleado's four — opens by itself, once per phone.
@@ -449,11 +495,20 @@ export default function Vender() {
     commitToQueue(done.write);
     clear('sell');
     setCartOpen(false);
+    // ⚠️⚠️ `14.2`, CALL 8: BACK TO *TODO* AT THE TOP, ready for the next customer —
+    // the search emptied, the aisle undone, the grid and the strip at their
+    // start, and today's order drawn if it was set during the sale.
+    setTyped('');
+    setAisle(null);
+    box.current?.blur();
+    grid.current?.scrollToOffset({ offset: 0, animated: false });
+    strip.current?.scrollTo({ x: 0, animated: false });
+    tomar();
     // ⚠️ `8g`, 2026-10-20: THE FIRST SALE ON THIS PHONE CARRIES ONE LINE — Wera
     // works without internet — and no other sale ever does (`@/offline/ensenar`).
     setSoldNote(firstTime(deviceStore(), FIRST_SALE_KEY) ? ES.offline.firstSale : null);
     setSold(true);
-  }, [basketful, clear, pilot]);
+  }, [basketful, clear, pilot, tomar]);
 
   return (
     <KeyboardAvoidingView
@@ -478,34 +533,45 @@ export default function Vender() {
         </View>
       )}
       <Buscador value={typed} onChange={setTyped} box={box} placeholder={ES.catalog.search} />
+      <Pasillos aisles={aisles} chosen={aisle} onChoose={choose} strip={strip} />
 
-      {/* ⚠️ A BOX AROUND THE LIST SO THE CASHIER'S NOTE SITS OVER ITS FOOT,
-          just above the bar, without moving a row under a thumb. */}
+      {/* ⚠️ A BOX AROUND THE GRID SO THE CASHIER'S NOTE SITS OVER ITS FOOT,
+          just above the bar, without moving a tile under a thumb. */}
       <View style={{ flex: 1 }}>
       <FlatList
-        // ⚠️ A `FlatList` FOR `productos.tsx`'s REASON: C8.3 puts ~100 products
-        // in the pilot catalog and C1.1 puts two low-end Androids among its four
-        // phones, and a `ScrollView` mounts every row at once.
-        data={rows}
-        keyExtractor={(entry) => entry.id}
-        renderItem={({ item }) => (
-          <Fila
-            entry={item}
-            factors={factors}
-            typical={typicals[item.id]}
-            onPad={openPad}
-            onPrice={mayPrice ? openPricing : null}
-            onRefused={(entry) => setRefused(entry.name)}
-          />
-        )}
-        ItemSeparatorComponent={Separador}
+        ref={grid}
+        // ⚠️ `numColumns` CANNOT CHANGE ON A MOUNTED LIST, and *Letra grande*
+        // changes it (three across to two): a new key is a new list.
+        key={columns}
+        numColumns={columns}
+        // ⚠️ A `FlatList` FOR `productos.tsx`'s REASON: a giro's catalog runs to
+        // hundreds, C1.1 puts two low-end Androids among the pilot's phones, and
+        // a `ScrollView` mounts every tile at once.
+        data={cells}
+        keyExtractor={(entry, index) => (entry === null ? `hueco-${index}` : entry.id)}
+        renderItem={({ item }) =>
+          item === null ? (
+            <View style={{ flex: 1 }} />
+          ) : (
+            <Baldosa
+              entry={item}
+              factors={factors}
+              typical={typicals[item.id]}
+              onPad={openPad}
+              onPrice={mayPrice ? openPricing : null}
+              onRefused={(entry) => setRefused(entry.name)}
+            />
+          )
+        }
+        columnWrapperStyle={{ gap: scale.rowGap }}
+        ItemSeparatorComponent={Hueco}
         ListEmptyComponent={<Vacio line={catalogLine(loading, typed, failed, online)} />}
-        contentContainerStyle={{ paddingBottom: scale.space }}
-        // ⚠️ NOT `on-drag` ANY MORE, AND THAT IS PART OF THE SAME FIX. Dismissing
-        // the keyboard the instant a thumb moves makes a mis-scroll cost the
-        // number being typed; the box is committed on every parseable keystroke,
-        // so the way out is *Listo* or a tap elsewhere.
-        keyboardDismissMode="none"
+        contentContainerStyle={{ paddingHorizontal: scale.space, paddingBottom: scale.space }}
+        initialNumToRender={columns * 5}
+        // ⚠️ `on-drag` SINCE `14.2`: the one field here is the search box, and a
+        // scroll means she is looking at the tiles, not typing. It was `none`
+        // while a quantity box on the row raised the keyboard (`14.1` retired it).
+        keyboardDismissMode="on-drag"
         keyboardShouldPersistTaps="handled"
       />
       {refused !== null ? <Nota name={refused} onDone={forgetRefused} /> : null}
@@ -614,23 +680,40 @@ export default function Vender() {
 }
 
 /**
- * ⚠️⚠️ ONE ROW, AND IT IS THE WHOLE CONTROL — C3.2, and the sentence that makes
- * this a screen rather than a list. The variant name, the family beneath it,
- * `Precio` never without its unit (C3.10), the quantity box and the `−`/`+`.
+ * ⚠️⚠️ `14.2`, ONE PRODUCT ON THE COUNTER — A TILE, AND IT IS THE WHOLE CONTROL
+ * (the owner's calls 2 and 4 of 2026-11-27; it replaced *B · Mostrador*'s row of
+ * 2026-10-15). The photo (its initials until there is one), the price as `11.2`'s
+ * tag on it, the name under it in the phone's own face.
  *
- * ⚠️ THERE IS NO `Pressable` ON THE ROW AND NO DETAIL SCREEN BEHIND IT — C3.3,
- * *"there is no add-to-basket step and no product-detail screen between the list
- * and the line."* A quantity greater than zero IS the basket line. ⚠️ That is
- * also why this row does NOT open La Familia the way Productos' row does: the
- * two screens look alike and answer different questions, and a tap that
- * navigated away mid-sale would lose the counter's place in the list.
+ * ⚠️⚠️ C3.3 STILL HOLDS: THE TAP IS THE LINE. A tap adds one piece or bunch, or
+ * opens the pad on a weighed product; a long press opens the pad on any product
+ * (`@/cart/vitrina`). There is still no detail screen behind it — a tap that
+ * navigated away mid-sale would lose the counter's place.
  *
- * ⚠️ AND THE LINE TOTAL IS DELIBERATELY ABSENT (C3.4). It appears in the basket
- * sheet and in the sticky bar and nowhere else — the row already carries a
- * price, a quantity and two buttons, and a fourth number on it is the row
- * `5d-ii` said a counter cannot read across a shop.
+ * ⚠️⚠️ IN THE BASKET, THE FOOT OF THE PHOTO IS ITS QUANTITY, AND THE TILE ITSELF
+ * IS THE `+`. The page drew `−`, the quantity and `+` on the foot; a tile is about
+ * 117 points wide at *Normal*, and two 48-point buttons leave the quantity 21 —
+ * *12 manojo* does not fit, and a button under 48 points is the target the
+ * shop's eyes and thumbs were promised never to get. So `−` keeps its 48 points
+ * and the `+` is the tap she already used to add the first one. A weighed line
+ * draws no `−` (it would take a whole kilo): its tap opens the pad, where
+ * *Quitar* is. The foot covers the tag, as on the page: what she is selling is
+ * what matters once it is in the basket, and the bar holds the total.
+ *
+ * ⚠️ THE PRICE IS NOT A BUTTON ON THE TILE (the page's call 5: *Cambiar precio*
+ * moves into the pad): a tag is a third of a target high, and a tile tapped to
+ * add must never open a sheet instead. The owner and a manager change a price
+ * from the pad — a long press, or the tap on a weighed product — and a product
+ * with no price opens the price sheet from its tap, as the owner ruled on
+ * 2026-10-15 (`sellGate`).
+ *
+ * ⚠️ THE AMBER LINE IS A BAND ACROSS THE TOP OF THE PHOTO — *Sin precio* for a
+ * priceless line (which wins), else §2.8's *Más de lo habitual* — never a line
+ * under the name, which would make that tile's row taller than the others and
+ * move every row below it under her thumb. The tile's ground goes amber with
+ * *Sin precio*, as the row's did; the hue never travels alone (`R11`).
  */
-function Fila({
+function Baldosa({
   entry,
   factors,
   typical,
@@ -643,188 +726,339 @@ function Fila({
   /** What this product usually arrives as — `undefined` when the shop has never
    *  bought it, or when it fell out of `MAGNITUDE_LIMIT`'s window. */
   typical: Typical | undefined;
-  /** `14.1`: the box opens the counter's pad on this product. */
+  /** Opens the counter's pad on this product (`14.1`). */
   onPad: (entry: CatalogEntry) => void;
-  /** Opens the price sheet — `adding` when it was `+` that asked; `null` for a
-   *  cashier, who sees nothing to tap. */
+  /** Opens the price sheet — `adding` when the tap asked; `null` for a cashier. */
   onPrice: ((entry: CatalogEntry, adding: boolean) => void) | null;
-  /** A cashier's `+` on a product with no price: the note saying who can fix it. */
+  /** A cashier's tap on a product with no price: the note saying who can fix it. */
   onRefused: (entry: CatalogEntry) => void;
 }) {
   const { scale } = useDensity();
+  const bump = useCartStore((state) => state.step);
   const base = useCartStore((state) => {
     for (const line of state.carts.sell) if (line.variantId === entry.id) return line.base;
     return 0;
   });
-
-  // ⚠️ THE AMBER CONDITION, IN ONE LINE — see this file's header for the whole
-  // argument. A priceless product nobody is selling is not a problem. ⚠️ Since
-  // `8g` it is reached only by a basket from before that rule: `@/cart/gate`
-  // keeps an unpriced product out of the basket in the first place.
-  const alarm = entry.centavos === null && base > 0;
-
-  // ⚠️⚠️ §2.8's MAGNITUDE WARNING — `null` FOR THE PRICE, BECAUSE A SALE HAS NO
-  // TYPED ONE. `quoteFor` takes the shelf figure off the catalog on the sell
-  // side, so there is no keystroke to get wrong and nothing to compare a COST
-  // median against. `@/api/magnitude`'s header has the argument; C3.15's counter
-  // price change (`5f-iv`) is what would change this one argument.
+  const unit = shownUnitOf(entry);
+  const by = stepOf(entry.priceUnit, factors);
+  const counted = base > 0;
+  const alarm = entry.centavos === null && counted;
+  // ⚠️ §2.8's third guard, `null` for the price — a sale has no typed one.
   const big = magnitudeNote(outsized(typical, base, null));
+  const gate = sellGate(entry.centavos, onPrice !== null, counted);
+  const word = ES.units[unit as keyof typeof ES.units] ?? unit;
+  const qty = counted ? `${qtyShown(base, unit, factors) ?? ''} ${word}` : '';
+  const priceWord = ES.units[entry.priceUnit as keyof typeof ES.units] ?? entry.priceUnit;
 
-  // ⚠️⚠️ `8g`, THE OWNER'S RULING OF 2026-10-15 — see `@/cart/gate`.
-  const gate = sellGate(entry.centavos, onPrice !== null, base > 0);
-  const refusal =
-    gate === 'open'
-      ? null
-      : gate === 'priceFirst'
-        ? { dim: false, onTap: () => onPrice?.(entry, true) }
-        : { dim: true, onTap: () => onRefused(entry) };
+  const act = (toque: Toque) => {
+    if (toque === 'precio') onPrice?.(entry, true);
+    else if (toque === 'nota') onRefused(entry);
+    else if (toque === 'pesar') onPad(entry);
+    // ⚠️ A unit this phone has not read steps nothing, as the old `+` did.
+    else if (by !== null) bump('sell', entry.id, by, 1);
+  };
 
+  const foot = scale.tapTarget * 0.75;
+  const band = alarm ? ES.sell.noPrice : big;
   return (
-    <View
-      style={{
-        flexDirection: 'row',
-        gap: scale.space,
-        paddingVertical: scale.space,
-        paddingHorizontal: scale.space,
-        // ⚠️ `11.6`: a list is a sheet on the counter — its rows white, a `linea`
-        // between them (`Separador`); the attention row keeps its amber ground.
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={[
+        entry.name,
+        entry.centavos === null ? ES.sell.noPrice : `${formatMXN(entry.centavos)} ${ES.sell.per(priceWord)}`,
+        counted ? ES.counter.tile.inCart(qty) : '',
+        band,
+      ]
+        .filter((part) => part !== '')
+        .join(', ')}
+      accessibilityHint={ES.counter.tile.hint}
+      onPress={() => act(toqueDe(unit, gate))}
+      onLongPress={() => act(toqueLargoDe(gate))}
+      style={({ pressed }) => ({
+        flex: 1,
+        borderRadius: ESQUINA.hoja,
+        overflow: 'hidden',
         backgroundColor: alarm ? PALETTE.atencionSuave : PALETTE.superficie,
-      }}
+        opacity: pressed ? 0.85 : 1,
+      })}
     >
-      <Retrato name={entry.name} picture={entry.picture} />
-
-      {/* ⚠️⚠️ THE OWNER'S *B · MOSTRADOR*, 2026-10-15: the name on top with the
-          whole width, the price and the controls beneath it. ⚠️ **`flexWrap` and
-          not a branch on the mode**: at `Letra grande`, or with a long price,
-          the controls do not fit beside the price and drop under it, which is
-          the drawing's three tiers arrived at by measurement rather than by a
-          rule about which mode is on. ⚠️ The family line is gone — *"we don't
-          need a description per item at all."* */}
-      <View style={{ flex: 1, justifyContent: 'space-between', gap: scale.rowGap }}>
-        <Text
-          numberOfLines={2}
-          style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.tinta }}
-        >
-          {entry.name}
+      <View
+        style={{
+          height: scale.retratoSize,
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: PALETTE.retrato,
+        }}
+      >
+        <Text style={{ fontSize: scale.titleSize, fontWeight: '700', color: PALETTE.tintaApagada }}>
+          {entry.initials}
         </Text>
+        {/* ⚠️ THE LARGE FILE, as Productos' mosaic: a tile is too wide for
+            160 px to stay sharp — standing whole on white. */}
+        <Foto picture={entry.picture} size="large" fit="contain" />
 
-        {/* ⚠️ `R11`: the hue never travels alone. */}
-        {alarm || big !== '' ? (
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: scale.rowGap }}>
-            {alarm ? (
+        {band === '' ? null : (
+          <View
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              paddingHorizontal: scale.rowGap / 2,
+              paddingVertical: scale.rowGap / 4,
+              backgroundColor: PALETTE.atencionSuave,
+            }}
+          >
+            {/* ⚠️ SHRUNK TO FIT, NEVER CUT: on a 393-point iPhone *Más de lo
+                habitual* read *Más de lo habi…* (seen on the Simulator). */}
+            <Text
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.8}
+              style={{ fontSize: scale.smallSize, fontWeight: '700', color: PALETTE.atencion }}
+            >
+              {band}
+            </Text>
+          </View>
+        )}
+
+        {counted ? (
+          <View
+            style={{
+              position: 'absolute',
+              left: 0,
+              right: 0,
+              bottom: 0,
+              height: foot,
+              flexDirection: 'row',
+              alignItems: 'center',
+              backgroundColor: PALETTE.accion,
+            }}
+          >
+            {conMenos(unit) ? (
               <Pressable
-                accessibilityRole={onPrice === null ? undefined : 'button'}
-                disabled={onPrice === null}
-                hitSlop={scale.rowGap}
-                onPress={() => onPrice?.(entry, false)}
+                accessibilityRole="button"
+                accessibilityLabel={ES.counter.tile.less(entry.name)}
+                disabled={by === null}
+                // ⚠️ 48 POINTS TALL TO A THUMB: the foot is three quarters of a
+                // target, and the slop above it is the rest.
+                hitSlop={{ top: scale.tapTarget - foot }}
+                onPress={() => {
+                  if (by !== null) bump('sell', entry.id, by, -1);
+                }}
+                style={({ pressed }) => ({
+                  width: scale.tapTarget,
+                  height: foot,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRightWidth: 1,
+                  borderRightColor: PALETTE.superficie,
+                  opacity: pressed ? 0.7 : 1,
+                })}
               >
-                <Text style={{ fontSize: scale.smallSize, fontWeight: '600', color: PALETTE.atencion }}>
-                  {onPrice === null ? ES.sell.noPrice : ES.sell.setPrice}
-                </Text>
+                <MaterialCommunityIcons name="minus" size={scale.iconSize} color={PALETTE.superficie} />
               </Pressable>
             ) : null}
-            {/* ⚠️ IT IS A WORD IN THE AMBER ROLE AND NOT A COLOURED ROW (`R11`
-                again, and §2.8's *none blocking*). A row that changed colour under
-                a thumb mid-sale reads as a refusal; `Sin precio` above does tint
-                the row because C3.13 really does block a commit on it, and this
-                one never does. */}
-            {big === '' ? null : (
-              <Text
-                numberOfLines={1}
-                style={{ fontSize: scale.smallSize, fontWeight: '600', color: PALETTE.atencion }}
-              >
-                {big}
-              </Text>
-            )}
+            <Text
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.85}
+              style={{
+                flex: 1,
+                textAlign: 'center',
+                paddingHorizontal: scale.rowGap / 2,
+                fontSize: scale.smallSize,
+                fontWeight: '700',
+                color: PALETTE.superficie,
+              }}
+            >
+              {qty}
+            </Text>
           </View>
-        ) : null}
+        ) : (
+          <View style={{ position: 'absolute', left: scale.rowGap / 2, bottom: scale.rowGap / 2 }}>
+            <Etiqueta entry={entry} priceWord={priceWord} />
+          </View>
+        )}
+      </View>
 
+      <Text
+        numberOfLines={2}
+        style={{
+          // ⚠️ TWO LINES HELD EVEN WHEN THE NAME NEEDS ONE, so every row of the
+          // grid is the same height and a scroll lands where the thumb expects.
+          minHeight: scale.bodySize * 1.25 * 2,
+          lineHeight: scale.bodySize * 1.25,
+          paddingHorizontal: scale.rowGap,
+          paddingTop: scale.rowGap / 2,
+          marginBottom: scale.rowGap,
+          fontSize: scale.bodySize,
+          fontWeight: '600',
+          color: PALETTE.tinta,
+        }}
+      >
+        {entry.name}
+      </Text>
+
+      {/* ⚠️ IN THE BASKET, OUTLINED — drawn over the tile, so it moves nothing. */}
+      {counted ? (
         <View
+          pointerEvents="none"
           style={{
-            flexDirection: 'row',
-            flexWrap: 'wrap',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: scale.rowGap,
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            borderRadius: ESQUINA.hoja,
+            borderWidth: 2,
+            borderColor: PALETTE.accion,
+          }}
+        />
+      ) : null}
+    </Pressable>
+  );
+}
+
+/** The point of `11.2`'s tag — `brand/mostrador/objetos/punta-etiqueta.svg`, rendered. */
+const PUNTA = require('@/marca/mostrador/punta-etiqueta.png') as number;
+
+/**
+ * ⚠️ `11.2`'S *ETIQUETA*, ON A TILE (`brand/mostrador/objetos.json`'s recipe): a
+ * piece of the counter's paper with its point and string hole — the point
+ * picture tinted `fondo`, half as wide as it is tall, then the price on `fondo`,
+ * one point under the picture so no seam shows. The price in the phone's own
+ * face (prices in lists stay in it), never without its unit (C3.10). A product
+ * with no price says so in grey — on a new shop's first day that is nearly every
+ * tile, and a counter of amber tags is a shop that looks unfinished.
+ */
+function Etiqueta({ entry, priceWord }: { entry: CatalogEntry; priceWord: string }) {
+  const { scale } = useDensity();
+  const alto = scale.smallSize * 1.6;
+  const priced = entry.centavos !== null;
+  return (
+    <View
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
+      style={{ flexDirection: 'row', alignItems: 'stretch', height: alto }}
+    >
+      <Image source={PUNTA} tintColor={PALETTE.fondo} style={{ height: alto, aspectRatio: 0.5 }} />
+      <View
+        style={{
+          marginLeft: -1,
+          flexDirection: 'row',
+          alignItems: 'baseline',
+          alignSelf: 'stretch',
+          paddingTop: scale.rowGap / 4,
+          paddingLeft: scale.rowGap / 4,
+          paddingRight: scale.rowGap,
+          backgroundColor: PALETTE.fondo,
+          borderTopRightRadius: ESQUINA.etiqueta,
+          borderBottomRightRadius: ESQUINA.etiqueta,
+        }}
+      >
+        <Text
+          style={{
+            fontSize: scale.smallSize,
+            fontWeight: priced ? '700' : '600',
+            color: priced ? PALETTE.tinta : PALETTE.tintaApagada,
+            fontVariant: ['tabular-nums'],
           }}
         >
-          <Precio entry={entry} onPrice={onPrice === null ? null : () => onPrice(entry, false)} />
-          <Cantidad
-            entry={entry}
-            base={base}
-            factors={factors}
-            scope="sell"
-            onPad={() => onPad(entry)}
-            refusal={refusal}
-          />
-        </View>
+          {priced ? formatMXN(entry.centavos as number) : ES.sell.unpriced}
+        </Text>
+        {priced ? (
+          <Text style={{ fontSize: scale.smallSize * 0.8, fontWeight: '600', color: PALETTE.tintaApagada }}>
+            {`${ES.catalog.per}${priceWord}`}
+          </Text>
+        ) : null}
       </View>
     </View>
   );
 }
 
 /**
- * The price on a row: the figure, and its unit beneath it (C3.10 — never one
- * without the other).
- *
- * ⚠️⚠️ FOR THE OWNER AND A MANAGER IT IS A BUTTON AND IS DRAWN AS ONE — `8g`,
- * his ruling of 2026-10-15, replacing the underline of 2026-10-14. A pencil on
- * `accionSuave`, the palette's own sentence for *the resting fill behind an
- * action*, so it reads as tappable at rest. ⚠️ A cashier gets the same words
- * with nothing around them: there is nothing for them to tap.
- *
- * ⚠️ NO AMBER ON A ROW NOBODY IS SELLING. A new shop imports its giro with no
- * prices, so on its first day nearly every row is unpriced, and a thousand
- * amber rows is a shop that looks unfinished; C3.12's dash and *sin precio*
- * say it in grey.
+ * ⚠️ `14.2`, CALL 3: THE AISLES AS NAMES — *Todo* first, then every family the shop
+ * sells in, in the day's order (call 6); one tap filters the grid, chosen again it
+ * is *Todo*. Productos keeps its photo squares: on the counter a row of photos
+ * would take a row of products off the screen, and seven plain names read at once.
  */
-function Precio({ entry, onPrice }: { entry: CatalogEntry; onPrice: (() => void) | null }) {
+function Pasillos({
+  aisles,
+  chosen,
+  onChoose,
+  strip,
+}: {
+  aisles: readonly Aisle[];
+  chosen: string | null;
+  onChoose: (familyId: string | null) => void;
+  strip: RefObject<ScrollView | null>;
+}) {
   const { scale } = useDensity();
-  const unit = ES.units[entry.priceUnit as keyof typeof ES.units] ?? entry.priceUnit;
-  const priced = entry.centavos !== null;
-  const words = (
-    <>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: scale.rowGap / 2 }}>
-        <Text
-          style={{
-            fontSize: scale.moneySize,
-            fontWeight: '700',
-            color: priced ? PALETTE.tinta : PALETTE.tintaApagada,
-          }}
-        >
-          {entry.centavos === null ? ES.catalog.noPrice : formatMXN(entry.centavos)}
-        </Text>
-        {onPrice === null ? null : (
-          <MaterialCommunityIcons name="pencil-outline" size={scale.smallSize} color={PALETTE.accion} />
-        )}
-      </View>
-      <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>
-        {priced ? ES.sell.per(unit) : ES.sell.unpriced}
-      </Text>
-    </>
+  if (aisles.length < 2) return null;
+  return (
+    <ScrollView
+      ref={strip}
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      keyboardShouldPersistTaps="handled"
+      // ⚠️ NEITHER GROW NOR SHRINK — Productos' measurement of 2026-10-17.
+      style={{ flexGrow: 0, flexShrink: 0 }}
+      contentContainerStyle={{ gap: scale.rowGap, paddingHorizontal: scale.space, paddingBottom: scale.rowGap }}
+    >
+      <Pasillo name={ES.products.all} on={chosen === null} onPress={() => onChoose(null)} />
+      {aisles.map((one) => (
+        <Pasillo
+          key={one.familyId}
+          name={one.name}
+          on={chosen === one.familyId}
+          onPress={() => onChoose(chosen === one.familyId ? null : one.familyId)}
+        />
+      ))}
+    </ScrollView>
   );
-  if (onPrice === null) return <View>{words}</View>;
+}
+
+/**
+ * One aisle's name. ⚠️ Chosen, it is FILLED in the counter's colour and its word
+ * goes bold — a change of shape and weight as well as of hue (`R11`).
+ */
+function Pasillo({ name, on, onPress }: { name: string; on: boolean; onPress: () => void }) {
+  const { scale } = useDensity();
+  const alto = scale.tapTarget * 0.75;
+  const slop = (scale.tapTarget - alto) / 2;
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={ES.sell.priceSheet.title(entry.name)}
-      hitSlop={scale.rowGap}
-      onPress={onPrice}
+      accessibilityLabel={name}
+      accessibilityState={{ selected: on }}
+      // ⚠️ 48 POINTS TO A THUMB: three quarters drawn, the rest in the slop.
+      hitSlop={{ top: slop, bottom: slop }}
+      onPress={onPress}
       style={{
-        paddingHorizontal: scale.rowGap,
-        paddingVertical: scale.rowGap / 2,
-        borderRadius: ESQUINA.boton,
-        // ⚠️ A PRODUCT WITH NO PRICE GETS THE CHIP'S OUTLINE AND NOT ITS FILL:
-        // on a new shop's first day that is nearly every row, and a list of green
-        // chips is a list of shouting. Measured on the emulator, 2026-10-15.
-        borderWidth: priced ? 0 : 1,
-        borderColor: PALETTE.linea,
-        backgroundColor: priced ? PALETTE.accionSuave : undefined,
+        minHeight: alto,
+        justifyContent: 'center',
+        paddingHorizontal: scale.space,
+        borderRadius: ESQUINA.chip,
+        borderWidth: 1,
+        borderColor: on ? PALETTE.accion : PALETTE.linea,
+        backgroundColor: on ? PALETTE.accion : PALETTE.superficie,
       }}
     >
-      {words}
+      <Text
+        numberOfLines={1}
+        style={{ fontSize: scale.smallSize, fontWeight: on ? '800' : '600', color: on ? PALETTE.superficie : PALETTE.tinta }}
+      >
+        {name}
+      </Text>
     </Pressable>
   );
+}
+
+/** The gap between two rows of tiles. */
+function Hueco() {
+  const { scale } = useDensity();
+  return <View style={{ height: scale.rowGap }} />;
 }
 
 /**
