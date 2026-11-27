@@ -67,6 +67,21 @@ export function seccionesDe(apartados: readonly Apartado[], ahora: Date): Seccio
 }
 
 /**
+ * ⚠️ `11.8-ii`: HER TICKETS WITH THE ONE SHE JUST SWIPED KEPT IN ITS PLACE — her queue drops a swiped ticket from the
+ * list at once (C10.3), and its stub tears off it there (`@/ui/Mostrador`'s `arranca`): the ticket stays where she
+ * swiped it, at its place `i` (or last, if fewer are left), until the stub has gone. One the list still holds is
+ * not drawn twice.
+ */
+export function conElQueSeArranca(
+  pendientes: readonly Apartado[],
+  arrancando: { readonly apartado: Apartado; readonly i: number } | null,
+): readonly Apartado[] {
+  if (arrancando === null || pendientes.some((a) => a.id === arrancando.apartado.id)) return pendientes;
+  const i = Math.min(Math.max(0, arrancando.i), pendientes.length);
+  return [...pendientes.slice(0, i), arrancando.apartado, ...pendientes.slice(i)];
+}
+
+/**
  * ⚠️ `10.9j-ii-a` (J1): WHETHER *APARTADOS* OPENS BY ITSELF — the app's first signal reading was
  * none, her phone keeps a ticket still to collect (one the database sealed — `0088` — and she has
  * not swiped), and it has not opened by itself this run already. `primera` is `undefined` until the

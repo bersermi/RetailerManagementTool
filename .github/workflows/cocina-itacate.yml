@@ -126,6 +126,9 @@ on:
       # byte for byte, at the measures of `objetos.json` (`test/mostrador.test.ts` in each).
       - "brand/mostrador/objetos.json"
       - "brand/mostrador/png/**"
+      # ⚠️ `11.8-ii`, THE COUNTER'S MOTIONS: each app's `@/theme/movimiento` is `movimiento.json`'s, number for number
+      # — the file the design system's *Movimiento* card plays (`test/movimiento.test.ts` in each).
+      - "brand/mostrador/movimiento.json"
       - "package.json"
       - "package-lock.json"
       - ".github/workflows/cocina-itacate.yml"

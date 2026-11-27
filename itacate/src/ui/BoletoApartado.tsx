@@ -41,8 +41,10 @@ import { Boleto } from '@/ui/Mostrador';
 // scanning is quicker than typing. Black on white at the size a phone reads across a counter
 // (`@/lib/apartados`' `QR_LADO`); drawn by `@/ui/CodigoQR`, as *Mi código* is. A ticket her phone kept carries it too
 // (`@/lib/boletos`), so it shows with no signal.
-// ⚠️ `11.8-i`: A TICKET (the design system's *Boleto*): the stub holds *Ya lo tengo* and *¿Cambio de planes?*, and
-// tears at `11.8-ii`; her code is in the number's face (*a code … in numero*), at its own size, read across a counter.
+// ⚠️ `11.8-i`: A TICKET (the design system's *Boleto*): the stub holds *Ya lo tengo* and *¿Cambio de planes?*; her
+// code is in the number's face (*a code … in numero*), at its own size, read across a counter.
+// ⚠️ `11.8-ii`: WHEN SHE HAS IT, THE STUB TEARS OFF (`arranca` — *El talón se arranca*, 200 ms): her *Ya lo tengo* is on
+// her phone already, and *Apartados* keeps this ticket in its place while it goes (`conElQueSeArranca`).
 // NO CHECK CAN SEE THIS SCREEN (§2.11): the phone is its instrument.
 // ============================================================================
 
@@ -56,6 +58,8 @@ export function BoletoApartado({
   ahora,
   onYaLoTengo,
   onCambioDePlanes,
+  arranca = false,
+  onArrancado,
 }: {
   apartado: Apartado;
   /** Her kitchen as the door sends it, while it does — for her circle and *Cómo llegar*. */
@@ -63,6 +67,9 @@ export function BoletoApartado({
   ahora: Date;
   onYaLoTengo: () => void;
   onCambioDePlanes: () => void;
+  /** ⚠️ `11.8-ii`: she has just swiped *Ya lo tengo* — the stub tears off, and `onArrancado` once it has gone. */
+  arranca?: boolean;
+  onArrancado?: () => void;
 }) {
   const cocina = cocinaDe(apartado, puerta);
   const calle = calleDe(apartado.cocina.direccion);
@@ -73,6 +80,8 @@ export function BoletoApartado({
   // with *¿Cambio de planes?* on the stub that tears.
   return (
     <Boleto
+      arranca={arranca}
+      onArrancado={onArrancado}
       cuerpo={
         <View style={{ gap: SIZE.space }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: SIZE.space }}>

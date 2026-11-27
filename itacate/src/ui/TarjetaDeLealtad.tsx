@@ -1,12 +1,15 @@
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { useRef } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
 import { enFrase, premiosTexto, type VistaDeTarjeta } from '@/lib/tarjeta';
+import { useSellosNuevos } from '@/lib/useSellosNuevos';
 import { ES } from '@/strings';
 import { HUES } from '@/theme/colores';
 import { TITULO } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
 import { SelloVaca } from '@/ui/Mostrador';
+import { Cae } from '@/ui/Movimientos';
 import { ESQUINA } from '@/theme/density';
 import { BotonLleno } from '@/ui/BotonLleno';
 import { Foto } from '@/ui/Foto';
@@ -20,8 +23,11 @@ import { Iniciales } from '@/ui/Iniciales';
 // *Escanear* and *Mi código*. Wera Cocina draws the same card for the fonda (`cocina/src/ui/TarjetaDeLealtad.tsx`,
 // its setup's preview and its screen): the same colour, the same stamps, the same words.
 // ⚠️ IT DECIDES NOTHING: every word is `@/lib/tarjeta`'s (`vistaDe`, `premiosTexto`). Nothing here is read
-// from the network but the logo (`@/ui/Foto`, from memory). NO CHECK CAN SEE THIS CARD (ADR-035 §2.11): the
-// phone is its instrument.
+// from the network but the logo (`@/ui/Foto`, from memory).
+// ⚠️ `11.8-ii`: A NEW STAMP LANDS (*El sello cae*) — the stamps beyond the count she last saw on this card
+// (`@/lib/useSellosNuevos`, kept on her phone per card), on whichever screen shows it next, in front, once its row
+// is on screen: her scan of the kitchen's code, *Mi código* while the kitchen scans it, the kitchen's page when she
+// scrolls to it — its place empty until then. NO CHECK CAN SEE THIS CARD (ADR-035 §2.11): the phone is its instrument.
 // ============================================================================
 
 export function TarjetaDeLealtad({
@@ -40,6 +46,8 @@ export function TarjetaDeLealtad({
   const hue = HUES[vista.color];
   const claro = 'rgba(255, 255, 255, 0.82)';
   const premios = premiosTexto(vista.premios);
+  const fila = useRef<View>(null);
+  const nuevos = useSellosNuevos(vista.cocinaId, vista.sellos, fila);
   return (
     <View style={{ backgroundColor: hue, borderRadius: ESQUINA.hoja, padding: SIZE.space + 2, gap: SIZE.space }}>
       <View
@@ -70,25 +78,33 @@ export function TarjetaDeLealtad({
           </View>
           <Text style={{ fontSize: SIZE.bodySize, fontWeight: '800', color: PALETTE.superficie }}>{ES.tarjeta.cuenta(vista.sellos, vista.de)}</Text>
         </View>
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
-          {Array.from({ length: vista.de }, (_, i) => (
-            <View
-              key={i}
-              style={{
-                width: 30,
-                height: 30,
-                borderRadius: 15,
-                alignItems: 'center',
-                justifyContent: 'center',
-                // ⚠️ `11.8-i`: a stamp is the Wera cow in its inked ring, pressed in white and turned by its place
-                // (`@/ui/Mostrador`'s `SelloVaca`, call 9); an empty place stays a thin ring.
-                borderWidth: i < vista.sellos ? 0 : 1.5,
-                borderColor: 'rgba(255, 255, 255, 0.6)',
-              }}
-            >
-              {i < vista.sellos && <SelloVaca i={i} tinta={PALETTE.superficie} />}
-            </View>
-          ))}
+        <View ref={fila} style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+          {Array.from({ length: vista.de }, (_, i) => {
+            // ⚠️ `11.8-ii`: a new stamp not yet on screen keeps its place empty, and lands there once it is.
+            const lleno = i < vista.sellos && !(nuevos.desde !== null && !nuevos.cae && i >= nuevos.desde);
+            return (
+              <View
+                key={i}
+                style={{
+                  width: 30,
+                  height: 30,
+                  borderRadius: 15,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  // ⚠️ `11.8-i`: a stamp is the Wera cow in its inked ring, pressed in white and turned by its place
+                  // (`@/ui/Mostrador`'s `SelloVaca`, call 9); an empty place stays a thin ring.
+                  borderWidth: lleno ? 0 : 1.5,
+                  borderColor: 'rgba(255, 255, 255, 0.6)',
+                }}
+              >
+                {lleno && (
+                  <Cae cae={nuevos.cae && i >= (nuevos.desde ?? 0)}>
+                    <SelloVaca i={i} tinta={PALETTE.superficie} />
+                  </Cae>
+                )}
+              </View>
+            );
+          })}
         </View>
         <Text style={{ fontSize: SIZE.smallSize + 1, color: PALETTE.superficie }}>
           {ES.tarjeta.igual(vista.de, '')}

@@ -482,7 +482,8 @@ follows it, as `itacate/CLAUDE.md`'s does:
   Condensed (`letraNumero`); the words written in sentence case in `@/strings` (`test/oracion.test.ts`), never `textTransform`; Wera Cocina's green `#1C6B4B` for actions; Wera's rust (`#9A4A1A` since `11.7-i`) for
   promotions and for what waits for her — an order's *pronto* and dot (`10.5b-iv-a`), a tile's dot and *Falta* (`10.9a-iii`) — never an action; state first, before anything tappable (ADR-035 §2.8); one staggered entrance per screen (`@/ui/Llega`, Itacate's), transform and
   opacity only (§2.11) — `test/pestanas.test.ts` lets Reanimated into `@/ui/Llega`, `@/ui/Nota`, since `10.5-v-d`
-  the opening's `@/ui/Apertura` and, since `10.9a-iii`, *Publicar*'s glow `@/ui/Brillo` alone (`scaleX` and `scaleY` count as the transform).
+  the opening's `@/ui/Apertura`, since `10.9a-iii` *Publicar*'s glow `@/ui/Brillo` and, since `11.8-ii`, the counter's motions `@/ui/Movimientos`
+  alone (`scale`, `scaleX`, `scaleY` and `rotate` count as the transform).
   ⚠️ **Since `11.7-ii` a corner names its role** — `@/theme/density`'s `ESQUINA`, Wera's block code for code: a sheet, a button, a field and a
   chip at 3, a bar or a handle at 1; a circle (her initials, a dot, a stamp) is half its own side; no pills — and a white sheet on the counter
   has no plain `linea` edge (five keep one — a map's frame, two things over the map, a box she fills, a photo slot — each named with its reason), the header (`@/ui/Banda`) no line under it, the tab bar a white sheet
@@ -494,7 +495,15 @@ follows it, as `itacate/CLAUDE.md`'s does:
   *Lo que sigue*, an order on *Apartados* (its one action on the stub; none, its body alone) and the order her code finds (*Ya cobré y lo
   entregué* on the stub; once handed over, no stub and *Entregado* pressed on it — `SelloPalabra`); a code on a ticket in the number's
   face at its own size (`@/ui/TarjetaOrden`'s `CODIGO`); her card's stamps the Wera cow (`SelloVaca`, turned by its place); a price on her
-  page's copy a tag (`Etiqueta`). Nothing moves yet: the stamp landing and the stub tearing are `11.8-ii`'s.
+  page's copy a tag (`Etiqueta`).
+  ⚠️ **Since `11.8-ii` the counter's motions** — `@/ui/Movimientos`, one file with Itacate's, its numbers `@/theme/movimiento`'s block,
+  `brand/mostrador/movimiento.json`'s number for number (`test/movimiento.test.ts`), the fifth module `test/pestanas.test.ts` lets Reanimated
+  into: **the handover as one gesture** on *Entregar un apartado* — her tap queues it and draws what is left of the ticket at once; the stub
+  she tapped tears off it (*El talón se arranca*, 200 ms, `Boleto`'s `arranca`) and *Entregado* lands 40 ms later (*El sello cae*, 260 ms) —
+  done 300 ms after her tap; an order found already handed over is drawn still. And **the stamp she gives** on *Escanear a tu cliente*: the
+  Wera cow in her green lands beside *Sello para Ana · 6 de 8* when the database's answer says it was given (`@/lib/tarjeta`'s `selloDado`) —
+  that screen waits for the answer with signal, and a scan kept with no signal lands nothing. Every ticket's stub sits in its `Arranca` from
+  the start. *Quedan 9 de 14* on *Hoy* does not move (his word of 2026-11-27). None plays on a phone set to reduce motion.
 - **Money:** no screen stores or shows a bank account, a card or an amount paid — only how she will pay.
 
 ## *Apartados* — she sees and hands over (`10.5b-iv-a`)

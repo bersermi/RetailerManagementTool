@@ -6,6 +6,7 @@ import type { Kitchen } from '@/api/cocinas';
 import { useTarjetas } from '@/api/hooks';
 import { colorOf } from '@/api/pagina';
 import { condicionesDeCocina, enFrase, vistaDe } from '@/lib/tarjeta';
+import { useInvitacionVista } from '@/lib/useSellosNuevos';
 import { ES } from '@/strings';
 import { HUES } from '@/theme/colores';
 import { letraEncabezado } from '@/theme/letra';
@@ -27,6 +28,8 @@ import { TarjetaDeLealtad } from '@/ui/TarjetaDeLealtad';
 // page shows no invitation — her first stamp at its counter still works (the row's note). ⚠️ The invitation
 // carries *Escanear* and *Mi código* too — the drawing puts them on her card only; at the counter the poster's
 // QR opens this page, and her first stamp needs one of the two (decided on his behalf, `10.9e-iii`).
+// ⚠️ `11.8-ii`: THE INVITATION IN FRONT KEEPS *0 STAMPS SEEN* for this kitchen (`useInvitacionVista`), so her first
+// stamp there lands when her card first shows it (*El sello cae*).
 // NO CHECK CAN SEE THIS SECTION (ADR-035 §2.11): the phone is its instrument.
 // ============================================================================
 
@@ -36,6 +39,7 @@ export function SeccionTarjeta({ cocina }: { cocina: Kitchen }) {
   const mia = tarjetas.data?.find((card) => card.id === cocina.id);
   const vista = mia === undefined ? null : vistaDe(mia, cocina);
   const terminos = condicionesDeCocina(cocina);
+  useInvitacionVista(cocina.id, tarjetas.data !== undefined && vista === null && terminos !== null && cocina.tarjeta !== null);
   if (vista === null && (terminos === null || cocina.tarjeta === null)) return null;
 
   const hue = HUES[colorOf(cocina.page, cocina.giro)];

@@ -186,9 +186,10 @@ describe('one staggered entrance per screen, and the toast — transform and opa
   // ⚠️ `10.9a-iii`: a fourth, *Publicar*'s glow (`@/ui/Brillo`) — a halo grown on each axis and faded.
   it('Reanimated is drawn by the four motion parts alone, and their styles touch opacity and transform only', () => {
     const animators = files.filter((f) => /from 'react-native-reanimated'/.test(f.text)).map((f) => f.name);
-    expect(animators.sort()).toEqual(['ui/Apertura.tsx', 'ui/Brillo.tsx', 'ui/Llega.tsx', 'ui/Nota.tsx']);
+    // ⚠️ `11.8-ii`: a fifth, the counter's motions (`@/ui/Movimientos`) — the stamp landing and the stub tearing.
+    expect(animators.sort()).toEqual(['ui/Apertura.tsx', 'ui/Brillo.tsx', 'ui/Llega.tsx', 'ui/Movimientos.tsx', 'ui/Nota.tsx']);
     const estilos = animators.flatMap((name) => [...code(name).matchAll(/useAnimatedStyle\(\(\) => \(\{([\s\S]*?)\}\)\)/g)].map((m) => m[1]));
-    expect(estilos.length).toBe(10);
+    expect(estilos.length).toBe(12);
     // A transform's own members — a move, a size on one axis or both, a turn — are the transform.
     const DEL_TRANSFORM = new Set(['translateY', 'translateX', 'scale', 'scaleX', 'scaleY', 'rotate']);
     for (const estilo of estilos) {

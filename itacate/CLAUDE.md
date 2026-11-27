@@ -594,7 +594,7 @@ follows it, as `cocina/CLAUDE.md`'s does:
   `11.7-i`, Archivo since, with `@/marca/fuentes`), loaded by the root before the first screen (the phone's face if the load fails); `PALETTE.accion` is the blue, held to `app.json`'s
   icon ground; the motion's numbers are `@/theme/movimiento`'s, drawn by `@/ui/Llega` (a screen's first blocks, once, on mount),
   `@/ui/Hoja` (a sheet's spring), since `10.5-iv-b-i` `@/ui/HojaDeLista` (the list sliding over the map) and since `10.5b-iii-a`
-  `@/ui/Deslizar` (*Ya lo tengo*'s swipe) — **the only four modules that import Reanimated**, their animated styles `opacity` and
+  `@/ui/Deslizar` (*Ya lo tengo*'s swipe), and since `11.8-ii` `@/ui/Movimientos` (the counter's motions, below) — **the only five modules that import Reanimated**, their animated styles `opacity` and
   `transform` alone (`test/pestanas.test.ts`); the last two are the only modules with a gesture (`react-native-gesture-handler`,
   its root in `app/_layout.tsx`). Reanimated's native half was in this app's first build (`libreanimated.so` and `libworklets.so`
   read inside the test build's APK) and Expo's Babel preset adds its worklets plugin by itself; `10.5-v-b` is the first JavaScript to
@@ -611,6 +611,14 @@ follows it, as `cocina/CLAUDE.md`'s does:
   `brand/mostrador/png/`'s byte for byte in `src/marca/mostrador/` and its measures `objetos.json`'s: her apartado a TICKET (`@/ui/BoletoApartado`:
   square, a notch at each end of its band, the perforation, and a stub holding *Ya lo tengo* and *¿Cambio de planes?*), her code on it in the
   number's face at its own size (48); her card's stamps the Wera cow (`SelloVaca`, turned by its place); a price on a list a tag (`@/ui/Precio`'s
-  `Etiqueta`; a dish's own page keeps its large price); *¡Ganaste …!* in Mansalva (`@/theme/frase`'s `letraPremio`, 32/38). Nothing moves
-  yet: the stamp landing and the stub tearing are `11.8-ii`'s.
+  `Etiqueta`; a dish's own page keeps its large price); *¡Ganaste …!* in Mansalva (`@/theme/frase`'s `letraPremio`, 32/38).
+  ⚠️ **Since `11.8-ii` the counter's motions** — `@/ui/Movimientos`, one file with Wera Cocina's, its numbers `@/theme/movimiento`'s block,
+  `brand/mostrador/movimiento.json`'s number for number (`test/movimiento.test.ts`): ***El talón se arranca*** — her *Ya lo tengo* is queued at once,
+  and *Apartados* keeps the ticket she swiped in its place (`@/lib/apartados`' `conElQueSeArranca`) while its stub tears (200 ms), then *Ya lo
+  tienes* arrives; every stub sits in its `Arranca` from the start, so the swipe's thumb stays where she left it. ***El sello cae*** — a new stamp
+  on her card (260 ms): the count she last saw is kept on her phone per login and per card (`@/lib/sellosVistos`, `itacate.sellos-vistos`; the
+  kitchen's invitation in front keeps 0), and a stamp beyond it waits as an empty place until its row is on screen (`@/lib/useSellosNuevos`,
+  `measureInWindow` while one waits) — at once on *Mi código* and after her scan, when she scrolls to it on a kitchen's page. The swipe's words
+  take two lines when the text is large (at 130 % they fit whole since the words sit right of the thumb). None plays on a phone set to reduce
+  motion. Seen and recorded on the emulator (a debug build); his look is the judge (ADR-035 §2.11).
 - **Money:** no screen stores or shows a bank account, a card or an amount paid — only how she will pay.
