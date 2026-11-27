@@ -7,6 +7,7 @@ import { ES } from '@/strings';
 import { HUES } from '@/theme/colores';
 import { TITULO } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { SelloVaca } from '@/ui/Mostrador';
 import { ESQUINA } from '@/theme/density';
 import { Iniciales } from '@/ui/Iniciales';
 import { Foto } from '@/vecinos/ui/Foto';
@@ -87,12 +88,13 @@ export function TarjetaDeLealtad({
               borderRadius: 15,
               alignItems: 'center',
               justifyContent: 'center',
-              borderWidth: 1.5,
+              // ⚠️ `11.8-i`: a stamp is the Wera cow in its inked ring, pressed in white and turned by its place
+              // (`@/ui/Mostrador`'s `SelloVaca`, call 9); an empty place stays a thin ring.
+              borderWidth: i < sellos ? 0 : 1.5,
               borderColor: 'rgba(255, 255, 255, 0.6)',
-              backgroundColor: i < sellos ? PALETTE.superficie : 'transparent',
             }}
           >
-            {i < sellos && <MaterialCommunityIcons name="cow" size={17} color={hue} />}
+            {i < sellos && <SelloVaca i={i} tinta={PALETTE.superficie} />}
           </View>
         ))}
       </View>

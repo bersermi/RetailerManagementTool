@@ -16,9 +16,10 @@ import {
   type Orden,
 } from '@/lib/apartados';
 import { ES } from '@/strings';
-import { TITULO } from '@/theme/letra';
+import { FAMILIA_NUMERO } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
 import { ESQUINA } from '@/theme/density';
+import { Boleto } from '@/ui/Mostrador';
 
 // ============================================================================
 // ONE ORDER'S CARD — *Apartados*' *Hoy*, and what waits for her thumb in *Historial*. Plan
@@ -29,9 +30,16 @@ import { ESQUINA } from '@/theme/density';
 //   green *Entregar*                     to hand over — its hour rust 15 minutes before
 //   rust *Calificar*                     handed over, not yet rated
 //   rust *No se presentó*, green *Sí pasó*  a plate that *se liberó*, not yet rated
+// ⚠️ `11.8-i`: a ticket — the order on its body, its action on the stub (the design system's *Boleto*).
 // The whole card opens the order (`/apartado/[id]`). What it says is `@/lib/apartados`',
 // pinned by `test/apartados.test.ts`. NO CHECK CAN SEE THIS CARD (ADR-035 §2.11).
 // ============================================================================
+
+/**
+ * ⚠️ `11.8-i`: A CODE ON A TICKET IN THE NUMBER'S FACE (the design system's *Boleto*: *a code or Quedan 9 de 14 in
+ * numero*) — Archivo Condensed, its figures in columns, at the code's own size, so it reads as today across the counter.
+ */
+export const CODIGO = { fontFamily: FAMILIA_NUMERO, includeFontPadding: false, fontSize: 30, lineHeight: 34, letterSpacing: 1, fontVariant: ['tabular-nums' as const] };
 
 export function TarjetaOrden({
   orden,
@@ -64,55 +72,78 @@ export function TarjetaOrden({
   const aviso = siNoLoCalificasTexto(orden, ahora);
   const porEntregar = marca === 'porEntregar' || marca === 'pronto';
 
-  return (
-    <View style={{ gap: 6, padding: SIZE.space, borderRadius: ESQUINA.hoja, backgroundColor: PALETTE.superficie }}>
-      <Pressable accessibilityRole="button" accessibilityLabel={ES.apartados.abrirAyuda(orden.codigo)} onPress={onAbrir} style={{ gap: 6 }}>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: SIZE.rowGap }}>
-          <Text style={{ ...TITULO, fontSize: 30, letterSpacing: 1, fontVariant: ['tabular-nums'], color: PALETTE.tinta }}>{orden.codigo}</Text>
-          {porEntregar ? (
-            <View style={{ alignItems: 'flex-end', gap: 3 }}>
-              <Text style={{ fontSize: SIZE.bodySize, fontWeight: '700', fontVariant: ['tabular-nums'], color: pronto === null ? PALETTE.tinta : PALETTE.marca }}>
-                {horaTexto(orden.hora, ahora)}
-              </Text>
-              {pronto !== null && <Text style={{ fontSize: 12, fontWeight: '700', color: PALETTE.marca }}>{pronto}</Text>}
-            </View>
-          ) : (
-            <Marca texto={marcaTexto(orden, ahora)} fondo={colores.fondo} tinta={colores.tinta} punto={esperando} />
-          )}
+  // ⚠️ `11.8-i`: A TICKET (`@/ui/Mostrador`'s `Boleto`): the order on its body, and the one action of its
+  // state on the stub that tears — an order with none is its body alone.
+  const acciones =
+    porEntregar ? (
+      <Accion label={ES.apartados.entregar} tipo="ir" onPress={onEntregar} />
+    ) : marca === 'porCalificar' ? (
+      <Accion label={ES.apartados.calificar} tipo="calificar" onPress={onCalificar} />
+    ) : marca === 'seLibero' ? (
+      <View style={{ flexDirection: 'row', gap: SIZE.rowGap }}>
+        <View style={{ flex: 1 }}>
+          <Accion label={ES.apartados.noSePresento} tipo="calificar" onPress={onNoSePresento} />
         </View>
-        <Text style={{ fontSize: 18, fontWeight: '600', color: PALETTE.tinta }}>{queTexto(orden)}</Text>
-        <Text style={{ fontSize: SIZE.bodySize, color: PALETTE.tinta }}>{estadoTexto(orden, ahora)}</Text>
-        {orden.vecino !== null && (
-          <>
-            <View style={{ height: 1, backgroundColor: PALETTE.linea, marginTop: 2 }} />
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: SIZE.rowGap }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 1 }}>
-                <Text numberOfLines={1} style={{ fontSize: SIZE.smallSize, fontWeight: '500', color: PALETTE.tintaApagada, flexShrink: 1 }}>
-                  {nombreTexto(orden.vecino)}
-                </Text>
-                <Calificacion texto={calificacionTexto(orden.vecino)} nueva={orden.vecino.calificacion === null} />
-              </View>
-              <MaterialCommunityIcons name="chevron-right" size={20} color={PALETTE.tintaApagada} />
-            </View>
-          </>
-        )}
-      </Pressable>
-
-      {porEntregar && <Accion label={ES.apartados.entregar} tipo="ir" onPress={onEntregar} />}
-      {marca === 'porCalificar' && <Accion label={ES.apartados.calificar} tipo="calificar" onPress={onCalificar} />}
-      {marca === 'seLibero' && (
-        <View style={{ flexDirection: 'row', gap: SIZE.rowGap }}>
-          <View style={{ flex: 1 }}>
-            <Accion label={ES.apartados.noSePresento} tipo="calificar" onPress={onNoSePresento} />
-          </View>
-          <View style={{ flex: 1 }}>
-            <Accion label={ES.apartados.siPaso} tipo="bien" onPress={onSiPaso} />
-          </View>
+        <View style={{ flex: 1 }}>
+          <Accion label={ES.apartados.siPaso} tipo="bien" onPress={onSiPaso} />
         </View>
-      )}
+      </View>
+    ) : null;
+  const pie = (
+    <>
       {aviso !== null && <Text style={{ fontSize: SIZE.smallSize, lineHeight: 18, color: PALETTE.tintaApagada }}>{aviso}</Text>}
       {problema !== null && <Text style={{ fontSize: SIZE.smallSize, lineHeight: 18, color: PALETTE.error }}>{problema}</Text>}
-    </View>
+    </>
+  );
+
+  return (
+    <Boleto
+      padding={SIZE.space}
+      cuerpo={
+        <View style={{ gap: 6 }}>
+          <Pressable accessibilityRole="button" accessibilityLabel={ES.apartados.abrirAyuda(orden.codigo)} onPress={onAbrir} style={{ gap: 6 }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: SIZE.rowGap }}>
+              <Text style={{ ...CODIGO, color: PALETTE.tinta }}>{orden.codigo}</Text>
+              {porEntregar ? (
+                <View style={{ alignItems: 'flex-end', gap: 3 }}>
+                  <Text style={{ fontSize: SIZE.bodySize, fontWeight: '700', fontVariant: ['tabular-nums'], color: pronto === null ? PALETTE.tinta : PALETTE.marca }}>
+                    {horaTexto(orden.hora, ahora)}
+                  </Text>
+                  {pronto !== null && <Text style={{ fontSize: 12, fontWeight: '700', color: PALETTE.marca }}>{pronto}</Text>}
+                </View>
+              ) : (
+                <Marca texto={marcaTexto(orden, ahora)} fondo={colores.fondo} tinta={colores.tinta} punto={esperando} />
+              )}
+            </View>
+            <Text style={{ fontSize: 18, fontWeight: '600', color: PALETTE.tinta }}>{queTexto(orden)}</Text>
+            <Text style={{ fontSize: SIZE.bodySize, color: PALETTE.tinta }}>{estadoTexto(orden, ahora)}</Text>
+            {orden.vecino !== null && (
+              <>
+                <View style={{ height: 1, backgroundColor: PALETTE.linea, marginTop: 2 }} />
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: SIZE.rowGap }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 1 }}>
+                    <Text numberOfLines={1} style={{ fontSize: SIZE.smallSize, fontWeight: '500', color: PALETTE.tintaApagada, flexShrink: 1 }}>
+                      {nombreTexto(orden.vecino)}
+                    </Text>
+                    <Calificacion texto={calificacionTexto(orden.vecino)} nueva={orden.vecino.calificacion === null} />
+                  </View>
+                  <MaterialCommunityIcons name="chevron-right" size={20} color={PALETTE.tintaApagada} />
+                </View>
+              </>
+            )}
+          </Pressable>
+          {acciones === null && pie}
+        </View>
+      }
+      talon={
+        acciones === null ? null : (
+          <View style={{ gap: 6 }}>
+            {acciones}
+            {pie}
+          </View>
+        )
+      }
+    />
   );
 }
 

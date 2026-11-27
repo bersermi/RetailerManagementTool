@@ -109,6 +109,9 @@
     "backspace-outline": {
       "dibujo": "borrar-tecla",
       "apps": {
+        "app": [
+          "app/src/app/(tabs)/vender.tsx"
+        ],
         "cocina": [
           "cocina/src/ui/Teclado.tsx"
         ]
@@ -518,17 +521,6 @@
         ]
       }
     },
-    "cow": {
-      "dibujo": "vaca",
-      "apps": {
-        "cocina": [
-          "cocina/src/ui/TarjetaDeLealtad.tsx"
-        ],
-        "itacate": [
-          "itacate/src/ui/TarjetaDeLealtad.tsx"
-        ]
-      }
-    },
     "creation": {
       "dibujo": "destellos",
       "apps": {
@@ -665,7 +657,6 @@
           "cocina/src/app/(cocina)/escanear.tsx",
           "cocina/src/app/(cocina)/nueva-promocion.tsx",
           "cocina/src/app/(cocina)/sellar.tsx",
-          "cocina/src/app/(cocina)/tarjeta.tsx",
           "cocina/src/lib/loQueUsas.ts",
           "cocina/src/lib/promociones.ts"
         ],
@@ -875,7 +866,8 @@
           "app/src/ui/Corrigiendo.tsx"
         ],
         "cocina": [
-          "cocina/src/app/(cocina)/(tabs)/mi-cocina.tsx"
+          "cocina/src/app/(cocina)/(tabs)/mi-cocina.tsx",
+          "cocina/src/app/(cocina)/tarjeta.tsx"
         ]
       }
     },

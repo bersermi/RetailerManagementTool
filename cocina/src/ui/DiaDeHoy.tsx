@@ -6,6 +6,7 @@ import { ES } from '@/strings';
 import { letraEncabezado, letraNumero } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
 import { ESQUINA } from '@/theme/density';
+import { Boleto } from '@/ui/Mostrador';
 
 // ============================================================================
 // *HOY*'S FIRST ZONE — THE DAY AT A GLANCE (the family-shell page's green card, round
@@ -21,6 +22,8 @@ import { ESQUINA } from '@/theme/density';
 // ⚠️ `10.9d-ii` (G22): *TE SIGUEN 38 VECINOS* — how many neighbours follow her kitchen, never who —
 // a line of the card, on offer or not, from the first follower (`teSiguen`, `null` while unread or
 // with no signal: then no line, never a 0 that is not one). Her helpers see it too.
+// ⚠️ `11.8-i`: ON OFFER, THE CARD IS A TICKET IN HER GREEN — the body, the band where it tears, and
+// the stub holding *Te siguen* and the door (`@/ui/Mostrador`'s `Boleto`; the design system's *Boleto*).
 // ⚠️ STATE FIRST, then the door's word (ADR-035 §2.8). What it says is `@/lib/hoy`'s,
 // pinned by `test/hoy.test.ts`; the bar's length is drawn, never animated — it is
 // shorter each time the clock is read again (`useAhora`), with no movement of its own.
@@ -89,53 +92,61 @@ export function DiaDeHoy({
         ES.hoy.verOfertas,
       )}
       onPress={onPress}
-      style={({ pressed }) => ({
-        gap: SIZE.rowGap + 2,
-        padding: SIZE.space * 1.25,
-        borderRadius: ESQUINA.hoja,
-        backgroundColor: PALETTE.accion,
-        opacity: pressed ? 0.92 : 1,
-      })}
+      style={({ pressed }) => ({ opacity: pressed ? 0.92 : 1 })}
     >
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', gap: SIZE.rowGap }}>
-        <Text style={{ ...letraEncabezado(SIZE), color: PALETTE.sobreAccionApagada }}>
-          {ES.hoy.enItacate}
-        </Text>
-        <Text style={{ fontSize: SIZE.smallSize, fontWeight: '600', color: PALETTE.sobreAccionApagada }}>{hasta}</Text>
-      </View>
-      <Text style={{ ...letraNumero(SIZE), color: PALETTE.sobreAccion }}>{grande}</Text>
-      <View style={{ height: 6, borderRadius: ESQUINA.marca, overflow: 'hidden', backgroundColor: PALETTE.barraSobreAccion }}>
-        <View style={{ width: `${Math.round(fraccion * 100)}%`, height: 6, borderRadius: ESQUINA.marca, backgroundColor: PALETTE.sobreAccion }} />
-      </View>
-      <View style={{ gap: 4 }}>
-        {dia.renglones.slice(0, RENGLONES_EN_LA_TARJETA).map((renglon) => (
-          <View key={renglon.key} style={{ flexDirection: 'row', justifyContent: 'space-between', gap: SIZE.space }}>
-            <Text numberOfLines={1} style={{ flex: 1, fontSize: SIZE.bodySize - 1, color: PALETTE.sobreAccion }}>
-              {renglon.nombre}
-            </Text>
-            <Text style={{ fontSize: SIZE.bodySize - 1, fontWeight: '700', color: renglon.terminada ? PALETTE.sobreAccionApagada : PALETTE.sobreAccion }}>
-              {renglon.terminada
-                ? ES.hoy.terminada
-                : renglon.de === null
-                  ? ES.hoy.enOferta(renglon.cuantos)
-                  : ES.hoy.quedanRenglon(renglon.cuantos, renglon.de)}
-            </Text>
+      {/* ⚠️ `11.8-i`: A TICKET IN HER GREEN (`@/ui/Mostrador`'s `Boleto`, as `11.5-ii` showed it) — the day's
+          number and its dishes on the body, the band where it tears, and the stub holding *Te siguen* and the door. */}
+      <Boleto
+        color={PALETTE.accion}
+        raya={PALETTE.barraSobreAccion}
+        cuerpo={
+          <View style={{ gap: SIZE.rowGap + 2 }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', gap: SIZE.rowGap }}>
+              <Text style={{ ...letraEncabezado(SIZE), color: PALETTE.sobreAccionApagada }}>
+                {ES.hoy.enItacate}
+              </Text>
+              <Text style={{ fontSize: SIZE.smallSize, fontWeight: '600', color: PALETTE.sobreAccionApagada }}>{hasta}</Text>
+            </View>
+            <Text style={{ ...letraNumero(SIZE), color: PALETTE.sobreAccion }}>{grande}</Text>
+            <View style={{ height: 6, borderRadius: ESQUINA.marca, overflow: 'hidden', backgroundColor: PALETTE.barraSobreAccion }}>
+              <View style={{ width: `${Math.round(fraccion * 100)}%`, height: 6, borderRadius: ESQUINA.marca, backgroundColor: PALETTE.sobreAccion }} />
+            </View>
+            <View style={{ gap: 4 }}>
+              {dia.renglones.slice(0, RENGLONES_EN_LA_TARJETA).map((renglon) => (
+                <View key={renglon.key} style={{ flexDirection: 'row', justifyContent: 'space-between', gap: SIZE.space }}>
+                  <Text numberOfLines={1} style={{ flex: 1, fontSize: SIZE.bodySize - 1, color: PALETTE.sobreAccion }}>
+                    {renglon.nombre}
+                  </Text>
+                  <Text style={{ fontSize: SIZE.bodySize - 1, fontWeight: '700', color: renglon.terminada ? PALETTE.sobreAccionApagada : PALETTE.sobreAccion }}>
+                    {renglon.terminada
+                      ? ES.hoy.terminada
+                      : renglon.de === null
+                        ? ES.hoy.enOferta(renglon.cuantos)
+                        : ES.hoy.quedanRenglon(renglon.cuantos, renglon.de)}
+                  </Text>
+                </View>
+              ))}
+              {quedan > 0 && (
+                <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.sobreAccionApagada }}>{ES.hoy.masRenglones(quedan)}</Text>
+              )}
+              <Text style={{ fontSize: SIZE.smallSize, fontWeight: '600', color: PALETTE.sobreAccionApagada }}>{falta}</Text>
+            </View>
           </View>
-        ))}
-        {quedan > 0 && (
-          <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.sobreAccionApagada }}>{ES.hoy.masRenglones(quedan)}</Text>
-        )}
-        {siguen !== null && (
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: SIZE.space }}>
-            <Text style={{ flex: 1, fontSize: SIZE.bodySize - 1, color: PALETTE.sobreAccion }}>{ES.hoy.teSiguen(teSiguen ?? 0)}</Text>
-            <Text style={{ fontSize: SIZE.bodySize - 1, fontWeight: '700', color: PALETTE.sobreAccion }}>{siguen}</Text>
+        }
+        talon={
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: SIZE.rowGap }}>
+            <View style={{ flex: 1 }}>
+              {siguen !== null && (
+                <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.sobreAccion }}>
+                  {`${ES.hoy.teSiguen(teSiguen ?? 0)} `}
+                  <Text style={{ fontWeight: '700' }}>{siguen}</Text>
+                </Text>
+              )}
+            </View>
+            <Puerta color={PALETTE.sobreAccion} />
           </View>
-        )}
-      </View>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: SIZE.rowGap }}>
-        <Text style={{ fontSize: SIZE.smallSize, fontWeight: '600', color: PALETTE.sobreAccionApagada }}>{falta}</Text>
-        <Puerta color={PALETTE.sobreAccion} />
-      </View>
+        }
+      />
     </Pressable>
   );
 }

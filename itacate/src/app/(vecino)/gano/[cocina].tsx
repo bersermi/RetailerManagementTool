@@ -12,7 +12,7 @@ import { parametro } from '@/lib/paginas';
 import { colorDeTarjeta, enFrase } from '@/lib/tarjeta';
 import { ES } from '@/strings';
 import { HUES } from '@/theme/colores';
-import { TITULO } from '@/theme/letra';
+import { letraPremio } from '@/theme/frase';
 import { PALETTE, SIZE } from '@/theme/palette';
 import { BotonLleno } from '@/ui/BotonLleno';
 import { Llega } from '@/ui/Llega';
@@ -24,6 +24,8 @@ import { Llega } from '@/ui/Llega';
 // cuando quieras: escanea su código o enséñale el tuyo.*, *Ver mis premios* and *Después*. Opened by
 // `@/lib/Festejos` alone, once per reward — and it is THIS screen, once open, that keeps the rewards as celebrated
 // (`vistos`, `@/lib/festejado`).
+// ⚠️ `11.8-i`: THE REWARD WON IN HER HAND — *¡Ganaste …!* in Mansalva (`@/theme/frase`'s `letraPremio`, the design
+// system's *Mano*), in ink on the counter until `11.10` lays the drawn gift on a sheet of her colour beneath it.
 // ⚠️ THE MOVEMENT IS `@/ui/Llega`'S (one staggered entrance, transform and opacity — ADR-035 §2.11): Reanimated is
 // imported by four modules only (`test/pestanas.test.ts`). NO CHECK CAN SEE THIS SCREEN: the phone is its instrument.
 // ============================================================================
@@ -66,7 +68,7 @@ export default function Gano() {
           </View>
         </Llega>
         <Llega i={1} style={{ gap: SIZE.rowGap, alignItems: 'center' }}>
-          <Text accessibilityRole="header" style={{ fontSize: SIZE.titleSize + 2, ...TITULO, color: PALETTE.tinta, textAlign: 'center' }}>
+          <Text accessibilityRole="header" style={{ ...letraPremio(), color: PALETTE.tinta, textAlign: 'center' }}>
             {ES.gano.titulo(enFrase(premio?.reward ?? card?.reward ?? ''))}
           </Text>
           <Text style={{ fontSize: SIZE.bodySize, lineHeight: 22, color: PALETTE.tintaApagada, textAlign: 'center' }}>{ES.gano.detalle(nombre)}</Text>
