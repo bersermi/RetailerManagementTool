@@ -47,6 +47,13 @@ export type DiasSinVenir = number;
 export function diasValidos(dias: number): boolean {
   return dias === 0 || (Number.isInteger(dias) && dias >= DIAS_MIN && dias <= DIAS_MAX);
 }
+/**
+ * ⚠️ `10.9m` (the owner's approval of 2026-11-27): her CONDITION — discreet and fully optional — up to 60 characters, her
+ * words (*Compra mínima de $80*); none unless she writes one (`0099`). Sent as `''` for none, which clears it; a build that
+ * does not send it keeps it.
+ */
+export const CONDICION_MAX = 60;
+
 /** How long a closed card is kept for those who started it (G12). */
 export const DIAS_AL_CERRAR = 30;
 
@@ -64,6 +71,8 @@ export interface TermsArgs {
   readonly p_reward: string;
   readonly p_stamps: number;
   readonly p_expiry_days: DiasSinVenir;
+  /** `10.9m` (`0099`): her condition, `''` for none — never left out, so *Quitar* clears it. */
+  readonly p_conditions: string;
 }
 
 export interface KitchenArgs {
@@ -91,8 +100,8 @@ export interface RewardArgs {
   readonly p_at: string | null;
 }
 
-export function termsArgs(kitchenId: string, reward: string, stamps: number, days: DiasSinVenir): TermsArgs {
-  return { p_workspace_id: kitchenId, p_reward: reward, p_stamps: stamps, p_expiry_days: days };
+export function termsArgs(kitchenId: string, reward: string, stamps: number, days: DiasSinVenir, conditions: string | null): TermsArgs {
+  return { p_workspace_id: kitchenId, p_reward: reward, p_stamps: stamps, p_expiry_days: days, p_conditions: (conditions ?? '').trim() };
 }
 export function kitchenArgs(kitchenId: string): KitchenArgs {
   return { p_workspace_id: kitchenId };
@@ -131,6 +140,8 @@ export interface TermsRow {
   readonly reward: string;
   readonly stamps: number;
   readonly expiry_days: number | null;
+  /** `10.9m` (`0099`): her condition, or `null` for none — and for every answer from before it. */
+  readonly conditions: string | null;
   readonly since: string;
 }
 
@@ -160,6 +171,8 @@ export interface CardRow {
   readonly of?: number | null;
   readonly reward?: string | null;
   readonly expiry_days?: number | null;
+  /** `10.9m` (`0099`): HER card's condition — what it started on — else the one she would start on; `null` for none. */
+  readonly conditions?: string | null;
   readonly expires_on?: string | null;
   readonly stamped_today?: boolean;
   readonly rewards?: readonly RewardRow[];
@@ -201,7 +214,12 @@ function termsFrom(v: unknown): TermsRow | null {
   const { reward, stamps, expiry_days, since } = v;
   if (!isText(reward) || !isCount(stamps) || !isText(since)) return null;
   if (expiry_days !== null && !isCount(expiry_days)) return null;
-  return { reward, stamps, expiry_days, since };
+  return { reward, stamps, expiry_days, conditions: condicionDe(v.conditions), since };
+}
+
+/** A condition as read: her words, else `null` — an empty or missing one is none (`0099`). */
+function condicionDe(v: unknown): string | null {
+  return isText(v) && v.trim().length > 0 ? v : null;
 }
 
 function rewardFrom(v: unknown): RewardRow | null {
@@ -270,6 +288,7 @@ export function cardFrom(data: unknown): CardRow | null {
     of: isCount(data.of) ? data.of : null,
     reward: isText(data.reward) ? data.reward : null,
     expiry_days: isCount(data.expiry_days) ? data.expiry_days : null,
+    conditions: condicionDe(data.conditions),
     expires_on: isText(data.expires_on) ? data.expires_on : null,
     stamped_today: typeof data.stamped_today === 'boolean' ? data.stamped_today : undefined,
     rewards,

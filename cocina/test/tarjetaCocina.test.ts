@@ -14,8 +14,15 @@ import { MARGEN_QR, matrizQR } from '@/lib/qr';
 import {
   SELLOS,
   avisoAlEliminar,
+  avisoAlGuardar,
   borradorDe,
+  cambiaAlgo,
+  cambiaElCartel,
   cambiaEn,
+  cartelPorImprimir,
+  cartelVisto,
+  claveDelCartel,
+  condicionDe,
   condicionesDe,
   conTarjeta,
   cuentasDe,
@@ -28,12 +35,15 @@ import {
   diaDeTexto,
   ejemploDeDias,
   empujarDias,
+  enOracion,
   enVivoDe,
   esOtro,
   escaneoDe,
   escaneoId,
   fichaDeDias,
   lineaDe,
+  lineaDelCambio,
+  marcarCartel,
   premiosDe,
   previaDe,
   resultadoDe,
@@ -41,6 +51,7 @@ import {
   revisarBorrador,
   seLee,
   soloDigitos,
+  soloMasFacil,
   tarjetaErrorMessage,
   tarjetaGuardada,
   tarjetaViva,
@@ -75,7 +86,7 @@ afterAll(() => {
 });
 
 const AHORA = new Date('2026-11-19T23:00:00Z'); // 17:00 in Mexico City
-const TERMS = { reward: 'Una comida corrida', stamps: 8, expiry_days: 30, since: '2026-11-19T18:00:00Z' };
+const TERMS = { reward: 'Una comida corrida', stamps: 8, expiry_days: 30, conditions: null, since: '2026-11-19T18:00:00Z' };
 
 function card(over: Partial<KitchenCardRow> = {}): KitchenCardRow {
   return { terms: TERMS, open: true, closed_at: null, kept_until: null, cards: 23, stamps_today: 6, rewards_to_give: 0, today: [], ...over };
@@ -93,24 +104,24 @@ const COCINA = '11111111-2222-4333-8444-555555555555';
 describe('the setup — on one screen, nothing pre-chosen (G34)', () => {
   it('4 to 12 stamps; a first setup is empty, a change starts from the terms the card has', () => {
     expect(SELLOS).toEqual([4, 5, 6, 7, 8, 9, 10, 11, 12]);
-    expect(borradorDe(null)).toEqual({ premio: '', sellos: null, dias: null });
-    expect(borradorDe(TERMS)).toEqual({ premio: 'Una comida corrida', sellos: 8, dias: 30 });
+    expect(borradorDe(null)).toEqual({ premio: '', sellos: null, dias: null, condicion: null });
+    expect(borradorDe(TERMS)).toEqual({ premio: 'Una comida corrida', sellos: 8, dias: 30, condicion: null });
     // *Nunca* is the database's null, the phone's 0.
     expect(borradorDe({ ...TERMS, expiry_days: null }).dias).toBe(0);
   });
 
   it('asks what is missing in the order the screen asks it — the page’s three sentences', () => {
-    expect(revisarBorrador({ premio: '  ', sellos: 8, dias: 0 })).toBe('Escribe qué les das al completarla.');
-    expect(revisarBorrador({ premio: 'x'.repeat(61), sellos: 8, dias: 0 })).toBe('Escribe qué les das al completarla.');
-    expect(revisarBorrador({ premio: 'Un café', sellos: null, dias: 0 })).toBe('Elige cuántos sellos.');
-    expect(revisarBorrador({ premio: 'Un café', sellos: 13, dias: 0 })).toBe('Elige cuántos sellos.');
-    expect(revisarBorrador({ premio: 'Un café', sellos: 6, dias: null })).toBe('Elige cuándo se borran sus sellos.');
-    expect(revisarBorrador({ premio: 'Un café', sellos: 6, dias: 0 })).toBeNull();
+    expect(revisarBorrador({ premio: '  ', sellos: 8, dias: 0, condicion: null })).toBe('Escribe qué les das al completarla.');
+    expect(revisarBorrador({ premio: 'x'.repeat(61), sellos: 8, dias: 0, condicion: null })).toBe('Escribe qué les das al completarla.');
+    expect(revisarBorrador({ premio: 'Un café', sellos: null, dias: 0, condicion: null })).toBe('Elige cuántos sellos.');
+    expect(revisarBorrador({ premio: 'Un café', sellos: 13, dias: 0, condicion: null })).toBe('Elige cuántos sellos.');
+    expect(revisarBorrador({ premio: 'Un café', sellos: 6, dias: null, condicion: null })).toBe('Elige cuándo se borran sus sellos.');
+    expect(revisarBorrador({ premio: 'Un café', sellos: 6, dias: 0, condicion: null })).toBeNull();
   });
 
   it('the preview draws a hint until she chooses — 8 and *Tu premio*, never sent', () => {
-    expect(previaDe({ premio: '', sellos: null, dias: null })).toEqual({ premio: 'Tu premio', sellos: 8, dias: 0 });
-    expect(previaDe({ premio: ' Un café ', sellos: 5, dias: 15 })).toEqual({ premio: 'Un café', sellos: 5, dias: 15 });
+    expect(previaDe({ premio: '', sellos: null, dias: null, condicion: null })).toEqual({ premio: 'Tu premio', sellos: 8, dias: 0, condicion: null });
+    expect(previaDe({ premio: ' Un café ', sellos: 5, dias: 15, condicion: null })).toEqual({ premio: 'Un café', sellos: 5, dias: 15, condicion: null });
   });
 
   it('the conditions name the kitchen as the one who promises, with its address (G12, G41)', () => {
@@ -149,8 +160,8 @@ describe('when her stamps are erased — the chips and *Otro…*, typed (`10.9k`
     expect(esOtro(borradorDe({ ...TERMS, expiry_days: 15 }).dias)).toBe(true);
     expect(textoDeDias(15)).toBe('15 días');
     expect(borradorDe({ ...TERMS, expiry_days: 7 }).dias).toBeNull();
-    expect(revisarBorrador({ premio: 'Un café', sellos: 6, dias: 21 })).toBeNull();
-    expect(revisarBorrador({ premio: 'Un café', sellos: 6, dias: 13 })).toBe('Elige cuándo se borran sus sellos.');
+    expect(revisarBorrador({ premio: 'Un café', sellos: 6, dias: 21, condicion: null })).toBeNull();
+    expect(revisarBorrador({ premio: 'Un café', sellos: 6, dias: 13, condicion: null })).toBe('Elige cuándo se borran sus sellos.');
   });
 
   it('the box: digits only, three at most, no decimals or sign; empty is none', () => {
@@ -439,7 +450,7 @@ describe('the counter poster (G35) — her kitchen’s, its QR her address on tu
     color: '#B23A2B',
     logo: null,
     direccion: 'Sabino 52, Santa María la Ribera',
-    tarjeta: { sellos: 8, premio: 'Una comida corrida' },
+    tarjeta: { sellos: 8, premio: 'Una comida corrida', condicion: null },
   };
 
   it('⚠️ the address `10.9c` ruled — and Itacate reads her id back out of it', () => {
@@ -500,5 +511,143 @@ describe('the counter poster (G35) — her kitchen’s, its QR her address on tu
     expect(cartelHtml({ ...datos, tarjeta: null })).toContain('Mira lo que hay hoy');
     // A colour that is not a hue is not written into the style.
     expect(cartelHtml({ ...datos, color: 'red;}body{display:none' })).not.toContain('display:none');
+  });
+
+  it('`10.9m`: her condition, one small grey line under the offer, escaped — none, and no line at all', () => {
+    expect(cartelHtml(datos)).not.toContain('<div class="cond">');
+    const html = cartelHtml({ ...datos, tarjeta: { sellos: 8, premio: 'Una comida corrida', condicion: 'Compra mínima de $80 <y> "refresco"' } });
+    expect(html).toContain('<div class="titulo">Junta 8 sellos y llévate una comida corrida</div>\n<div class="cond">Compra mínima de $80 &lt;y&gt; &quot;refresco&quot;</div>');
+    expect(html).toMatch(/\.cond \{ font-size: 5mm; color: #[0-9A-Fa-f]{6}; margin-top: -3mm; \}/);
+  });
+});
+
+describe('her condition — discreet and fully optional (`10.9m`, the owner’s approval of 2026-11-27)', () => {
+  const ANTES =
+    'Junta 8 sellos en Fonda Doña Mari y te dan una comida corrida. Un sello por visita, uno al día. ' +
+    'Tus sellos se borran si pasa un mes sin que vengas. La promesa es de Fonda Doña Mari, Sabino 52, Santa María la Ribera.';
+
+  it('the words, as approved: one quiet line, Condición with Quitar, a grey hint that is never a value', () => {
+    expect(ES.prepararTarjeta.agregarCondicion).toBe('+ Agregar una condición');
+    expect(ES.prepararTarjeta.condicion).toBe('Condición');
+    expect(ES.prepararTarjeta.quitar).toBe('Quitar');
+    expect(ES.prepararTarjeta.condicionEjemplo).toBe('Compra mínima de $80');
+    expect(ES.prepararTarjeta.cuenta(20, 60)).toBe('20 de 60');
+  });
+
+  it('⚠️ WITHOUT ONE, THE CONDITIONS ARE TODAY’S WORD FOR WORD — a closed box, an emptied one or Quitar are all none', () => {
+    expect(condicionesDe('Fonda Doña Mari', 'Sabino 52, Santa María la Ribera', 8, 'Una comida corrida', 30)).toBe(ANTES);
+    expect(condicionesDe('Fonda Doña Mari', 'Sabino 52, Santa María la Ribera', 8, 'Una comida corrida', 30, null)).toBe(ANTES);
+    for (const condicion of [null, '', '   ']) expect(condicionDe({ condicion })).toBeNull();
+    expect(previaDe({ premio: 'Una comida corrida', sellos: 8, dias: 30, condicion: '  ' }).condicion).toBeNull();
+    expect(borradorDe(null).condicion).toBeNull();
+    expect(borradorDe(TERMS).condicion).toBeNull();
+  });
+
+  it('with one, ONE sentence after *Un sello por visita, uno al día.* — her words with a first capital and a full stop', () => {
+    expect(condicionesDe('Fonda Doña Mari', 'Sabino 52, Santa María la Ribera', 8, 'Una comida corrida', 30, 'compra mínima de $80')).toBe(
+      'Junta 8 sellos en Fonda Doña Mari y te dan una comida corrida. Un sello por visita, uno al día. Compra mínima de $80. ' +
+        'Tus sellos se borran si pasa un mes sin que vengas. La promesa es de Fonda Doña Mari, Sabino 52, Santa María la Ribera.',
+    );
+    expect(enOracion('compra mínima de $80')).toBe('Compra mínima de $80.');
+    expect(enOracion(' Solo en efectivo. ')).toBe('Solo en efectivo.');
+    expect(enOracion('¡Con refresco!')).toBe('¡Con refresco!');
+    expect(enOracion('')).toBe('');
+  });
+
+  it('a kitchen that has one sees the box open with her words; what is saved is trimmed, up to 60', () => {
+    const conCondicion = { ...TERMS, conditions: 'Compra mínima de $80' };
+    expect(borradorDe(conCondicion).condicion).toBe('Compra mínima de $80');
+    expect(condicionDe({ condicion: '  Con refresco  ' })).toBe('Con refresco');
+    expect(condicionDe({ condicion: 'x'.repeat(70) })).toHaveLength(60);
+    expect(previaDe(borradorDe(conCondicion)).condicion).toBe('Compra mínima de $80');
+  });
+
+  it('nothing asks for it: a draft with no condition may go — the same three questions as before', () => {
+    expect(revisarBorrador({ premio: 'Un café', sellos: 6, dias: 0, condicion: null })).toBeNull();
+    expect(revisarBorrador({ premio: 'Un café', sellos: 6, dias: 0, condicion: '' })).toBeNull();
+  });
+});
+
+describe('*Editar tu tarjeta* — one rule added to G12 (`10.9m`)', () => {
+  const B = (over: Partial<Parameters<typeof lineaDelCambio>[1]> = {}) => ({ ...borradorDe(TERMS), ...over });
+
+  it('the words, as approved: the row renamed, the screen titled, its button', () => {
+    expect(ES.tarjeta.cambiar).toBe('Editar tu tarjeta');
+    expect(ES.tarjeta.cambiarDetalle).toBe('El premio, los sellos, los días y las condiciones');
+    expect(ES.prepararTarjeta.tituloEditar).toBe('Editar tu tarjeta');
+    expect(ES.prepararTarjeta.guardar).toBe('Guardar cambios');
+    expect(ES.tarjeta.cartelOtraVez).toBe('Cambiaste tu tarjeta: imprímelo otra vez');
+  });
+
+  it('only makes it easier: the same reward (capitals and end spaces do not count), no more stamps, no fewer days, the same condition or none', () => {
+    expect(soloMasFacil(TERMS, B({ sellos: 6 }))).toBe(true);
+    expect(soloMasFacil(TERMS, B({ dias: 60 }))).toBe(true);
+    expect(soloMasFacil(TERMS, B({ dias: 0 }))).toBe(true); // Nunca, the most
+    expect(soloMasFacil(TERMS, B({ premio: '  UNA COMIDA CORRIDA ' }))).toBe(true);
+    expect(soloMasFacil(TERMS, B({ sellos: 10 }))).toBe(false);
+    expect(soloMasFacil(TERMS, B({ dias: 14 }))).toBe(false);
+    expect(soloMasFacil(TERMS, B({ premio: 'Una comida corida' }))).toBe(false); // a typo fixed is a new reward
+    expect(soloMasFacil(TERMS, B({ sellos: 6, premio: 'Un agua de jamaica y postre' }))).toBe(false);
+    expect(soloMasFacil(TERMS, B({ condicion: 'Compra mínima de $80' }))).toBe(false); // a condition added
+    const conCondicion = { ...TERMS, conditions: 'Compra mínima de $80' };
+    expect(soloMasFacil(conCondicion, B({ condicion: null }))).toBe(true); // removed
+    expect(soloMasFacil(conCondicion, B({ condicion: 'Compra mínima de $80' }))).toBe(true);
+    expect(soloMasFacil(conCondicion, B({ condicion: 'Compra mínima de $100' }))).toBe(false); // changed
+    expect(soloMasFacil(TERMS, B({ premio: '' }))).toBe(false); // not a draft that may go
+  });
+
+  it('the line above Guardar cambios — easier: they have it today, and with fewer stamps who wins today', () => {
+    expect(lineaDelCambio(card({ cards: 12 }), B({ sellos: 6 }))).toEqual({
+      fuerte: 'Los 12 vecinos que ya juntan sellos la tienen así desde hoy.',
+      resto: 'Quien ya tenga 6 sellos o más gana su premio hoy.',
+      masFacil: true,
+    });
+    expect(lineaDelCambio(card({ cards: 12 }), B({ dias: 60 }))).toEqual({
+      fuerte: 'Los 12 vecinos que ya juntan sellos la tienen así desde hoy.',
+      resto: null,
+      masFacil: true,
+    });
+    expect(lineaDelCambio(card({ cards: 1 }), B({ dias: 0 }))?.fuerte).toBe('El vecino que ya junta sellos la tiene así desde hoy.');
+  });
+
+  it('the line — anything else: they keep what they started, named, and the new is for new cards', () => {
+    expect(lineaDelCambio(card({ cards: 12 }), B({ sellos: 6, premio: 'Un agua de jamaica y postre' }))).toEqual({
+      fuerte: 'Los 12 vecinos que ya juntan sellos siguen con lo que empezaron',
+      resto: 'hasta completarla: 8 sellos y una comida corrida. Lo nuevo es para las tarjetas nuevas.',
+      masFacil: false,
+    });
+    expect(lineaDelCambio(card({ cards: 1 }), B({ sellos: 10 }))?.fuerte).toBe('El vecino que ya junta sellos sigue con lo que empezó');
+  });
+
+  it('⚠️ the line only while someone holds her card, and only for a change: nobody, no change, or her first setup — nothing', () => {
+    expect(lineaDelCambio(card({ cards: 0 }), B({ sellos: 6 }))).toBeNull();
+    expect(lineaDelCambio(card({ cards: 12 }), B())).toBeNull();
+    expect(lineaDelCambio(card({ cards: 12, terms: null }), B({ sellos: 6 }))).toBeNull();
+    expect(lineaDelCambio(undefined, B({ sellos: 6 }))).toBeNull();
+    expect(cambiaAlgo(TERMS, B())).toBe(false);
+    expect(cambiaAlgo(TERMS, B({ premio: 'una comida corrida' }))).toBe(true); // a new version, which reaches them
+  });
+
+  it('the toast: *Guardado. Ya vale para quienes juntan sellos.* when it reached them; else today’s; reopened, today’s', () => {
+    expect(avisoAlGuardar(card({ cards: 12 }), B({ sellos: 6 }))).toBe('Guardado. Ya vale para quienes juntan sellos.');
+    expect(avisoAlGuardar(card({ cards: 12 }), B({ sellos: 10 }))).toBe('Guardado: vale para las tarjetas nuevas');
+    expect(avisoAlGuardar(card({ cards: 0 }), B({ sellos: 6 }))).toBe('Guardado: vale para las tarjetas nuevas');
+    expect(avisoAlGuardar(card({ cards: 12, open: false }), B({ sellos: 6 }))).toBe('Tu tarjeta está abierta otra vez');
+  });
+
+  it('the poster asks to be printed again after a change to what it prints — the reward, the stamps, the condition; never the days', () => {
+    expect(cambiaElCartel(TERMS, B({ sellos: 6 }))).toBe(true);
+    expect(cambiaElCartel(TERMS, B({ premio: 'Un café' }))).toBe(true);
+    expect(cambiaElCartel(TERMS, B({ condicion: 'Compra mínima de $80' }))).toBe(true);
+    expect(cambiaElCartel(TERMS, B({ dias: 60 }))).toBe(false);
+    expect(cambiaElCartel(null, B({ sellos: 6 }))).toBe(false);
+    const store = memoria();
+    expect(cartelPorImprimir(store, COCINA)).toBe(false);
+    marcarCartel(store, COCINA);
+    expect(cartelPorImprimir(store, COCINA)).toBe(true);
+    expect(store.datos.has(claveDelCartel(COCINA))).toBe(true);
+    cartelVisto(store, COCINA);
+    expect(cartelPorImprimir(store, COCINA)).toBe(false);
+    expect(cartelPorImprimir(undefined, COCINA)).toBe(false);
   });
 });

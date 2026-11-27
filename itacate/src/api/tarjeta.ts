@@ -67,6 +67,8 @@ export interface CardStateRow {
   readonly of: number | null;
   readonly reward: string | null;
   readonly expiry_days: number | null;
+  /** `10.9m` (`0099`): HER card's condition — what it started on — else the one she would start on; `null` for none. */
+  readonly conditions: string | null;
   readonly expires_on: string | null;
   readonly stamped_today: boolean;
   readonly rewards: readonly RewardRow[];
@@ -117,6 +119,8 @@ const isObject = (v: unknown): v is Record<string, unknown> => typeof v === 'obj
 const isCount = (v: unknown): v is number => typeof v === 'number' && Number.isInteger(v) && v >= 0;
 const isText = (v: unknown): v is string => typeof v === 'string';
 const textOrNull = (v: unknown): string | null => (isText(v) ? v : null);
+/** A condition as read: her words, else `null` — an empty or missing one (an answer from before `0099`) is none. */
+const condicionDe = (v: unknown): string | null => (isText(v) && v.trim().length > 0 ? v : null);
 
 function rewardFrom(v: unknown): RewardRow | null {
   if (!isObject(v) || !isText(v.id) || !isText(v.reward) || !isText(v.won_at)) return null;
@@ -140,6 +144,7 @@ export function cardStateFrom(v: unknown): CardStateRow | null {
     of: isCount(v.of) ? v.of : null,
     reward: textOrNull(v.reward),
     expiry_days: isCount(v.expiry_days) ? v.expiry_days : null,
+    conditions: condicionDe(v.conditions),
     expires_on: textOrNull(v.expires_on),
     stamped_today: v.stamped_today,
     rewards,

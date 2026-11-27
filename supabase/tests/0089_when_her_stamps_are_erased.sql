@@ -96,15 +96,15 @@ select public.chk('1.1 the table''s check is 14 to 365 days (NULL is Nunca), and
         where c.conrelid = 'servicio.card_terms'::regclass and c.conname = 'card_terms_expiry'),
   (select pg_get_constraintdef(c.oid) from pg_constraint c
     where c.conrelid = 'servicio.card_terms'::regclass and c.conname = 'card_terms_expiry'));
-select public.chk('1.2 set_card_terms is one function, its signature 0085''s, a definer with an empty path; the signed-in may call it, nobody signed out',
+select public.chk('1.2 set_card_terms is one function, its signature 0085''s with 0099''s defaulted fifth (10.9m), a definer with an empty path; the signed-in may call it, nobody signed out',
   (select count(*) from pg_proc p where p.pronamespace = 'public'::regnamespace and p.proname = 'set_card_terms') = 1
-  and to_regprocedure('public.set_card_terms(uuid, text, integer, integer)') is not null
+  and to_regprocedure('public.set_card_terms(uuid, text, integer, integer, text)') is not null
   and (select p.prosecdef and p.proconfig = array['search_path=""']
-         from pg_proc p where p.oid = 'public.set_card_terms(uuid, text, integer, integer)'::regprocedure)
-  and has_function_privilege('authenticated', 'public.set_card_terms(uuid, text, integer, integer)', 'execute')
-  and not has_function_privilege('anon', 'public.set_card_terms(uuid, text, integer, integer)', 'execute'),
+         from pg_proc p where p.oid = 'public.set_card_terms(uuid, text, integer, integer, text)'::regprocedure)
+  and has_function_privilege('authenticated', 'public.set_card_terms(uuid, text, integer, integer, text)', 'execute')
+  and not has_function_privilege('anon', 'public.set_card_terms(uuid, text, integer, integer, text)', 'execute'),
   (select array_to_string(p.proconfig, ',') from pg_proc p
-    where p.oid = 'public.set_card_terms(uuid, text, integer, integer)'::regprocedure));
+    where p.oid = 'public.set_card_terms(uuid, text, integer, integer, text)'::regprocedure));
 
 
 -- ---- 2. the days she may choose -------------------------------------------------------
@@ -221,7 +221,7 @@ reset role;
 select public.chk('4.1 through the one door, before her first stamp: the kitchen''s card on 21 days',
   :'door' = 'ok'
   and (select k -> 'card' from jsonb_array_elements(public._a('door')) k where k ->> 'id' = :'ws_m')
-      = '{"reward": "Una comida corrida", "stamps": 8, "expiry_days": 21}'::jsonb,
+      = '{"reward": "Una comida corrida", "stamps": 8, "expiry_days": 21, "conditions": null}'::jsonb,
   (select (k -> 'card')::text from jsonb_array_elements(public._a('door')) k where k ->> 'id' = :'ws_m'));
 select public.chk('4.2 Ana''s card keeps the 30 days it started on (G12): 25 days without a stamp, still hers, erased on her last stamp''s day plus 30',
   :'ana_stamp' = 'primer'

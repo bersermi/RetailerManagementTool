@@ -122,7 +122,15 @@ export function TarjetaDeLealtad({
         </Pressable>
       )}
 
-      {vista.vence !== null && <Text style={{ fontSize: SIZE.smallSize - 1, color: claro }}>{vista.vence}</Text>}
+      {vista.condicion === null ? (
+        vista.vence !== null && <Text style={{ fontSize: SIZE.smallSize - 1, color: claro }}>{vista.vence}</Text>
+      ) : (
+        // `10.9m`: her card's condition and its date as one quiet pair — without one, the card is exactly as before.
+        <View style={{ gap: 2 }}>
+          <Text style={{ fontSize: SIZE.smallSize - 1, color: claro }}>{vista.condicion}</Text>
+          {vista.vence !== null && <Text style={{ fontSize: SIZE.smallSize - 1, color: claro }}>{vista.vence}</Text>}
+        </View>
+      )}
       {vista.cerradaHasta !== null && (
         <Text style={{ fontSize: SIZE.smallSize - 1, lineHeight: 17, color: claro }}>{ES.tarjeta.cerrada(vista.cerradaHasta)}</Text>
       )}

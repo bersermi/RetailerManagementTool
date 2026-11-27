@@ -1,23 +1,29 @@
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { router } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { esDuena } from '@/api/equipo';
 import { useGuardarTerminos, useKitchen, usePage, usePlace, useSuRol, useTarjeta } from '@/api/hooks';
 import { colorOf } from '@/api/pagina';
-import { DIAS_SIN_VENIR, PREMIO_MAX } from '@/api/tarjeta';
+import { CONDICION_MAX, DIAS_SIN_VENIR, PREMIO_MAX } from '@/api/tarjeta';
 import { useNota } from '@/lib/NotaProvider';
+import { deviceStore } from '@/lib/store';
 import {
   SELLOS,
   SELLOS_SUGERIDOS,
+  avisoAlGuardar,
   borradorDe,
+  cambiaElCartel,
+  condicionDe,
   condicionesDe,
   direccionCorta,
   enVivoDe,
   esOtro,
   fichaDeDias,
+  lineaDelCambio,
+  marcarCartel,
   previaDe,
   revisarBorrador,
   textoDeDias,
@@ -48,8 +54,14 @@ import { TarjetaDeLealtad } from '@/ui/TarjetaDeLealtad';
 //     she types her days in, 14 to 365 (`@/ui/HojaDias`), then reading *21 días*, chosen;
 //   - *Así la verán tus vecinos*: the card in her kitchen's colour and logo, and its conditions naming her
 //     kitchen and its address (G12, G41) — what Itacate shows before her first stamp (`10.9e-iii`);
-//   - *Activar* the first time — then *Listo, ya está en tu Hoy* with her tile and *Ver mi Hoy*;
-//     *Guardar* after, for new cards only (G12); *Abrirla otra vez* once closed (a new version opens it).
+//   - ⚠️ `10.9m` (the owner's approval of 2026-11-27): HER CONDITION, DISCREET AND FULLY OPTIONAL — one quiet line at
+//     the end, *+ Agregar una condición*; tapped, *Condición* with *Quitar* and a box of up to 60 characters, its hint
+//     grey. Nothing asks for it: *Activar* and *Guardar cambios* never wait for it, and without one every word here is
+//     as before;
+//   - *Activar* the first time — then *Listo, ya está en tu Hoy* with her tile and *Ver mi Hoy*; once open the screen
+//     is *Editar tu tarjeta* (`10.9m`), the chips her card has now dashed, *Guardar cambios* — and above it, only while
+//     someone holds her card, what her change does to them (`lineaDelCambio`: what only makes it easier reaches them
+//     today, anything else waits for their next card); *Abrirla otra vez* once closed (a new version opens it).
 // ⚠️ `set_card_terms` IS AWAITED: what her neighbours start on is the database's answer, never a guess.
 // ⚠️ THE OWNER'S (G18): a helper never reaches it — no door to it is drawn for her — and if she did, the
 // screen says whose it is. NO CHECK CAN SEE THIS SCREEN (ADR-035 §2.11): the phone is its instrument.
@@ -69,6 +81,8 @@ export default function PrepararTarjeta() {
   const [problema, setProblema] = useState<string | null>(null);
   const [listo, setListo] = useState(false);
   const [otroAbierto, setOtroAbierto] = useState(false);
+  // The box opens with the keyboard up only when she taps *+ Agregar una condición* — never when the screen opens.
+  const [enfocarCondicion, setEnfocarCondicion] = useState(false);
   const cerrarOtro = useCallback(() => setOtroAbierto(false), []);
   const enviando = useRef(false);
 
@@ -78,7 +92,14 @@ export default function PrepararTarjeta() {
   }, [borrador, tarjeta.data]);
 
   const volver = () => (router.canGoBack() ? router.back() : router.replace('/'));
-  const banda = <Banda titulo={ES.prepararTarjeta.titulo} antetitulo={kitchen?.displayName ?? null} volver={{ label: ES.prepararTarjeta.volver, onPress: volver }} />;
+  const editando = tarjeta.data?.terms != null && tarjeta.data.open;
+  const banda = (
+    <Banda
+      titulo={editando ? ES.prepararTarjeta.tituloEditar : ES.prepararTarjeta.titulo}
+      antetitulo={kitchen?.displayName ?? null}
+      volver={{ label: ES.prepararTarjeta.volver, onPress: volver }}
+    />
+  );
   const quiet = { fontSize: SIZE.bodySize, color: PALETTE.tintaApagada } as const;
 
   if (listo && tarjeta.data !== undefined) {
@@ -150,6 +171,7 @@ export default function PrepararTarjeta() {
   const primera = terms === null;
   const previa = previaDe(borrador);
   const direccion = direccionCorta(place.data?.address ?? null);
+  const linea = lineaDelCambio(tarjeta.data, borrador);
   const etiqueta = busy
     ? primera
       ? ES.prepararTarjeta.activando
@@ -169,11 +191,21 @@ export default function PrepararTarjeta() {
     const falta = revisarBorrador(borrador);
     if (falta !== null) return setProblema(falta);
     enviando.current = true;
-    const fallo = await guardar({ premio: borrador.premio, sellos: borrador.sellos as number, dias: borrador.dias as number });
+    // What the toast and the poster's row say is read BEFORE the save, against the terms she changed.
+    const antes = tarjeta.data;
+    const aviso = avisoAlGuardar(antes, borrador);
+    const cartel = cambiaElCartel(antes?.terms ?? null, borrador);
+    const fallo = await guardar({
+      premio: borrador.premio,
+      sellos: borrador.sellos as number,
+      dias: borrador.dias as number,
+      condicion: condicionDe(borrador),
+    });
     enviando.current = false;
     if (fallo !== null) return setProblema(fallo);
     if (primera) return setListo(true);
-    avisar(cerrada ? ES.prepararTarjeta.abierta : ES.prepararTarjeta.guardado);
+    if (cartel && kitchenId !== null) marcarCartel(deviceStore(), kitchenId);
+    avisar(aviso);
     volver();
   }
 
@@ -183,7 +215,6 @@ export default function PrepararTarjeta() {
       <Formulario
         contentContainerStyle={{ paddingHorizontal: SIZE.space * 2, paddingTop: SIZE.space * 1.5, paddingBottom: SIZE.space * 2, gap: SIZE.space * 1.5 }}
       >
-        {!primera && <Text style={{ ...quiet, fontSize: SIZE.smallSize + 1 }}>{ES.prepararTarjeta.editar}</Text>}
         <View style={{ gap: 4 }}>
           <Campo
             label={ES.prepararTarjeta.premio}
@@ -203,12 +234,14 @@ export default function PrepararTarjeta() {
           opciones={SELLOS.map((n) => ({ valor: n, texto: String(n) }))}
           elegida={borrador.sellos}
           sugerida={SELLOS_SUGERIDOS}
+          actual={terms?.stamps ?? null}
           onElegir={(sellos) => cambiar({ sellos })}
         />
         <Fichas
           titulo={ES.prepararTarjeta.dias}
           opciones={DIAS_SIN_VENIR.map((d) => ({ valor: d as number, texto: textoDeDias(d) }))}
           elegida={fichaDeDias(borrador.dias)}
+          actual={terms === null ? null : fichaDeDias(terms.expiry_days ?? 0)}
           onElegir={(dias) => cambiar({ dias })}
           otro={{
             texto: esOtro(borrador.dias) ? textoDeDias(borrador.dias as number) : ES.prepararTarjeta.otro,
@@ -216,6 +249,37 @@ export default function PrepararTarjeta() {
             onAbrir: () => setOtroAbierto(true),
           }}
         />
+        {borrador.condicion === null ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={ES.prepararTarjeta.agregarCondicion}
+            onPress={() => {
+              setEnfocarCondicion(true);
+              cambiar({ condicion: '' });
+            }}
+            hitSlop={SIZE.rowGap}
+            style={{ alignSelf: 'flex-start', minHeight: SIZE.tapTarget - 8, justifyContent: 'center' }}
+          >
+            <Text style={{ fontSize: SIZE.smallSize + 1, fontWeight: '600', color: PALETTE.accion }}>{ES.prepararTarjeta.agregarCondicion}</Text>
+          </Pressable>
+        ) : (
+          <View style={{ gap: 4 }}>
+            <Campo
+              label={ES.prepararTarjeta.condicion}
+              accion={{ etiqueta: ES.prepararTarjeta.quitar, onPress: () => cambiar({ condicion: null }) }}
+              placeholder={ES.prepararTarjeta.condicionEjemplo}
+              value={borrador.condicion}
+              maxLength={CONDICION_MAX}
+              autoCapitalize="sentences"
+              autoComplete="off"
+              autoFocus={enfocarCondicion}
+              onChangeText={(condicion) => cambiar({ condicion })}
+            />
+            <Text style={{ alignSelf: 'flex-end', fontSize: SIZE.smallSize - 1, color: PALETTE.tintaApagada }}>
+              {ES.prepararTarjeta.cuenta(borrador.condicion.length, CONDICION_MAX)}
+            </Text>
+          </View>
+        )}
         <View style={{ gap: SIZE.rowGap, padding: SIZE.space, borderRadius: ESQUINA.hoja, backgroundColor: PALETTE.superficie }}>
           <Text style={{ ...letraEncabezado(SIZE), color: PALETTE.tinta }}>
             {ES.prepararTarjeta.asiLaVeran}
@@ -229,11 +293,20 @@ export default function PrepararTarjeta() {
             de={previa.sellos}
             premio={previa.premio}
             dias={previa.dias}
+            condicion={previa.condicion}
           />
           <Text style={{ fontSize: SIZE.smallSize, lineHeight: 19, color: PALETTE.tintaApagada }}>
-            {condicionesDe(kitchen.displayName, direccion, previa.sellos, previa.premio, previa.dias)}
+            {condicionesDe(kitchen.displayName, direccion, previa.sellos, previa.premio, previa.dias, previa.condicion)}
           </Text>
         </View>
+        {linea !== null && (
+          <View style={{ padding: SIZE.space, borderRadius: ESQUINA.hoja, backgroundColor: linea.masFacil ? PALETTE.accionSuave : PALETTE.superficie }}>
+            <Text style={{ fontSize: SIZE.smallSize + 1, lineHeight: 20, color: linea.masFacil ? PALETTE.accion : PALETTE.tinta }}>
+              <Text style={{ fontWeight: '700' }}>{linea.fuerte}</Text>
+              {linea.resto === null ? '' : ` ${linea.resto}`}
+            </Text>
+          </View>
+        )}
         {problema !== null && <Text style={{ fontSize: SIZE.bodySize, fontWeight: '600', color: PALETTE.error }}>{problema}</Text>}
       </Formulario>
       <View style={{ paddingHorizontal: SIZE.space * 2, paddingTop: SIZE.space, paddingBottom: insets.bottom + SIZE.space, borderTopWidth: 1, borderTopColor: PALETTE.linea }}>

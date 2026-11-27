@@ -1,4 +1,5 @@
 import {
+  CONDICION_MAX,
   DEMASIADOS_INTENTOS,
   DIAS_MAX,
   DIAS_MIN,
@@ -21,6 +22,7 @@ import {
 import { apiErrorMessage } from '@/api/errors';
 import type { LoQueUsa } from '@/api/servicios';
 import { digitosDe, leerQR, segundosQueQuedan } from '@/lib/codigo';
+import { readKey, removeKey, writeKey, type DeviceStore } from '@/lib/store';
 import { clockOf } from '@/lib/ventana';
 import { ES } from '@/strings';
 
@@ -38,7 +40,13 @@ import { ES } from '@/strings';
 //     her choice off, and without the tile there would be no *Sellar* for their last stamps;
 //   - *SELLAR*'S LINES (`lineaDe`): *Ana R. · sello 3 de 8*, *completó su tarjeta*, *cobra su premio:
 //     … · entrégaselo* — today's, as the database names them (never who gave each, G19);
-//   - A SCAN (`escaneoDe`) AND WHAT IT GAVE (`resultadoDe`) — each of `0085`'s answers in words.
+//   - A SCAN (`escaneoDe`) AND WHAT IT GAVE (`resultadoDe`) — each of `0085`'s answers in words;
+//   - ⚠️ `10.9m` (the owner's approval of 2026-11-27): HER CONDITION, DISCREET AND FULLY OPTIONAL — none unless she
+//     writes one (`Borrador.condicion`, `null` while the box is closed), one sentence in the conditions when she does
+//     (`enOracion`) — and *EDITAR TU TARJETA*'s line above *Guardar cambios* (`lineaDelCambio`): a change that only
+//     makes it easier (`soloMasFacil`, `0099`'s rule as the screen can tell it) reaches those who already collect
+//     today; anything else waits for their next card. Its toast (`avisoAlGuardar`) and the poster's
+//     *imprímelo otra vez* (`cambiaElCartel`, kept on this phone).
 // Nothing here talks; `test/tarjetaCocina.test.ts` pins every rule in Mexico City's zone.
 // ============================================================================
 
@@ -53,6 +61,11 @@ export interface Borrador {
   readonly premio: string;
   readonly sellos: number | null;
   readonly dias: DiasSinVenir | null;
+  /**
+   * ⚠️ `10.9m`: her condition — `null` while the box is closed (*+ Agregar una condición*), else what she typed, empty
+   * included. Nothing asks for it: a closed box, *Quitar* or an empty one are all none.
+   */
+  readonly condicion: string | null;
 }
 
 /**
@@ -60,9 +73,16 @@ export interface Borrador {
  * whatever they are, so a card set up on 15 or 45 before `10.9k` reopens as *Otro…*, *15 días*.
  */
 export function borradorDe(terms: TermsRow | null): Borrador {
-  if (terms === null) return { premio: '', sellos: null, dias: null };
+  if (terms === null) return { premio: '', sellos: null, dias: null, condicion: null };
   const dias = terms.expiry_days ?? 0;
-  return { premio: terms.reward, sellos: terms.stamps, dias: diasValidos(dias) ? dias : null };
+  // A kitchen that has one sees the box open, with her words (`10.9m`).
+  return { premio: terms.reward, sellos: terms.stamps, dias: diasValidos(dias) ? dias : null, condicion: terms.conditions };
+}
+
+/** Her condition as it is saved: her words trimmed, else `null` — none (`10.9m`). */
+export function condicionDe(b: Pick<Borrador, 'condicion'>): string | null {
+  const texto = (b.condicion ?? '').trim();
+  return texto.length > 0 ? texto.slice(0, CONDICION_MAX) : null;
 }
 
 /** What is missing, in the order the screen asks it — `null` when it may go. The database checks the same (`22023`). */
@@ -125,9 +145,19 @@ export function ejemploDeDias(dias: number, hoy: Date): string {
 }
 
 /** What the preview draws while she fills it: her choices, else the hint and *Tu premio*. */
-export function previaDe(b: Borrador): { readonly premio: string; readonly sellos: number; readonly dias: number } {
+export function previaDe(b: Borrador): {
+  readonly premio: string;
+  readonly sellos: number;
+  readonly dias: number;
+  readonly condicion: string | null;
+} {
   const premio = b.premio.trim();
-  return { premio: premio.length > 0 ? premio : ES.prepararTarjeta.premioDeMuestra, sellos: b.sellos ?? SELLOS_SUGERIDOS, dias: b.dias ?? 0 };
+  return {
+    premio: premio.length > 0 ? premio : ES.prepararTarjeta.premioDeMuestra,
+    sellos: b.sellos ?? SELLOS_SUGERIDOS,
+    dias: b.dias ?? 0,
+    condicion: condicionDe(b),
+  };
 }
 
 /** *Una comida corrida* → *una comida corrida*, inside a sentence (the page's `lc1`). */
@@ -135,17 +165,145 @@ export function enFrase(texto: string): string {
   return texto.charAt(0).toLowerCase() + texto.slice(1);
 }
 
+/** *compra mínima de $80* → *Compra mínima de $80.* — her words as a sentence: a first capital, and a full stop unless she ended it. */
+export function enOracion(texto: string): string {
+  const t = texto.trim();
+  if (t.length === 0) return '';
+  const conMayuscula = t.charAt(0).toUpperCase() + t.slice(1);
+  return /[.!?…]$/.test(conMayuscula) ? conMayuscula : `${conMayuscula}.`;
+}
+
 /**
  * ⚠️ THE CARD'S CONDITIONS (G12, G41; the page's `termsTxt`) — what she starts on, the kitchen as the one
- * who promises, with its address. The same words Itacate shows before her first stamp (`10.9e-iii`).
+ * who promises, with its address. The same words Itacate shows before her first stamp (`10.9e-iii`) — and, since
+ * `10.9m`, at the first stamp of every new card. ⚠️ HER CONDITION, when she has one, is one sentence after *Un sello
+ * por visita, uno al día.*; with none the words are exactly those before `10.9m`.
  */
-export function condicionesDe(cocina: string, direccion: string | null, sellos: number, premio: string, dias: number): string {
+export function condicionesDe(
+  cocina: string,
+  direccion: string | null,
+  sellos: number,
+  premio: string,
+  dias: number,
+  condicion: string | null = null,
+): string {
+  const suya = condicion === null ? '' : enOracion(condicion);
   return [
     ES.condiciones.junta(sellos, cocina, enFrase(premio)),
     ES.condiciones.uno,
+    ...(suya === '' ? [] : [suya]),
     dias > 0 ? ES.condiciones.seBorran(dias) : ES.condiciones.noSeBorran,
     ES.condiciones.promesa(cocina, direccion),
   ].join(' ');
+}
+
+// ---- Editar tu tarjeta (`10.9m`, the owner's approval of 2026-11-27) ----------------------
+
+/** Her terms as the screen compares them: the reward trimmed, the days (0 is *Nunca*), the condition or none. */
+interface Terminos {
+  readonly premio: string;
+  readonly sellos: number;
+  readonly dias: number;
+  readonly condicion: string | null;
+}
+
+function terminosDe(terms: TermsRow): Terminos {
+  return { premio: terms.reward.trim(), sellos: terms.stamps, dias: terms.expiry_days ?? 0, condicion: terms.conditions };
+}
+
+function terminosDelBorrador(b: Borrador): Terminos | null {
+  if (revisarBorrador(b) !== null || b.sellos === null || b.dias === null) return null;
+  return { premio: b.premio.trim(), sellos: b.sellos, dias: b.dias, condicion: condicionDe(b) };
+}
+
+/** Whether the draft is not what her card already has — a save that writes a new version (`0099`). */
+export function cambiaAlgo(terms: TermsRow, b: Borrador): boolean {
+  const nuevo = terminosDelBorrador(b);
+  if (nuevo === null) return false;
+  const actual = terminosDe(terms);
+  return nuevo.premio !== actual.premio || nuevo.sellos !== actual.sellos || nuevo.dias !== actual.dias || nuevo.condicion !== actual.condicion;
+}
+
+/** *Nunca* (0) is the most days. */
+function diasComoNumero(dias: number): number {
+  return dias === 0 ? Number.POSITIVE_INFINITY : dias;
+}
+
+/**
+ * ⚠️ THE RULE ADDED TO G12, AS THE SCREEN CAN TELL IT (`0099`'s `servicio.card_terms_easier`): the draft only makes her
+ * card easier — the same reward (capitals and end spaces do not count), no more stamps, no fewer days, and the same
+ * condition or none. Compared with the CURRENT terms, as the page draws it; the database compares each card with its own.
+ */
+export function soloMasFacil(terms: TermsRow, b: Borrador): boolean {
+  const nuevo = terminosDelBorrador(b);
+  if (nuevo === null) return false;
+  const actual = terminosDe(terms);
+  return (
+    nuevo.premio.toLowerCase() === actual.premio.toLowerCase() &&
+    nuevo.sellos <= actual.sellos &&
+    diasComoNumero(nuevo.dias) >= diasComoNumero(actual.dias) &&
+    (nuevo.condicion === null || (actual.condicion !== null && nuevo.condicion.toLowerCase() === actual.condicion.toLowerCase()))
+  );
+}
+
+/** The line above *Guardar cambios*: its first words drawn bold, the rest plain, and on the soft green when it is easier. */
+export interface LineaDelCambio {
+  readonly fuerte: string;
+  readonly resto: string | null;
+  readonly masFacil: boolean;
+}
+
+/**
+ * ⚠️ ONLY WHILE SOMEONE HOLDS HER CARD (`kitchen_card.cards` > 0) AND THE DRAFT CHANGES SOMETHING: what her change does
+ * to those who already collect — *Los 12 vecinos que ya juntan sellos la tienen así desde hoy.* (with *Quien ya tenga 6
+ * sellos o más gana su premio hoy.* when the stamps fall), else *… siguen con lo que empezaron hasta completarla: 8
+ * sellos y una comida corrida. Lo nuevo es para las tarjetas nuevas.* With nobody holding it there is nothing to say.
+ */
+export function lineaDelCambio(card: KitchenCardRow | null | undefined, b: Borrador): LineaDelCambio | null {
+  if (card === null || card === undefined || card.terms === null || card.cards <= 0) return null;
+  if (!cambiaAlgo(card.terms, b)) return null;
+  const L = ES.prepararTarjeta.cambio;
+  if (soloMasFacil(card.terms, b)) {
+    const ganan = (b.sellos as number) < card.terms.stamps ? L.ganan(b.sellos as number) : null;
+    return { fuerte: L.desdeHoy(card.cards), resto: ganan, masFacil: true };
+  }
+  return { fuerte: L.siguen(card.cards), resto: L.hastaCompletarla(card.terms.stamps, enFrase(card.terms.reward)), masFacil: false };
+}
+
+/** The toast after *Guardar cambios*: *Guardado. Ya vale para quienes juntan sellos.* when it reached them, else today's. */
+export function avisoAlGuardar(card: KitchenCardRow | null | undefined, b: Borrador): string {
+  if (card !== null && card !== undefined && !card.open) return ES.prepararTarjeta.abierta;
+  const linea = lineaDelCambio(card, b);
+  return linea !== null && linea.masFacil ? ES.prepararTarjeta.guardadoYaVale : ES.prepararTarjeta.guardado;
+}
+
+/** Whether a save changes what her poster prints — the reward, the stamps or the condition (never the days, which it does not print). */
+export function cambiaElCartel(terms: TermsRow | null, b: Borrador): boolean {
+  if (terms === null) return false;
+  const nuevo = terminosDelBorrador(b);
+  if (nuevo === null) return false;
+  const actual = terminosDe(terms);
+  return nuevo.premio !== actual.premio || nuevo.sellos !== actual.sellos || nuevo.condicion !== actual.condicion;
+}
+
+/** The phone's key for *Cambiaste tu tarjeta: imprímelo otra vez* — per kitchen, kept until she opens her poster. */
+export function claveDelCartel(kitchenId: string): string {
+  return `cocina.cartel-otra-vez.${kitchenId}`;
+}
+
+/** Whether her poster's row asks her to print it again. */
+export function cartelPorImprimir(store: DeviceStore | undefined, kitchenId: string): boolean {
+  return readKey(store, claveDelCartel(kitchenId)) === '1';
+}
+
+/** After a save that changed what the poster prints: ask her to print it again. */
+export function marcarCartel(store: DeviceStore | undefined, kitchenId: string): void {
+  writeKey(store, claveDelCartel(kitchenId), '1');
+}
+
+/** She opened her poster: nothing more to ask. */
+export function cartelVisto(store: DeviceStore | undefined, kitchenId: string): void {
+  removeKey(store, claveDelCartel(kitchenId));
 }
 
 /** Her street and colonia, as the conditions name them — `null` when they are not whole. */

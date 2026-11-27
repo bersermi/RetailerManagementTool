@@ -20,7 +20,8 @@ import { TarjetaDeLealtad } from '@/ui/TarjetaDeLealtad';
 // G41): HER CARD there, in the kitchen's colour and logo, with *Escanear* and *Mi código*; else, while the
 // kitchen has a card a first stamp could start (the door's `card`), ITS INVITATION — *Junta 8 sellos y te dan
 // una comida corrida*, *Tu primer sello, en la cocina: escanea su código* — with its *Condiciones*, the kitchen
-// named as the one who promises, opened under it. Else nothing.
+// named as the one who promises, opened under it — and since `10.9m` the kitchen's condition, when she has one, as one
+// small grey line under the offer. Else nothing.
 // ⚠️ THE ROUTE HANDS IT TO `@/ui/PaginaDeCocina` (its `tarjeta` slot), so the page still reads nothing and Wera
 // Cocina's copy of the page carries the slot empty. ⚠️ A KITCHEN QUIET FOR TWO WEEKS IS NOT IN THE DOOR, so its
 // page shows no invitation — her first stamp at its counter still works (the row's note). ⚠️ The invitation
@@ -72,6 +73,10 @@ export function SeccionTarjeta({ cocina }: { cocina: Kitchen }) {
                 <Text style={{ fontSize: SIZE.bodySize, fontWeight: '700', color: PALETTE.tinta }}>
                   {ES.tarjeta.invitacion(cocina.tarjeta.sellos, enFrase(cocina.tarjeta.premio))}
                 </Text>
+                {/* `10.9m`: the kitchen's condition, one small grey line under the offer — none, nothing. */}
+                {cocina.tarjeta.condicion !== null && (
+                  <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada }}>{cocina.tarjeta.condicion}</Text>
+                )}
                 <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada }}>{ES.tarjeta.invitacionDetalle}</Text>
               </View>
             </View>

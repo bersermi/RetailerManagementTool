@@ -141,6 +141,8 @@ export interface DoorCardRow {
   readonly stamps: number;
   /** The days without a stamp after which hers are erased; `null` is *Nunca*. */
   readonly expiry_days: number | null;
+  /** `10.9m` (`0099`): the kitchen's condition, her words; `null` for none. */
+  readonly conditions: string | null;
 }
 
 /** `0080`: her stars, counted the day after, and her three most given good tags. */
@@ -375,6 +377,8 @@ export interface TarjetaDeCocina {
   readonly sellos: number;
   /** The days without a stamp before hers are erased — 14 to 365 (`0089`; 15, 30, 45 or 60 before it); `0` is *Nunca*. */
   readonly dias: number;
+  /** `10.9m` (`0099`): the kitchen's condition — *Compra mínima de $80* — or `null`: none, and every word as before. */
+  readonly condicion: string | null;
 }
 
 /** A kitchen's stars, as the cards and her page draw them. */
@@ -598,7 +602,9 @@ export function tarjetaOf(value: unknown): TarjetaDeCocina | null {
   if (premio === '' || premio.length > 60) return null;
   if (typeof sellos !== 'number' || !Number.isInteger(sellos) || sellos < 4 || sellos > 12) return null;
   if (typeof dias !== 'number' || !Number.isInteger(dias) || (dias !== 0 && (dias < 14 || dias > 365))) return null;
-  return { premio, sellos, dias };
+  // `10.9m`: a condition this build cannot read is none — never the card dropped (her first stamp still works).
+  const condicion = text(c.conditions);
+  return { premio, sellos, dias, condicion: condicion === '' || condicion.length > 60 ? null : condicion };
 }
 
 /** Who may reserve by score — a whole per cent, else everyone (`null`). */

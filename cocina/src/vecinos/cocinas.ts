@@ -165,6 +165,8 @@ export interface TarjetaDeCocina {
   readonly sellos: number;
   /** The days without a stamp before hers are erased — 14 to 365 (`0089`; 15, 30, 45 or 60 before it); `0` is *Nunca*. */
   readonly dias: number;
+  /** `10.9m` (`0099`): the kitchen's condition — *Compra mínima de $80* — or `null`: none, and every word as before. */
+  readonly condicion: string | null;
 }
 
 /** A kitchen's stars, as the cards and her page draw them. */

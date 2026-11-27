@@ -10,6 +10,8 @@ import { ESQUINA } from '@/theme/density';
 // draws one dashed as a hint, never a value — the screen reader says *sugerido*, and nothing is sent.
 // ⚠️ `10.9k`: `otro` is a last chip that OPENS something (*Otro…*, the days typed): dashed until it holds
 // her choice, then drawn chosen with its words (*21 días*); a tap opens it again.
+// ⚠️ `10.9m` (*Editar tu tarjeta*): `actual` is what her card has now — drawn dashed while she chose another, so she
+// sees what she is changing from (the approved page: *"The dashed 8 is what her card has now"*).
 // ============================================================================
 
 export function Fichas<T extends string | number>({
@@ -17,6 +19,7 @@ export function Fichas<T extends string | number>({
   opciones,
   elegida,
   sugerida = null,
+  actual = null,
   onElegir,
   otro = null,
 }: {
@@ -24,6 +27,7 @@ export function Fichas<T extends string | number>({
   opciones: readonly { readonly valor: T; readonly texto: string }[];
   elegida: T | null;
   sugerida?: T | null;
+  actual?: T | null;
   onElegir: (valor: T) => void;
   otro?: { readonly texto: string; readonly elegido: boolean; readonly onAbrir: () => void } | null;
 }) {
@@ -33,13 +37,14 @@ export function Fichas<T extends string | number>({
       <View accessibilityRole="radiogroup" accessibilityLabel={titulo} style={{ flexDirection: 'row', flexWrap: 'wrap', gap: SIZE.rowGap }}>
         {opciones.map((o) => {
           const on = elegida === o.valor;
-          const pista = elegida === null && sugerida === o.valor;
+          const ahora = actual !== null && actual === o.valor && elegida !== o.valor;
+          const pista = (elegida === null && sugerida === o.valor) || ahora;
           return (
             <Pressable
               key={String(o.valor)}
               accessibilityRole="radio"
               accessibilityState={{ checked: on }}
-              accessibilityLabel={pista ? `${o.texto}, ${ES.prepararTarjeta.sugerido}` : o.texto}
+              accessibilityLabel={ahora ? `${o.texto}, ${ES.prepararTarjeta.actual}` : pista ? `${o.texto}, ${ES.prepararTarjeta.sugerido}` : o.texto}
               onPress={() => onElegir(o.valor)}
               style={({ pressed }) => ({
                 minWidth: SIZE.tapTarget,

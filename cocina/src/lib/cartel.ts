@@ -14,7 +14,8 @@ import { PALETTE } from '@/theme/palette';
 // stores. A code that changes every minute cannot be printed.
 // ⚠️ WHAT IT SAYS: her circle (her logo, else her initials) on her colour, her name large, *Junta 8 sellos y
 // llévate una comida corrida* while her card is open (else *Mira lo que hay hoy*), the QR, *Escanéalo con
-// tu cámara*, her address, and *en Itacate* small. The word *Wera* nowhere.
+// tu cámara*, her address, and *en Itacate* small. The word *Wera* nowhere. ⚠️ `10.9m`: her condition, when she has
+// one, is one small grey line under the offer (`.cond`) — never a colour, a tag or a box; with none, the page as before.
 // ⚠️ HTML FOR `expo-print` (a WebView), SO THE QR IS SVG `<rect>`s — one per dark run of a row, the same grid
 // `@/ui/CodigoQR` draws (`@/lib/qr`) — and nothing is fetched: the logo arrives as a data URI or not at all.
 // Pure: `test/tarjetaCocina.test.ts` reads the rectangles back into the grid, has a real reader decode them, and
@@ -64,8 +65,8 @@ export interface DatosDelCartel {
   readonly logo: string | null;
   /** Her street and colonia, or `null`. */
   readonly direccion: string | null;
-  /** Her card's terms while it is open, else `null`. */
-  readonly tarjeta: { readonly sellos: number; readonly premio: string } | null;
+  /** Her card's terms while it is open, else `null` — with her condition since `10.9m` (`null` for none). */
+  readonly tarjeta: { readonly sellos: number; readonly premio: string; readonly condicion: string | null } | null;
 }
 
 const HEX = /^#[0-9a-fA-F]{6}$/;
@@ -91,6 +92,7 @@ html, body { margin: 0; padding: 0; font-family: -apple-system, 'Helvetica Neue'
 .cuerpo { flex: 1; display: flex; flex-direction: column; align-items: center; text-align: center; padding: 10mm 18mm 12mm; gap: 6mm; }
 .nombre { font-size: 15mm; font-weight: 800; line-height: 1.05; }
 .titulo { font-size: 8mm; font-weight: 700; color: ${color}; line-height: 1.2; }
+.cond { font-size: 5mm; color: ${PALETTE.tintaApagada}; margin-top: -3mm; }
 .qr svg { width: 72mm; height: 72mm; }
 .escanea { font-size: 6mm; font-weight: 600; }
 .dir { font-size: 5mm; color: ${PALETTE.tintaApagada}; }
@@ -100,6 +102,7 @@ html, body { margin: 0; padding: 0; font-family: -apple-system, 'Helvetica Neue'
 <div class="cuerpo">
 <div class="nombre">${escapar(d.nombre)}</div>
 <div class="titulo">${escapar(titulo)}</div>
+${d.tarjeta === null || d.tarjeta.condicion === null ? '' : `<div class="cond">${escapar(d.tarjeta.condicion)}</div>`}
 <div class="qr">${qrSvg(direccionDeCocina(d.id, d.nombre), 288)}</div>
 <div class="escanea">${escapar(ES.cartel.escanea)}</div>
 ${d.direccion === null ? '' : `<div class="dir">${escapar(d.direccion)}</div>`}

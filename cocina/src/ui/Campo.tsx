@@ -5,7 +5,8 @@
 // its label always above it, never a placeholder that vanishes as she types,
 // and `mostrable` puts an eye beside a password so she can see what she typed
 // (Wera's first user could not). `grows` shares a row (*Nombre* · *Apellido*).
-// Sign-in draws it now; `10.4b-iii-b`'s kitchen form draws it next.
+// Sign-in draws it now; `10.4b-iii-b`'s kitchen form draws it next. ⚠️ `10.9m`: `accion` puts one quiet link at the
+// label's end (the card's *Condición* · *Quitar*); without it the field is drawn exactly as before.
 // ============================================================================
 
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
@@ -21,18 +22,29 @@ export function Campo({
   ref,
   grows = false,
   mostrable = false,
+  accion = null,
   ...input
 }: TextInputProps & {
   label: string;
   ref?: Ref<TextInput>;
   grows?: boolean;
   mostrable?: boolean;
+  accion?: { readonly etiqueta: string; readonly onPress: () => void } | null;
 }) {
   const [visible, setVisible] = useState(false);
   const secret = input.secureTextEntry === true && !(mostrable && visible);
   return (
     <View style={{ gap: SIZE.rowGap / 2, flex: grows ? 1 : undefined }}>
-      <Text style={{ fontSize: SIZE.smallSize, fontWeight: '600', color: PALETTE.tintaApagada }}>{label}</Text>
+      {accion === null ? (
+        <Text style={{ fontSize: SIZE.smallSize, fontWeight: '600', color: PALETTE.tintaApagada }}>{label}</Text>
+      ) : (
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: SIZE.space }}>
+          <Text style={{ fontSize: SIZE.smallSize, fontWeight: '600', color: PALETTE.tintaApagada }}>{label}</Text>
+          <Pressable accessibilityRole="button" accessibilityLabel={accion.etiqueta} onPress={accion.onPress} hitSlop={SIZE.rowGap}>
+            <Text style={{ fontSize: SIZE.smallSize, fontWeight: '600', color: PALETTE.accion }}>{accion.etiqueta}</Text>
+          </Pressable>
+        </View>
+      )}
       <View style={{ justifyContent: 'center' }}>
         <TextInput
           ref={ref}

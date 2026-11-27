@@ -38,14 +38,31 @@ export function enFrase(texto: string): string {
   return texto.charAt(0).toLowerCase() + texto.slice(1);
 }
 
+/** *compra mínima de $80* → *Compra mínima de $80.* — her words as a sentence (`10.9m`). Wera Cocina's, word for word. */
+export function enOracion(texto: string): string {
+  const t = texto.trim();
+  if (t.length === 0) return '';
+  const conMayuscula = t.charAt(0).toUpperCase() + t.slice(1);
+  return /[.!?…]$/.test(conMayuscula) ? conMayuscula : `${conMayuscula}.`;
+}
 /**
  * ⚠️ THE CARD'S CONDITIONS (G12, G41; the page's `termsTxt`) — what she starts on, the kitchen as the one
- * who promises, with its address. Wera Cocina's, word for word (`cocina/src/lib/tarjeta.ts`).
+ * who promises, with its address. Wera Cocina's, word for word (`cocina/src/lib/tarjeta.ts`) — with, since `10.9m`, the
+ * kitchen's condition as one sentence after *Un sello por visita, uno al día.*; with none, the words as before.
  */
-export function condicionesDe(cocina: string, direccion: string | null, sellos: number, premio: string, dias: number): string {
+export function condicionesDe(
+  cocina: string,
+  direccion: string | null,
+  sellos: number,
+  premio: string,
+  dias: number,
+  condicion: string | null = null,
+): string {
+  const suya = condicion === null ? '' : enOracion(condicion);
   return [
     ES.condiciones.junta(sellos, cocina, enFrase(premio)),
     ES.condiciones.uno,
+    ...(suya === '' ? [] : [suya]),
     dias > 0 ? ES.condiciones.seBorran(dias) : ES.condiciones.noSeBorran,
     ES.condiciones.promesa(cocina, direccion),
   ].join(' ');
@@ -64,7 +81,7 @@ export function direccionCorta(address: { readonly street: string; readonly numb
 export function condicionesDeCocina(cocina: Pick<Kitchen, 'name' | 'tarjeta'> & { readonly address: Address }): string | null {
   const t = cocina.tarjeta;
   if (t === null) return null;
-  return condicionesDe(cocina.name, direccionCorta(cocina.address), t.sellos, t.premio, t.dias);
+  return condicionesDe(cocina.name, direccionCorta(cocina.address), t.sellos, t.premio, t.dias, t.condicion);
 }
 
 // ---- dates, in the phone's zone (the kitchen's, in the pilot) — Wera Cocina's ----------------
@@ -118,6 +135,8 @@ export interface VistaDeTarjeta {
   readonly sellos: number;
   readonly de: number;
   readonly premio: string;
+  /** `10.9m`: HER card's condition — one small grey line — or `null`: none, and the card as before. */
+  readonly condicion: string | null;
   /** *Vence el 5 de diciembre si no vienes* — `null` with *Nunca*, or no stamp going. */
   readonly vence: string | null;
   /** Her rewards to claim, newest first, as the database sends them. */
@@ -142,6 +161,7 @@ export function vistaDe(card: MyCardRow, cocina: Pick<Kitchen, 'page' | 'giro'> 
     sellos: Math.min(card.stamps, card.of),
     de: card.of,
     premio: card.reward,
+    condicion: card.conditions,
     vence: venceDia === null ? null : ES.tarjeta.vence(venceDia),
     premios: card.rewards,
     cerradaHasta: card.open ? null : diaDeTexto(card.kept_until),
@@ -159,7 +179,23 @@ export function cardDeEscaneo(cocina: { readonly id: string; readonly name: stri
  */
 export function condicionesDeSuTarjeta(card: MyCardRow, puerta: { readonly address: Address } | null): string | null {
   if (card.of === null || card.reward === null) return null;
-  return condicionesDe(card.name, puerta === null ? null : direccionCorta(puerta.address), card.of, card.reward, card.expiry_days ?? 0);
+  return condicionesDe(
+    card.name,
+    puerta === null ? null : direccionCorta(puerta.address),
+    card.of,
+    card.reward,
+    card.expiry_days ?? 0,
+    card.conditions,
+  );
+}
+
+/**
+ * ⚠️ `10.9m`: WHETHER A SCAN SHOWS HER THE CONDITIONS — at the first stamp of EVERY new card (*1 de 6* after a reward
+ * won or her stamps erased, with terms that may have changed since), not only her first ever there (`primer`).
+ */
+export function muestraCondiciones(desenlace: Desenlace): boolean {
+  if (desenlace.kind === 'primer') return true;
+  return desenlace.kind === 'sello' && desenlace.card.stamps === 1;
 }
 
 /**

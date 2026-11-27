@@ -1,13 +1,14 @@
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { Redirect, router } from 'expo-router';
-import { useState } from 'react';
+import { Redirect, router, useFocusEffect } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 
 import { esDuena } from '@/api/equipo';
 import { useCerrarTarjeta, useKitchen, usePage, useServicios, useSuRol, useTarjeta } from '@/api/hooks';
 import { colorOf } from '@/api/pagina';
 import { useNota } from '@/lib/NotaProvider';
-import { cuentasDe, diaDeTexto, seLee, tarjetaGuardada, tarjetaViva } from '@/lib/tarjeta';
+import { deviceStore } from '@/lib/store';
+import { cartelPorImprimir, cuentasDe, diaDeTexto, seLee, tarjetaGuardada, tarjetaViva } from '@/lib/tarjeta';
 import { useAhora } from '@/lib/useAhora';
 import { ES } from '@/strings';
 import { FAMILIA_NUMERO } from '@/theme/letra';
@@ -27,7 +28,8 @@ import { TarjetaDeLealtad } from '@/ui/TarjetaDeLealtad';
 // shell's rule: a service never lives in two places). Plan task `10.9e-ii`, the family-shell page's
 // `cTarjeta`: *Así funciona* the first time; the card as her neighbours see it; its three counts —
 // cards going, stamps today, rewards to give (`kitchen_card`); *Sellar*; then the owner's — *Tu cartel
-// para el mostrador*, *Cambiar el premio, los sellos o cuándo se borran* (new cards only, G12) and
+// para el mostrador* (*Cambiaste tu tarjeta: imprímelo otra vez* after a save that changed what it prints, until
+// she opens it — kept on this phone, `10.9m`), *Editar tu tarjeta* (`10.9m`: the same setup, renamed) and
 // *Cerrar la tarjeta* behind a sheet (G12: nobody starts a new one; those started finish and claim
 // for 30 days).
 // ⚠️ NOT SET UP YET, the owner is sent to its setup — her dashed tile opens here — and a helper reads
@@ -50,6 +52,13 @@ export default function Tarjeta() {
   const ahora = useAhora(60_000);
   const [hoja, setHoja] = useState(false);
   const asi = useAsiFunciona(kitchenId ?? '', 'tarjeta');
+  // `10.9m`: read again each time the screen is in front — she comes back from her poster, or from a save.
+  const [otraVez, setOtraVez] = useState(false);
+  useFocusEffect(
+    useCallback(() => {
+      setOtraVez(kitchenId !== null && cartelPorImprimir(deviceStore(), kitchenId));
+    }, [kitchenId]),
+  );
 
   const volver = () => (router.canGoBack() ? router.back() : router.replace('/'));
   const banda = <Banda titulo={ES.tarjeta.titulo} antetitulo={kitchen?.displayName ?? null} volver={{ label: ES.pestanas.hoy, onPress: volver }} />;
@@ -120,6 +129,7 @@ export default function Tarjeta() {
             de={terms.stamps}
             premio={terms.reward}
             dias={terms.expiry_days ?? 0}
+            condicion={terms.conditions}
           />
         </Llega>
         {!card.open && (
@@ -147,8 +157,13 @@ export default function Tarjeta() {
           <Llega i={4}>
             {card.open ? (
               <Grupo>
-                <Fila icono="file-document-outline" titulo={ES.tarjeta.cartel} detalle={ES.tarjeta.cartelDetalle} onPress={() => router.push('/cartel')} />
-                <Fila icono="gift-outline" titulo={ES.tarjeta.cambiar} detalle={ES.tarjeta.cambiarDetalle} onPress={() => router.push('/preparar-tarjeta')} />
+                <Fila
+                  icono="file-document-outline"
+                  titulo={ES.tarjeta.cartel}
+                  detalle={otraVez ? ES.tarjeta.cartelOtraVez : ES.tarjeta.cartelDetalle}
+                  onPress={() => router.push('/cartel')}
+                />
+                <Fila icono="pencil-outline" titulo={ES.tarjeta.cambiar} detalle={ES.tarjeta.cambiarDetalle} onPress={() => router.push('/preparar-tarjeta')} />
                 <Pressable
                   accessibilityRole="button"
                   accessibilityLabel={ES.tarjeta.cerrar}

@@ -231,6 +231,8 @@ function SuTarjeta({
         <View style={{ flex: 1, gap: 2 }}>
           <Text style={{ fontSize: SIZE.titleSize - 2, ...TITULO, color: PALETTE.tinta }}>{nombre}</Text>
           {resumen !== null && <Text style={{ fontSize: SIZE.bodySize - 1, color: PALETTE.tintaApagada }}>{resumen}</Text>}
+          {/* `10.9m`: HER card's condition — what it started on — so a helper checks it before *Dar sello*; none, nothing. */}
+          {card.conditions != null && <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada }}>{card.conditions}</Text>}
         </View>
       </View>
       {paso.dijo !== null && (

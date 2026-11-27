@@ -329,7 +329,7 @@ describe('the loyalty card’s scanner and QR — Wera Cocina’s files, code fo
 describe('the card’s conditions — what a fonda set up is what her neighbour accepts (G12, `10.9e-iii`)', () => {
   const ours = itacate('lib/tarjeta.ts');
   const theirs = cocina('lib/tarjeta.ts');
-  for (const inicio of ['export function enFrase(', 'export function condicionesDe(', 'export function direccionCorta(', 'export function diaDe(', 'export function diaDeTexto(']) {
+  for (const inicio of ['export function enFrase(', 'export function enOracion(', 'export function condicionesDe(', 'export function direccionCorta(', 'export function diaDe(', 'export function diaDeTexto(']) {
     it(inicio, () => {
       expect(bloque(ours, inicio)).toBe(bloque(theirs, inicio));
     });

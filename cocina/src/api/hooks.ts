@@ -1554,15 +1554,15 @@ export function useGuardarTerminos(kitchenId: string | null) {
   const { session } = useAuth();
   const userId = session?.user.id ?? null;
   const mutation = useMutation({
-    mutationFn: (t: { premio: string; sellos: number; dias: DiasSinVenir }) =>
-      setCardTerms(termsArgs(kitchenId as string, t.premio.trim(), t.sellos, t.dias)),
+    mutationFn: (t: { premio: string; sellos: number; dias: DiasSinVenir; condicion: string | null }) =>
+      setCardTerms(termsArgs(kitchenId as string, t.premio.trim(), t.sellos, t.dias, t.condicion)),
     onSuccess: (card) => {
       queries.setQueryData<KitchenCardRow>(tarjetaKey(userId, kitchenId), card);
       void queries.invalidateQueries({ queryKey: SERVICIOS_KEY });
     },
   });
 
-  async function guardar(t: { premio: string; sellos: number; dias: DiasSinVenir }): Promise<string | null> {
+  async function guardar(t: { premio: string; sellos: number; dias: DiasSinVenir; condicion: string | null }): Promise<string | null> {
     if (kitchenId === null || mutation.isPending) return null;
     try {
       await mutation.mutateAsync(t);
