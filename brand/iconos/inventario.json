@@ -831,6 +831,7 @@
       "dibujo": "menos",
       "apps": {
         "app": [
+          "app/src/app/(tabs)/vender.tsx",
           "app/src/ui/Cantidad.tsx"
         ],
         "cocina": [
