@@ -28,8 +28,9 @@
 // order (by name), so the copy is as long as the shop's sellers, not its catalog.
 // ============================================================================
 
-import { searchTerm } from '@/api/catalog';
+import { searchTerm, type CatalogEntry } from '@/api/catalog';
 import { daysBefore } from '@/api/month';
+import { sortedForBuying } from '@/api/providers';
 import type { SalesState, SoldDay } from '@/api/sales';
 
 /** How far back the order looks: four weeks, ending yesterday (call 6). */
@@ -162,6 +163,20 @@ export function porOrden<T>(items: readonly T[], ids: readonly string[], idOf: (
   }
   nombrados.sort((a, b) => a.at - b.at);
   return [...nombrados.map((n) => n.item), ...resto];
+}
+
+/**
+ * ⚠️ `14.3`, CALL 6 ON COMPRAR: what this provider brought first, most recent
+ * first — round 4's rule, kept — and then the day's order (what sells most),
+ * where the catalog's name order used to be. `sortedForBuying` keeps the order it
+ * is handed within a tie, so everything he never brought follows by sales.
+ */
+export function ordenDeCompra(
+  entries: readonly CatalogEntry[],
+  ids: readonly string[],
+  bought: Readonly<Record<string, string>>,
+): readonly CatalogEntry[] {
+  return sortedForBuying(porOrden(entries, ids, (entry) => entry.id), 'recent', bought);
 }
 
 /** The order as the phone keeps it. */

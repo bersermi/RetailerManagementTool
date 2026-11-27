@@ -1,13 +1,14 @@
 // `14.2`: what a tile on Vender's counter does, and which products the grid
 // holds (the owner's calls 2, 4 and 11 of 2026-11-27, and C3.3: the tap is the
 // line). These pin what a shopkeeper's tap puts in the basket — or opens.
+// `14.3`: the search is the whole shop, on both counters (his call 13).
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import type { CatalogEntry } from '@/api/catalog';
 import { sellGate } from '@/cart/gate';
-import { PESADOS, columnasDe, conMenos, toqueDe, toqueLargoDe, vitrinaDe } from '@/cart/vitrina';
+import { PESADOS, columnasDe, conMenos, pasilloAlEscribir, toqueDe, toqueLargoDe, vitrinaDe } from '@/cart/vitrina';
 
 function entry(over: Partial<CatalogEntry> = {}): CatalogEntry {
   return {
@@ -98,16 +99,35 @@ describe('what the grid holds', () => {
     expect(vitrinaDe(ordered, 'p', null)).toEqual([pollo, pierna, epazote]);
   });
 
-  it('with an aisle chosen, is what matches in it', () => {
-    expect(vitrinaDe(ordered, 'p', 'pollo')).toEqual([pollo, pierna]);
-  });
-
-  it('finds a product in another aisle when the chosen one has no match', () => {
+  it('searches the whole shop even with an aisle still chosen (call 13) — never the aisle alone', () => {
+    // ⚠️ `14.2` showed only Pollo's matches here; his ruling: typing is *Todo*.
+    expect(vitrinaDe(ordered, 'p', 'pollo')).toEqual([pollo, pierna, epazote]);
     expect(vitrinaDe(ordered, 'cilan', 'pollo')).toEqual([cilantro]);
   });
 
   it('is empty when nothing anywhere matches', () => {
     expect(vitrinaDe(ordered, 'xyz', 'pollo')).toEqual([]);
+  });
+
+  it('treats a box of spaces as empty: the aisle still filters', () => {
+    expect(vitrinaDe(ordered, '   ', 'pollo')).toEqual([pollo, pierna]);
+  });
+});
+
+describe('the search and the aisles never mix (call 13)', () => {
+  it('moves the aisles to Todo on the first letter typed', () => {
+    expect(pasilloAlEscribir('p', 'pollo')).toBeNull();
+    expect(pasilloAlEscribir('pie', null)).toBeNull();
+  });
+
+  it('leaves Todo when the box is emptied — the aisle she had does not come back', () => {
+    const typing = pasilloAlEscribir('p', 'pollo');
+    expect(pasilloAlEscribir('', typing)).toBeNull();
+  });
+
+  it('keeps the aisle while the box holds no letter', () => {
+    expect(pasilloAlEscribir('', 'pollo')).toBe('pollo');
+    expect(pasilloAlEscribir('  ', 'pollo')).toBe('pollo');
   });
 });
 

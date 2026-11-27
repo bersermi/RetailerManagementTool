@@ -4,12 +4,14 @@
 // 2026-11-27 is a Friday; its window is 10-30 to 11-26.
 import { describe, expect, it } from 'vitest';
 
+import type { CatalogEntry } from '@/api/catalog';
 import type { SoldDay } from '@/api/sales';
 import {
   ORDEN_DIAS,
   guardarOrden,
   leerOrden,
   ordenDe,
+  ordenDeCompra,
   ordenNuevo,
   paraTienda,
   porOrden,
@@ -179,5 +181,23 @@ describe('kept on the phone', () => {
     expect(leerOrden(JSON.stringify({ dia: 'ayer', tienda: 's', productos: [], pasillos: [] }))).toBeNull();
     expect(leerOrden(JSON.stringify({ dia: TODAY, tienda: 's', productos: [1], pasillos: [] }))).toBeNull();
     expect(leerOrden(JSON.stringify({ dia: TODAY, tienda: 's', productos: [] }))).toBeNull();
+  });
+});
+
+describe('Comprar’s order (14.3, call 6)', () => {
+  const tile = (id: string) => ({ id, name: id }) as unknown as CatalogEntry;
+  const catalog = ['aguacate', 'cilantro', 'jitomate', 'limon', 'pollo'].map(tile);
+
+  it('puts what this provider brought first, most recent first, then the day’s sales order', () => {
+    const sales = ['pollo', 'cilantro', 'limon'];
+    const bought = { jitomate: '2026-11-20T10:00:00Z', aguacate: '2026-11-25T10:00:00Z' };
+    expect(ordenDeCompra(catalog, sales, bought).map((e) => e.id)).toEqual([
+      'aguacate', 'jitomate', 'pollo', 'cilantro', 'limon',
+    ]);
+  });
+
+  it('is the sales order alone for a provider who never brought anything, and the catalog’s for a new shop', () => {
+    expect(ordenDeCompra(catalog, ['limon'], {}).map((e) => e.id)).toEqual(['limon', 'aguacate', 'cilantro', 'jitomate', 'pollo']);
+    expect(ordenDeCompra(catalog, [], {}).map((e) => e.id)).toEqual(catalog.map((e) => e.id));
   });
 });

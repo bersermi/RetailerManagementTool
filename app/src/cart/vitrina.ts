@@ -13,6 +13,17 @@
 // (`sellGate`): its tap and its long press open the price sheet for the owner
 // and a manager — saving it puts the product in the basket — and the note for
 // a cashier. A line already in the basket is left alone.
+//
+// ⚠️⚠️ `14.3`, CALL 13 — THE SEARCH IS THE WHOLE SHOP (the owner's ruling of
+// 2026-11-27, after `14.2` reached his phone: *"when someone is typing, the
+// filter automatically defaults to Todo"*). Searching and browsing an aisle never
+// mix: the first letter typed moves the aisles to *Todo*, tapping an aisle empties
+// the box, and emptying the box leaves *Todo*. `14.2`'s fall-back — the aisle's
+// matches, or every match when it had none — went with it. On both counters.
+//
+// ⚠️ COMPRAR'S TAP ALWAYS OPENS THE PAD (call 4): a delivery always has a cost,
+// so there is nothing a tap could add without asking. No rule is needed for it
+// here — its tiles call the pad on a tap and on a long press alike.
 // ============================================================================
 
 import { search, type CatalogEntry } from '@/api/catalog';
@@ -62,17 +73,24 @@ export function columnasDe(mode: DensityMode): number {
  * The products the grid holds, in the order `ordered` came — the day's order.
  * `aisle` is a family id, or `null` for *Todo*.
  *
- * ⚠️ A SEARCH FINDS A PRODUCT IN ANY AISLE (the page's *What she sees*, 1): typed
- * with an aisle chosen, it shows the matches in that aisle, and when that aisle
- * has none, the matches in every other — Productos' rule, so a product filed in
- * another aisle is never hidden behind a word she typed right.
+ * ⚠️⚠️ A SEARCH IS THE WHOLE SHOP (call 13): typed, it is every match in every
+ * aisle — `pasilloAlEscribir` has already put the aisles on *Todo* — and an
+ * aisle filters only while the box is empty.
  */
 export function vitrinaDe(
   ordered: readonly CatalogEntry[],
   typed: string,
   aisle: string | null,
 ): readonly CatalogEntry[] {
-  const found = search(ordered, typed);
-  const inside = inAisle(found, aisle);
-  return inside.length > 0 || typed.trim() === '' ? inside : found;
+  if (typed.trim() !== '') return search(ordered, typed);
+  return inAisle(ordered, aisle);
+}
+
+/**
+ * The aisle once the box reads `typed` (call 13): *Todo* as soon as there is a
+ * letter in it, and still *Todo* when it is emptied — the aisle she had is not
+ * brought back. ⚠️ Spaces are not a letter: the box is still empty.
+ */
+export function pasilloAlEscribir(typed: string, aisle: string | null): string | null {
+  return typed.trim() === '' ? aisle : null;
 }
