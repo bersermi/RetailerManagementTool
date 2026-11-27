@@ -2,6 +2,7 @@ import { Children, Fragment, type ReactNode } from 'react';
 import { View } from 'react-native';
 
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 
 // ============================================================================
 // ROWS THAT BELONG TOGETHER, IN ONE CARD WITH A LINE BETWEEN EACH. Plan task
@@ -15,9 +16,7 @@ export function Grupo({ children }: { children: ReactNode }) {
     <View
       style={{
         backgroundColor: PALETTE.superficie,
-        borderWidth: 1,
-        borderColor: PALETTE.linea,
-        borderRadius: 16,
+        borderRadius: ESQUINA.hoja,
         overflow: 'hidden',
       }}
     >

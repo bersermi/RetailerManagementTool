@@ -5,6 +5,7 @@ import type { Envio } from '@/api/cola';
 import { porEnviarTexto, sinSenalTexto, todasFemeninas } from '@/lib/apartados';
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 
 // ============================================================================
 // WHAT THE COUNTER SAYS WHEN THE PHONE IS ALL SHE HAS. Plan task `10.5b-iv-b`. On
@@ -40,7 +41,7 @@ export function SinSenal({
   return (
     <View
       accessibilityRole="summary"
-      style={{ gap: 6, padding: SIZE.space, borderRadius: SIZE.space - 2, borderWidth: 1, borderColor: PALETTE.linea, backgroundColor: PALETTE.superficie }}
+      style={{ gap: 6, padding: SIZE.space, borderRadius: ESQUINA.hoja, backgroundColor: PALETTE.superficie }}
     >
       {sinSenal && (
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: SIZE.rowGap }}>

@@ -7,6 +7,7 @@ import Animated, { ReduceMotion, runOnJS, useAnimatedStyle, useSharedValue, with
 import { alSoltarConfirma } from '@/lib/deslizar';
 import { HOJA } from '@/theme/movimiento';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 
 // ============================================================================
 // *YA LO TENGO*, A SWIPE. Plan task `10.5b-iii-a`, the family-shell page's stage 2: a
@@ -94,7 +95,7 @@ export function Deslizar({
       onLayout={(e: LayoutChangeEvent) => setAncho(e.nativeEvent.layout.width)}
       style={{
         height: ALTO,
-        borderRadius: ALTO / 2,
+        borderRadius: ESQUINA.boton,
         backgroundColor: PALETTE.accionSuave,
         overflow: 'hidden',
         justifyContent: 'center',
@@ -102,7 +103,7 @@ export function Deslizar({
     >
       <Animated.View
         style={[
-          { position: 'absolute', left: 0, top: 0, bottom: 0, width: ancho, borderRadius: ALTO / 2, backgroundColor: PALETTE.accion },
+          { position: 'absolute', left: 0, top: 0, bottom: 0, width: ancho, borderRadius: ESQUINA.boton, backgroundColor: PALETTE.accion },
           estiloRelleno,
         ]}
       />
@@ -121,7 +122,7 @@ export function Deslizar({
               top: 4,
               width: PULGAR,
               height: PULGAR,
-              borderRadius: PULGAR / 2,
+              borderRadius: ESQUINA.boton,
               backgroundColor: PALETTE.accion,
               alignItems: 'center',
               justifyContent: 'center',

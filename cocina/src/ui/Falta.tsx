@@ -5,6 +5,7 @@ import { Pressable, Text, View } from 'react-native';
 import { DONDE_SE_HACE, ICONO_DE_PENDIENTE, type Pendiente } from '@/lib/hoy';
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 
 // ============================================================================
 // *TU PÁGINA EN ITACATE* — WHAT IS MISSING, IN *MI COCINA* UNDER HER PAGE (the family-shell page's
@@ -17,7 +18,7 @@ import { PALETTE, SIZE } from '@/theme/palette';
 
 export function Falta({ faltan }: { faltan: readonly Pendiente[] }) {
   return (
-    <View style={{ borderRadius: SIZE.space, borderWidth: 1, borderColor: PALETTE.linea, backgroundColor: PALETTE.superficie }}>
+    <View style={{ borderRadius: ESQUINA.hoja, backgroundColor: PALETTE.superficie }}>
       {faltan.map((pendiente, i) => {
         const nombre = ES.pendientes.item[pendiente];
         return (
@@ -42,7 +43,7 @@ export function Falta({ faltan }: { faltan: readonly Pendiente[] }) {
               <Text style={{ fontSize: SIZE.bodySize - 1, fontWeight: '600', color: PALETTE.tinta }}>{nombre}</Text>
               <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada }}>{ES.pendientes.paraTuPagina}</Text>
             </View>
-            <View style={{ paddingHorizontal: 6, paddingVertical: 4, borderRadius: 6, backgroundColor: PALETTE.marcaSuave }}>
+            <View style={{ paddingHorizontal: 6, paddingVertical: 4, borderRadius: ESQUINA.chip, backgroundColor: PALETTE.marcaSuave }}>
               <Text style={{ fontSize: 11, fontWeight: '700', color: PALETTE.marca }}>{ES.pendientes.falta}</Text>
             </View>
           </Pressable>

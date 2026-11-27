@@ -85,7 +85,7 @@ export default function ComoLaVen() {
             fontSize: SIZE.smallSize,
             lineHeight: 19,
             color: PALETTE.tinta,
-            backgroundColor: PALETTE.banda,
+            backgroundColor: PALETTE.superficie,
             paddingHorizontal: SIZE.space * 1.5,
             paddingVertical: SIZE.rowGap,
           }}

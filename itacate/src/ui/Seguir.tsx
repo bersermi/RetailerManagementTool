@@ -7,6 +7,7 @@ import { switchesDe, type Cambio, type Switches } from '@/api/siguiendo';
 import { pedirPermisoParaAvisos } from '@/lib/avisos';
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 
 // ============================================================================
 // *SEGUIR* AND ITS BELL, ON A KITCHEN'S PAGE. Plan task `10.9d-ii`, the owner's rulings G20 and
@@ -74,7 +75,7 @@ export function Seguir({ cocinaId, nombre }: { cocinaId: string; nombre: string 
             alignItems: 'center',
             justifyContent: 'center',
             gap: SIZE.rowGap,
-            borderRadius: SIZE.space / 2,
+            borderRadius: ESQUINA.boton,
             borderWidth: 1,
             borderColor: PALETTE.accion,
             backgroundColor: sigue ? PALETTE.accionSuave : PALETTE.accion,
@@ -99,7 +100,7 @@ export function Seguir({ cocinaId, nombre }: { cocinaId: string; nombre: string 
             minHeight: SIZE.tapTarget,
             alignItems: 'center',
             justifyContent: 'center',
-            borderRadius: SIZE.space / 2,
+            borderRadius: ESQUINA.boton,
             borderWidth: 1,
             borderColor: ahora.campana ? PALETTE.accion : PALETTE.linea,
             backgroundColor: ahora.campana ? PALETTE.accion : PALETTE.superficie,

@@ -48,6 +48,7 @@ import { useAhora } from '@/lib/useAhora';
 import { ES } from '@/strings';
 import { letraEncabezado } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 import { Banda } from '@/ui/Banda';
 import { BandaPromocion, MarcaPromocion } from '@/ui/BandaPromocion';
 import { BotonLleno } from '@/ui/BotonLleno';
@@ -325,7 +326,7 @@ export default function NuevaPromocion() {
         </View>
 
         {b.tipo === 'clientes' && (
-          <View style={{ flexDirection: 'row', gap: SIZE.space, padding: SIZE.space, borderRadius: 14, borderWidth: 1, borderColor: PALETTE.linea, backgroundColor: PALETTE.superficie }}>
+          <View style={{ flexDirection: 'row', gap: SIZE.space, padding: SIZE.space, borderRadius: ESQUINA.hoja, backgroundColor: PALETTE.superficie }}>
             <MaterialCommunityIcons name="gift-outline" size={SIZE.iconSize} color={PALETTE.marca} />
             <View style={{ flex: 1, gap: 2 }}>
               <Text style={{ fontSize: SIZE.bodySize - 1, fontWeight: '600', color: PALETTE.tinta }}>{ES.nuevaPromocion.clientes}</Text>
@@ -334,7 +335,7 @@ export default function NuevaPromocion() {
           </View>
         )}
 
-        <View style={{ gap: SIZE.rowGap, padding: SIZE.space, borderRadius: 14, borderWidth: 1, borderColor: PALETTE.linea, backgroundColor: PALETTE.superficie }}>
+        <View style={{ gap: SIZE.rowGap, padding: SIZE.space, borderRadius: ESQUINA.hoja, backgroundColor: PALETTE.superficie }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: SIZE.rowGap }}>
             <Text style={{ flex: 1, fontSize: SIZE.smallSize - 1, fontWeight: '700', color: PALETTE.tintaApagada }}>{ES.nuevaPromocion.condiciones}</Text>
             {!editando && (
@@ -393,7 +394,7 @@ export default function NuevaPromocion() {
           </Grupo>
         )}
 
-        <View style={{ gap: SIZE.rowGap, padding: SIZE.rowGap, borderRadius: 18, borderWidth: 1, borderStyle: 'dashed', borderColor: PALETTE.linea, backgroundColor: PALETTE.banda }}>
+        <View style={{ gap: SIZE.rowGap, padding: SIZE.rowGap, borderRadius: ESQUINA.hoja, borderWidth: 1, borderStyle: 'dashed', borderColor: PALETTE.linea, backgroundColor: PALETTE.banda }}>
           <Text style={{ marginHorizontal: 4, marginTop: 2, ...letraEncabezado(SIZE), color: PALETTE.marca }}>
             {ES.nuevaPromocion.asiLaVeran}
           </Text>
@@ -453,13 +454,13 @@ function TipoTile({ tipo, on, onPress }: { tipo: Tipo; on: boolean; onPress: () 
         gap: 3,
         paddingVertical: SIZE.space - 2,
         paddingHorizontal: 6,
-        borderRadius: 14,
+        borderRadius: ESQUINA.boton,
         borderWidth: 1.5,
         borderColor: on ? PALETTE.marca : PALETTE.linea,
         backgroundColor: on ? PALETTE.marcaSuave : pressed ? PALETTE.fondo : PALETTE.superficie,
       })}
     >
-      <View style={{ width: 44, height: 44, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: on ? PALETTE.marca : PALETTE.linea }}>
+      <View style={{ width: 44, height: 44, borderRadius: ESQUINA.chip, alignItems: 'center', justifyContent: 'center', backgroundColor: on ? PALETTE.marca : PALETTE.linea }}>
         <MaterialCommunityIcons name={ICONO_DE_TIPO[tipo]} size={26} color={on ? PALETTE.superficie : PALETTE.tintaApagada} />
       </View>
       <Text style={{ fontSize: SIZE.smallSize, fontWeight: '700', textAlign: 'center', color: on ? PALETTE.marca : PALETTE.tinta }}>{ES.promociones.tipos[tipo]}</Text>
@@ -496,7 +497,7 @@ function Ficha({
         justifyContent: 'center',
         gap: 4,
         paddingHorizontal: SIZE.space - 2,
-        borderRadius: 999,
+        borderRadius: ESQUINA.chip,
         borderWidth: 1,
         borderColor: on ? PALETTE.accion : PALETTE.linea,
         backgroundColor: on ? PALETTE.accion : pressed ? PALETTE.accionSuave : PALETTE.superficie,

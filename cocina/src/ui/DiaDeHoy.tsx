@@ -5,6 +5,7 @@ import { RENGLONES_EN_LA_TARJETA, faltaTexto, fraccionDe, hastaTexto, ultimaText
 import { ES } from '@/strings';
 import { letraEncabezado, letraNumero } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 
 // ============================================================================
 // *HOY*'S FIRST ZONE — THE DAY AT A GLANCE (the family-shell page's green card, round
@@ -51,9 +52,7 @@ export function DiaDeHoy({
           alignItems: 'center',
           gap: SIZE.space,
           padding: SIZE.space * 1.25,
-          borderRadius: SIZE.space * 1.25,
-          borderWidth: 1,
-          borderColor: PALETTE.linea,
+          borderRadius: ESQUINA.hoja,
           backgroundColor: pressed ? PALETTE.fondo : PALETTE.superficie,
         })}
       >
@@ -93,7 +92,7 @@ export function DiaDeHoy({
       style={({ pressed }) => ({
         gap: SIZE.rowGap + 2,
         padding: SIZE.space * 1.25,
-        borderRadius: SIZE.space * 1.25,
+        borderRadius: ESQUINA.hoja,
         backgroundColor: PALETTE.accion,
         opacity: pressed ? 0.92 : 1,
       })}
@@ -105,8 +104,8 @@ export function DiaDeHoy({
         <Text style={{ fontSize: SIZE.smallSize, fontWeight: '600', color: PALETTE.sobreAccionApagada }}>{hasta}</Text>
       </View>
       <Text style={{ ...letraNumero(SIZE), color: PALETTE.sobreAccion }}>{grande}</Text>
-      <View style={{ height: 6, borderRadius: 3, overflow: 'hidden', backgroundColor: PALETTE.barraSobreAccion }}>
-        <View style={{ width: `${Math.round(fraccion * 100)}%`, height: 6, borderRadius: 3, backgroundColor: PALETTE.sobreAccion }} />
+      <View style={{ height: 6, borderRadius: ESQUINA.marca, overflow: 'hidden', backgroundColor: PALETTE.barraSobreAccion }}>
+        <View style={{ width: `${Math.round(fraccion * 100)}%`, height: 6, borderRadius: ESQUINA.marca, backgroundColor: PALETTE.sobreAccion }} />
       </View>
       <View style={{ gap: 4 }}>
         {dia.renglones.slice(0, RENGLONES_EN_LA_TARJETA).map((renglon) => (
@@ -156,7 +155,7 @@ export function Invitacion({ onPress }: { onPress: () => void }) {
       style={({ pressed }) => ({
         gap: 4,
         padding: SIZE.space * 1.25,
-        borderRadius: SIZE.space * 1.25,
+        borderRadius: ESQUINA.hoja,
         borderWidth: 1.5,
         borderStyle: 'dashed',
         borderColor: PALETTE.accion,

@@ -9,6 +9,7 @@ import { quienEntro } from '@/auth/quien';
 import { ES } from '@/strings';
 import { TITULO } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 import { Banda } from '@/ui/Banda';
 import { Salidas } from '@/ui/Salidas';
 
@@ -75,7 +76,7 @@ function Opcion({
         minHeight: SIZE.tapTarget * 2,
         paddingHorizontal: SIZE.space * 1.5,
         paddingVertical: SIZE.space * 1.5,
-        borderRadius: 18,
+        borderRadius: ESQUINA.boton,
         borderWidth: 1,
         borderColor: PALETTE.linea,
         backgroundColor: pressed ? PALETTE.accionSuave : PALETTE.superficie,

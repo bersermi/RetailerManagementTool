@@ -6,6 +6,7 @@ import { cuandoPublica, type Tarjeta } from '@/lib/lista';
 import { distanciaYEstrellas, marcaDeSuPromocion } from '@/lib/paginas';
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 import { MarcaPromocion } from '@/ui/BandaPromocion';
 import { Circulo } from '@/ui/Circulo';
 
@@ -58,9 +59,7 @@ export function TarjetaCocina({
         alignItems: 'center',
         gap: SIZE.space,
         padding: SIZE.space,
-        borderWidth: 1,
-        borderColor: PALETTE.linea,
-        borderRadius: SIZE.space,
+        borderRadius: ESQUINA.hoja,
         backgroundColor: PALETTE.superficie,
       })}
     >

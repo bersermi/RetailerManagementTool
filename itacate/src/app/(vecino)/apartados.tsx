@@ -18,6 +18,7 @@ import { useAhora } from '@/lib/useAhora';
 import { useSenal } from '@/lib/useSenal';
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 import { Banda } from '@/ui/Banda';
 import { BoletoApartado } from '@/ui/BoletoApartado';
 import { BotonLleno } from '@/ui/BotonLleno';
@@ -318,9 +319,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: SIZE.rowGap,
     padding: SIZE.space * 1.5,
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: PALETTE.linea,
+    borderRadius: ESQUINA.hoja,
     backgroundColor: PALETTE.superficie,
   },
   recogidoTitulo: { fontSize: SIZE.bodySize + 1, fontWeight: '700', color: PALETTE.tinta, textAlign: 'center' },
@@ -331,18 +330,16 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     paddingVertical: SIZE.rowGap / 2,
     paddingHorizontal: SIZE.space,
-    borderRadius: 10,
+    borderRadius: ESQUINA.chip,
     backgroundColor: PALETTE.banda,
   },
-  aviso: { gap: SIZE.rowGap / 2, padding: SIZE.space, borderRadius: 14, backgroundColor: PALETTE.banda },
+  aviso: { gap: SIZE.rowGap / 2, padding: SIZE.space, borderRadius: ESQUINA.hoja, backgroundColor: PALETTE.superficie },
   avisoTitulo: { fontSize: SIZE.bodySize, fontWeight: '700', color: PALETTE.error },
   avisoTexto: { fontSize: SIZE.smallSize, lineHeight: 19, color: PALETTE.tinta },
   porConfirmar: {
     gap: SIZE.rowGap / 2,
     padding: SIZE.space * 1.25,
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: PALETTE.linea,
+    borderRadius: ESQUINA.hoja,
     backgroundColor: PALETTE.superficie,
   },
   porConfirmarTitulo: { fontSize: SIZE.bodySize, fontWeight: '700', color: PALETTE.accion, paddingBottom: SIZE.rowGap / 2 },

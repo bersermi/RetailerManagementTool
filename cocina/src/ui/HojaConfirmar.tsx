@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { letraTitulo } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 import { BotonLleno } from '@/ui/BotonLleno';
 
 // ============================================================================
@@ -56,8 +57,8 @@ export function HojaConfirmar({
         <View
           style={{
             backgroundColor: PALETTE.fondo,
-            borderTopLeftRadius: 22,
-            borderTopRightRadius: 22,
+            borderTopLeftRadius: ESQUINA.hoja,
+            borderTopRightRadius: ESQUINA.hoja,
             padding: SIZE.space * 1.5,
             paddingBottom: insets.bottom + SIZE.space * 1.5,
             gap: SIZE.space,

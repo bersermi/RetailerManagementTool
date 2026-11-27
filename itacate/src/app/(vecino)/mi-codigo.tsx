@@ -13,6 +13,7 @@ import { useAhora } from '@/lib/useAhora';
 import { ES } from '@/strings';
 import { TITULO } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 import { Banda } from '@/ui/Banda';
 import { BotonLleno } from '@/ui/BotonLleno';
 import { CodigoQR } from '@/ui/CodigoQR';
@@ -97,7 +98,7 @@ export default function MiCodigo() {
             </Text>
             <Llega
               i={0}
-              style={{ alignItems: 'center', gap: SIZE.rowGap, padding: SIZE.space * 1.5, borderRadius: 18, borderWidth: 1, borderColor: PALETTE.linea, backgroundColor: PALETTE.superficie }}
+              style={{ alignItems: 'center', gap: SIZE.rowGap, padding: SIZE.space * 1.5, borderRadius: ESQUINA.hoja, backgroundColor: PALETTE.superficie }}
             >
               {estado.tipo === 'lista' && codigo !== null ? (
                 <>

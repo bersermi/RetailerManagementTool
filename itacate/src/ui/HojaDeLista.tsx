@@ -7,6 +7,7 @@ import { nivelAlSoltar, siguienteAlTocar, type Nivel, type Posiciones } from '@/
 import { ES } from '@/strings';
 import { HOJA } from '@/theme/movimiento';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 
 // ============================================================================
 // THE LIST, SLIDING OVER THE MAP. Plan task `10.5-iv-b-i`, the owner's answer 4 of
@@ -91,13 +92,8 @@ export function HojaDeLista({
           top: 0,
           height: Math.max(0, alto - lleno),
           backgroundColor: PALETTE.fondo,
-          borderTopLeftRadius: 22,
-          borderTopRightRadius: 22,
-          shadowColor: PALETTE.tinta,
-          shadowOpacity: 0.16,
-          shadowRadius: 11,
-          shadowOffset: { width: 0, height: -6 },
-          elevation: 12,
+          borderTopLeftRadius: ESQUINA.hoja,
+          borderTopRightRadius: ESQUINA.hoja,
         },
         estilo,
       ]}
@@ -111,7 +107,7 @@ export function HojaDeLista({
             style={{ alignItems: 'center', paddingTop: SIZE.rowGap, paddingBottom: 2 }}
             hitSlop={{ top: SIZE.rowGap, bottom: SIZE.rowGap, left: SIZE.space * 4, right: SIZE.space * 4 }}
           >
-            <View style={{ width: 42, height: 5, borderRadius: 3, backgroundColor: PALETTE.linea }} />
+            <View style={{ width: 42, height: 5, borderRadius: ESQUINA.marca, backgroundColor: PALETTE.linea }} />
           </Pressable>
           {cabeza}
         </View>

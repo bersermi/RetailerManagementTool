@@ -15,6 +15,7 @@ import { forgotPasswordUrl } from '@/auth/support';
 import { SUPPORT_WHATSAPP } from '@/lib/supportWhatsapp';
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 import { Banda } from '@/ui/Banda';
 import { BotonLleno } from '@/ui/BotonLleno';
 import { Campo } from '@/ui/Campo';
@@ -136,7 +137,7 @@ export default function Entrar() {
               alignItems: 'center',
               justifyContent: 'center',
               gap: SIZE.rowGap,
-              borderRadius: SIZE.space * 0.75,
+              borderRadius: ESQUINA.boton,
               borderWidth: 1,
               borderColor: PALETTE.linea,
               backgroundColor: PALETTE.superficie,
@@ -152,7 +153,7 @@ export default function Entrar() {
               <AppleAuthenticationButton
                 buttonType={AppleAuthenticationButtonType.CONTINUE}
                 buttonStyle={AppleAuthenticationButtonStyle.BLACK}
-                cornerRadius={SIZE.space * 0.75}
+                cornerRadius={ESQUINA.boton}
                 onPress={() => void attempt(() => signInWithApple())}
                 style={{ width: '100%', height: SIZE.tapTarget }}
               />

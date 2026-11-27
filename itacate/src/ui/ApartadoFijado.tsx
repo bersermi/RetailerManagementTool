@@ -6,6 +6,7 @@ import { cocinaDe } from '@/lib/apartados';
 import { fijadoTextos, type Fijado } from '@/lib/misCocinas';
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 import { Circulo } from '@/ui/Circulo';
 
 // ============================================================================
@@ -46,7 +47,7 @@ export function ApartadoFijado({
         minHeight: SIZE.tapTarget + SIZE.rowGap,
         paddingHorizontal: SIZE.space,
         paddingVertical: SIZE.rowGap,
-        borderRadius: SIZE.space,
+        borderRadius: ESQUINA.hoja,
         borderWidth: 1,
         borderColor: aviso ? PALETTE.error : PALETTE.accion,
         backgroundColor: pressed ? PALETTE.accionSuave : PALETTE.superficie,

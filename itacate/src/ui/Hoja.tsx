@@ -7,6 +7,7 @@ import { ES } from '@/strings';
 import { TITULO } from '@/theme/letra';
 import { HOJA } from '@/theme/movimiento';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 
 // ============================================================================
 // A SHEET FROM THE FOOT OF THE SCREEN — ITS NAME, AND ONE CHOICE UNDER IT. Plan task
@@ -98,12 +99,12 @@ const styles = StyleSheet.create({
   hoja: {
     marginBottom: -SOBRA,
     backgroundColor: PALETTE.fondo,
-    borderTopLeftRadius: 22,
-    borderTopRightRadius: 22,
+    borderTopLeftRadius: ESQUINA.hoja,
+    borderTopRightRadius: ESQUINA.hoja,
     paddingHorizontal: SIZE.space * 1.5,
     paddingTop: SIZE.rowGap,
     gap: SIZE.space,
   },
-  asa: { alignSelf: 'center', width: 40, height: 4, borderRadius: 2, backgroundColor: PALETTE.linea },
+  asa: { alignSelf: 'center', width: 40, height: 4, borderRadius: ESQUINA.marca, backgroundColor: PALETTE.linea },
   titulo: { fontSize: SIZE.titleSize - 2, ...TITULO, color: PALETTE.tinta },
 });

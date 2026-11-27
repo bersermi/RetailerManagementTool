@@ -94,10 +94,10 @@ describe('the tab bar — Cerca · Mis cocinas · Tú (the ruling of 2026-11-05,
     // The press is told to the tab first, as react-navigation's own bar does.
     expect(bar).toMatch(/navigation\.emit\(\{ type: 'tabPress', target: route\.key, canPreventDefault: true \}\)/);
     expect(bar).toMatch(/if \(!enUso && !evento\.defaultPrevented\) navigation\.navigate/);
-    // Never the colour alone: the tab in use also wears the pill and a heavier word.
-    // ⚠️ The bar's white, never `transparent`: Android squared every pill after the first switch.
-    expect(bar).toMatch(/backgroundColor: enUso \? PALETTE\.accionSuave : PALETTE\.superficie/);
-    expect(bar).toMatch(/fontWeight: enUso \? '700' : '600'/);
+    // Never the colour alone: the tab in use is its colour and a heavier word. ⚠️ `11.7-ii` (direction A, the
+    // design system's *Pestanas*): no pill behind its icon — the marker's stroke under the word is `11.8`'s.
+    expect(bar).not.toMatch(/accionSuave/);
+    expect(bar).toMatch(/fontWeight: enUso \? '700' : '500'/);
     expect(bar).toMatch(/accessibilityState=\{\{ selected: enUso \}\}/);
     expect(bar).toMatch(/paddingBottom: insets\.bottom/);
   });
@@ -137,7 +137,9 @@ describe('Archivo titles, headings and the big number — Wera’s files and cod
   it('loaded before any screen draws, and a failed load never holds the app', () => {
     const root = code('app/_layout.tsx');
     expect(root).toMatch(/import \{ FUENTES \} from '@\/marca\/fuentes';/);
-    expect(root).toMatch(/const \[fontsReady, fontError\] = useFonts\(FUENTES\);/);
+    // `11.7-ii`: her phrase's Mansalva loads beside Wera's two (`@/marca/fuenteDeFrase`, `test/esquinas.test.ts`).
+    expect(root).toMatch(/import \{ FUENTE_DE_FRASE \} from '@\/marca\/fuenteDeFrase';/);
+    expect(root).toMatch(/const \[fontsReady, fontError\] = useFonts\(\{ \.\.\.FUENTES, \.\.\.FUENTE_DE_FRASE \}\);/);
     expect(root).toMatch(/if \(!fontsReady && fontError === null\) return null;/);
   });
 

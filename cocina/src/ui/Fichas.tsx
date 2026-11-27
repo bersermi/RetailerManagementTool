@@ -2,6 +2,7 @@ import { Pressable, Text, View } from 'react-native';
 
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 
 // ============================================================================
 // A ROW OF CHIPS, ONE CHOSEN — the card's setup (`10.9e-ii`, the family-shell page's `.chips`): how many
@@ -46,7 +47,7 @@ export function Fichas<T extends string | number>({
                 paddingHorizontal: SIZE.space,
                 alignItems: 'center',
                 justifyContent: 'center',
-                borderRadius: 999,
+                borderRadius: ESQUINA.chip,
                 borderWidth: pista ? 1.5 : 1,
                 borderStyle: pista ? 'dashed' : 'solid',
                 borderColor: on || pista ? PALETTE.accion : PALETTE.linea,
@@ -69,7 +70,7 @@ export function Fichas<T extends string | number>({
               paddingHorizontal: SIZE.space,
               alignItems: 'center',
               justifyContent: 'center',
-              borderRadius: 999,
+              borderRadius: ESQUINA.chip,
               borderWidth: otro.elegido ? 1 : 1.5,
               borderStyle: otro.elegido ? 'solid' : 'dashed',
               borderColor: PALETTE.accion,

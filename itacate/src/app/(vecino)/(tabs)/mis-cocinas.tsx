@@ -16,6 +16,7 @@ import { useAhora } from '@/lib/useAhora';
 import { ES } from '@/strings';
 import { HUES } from '@/theme/colores';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 import { ApartadoFijado } from '@/ui/ApartadoFijado';
 import { MarcaPromocion } from '@/ui/BandaPromocion';
 import { BotonLleno } from '@/ui/BotonLleno';
@@ -300,9 +301,7 @@ const styles = StyleSheet.create({
     gap: SIZE.rowGap,
     paddingVertical: SIZE.space * 2,
     paddingHorizontal: SIZE.space,
-    borderRadius: SIZE.space,
-    borderWidth: 1,
-    borderColor: PALETTE.linea,
+    borderRadius: ESQUINA.hoja,
     backgroundColor: PALETTE.superficie,
   },
   vacioTitulo: { fontSize: SIZE.bodySize, fontWeight: '700', color: PALETTE.tinta, textAlign: 'center' },
@@ -326,9 +325,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: SIZE.space,
     padding: SIZE.space,
-    borderRadius: SIZE.space,
-    borderWidth: 1,
-    borderColor: PALETTE.linea,
+    borderRadius: ESQUINA.hoja,
   },
   regalo: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
   promocion: {
@@ -338,7 +335,7 @@ const styles = StyleSheet.create({
     gap: SIZE.rowGap,
     paddingHorizontal: SIZE.space - 2,
     paddingVertical: SIZE.rowGap,
-    borderRadius: 10,
+    borderRadius: ESQUINA.hoja,
     backgroundColor: PALETTE.marcaSuave,
   },
   promocionTexto: { flexShrink: 1, fontSize: SIZE.smallSize - 0.5, lineHeight: 18, color: PALETTE.tinta },

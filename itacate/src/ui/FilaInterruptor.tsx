@@ -3,6 +3,7 @@ import type { ComponentProps } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 
 // ============================================================================
 // A ROW WITH A SWITCH — Wera Cocina's (`cocina/src/ui/FilaInterruptor.tsx`, `10.5b-iv-c`), copied for
@@ -61,7 +62,7 @@ export function FilaInterruptor({
         style={{
           width: 46,
           height: 28,
-          borderRadius: 14,
+          borderRadius: ESQUINA.boton,
           padding: 3,
           justifyContent: 'center',
           alignItems: encendido ? 'flex-end' : 'flex-start',
@@ -69,7 +70,7 @@ export function FilaInterruptor({
           opacity: fijo ? 0.55 : disabled ? 0.7 : 1,
         }}
       >
-        <View style={{ width: 22, height: 22, borderRadius: 11, backgroundColor: PALETTE.superficie }} />
+        <View style={{ width: 22, height: 22, borderRadius: ESQUINA.marca, backgroundColor: PALETTE.superficie }} />
       </View>
     </Pressable>
   );

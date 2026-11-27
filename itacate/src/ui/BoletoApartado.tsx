@@ -19,6 +19,7 @@ import { calleDe } from '@/lib/paginas';
 import { ES } from '@/strings';
 import { TITULO } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 import { Circulo } from '@/ui/Circulo';
 import { CodigoQR } from '@/ui/CodigoQR';
 import { Deslizar } from '@/ui/Deslizar';
@@ -66,9 +67,7 @@ export function BoletoApartado({
     <View
       style={{
         backgroundColor: PALETTE.superficie,
-        borderWidth: 1,
-        borderColor: PALETTE.linea,
-        borderRadius: 18,
+        borderRadius: ESQUINA.hoja,
         padding: SIZE.space * 1.25,
         gap: SIZE.space,
       }}
@@ -107,7 +106,7 @@ export function BoletoApartado({
         <Text style={{ fontSize: SIZE.smallSize, lineHeight: 19, color: PALETTE.tintaApagada }}>{notaTexto(apartado)}</Text>
       </View>
 
-      <View style={{ gap: SIZE.rowGap / 2, padding: SIZE.space, borderRadius: 12, backgroundColor: PALETTE.accionSuave }}>
+      <View style={{ gap: SIZE.rowGap / 2, padding: SIZE.space, borderRadius: ESQUINA.hoja, backgroundColor: PALETTE.accionSuave }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: SIZE.rowGap }}>
           <MaterialCommunityIcons name={iconoDePago(apartado.pago)} size={SIZE.iconSize - 4} color={PALETTE.accion} />
           <Text style={{ fontSize: SIZE.bodySize - 1, fontWeight: '700', color: PALETTE.accion }}>{ES.platillo.pago[apartado.pago]}</Text>

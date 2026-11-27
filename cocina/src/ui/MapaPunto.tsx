@@ -88,6 +88,7 @@ import {
 import { CLAVE, detallar, useApertura, useBuscar, useCalleBajoElPin, useSesion, useSugerencias } from '@/lib/useGoogle';
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 import { CampoDeBusqueda, ListaDeSugerencias } from '@/ui/Buscador';
 
 /** Google's map style that hides businesses' labels; roads and their names stay. */
@@ -299,7 +300,7 @@ export function MapaPunto({
               right: SIZE.space,
               paddingVertical: SIZE.rowGap,
               paddingHorizontal: SIZE.space,
-              borderRadius: SIZE.space * 0.75,
+              borderRadius: ESQUINA.hoja,
               backgroundColor: PALETTE.superficie,
               borderWidth: 1,
               borderColor: PALETTE.linea,

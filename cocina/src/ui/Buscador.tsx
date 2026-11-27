@@ -41,6 +41,7 @@ import { ActivityIndicator, Platform, Pressable, ScrollView, Text, TextInput, Vi
 import type { Sugerencia, Sugerencias } from '@/lib/google';
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 
 /**
  * The box itself — `Campo`'s look, with a magnifier and no label. ✕ empties it and
@@ -91,7 +92,7 @@ export function CajaDeBusqueda({
           minHeight: SIZE.tapTarget,
           borderWidth: 1,
           borderColor: PALETTE.linea,
-          borderRadius: SIZE.space * 0.75,
+          borderRadius: ESQUINA.campo,
           paddingLeft: SIZE.iconSize + SIZE.space * 1.5,
           paddingRight: texto === '' ? SIZE.space : SIZE.tapTarget,
           backgroundColor: PALETTE.superficie,
@@ -147,8 +148,6 @@ export function CampoDeBusqueda({
         paddingTop: SIZE.space,
         paddingBottom: SIZE.rowGap,
         backgroundColor: PALETTE.fondo,
-        borderBottomWidth: 1,
-        borderBottomColor: PALETTE.linea,
       }}
     >
       <CajaDeBusqueda
@@ -229,7 +228,7 @@ const CAJA = {
   backgroundColor: PALETTE.superficie,
   borderWidth: 1,
   borderColor: PALETTE.linea,
-  borderRadius: SIZE.space * 0.75,
+  borderRadius: ESQUINA.hoja,
   overflow: 'hidden',
 } as const;
 

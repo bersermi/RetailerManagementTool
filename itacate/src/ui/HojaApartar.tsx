@@ -18,6 +18,7 @@ import { clockOf } from '@/lib/ventana';
 import { ES } from '@/strings';
 import { TITULO } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 import { BotonLleno } from '@/ui/BotonLleno';
 import { Hoja } from '@/ui/Hoja';
 import { Opcion } from '@/ui/Opcion';
@@ -147,7 +148,7 @@ export function HojaApartar({
           <>
             <Text style={{ fontSize: SIZE.bodySize, lineHeight: 22, color: PALETTE.tinta }}>{ES.apartar.antes.comoFunciona}</Text>
             <Text style={{ fontSize: SIZE.bodySize, lineHeight: 22, color: PALETTE.tinta }}>{ES.apartar.antes.queVen}</Text>
-            <View style={{ gap: SIZE.rowGap, padding: SIZE.space, borderRadius: 14, borderWidth: 1, borderColor: PALETTE.linea, backgroundColor: PALETTE.superficie }}>
+            <View style={{ gap: SIZE.rowGap, padding: SIZE.space, borderRadius: ESQUINA.hoja, backgroundColor: PALETTE.superficie }}>
               <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada }}>{ES.apartar.antes.asiTeVeran}</Text>
               <Etiqueta texto={posicion === undefined ? ES.tu.nueva : comoTeVen(posicion)} />
             </View>
@@ -273,7 +274,7 @@ export function HojaApartar({
                   alignItems: 'center',
                   gap: SIZE.rowGap / 2,
                   paddingHorizontal: SIZE.space,
-                  borderRadius: SIZE.space / 2,
+                  borderRadius: ESQUINA.boton,
                   borderWidth: 1.5,
                   borderColor: PALETTE.linea,
                   backgroundColor: PALETTE.superficie,
@@ -372,7 +373,7 @@ function Ficha({
         justifyContent: 'center',
         gap: SIZE.rowGap / 2,
         paddingHorizontal: SIZE.space,
-        borderRadius: 999,
+        borderRadius: ESQUINA.chip,
         borderWidth: elegida ? 2 : 1.5,
         borderColor: elegida ? PALETTE.accion : PALETTE.linea,
         backgroundColor: elegida ? PALETTE.accion : PALETTE.superficie,
@@ -397,7 +398,7 @@ function Etiqueta({ texto }: { texto: string }) {
         fontWeight: '700',
         color: PALETTE.tinta,
         backgroundColor: PALETTE.banda,
-        borderRadius: 999,
+        borderRadius: ESQUINA.chip,
         paddingHorizontal: SIZE.space - 2,
         paddingVertical: 4,
         overflow: 'hidden',

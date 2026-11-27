@@ -1,6 +1,7 @@
 import { MARGEN_QR, matrizQR, tramosQR } from '@/lib/qr';
 import { enFrase } from '@/lib/tarjeta';
 import { ES } from '@/strings';
+import { PALETTE } from '@/theme/palette';
 
 // ============================================================================
 // THE COUNTER POSTER — HER KITCHEN'S OWN, PRINTED OR SHARED AS A PDF (G35: *"minimize the exposure of
@@ -17,7 +18,8 @@ import { ES } from '@/strings';
 // ⚠️ HTML FOR `expo-print` (a WebView), SO THE QR IS SVG `<rect>`s — one per dark run of a row, the same grid
 // `@/ui/CodigoQR` draws (`@/lib/qr`) — and nothing is fetched: the logo arrives as a data URI or not at all.
 // Pure: `test/tarjetaCocina.test.ts` reads the rectangles back into the grid, has a real reader decode them, and
-// checks every word.
+// checks every word. ⚠️ `11.7-ii`: ITS TWO INKS ARE THE PALETTE'S `tinta` AND `tintaApagada` (direction A),
+// read from `@/theme/palette`, never written here — the page is white paper, so both clear 4.5:1 on it.
 // ============================================================================
 
 /** The site's host and the kitchens' path — Itacate's `SITIO` and `RUTA_DE_COCINA`, held to them by the suite. */
@@ -81,7 +83,7 @@ export function cartelHtml(d: DatosDelCartel): string {
 <style>
 @page { size: A4; margin: 0; }
 * { box-sizing: border-box; }
-html, body { margin: 0; padding: 0; font-family: -apple-system, 'Helvetica Neue', Roboto, Arial, sans-serif; color: #201D16; }
+html, body { margin: 0; padding: 0; font-family: -apple-system, 'Helvetica Neue', Roboto, Arial, sans-serif; color: ${PALETTE.tinta}; }
 .hoja { width: 210mm; height: 297mm; display: flex; flex-direction: column; }
 .banda { background: ${color}; height: 78mm; display: flex; align-items: center; justify-content: center; }
 .logo { width: 52mm; height: 52mm; border-radius: 50%; border: 2mm solid rgba(255,255,255,.7); object-fit: cover; background: ${color}; }
@@ -91,8 +93,8 @@ html, body { margin: 0; padding: 0; font-family: -apple-system, 'Helvetica Neue'
 .titulo { font-size: 8mm; font-weight: 700; color: ${color}; line-height: 1.2; }
 .qr svg { width: 72mm; height: 72mm; }
 .escanea { font-size: 6mm; font-weight: 600; }
-.dir { font-size: 5mm; color: #6F675A; }
-.itacate { margin-top: auto; font-size: 4mm; color: #6F675A; letter-spacing: .3mm; }
+.dir { font-size: 5mm; color: ${PALETTE.tintaApagada}; }
+.itacate { margin-top: auto; font-size: 4mm; color: ${PALETTE.tintaApagada}; letter-spacing: .3mm; }
 </style></head><body><div class="hoja">
 <div class="banda">${circulo}</div>
 <div class="cuerpo">

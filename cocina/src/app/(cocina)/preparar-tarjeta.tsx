@@ -26,6 +26,7 @@ import {
 import { ES } from '@/strings';
 import { TITULO, letraEncabezado } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 import { Banda } from '@/ui/Banda';
 import { BotonLleno } from '@/ui/BotonLleno';
 import { Campo } from '@/ui/Campo';
@@ -215,7 +216,7 @@ export default function PrepararTarjeta() {
             onAbrir: () => setOtroAbierto(true),
           }}
         />
-        <View style={{ gap: SIZE.rowGap, padding: SIZE.space, borderRadius: 16, borderWidth: 1, borderColor: PALETTE.linea, backgroundColor: PALETTE.superficie }}>
+        <View style={{ gap: SIZE.rowGap, padding: SIZE.space, borderRadius: ESQUINA.hoja, backgroundColor: PALETTE.superficie }}>
           <Text style={{ ...letraEncabezado(SIZE), color: PALETTE.tinta }}>
             {ES.prepararTarjeta.asiLaVeran}
           </Text>

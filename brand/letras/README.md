@@ -5,7 +5,9 @@ Step 11, row `11.1` (2026-11-21). These are the sources; no app reads this folde
 `src/marca/letras/`, as Nunito was copied there in `8g`. **His yes came on 2026-11-26 (Archivo).**
 **Wera carries both Archivo cuts since `11.6`** — `app/test/letra.test.ts` holds its copies to these
 files byte for byte, so `app.yml` fires on this folder; **Wera Cocina and Itacate since `11.7-i`**, held to
-Wera's copies (`cocina/test/pestanas.test.ts`, `itacate/test/pestanas.test.ts`). Mansalva is no app's yet (`11.7-ii`).
+Wera's copies (`cocina/test/pestanas.test.ts`, `itacate/test/pestanas.test.ts`). **Mansalva is Wera Cocina's and Itacate's since `11.7-ii`** — a kitchen's phrase only, in each app's
+`src/marca/frase/`, held to this folder's file byte for byte (`cocina/test/esquinas.test.ts`, `itacate/test/esquinas.test.ts`);
+the reward won (`premio`) is not drawn in it yet.
 
 | File | For | Where it came from |
 |---|---|---|

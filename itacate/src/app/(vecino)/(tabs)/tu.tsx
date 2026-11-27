@@ -14,6 +14,7 @@ import { algoNoCuadraUrl, ayudaUrl, cuentaDe } from '@/lib/tu';
 import { ES } from '@/strings';
 import { TITULO } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 import { Cabeza } from '@/ui/Cabeza';
 import { Fila } from '@/ui/Fila';
 import { Formulario } from '@/ui/Formulario';
@@ -156,9 +157,7 @@ const styles = StyleSheet.create({
   tarjeta: {
     gap: SIZE.rowGap / 2,
     padding: SIZE.space,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: PALETTE.linea,
+    borderRadius: ESQUINA.hoja,
     backgroundColor: PALETTE.superficie,
   },
   porcentaje: { fontSize: 30, ...TITULO, color: PALETTE.tinta },

@@ -39,6 +39,7 @@ import type { Pin } from '@/api/place';
 import { GLANCE_METRES, TIPO_DE_MAPA, regionAround } from '@/lib/mapa';
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 import { PinAlCentro, SIN_NEGOCIOS } from '@/ui/MapaPunto';
 
 /** How tall the picture is, in points: the block around her door, and room to read below it. */
@@ -58,7 +59,7 @@ export function MapaFijo({
 }) {
   const caja = {
     height: ALTO,
-    borderRadius: SIZE.space * 0.75,
+    borderRadius: ESQUINA.hoja,
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: PALETTE.linea,
@@ -103,7 +104,7 @@ export function MapaFijo({
               right: SIZE.rowGap,
               paddingVertical: SIZE.rowGap / 2,
               paddingHorizontal: SIZE.rowGap,
-              borderRadius: SIZE.rowGap,
+              borderRadius: ESQUINA.chip,
               backgroundColor: PALETTE.superficie,
               borderWidth: 1,
               borderColor: PALETTE.linea,

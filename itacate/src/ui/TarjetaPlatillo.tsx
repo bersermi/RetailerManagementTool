@@ -8,6 +8,7 @@ import { marcaDeOferta } from '@/lib/paginas';
 import { ES } from '@/strings';
 import { HUES } from '@/theme/colores';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 import { Circulo } from '@/ui/Circulo';
 import { Dibujo } from '@/ui/Dibujo';
 import { Foto } from '@/ui/Foto';
@@ -72,9 +73,7 @@ export function TarjetaPlatillo({
       accessibilityLabel={[ES.cerca.abrirPlatillo(platillo.name, cocina.name), promocion?.ayuda, marca?.ayuda].filter(Boolean).join('. ')}
       onPress={onPress}
       style={({ pressed }) => ({
-        borderWidth: 1,
-        borderColor: PALETTE.linea,
-        borderRadius: SIZE.space,
+        borderRadius: ESQUINA.hoja,
         overflow: 'hidden',
         backgroundColor: PALETTE.superficie,
         opacity: pressed ? 0.75 : 1,
@@ -95,7 +94,7 @@ export function TarjetaPlatillo({
               gap: 4,
               paddingHorizontal: 7,
               paddingVertical: 4,
-              borderRadius: 6,
+              borderRadius: ESQUINA.chip,
               backgroundColor: PALETTE.superficie,
             }}
           >

@@ -5,6 +5,7 @@ import { AppState, Linking, Pressable, StyleSheet, Text, View } from 'react-nati
 
 import { cajaDelEscaner } from '@/lib/escaner';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 import { BotonLleno } from '@/ui/BotonLleno';
 
 // ============================================================================
@@ -78,7 +79,7 @@ export function Escaner({
   if (!activo) return null;
   const caja = noAbre ? 'no-abre' : cajaDelEscaner(permiso);
 
-  const marco = { height: ALTO, borderRadius: 16, overflow: 'hidden' as const, borderWidth: 1, borderColor: PALETTE.linea };
+  const marco = { height: ALTO, borderRadius: ESQUINA.hoja, overflow: 'hidden' as const };
 
   if (caja === 'camara') {
     return (
@@ -151,10 +152,10 @@ function Esquinas() {
       pointerEvents="none"
       style={{ position: 'absolute', width: 150, height: 150, top: (ALTO - 150) / 2 - 14, alignSelf: 'center' }}
     >
-      <View style={[caja, { top: 0, left: 0, borderTopWidth: grosor, borderLeftWidth: grosor, borderTopLeftRadius: 8 }]} />
-      <View style={[caja, { top: 0, right: 0, borderTopWidth: grosor, borderRightWidth: grosor, borderTopRightRadius: 8 }]} />
-      <View style={[caja, { bottom: 0, left: 0, borderBottomWidth: grosor, borderLeftWidth: grosor, borderBottomLeftRadius: 8 }]} />
-      <View style={[caja, { bottom: 0, right: 0, borderBottomWidth: grosor, borderRightWidth: grosor, borderBottomRightRadius: 8 }]} />
+      <View style={[caja, { top: 0, left: 0, borderTopWidth: grosor, borderLeftWidth: grosor, borderTopLeftRadius: ESQUINA.hoja }]} />
+      <View style={[caja, { top: 0, right: 0, borderTopWidth: grosor, borderRightWidth: grosor, borderTopRightRadius: ESQUINA.hoja }]} />
+      <View style={[caja, { bottom: 0, left: 0, borderBottomWidth: grosor, borderLeftWidth: grosor, borderBottomLeftRadius: ESQUINA.hoja }]} />
+      <View style={[caja, { bottom: 0, right: 0, borderBottomWidth: grosor, borderRightWidth: grosor, borderBottomRightRadius: ESQUINA.hoja }]} />
     </View>
   );
 }

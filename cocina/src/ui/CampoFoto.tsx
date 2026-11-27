@@ -5,6 +5,7 @@ import { Pressable, Text, View } from 'react-native';
 import { ratioOf, type Forma, type Foto as Slot } from '@/api/fotos';
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 import { Foto } from '@/ui/Foto';
 
 // ============================================================================
@@ -45,7 +46,7 @@ function Boton({
         alignItems: 'center',
         gap: SIZE.rowGap / 2,
         paddingHorizontal: SIZE.space,
-        borderRadius: SIZE.space * 0.75,
+        borderRadius: ESQUINA.boton,
         borderWidth: 1,
         borderColor: PALETTE.accion,
         backgroundColor: PALETTE.accionSuave,
@@ -93,7 +94,7 @@ export function CampoFoto({
           style={{
             width,
             aspectRatio: ratioOf(forma),
-            borderRadius: round ? width / 2 : SIZE.space * 0.75,
+            borderRadius: round ? width / 2 : ESQUINA.hoja,
             overflow: 'hidden',
             borderWidth: 1,
             borderColor: PALETTE.linea,

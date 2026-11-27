@@ -11,6 +11,7 @@ import { ES } from '@/strings';
 import { HUES } from '@/theme/colores';
 import { letraTitulo } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 import { Atras } from '@/ui/Atras';
 import { BandaPromocion } from '@/ui/BandaPromocion';
 import { Dibujo } from '@/ui/Dibujo';
@@ -114,7 +115,7 @@ export function PaginaDePlatillo({
                     borderWidth: 1,
                     borderColor: PALETTE.linea,
                     backgroundColor: PALETTE.superficie,
-                    borderRadius: 999,
+                    borderRadius: ESQUINA.chip,
                     paddingHorizontal: 10,
                     paddingVertical: 3,
                     overflow: 'hidden',
@@ -132,8 +133,8 @@ export function PaginaDePlatillo({
                 fontSize: SIZE.smallSize,
                 lineHeight: 19,
                 color: PALETTE.tinta,
-                backgroundColor: PALETTE.banda,
-                borderRadius: SIZE.rowGap,
+                backgroundColor: PALETTE.superficie,
+                borderRadius: ESQUINA.hoja,
                 paddingHorizontal: SIZE.space - 2,
                 paddingVertical: SIZE.rowGap,
                 overflow: 'hidden',

@@ -4,6 +4,7 @@ import { Pressable } from 'react-native';
 
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 
 // ============================================================================
 // THE WAY BACK OVER A PICTURE — a round white button at its top left, as the
@@ -34,7 +35,7 @@ export function Atras() {
         left: SIZE.space,
         width: LADO,
         height: LADO,
-        borderRadius: LADO / 2,
+        borderRadius: ESQUINA.boton,
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: 'rgba(255, 255, 255, 0.92)',

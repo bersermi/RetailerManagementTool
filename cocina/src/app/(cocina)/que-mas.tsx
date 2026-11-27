@@ -8,6 +8,7 @@ import { eleccionesDe, elegibles, menuEnLaEleccion, pasoDe, type Elegible } from
 import { ES } from '@/strings';
 import { TITULO } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 import { BotonLleno } from '@/ui/BotonLleno';
 import { Casilla } from '@/ui/Casilla';
 import { Llega } from '@/ui/Llega';
@@ -110,7 +111,7 @@ export default function QueMas() {
       <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada }}>{nota}</Text>
     </View>
   );
-  const caja = { backgroundColor: PALETTE.superficie, borderWidth: 1, borderColor: PALETTE.linea, borderRadius: 14, paddingHorizontal: SIZE.space, paddingVertical: SIZE.rowGap } as const;
+  const caja = { backgroundColor: PALETTE.superficie, borderRadius: ESQUINA.hoja, paddingHorizontal: SIZE.space, paddingVertical: SIZE.rowGap } as const;
 
   return (
     <View style={marco}>

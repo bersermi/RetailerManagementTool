@@ -11,6 +11,7 @@ import { diaDelSi, siDesde } from '@/lib/ofertas';
 import { useSenal } from '@/lib/useSenal';
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 import { Banda } from '@/ui/Banda';
 import { FilaInterruptor } from '@/ui/FilaInterruptor';
 import { Grupo } from '@/ui/Grupo';
@@ -83,10 +84,8 @@ export default function Notificaciones() {
             style={{
               gap: SIZE.rowGap,
               padding: SIZE.space,
-              borderRadius: SIZE.space,
-              borderWidth: 1,
-              borderColor: PALETTE.marcaSuave,
-              backgroundColor: PALETTE.banda,
+              borderRadius: ESQUINA.hoja,
+              backgroundColor: PALETTE.superficie,
             }}
           >
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: SIZE.rowGap }}>

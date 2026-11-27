@@ -7,6 +7,7 @@ import { PASOS_DE, type Elegible } from '@/lib/loQueUsas';
 import { ES } from '@/strings';
 import { letraEncabezado } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 
 // ============================================================================
 // *ASÍ FUNCIONA* — THREE PICTURES, THE FIRST TIME SHE OPENS A FEATURE (the family-shell page's
@@ -33,7 +34,7 @@ export function AsiFunciona({ servicio, onCerrar }: { servicio: Elegible; onCerr
       style={{
         gap: SIZE.rowGap,
         padding: SIZE.space,
-        borderRadius: SIZE.space,
+        borderRadius: ESQUINA.hoja,
         backgroundColor: PALETTE.accionSuave,
       }}
     >

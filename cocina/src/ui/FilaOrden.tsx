@@ -4,6 +4,7 @@ import { coloresDe, filaTexto, marcaDe, marcaTexto, type Orden } from '@/lib/apa
 import { ES } from '@/strings';
 import { TITULO } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 import { Marca } from '@/ui/TarjetaOrden';
 
 // ============================================================================
@@ -25,9 +26,7 @@ export function FilaOrden({ orden, ahora, onAbrir }: { orden: Orden; ahora: Date
         gap: 3,
         paddingHorizontal: SIZE.space,
         paddingVertical: SIZE.rowGap + 1,
-        borderRadius: SIZE.space - 2,
-        borderWidth: 1,
-        borderColor: PALETTE.linea,
+        borderRadius: ESQUINA.hoja,
         backgroundColor: pressed ? PALETTE.fondo : PALETTE.superficie,
       })}
     >

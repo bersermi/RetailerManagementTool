@@ -8,6 +8,7 @@ import { ICONO_DE, revisarMenu } from '@/lib/loQueUsas';
 import { ES } from '@/strings';
 import { letraTitulo } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 import { BotonLleno } from '@/ui/BotonLleno';
 
 // ============================================================================
@@ -36,7 +37,7 @@ export function LineaCuentanos({ onAbrir, onCerrar }: { onAbrir: () => void; onC
         borderWidth: 1,
         borderStyle: 'dashed',
         borderColor: PALETTE.linea,
-        borderRadius: 14,
+        borderRadius: ESQUINA.hoja,
         paddingLeft: SIZE.space,
       }}
     >
@@ -99,8 +100,8 @@ export function HojaCuentanos({
         <View
           style={{
             backgroundColor: PALETTE.fondo,
-            borderTopLeftRadius: 22,
-            borderTopRightRadius: 22,
+            borderTopLeftRadius: ESQUINA.hoja,
+            borderTopRightRadius: ESQUINA.hoja,
             padding: SIZE.space * 1.5,
             paddingBottom: insets.bottom + SIZE.space * 1.5,
             gap: SIZE.space,
@@ -129,7 +130,7 @@ export function HojaCuentanos({
                 maxHeight: SIZE.tapTarget * 4,
                 borderWidth: 1,
                 borderColor: PALETTE.linea,
-                borderRadius: SIZE.space * 0.75,
+                borderRadius: ESQUINA.campo,
                 paddingHorizontal: SIZE.space,
                 paddingTop: SIZE.rowGap,
                 paddingBottom: SIZE.rowGap,

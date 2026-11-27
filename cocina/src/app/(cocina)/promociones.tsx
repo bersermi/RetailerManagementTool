@@ -10,6 +10,7 @@ import { useNota } from '@/lib/NotaProvider';
 import { ICONO_DE_TIPO, activas, filaDe, seLeen } from '@/lib/promociones';
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 import { AsiFunciona, useAsiFunciona } from '@/ui/AsiFunciona';
 import { Banda } from '@/ui/Banda';
 import { BotonLleno } from '@/ui/BotonLleno';
@@ -100,7 +101,7 @@ export default function Promociones() {
             {row.promotions.length > 0 && (
               <Llega
                 i={1}
-                style={{ backgroundColor: PALETTE.superficie, borderWidth: 1, borderColor: PALETTE.linea, borderRadius: 16, overflow: 'hidden' }}
+                style={{ backgroundColor: PALETTE.superficie, borderRadius: ESQUINA.hoja, overflow: 'hidden' }}
               >
                 {row.promotions.map((p, i) => (
                   <Renglon key={p.id} promocion={p} primero={i === 0} onPress={() => setAbierta(p.id)} />
@@ -109,7 +110,7 @@ export default function Promociones() {
             )}
             <Llega i={2}>
               {row.running >= row.max ? (
-                <View style={{ padding: SIZE.space, borderRadius: 14, borderWidth: 1, borderColor: PALETTE.linea, backgroundColor: PALETTE.superficie }}>
+                <View style={{ padding: SIZE.space, borderRadius: ESQUINA.hoja, backgroundColor: PALETTE.superficie }}>
                   <Text style={{ fontSize: SIZE.bodySize - 1, lineHeight: 21, color: PALETTE.tinta }}>{ES.promociones.tresActivas}</Text>
                 </View>
               ) : (
@@ -205,7 +206,7 @@ function Renglon({ promocion, primero, onPress }: { promocion: PromotionRow; pri
         <Text style={{ fontSize: SIZE.bodySize - 1, fontWeight: '600', color: PALETTE.tinta }}>{promocion.what}</Text>
         <Text style={{ fontSize: SIZE.smallSize - 0.6, lineHeight: 18, color: PALETTE.tintaApagada }}>{detalle}</Text>
       </View>
-      <View style={{ paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999, backgroundColor: corre ? PALETTE.accionSuave : PALETTE.banda }}>
+      <View style={{ paddingHorizontal: 8, paddingVertical: 3, borderRadius: ESQUINA.chip, backgroundColor: corre ? PALETTE.accionSuave : PALETTE.banda }}>
         <Text style={{ fontSize: SIZE.smallSize - 1.6, fontWeight: '700', color: corre ? PALETTE.accion : PALETTE.tintaApagada }}>{estado}</Text>
       </View>
     </Pressable>

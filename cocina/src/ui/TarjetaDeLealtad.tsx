@@ -7,6 +7,7 @@ import { ES } from '@/strings';
 import { HUES } from '@/theme/colores';
 import { TITULO } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 import { Iniciales } from '@/ui/Iniciales';
 import { Foto } from '@/vecinos/ui/Foto';
 
@@ -47,7 +48,7 @@ export function TarjetaDeLealtad({
     <View
       accessible
       accessibilityLabel={`${ES.tarjeta.nombre}, ${nombre}. ${ES.tarjeta.cuenta(sellos, de)}. ${ES.tarjeta.igual(de, enFrase(premio))}.`}
-      style={{ backgroundColor: hue, borderRadius: 18, padding: SIZE.space + 2, gap: SIZE.space }}
+      style={{ backgroundColor: hue, borderRadius: ESQUINA.hoja, padding: SIZE.space + 2, gap: SIZE.space }}
     >
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: SIZE.rowGap + 2 }}>
         <View
