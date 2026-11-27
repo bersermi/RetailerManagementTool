@@ -125,7 +125,7 @@ if [[ "$MODE" != "--before-dns" ]]; then
 
   # 8. Mail.
   mx="$(dig @"$RESOLVER" +short "$DOMAIN" MX | tr '\n' ' ')"
-  if [[ -n "$mx" ]]; then ok "$DOMAIN has MX records ($mx) — send a test email to privacidad@ to prove the forwarding"
+  if [[ -n "$mx" ]]; then ok "$DOMAIN has MX records ($mx) — send a test email to privacidad@ to prove an address receives"
   else fail "$DOMAIN has no MX records, so privacidad@$DOMAIN cannot receive mail"; fi
 fi
 
