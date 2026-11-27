@@ -71,6 +71,7 @@ export function Cantidad({
   refusal = null,
   fill = false,
   onChange,
+  onPad,
 }: {
   entry: CatalogEntry;
   base: number;
@@ -114,6 +115,16 @@ export function Cantidad({
    * step, which is the waste side's.
    */
   onChange?: (base: number) => void;
+  /**
+   * ⚠️⚠️ `14.1`, LA BÁSCULA: when set, the box is a button that opens the
+   * counter's own number pad, and there is no `TextInput` at all — so the phone's
+   * keyboard never comes up and never covers the row. The box still shows the
+   * line's quantity and its unit. A `refusal` still wins: an unpriced product
+   * opens the price sheet or the cashier's note, never the pad. Vender passes it
+   * since the owner's ruling of 2026-11-27; Comprar and Desperdicio follow at
+   * `14.3` and `14.4`.
+   */
+  onPad?: () => void;
 }) {
   const { scale } = useDensity();
   const setQty = useCartStore((state) => state.setQty);
@@ -201,9 +212,10 @@ export function Cantidad({
           *2 manojo*. Stacked, the number has the box's whole width at either
           density and the box keeps its size (https://claude.ai/artifact/ENjdbaom7uL85KzHRwPuwG). */}
       <Pressable
-        accessibilityRole={refusal === null ? undefined : 'button'}
-        accessibilityLabel={refusal === null ? undefined : `${ES.counter.qty} ${word}`}
-        onPress={refusal === null ? () => input.current?.focus() : refusal.onTap}
+        accessibilityRole={refusal === null && onPad === undefined ? undefined : 'button'}
+        accessibilityLabel={refusal === null && onPad === undefined ? undefined : `${ES.counter.qty} ${settled} ${word}`}
+        disabled={refusal === null && onPad !== undefined && by === null}
+        onPress={refusal !== null ? refusal.onTap : onPad !== undefined ? onPad : () => input.current?.focus()}
         style={{
           width: fill ? undefined : scale.tapTarget * 1.5,
           flex: fill ? 1 : undefined,
@@ -218,7 +230,22 @@ export function Cantidad({
           backgroundColor: refusal?.dim === true ? PALETTE.fondo : PALETTE.superficie,
         }}
       >
-        {refusal === null ? (
+        {refusal === null && onPad !== undefined ? (
+          // ⚠️ `14.1`: the box shows the line as text — the pad does the keying.
+          <Text
+            numberOfLines={1}
+            style={{
+              paddingVertical: scale.rowGap / 8,
+              fontSize: scale.bodySize,
+              fontWeight: '700',
+              textAlign: 'center',
+              color: PALETTE.tinta,
+            }}
+          >
+            {/* A space keeps an empty box the height of a full one. */}
+            {settled === '' ? ' ' : settled}
+          </Text>
+        ) : refusal === null ? (
           <TextInput
             ref={input}
             value={shown}
