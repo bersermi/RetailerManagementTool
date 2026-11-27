@@ -78,7 +78,7 @@ function row(
 
 /**
  * The text of the LAST migration that defines `daily_sales` (`0095`, re-made by
- * `0096`), read as TEXT only — to hold the name, the arguments and the keys the
+ * `0096` and `0100`), read as TEXT only — to hold the name, the arguments and the keys the
  * app sends and reads to the ones the database was last given
  * (`api-shelf-price.test.ts`'s arrangement). Whether the database answers that
  * way is `docs/checks/7a-sales-contract.sh`'s, over a real PostgREST.
@@ -117,6 +117,11 @@ describe('the read, as the contract check will send it', () => {
     // §2.9, ruled 2026-09-14: GROSS is the headline, because it is the cash in the till.
     expect(keys.get('revenue_gross')).toBe('(d.revenue_net + d.tax_collected)::text');
     expect([...keys.keys()]).not.toContain('revenue_net');
+    // `0100`: the count Vender orders by, netted — never the view's line_count.
+    expect(keys.get('times_sold')).toBe('d.times_sold');
+    expect(MIGRATION).toMatch(
+      /count\(\*\) filter \(where s\.reversal_of is null\)\s+- count\(\*\) filter \(where s\.reversal_of is not null\) as times_sold/,
+    );
   });
 
   it('answers one value, so no max_rows truncates it — the reason the read paged until 12.2', () => {
@@ -226,6 +231,21 @@ describe('the rows, parsed — and the states that replace them', () => {
     // per 250 g says it is stored in `250g`; the ledger holds grams.
     const { days } = salesFrom([row('2026-09-28', 'a', '500.000', '10.00', { base_unit_code: '250g' })], BASES);
     expect(days[0]?.baseUnit).toBe('g');
+  });
+
+  it('keeps how many times it sold (0100), and an absent count withholds nothing', () => {
+    // `14.2`: Vender's order counts sales; Números never states the count.
+    const { state, days } = salesFrom(
+      [
+        row('2026-09-28', 'a', '1000.000', '35.00', { times_sold: 3 }),
+        row('2026-09-28', 'b', '1000.000', '35.00', { times_sold: 0 }),
+        row('2026-09-28', 'c', '1000.000', '35.00'),
+        row('2026-09-28', 'd', '1000.000', '35.00', { times_sold: 1.5 }),
+      ],
+      BASES,
+    );
+    expect(state).toBe('sales');
+    expect(days.map((day) => day.times)).toEqual([3, 0, null, null]);
   });
 });
 

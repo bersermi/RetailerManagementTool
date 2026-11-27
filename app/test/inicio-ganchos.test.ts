@@ -24,7 +24,7 @@ import { ES } from '@/strings';
 function sold(day: string, centavos: number, variantId = 'v'): SoldDay {
   return {
     day, variantId, variantName: 'Pechuga', familyId: 'f', familyName: 'Pollo',
-    baseUnit: 'g', qty: 1000, centavos,
+    baseUnit: 'g', qty: 1000, centavos, times: null,
   };
 }
 

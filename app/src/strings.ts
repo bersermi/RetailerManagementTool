@@ -1211,6 +1211,20 @@ export const ES = {
     },
 
     /**
+     * ⚠️ `14.2`, LA VITRINA — a product as a tile on the counter, to a screen
+     * reader: its name, its price, and what of it is in the basket. The tap that
+     * adds one is the tile itself (C3.3), so only `−` is a button of its own.
+     */
+    tile: {
+      /** What of it is in the basket — *en el carrito: 2 pza*. */
+      inCart: (qty: string) => `en el carrito: ${qty}`,
+      /** The `−` on a tile in the basket. */
+      less: (name: string) => `Uno menos de ${name}`,
+      /** What a long press does, said once to a screen reader. */
+      hint: 'Mantén presionado para escribir la cantidad',
+    },
+
+    /**
      * ⚠️⚠️ ADR-035 §2.8's THIRD GUARD — THE MAGNITUDE WARNING (`5f.5`). The amber
      * word beside a line whose quantity or cost is beyond ~3× what this shop
      * usually buys. Which of the three applies is `magnitudeNote`'s

@@ -13,7 +13,8 @@
 --      a void netted on its own day, a void made today of yesterday's sale on
 --      yesterday, an older sale and its void out of the window, an unsold
 --      product absent, two stores' rows apart, the order, the keys and their
---      JSON types
+--      JSON types — ⚠️ and since `0100` (plan `14.2`) how many times each sold,
+--      a void taking its sale back (`times_sold`), what Vender's order counts
 --   3. a day further back brings the older sale in, and it is still the view —
 --      ⚠️ with a sale dated BEFORE its product's first delivery (an offline sale
 --      drawing on a lot received later), the one case `carried`'s sales half
@@ -401,22 +402,45 @@ select public.chk('2.7 newest day first, then variant_id, then the store — the
   (select string_agg((e->>'day') || ' ' || (e->>'variant_name'), ', ' order by n)
      from json_array_elements(public.daily_sales(:'ws', :'d1')) with ordinality as x(e, n)));
 
-select public.chk('2.8 every element carries exactly Wera''s eight keys; both figures JSON STRINGS (parseDecimal refuses a number), the day YYYY-MM-DD',
+select public.chk('2.8 every element carries exactly Wera''s nine keys (times_sold since 0100); both figures JSON STRINGS (parseDecimal refuses a number), the count a JSON number, the day YYYY-MM-DD',
   (select bool_and(
             (select array_agg(k order by k) from json_object_keys(e) k)
               = array['base_unit_code', 'day', 'family_id', 'family_name', 'qty_base_sold',
-                      'revenue_gross', 'variant_id', 'variant_name']
+                      'revenue_gross', 'times_sold', 'variant_id', 'variant_name']
             and json_typeof(e->'qty_base_sold') = 'string'
             and json_typeof(e->'revenue_gross') = 'string'
+            and json_typeof(e->'times_sold') = 'number'
             and e->>'day' ~ '^\d{4}-\d{2}-\d{2}$')
      from json_array_elements(public.daily_sales(:'ws', :'d1')) e),
   (select string_agg(k, ',') from json_object_keys(public.daily_sales(:'ws', :'d1') -> 0) k));
+
+-- ⚠️ `0100`, plan `14.2`: HOW MANY TIMES EACH SOLD, A VOID TAKING ITS SALE BACK —
+-- what Vender's order counts (the owner's call 7: sales, not pesos). Never the
+-- view's `line_count`, which counts a void as a line too.
+select public.chk('2.9 ⚠️ times_sold: today''s eggs at the first store 1 (a sale kept; a sale and its void, nothing), the queso 1, the second store''s eggs and tamales 1 each, yesterday''s loaves 0 — a sale and its void, still a row — where the view''s line_count says 2',
+  (select string_agg((e->>'day')::date - :'d0'::date || ' ' || (e->>'variant_name') || ' ' || (e->>'times_sold'), ', '
+                     order by e->>'day' desc, e->>'variant_name', e->>'times_sold')
+     from json_array_elements(public.daily_sales(:'ws', :'d1')) e)
+    = '0 Huevo 0095 1, 0 Huevo 0095 1, 0 Queso 0095 1, 0 Tamal 0095 1, -1 Pan 0095 0'
+  and exists (select 1 from public.product_velocity_daily
+               where variant_id = :'pan' and day = :'d1' and line_count = 2),
+  (select string_agg((e->>'day')::date - :'d0'::date || ' ' || (e->>'variant_name') || ' ' || (e->>'times_sold'), ', '
+                     order by e->>'day' desc, e->>'variant_name', e->>'times_sold')
+     from json_array_elements(public.daily_sales(:'ws', :'d1')) e));
 
 -- ============================================ 3. a day further back, d2 on ====
 select public.chk('3.1 from two days back the atole is in — 3 kept, the 5 and their void netting there — and it is still the view',
   public._one95(:'ws', :'d2', 'Atole 0095', :'d2') = '3.000 / 30.00'
   and public._eq95(:'ws', :'d2') = '7 rows, 0 missing, 0 extra',
   coalesce(public._one95(:'ws', :'d2', 'Atole 0095', :'d2'), 'none') || ' | ' || public._eq95(:'ws', :'d2'));
+
+select public.chk('3.1b two days back the atoles sold twice and one sale was voided: times_sold 1; the café once: 1',
+  (select string_agg((e->>'variant_name') || ' ' || (e->>'times_sold'), ', ' order by e->>'variant_name')
+     from json_array_elements(public.daily_sales(:'ws', :'d2')) e
+    where (e->>'day')::date = :'d2') = 'Atole 0095 1, Café 0095 1',
+  (select string_agg((e->>'variant_name') || ' ' || (e->>'times_sold'), ', ' order by e->>'variant_name')
+     from json_array_elements(public.daily_sales(:'ws', :'d2')) e
+    where (e->>'day')::date = :'d2'));
 
 select public.chk('3.2 ⚠️ a sale dated BEFORE its product''s first delivery is on the view''s spine and in the answer: café, two days back, 2.000 / 18.00',
   public._one95(:'ws', :'d2', 'Café 0095', :'d2') = '2.000 / 18.00'
@@ -492,8 +516,8 @@ begin
   if v_failed > 0 then
     raise exception '% behavioural check(s) FAILED — see the table above', v_failed;
   end if;
-  if (select count(*) from public._verify) <> 22 then
-    raise exception 'expected 22 checks, % recorded — one was lost, not passed',
+  if (select count(*) from public._verify) <> 24 then
+    raise exception 'expected 24 checks, % recorded — one was lost, not passed',
       (select count(*) from public._verify);
   end if;
   raise notice 'all % checks passed', (select count(*) from public._verify);

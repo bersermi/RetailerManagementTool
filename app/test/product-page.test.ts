@@ -95,10 +95,10 @@ describe('8g — the product page', () => {
 
   it('sums this week, Monday to Sunday, and marks today', () => {
     const days: SoldDay[] = [
-      { day: '2026-10-12', variantId: 'coca-600', variantName: 'Coca-Cola 600 ml', familyId: 'refrescos', familyName: 'Refrescos', baseUnit: 'pza', qty: 4000, centavos: 8000 },
-      { day: '2026-10-16', variantId: 'coca-600', variantName: 'Coca-Cola 600 ml', familyId: 'refrescos', familyName: 'Refrescos', baseUnit: 'pza', qty: 2000, centavos: 4000 },
-      { day: '2026-10-09', variantId: 'coca-600', variantName: 'Coca-Cola 600 ml', familyId: 'refrescos', familyName: 'Refrescos', baseUnit: 'pza', qty: 9000, centavos: 18000 },
-      { day: '2026-10-14', variantId: 'pepsi', variantName: 'Pepsi 600 ml', familyId: 'refrescos', familyName: 'Refrescos', baseUnit: 'pza', qty: 1000, centavos: 1800 },
+      { day: '2026-10-12', variantId: 'coca-600', variantName: 'Coca-Cola 600 ml', familyId: 'refrescos', familyName: 'Refrescos', baseUnit: 'pza', qty: 4000, centavos: 8000, times: null },
+      { day: '2026-10-16', variantId: 'coca-600', variantName: 'Coca-Cola 600 ml', familyId: 'refrescos', familyName: 'Refrescos', baseUnit: 'pza', qty: 2000, centavos: 4000, times: null },
+      { day: '2026-10-09', variantId: 'coca-600', variantName: 'Coca-Cola 600 ml', familyId: 'refrescos', familyName: 'Refrescos', baseUnit: 'pza', qty: 9000, centavos: 18000, times: null },
+      { day: '2026-10-14', variantId: 'pepsi', variantName: 'Pepsi 600 ml', familyId: 'refrescos', familyName: 'Refrescos', baseUnit: 'pza', qty: 1000, centavos: 1800, times: null },
     ];
     const week = weekOfProduct(days, 'coca-600', '2026-10-16', SHOP, FACTORS);
     expect(week.centavos).toBe(12000);
@@ -111,8 +111,8 @@ describe('8g — the product page', () => {
 
   it('finds the weekday it sells best on, over every day held — Sunday-first, as ES.dates.weekdays', () => {
     const days: SoldDay[] = [
-      { day: '2026-10-09', variantId: 'coca-600', variantName: '', familyId: '', familyName: '', baseUnit: 'pza', qty: 1, centavos: 9000 },
-      { day: '2026-10-12', variantId: 'coca-600', variantName: '', familyId: '', familyName: '', baseUnit: 'pza', qty: 1, centavos: 4000 },
+      { day: '2026-10-09', variantId: 'coca-600', variantName: '', familyId: '', familyName: '', baseUnit: 'pza', qty: 1, centavos: 9000, times: null },
+      { day: '2026-10-12', variantId: 'coca-600', variantName: '', familyId: '', familyName: '', baseUnit: 'pza', qty: 1, centavos: 4000, times: null },
     ];
     expect(bestWeekdayOf(days, 'coca-600')).toBe(5);
     expect(ES.dates.weekdays[5]).toBe('viernes');

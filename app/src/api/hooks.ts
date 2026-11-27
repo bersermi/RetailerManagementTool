@@ -2390,8 +2390,14 @@ export function usePurchasePrices(): {
  * ⚠️ NOT PERSISTED TO THE PHONE'S DISK. `@/api/persist` admits the reads a
  * shop needs to SELL with no signal; a report is something you look at when
  * you have one, and six months of rows is the largest thing this app reads.
+ *
+ * ⚠️ `enabled` IS VENDER'S (`14.2`): its order is set from these rows once a
+ * day, so it asks only while today's is not set (`@/cart/useOrdenDelDia`) —
+ * a cashier's phone, whose Inicio never reads them, then reads them once a day
+ * rather than at every visit to the counter. Rows another screen already holds
+ * are answered either way.
  */
-export function useSales(): {
+export function useSales(options: { readonly enabled?: boolean } = {}): {
   readonly sales: Sales;
   readonly failed: ApiMessageKey | null;
   readonly today: string;
@@ -2412,7 +2418,7 @@ export function useSales(): {
   const rows = useQuery({
     queryKey: shopKey(salesKey(since), shopId),
     queryFn: () => shopSales(shopId as string, since),
-    enabled: ready && session !== null && shopId !== null,
+    enabled: ready && session !== null && shopId !== null && (options.enabled ?? true),
     staleTime: 60_000,
   });
   return {

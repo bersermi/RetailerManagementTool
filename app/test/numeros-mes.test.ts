@@ -59,6 +59,7 @@ function sold(day: string, centavos: number): SoldDay {
     baseUnit: 'pza',
     qty: 1000,
     centavos,
+    times: null,
   };
 }
 

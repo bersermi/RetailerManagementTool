@@ -127,6 +127,7 @@ export const SALES_KEYS: readonly (keyof SalesRow)[] = [
   'base_unit_code',
   'qty_base_sold',
   'revenue_gross',
+  'times_sold',
 ];
 
 /** How many calendar months the read covers — and how many `Mes` bars there are. */
@@ -170,6 +171,13 @@ export interface SalesRow {
   readonly base_unit_code: string;
   readonly qty_base_sold: string;
   readonly revenue_gross: string;
+  /**
+   * `0100`, plan `14.2`: how many sales carried it that day, a void taking its
+   * sale back — a JSON number. ⚠️ Typed as possibly absent: a database not yet
+   * given `0100` sends eight keys, and the count is Vender's order, never a
+   * figure on a report, so its absence withholds nothing (`timesOf`).
+   */
+  readonly times_sold?: number;
 }
 
 /** One product's sales on one day, parsed. */
@@ -185,6 +193,12 @@ export interface SoldDay {
   readonly qty: number;
   /** Gross revenue in integer centavos (`R5`). */
   readonly centavos: number;
+  /**
+   * `0100`: how many sales carried it that day, voids netted — or `null` when
+   * the database did not say (`timesOf`). Read by Vender's order alone
+   * (`@/cart/orden`).
+   */
+  readonly times: number | null;
 }
 
 /**
@@ -232,9 +246,23 @@ export function salesFrom(
       baseUnit: bases[row.base_unit_code] ?? row.base_unit_code,
       qty,
       centavos,
+      times: timesOf(row.times_sold),
     });
   }
   return { state: days.length === 0 ? 'nothing' : 'sales', days };
+}
+
+/**
+ * `times_sold` as the phone keeps it: a whole number, or `null`.
+ *
+ * ⚠️ AN ABSENT OR UNREADABLE COUNT IS `null` AND WITHHOLDS NOTHING — unlike a
+ * figure (`salesFrom`'s rule), because no screen states it: it only orders
+ * Vender's tiles, and `@/cart/orden` counts a day it cannot read as one sale. A
+ * database still without `0100` (the deploy owed after the merge) then orders
+ * by the days each product sold, and Números draws as it did.
+ */
+export function timesOf(value: unknown): number | null {
+  return typeof value === 'number' && Number.isInteger(value) ? value : null;
 }
 
 /**
