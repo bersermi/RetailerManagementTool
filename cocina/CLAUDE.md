@@ -820,7 +820,7 @@ in Mexico City's zone. ⚠️ **Wera's switch `tarjeta` was off until `10.9e-iii
 
 - **Its one screen** (`(cocina)/tarjeta`, `PANTALLA_DE`): *Así funciona* the first time; the card as her neighbours see it — her page's
   colour and logo (`@/ui/TarjetaDeLealtad`, G41); three counts (`kitchen_card`); *Sellar*; then the owner's (G18) — *Tu cartel para el
-  mostrador*, *Cambiar el premio, los sellos o cuándo se borran* (new cards only, G12), *Cerrar la tarjeta* behind a sheet. Not set up,
+  mostrador*, *Editar tu tarjeta* (since `10.9m`; until then *Cambiar el premio, los sellos o cuándo se borran*, new cards only), *Cerrar la tarjeta* behind a sheet. Not set up,
   the owner is sent to the setup and a helper reads that it is not. ⚠️ **Closed, it stays while its 30 days run** (`tarjetaGuardada`, and
   `mosaicosDe`' `ademas` keeps its tile though her choice is off): those who started it still finish and claim, and need *Sellar* for it;
   *Abrirla otra vez* opens the setup.
@@ -837,6 +837,23 @@ in Mexico City's zone. ⚠️ **Wera's switch `tarjeta` was off until `10.9e-iii
   the keyboard by its height (+ the gesture bar on Android 15+, nothing below 15); the hardware back closes the pad, then the sheet. Seen on the
   emulator (`mInputShown=true` on opening). How long the stamps wait is said as she chose it — `siPasan` in `@/strings`: *2 semanas*, *un
   mes* (*pasa*), *2 meses*, *3 meses*, else its days — in the conditions, the card's line and the sheet; Itacate's copy is held to it.
+- ⚠️ **Her condition, and *Editar tu tarjeta* (`10.9m`, `0099`; the owner's approval of 2026-11-27: *"discrete and fully
+  optional"*).** At the setup's end one quiet line, ***+ Agregar una condición***; tapped, ***Condición*** with ***Quitar***
+  (`@/ui/Campo`'s `accion`) and a box of up to 60 (`CONDICION_MAX`), its hint *Compra mínima de $80* grey, the keyboard up only on
+  that tap; a kitchen that has one sees it open. **Nothing asks for it** — `Borrador.condicion` is `null` while the box is closed,
+  and `null`, `''` and *Quitar* all save none (`termsArgs` sends `''`, which clears it: never left out). **Without one every word
+  is as before** (`condicionesDe`' sixth argument defaults to none; `test/tarjetaCocina.test.ts` holds the old sentence); with one,
+  ONE small grey line in the date's style on the card (`@/ui/TarjetaDeLealtad`' `condicion`), under her name on the scan panel —
+  HER card's (`CardRow.conditions`, none for a card started before it) — and on the poster (`.cond`), and one sentence after *Un
+  sello por visita, uno al día.* (`enOracion`, Itacate's copy held by `test/gemelos.test.ts`). Once open the setup is ***Editar tu
+  tarjeta***, the card's row renamed with `pencil-outline`, its chips' current value dashed (`@/ui/Fichas`' `actual`), ***Guardar
+  cambios***. ⚠️ **G12 plus one rule** (`0099`'s `servicio.card_terms_easier`): a version that only makes a card easier — the same
+  reward (capitals and end spaces ignored), no more stamps, no fewer days, the same condition or none — moves every card going
+  there the same day, and one at the new number wins its reward then. The line above *Guardar cambios* (`lineaDelCambio`) draws
+  it only while `kitchen_card.cards` > 0 and the draft changes something, the draft against the CURRENT terms (`soloMasFacil`;
+  the database compares each card with its own version); its toast `avisoAlGuardar`; no *Deshacer*. A save that changes what the
+  poster prints (`cambiaElCartel`: never the days) sets `cocina.cartel-otra-vez.<kitchen>` on the phone, and the poster's row
+  reads *Cambiaste tu tarjeta: imprímelo otra vez* until she opens it (`cartelVisto`).
 - **The tile on *Hoy***: *6 sellos hoy*, *1 premio por entregar* with its dot (else the cards going, or *Cerrada · la completan hasta el …*),
   and *Sellar* on it. A helper sees it only once set up (`@/lib/ayudante`' `mosaicosPara`). ⚠️ **A copy read on another day says nothing
   of today** (`deHoy`): `kitchen_card` is kept on the phone, and yesterday's names and counts are not today's.

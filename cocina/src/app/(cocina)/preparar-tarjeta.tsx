@@ -300,19 +300,12 @@ export default function PrepararTarjeta() {
           </Text>
         </View>
         {linea !== null && (
-          <Text
-            style={{
-              padding: SIZE.space,
-              borderRadius: ESQUINA.hoja,
-              fontSize: SIZE.smallSize + 1,
-              lineHeight: 20,
-              color: linea.masFacil ? PALETTE.accion : PALETTE.tinta,
-              backgroundColor: linea.masFacil ? PALETTE.accionSuave : PALETTE.superficie,
-            }}
-          >
-            <Text style={{ fontWeight: '700' }}>{linea.fuerte}</Text>
-            {linea.resto === null ? '' : ` ${linea.resto}`}
-          </Text>
+          <View style={{ padding: SIZE.space, borderRadius: ESQUINA.hoja, backgroundColor: linea.masFacil ? PALETTE.accionSuave : PALETTE.superficie }}>
+            <Text style={{ fontSize: SIZE.smallSize + 1, lineHeight: 20, color: linea.masFacil ? PALETTE.accion : PALETTE.tinta }}>
+              <Text style={{ fontWeight: '700' }}>{linea.fuerte}</Text>
+              {linea.resto === null ? '' : ` ${linea.resto}`}
+            </Text>
+          </View>
         )}
         {problema !== null && <Text style={{ fontSize: SIZE.bodySize, fontWeight: '600', color: PALETTE.error }}>{problema}</Text>}
       </Formulario>
