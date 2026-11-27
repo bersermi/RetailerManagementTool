@@ -1528,8 +1528,16 @@ export const ES = {
       arrivedOf: (name: string) => `Lo que llegó de ${name}`,
       costOf: (name: string) => `Costo de ${name}`,
     },
-    /** `14.3`: a tile's line under the name for a product never bought from this provider. */
+    /**
+     * `14.3`: a tile's line under the name — when this provider last brought it,
+     * short (`formatLastBoughtShort`: the tag above is the cost), what it cost
+     * before once she keyed another, or that he never has.
+     */
     tile: {
+      today: 'Hoy',
+      yesterday: 'Ayer',
+      daysAgo: (days: number) => `Hace ${days} días`,
+      before: (price: string) => `Antes ${price}`,
       firstTime: 'Primera vez',
       hint: 'Toca para escribir lo que llegó y su costo',
     },

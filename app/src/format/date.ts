@@ -142,6 +142,22 @@ export function formatLastBought(iso: string | null | undefined, now: Date = new
   return ES.buy.lastBought.daysAgo(days);
 }
 
+/**
+ * ⚠️ `14.3`: THE SAME DATE ON A COMPRAR TILE, SHORT — `Hoy`, `Ayer`, `Hace 12 días`.
+ * A tile is about a hundred points wide at *Normal* on Android and *Anterior ·
+ * hace 2 días* was cut mid-word there (seen on the emulator at both sizes; Android
+ * does not shrink it). The tag right above it is the cost, so the line says only
+ * when; the pad still says `formatLastBought`'s whole sentence beside its box.
+ * An unreadable date is `Anterior` alone, as there.
+ */
+export function formatLastBoughtShort(iso: string | null | undefined, now: Date = new Date()): string {
+  const days = calendarDaysSince(iso, now);
+  if (days === null) return ES.buy.lastBought.undated;
+  if (days <= 0) return ES.buy.tile.today;
+  if (days === 1) return ES.buy.tile.yesterday;
+  return ES.buy.tile.daysAgo(days);
+}
+
 /** Whole calendar days from `iso` to `now` in the device's timezone, or `null`. */
 function calendarDaysSince(iso: string | null | undefined, now: Date): number | null {
   if (typeof iso !== 'string' || iso.trim() === '') return null;

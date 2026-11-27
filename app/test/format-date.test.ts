@@ -10,6 +10,7 @@ import {
   formatExpiry,
   formatExpiryDay,
   formatLastBought,
+  formatLastBoughtShort,
   formatLedgerDay,
   formatPickupDay,
   formatWaiting,
@@ -347,5 +348,29 @@ describe('8l — Otra…\'s calendar, Monday first', () => {
 
   it('heads the columns L M M J V S D', () => {
     expect(weekdayInitials()).toEqual(['L', 'M', 'M', 'J', 'V', 'S', 'D']);
+  });
+});
+
+describe('formatLastBoughtShort (14.3, a Comprar tile)', () => {
+  it('says only when — hoy, ayer, hace N días — for the tag above it is the cost', () => {
+    expect(formatLastBoughtShort(localAt(2026, 9, 16, 8).toISOString(), localAt(2026, 9, 16, 18))).toBe('Hoy');
+    expect(formatLastBoughtShort(localAt(2026, 9, 15).toISOString(), localAt(2026, 9, 16))).toBe('Ayer');
+    expect(formatLastBoughtShort(localAt(2026, 9, 4).toISOString(), localAt(2026, 9, 16))).toBe('Hace 12 días');
+  });
+
+  it('counts the same days as the pad’s sentence', () => {
+    for (const day of [16, 15, 4, 1]) {
+      const at = localAt(2026, 9, day).toISOString();
+      const now = localAt(2026, 9, 16);
+      expect(formatLastBought(at, now).toLowerCase()).toContain(formatLastBoughtShort(at, now).toLowerCase());
+    }
+  });
+
+  it('is Anterior alone for a date it cannot read, as the pad says', () => {
+    expect(formatLastBoughtShort(null, localAt(2026, 9, 16))).toBe(ES.buy.lastBought.undated);
+  });
+
+  it('fits a tile: never longer than its longest real case', () => {
+    expect(formatLastBoughtShort(localAt(2025, 9, 16).toISOString(), localAt(2026, 9, 16)).length).toBeLessThanOrEqual(14);
   });
 });

@@ -57,7 +57,7 @@ import { qtyShown, shownUnitOf } from '@/cart/quantity';
 import { useCart, useCartStore, useCorrects, useProviderId, useTyped } from '@/cart/store';
 import { useOrdenDelDia } from '@/cart/useOrdenDelDia';
 import { columnasDe, pasilloAlEscribir, vitrinaDe } from '@/cart/vitrina';
-import { formatLastBought } from '@/format/date';
+import { formatLastBought, formatLastBoughtShort } from '@/format/date';
 import { formatMXN } from '@/format/mxn';
 import { commitToQueue } from '@/lib/commitRunner';
 import { newWriteId, nowIso } from '@/lib/ids';
@@ -1118,11 +1118,14 @@ function BaldosaCompra({
   const word = ES.units[unit as keyof typeof ES.units] ?? unit;
   const qty = inBasket ? `${qtyShown(base, unit, factors) ?? ''} ${word}` : '';
   const priceWord = ES.units[entry.priceUnit as keyof typeof ES.units] ?? entry.priceUnit;
+  // ⚠️ SHORT ON A TILE (`formatLastBoughtShort`): the full sentence was cut
+  // mid-word on Android. The tag above is the cost, so the line says when, or
+  // what it cost before without the unit the tag already gives.
   const caption =
     note === 'last-bought'
-      ? formatLastBought(boughtAt)
-      : note === 'changed' && remembered !== null
-        ? ES.buy.lastPaid(remembered.price)
+      ? formatLastBoughtShort(boughtAt)
+      : note === 'changed' && remembered !== null && remembered.centavos !== null
+        ? ES.buy.tile.before(formatMXN(remembered.centavos))
         : note === 'first-time'
           ? ES.buy.tile.firstTime
           : null;
@@ -1148,7 +1151,7 @@ function BaldosaCompra({
       accessibilityLabel={[
         entry.name,
         remembered === null ? '' : remembered.price,
-        caption ?? '',
+        note === 'last-bought' ? formatLastBought(boughtAt) : (caption ?? ''),
         inBasket ? ES.counter.tile.inCart(qty) : '',
         band,
       ]
