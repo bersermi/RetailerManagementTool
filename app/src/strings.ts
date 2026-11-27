@@ -1190,6 +1190,27 @@ export const ES = {
     done: 'Listo',
 
     /**
+     * ⚠️⚠️ `14.1`, LA BÁSCULA — the counter's own number pad, which replaced the
+     * phone's on Vender (the owner's ruling of 2026-11-27). It reads like the
+     * scale: 7, 3, 0 is *0.730 kg* (`@/cart/bascula`). Its chips are the best
+     * guesses, written with the fractions a counter says.
+     */
+    pad: {
+      /** Its one act on a product not yet in the basket. On a line, `done`. */
+      add: 'Agregar',
+      /** The key that clears the whole figure, and the one that erases a digit. */
+      clear: 'Borrar todo',
+      erase: 'Borrar',
+      /** The owner's and a manager's door to the price sheet, from inside the pad. */
+      changePrice: 'Cambiar precio',
+      /** The pad, to a screen reader. */
+      title: (name: string) => `Cantidad de ${name}`,
+      /** The line's total while she keys, beside the figure. */
+      total: 'Son',
+      fraccion: { cuarto: '¼', medio: '½', tresCuartos: '¾' },
+    },
+
+    /**
      * ⚠️⚠️ ADR-035 §2.8's THIRD GUARD — THE MAGNITUDE WARNING (`5f.5`). The amber
      * word beside a line whose quantity or cost is beyond ~3× what this shop
      * usually buys. Which of the three applies is `magnitudeNote`'s

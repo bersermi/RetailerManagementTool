@@ -4,10 +4,11 @@ import {
   Animated,
   Easing,
   FlatList,
-  Keyboard,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   Pressable,
+  ScrollView,
   Text,
   TextInput,
   View,
@@ -27,7 +28,9 @@ import {
   useWorkspace,
 } from '@/api/hooks';
 import { magnitudeNote, outsized, type Typical, type Typicals } from '@/api/magnitude';
-import { reviewOf, stepOf, type Basket, type Review, type ReviewRow } from '@/cart/cart';
+import { TECLAS, baseDe, fichasDe, teclear, tecladoDe, textoDe, type Tecla } from '@/cart/bascula';
+import { reviewOf, stepOf, type Basket, type Quotes, type Review, type ReviewRow } from '@/cart/cart';
+import { qtyShown, shownUnitOf } from '@/cart/quantity';
 import { canCommit, commitOf, type Basketful } from '@/cart/commit';
 import { sellGate } from '@/cart/gate';
 import { useCart, useCartStore, useCorrects, useTyped } from '@/cart/store';
@@ -55,12 +58,14 @@ import { HojaCarrito } from '@/ui/HojaCarrito';
 import { PrecioRapido } from '@/ui/PrecioRapido';
 import { Retrato } from '@/ui/Retrato';
 import { Separador } from '@/ui/Separador';
-import { TecladoListo } from '@/ui/TecladoListo';
 import { TotalCarrito } from '@/ui/TotalCarrito';
 import { Vacio } from '@/ui/Vacio';
 import { Corrigiendo } from '@/ui/Corrigiendo';
 import { VaciarCarrito } from '@/ui/VaciarCarrito';
 import { ESQUINA } from '@/theme/density';
+import { letraNumero } from '@/theme/letra';
+import { BotonLleno } from '@/ui/BotonLleno';
+import { Velo } from '@/ui/Velo';
 
 // ============================================================================
 // VENDER — the counter. Plan tasks `5f-ii` (the list, the row, the quantity
@@ -183,6 +188,11 @@ import { ESQUINA } from '@/theme/density';
 // screen is inside the tab navigator: without it the avoidance is short by
 // exactly the bar and the box still clips.
 //
+// ⚠️⚠️ SINCE `14.1` (2026-11-27) NO QUANTITY BOX ON THIS SCREEN RAISES THE
+// KEYBOARD: the box opens the counter's own pad (`Bascula`, below), so the row
+// scrolled to the middle and `onScrollToIndexFailed` left with it. The avoiding
+// view stays, for the search box — the one field here the phone still types into.
+//
 // ⚠️⚠️ THE SEARCH BOX, THE STEPPER, THE SLIDE AND THE EMPTY STATES ARE NOW
 // `src/ui/`'s — MOVED OUT BY `5g-ii`, AND THIS PARAGRAPH SAID THE OPPOSITE
 // ----------------------------------------------------------------------------
@@ -208,29 +218,9 @@ import { ESQUINA } from '@/theme/density';
 // drifted apart. **None was invented.**
 // ============================================================================
 
-/**
- * The bar carrying *Listo* above the quantity pad.
- *
- * ⚠️⚠️ ADDED 2026-09-25, AND VENDER HAD NO WAY OFF THE KEYPAD AT ALL UNTIL NOW.
- * The owner, on his own phone: *"The numerical Keypad isn't easy to hide when
- * you're done typing. Can we replace it with one that has the 'Hide' or 'Done'
- * control?"* ⚠️ **`keyboardType="decimal-pad"` DRAWS NO RETURN KEY ON EITHER
- * PLATFORM** — `nuevo.tsx` measured that — so the `returnKeyType="done"` this
- * screen has always carried was inert, and `onSubmitEditing` could never fire.
- * **The only exits were a tap elsewhere on the list or the keyboard's own
- * dismiss, and on the screen he opens four hundred times a day that is not an
- * exit.**
- *
- * ⚠️ IT SHIPPED FOR COMPRAR AND NOT FOR HERE, which is the half of `5g-ii` that
- * was wrong: `TecladoListo` was extracted into `src/ui/` that day and wired to
- * Comprar's two pads only. **A primitive built and not connected is the shape
- * this repository refuses by name.**
- *
- * ⚠️ A CONSTANT AND NOT A LITERAL AT TWO CALL SITES: `InputAccessoryView` matches
- * an input to a bar by STRING EQUALITY, so two spellings is a bar that renders
- * and never appears with nothing to say why.
- */
-const PAD_ID = 'wera.sell.pad';
+// ⚠️ `14.1`: `PAD_ID` and `TecladoListo`'s bar left with the phone's keyboard —
+// the bar was this screen's only way off `decimal-pad` (the owner, 2026-09-25),
+// and the counter's own pad has its *Agregar* and *Listo* on it.
 
 export default function Vender() {
   const { scale } = useDensity();
@@ -256,22 +246,6 @@ export default function Vender() {
   const box = useRef<TextInput>(null);
   const rows = search(entries, typed);
 
-  // ⚠️ WHICH ROW IS BEING TYPED INTO, HELD IN A REF AND NOT IN STATE. It changes
-  // on every focus and nothing renders differently for it; state here would
-  // re-render a ~100-row list on the phone C1.1 puts two low-end Androids among.
-  const list = useRef<FlatList<CatalogEntry>>(null);
-  const editing = useRef<number | null>(null);
-
-  // ⚠️⚠️ IT WAITS FOR THE KEYBOARD TO BE UP — see this file's header. Scrolling
-  // on focus centres the row in a viewport that is about to shrink.
-  useEffect(() => {
-    const up = Keyboard.addListener('keyboardDidShow', () => {
-      const at = editing.current;
-      if (at === null || at < 0) return;
-      list.current?.scrollToIndex({ index: at, viewPosition: 0.5, animated: true });
-    });
-    return () => up.remove();
-  }, []);
 
   const cart = useCart('sell');
   // ⚠️ `8p`: the sale this basket re-keys, so it counts on that sale's day.
@@ -340,12 +314,34 @@ export default function Vender() {
     if (pricing === null || !pricing.adding) return;
     bump('sell', pricing.entry.id, stepOf(pricing.entry.priceUnit, factors), 1);
   }, [pricing, bump, factors]);
+  // ⚠️ `14.1`: the product whose pad is open, from a row or from a line.
+  const [pesando, setPesando] = useState<CatalogEntry | null>(null);
+  const openPad = useCallback((entry: CatalogEntry) => setPesando(entry), []);
+  const closePad = useCallback(() => setPesando(null), []);
+  const setLine = useCartStore((state) => state.setQty);
+  // ⚠️ THE PAD'S PRICE DOOR CLOSES THE PAD FIRST: two sheets up at once is the
+  // nested presentation `VaciarCarrito`'s arrangement exists to avoid.
+  const priceFromPad = useCallback(
+    (entry: CatalogEntry) => {
+      setPesando(null);
+      openPricing(entry, false);
+    },
+    [openPricing],
+  );
   // The cashier's note, by the product's name — see `Nota`.
   const [refused, setRefused] = useState<string | null>(null);
   const forgetRefused = useCallback(() => setRefused(null), []);
 
   const [cartOpen, setCartOpen] = useState(false);
-  const closeCart = useCallback(() => setCartOpen(false), []);
+  // ⚠️ `14.1`: ANDROID'S BACK REACHES THE CARRITO'S `Modal`, NOT THE SHEET DRAWN
+  // INSIDE IT — so with the pad or the price sheet up over the Carrito, back closed
+  // the Carrito and left the pad standing over the list (seen on the emulator,
+  // 2026-11-27). The top sheet goes first.
+  const closeCart = useCallback(() => {
+    if (pesando !== null) setPesando(null);
+    else if (pricing !== null) setPricing(null);
+    else setCartOpen(false);
+  }, [pesando, pricing]);
   const openCart = useCallback(() => setCartOpen(true), []);
 
   // ⚠️⚠️ THE EMPTYING QUESTION LIVES ON THE SCREEN AND NOT IN THE SHEET, AND
@@ -487,20 +483,17 @@ export default function Vender() {
           just above the bar, without moving a row under a thumb. */}
       <View style={{ flex: 1 }}>
       <FlatList
-        ref={list}
         // ⚠️ A `FlatList` FOR `productos.tsx`'s REASON: C8.3 puts ~100 products
         // in the pilot catalog and C1.1 puts two low-end Androids among its four
         // phones, and a `ScrollView` mounts every row at once.
         data={rows}
         keyExtractor={(entry) => entry.id}
-        renderItem={({ item, index }) => (
+        renderItem={({ item }) => (
           <Fila
             entry={item}
             factors={factors}
             typical={typicals[item.id]}
-            onEdit={(on) => {
-              editing.current = on ? index : null;
-            }}
+            onPad={openPad}
             onPrice={mayPrice ? openPricing : null}
             onRefused={(entry) => setRefused(entry.name)}
           />
@@ -508,16 +501,6 @@ export default function Vender() {
         ItemSeparatorComponent={Separador}
         ListEmptyComponent={<Vacio line={catalogLine(loading, typed, failed, online)} />}
         contentContainerStyle={{ paddingBottom: scale.space }}
-        // ⚠️ THE ROWS ARE A FIXED HEIGHT TO THE VIRTUALISER'S EYE ONLY WHEN THE
-        // JUMP IS INSIDE THE RENDER WINDOW; past it `scrollToIndex` throws, and
-        // a thrown error on the till is a blank screen. `productos.tsx` carries
-        // the same fallback for the same reason.
-        onScrollToIndexFailed={({ index }) => {
-          list.current?.scrollToOffset({
-            offset: index * (scale.retratoSize + scale.space * 2),
-            animated: true,
-          });
-        }}
         // ⚠️ NOT `on-drag` ANY MORE, AND THAT IS PART OF THE SAME FIX. Dismissing
         // the keyboard the instant a thumb moves makes a mis-scroll cost the
         // number being typed; the box is committed on every parseable keystroke,
@@ -550,6 +533,19 @@ export default function Vender() {
         />
       ) : null}
 
+      {pesando !== null && !cartOpen ? (
+        <Bascula
+          entry={pesando}
+          factors={factors}
+          typical={typicals[pesando.id]}
+          pricesIncludeTax={workspace?.pricesIncludeTax ?? null}
+          quotes={quotes}
+          onPrice={mayPrice ? priceFromPad : null}
+          onSet={(base) => setLine('sell', pesando.id, base)}
+          onClose={closePad}
+        />
+      ) : null}
+
       <Carrito
         open={cartOpen}
         onClose={closeCart}
@@ -567,6 +563,7 @@ export default function Vender() {
         onConfirmEmpty={emptyCart}
         onCancelEmpty={() => setAsking(false)}
         onPrice={mayPrice ? openPricing : null}
+        onPad={openPad}
         hoja={
           pricing !== null && workspace !== null && cartOpen ? (
             <PrecioRapido
@@ -576,6 +573,18 @@ export default function Vender() {
               workspaceId={workspace.id}
               onSaved={priced}
               onClose={() => setPricing(null)}
+            />
+          ) : pesando !== null && cartOpen ? (
+            <Bascula
+              bare
+              entry={pesando}
+              factors={factors}
+              typical={typicals[pesando.id]}
+              pricesIncludeTax={workspace?.pricesIncludeTax ?? null}
+              quotes={quotes}
+              onPrice={mayPrice ? priceFromPad : null}
+              onSet={(base) => setLine('sell', pesando.id, base)}
+              onClose={closePad}
             />
           ) : null
         }
@@ -600,11 +609,6 @@ export default function Vender() {
       <Hecho shown={sold} word={ES.sell.sold} note={soldNote} onDone={() => setSold(false)} />
       <Hecho shown={arrived !== null} word={arrived ?? ''} lingers onDone={() => setArrived(null)} />
 
-      {/* ⚠️ MOUNTED ONCE AND OUTSIDE EVERY CONDITIONAL. `InputAccessoryView`
-          renders into the KEYBOARD rather than into the layout, so where it sits
-          in the tree does not matter — but mounting it inside a branch means the
-          bar vanishing exactly while a read is out. */}
-      <TecladoListo padId={PAD_ID} label={ES.counter.done} />
     </KeyboardAvoidingView>
   );
 }
@@ -630,7 +634,7 @@ function Fila({
   entry,
   factors,
   typical,
-  onEdit,
+  onPad,
   onPrice,
   onRefused,
 }: {
@@ -639,7 +643,8 @@ function Fila({
   /** What this product usually arrives as — `undefined` when the shop has never
    *  bought it, or when it fell out of `MAGNITUDE_LIMIT`'s window. */
   typical: Typical | undefined;
-  onEdit: (editing: boolean) => void;
+  /** `14.1`: the box opens the counter's pad on this product. */
+  onPad: (entry: CatalogEntry) => void;
   /** Opens the price sheet — `adding` when it was `+` that asked; `null` for a
    *  cashier, who sees nothing to tap. */
   onPrice: ((entry: CatalogEntry, adding: boolean) => void) | null;
@@ -749,8 +754,7 @@ function Fila({
             base={base}
             factors={factors}
             scope="sell"
-            onEdit={onEdit}
-            padId={PAD_ID}
+            onPad={() => onPad(entry)}
             refusal={refusal}
           />
         </View>
@@ -1042,6 +1046,7 @@ function Carrito({
   onConfirmEmpty,
   onCancelEmpty,
   onPrice,
+  onPad,
   hoja,
 }: {
   open: boolean;
@@ -1065,7 +1070,9 @@ function Carrito({
   onCancelEmpty: () => void;
   /** The price chip on each line, for the owner and a manager — `8g`. */
   onPrice: ((entry: CatalogEntry, adding: boolean) => void) | null;
-  /** The price sheet, drawn inside this `Modal` while it is open — see `Vender`. */
+  /** `14.1`: a line's box opens the counter's pad, drawn inside this `Modal`. */
+  onPad: (entry: CatalogEntry) => void;
+  /** The price sheet or the pad, drawn inside this `Modal` while it is open — see `Vender`. */
   hoja: ReactNode;
 }) {
   const rows = review === null ? [] : review.rows;
@@ -1109,6 +1116,7 @@ function Carrito({
             factors={factors}
             typical={typicals[item.variantId]}
             onPrice={onPrice}
+            onPad={onPad}
           />
         )}
         ItemSeparatorComponent={Separador}
@@ -1147,12 +1155,14 @@ function Renglon({
   factors,
   typical,
   onPrice,
+  onPad,
 }: {
   row: ReviewRow;
   entry: CatalogEntry | undefined;
   factors: UnitFactors;
   typical: Typical | undefined;
   onPrice: ((entry: CatalogEntry, adding: boolean) => void) | null;
+  onPad: (entry: CatalogEntry) => void;
 }) {
   const { scale } = useDensity();
   const remove = useCartStore((state) => state.remove);
@@ -1233,7 +1243,7 @@ function Renglon({
 
       {/* The controls, on their own line — see this component's header. */}
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-        {gone ? <View /> : <Cantidad entry={entry} base={row.base} factors={factors} scope="sell" padId={PAD_ID} />}
+        {gone ? <View /> : <Cantidad entry={entry} base={row.base} factors={factors} scope="sell" onPad={() => onPad(entry)} />}
 
         {/* ⚠️ A WORD AND NOT A GLYPH, and the width is the reason as much as the
             clarity: an icon plus its word does not fit beside the stepper at
@@ -1346,3 +1356,272 @@ function Pie({
   );
 }
 
+/**
+ * ⚠️⚠️ `14.1`, LA BÁSCULA — THE COUNTER'S OWN NUMBER PAD, opened by the quantity
+ * box on a row or on a line of the Carrito (the owner's ruling of 2026-11-27,
+ * Step 14). It replaced the phone's `decimal-pad` here: that keyboard covered the
+ * row being typed into, had no way off it but `TecladoListo`'s bar, and made
+ * *0.730 kg* five keys with a point in the middle.
+ *
+ * ⚠️ IT READS LIKE THE SCALE (`@/cart/bascula`, his answer A): 7, 3, 0 is
+ * *0.730 kg*. The chips are the best guesses; a count is a count. The figure and
+ * what the line comes to are side by side, so she reads back what the customer
+ * pays before she adds it.
+ *
+ * ⚠️⚠️ OPENED ON A LINE, IT SHOWS THE LINE'S QUANTITY AND THE FIRST KEY REPLACES
+ * IT, as a scale starts again from zero — and *Listo* untouched changes nothing.
+ * *Quitar* is there only for a line; `−` on the row still takes one away.
+ *
+ * ⚠️ THE TOTAL IS `reviewOf`'s OWN ARITHMETIC over a one-line basket, with the
+ * same quotes the screen prices against — so a corrected line shows the price it
+ * was sold at, and the pad never states a figure the Carrito would not (§2.5
+ * rule 5). It is withheld while the shop is unknown, as the bar's is.
+ *
+ * ⚠️ THE MAGNITUDE WARNING IS HERE TOO — §2.8's third guard, on the figure being
+ * keyed, before it is a line: it is the moment a slip (7300 for 730) is cheapest.
+ *
+ * ⚠️ DRAWN IN THIS FILE AND NOT IN `src/ui/` (`R14`): Vender is its only drawer
+ * until Comprar takes it at `14.3`, which moves it.
+ */
+function Bascula({
+  entry,
+  factors,
+  typical,
+  pricesIncludeTax,
+  quotes,
+  onPrice,
+  onSet,
+  onClose,
+  bare = false,
+}: {
+  entry: CatalogEntry;
+  factors: UnitFactors;
+  typical: Typical | undefined;
+  /** The shop's IVA setting, or `null` while it is not known — the total is then withheld. */
+  pricesIncludeTax: boolean | null;
+  /** The prices a corrected sale's lines keep (`useTyped`). */
+  quotes: Quotes;
+  /** The owner's and a manager's door to the price sheet; `null` for a cashier. */
+  onPrice: ((entry: CatalogEntry) => void) | null;
+  /** The line's new quantity in base units — `0` takes the line out. */
+  onSet: (base: number) => void;
+  onClose: () => void;
+  /** Drawn inside the Carrito's `Modal` rather than as a `Modal` of its own. */
+  bare?: boolean;
+}) {
+  const { scale, mode } = useDensity();
+  const insets = useSafeAreaInsets();
+  const unit = shownUnitOf(entry);
+  const teclado = tecladoDe(unit);
+  const word = ES.units[unit as keyof typeof ES.units] ?? unit;
+  const fichas = fichasDe(unit);
+
+  // ⚠️ THE LINE AS IT STANDS, READ FROM THE STORE: the pad may be opened from a
+  // row whose line another surface has just changed.
+  const base = useCartStore((state) => {
+    for (const line of state.carts.sell) if (line.variantId === entry.id) return line.base;
+    return 0;
+  });
+  const [digitos, setDigitos] = useState('');
+  const [keyed, setKeyed] = useState(false);
+
+  const typed = keyed ? baseDe(digitos, unit, factors) : null;
+  const shownBase = keyed ? (typed ?? 0) : base;
+  const figure = keyed || base === 0 ? textoDe(keyed ? digitos : '', teclado) : (qtyShown(base, unit, factors) ?? '');
+  const empty = shownBase === 0;
+
+  const centavos =
+    pricesIncludeTax === null || empty
+      ? null
+      : (reviewOf([{ variantId: entry.id, base: shownBase }], [entry], 'sell', pricesIncludeTax, undefined, quotes)
+          .rows[0]?.centavos ?? null);
+  const big = magnitudeNote(outsized(typical, shownBase, null));
+
+  const press = (tecla: Tecla) => {
+    setDigitos((now) => teclear(keyed ? now : '', tecla, teclado));
+    setKeyed(true);
+  };
+  const act = () => {
+    if (keyed && typed !== null) onSet(typed);
+    onClose();
+  };
+
+  const unitPrice =
+    entry.centavos === null ? ES.catalog.noPrice : `${formatMXN(entry.centavos)} ${ES.sell.per(ES.units[entry.priceUnit as keyof typeof ES.units] ?? entry.priceUnit)}`;
+
+  const sheet = (
+    <View style={{ flex: 1 }}>
+      <Velo label={ES.counter.cart.close} onPress={onClose} />
+      <View style={{ flex: 1, justifyContent: 'flex-end' }} pointerEvents="box-none">
+        <ScrollView
+          bounces={false}
+          style={{ flexGrow: 0 }}
+          contentContainerStyle={{
+            borderTopLeftRadius: ESQUINA.hoja,
+            borderTopRightRadius: ESQUINA.hoja,
+            backgroundColor: PALETTE.superficie,
+            padding: scale.space,
+            paddingBottom: scale.space + insets.bottom,
+            gap: scale.rowGap,
+          }}
+        >
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: scale.space }}>
+            <Retrato name={entry.name} picture={entry.picture} small />
+            <View style={{ flex: 1, gap: scale.rowGap / 4 }}>
+              <Text numberOfLines={2} style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.tinta }}>
+                {entry.name}
+              </Text>
+              <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>{unitPrice}</Text>
+              {onPrice === null ? null : (
+                <Pressable accessibilityRole="button" hitSlop={scale.rowGap} onPress={() => onPrice(entry)}>
+                  <Text style={{ fontSize: scale.smallSize, fontWeight: '600', color: PALETTE.accion }}>
+                    {ES.counter.pad.changePrice}
+                  </Text>
+                </Pressable>
+              )}
+            </View>
+            <Pressable
+              accessibilityRole="button"
+              onPress={onClose}
+              hitSlop={scale.rowGap}
+              style={{ alignSelf: 'flex-start', minHeight: scale.tapTarget, justifyContent: 'center' }}
+            >
+              <Text style={{ fontSize: scale.smallSize, fontWeight: '600', color: PALETTE.accion }}>
+                {ES.counter.cart.close}
+              </Text>
+            </Pressable>
+          </View>
+
+          {/* The figure as the scale shows it, and what the line comes to. */}
+          <View
+            accessible
+            accessibilityLabel={`${ES.counter.pad.title(entry.name)}: ${figure} ${word}`}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'flex-end',
+              justifyContent: 'space-between',
+              gap: scale.space,
+              paddingBottom: scale.rowGap / 2,
+              borderBottomWidth: 1,
+              borderBottomColor: PALETTE.linea,
+            }}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: scale.rowGap / 2, flexShrink: 1 }}>
+              <Text style={{ ...letraNumero(scale), color: empty ? PALETTE.tintaApagada : PALETTE.tinta }}>{figure}</Text>
+              <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.tintaApagada }}>{word}</Text>
+            </View>
+            <View style={{ alignItems: 'flex-end' }}>
+              <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>{ES.counter.pad.total}</Text>
+              <Text style={{ fontSize: scale.moneySize, fontWeight: '700', color: PALETTE.tinta, fontVariant: ['tabular-nums'] }}>
+                {centavos === null ? ES.catalog.noPrice : formatMXN(centavos)}
+              </Text>
+            </View>
+          </View>
+
+          {/* ⚠️ `R11`: the amber never travels alone — it is a sentence. */}
+          {big === '' ? null : (
+            <Text style={{ fontSize: scale.smallSize, fontWeight: '600', color: PALETTE.atencion }}>{big}</Text>
+          )}
+
+          {fichas.length === 0 ? null : (
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: scale.rowGap / 2 }}>
+            {fichas.map((ficha) => (
+              <Pressable
+                key={ficha.digitos}
+                accessibilityRole="button"
+                onPress={() => {
+                  setDigitos(ficha.digitos);
+                  setKeyed(true);
+                }}
+                style={{
+                  // ⚠️ SIX ACROSS AT `Normal`, THREE AND THREE AT `Letra grande`: let
+                  // to wrap, the larger letters broke them five and one, the last
+                  // chip stretched across a whole row (seen on the emulator).
+                  width: mode === 'elder' ? '31%' : undefined,
+                  flexGrow: 1,
+                  minWidth: scale.tapTarget,
+                  minHeight: scale.tapTarget * 0.85,
+                  paddingHorizontal: scale.rowGap,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRadius: ESQUINA.chip,
+                  borderWidth: 1,
+                  borderColor: PALETTE.linea,
+                  backgroundColor: PALETTE.superficie,
+                }}
+              >
+                <Text style={{ fontSize: scale.smallSize, fontWeight: '700', color: PALETTE.tinta }}>{ficha.etiqueta}</Text>
+              </Pressable>
+            ))}
+          </View>
+          )}
+
+          {/* Three across, four down — the order every phone's dialler uses. */}
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: scale.rowGap / 2 }}>
+            {TECLAS.map((tecla) => (
+              <Pressable
+                key={tecla}
+                accessibilityRole="button"
+                accessibilityLabel={
+                  tecla === 'borrar' ? ES.counter.pad.erase : tecla === 'limpiar' ? ES.counter.pad.clear : tecla
+                }
+                onPress={() => press(tecla)}
+                style={({ pressed }) => ({
+                  width: '31%',
+                  flexGrow: 1,
+                  height: scale.tapTarget * 1.1,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRadius: ESQUINA.boton,
+                  backgroundColor: pressed ? PALETTE.linea : PALETTE.retrato,
+                })}
+              >
+                {tecla === 'borrar' ? (
+                  <MaterialCommunityIcons name="backspace-outline" size={scale.iconSize} color={PALETTE.tinta} />
+                ) : tecla === 'limpiar' ? (
+                  <Text style={{ fontSize: scale.smallSize, fontWeight: '700', color: PALETTE.tinta }}>
+                    {ES.counter.pad.clear}
+                  </Text>
+                ) : (
+                  <Text style={{ fontSize: scale.titleSize, fontWeight: '600', color: PALETTE.tinta }}>{tecla}</Text>
+                )}
+              </Pressable>
+            ))}
+          </View>
+
+          <BotonLleno
+            label={
+              base > 0
+                ? ES.counter.done
+                : centavos === null
+                  ? ES.counter.pad.add
+                  : `${ES.counter.pad.add} · ${formatMXN(centavos)}`
+            }
+            onPress={act}
+            variante="principal"
+            off={base === 0 && typed === null}
+          />
+          {base > 0 ? (
+            <BotonLleno
+              label={ES.counter.cart.remove}
+              onPress={() => {
+                onSet(0);
+                onClose();
+              }}
+              variante="discreto"
+            />
+          ) : null}
+        </ScrollView>
+      </View>
+    </View>
+  );
+
+  if (bare) {
+    return <View style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 }}>{sheet}</View>;
+  }
+  return (
+    <Modal visible animationType="slide" transparent onRequestClose={onClose}>
+      {sheet}
+    </Modal>
+  );
+}
