@@ -456,8 +456,8 @@ follows it, as `itacate/CLAUDE.md`'s does:
   Mi cocina* until then) — four tabs at most, each with its word; the two ends never move; a service lives as a tile on *Hoy* and its own screen,
   never as a tab. Wera's JavaScript tabs, not native tabs. ⚠️ **Built by `10.5-v-c-i`**, Itacate's
   shell copied: the tabs are data (`@/navigation/pestanas`, *Apartados* in use since `10.5b-iv-a`; *Clientes* out of the data since `10.9a-ii`), the bar is `@/ui/Pestanas` (the tab
-  in use: green, a heavier word and a pill of the green's tint — ⚠️ the other pills the bar's white, never `transparent`: Android squared every pill
-  after the first switch), and `(cocina)/(tabs)/` holds exactly the tabs in use. *Tus ofertas*, *Publicar*, her page's editor and her address's
+  in use: green and a heavier word — its pill of the green's tint went at `11.7-ii`, the design system's *Pestanas*; the marker's stroke under
+  the word is `11.8`'s; the box behind each icon stays the bar's white, never `transparent`: Android squared rounded corners after the first switch), and `(cocina)/(tabs)/` holds exactly the tabs in use. *Tus ofertas*, *Publicar*, her page's editor and her address's
   screens are pushed over the tabs. ⚠️ **Google's point for her address is asked again from the tabs' layout**, always mounted — *Mi cocina*,
   which draws the small map, mounts only when she opens it.
 - ***Hoy* is a hub** (his directions of 2026-11-06, `10.5-v-c-i`): the day's card (`@/ui/DiaDeHoy`), *Publicar una oferta* with her last day's
@@ -483,6 +483,11 @@ follows it, as `itacate/CLAUDE.md`'s does:
   promotions and for what waits for her — an order's *pronto* and dot (`10.5b-iv-a`), a tile's dot and *Falta* (`10.9a-iii`) — never an action; state first, before anything tappable (ADR-035 §2.8); one staggered entrance per screen (`@/ui/Llega`, Itacate's), transform and
   opacity only (§2.11) — `test/pestanas.test.ts` lets Reanimated into `@/ui/Llega`, `@/ui/Nota`, since `10.5-v-d`
   the opening's `@/ui/Apertura` and, since `10.9a-iii`, *Publicar*'s glow `@/ui/Brillo` alone (`scaleX` and `scaleY` count as the transform).
+  ⚠️ **Since `11.7-ii` a corner names its role** — `@/theme/density`'s `ESQUINA`, Wera's block code for code: a sheet, a button, a field and a
+  chip at 3, a bar or a handle at 1; a circle (her initials, a dot, a stamp) is half its own side; no pills — and a white sheet on the counter
+  has no plain `linea` edge (five keep one — a map's frame, two things over the map, a box she fills, a photo slot — each named with its reason), the header (`@/ui/Banda`) no line under it, the tab bar a white sheet
+  with a `linea` top edge; her phrase in Mansalva (`@/theme/frase`, its file `src/marca/frase/` = `brand/letras/`'s, loaded with Wera's two by
+  `@/marca/fuenteDeFrase`) on her page's copy and in `@/ui/Portada`; all held by `test/esquinas.test.ts`. The counter poster's inks are the palette's.
 - **Money:** no screen stores or shows a bank account, a card or an amount paid — only how she will pay.
 
 ## *Apartados* — she sees and hands over (`10.5b-iv-a`)
