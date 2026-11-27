@@ -5,6 +5,7 @@ import { DIGITOS } from '@/lib/apartados';
 import { ES } from '@/strings';
 import { TITULO } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 
 // ============================================================================
 // THE CODE, TYPED — *Entregar un apartado*'s three boxes and its keypad. Plan task
@@ -27,7 +28,7 @@ export function Casillas({ codigo, mal }: { codigo: string; mal: boolean }) {
             style={{
               width: 58,
               height: 66,
-              borderRadius: SIZE.space,
+              borderRadius: ESQUINA.campo,
               borderWidth: 2,
               alignItems: 'center',
               justifyContent: 'center',
@@ -58,7 +59,7 @@ export function Teclado({ onTecla }: { onTecla: (tecla: string) => void }) {
             style={({ pressed }) => ({
               width: 92,
               height: 56,
-              borderRadius: SIZE.space,
+              borderRadius: ESQUINA.boton,
               alignItems: 'center',
               justifyContent: 'center',
               backgroundColor: pressed ? PALETTE.accionSuave : PALETTE.superficie,

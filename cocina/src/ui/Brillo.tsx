@@ -13,6 +13,7 @@ import Animated, {
 
 import { BRILLO } from '@/theme/movimiento';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 
 // ============================================================================
 // *PUBLICAR* GLOWS — A RING OF THE GREEN SPREADING FROM THE BUTTON AND FADING, TWICE. Plan task
@@ -30,8 +31,6 @@ import { PALETTE, SIZE } from '@/theme/palette';
 // System`) never sees it. NO CHECK CAN SEE A FRAME MOVE: the phone is the instrument.
 // ============================================================================
 
-/** The button's corners — `@/ui/BotonLleno`'s. */
-const ESQUINA = SIZE.space / 2;
 
 export function Brillo({ activo, vez, children }: { activo: boolean; vez: number; children: ReactNode }) {
   const [tam, setTam] = useState<{ readonly ancho: number; readonly alto: number } | null>(null);
@@ -70,7 +69,7 @@ export function Brillo({ activo, vez, children }: { activo: boolean; vez: number
       <Animated.View
         pointerEvents="none"
         style={[
-          { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: ESQUINA, backgroundColor: PALETTE.accion },
+          { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: ESQUINA.boton, backgroundColor: PALETTE.accion },
           estilo,
         ]}
       />

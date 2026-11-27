@@ -4,6 +4,7 @@ import { Text, View } from 'react-native';
 import { useSeguir, type FallaDeSeguir } from '@/api/hooks';
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 import { BotonLleno } from '@/ui/BotonLleno';
 
 // ============================================================================
@@ -47,7 +48,7 @@ export function PreguntaSeguir({ cocinaId, nombre, onListo }: { cocinaId: string
         alignSelf: 'stretch',
         gap: SIZE.rowGap,
         padding: SIZE.space,
-        borderRadius: SIZE.space,
+        borderRadius: ESQUINA.hoja,
         backgroundColor: PALETTE.accionSuave,
       }}
     >

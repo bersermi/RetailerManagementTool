@@ -5,6 +5,7 @@ import { Pressable, Text, View } from 'react-native';
 import { ORDENES, type Orden } from '@/lib/lista';
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 import { Hoja } from '@/ui/Hoja';
 import { Opcion } from '@/ui/Opcion';
 
@@ -38,7 +39,7 @@ export function Ordenar({ orden, onOrden }: { orden: Orden; onOrden: (orden: Ord
           alignItems: 'center',
           gap: SIZE.rowGap / 2 + 2,
           paddingHorizontal: SIZE.space,
-          borderRadius: SIZE.tapTarget,
+          borderRadius: ESQUINA.chip,
           borderWidth: 1,
           borderColor: PALETTE.linea,
           backgroundColor: PALETTE.superficie,

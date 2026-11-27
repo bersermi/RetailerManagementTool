@@ -39,6 +39,7 @@ import { DESCRIPTION_MAX, NAME_MAX, TAGS, ofreceLasDos, type ComoSeCome, type Li
 import type { Defaults } from '@/api/pagina';
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 import { Campo } from '@/ui/Campo';
 import { CampoFoto } from '@/ui/CampoFoto';
 import { Dibujo } from '@/ui/Dibujo';
@@ -81,7 +82,7 @@ export function Renglon({
       alignItems: 'center',
       justifyContent: 'center',
       paddingHorizontal: SIZE.space,
-      borderRadius: SIZE.space * 0.75,
+      borderRadius: ESQUINA.boton,
       borderWidth: on ? 2 : 1,
       borderColor: on ? PALETTE.accion : PALETTE.linea,
       backgroundColor: on ? PALETTE.accionSuave : PALETTE.superficie,
@@ -93,7 +94,7 @@ export function Renglon({
       style={{
         borderWidth: 1,
         borderColor: PALETTE.linea,
-        borderRadius: SIZE.space,
+        borderRadius: ESQUINA.hoja,
         backgroundColor: PALETTE.fondo,
         padding: SIZE.space,
         gap: SIZE.space,

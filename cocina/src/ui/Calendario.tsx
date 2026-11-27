@@ -5,6 +5,7 @@ import { calendarioDe, conSuDia } from '@/lib/promociones';
 import { ES } from '@/strings';
 import { TITULO } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 import { BotonLleno } from '@/ui/BotonLleno';
 
 // ============================================================================
@@ -39,8 +40,8 @@ export function Calendario({
           style={{
             maxHeight: '85%',
             backgroundColor: PALETTE.fondo,
-            borderTopLeftRadius: 22,
-            borderTopRightRadius: 22,
+            borderTopLeftRadius: ESQUINA.hoja,
+            borderTopRightRadius: ESQUINA.hoja,
             padding: SIZE.space * 1.5,
             paddingBottom: insets.bottom + SIZE.space * 1.5,
             gap: SIZE.space,

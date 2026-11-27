@@ -4,6 +4,7 @@ import { Text, View } from 'react-native';
 import { sinSenalTexto } from '@/lib/apartados';
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 
 // ============================================================================
 // WHAT HER TICKETS SAY WHEN HER PHONE IS ALL SHE HAS. Plan task `10.9j-ii-a` — the owner's J1
@@ -25,9 +26,7 @@ export function SinSenal({ sinSenal, leidoEn, ahora }: { sinSenal: boolean; leid
         alignItems: 'center',
         gap: SIZE.rowGap,
         padding: SIZE.space,
-        borderRadius: SIZE.space - 2,
-        borderWidth: 1,
-        borderColor: PALETTE.linea,
+        borderRadius: ESQUINA.hoja,
         backgroundColor: PALETTE.superficie,
       }}
     >

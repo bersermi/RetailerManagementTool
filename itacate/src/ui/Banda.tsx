@@ -35,8 +35,6 @@ export function Banda({
         paddingTop: insets.top + (volver !== null ? SIZE.rowGap : SIZE.space * 2),
         paddingBottom: SIZE.space + SIZE.rowGap,
         paddingHorizontal: SIZE.space * 2,
-        borderBottomWidth: 1,
-        borderBottomColor: PALETTE.linea,
         gap: SIZE.rowGap / 2,
       }}
     >

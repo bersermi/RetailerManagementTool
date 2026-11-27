@@ -8,6 +8,7 @@ import { clockOf } from '@/lib/ventana';
 import { ES } from '@/strings';
 import { TITULO, letraTitulo } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 import { BotonLleno } from '@/ui/BotonLleno';
 import { CodigoQR } from '@/ui/CodigoQR';
 
@@ -61,8 +62,8 @@ export function HojaInvitar({
         <View
           style={{
             backgroundColor: PALETTE.fondo,
-            borderTopLeftRadius: 22,
-            borderTopRightRadius: 22,
+            borderTopLeftRadius: ESQUINA.hoja,
+            borderTopRightRadius: ESQUINA.hoja,
             padding: SIZE.space * 1.5,
             paddingBottom: insets.bottom + SIZE.space * 1.5,
             gap: SIZE.space,
@@ -80,9 +81,7 @@ export function HojaInvitar({
                   alignItems: 'center',
                   paddingVertical: SIZE.space * 1.5,
                   gap: SIZE.rowGap,
-                  borderRadius: 16,
-                  borderWidth: 1,
-                  borderColor: PALETTE.linea,
+                  borderRadius: ESQUINA.hoja,
                   backgroundColor: PALETTE.superficie,
                 }}
               >

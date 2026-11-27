@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ES } from '@/strings';
 import { NOTA } from '@/theme/movimiento';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 
 // ============================================================================
 // THE TOAST ITSELF — the family-shell page's `.toast`: a dark strip at the foot, a
@@ -71,7 +72,7 @@ export function Nota({
           minHeight: SIZE.tapTarget + SIZE.rowGap,
           paddingLeft: SIZE.space,
           paddingRight: conDeshacer ? SIZE.rowGap : SIZE.space,
-          borderRadius: SIZE.space,
+          borderRadius: ESQUINA.hoja,
           backgroundColor: festejo ? PALETTE.accion : PALETTE.tinta,
         }}
       >

@@ -4,6 +4,7 @@ import { Pressable, Text, View } from 'react-native';
 
 import { TITULO } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 
 // ============================================================================
 // A PROMOTION'S BAND AND ITS MARK — AS HER PAGE IN ITACATE WILL SHOW THEM (the family-shell page's `promoBand`
@@ -29,7 +30,7 @@ export function MarcaPromocion({ icono, texto, chica = false }: { icono: Icono; 
         gap: 4,
         paddingHorizontal: chica ? 6 : 7,
         paddingVertical: chica ? 3 : 4,
-        borderRadius: 6,
+        borderRadius: ESQUINA.chip,
         backgroundColor: PALETTE.marca,
       }}
     >
@@ -68,7 +69,7 @@ export function BandaPromocion({
         gap: 4,
         paddingHorizontal: SIZE.space,
         paddingVertical: SIZE.space - 1,
-        borderRadius: 14,
+        borderRadius: ESQUINA.hoja,
         backgroundColor: PALETTE.marcaSuave,
       }}
     >

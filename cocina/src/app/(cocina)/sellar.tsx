@@ -18,6 +18,7 @@ import { clockOf } from '@/lib/ventana';
 import { ES } from '@/strings';
 import { TITULO, letraEncabezado } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 import { Banda } from '@/ui/Banda';
 import { BotonLleno } from '@/ui/BotonLleno';
 import { CodigoQR } from '@/ui/CodigoQR';
@@ -93,7 +94,7 @@ export default function Sellar() {
         <Text style={{ fontSize: SIZE.bodySize, color: PALETTE.tintaApagada }}>{ES.sellar.detalle}</Text>
         <Llega
           i={0}
-          style={{ alignItems: 'center', gap: SIZE.rowGap, padding: SIZE.space * 1.5, borderRadius: 18, borderWidth: 1, borderColor: PALETTE.linea, backgroundColor: PALETTE.superficie }}
+          style={{ alignItems: 'center', gap: SIZE.rowGap, padding: SIZE.space * 1.5, borderRadius: ESQUINA.hoja, backgroundColor: PALETTE.superficie }}
         >
           {estado.tipo === 'lista' && codigo !== null ? (
             <>
@@ -104,7 +105,7 @@ export default function Sellar() {
               >
                 {comoSeLee(codigo)}
               </Text>
-              <View style={{ width: 200, height: 6, borderRadius: 3, backgroundColor: PALETTE.accionSuave, overflow: 'hidden' }}>
+              <View style={{ width: 200, height: 6, borderRadius: ESQUINA.marca, backgroundColor: PALETTE.accionSuave, overflow: 'hidden' }}>
                 <View style={{ width: `${(queda / 60) * 100}%`, height: 6, backgroundColor: PALETTE.accion }} />
               </View>
               <Text style={quiet}>{ES.sellar.cambiaEn(cambiaEn(ahora.getTime()))}</Text>
@@ -145,7 +146,7 @@ export default function Sellar() {
           <Text style={{ ...letraEncabezado(SIZE), color: PALETTE.tinta }}>
             {ES.sellar.hoy}
           </Text>
-          <View style={{ borderRadius: 16, borderWidth: 1, borderColor: PALETTE.linea, backgroundColor: PALETTE.superficie, overflow: 'hidden' }}>
+          <View style={{ borderRadius: ESQUINA.hoja, backgroundColor: PALETTE.superficie, overflow: 'hidden' }}>
             {enCola.map((e) => (
               <Renglon
                 key={`cola:${e.reserva}`}

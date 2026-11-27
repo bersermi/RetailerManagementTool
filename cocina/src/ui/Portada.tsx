@@ -5,7 +5,9 @@ import { defaultsFor, type ColorCode } from '@/api/pagina';
 import { ES } from '@/strings';
 import { HUES } from '@/theme/colores';
 import { TITULO } from '@/theme/letra';
+import { letraFrase } from '@/theme/frase';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 import { Dibujo } from '@/ui/Dibujo';
 import { Foto } from '@/ui/Foto';
 import { Iniciales } from '@/ui/Iniciales';
@@ -52,9 +54,7 @@ export function Portada({
   return (
     <View
       style={{
-        borderWidth: 1,
-        borderColor: PALETTE.linea,
-        borderRadius: SIZE.space,
+        borderRadius: ESQUINA.hoja,
         overflow: 'hidden',
         backgroundColor: PALETTE.superficie,
       }}
@@ -91,7 +91,7 @@ export function Portada({
             )}
           </View>
         </View>
-        {frase !== null && <Text style={{ fontSize: SIZE.bodySize - 1, color: PALETTE.tinta }}>{frase}</Text>}
+        {frase !== null && <Text style={{ ...letraFrase(), color: PALETTE.tinta }}>{frase}</Text>}
         {enlace !== null && (
           <Text style={{ fontSize: SIZE.smallSize, fontWeight: '700', color: HUES[color] }}>{ES.pagina.verEnMaps}</Text>
         )}

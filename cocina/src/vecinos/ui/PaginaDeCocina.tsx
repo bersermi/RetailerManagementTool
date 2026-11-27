@@ -11,6 +11,8 @@ import { VECINOS as ES } from '@/strings';
 import { HUES } from '@/theme/colores';
 import { TITULO, letraEncabezado } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { letraFrase } from '@/theme/frase';
+import { ESQUINA } from '@/theme/density';
 import { Atras } from '@/vecinos/ui/Atras';
 import { BandaPromocion } from '@/ui/BandaPromocion';
 import { Circulo } from '@/vecinos/ui/Circulo';
@@ -34,6 +36,12 @@ import { RenglonPlatillo } from '@/vecinos/ui/RenglonPlatillo';
 const CIRCULO = 60;
 
 const MARGEN = SIZE.space * 1.5;
+
+/**
+ * `11.7-ii` (direction A, `11.5-ii`'s decision (c)): what is read sits on a sheet — her day's dishes and
+ * what she usually offers, each list a white sheet on the counter, a `linea` between its rows.
+ */
+const HOJA = { marginTop: SIZE.rowGap, paddingHorizontal: SIZE.space, borderRadius: ESQUINA.hoja, backgroundColor: PALETTE.superficie } as const;
 
 export function PaginaDeCocina({
   cocina,
@@ -142,7 +150,7 @@ export function PaginaDeCocina({
           </View>
         </View>
         {cocina.page.sentence !== null && (
-          <Text style={{ fontSize: SIZE.bodySize, lineHeight: 22, color: PALETTE.tinta }}>{cocina.page.sentence}</Text>
+          <Text style={{ ...letraFrase(), color: PALETTE.tinta }}>{cocina.page.sentence}</Text>
         )}
         {mapas !== null && <Enlace texto={ES.pagina.verEnMaps} ayuda={ES.pagina.verEnMapsAyuda} url={mapas} color={HUES[color]} />}
         <View style={{ gap: SIZE.rowGap / 2, paddingTop: SIZE.rowGap / 2 }}>
@@ -154,7 +162,7 @@ export function PaginaDeCocina({
                 style={{
                   paddingHorizontal: SIZE.space,
                   paddingVertical: SIZE.rowGap / 2,
-                  borderRadius: 999,
+                  borderRadius: ESQUINA.chip,
                   borderWidth: 1,
                   borderColor: PALETTE.linea,
                   backgroundColor: PALETTE.superficie,
@@ -236,27 +244,28 @@ export function PaginaDeCocina({
             <Text accessibilityRole="header" style={titulo}>
               {ES.pagina.hoy}
             </Text>
-            {hoy.ofertas.flatMap((oferta) =>
-              oferta.dishes.map((platillo) => (
-                <RenglonPlatillo
-                  key={`${oferta.id}:${platillo.lineNo}`}
-                  cocina={cocina}
-                  oferta={oferta}
-                  platillo={platillo}
-                  ahora={ahora}
-                  onPress={() => onPlatillo(oferta, platillo)}
-                />
-              )),
-            )}
+            <View style={HOJA}>
+              {hoy.ofertas
+                .flatMap((oferta) => oferta.dishes.map((platillo) => ({ oferta, platillo })))
+                .map(({ oferta, platillo }, i) => (
+                  <RenglonPlatillo
+                    key={`${oferta.id}:${platillo.lineNo}`}
+                    cocina={cocina}
+                    oferta={oferta}
+                    platillo={platillo}
+                    ahora={ahora}
+                    onPress={() => onPlatillo(oferta, platillo)}
+                    primero={i === 0}
+                  />
+                ))}
+            </View>
           </>
         ) : (
           <View
             style={{
               gap: 2,
               padding: SIZE.space,
-              borderRadius: SIZE.space,
-              borderWidth: 1,
-              borderColor: PALETTE.linea,
+              borderRadius: ESQUINA.hoja,
               backgroundColor: PALETTE.superficie,
             }}
           >
@@ -273,15 +282,17 @@ export function PaginaDeCocina({
           <Text accessibilityRole="header" style={titulo}>
             {ES.pagina.loQueSuele}
           </Text>
-          {repetidos.map((repetido) => (
-            <View
-              key={repetido.key}
-              style={{ paddingVertical: SIZE.space - 2, borderBottomWidth: 1, borderBottomColor: PALETTE.linea, gap: 2 }}
-            >
-              <Text style={{ fontSize: SIZE.bodySize, fontWeight: '600', color: PALETTE.tinta }}>{repetido.nombre}</Text>
-              <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada }}>{repetido.detalle}</Text>
-            </View>
-          ))}
+          <View style={HOJA}>
+            {repetidos.map((repetido, i) => (
+              <View
+                key={repetido.key}
+                style={{ paddingVertical: SIZE.space - 2, borderTopWidth: i === 0 ? 0 : 1, borderTopColor: PALETTE.linea, gap: 2 }}
+              >
+                <Text style={{ fontSize: SIZE.bodySize, fontWeight: '600', color: PALETTE.tinta }}>{repetido.nombre}</Text>
+                <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada }}>{repetido.detalle}</Text>
+              </View>
+            ))}
+          </View>
         </View>
       )}
     </ScrollView>

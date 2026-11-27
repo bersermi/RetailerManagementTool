@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 
 // ============================================================================
 // THE BAR OVER *ASÍ LA VEN* AND *VER COMO LA VEN*. Plan task `10.5-v-c-ii`, the
@@ -43,7 +44,7 @@ export function BarraVista({ texto, onCerrar }: { texto: string; onCerrar: () =>
           minHeight: 32,
           justifyContent: 'center',
           paddingHorizontal: SIZE.space - 2,
-          borderRadius: SIZE.rowGap,
+          borderRadius: ESQUINA.boton,
           backgroundColor: PALETTE.superficie,
           opacity: pressed ? 0.7 : 1,
         })}

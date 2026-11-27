@@ -6,6 +6,7 @@ import { ES } from '@/strings';
 import { HUES } from '@/theme/colores';
 import { TITULO } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 import { BotonLleno } from '@/ui/BotonLleno';
 import { Foto } from '@/ui/Foto';
 import { Iniciales } from '@/ui/Iniciales';
@@ -39,7 +40,7 @@ export function TarjetaDeLealtad({
   const claro = 'rgba(255, 255, 255, 0.82)';
   const premios = premiosTexto(vista.premios);
   return (
-    <View style={{ backgroundColor: hue, borderRadius: 18, padding: SIZE.space + 2, gap: SIZE.space }}>
+    <View style={{ backgroundColor: hue, borderRadius: ESQUINA.hoja, padding: SIZE.space + 2, gap: SIZE.space }}>
       <View
         accessible
         accessibilityLabel={ES.tarjeta.ayuda(vista.nombre, vista.sellos, vista.de, enFrase(vista.premio))}
@@ -104,7 +105,7 @@ export function TarjetaDeLealtad({
             alignItems: 'center',
             gap: SIZE.rowGap,
             padding: SIZE.rowGap + 2,
-            borderRadius: 12,
+            borderRadius: ESQUINA.boton,
             backgroundColor: pressed ? 'rgba(255, 255, 255, 0.32)' : 'rgba(255, 255, 255, 0.2)',
           })}
         >

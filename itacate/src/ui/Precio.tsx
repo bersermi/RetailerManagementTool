@@ -6,6 +6,7 @@ import { precioTexto, quedanTexto } from '@/lib/lista';
 import { ES } from '@/strings';
 import { HUES } from '@/theme/colores';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 
 // ============================================================================
 // A DISH'S PRICE AND ITS TWO SMALL BADGES — what the list's card, a kitchen's page and
@@ -44,7 +45,7 @@ export function Precio({ platillo, color, grande = false }: { platillo: Dish; co
             backgroundColor: HUES[color],
             paddingHorizontal: 5,
             paddingVertical: 2,
-            borderRadius: 5,
+            borderRadius: ESQUINA.chip,
             overflow: 'hidden',
           }}
         >
@@ -65,10 +66,12 @@ export function Quedan({ platillo }: { platillo: Dish }) {
         fontSize: SIZE.smallSize - 1,
         fontWeight: '600',
         color: PALETTE.tinta,
-        backgroundColor: PALETTE.banda,
+        backgroundColor: PALETTE.superficie,
+        borderWidth: 1,
+        borderColor: PALETTE.linea,
         paddingHorizontal: 7,
         paddingVertical: 3,
-        borderRadius: 6,
+        borderRadius: ESQUINA.chip,
         overflow: 'hidden',
       }}
     >
@@ -85,10 +88,12 @@ export function Sorpresa() {
         fontSize: SIZE.smallSize - 2,
         fontWeight: '700',
         color: PALETTE.marca,
-        backgroundColor: PALETTE.banda,
+        backgroundColor: PALETTE.superficie,
+        borderWidth: 1,
+        borderColor: PALETTE.linea,
         paddingHorizontal: 6,
         paddingVertical: 2,
-        borderRadius: 6,
+        borderRadius: ESQUINA.chip,
         overflow: 'hidden',
       }}
     >

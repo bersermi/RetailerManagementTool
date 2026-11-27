@@ -4,6 +4,7 @@ import { Pressable, Text, View } from 'react-native';
 import { diasTexto, horaTexto, type Propuesta } from '@/lib/recordatorio';
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 import { BotonLleno } from '@/ui/BotonLleno';
 
 // ============================================================================
@@ -33,9 +34,7 @@ export function PreguntaRecordatorio({
       style={{
         gap: SIZE.space,
         padding: SIZE.space,
-        borderRadius: SIZE.space,
-        borderWidth: 1,
-        borderColor: PALETTE.linea,
+        borderRadius: ESQUINA.hoja,
         backgroundColor: PALETTE.superficie,
       }}
     >

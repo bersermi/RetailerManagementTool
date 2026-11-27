@@ -11,6 +11,7 @@ import { SUPPORT_WHATSAPP } from '@/lib/supportWhatsapp';
 import { ES } from '@/strings';
 import { TITULO } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 import { Banda } from '@/ui/Banda';
 import { BotonLleno } from '@/ui/BotonLleno';
 import { Llega } from '@/ui/Llega';
@@ -68,9 +69,7 @@ function Lo({ calificaciones, cocina }: { calificaciones: Calificaciones | null;
   const tarjeta = {
     gap: SIZE.rowGap,
     padding: SIZE.space * 1.25,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: PALETTE.linea,
+    borderRadius: ESQUINA.hoja,
     backgroundColor: PALETTE.superficie,
   } as const;
   const subtitulo = { fontSize: SIZE.smallSize, fontWeight: '700', color: PALETTE.tintaApagada } as const;

@@ -39,6 +39,7 @@ import { checkVentana, firstVentana, type Ventana } from '@/lib/ventana';
 import { previaDe, recienTomadas } from '@/lib/vistaPrevia';
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 import { Banda } from '@/ui/Banda';
 import { BotonLleno } from '@/ui/BotonLleno';
 import { Formulario } from '@/ui/Formulario';
@@ -345,7 +346,7 @@ function Opcion({
         alignItems: 'center',
         gap: 6,
         paddingHorizontal: SIZE.space,
-        borderRadius: 999,
+        borderRadius: ESQUINA.chip,
         borderWidth: on ? 1.5 : 1,
         borderColor: on ? color : PALETTE.linea,
         backgroundColor: on ? (marca ? PALETTE.marcaSuave : PALETTE.accionSuave) : pressed ? PALETTE.fondo : PALETTE.superficie,

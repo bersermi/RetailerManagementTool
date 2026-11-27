@@ -41,6 +41,7 @@ import { useAlAbrir } from '@/lib/useGoogle';
 import { useRepetir } from '@/lib/useRepetir';
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 import { Banda } from '@/ui/Banda';
 import { BotonLleno } from '@/ui/BotonLleno';
 import { Brillo } from '@/ui/Brillo';
@@ -326,7 +327,7 @@ function HoyDe({ kitchen }: { kitchen: Kitchen }) {
                       alignItems: 'center',
                       gap: 6,
                       paddingHorizontal: SIZE.space,
-                      borderRadius: 999,
+                      borderRadius: ESQUINA.chip,
                       borderWidth: 1,
                       borderColor: PALETTE.accion,
                       backgroundColor: pressed ? PALETTE.accionSuave : PALETTE.superficie,

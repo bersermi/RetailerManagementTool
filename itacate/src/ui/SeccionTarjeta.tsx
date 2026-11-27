@@ -10,6 +10,7 @@ import { ES } from '@/strings';
 import { HUES } from '@/theme/colores';
 import { letraEncabezado } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 import { BotonLleno } from '@/ui/BotonLleno';
 import { Circulo } from '@/ui/Circulo';
 import { TarjetaDeLealtad } from '@/ui/TarjetaDeLealtad';
@@ -59,7 +60,7 @@ export function SeccionTarjeta({ cocina }: { cocina: Kitchen }) {
             style={{
               gap: SIZE.rowGap,
               padding: SIZE.space,
-              borderRadius: SIZE.space,
+              borderRadius: ESQUINA.hoja,
               borderWidth: 1.5,
               borderColor: hue,
               backgroundColor: PALETTE.superficie,

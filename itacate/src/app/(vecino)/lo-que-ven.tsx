@@ -9,6 +9,7 @@ import { deviceStore } from '@/lib/store';
 import { cocinaDeTarjeta, hayTarjetas, loQueVenDe } from '@/lib/tarjeta';
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 import { Banda } from '@/ui/Banda';
 import { Circulo } from '@/ui/Circulo';
 import { Llega } from '@/ui/Llega';
@@ -46,7 +47,7 @@ export default function LoQueVen() {
             <ActivityIndicator color={PALETTE.accion} />
           </View>
         ) : kitchens.length === 0 ? (
-          <View style={{ gap: SIZE.rowGap, padding: SIZE.space * 1.5, borderRadius: SIZE.space, borderWidth: 1, borderColor: PALETTE.linea, backgroundColor: PALETTE.superficie }}>
+          <View style={{ gap: SIZE.rowGap, padding: SIZE.space * 1.5, borderRadius: ESQUINA.hoja, backgroundColor: PALETTE.superficie }}>
             <Text style={{ fontSize: SIZE.bodySize, fontWeight: '700', color: PALETTE.tinta }}>{conTarjeta ? ES.loQueVen.ningunaConTarjeta : ES.loQueVen.ninguna}</Text>
             <Text style={{ fontSize: SIZE.smallSize, lineHeight: 19, color: PALETTE.tintaApagada }}>{ES.loQueVen.ningunaDetalle}</Text>
           </View>
@@ -59,7 +60,7 @@ export default function LoQueVen() {
               <Llega
                 key={k.id}
                 i={n}
-                style={{ gap: SIZE.rowGap, padding: SIZE.space, borderRadius: SIZE.space, borderWidth: 1, borderColor: PALETTE.linea, backgroundColor: PALETTE.superficie }}
+                style={{ gap: SIZE.rowGap, padding: SIZE.space, borderRadius: ESQUINA.hoja, backgroundColor: PALETTE.superficie }}
               >
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: SIZE.rowGap + 2 }}>
                   {circulo !== null && <Circulo cocina={circulo} size={32} />}

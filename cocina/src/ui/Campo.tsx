@@ -14,6 +14,7 @@ import { Pressable, Text, TextInput, View, type TextInputProps } from 'react-nat
 
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 
 export function Campo({
   label,
@@ -45,7 +46,7 @@ export function Campo({
             minHeight: SIZE.tapTarget,
             borderWidth: 1,
             borderColor: PALETTE.linea,
-            borderRadius: SIZE.space * 0.75,
+            borderRadius: ESQUINA.campo,
             paddingHorizontal: SIZE.space,
             paddingRight: mostrable ? SIZE.tapTarget + SIZE.space / 2 : SIZE.space,
             backgroundColor: PALETTE.superficie,

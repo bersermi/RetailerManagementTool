@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { Pie } from '@/lib/apartar';
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 import { BotonLleno } from '@/ui/BotonLleno';
 
 // ============================================================================
@@ -58,7 +59,7 @@ export function PieDeApartar({
               lineHeight: 19,
               color: PALETTE.accion,
               backgroundColor: PALETTE.accionSuave,
-              borderRadius: SIZE.rowGap,
+              borderRadius: ESQUINA.hoja,
               paddingHorizontal: SIZE.space - 2,
               paddingVertical: SIZE.rowGap,
               overflow: 'hidden',
@@ -106,7 +107,7 @@ function Apagado({ texto }: { texto: string }) {
         alignItems: 'center',
         justifyContent: 'center',
         paddingHorizontal: SIZE.space,
-        borderRadius: SIZE.space / 2,
+        borderRadius: ESQUINA.boton,
         backgroundColor: PALETTE.linea,
       }}
     >

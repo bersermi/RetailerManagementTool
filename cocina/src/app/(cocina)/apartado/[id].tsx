@@ -31,6 +31,7 @@ import { clockOf } from '@/lib/ventana';
 import { ES } from '@/strings';
 import { TITULO } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 import { AntesDeCalificar, useTerminos } from '@/ui/AntesDeCalificar';
 import { Banda } from '@/ui/Banda';
 import { BotonLleno } from '@/ui/BotonLleno';
@@ -158,7 +159,7 @@ export default function ApartadoAbierto() {
         </Llega>
 
         <Llega i={1} style={{ gap: SIZE.space }}>
-          <View style={{ gap: 4, padding: SIZE.space, borderRadius: SIZE.space - 2, borderWidth: 1, borderColor: PALETTE.linea, backgroundColor: PALETTE.superficie }}>
+          <View style={{ gap: 4, padding: SIZE.space, borderRadius: ESQUINA.hoja, backgroundColor: PALETTE.superficie }}>
             <Text style={{ fontSize: 18, fontWeight: '600', color: PALETTE.tinta }}>{queTexto(orden)}</Text>
             <Text style={{ fontSize: SIZE.bodySize, color: PALETTE.tinta }}>{ES.apartado.comerLargo[orden.comer]}</Text>
             {orden.desechablesCentavos > 0 && (
@@ -169,7 +170,7 @@ export default function ApartadoAbierto() {
           </View>
 
           {orden.vecino !== null && (
-            <View style={{ gap: 4, padding: SIZE.space, borderRadius: SIZE.space - 2, borderWidth: 1, borderColor: PALETTE.linea, backgroundColor: PALETTE.superficie }}>
+            <View style={{ gap: 4, padding: SIZE.space, borderRadius: ESQUINA.hoja, backgroundColor: PALETTE.superficie }}>
               <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada }}>{ES.apartado.vecina}</Text>
               <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: SIZE.rowGap }}>
                 <Text style={{ fontSize: SIZE.bodySize, fontWeight: '600', color: PALETTE.tinta }}>{nombreTexto(orden.vecino)}</Text>
@@ -181,7 +182,7 @@ export default function ApartadoAbierto() {
             </View>
           )}
 
-          <View style={{ gap: 6, paddingHorizontal: SIZE.space, paddingVertical: SIZE.rowGap + 2, borderRadius: SIZE.space - 2, borderWidth: 1, borderColor: PALETTE.linea, backgroundColor: PALETTE.superficie }}>
+          <View style={{ gap: 6, paddingHorizontal: SIZE.space, paddingVertical: SIZE.rowGap + 2, borderRadius: ESQUINA.hoja, backgroundColor: PALETTE.superficie }}>
             {filaHora(ES.apartado.aparto, clockOf(orden.creadaEn))}
             {filaHora(ES.apartado.pasaFila, horaTexto(orden.hora, ahora))}
             {orden.entregaEn !== null

@@ -1,6 +1,7 @@
 import { Pressable, Text, View } from 'react-native';
 
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 
 // ============================================================================
 // ONE CHOICE OF SEVERAL — A ROW WITH A RADIO. Plan task `10.5-v-b`: *Ordenar*'s three
@@ -33,7 +34,7 @@ export function Opcion({
         alignItems: 'center',
         gap: SIZE.space,
         padding: SIZE.space,
-        borderRadius: 14,
+        borderRadius: ESQUINA.boton,
         borderWidth: elegida ? 2 : 1.5,
         borderColor: elegida ? PALETTE.accion : PALETTE.linea,
         backgroundColor: elegida ? PALETTE.accionSuave : PALETTE.superficie,

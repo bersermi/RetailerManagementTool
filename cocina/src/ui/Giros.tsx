@@ -16,6 +16,7 @@ import { Pressable, Text, View } from 'react-native';
 
 import type { Giro } from '@/api/kitchen';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 
 export function Giros({
   giros,
@@ -46,7 +47,7 @@ export function Giros({
               alignItems: 'center',
               gap: SIZE.space,
               paddingHorizontal: SIZE.space,
-              borderRadius: SIZE.space * 0.75,
+              borderRadius: ESQUINA.boton,
               borderWidth: on ? 2 : 1,
               borderColor: on ? PALETTE.accion : PALETTE.linea,
               backgroundColor: on ? PALETTE.accionSuave : PALETTE.superficie,

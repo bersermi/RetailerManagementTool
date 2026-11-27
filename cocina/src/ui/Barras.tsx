@@ -2,6 +2,7 @@ import { Text, View } from 'react-native';
 
 import type { Barra } from '@/lib/numeros';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 
 // ============================================================================
 // A SET OF BARS — *Tus días fuertes*, *Tus horas fuertes*. Plan task `10.9f`, the family-shell page's
@@ -17,9 +18,7 @@ export function Barras({ titulo, barras }: { titulo: string; barras: readonly Ba
       style={{
         gap: SIZE.rowGap,
         padding: SIZE.space,
-        borderRadius: 14,
-        borderWidth: 1,
-        borderColor: PALETTE.linea,
+        borderRadius: ESQUINA.hoja,
         backgroundColor: PALETTE.superficie,
       }}
     >
@@ -32,12 +31,12 @@ export function Barras({ titulo, barras }: { titulo: string; barras: readonly Ba
           style={{ flexDirection: 'row', alignItems: 'center', gap: SIZE.rowGap }}
         >
           <Text style={{ width: 40, fontSize: SIZE.smallSize, color: PALETTE.tintaApagada }}>{barra.etiqueta}</Text>
-          <View style={{ flex: 1, height: 10, borderRadius: 5, backgroundColor: PALETTE.accionSuave, overflow: 'hidden' }}>
+          <View style={{ flex: 1, height: 10, borderRadius: ESQUINA.marca, backgroundColor: PALETTE.accionSuave, overflow: 'hidden' }}>
             <View
               style={{
                 width: `${Math.max(3, Math.round((barra.valor / mayor) * 100))}%`,
                 height: '100%',
-                borderRadius: 5,
+                borderRadius: ESQUINA.marca,
                 backgroundColor: PALETTE.accion,
               }}
             />

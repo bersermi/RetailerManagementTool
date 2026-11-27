@@ -38,6 +38,7 @@ import { clockOf, dayOf } from '@/lib/ventana';
 import { ES } from '@/strings';
 import { TITULO, letraEncabezado } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 import { Banda } from '@/ui/Banda';
 import { BotonLleno } from '@/ui/BotonLleno';
 import { CalificarVecino } from '@/ui/CalificarVecino';
@@ -342,7 +343,7 @@ function Encontrada({
   const recogida = orden.entregadaEn !== null;
   const colores = coloresDe(marcaDe(orden, ahora));
   const revisadoAqui = revisada && (
-    <View style={{ flexDirection: 'row', alignSelf: 'flex-start', alignItems: 'center', gap: 6, paddingVertical: 4, paddingHorizontal: 10, borderRadius: 999, backgroundColor: PALETTE.accionSuave }}>
+    <View style={{ flexDirection: 'row', alignSelf: 'flex-start', alignItems: 'center', gap: 6, paddingVertical: 4, paddingHorizontal: 10, borderRadius: ESQUINA.chip, backgroundColor: PALETTE.accionSuave }}>
       <MaterialCommunityIcons name="check" size={14} color={PALETTE.accion} />
       <Text style={{ fontSize: SIZE.smallSize, fontWeight: '700', color: PALETTE.accion }}>{ES.entregar.revisado}</Text>
     </View>
@@ -357,7 +358,7 @@ function Encontrada({
           <Text style={{ ...TITULO, fontSize: 30, fontVariant: ['tabular-nums'], color: PALETTE.tinta }}>{ES.entregar.codigo(orden.codigo)}</Text>
           <Marca texto={ES.apartado.entregado} fondo={PALETTE.banda} tinta={PALETTE.tinta} />
         </View>
-        <View style={{ gap: 4, padding: SIZE.space, borderRadius: SIZE.space - 2, borderWidth: 1, borderColor: PALETTE.linea, backgroundColor: PALETTE.superficie }}>
+        <View style={{ gap: 4, padding: SIZE.space, borderRadius: ESQUINA.hoja, backgroundColor: PALETTE.superficie }}>
           <Text style={{ fontSize: 18, fontWeight: '600', color: PALETTE.tinta }}>{queTexto(orden)}</Text>
           {cobraste !== null && <Text style={{ fontSize: SIZE.bodySize, color: PALETTE.tinta }}>{cobraste}</Text>}
           {esperando && (
@@ -415,11 +416,11 @@ function Encontrada({
       {aviso !== null && <Text style={{ fontSize: SIZE.bodySize - 1, lineHeight: 21, fontWeight: '600', color: PALETTE.marca }}>{aviso}</Text>}
       {!recogida && (
         <>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: SIZE.rowGap, padding: SIZE.space, borderRadius: SIZE.space - 2, backgroundColor: PALETTE.banda }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: SIZE.rowGap, padding: SIZE.space, borderRadius: ESQUINA.hoja, backgroundColor: PALETTE.banda }}>
             <MaterialCommunityIcons name={orden.comer === 'aqui' ? 'silverware-fork-knife' : 'shopping-outline'} size={22} color={PALETTE.tinta} />
             <Text style={{ fontSize: SIZE.bodySize + 1, fontWeight: '700', color: PALETTE.tinta }}>{ES.entregar.comerGrande[orden.comer]}</Text>
           </View>
-          <View style={{ gap: 6, padding: SIZE.space, borderRadius: SIZE.space - 2, borderWidth: 1.5, borderColor: PALETTE.accion, backgroundColor: PALETTE.superficie }}>
+          <View style={{ gap: 6, padding: SIZE.space, borderRadius: ESQUINA.hoja, borderWidth: 1.5, borderColor: PALETTE.accion, backgroundColor: PALETTE.superficie }}>
             <Text style={{ ...letraEncabezado(SIZE), color: PALETTE.tinta }}>
               {ES.entregar.pago[orden.pago]}
             </Text>

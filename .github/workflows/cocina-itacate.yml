@@ -118,6 +118,10 @@ on:
       - "app/src/theme/density.ts"
       - "app/src/marca/fuentes.ts"
       - "app/app.json"
+      # ⚠️ `11.7-ii`, A CORNER PER ROLE AND HER PHRASE IN HER HAND: each `ESQUINA` is Wera's block (`density.ts`,
+      # above), and her phrase's Mansalva is `brand/letras/`'s file byte for byte (`test/esquinas.test.ts`).
+      - "brand/letras/Mansalva-Regular.ttf"
+      - "brand/letras/OFL-Mansalva.txt"
       - "package.json"
       - "package-lock.json"
       - ".github/workflows/cocina-itacate.yml"

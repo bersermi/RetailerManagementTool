@@ -6,6 +6,7 @@ import { NOTA_MAXIMA, etiquetasDeLaBanda, etiquetasPara, type Apartado, type Eti
 import { useCalificar } from '@/api/hooks';
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 import { BotonLleno } from '@/ui/BotonLleno';
 
 // ============================================================================
@@ -119,7 +120,7 @@ export function Calificar({ apartado, onListo }: { apartado: Apartado; onListo: 
                     minHeight: SIZE.tapTarget - SIZE.rowGap,
                     justifyContent: 'center',
                     paddingHorizontal: SIZE.space,
-                    borderRadius: 999,
+                    borderRadius: ESQUINA.chip,
                     borderWidth: 1,
                     borderColor: elegida ? PALETTE.accion : PALETTE.linea,
                     backgroundColor: elegida ? PALETTE.accionSuave : PALETTE.superficie,
@@ -145,7 +146,7 @@ export function Calificar({ apartado, onListo }: { apartado: Apartado; onListo: 
               style={{
                 minHeight: SIZE.tapTarget * 1.5,
                 padding: SIZE.space,
-                borderRadius: 12,
+                borderRadius: ESQUINA.campo,
                 borderWidth: 1,
                 borderColor: PALETTE.linea,
                 backgroundColor: PALETTE.fondo,

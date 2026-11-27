@@ -8,6 +8,7 @@ import { slotOf } from '@/lib/ventana';
 import { ES } from '@/strings';
 import { letraEncabezado } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 
 // ============================================================================
 // ONE OF TODAY'S OFFERS, IN *TUS OFERTAS* (the family-shell page's `offerCard`). Plan
@@ -64,9 +65,10 @@ export function OfertaDeHoy({
       style={{
         gap: SIZE.rowGap,
         padding: SIZE.space,
-        borderRadius: SIZE.space,
-        borderWidth: enOferta ? 2 : 1,
-        borderColor: enOferta ? PALETTE.accion : PALETTE.linea,
+        borderRadius: ESQUINA.hoja,
+        // `11.7-ii`: a sheet on the counter has no edge; on offer it keeps the green one, its sign.
+        borderWidth: enOferta ? 2 : 0,
+        borderColor: PALETTE.accion,
         backgroundColor: PALETTE.superficie,
       }}
     >
@@ -152,7 +154,7 @@ export function OfertaDeHoy({
                 minHeight: SIZE.tapTarget,
                 alignItems: 'center',
                 justifyContent: 'center',
-                borderRadius: SIZE.space / 2,
+                borderRadius: ESQUINA.boton,
                 borderWidth: 1,
                 borderColor: PALETTE.linea,
                 backgroundColor: PALETTE.superficie,
@@ -171,7 +173,7 @@ export function OfertaDeHoy({
                 gap: 6,
                 alignItems: 'center',
                 justifyContent: 'center',
-                borderRadius: SIZE.space / 2,
+                borderRadius: ESQUINA.boton,
                 borderWidth: 1,
                 borderColor: PALETTE.linea,
                 backgroundColor: PALETTE.superficie,
@@ -211,7 +213,7 @@ function Paso({
         height: SIZE.tapTarget,
         alignItems: 'center',
         justifyContent: 'center',
-        borderRadius: SIZE.space / 2,
+        borderRadius: ESQUINA.boton,
         borderWidth: 1.5,
         borderColor: disabled ? PALETTE.linea : PALETTE.accion,
         backgroundColor: pressed ? PALETTE.accionSuave : PALETTE.superficie,

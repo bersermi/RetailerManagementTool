@@ -30,6 +30,7 @@ import { useAuth } from '@/auth/AuthProvider';
 import { alEliminarDe } from '@/lib/tarjeta';
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 import { BotonLleno } from '@/ui/BotonLleno';
 import { Campo } from '@/ui/Campo';
 
@@ -131,7 +132,7 @@ export function Salidas() {
               ...row,
               borderWidth: 1,
               borderColor: ready ? PALETTE.error : PALETTE.linea,
-              borderRadius: SIZE.space / 2,
+              borderRadius: ESQUINA.boton,
             }}
           >
             <Text style={{ fontSize: SIZE.bodySize, fontWeight: '600', color: ready ? PALETTE.error : PALETTE.tintaApagada }}>

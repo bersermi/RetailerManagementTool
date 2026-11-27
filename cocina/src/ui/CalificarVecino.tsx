@@ -7,6 +7,7 @@ import { cuandoTexto } from '@/lib/apartados';
 import { ES } from '@/strings';
 import { TITULO } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 import { AntesDeCalificar, useTerminos } from '@/ui/AntesDeCalificar';
 import { BotonLleno } from '@/ui/BotonLleno';
 
@@ -136,7 +137,7 @@ function Pulgares({ arriba, onPulgar }: { arriba: boolean | null; onPulgar: ((ar
             style={{
               width: 76,
               height: 60,
-              borderRadius: SIZE.space + 4,
+              borderRadius: ESQUINA.boton,
               borderWidth: 1.5,
               alignItems: 'center',
               justifyContent: 'center',
@@ -180,7 +181,7 @@ function Etiquetas({
               minHeight: SIZE.tapTarget - 8,
               justifyContent: 'center',
               paddingHorizontal: SIZE.space,
-              borderRadius: 999,
+              borderRadius: ESQUINA.chip,
               borderWidth: 1.5,
               borderColor: elegida ? PALETTE.accion : PALETTE.linea,
               backgroundColor: PALETTE.superficie,

@@ -6,6 +6,7 @@ import { horaTexto, prontoTexto, queTexto, type Orden } from '@/lib/apartados';
 import { ES } from '@/strings';
 import { letraEncabezado } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 import { Accion } from '@/ui/TarjetaOrden';
 
 // ============================================================================
@@ -37,7 +38,7 @@ export function LoQueSigue({
     ES.loQueSigue.pago[siguiente.pago],
   );
   return (
-    <View style={{ gap: SIZE.rowGap, padding: SIZE.space * 1.25, borderRadius: SIZE.space * 1.25, borderWidth: 1, borderColor: PALETTE.linea, backgroundColor: PALETTE.superficie }}>
+    <View style={{ gap: SIZE.rowGap, padding: SIZE.space * 1.25, borderRadius: ESQUINA.hoja, backgroundColor: PALETTE.superficie }}>
       <Text style={{ ...letraEncabezado(SIZE), color: PALETTE.tinta }}>
         {ES.loQueSigue.titulo}
       </Text>

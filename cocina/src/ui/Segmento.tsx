@@ -1,6 +1,7 @@
 import { Pressable, Text, View } from 'react-native';
 
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 
 // ============================================================================
 // TWO HALVES OF ONE SCREEN — *Hoy · Historial*. Plan task `10.5b-iv-a`, the owner's final
@@ -30,7 +31,7 @@ export function Segmento<T extends string>({
   return (
     <View
       accessibilityRole="tablist"
-      style={{ flexDirection: 'row', borderWidth: 1.5, borderColor: PALETTE.linea, borderRadius: SIZE.space - 2, overflow: 'hidden' }}
+      style={{ flexDirection: 'row', borderWidth: 1.5, borderColor: PALETTE.linea, borderRadius: ESQUINA.boton, overflow: 'hidden' }}
     >
       {mitades.map((mitad) => {
         const enUso = mitad.valor === valor;
@@ -66,7 +67,7 @@ export function Segmento<T extends string>({
 /** A count in a rust round — on *Historial*, and on the tab. */
 export function Cuenta({ n }: { n: number }) {
   return (
-    <View style={{ minWidth: 18, paddingHorizontal: 5, height: 18, borderRadius: 9, alignItems: 'center', justifyContent: 'center', backgroundColor: PALETTE.marca }}>
+    <View style={{ minWidth: 18, paddingHorizontal: 5, height: 18, borderRadius: ESQUINA.chip, alignItems: 'center', justifyContent: 'center', backgroundColor: PALETTE.marca }}>
       <Text style={{ fontSize: 11, fontWeight: '800', color: PALETTE.superficie }}>{String(n)}</Text>
     </View>
   );

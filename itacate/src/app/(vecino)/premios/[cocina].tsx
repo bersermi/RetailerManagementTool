@@ -9,6 +9,7 @@ import { colorDeTarjeta, premiosDe } from '@/lib/tarjeta';
 import { ES } from '@/strings';
 import { HUES } from '@/theme/colores';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 import { Banda } from '@/ui/Banda';
 import { BotonLleno } from '@/ui/BotonLleno';
 import { Llega } from '@/ui/Llega';
@@ -46,7 +47,7 @@ export default function Premios() {
             )}
           </View>
         ) : premios.length === 0 ? (
-          <View style={{ alignItems: 'center', gap: SIZE.rowGap, padding: SIZE.space * 2, borderRadius: SIZE.space, borderWidth: 1, borderColor: PALETTE.linea, backgroundColor: PALETTE.superficie }}>
+          <View style={{ alignItems: 'center', gap: SIZE.rowGap, padding: SIZE.space * 2, borderRadius: ESQUINA.hoja, backgroundColor: PALETTE.superficie }}>
             <MaterialCommunityIcons name="gift-outline" size={40} color={PALETTE.linea} />
             <Text style={{ fontSize: SIZE.bodySize, color: PALETTE.tinta, textAlign: 'center' }}>{ES.premios.ninguno}</Text>
           </View>
@@ -61,7 +62,7 @@ export default function Premios() {
                     alignItems: 'center',
                     gap: SIZE.space,
                     padding: SIZE.space,
-                    borderRadius: SIZE.space,
+                    borderRadius: ESQUINA.hoja,
                     borderWidth: 1.5,
                     borderColor: hue,
                     backgroundColor: PALETTE.superficie,

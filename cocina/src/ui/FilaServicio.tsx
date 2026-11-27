@@ -6,6 +6,7 @@ import type { Servicio } from '@/api/servicios';
 import { ICONO_DE } from '@/lib/loQueUsas';
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 
 // ============================================================================
 // ONE ROW OF *LO QUE USAS*. Plan task `10.9a-ii`, the family-shell page's `usasRows`: the
@@ -44,7 +45,7 @@ function Pastilla({ texto, icono = null, llena = false }: { texto: string; icono
         gap: 4,
         paddingHorizontal: SIZE.rowGap + 2,
         paddingVertical: 4,
-        borderRadius: 999,
+        borderRadius: ESQUINA.chip,
         borderWidth: 1,
         borderColor: PALETTE.accion,
         backgroundColor: llena ? PALETTE.accionSuave : PALETTE.superficie,

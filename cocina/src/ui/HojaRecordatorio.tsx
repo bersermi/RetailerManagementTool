@@ -6,6 +6,7 @@ import { diasTexto, horasDe, horaTexto, type Dia } from '@/lib/recordatorio';
 import { ES } from '@/strings';
 import { TITULO } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 import { BotonLleno } from '@/ui/BotonLleno';
 
 // ============================================================================
@@ -63,8 +64,8 @@ export function HojaRecordatorio({
             gap: SIZE.space,
             padding: SIZE.space * 1.5,
             paddingBottom: SIZE.space * 1.5 + insets.bottom,
-            borderTopLeftRadius: SIZE.space * 1.5,
-            borderTopRightRadius: SIZE.space * 1.5,
+            borderTopLeftRadius: ESQUINA.hoja,
+            borderTopRightRadius: ESQUINA.hoja,
             backgroundColor: PALETTE.superficie,
           }}
         >
@@ -91,7 +92,7 @@ export function HojaRecordatorio({
                     alignItems: 'center',
                     justifyContent: 'center',
                     paddingHorizontal: SIZE.space,
-                    borderRadius: 999,
+                    borderRadius: ESQUINA.chip,
                     borderWidth: on ? 2 : 1,
                     borderColor: on ? PALETTE.accion : PALETTE.linea,
                     backgroundColor: on ? PALETTE.accionSuave : PALETTE.superficie,
@@ -105,7 +106,7 @@ export function HojaRecordatorio({
             })}
           </View>
 
-          <View style={{ gap: 2, padding: SIZE.space, borderRadius: SIZE.space, backgroundColor: PALETTE.banda }}>
+          <View style={{ gap: 2, padding: SIZE.space, borderRadius: ESQUINA.hoja, backgroundColor: PALETTE.banda }}>
             <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada }}>{ES.recordatorio.asiSeVera}</Text>
             <Text style={{ fontSize: SIZE.bodySize, fontWeight: '700', color: PALETTE.tinta }}>{ES.recordatorio.avisoTitulo}</Text>
             <Text style={{ fontSize: SIZE.bodySize - 1, color: PALETTE.tinta }}>{ES.recordatorio.avisoTexto}</Text>

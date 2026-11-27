@@ -18,6 +18,7 @@ import {
 import { ES } from '@/strings';
 import { TITULO } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 
 // ============================================================================
 // ONE ORDER'S CARD — *Apartados*' *Hoy*, and what waits for her thumb in *Historial*. Plan
@@ -64,7 +65,7 @@ export function TarjetaOrden({
   const porEntregar = marca === 'porEntregar' || marca === 'pronto';
 
   return (
-    <View style={{ gap: 6, padding: SIZE.space, borderRadius: SIZE.space - 2, borderWidth: 1, borderColor: PALETTE.linea, backgroundColor: PALETTE.superficie }}>
+    <View style={{ gap: 6, padding: SIZE.space, borderRadius: ESQUINA.hoja, backgroundColor: PALETTE.superficie }}>
       <Pressable accessibilityRole="button" accessibilityLabel={ES.apartados.abrirAyuda(orden.codigo)} onPress={onAbrir} style={{ gap: 6 }}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: SIZE.rowGap }}>
           <Text style={{ ...TITULO, fontSize: 30, letterSpacing: 1, fontVariant: ['tabular-nums'], color: PALETTE.tinta }}>{orden.codigo}</Text>
@@ -118,8 +119,8 @@ export function TarjetaOrden({
 /** A state's mark: its word on its tint, a dot when it waits for her thumb. */
 export function Marca({ texto, fondo, tinta, punto = false }: { texto: string; fondo: string; tinta: string; punto?: boolean }) {
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 999, backgroundColor: fondo }}>
-      {punto && <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: PALETTE.marca }} />}
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 8, paddingVertical: 4, borderRadius: ESQUINA.chip, backgroundColor: fondo }}>
+      {punto && <View style={{ width: 7, height: 7, borderRadius: 3.5, backgroundColor: PALETTE.marca }} />}
       <Text style={{ fontSize: 12, fontWeight: '700', color: tinta }}>{texto}</Text>
     </View>
   );
@@ -128,7 +129,7 @@ export function Marca({ texto, fondo, tinta, punto = false }: { texto: string; f
 /** Her score's chip: *👍 92%* on the band's cream, *Nueva en Itacate* on grey. */
 export function Calificacion({ texto, nueva }: { texto: string; nueva: boolean }) {
   return (
-    <View style={{ paddingHorizontal: 7, paddingVertical: 3, borderRadius: 999, backgroundColor: nueva ? PALETTE.linea : PALETTE.banda }}>
+    <View style={{ paddingHorizontal: 7, paddingVertical: 3, borderRadius: ESQUINA.chip, backgroundColor: nueva ? PALETTE.linea : PALETTE.banda }}>
       <Text style={{ fontSize: 11.5, fontWeight: '700', color: nueva ? PALETTE.tintaApagada : PALETTE.tinta }}>{texto}</Text>
     </View>
   );
@@ -157,7 +158,7 @@ export function Accion({
       onPress={onPress}
       style={({ pressed }) => ({
         minHeight: SIZE.tapTarget,
-        borderRadius: 6,
+        borderRadius: ESQUINA.boton,
         alignItems: 'center',
         justifyContent: 'center',
         paddingHorizontal: SIZE.space,

@@ -12,6 +12,7 @@ import { useAhora } from '@/lib/useAhora';
 import { ES } from '@/strings';
 import { FAMILIA_NUMERO } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 import { AsiFunciona, useAsiFunciona } from '@/ui/AsiFunciona';
 import { Banda } from '@/ui/Banda';
 import { BotonLleno } from '@/ui/BotonLleno';
@@ -130,7 +131,7 @@ export default function Tarjeta() {
           {cuentasDe(card).map((c) => (
             <View
               key={c.que}
-              style={{ flex: 1, padding: SIZE.space, gap: 2, borderRadius: 14, borderWidth: 1, borderColor: PALETTE.linea, backgroundColor: PALETTE.superficie }}
+              style={{ flex: 1, padding: SIZE.space, gap: 2, borderRadius: ESQUINA.hoja, backgroundColor: PALETTE.superficie }}
             >
               <Text style={{ fontSize: SIZE.titleSize + 4, lineHeight: SIZE.titleSize + 8, fontFamily: FAMILIA_NUMERO, fontVariant: ['tabular-nums'], color: PALETTE.tinta }}>{c.n}</Text>
               <Text style={{ fontSize: SIZE.smallSize - 1, lineHeight: 16, color: PALETTE.tintaApagada }}>{c.que}</Text>

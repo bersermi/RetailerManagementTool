@@ -6,6 +6,7 @@ import { nombreDe, type Anterior as Fila } from '@/lib/hoy';
 import { slotOf } from '@/lib/ventana';
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 
 // ============================================================================
 // ONE OF HER PAST OFFERS, IN *TUS OFERTAS › ANTERIORES* (the family-shell page's
@@ -33,7 +34,7 @@ export function Anterior({ fila, ahora, busy, onRepetir }: { fila: Fila; ahora: 
             fontWeight: '700',
             color: PALETTE.accion,
             backgroundColor: PALETTE.accionSuave,
-            borderRadius: 999,
+            borderRadius: ESQUINA.chip,
             paddingHorizontal: 10,
             paddingVertical: 3,
             overflow: 'hidden',
@@ -54,7 +55,7 @@ export function Anterior({ fila, ahora, busy, onRepetir }: { fila: Fila; ahora: 
             alignItems: 'center',
             gap: 4,
             paddingHorizontal: SIZE.space,
-            borderRadius: 999,
+            borderRadius: ESQUINA.chip,
             borderWidth: 1,
             borderColor: PALETTE.accion,
             backgroundColor: PALETTE.accionSuave,

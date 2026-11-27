@@ -6,6 +6,7 @@ import { ventanaTexto } from '@/vecinos/lista';
 import { marcaDeOferta } from '@/vecinos/paginas';
 import { HUES } from '@/theme/colores';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 import { MarcaPromocion } from '@/ui/BandaPromocion';
 import { Dibujo } from '@/ui/Dibujo';
 import { Foto } from '@/vecinos/ui/Foto';
@@ -29,12 +30,15 @@ export function RenglonPlatillo({
   platillo,
   ahora,
   onPress,
+  primero = false,
 }: {
   cocina: Kitchen;
   oferta: Offer;
   platillo: Dish;
   ahora: Date;
   onPress: () => void;
+  /** `11.7-ii`: the first row of her sheet — a `linea` goes between rows, never around them. */
+  primero?: boolean;
 }) {
   const color = colorOf(cocina.page, cocina.giro);
   const promocion = marcaDeOferta(cocina, oferta);
@@ -48,8 +52,8 @@ export function RenglonPlatillo({
         alignItems: 'flex-start',
         gap: SIZE.space,
         paddingVertical: SIZE.space,
-        borderBottomWidth: 1,
-        borderBottomColor: PALETTE.linea,
+        borderTopWidth: primero ? 0 : 1,
+        borderTopColor: PALETTE.linea,
         opacity: pressed ? 0.7 : 1,
       })}
     >
@@ -65,7 +69,7 @@ export function RenglonPlatillo({
           <Quedan platillo={platillo} />
         </View>
       </View>
-      <View style={{ width: CUADRO, height: CUADRO, borderRadius: SIZE.space, overflow: 'hidden', backgroundColor: HUES[color] }}>
+      <View style={{ width: CUADRO, height: CUADRO, borderRadius: ESQUINA.hoja, overflow: 'hidden', backgroundColor: HUES[color] }}>
         <Dibujo dibujo={defaultsFor(cocina.giro).dibujo} color={color} modo="cuadro" />
         <Foto path={platillo.photo} cocinaId={cocina.id} size="chica" />
       </View>

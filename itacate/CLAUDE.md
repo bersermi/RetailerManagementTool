@@ -491,8 +491,8 @@ follows it, as `cocina/CLAUDE.md`'s does:
 - **The tab bar is *Cerca · Mis cocinas · Tú* since `10.9d-ii`** (his ruling G39 of 2026-11-17; *Cerca · Apartados · Tú* from `10.5b-iii-a`) — four tabs at most, each
   with its word; the two ends never move; a slot stays free for later. Wera's JavaScript tabs, not native tabs. ⚠️ **Built by `10.5-v-b`**:
   the tabs are data (`@/navigation/pestanas` — a tab not yet in use would name the row that brings it), the bar is drawn by
-  `@/ui/Pestanas` on `expo-router/js-tabs` (the tab in use: blue, a heavier word and a pill of the blue's tint — ⚠️ the other pills the bar's
-  white, never `transparent`, since `10.5-v-c-i`: Android squared every pill after the first switch), and `(vecino)/(tabs)/` holds
+  `@/ui/Pestanas` on `expo-router/js-tabs` (the tab in use: blue and a heavier word — its pill of the blue's tint went at `11.7-ii`, the design
+  system's *Pestanas*; the marker's stroke is `11.8`'s; the box behind each icon stays the bar's white, never `transparent`), and `(vecino)/(tabs)/` holds
   exactly the tabs in use — `test/pestanas.test.ts` refuses a screen there that is not one. A tab draws `@/ui/Cabeza` (no *Volver*: a tab is
   never closed); a kitchen's page, a dish's and *Dónde buscar* are pushed over the tabs from the root's stack, with `@/ui/Banda`'s *Volver*.
 - **Following, and her reservation pinned** (`10.9d-ii`; G20–G23 and G39, as the family-shell page draws stage 3). Every rule is
@@ -592,6 +592,13 @@ follows it, as `cocina/CLAUDE.md`'s does:
   `transform` alone (`test/pestanas.test.ts`); the last two are the only modules with a gesture (`react-native-gesture-handler`,
   its root in `app/_layout.tsx`). Reanimated's native half was in this app's first build (`libreanimated.so` and `libworklets.so`
   read inside the test build's APK) and Expo's Babel preset adds its worklets plugin by itself; `10.5-v-b` is the first JavaScript to
-  use it in any of the three apps. ⚠️ **The two pages keep their look** (their head is Wera Cocina's preview, `cocina/src/ui/Portada.tsx`)
-  until Wera Cocina's shell (`10.5-v-c`) gives both apps' copies Nunito.
+  use it in any of the three apps. ⚠️ **The two pages are Wera Cocina's too** (their head is Wera Cocina's preview, `cocina/src/ui/Portada.tsx`),
+  copied code for code since `10.5-v-c-ii` (`cocina/test/vecinos.test.ts`), so a change to either page is made in both apps in one PR.
+  ⚠️ **Since `11.7-ii` a corner names its role** — `@/theme/density`'s `ESQUINA`, Wera's block code for code: a sheet, a button, a field and a
+  chip at 3, a bar or a handle at 1; a circle (initials, a dot, a stamp, the map's pins) is half its own side; no pills — and a white sheet on
+  the counter has no plain `linea` edge, the headers (`@/ui/Banda`, `@/ui/Cabeza`) no line under them, the tab bar a white sheet with a
+  `linea` top edge, the list over the map no shadow; on a kitchen's page her phrase in Mansalva (`@/theme/frase`, its file `src/marca/frase/` =
+  `brand/letras/`'s, loaded with Wera's two by `@/marca/fuenteDeFrase`) and her day's dishes and what she usually offers on white sheets; a
+  badge that sits on white and on the grey (*Quedan 2*, *Sorpresa*) the design system's resting chip, white with a `linea` edge; all held by
+  `test/esquinas.test.ts`.
 - **Money:** no screen stores or shows a bank account, a card or an amount paid — only how she will pay.

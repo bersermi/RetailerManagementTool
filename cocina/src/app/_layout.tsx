@@ -12,6 +12,7 @@ import { ColaProvider } from '@/lib/ColaProvider';
 import { NotaProvider } from '@/lib/NotaProvider';
 import { holdSplash, releaseSplash } from '@/lib/splash';
 import { FUENTES } from '@/marca/fuentes';
+import { FUENTE_DE_FRASE } from '@/marca/fuenteDeFrase';
 
 // ============================================================================
 // THE ROOT OF WERA COCINA. Plan tasks `10.2a` (one screen), `10.4b-iii-a`
@@ -38,7 +39,7 @@ export default function RootLayout() {
   // in the system face and jumps — a file inside the update (`@/theme/letra`), a few
   // milliseconds, offline too. ⚠️ A FAILED LOAD NEVER HOLDS THE APP: on an error the
   // titles fall back to the phone's face and everything else draws.
-  const [fontsReady, fontError] = useFonts(FUENTES);
+  const [fontsReady, fontError] = useFonts({ ...FUENTES, ...FUENTE_DE_FRASE });
   if (!fontsReady && fontError === null) return null;
   return (
     <AuthProvider>

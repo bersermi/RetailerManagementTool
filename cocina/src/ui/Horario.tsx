@@ -15,6 +15,7 @@ import { Pressable, Text, View } from 'react-native';
 import { canMoveEnd, canMoveStart, momentOf, moveEnd, moveStart, type Ventana } from '@/lib/ventana';
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 
 type Step = -1 | 1;
 
@@ -41,7 +42,7 @@ export function Horario({
         height: SIZE.tapTarget,
         alignItems: 'center',
         justifyContent: 'center',
-        borderRadius: SIZE.space * 0.75,
+        borderRadius: ESQUINA.boton,
         borderWidth: 1,
         borderColor: can ? PALETTE.accion : PALETTE.linea,
         backgroundColor: can ? PALETTE.accionSuave : PALETTE.superficie,

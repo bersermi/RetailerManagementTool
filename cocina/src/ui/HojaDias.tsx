@@ -7,6 +7,7 @@ import { diasDeTexto, diasQueCaben, ejemploDeDias, empujarDias, soloDigitos } fr
 import { ES } from '@/strings';
 import { TITULO } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 
 // ============================================================================
 // *OTRO…* — HOW MANY DAYS WITHOUT A VISIT, TYPED. Plan task `10.9k`, the owner's rulings of 2026-11-19
@@ -89,7 +90,7 @@ export function HojaDias({
         height: SIZE.tapTarget,
         alignItems: 'center',
         justifyContent: 'center',
-        borderRadius: SIZE.space,
+        borderRadius: ESQUINA.boton,
         borderWidth: 1,
         borderColor: PALETTE.accion,
         backgroundColor: pressed ? PALETTE.accion : PALETTE.accionSuave,
@@ -112,15 +113,15 @@ export function HojaDias({
       <View
         style={{
           backgroundColor: PALETTE.fondo,
-          borderTopLeftRadius: 22,
-          borderTopRightRadius: 22,
+          borderTopLeftRadius: ESQUINA.hoja,
+          borderTopRightRadius: ESQUINA.hoja,
           paddingHorizontal: SIZE.space * 1.5,
           paddingTop: SIZE.rowGap,
           paddingBottom: (sitio > 0 ? sitio : insets.bottom) + SIZE.space * 1.5,
           gap: SIZE.space,
         }}
       >
-        <View style={{ alignSelf: 'center', width: 36, height: 4, borderRadius: 4, backgroundColor: PALETTE.linea }} />
+        <View style={{ alignSelf: 'center', width: 36, height: 4, borderRadius: ESQUINA.marca, backgroundColor: PALETTE.linea }} />
         <Text accessibilityRole="header" style={{ fontSize: SIZE.titleSize - 2, ...TITULO, color: PALETTE.tinta }}>
           {ES.prepararTarjeta.hojaDias.titulo}
         </Text>
@@ -135,7 +136,7 @@ export function HojaDias({
               alignItems: 'center',
               justifyContent: 'center',
               gap: 6,
-              borderRadius: SIZE.space + 2,
+              borderRadius: ESQUINA.campo,
               borderWidth: 2,
               borderColor: fuera ? PALETTE.error : PALETTE.accion,
               backgroundColor: PALETTE.superficie,
@@ -196,7 +197,7 @@ export function HojaDias({
             minHeight: SIZE.tapTarget,
             alignItems: 'center',
             justifyContent: 'center',
-            borderRadius: SIZE.space / 2,
+            borderRadius: ESQUINA.boton,
             borderWidth: 1,
             borderColor: cabe ? PALETTE.accion : PALETTE.linea,
             backgroundColor: cabe ? PALETTE.accion : PALETTE.linea,

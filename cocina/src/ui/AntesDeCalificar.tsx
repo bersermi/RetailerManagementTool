@@ -8,6 +8,7 @@ import { aceptarTerminos, aceptoTerminos } from '@/lib/terminos';
 import { ES } from '@/strings';
 import { TITULO } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 import { BotonLleno } from '@/ui/BotonLleno';
 
 // ============================================================================
@@ -36,7 +37,7 @@ export function useTerminos(): { readonly aceptados: boolean; readonly aceptar: 
 
 export function AntesDeCalificar({ onAcepto, onDespues }: { onAcepto: () => void; onDespues: (() => void) | null }) {
   return (
-    <View style={{ gap: SIZE.space, padding: SIZE.space, borderRadius: SIZE.space, backgroundColor: PALETTE.superficie, borderWidth: 1, borderColor: PALETTE.linea }}>
+    <View style={{ gap: SIZE.space, padding: SIZE.space, borderRadius: ESQUINA.hoja, backgroundColor: PALETTE.superficie }}>
       <Text style={{ ...TITULO, fontSize: 19, color: PALETTE.tinta }}>{ES.terminos.titulo}</Text>
       <Text style={{ fontSize: SIZE.bodySize, lineHeight: 22, color: PALETTE.tinta }}>{ES.terminos.texto}</Text>
       <Text style={{ fontSize: SIZE.bodySize, lineHeight: 22, color: PALETTE.tinta }}>{ES.terminos.nunca}</Text>

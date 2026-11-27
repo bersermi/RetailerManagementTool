@@ -25,6 +25,7 @@ import { useAhora } from '@/lib/useAhora';
 import { ES } from '@/strings';
 import { FAMILIA_NUMERO } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 import { AsiFunciona, useAsiFunciona } from '@/ui/AsiFunciona';
 import { Banda } from '@/ui/Banda';
 import { Barras } from '@/ui/Barras';
@@ -121,7 +122,7 @@ export default function TusNumeros() {
 
         {hoy !== undefined ? (
           hoy.since === null ? (
-            <Llega i={1} style={{ alignItems: 'center', gap: SIZE.rowGap, padding: SIZE.space * 2, borderRadius: 14, borderWidth: 1.5, borderStyle: 'dashed', borderColor: PALETTE.accion }}>
+            <Llega i={1} style={{ alignItems: 'center', gap: SIZE.rowGap, padding: SIZE.space * 2, borderRadius: ESQUINA.hoja, borderWidth: 1.5, borderStyle: 'dashed', borderColor: PALETTE.accion }}>
               <Text style={{ fontSize: SIZE.bodySize + 1, fontWeight: '800', color: PALETTE.tinta, textAlign: 'center' }}>{ES.numeros.vacioTitulo}</Text>
               <Text style={{ fontSize: SIZE.bodySize, color: PALETTE.tintaApagada, textAlign: 'center' }}>{ES.numeros.vacioTexto}</Text>
             </Llega>
@@ -189,7 +190,7 @@ export default function TusNumeros() {
  */
 function Tarjeta({ respuesta, onCambiar }: { respuesta: Respuesta; onCambiar?: () => void }) {
   return (
-    <View style={{ borderRadius: 14, borderWidth: 1, borderColor: PALETTE.linea, backgroundColor: PALETTE.superficie }}>
+    <View style={{ borderRadius: ESQUINA.hoja, backgroundColor: PALETTE.superficie }}>
       <View
         accessible
         accessibilityLabel={[`${respuesta.pregunta} ${respuesta.respuesta}`, respuesta.detalle, respuesta.debajo].filter(Boolean).join('. ')}
@@ -199,8 +200,8 @@ function Tarjeta({ respuesta, onCambiar }: { respuesta: Respuesta; onCambiar?: (
         <Text style={{ fontSize: SIZE.titleSize + 4, lineHeight: SIZE.titleSize + 8, fontFamily: FAMILIA_NUMERO, fontVariant: ['tabular-nums'], color: PALETTE.tinta }}>{respuesta.respuesta}</Text>
         <Text style={{ fontSize: SIZE.smallSize, lineHeight: 18, color: PALETTE.tintaApagada }}>{respuesta.detalle}</Text>
         {respuesta.barra !== null && (
-          <View style={{ marginTop: 6, height: 8, borderRadius: 4, backgroundColor: PALETTE.accionSuave, overflow: 'hidden' }}>
-            <View style={{ width: `${Math.round(respuesta.barra * 100)}%`, height: '100%', borderRadius: 4, backgroundColor: PALETTE.accion }} />
+          <View style={{ marginTop: 6, height: 8, borderRadius: ESQUINA.marca, backgroundColor: PALETTE.accionSuave, overflow: 'hidden' }}>
+            <View style={{ width: `${Math.round(respuesta.barra * 100)}%`, height: '100%', borderRadius: ESQUINA.marca, backgroundColor: PALETTE.accion }} />
           </View>
         )}
         {respuesta.debajo !== undefined && (
@@ -246,9 +247,10 @@ function Resumen({ numeros }: { numeros: readonly DelResumen[] }) {
             gap: 1,
             paddingVertical: SIZE.space - 2,
             paddingHorizontal: 6,
-            borderRadius: 14,
-            borderWidth: 1,
-            borderColor: n.clave === 'sellos' ? PALETTE.accion : PALETTE.linea,
+            borderRadius: ESQUINA.hoja,
+            // `11.7-ii`: no edge on the counter but the stamps', its green sign.
+            borderWidth: n.clave === 'sellos' ? 1 : 0,
+            borderColor: PALETTE.accion,
             backgroundColor: PALETTE.superficie,
           }}
         >
@@ -274,7 +276,7 @@ function Seccion({
   const [fondo, tinta] = tono === 'tarjeta' ? [PALETTE.accionSuave, PALETTE.accion] : [PALETTE.marcaSuave, PALETTE.marca];
   return (
     <View accessibilityRole="header" style={{ flexDirection: 'row', alignItems: 'center', gap: SIZE.rowGap, marginTop: 4 }}>
-      <View style={{ width: 26, height: 26, borderRadius: 8, alignItems: 'center', justifyContent: 'center', backgroundColor: fondo }}>
+      <View style={{ width: 26, height: 26, borderRadius: ESQUINA.chip, alignItems: 'center', justifyContent: 'center', backgroundColor: fondo }}>
         <MaterialCommunityIcons name={icono} size={16} color={tinta} />
       </View>
       <Text style={{ fontSize: SIZE.bodySize + 2, fontWeight: '800', color: PALETTE.tinta }}>{titulo}</Text>

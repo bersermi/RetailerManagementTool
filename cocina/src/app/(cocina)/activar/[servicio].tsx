@@ -9,6 +9,7 @@ import { ICONO_DE, PREPARAR, filasDe, type Elegible } from '@/lib/loQueUsas';
 import { ES } from '@/strings';
 import { TITULO, letraEncabezado } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 import { Banda } from '@/ui/Banda';
 import { BotonLleno } from '@/ui/BotonLleno';
 import { Llega } from '@/ui/Llega';
@@ -119,7 +120,7 @@ export default function Activar() {
         </Llega>
         <Llega
           i={1}
-          style={{ backgroundColor: PALETTE.superficie, borderWidth: 1, borderColor: PALETTE.linea, borderRadius: 14, padding: SIZE.space, gap: 4 }}
+          style={{ backgroundColor: PALETTE.superficie, borderRadius: ESQUINA.hoja, padding: SIZE.space, gap: 4 }}
         >
           <Text style={{ ...letraEncabezado(SIZE), color: PALETTE.tinta }}>
             {ES.loQueUsas.loQueTePide}

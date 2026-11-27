@@ -14,6 +14,7 @@ import { ES } from '@/strings';
 import { HUES } from '@/theme/colores';
 import { TITULO } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 import { Banda } from '@/ui/Banda';
 import { BotonLleno } from '@/ui/BotonLleno';
 import { CodigoQR } from '@/ui/CodigoQR';
@@ -116,7 +117,7 @@ export default function Cartel() {
       {banda}
       <ScrollView contentContainerStyle={{ padding: SIZE.space * 1.5, gap: SIZE.space * 1.5 }}>
         <Text style={{ fontSize: SIZE.bodySize, color: PALETTE.tintaApagada }}>{ES.cartel.detalle}</Text>
-        <View style={{ borderRadius: 14, overflow: 'hidden', borderWidth: 1, borderColor: PALETTE.linea, backgroundColor: PALETTE.superficie }}>
+        <View style={{ borderRadius: ESQUINA.hoja, overflow: 'hidden', backgroundColor: PALETTE.superficie }}>
           <View style={{ height: 120, alignItems: 'center', justifyContent: 'center', backgroundColor: HUES[color] }}>
             <View style={{ width: 84, height: 84, borderRadius: 42, overflow: 'hidden', borderWidth: 3, borderColor: 'rgba(255,255,255,0.7)' }}>
               <Iniciales nombre={kitchen.displayName} color={color} size={84} />

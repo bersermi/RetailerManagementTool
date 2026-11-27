@@ -41,8 +41,6 @@ export function Cabeza({
         paddingTop: enHoja ? SIZE.rowGap / 2 : insets.top + SIZE.space,
         paddingBottom: SIZE.space,
         paddingHorizontal: SIZE.space * 1.5,
-        borderBottomWidth: 1,
-        borderBottomColor: PALETTE.linea,
         gap: SIZE.rowGap / 2,
       }}
     >

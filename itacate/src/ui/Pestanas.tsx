@@ -73,13 +73,12 @@ export function Pestanas({ state, navigation }: BottomTabBarProps) {
               style={{
                 width: 56,
                 height: 30,
-                borderRadius: 15,
                 alignItems: 'center',
                 justifyContent: 'center',
-                // ⚠️ THE BAR'S OWN WHITE, NEVER `transparent` (`10.5-v-c-i`, measured on the emulator):
-                // Android drops a view's rounded corners when its background goes from transparent
-                // to a colour, so after the first tab switch every pill drew square.
-                backgroundColor: enUso ? PALETTE.accionSuave : PALETTE.superficie,
+                // ⚠️ `11.7-ii`: NO PILL — the tab she is on is its colour and a bolder word (the design
+                // system's *Pestanas*); the marker's stroke under the word is `11.8`'s. The box stays,
+                // in the bar's own white, so the dot keeps its place over the icon.
+                backgroundColor: PALETTE.superficie,
               }}
             >
               <MaterialCommunityIcons name={pestana.icono} size={SIZE.iconSize} color={color} />
@@ -99,7 +98,7 @@ export function Pestanas({ state, navigation }: BottomTabBarProps) {
                 />
               )}
             </View>
-            <Text style={{ fontSize: 12, fontWeight: enUso ? '700' : '600', color }}>{pestana.label}</Text>
+            <Text style={{ fontSize: 12, fontWeight: enUso ? '700' : '500', color }}>{pestana.label}</Text>
           </Pressable>
         );
       })}

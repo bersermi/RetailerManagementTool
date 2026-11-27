@@ -11,6 +11,7 @@ import { ColaProvider } from '@/lib/ColaProvider';
 import { DistanciasProvider } from '@/lib/DistanciasProvider';
 import { DondeBuscarProvider } from '@/lib/DondeBuscarProvider';
 import { FUENTES } from '@/marca/fuentes';
+import { FUENTE_DE_FRASE } from '@/marca/fuenteDeFrase';
 
 // ============================================================================
 // THE ROOT OF ITACATE. Plan tasks `10.2a` (one screen), `10.5-iii-a` (signing
@@ -31,7 +32,7 @@ export default function RootLayout() {
   // a file inside the update (`@/theme/letra`), a few milliseconds, offline too. ⚠️ A
   // FAILED LOAD NEVER HOLDS THE APP: on an error the titles fall back to the phone's
   // face and everything else draws.
-  const [fontsReady, fontError] = useFonts(FUENTES);
+  const [fontsReady, fontError] = useFonts({ ...FUENTES, ...FUENTE_DE_FRASE });
   if (!fontsReady && fontError === null) return null;
   // ⚠️ `10.5-iv-b-i`: THE GESTURES' ROOT, for the list that slides over the map
   // (`@/ui/HojaDeLista`) — `react-native-gesture-handler` is in every Itacate build since

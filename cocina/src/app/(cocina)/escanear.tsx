@@ -11,6 +11,7 @@ import { conTarjeta, escaneoDe, premiosDe, resultadoDe, resumenDe, tecleadoDe, t
 import { ES } from '@/strings';
 import { TITULO } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { ESQUINA } from '@/theme/density';
 import { useAsiFunciona } from '@/ui/AsiFunciona';
 import { Banda } from '@/ui/Banda';
 import { BotonLleno } from '@/ui/BotonLleno';
@@ -222,7 +223,7 @@ function SuTarjeta({
   const premios = premiosDe(card);
   const nueva = card.stamps === 0 && premios.length === 0 && card.result === 'suya' && card.open !== false && card.stamped_today !== true;
   return (
-    <View style={{ gap: SIZE.space, padding: SIZE.space * 1.25, borderRadius: 18, borderWidth: 1, borderColor: PALETTE.linea, backgroundColor: PALETTE.superficie }}>
+    <View style={{ gap: SIZE.space, padding: SIZE.space * 1.25, borderRadius: ESQUINA.hoja, backgroundColor: PALETTE.superficie }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: SIZE.space }}>
         <View style={{ width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center', backgroundColor: PALETTE.accionSuave }}>
           <Text style={{ fontSize: SIZE.titleSize - 2, fontWeight: '800', color: PALETTE.accion }}>{nombre.charAt(0).toUpperCase()}</Text>
@@ -251,9 +252,7 @@ function SuTarjeta({
                 alignItems: 'center',
                 gap: SIZE.space,
                 padding: SIZE.space,
-                borderRadius: 14,
-                borderWidth: 1,
-                borderColor: PALETTE.linea,
+                borderRadius: ESQUINA.hoja,
                 backgroundColor: pressed ? PALETTE.accionSuave : PALETTE.superficie,
                 opacity: busy ? 0.6 : 1,
               })}
@@ -270,7 +269,7 @@ function SuTarjeta({
       ) : (
         <View style={{ gap: SIZE.rowGap }}>
           {card.stamped_today === true ? (
-            <View style={{ minHeight: SIZE.tapTarget, alignItems: 'center', justifyContent: 'center', borderRadius: 999, backgroundColor: PALETTE.accionSuave }}>
+            <View style={{ minHeight: SIZE.tapTarget, alignItems: 'center', justifyContent: 'center', borderRadius: ESQUINA.hoja, backgroundColor: PALETTE.accionSuave }}>
               <Text style={{ fontSize: SIZE.bodySize, fontWeight: '700', color: PALETTE.accion }}>{ES.escanearCliente.yaTiene}</Text>
             </View>
           ) : (
