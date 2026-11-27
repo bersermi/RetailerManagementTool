@@ -718,7 +718,7 @@ after you have tried it.
 | **5R-b-iii** | **The iPhones on updates too** — a cloud build for your iPhone, so a fix reaches it like the Android | ✅ **Done 10 October** — on your iPhone, still signed in; a test fix appeared and was undone. See *What is on your phone* |
 | **5R-d** | **The store listing, and the *aviso de privacidad*** — the privacy notice, the store forms, screenshots, and the page Google wants for deletion requests | ✅ **Done 18 November**, all four parts — the last, the public listings, closed by moving its one remaining reading to `5R-q`. ✂️ **Split on 10 October** into the four rows below, after your rulings that night |
 | **5R-d-i** | **The aviso, written in Spanish** — under the new 2025 privacy law; your name and home address as the responsible party; what a deleted account keeps. No lawyer for the pilot (your call, 12 October) | ✅ **Done 12 October** — the aviso and the deletion page are in `site/`, with blanks where your name and address go, filled in only when they are published. Also a script for deleting an account somebody asks for by email (below) |
-| **5R-d-ii** | **The site at tu-wera.com** (bought 12 October, GoDaddy) — the aviso, the deletion page and a home page with `ayuda@tu-wera.com`; privacidad@ and ayuda@ forward to your Gmail through ImprovMX. Your name and address are GitHub secrets, never in the repository | ✅ **Done 12 October** — published from GitHub; the steps you did are under *Putting tu-wera.com up*, below. HTTPS on, and your test email arrived. Left for you, whenever suits: Google's consent screen (step 7), so pilot members stop needing the test-user list, and the domain check in step 2 |
+| **5R-d-ii** | **The site at tu-wera.com** (bought 12 October, GoDaddy) — the aviso, the deletion page and a home page with `ayuda@tu-wera.com`; privacidad@ and ayuda@ reach you — since 27 November in your Google Workspace (*Your mail on tu-wera.com*), until then forwarded to your Gmail by ImprovMX. Your name and address are GitHub secrets, never in the repository | ✅ **Done 12 October** — published from GitHub; the steps you did are under *Putting tu-wera.com up*, below. HTTPS on, and your test email arrived. Left for you, whenever suits: Google's consent screen (step 7), so pilot members stop needing the test-user list, and the domain check in step 2 |
 | **5R-d-iii** | **The checkbox on *Crear cuenta*** — *"Acepto el Aviso de privacidad"*, ticked before the account is made; the same link in Ajustes | ✅ **Done 13 October** — the box, the line under *Entrar con Google* (your ruling of 12 October), and *Ajustes → Tu cuenta → Aviso de privacidad*. Each opens tu-wera.com/privacidad over the app. What to look at is in *What only you can judge* |
 | **5R-d-iv** | **Both listings, as "Wera: tu tienda"**, Mexico only — descriptions, screenshots, the privacy forms; then the Android test: **12 people for 14 days** before the public listing | ✅ **Done 18 November**, all three parts. ✂️ **Split on 13 October** into the three rows below: what a session could do without you, what needs your hands in Play Console, and what waits for your review and the logo |
 | **5R-d-iv-a** | **Everything for the Android test that needs no hands of yours** — the text and the answers to every form for both stores, the pictures Google asks for, and the store version of the app, built | ✅ **Done 13 October** — it is all in `store/`. The store version built that day will not be the one uploaded: you ruled the same evening to wait for the build with the cow. The steps are under *Putting Wera on Google Play's closed test*, below. Found on the way: nothing in Wera shows how much stock a shop has, so the listing does not say *inventario* (the home page of tu-wera.com still does); and the app's icon is still Expo's blue "A" |
@@ -1741,12 +1741,12 @@ about deleted accounts that is true only once 3 is done.
    for `@` (it says *Parked*) and the `CNAME` for `www`; if *Forwarding* is on, remove it.
    **Add:** four `A` records named `@` — `185.199.108.153`, `185.199.109.153`,
    `185.199.110.153`, `185.199.111.153`; a `CNAME` named `www` → `bersermi.github.io`; the
-   `TXT` from step 2; and for email, `MX` `@` → `mx1.improvmx.com` (priority 10), `MX` `@` →
-   `mx2.improvmx.com` (priority 20), and `TXT` `@` → `v=spf1 include:spf.improvmx.com ~all`.
-5. **ImprovMX — the email** (free; GoDaddy stopped including forwarding with new domains).
-   improvmx.com → sign up with your Gmail → add `tu-wera.com` → aliases `privacidad` and
-   `ayuda`, both to your Gmail. Then send a test email to privacidad@tu-wera.com from another
-   address. Your replies go out from your Gmail address, which is fine for the pilot.
+   `TXT` from step 2; and for email — **since 27 November Google Workspace's** (*Your mail on
+   tu-wera.com*, below) — one `MX` `@` → `smtp.google.com` (priority 1), one `TXT` `@` →
+   `v=spf1 include:_spf.google.com ~all`, and Google's DKIM key as `TXT` `google._domainkey`.
+   Until 27 November they were ImprovMX's (`mx1`/`mx2.improvmx.com` and its SPF).
+5. **The email.** Until 27 November, ImprovMX (free forwarding: aliases `privacidad` and
+   `ayuda` to your Gmail, your replies from your Gmail). Since then, Google Workspace — below.
 6. **When tu-wera.com opens** (minutes, at most an hour after step 4): GitHub → *Settings →
    Pages* → tick **Enforce HTTPS**. Then a session runs `bash docs/checks/5R-d-ii-site-live.sh`,
    which checks every page, that nothing sets a cookie, and the email records.
@@ -1756,6 +1756,30 @@ about deleted accounts that is true only once 3 is done.
    *Audience → Publish app*. After that nobody has to be added as a test user. Google's
    screen will still name the *supabase.co* address rather than *Wera*; showing the name is
    Google's brand verification, which the pilot does not need.
+
+### Your mail on tu-wera.com
+
+✅ **Since 27 November, Google Workspace** — you opened it and moved the mail that day; what it costs is
+on your private price sheet. `privacidad@`, `ayuda@` and `hola@` are **aliases of your user**, so their
+mail lands in your Workspace inbox, no longer in your personal Gmail. In GoDaddy: one `MX`
+(`smtp.google.com`, priority 1), one SPF (`v=spf1 include:_spf.google.com ~all`), Google's DKIM key at
+`google._domainkey`, and the `_dmarc` record GoDaddy set (`p=quarantine`) as it was. Read from outside
+the same day: Google's server accepts each of the three addresses and refuses a made-up one, and
+`5R-d-ii-site-live.sh` holds. Both avisos' section 5 say the mail reaches Google Workspace (dated
+27 November).
+
+- ⚠️ **A new address goes in as an alias first, before it is printed anywhere or the records change.**
+  Google refuses mail to an address it does not have, and the sender gets it back — on 27 November the
+  three addresses bounced for a while, because Google's `MX` went in before their aliases existed.
+- ⚠️ **One SPF record, ever.** A second `v=spf1` record breaks both, and with `p=quarantine` your mail
+  then lands in spam.
+- ⚠️ **Replying to someone who entered with Apple's hidden address:** Apple's relay passes only mail from
+  the sources registered in your Apple developer account, and today that is your Gmail (*Turning on
+  Entrar con Apple*, below). Add `ayuda@tu-wera.com` and `privacidad@tu-wera.com` there too —
+  developer.apple.com → *Certificates, Identifiers & Profiles → Services → Sign in with Apple for Email
+  Communication* — or answer those people from your Gmail.
+- **ImprovMX is no longer used**: tu-wera.com can be removed from it whenever suits.
+- **A change of mail provider is an aviso change** (both avisos name it, section 5).
 
 ---
 
@@ -1767,7 +1791,9 @@ Apple's sheet once more, Apple's answer `200` in the function's log, Wera gone f
 Apple asking for your name and email again — and then your own shop again by sharing your Gmail.
 **Step 4's email is owed to nobody**: the only account made before 14 October is yours (read that
 day). **Your Gmail is registered with Apple's relay** (*Sign in with Apple for Email Communication*),
-so mail you send from it reaches a hidden address — your test email arrived.
+so mail you send from it reaches a hidden address — your test email arrived. ⚠️ **Since 27 November
+your replies can also leave from tu-wera.com**, which Apple does not know yet: *Your mail on tu-wera.com*,
+above.
 
 **On your iPhone, the apps you entered with Apple are listed at** *Settings → your name → Sign-In &
 Security → Sign in with Apple* (in Spanish, *Configuración → tu nombre → Inicio de sesión y seguridad →
