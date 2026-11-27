@@ -122,6 +122,10 @@ on:
       # above), and her phrase's Mansalva is `brand/letras/`'s file byte for byte (`test/esquinas.test.ts`).
       - "brand/letras/Mansalva-Regular.ttf"
       - "brand/letras/OFL-Mansalva.txt"
+      # ⚠️ `11.8-i`, THE COUNTER'S OBJECTS: each app's `@/ui/Mostrador` draws pictures that are `brand/mostrador/png/`'s
+      # byte for byte, at the measures of `objetos.json` (`test/mostrador.test.ts` in each).
+      - "brand/mostrador/objetos.json"
+      - "brand/mostrador/png/**"
       - "package.json"
       - "package-lock.json"
       - ".github/workflows/cocina-itacate.yml"

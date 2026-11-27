@@ -45,9 +45,10 @@ import { CalificarVecino } from '@/ui/CalificarVecino';
 import { HojaOfertas } from '@/ui/HojaOfertas';
 import { Escaner } from '@/ui/Escaner';
 import { Llega } from '@/ui/Llega';
+import { Boleto, SelloPalabra } from '@/ui/Mostrador';
 import { SinSenal } from '@/ui/SinSenal';
 import { Casillas, Teclado } from '@/ui/Teclado';
-import { Calificacion, Marca } from '@/ui/TarjetaOrden';
+import { CODIGO, Calificacion, Marca } from '@/ui/TarjetaOrden';
 
 // ============================================================================
 // *ENTREGAR UN APARTADO*. Plan task `10.5b-iv-a`: slice 3's handover, ruled 2026-11-05 (the
@@ -87,7 +88,9 @@ import { Calificacion, Marca } from '@/ui/TarjetaOrden';
 // secret for: *Ese código no es de un apartado de tu cocina.* — and a secret newer than this phone's, with signal,
 // is read again and the same scan checked once more. ⚠️ J3: a typed code it never read is never handed over; with no
 // signal the keypad's own line says so, and the QR is the way (no *Entregarlo así*).
-// NO CHECK CAN SEE THIS SCREEN (ADR-035 §2.11): the phone is its instrument.
+// ⚠️ `11.8-i`: THE ORDER IS A TICKET (the design system's *Boleto* and *Sello*): *Ya cobré y lo entregué* on its stub,
+// and once handed over the ticket without it, *Entregado* pressed on what is left. The stub tearing and the stamp
+// landing are `11.8-ii`'s. NO CHECK CAN SEE THIS SCREEN (ADR-035 §2.11): the phone is its instrument.
 // ============================================================================
 
 const CADA_MEDIO_MINUTO = 30_000;
@@ -351,33 +354,40 @@ function Encontrada({
   const despues = revisada && <Text style={{ fontSize: SIZE.smallSize, lineHeight: 18, color: PALETTE.tintaApagada }}>{ES.entregar.despues}</Text>;
   if (recogida && entregadaAqui) {
     const cobraste = cobrasteTexto(orden);
+    // ⚠️ `11.8-i`: WHAT IS LEFT OF THE TICKET ONCE HANDED OVER — its stub gone, *Entregado* pressed on it as a
+    // stamp in her green (`@/ui/Mostrador`'s `SelloPalabra`; it lands at `11.8-ii`).
     return (
       <View style={{ gap: SIZE.space }}>
         {revisadoAqui}
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: SIZE.rowGap }}>
-          <Text style={{ ...TITULO, fontSize: 30, fontVariant: ['tabular-nums'], color: PALETTE.tinta }}>{ES.entregar.codigo(orden.codigo)}</Text>
-          <Marca texto={ES.apartado.entregado} fondo={PALETTE.banda} tinta={PALETTE.tinta} />
-        </View>
-        <View style={{ gap: 4, padding: SIZE.space, borderRadius: ESQUINA.hoja, backgroundColor: PALETTE.superficie }}>
-          <Text style={{ fontSize: 18, fontWeight: '600', color: PALETTE.tinta }}>{queTexto(orden)}</Text>
-          {cobraste !== null && <Text style={{ fontSize: SIZE.bodySize, color: PALETTE.tinta }}>{cobraste}</Text>}
-          {esperando && (
-            <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 6 }}>
-              <MaterialCommunityIcons name="cloud-upload-outline" size={16} color={PALETTE.tintaApagada} style={{ marginTop: 2 }} />
-              <Text style={{ flex: 1, fontSize: SIZE.smallSize, lineHeight: 18, color: PALETTE.tintaApagada }}>{ES.entregar.guardadaAqui}</Text>
-            </View>
-          )}
-          {despues}
-          {vecino !== null && (
-            <>
-              <View style={{ height: 1, backgroundColor: PALETTE.linea, marginVertical: 4 }} />
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                <Text style={{ fontSize: SIZE.smallSize, fontWeight: '500', color: PALETTE.tintaApagada }}>{nombreTexto(vecino)}</Text>
-                <Calificacion texto={calificacionTexto(vecino)} nueva={vecino.calificacion === null} />
+        <Boleto
+          padding={SIZE.space}
+          cuerpo={
+            <View style={{ gap: 4 }}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: SIZE.rowGap, marginBottom: 4 }}>
+                <Text style={{ ...CODIGO, color: PALETTE.tinta }}>{ES.entregar.codigo(orden.codigo)}</Text>
+                <SelloPalabra texto={ES.apartado.entregado} tinta={PALETTE.accion} />
               </View>
-            </>
-          )}
-        </View>
+              <Text style={{ fontSize: 18, fontWeight: '600', color: PALETTE.tinta }}>{queTexto(orden)}</Text>
+              {cobraste !== null && <Text style={{ fontSize: SIZE.bodySize, color: PALETTE.tinta }}>{cobraste}</Text>}
+              {esperando && (
+                <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 6 }}>
+                  <MaterialCommunityIcons name="cloud-upload-outline" size={16} color={PALETTE.tintaApagada} style={{ marginTop: 2 }} />
+                  <Text style={{ flex: 1, fontSize: SIZE.smallSize, lineHeight: 18, color: PALETTE.tintaApagada }}>{ES.entregar.guardadaAqui}</Text>
+                </View>
+              )}
+              {despues}
+              {vecino !== null && (
+                <>
+                  <View style={{ height: 1, backgroundColor: PALETTE.linea, marginVertical: 4 }} />
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                    <Text style={{ fontSize: SIZE.smallSize, fontWeight: '500', color: PALETTE.tintaApagada }}>{nombreTexto(vecino)}</Text>
+                    <Calificacion texto={calificacionTexto(vecino)} nueva={vecino.calificacion === null} />
+                  </View>
+                </>
+              )}
+            </View>
+          }
+        />
       </View>
     );
   }
@@ -391,49 +401,62 @@ function Encontrada({
           : orden.estado === 'liberado'
             ? ES.entregar.terminado
             : null;
+  // ⚠️ `11.8-i`: THE ORDER HER CODE FOUND IS A TICKET — what to prepare and charge on its body, and *Ya cobré y lo
+  // entregué* on the stub that tears (`@/ui/Mostrador`'s `Boleto`). One handed over already has no stub.
   return (
     <View style={{ gap: SIZE.space }}>
       {revisadoAqui}
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: SIZE.rowGap }}>
-        <Text style={{ ...TITULO, fontSize: 30, fontVariant: ['tabular-nums'], color: PALETTE.tinta }}>{ES.entregar.codigo(orden.codigo)}</Text>
-        {revisada ? (
-          // ⚠️ `10.9j-ii-b`: a seal of another day says its day — *Es de hoy* only when it is.
-          <Marca
-            texto={diaTexto(orden.hora) === diaTexto(ahora) ? ES.entregar.esDeHoy : dayOf(orden.hora, ahora)}
-            fondo={PALETTE.accionSuave}
-            tinta={PALETTE.accion}
-          />
-        ) : orden.estado === 'apartado' || (orden.estado === 'recogido' && !recogida) ? (
-          <Marca texto={ES.entregar.esDeHoy} fondo={PALETTE.accionSuave} tinta={PALETTE.accion} />
-        ) : (
-          <Marca texto={marcaTexto(orden, ahora)} fondo={colores.fondo} tinta={colores.tinta} />
-        )}
-      </View>
-      <View style={{ gap: 2 }}>
-        <Text style={{ fontSize: 18, fontWeight: '600', color: PALETTE.tinta }}>{queTexto(orden)}</Text>
-        <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada }}>{pasaTexto(orden.hora, ahora)}</Text>
-      </View>
-      {aviso !== null && <Text style={{ fontSize: SIZE.bodySize - 1, lineHeight: 21, fontWeight: '600', color: PALETTE.marca }}>{aviso}</Text>}
-      {!recogida && (
-        <>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: SIZE.rowGap, padding: SIZE.space, borderRadius: ESQUINA.hoja, backgroundColor: PALETTE.banda }}>
-            <MaterialCommunityIcons name={orden.comer === 'aqui' ? 'silverware-fork-knife' : 'shopping-outline'} size={22} color={PALETTE.tinta} />
-            <Text style={{ fontSize: SIZE.bodySize + 1, fontWeight: '700', color: PALETTE.tinta }}>{ES.entregar.comerGrande[orden.comer]}</Text>
+      <Boleto
+        padding={SIZE.space}
+        cuerpo={
+          <View style={{ gap: SIZE.space }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: SIZE.rowGap }}>
+              <Text style={{ ...CODIGO, color: PALETTE.tinta }}>{ES.entregar.codigo(orden.codigo)}</Text>
+              {revisada ? (
+                // ⚠️ `10.9j-ii-b`: a seal of another day says its day — *Es de hoy* only when it is.
+                <Marca
+                  texto={diaTexto(orden.hora) === diaTexto(ahora) ? ES.entregar.esDeHoy : dayOf(orden.hora, ahora)}
+                  fondo={PALETTE.accionSuave}
+                  tinta={PALETTE.accion}
+                />
+              ) : orden.estado === 'apartado' || (orden.estado === 'recogido' && !recogida) ? (
+                <Marca texto={ES.entregar.esDeHoy} fondo={PALETTE.accionSuave} tinta={PALETTE.accion} />
+              ) : (
+                <Marca texto={marcaTexto(orden, ahora)} fondo={colores.fondo} tinta={colores.tinta} />
+              )}
+            </View>
+            <View style={{ gap: 2 }}>
+              <Text style={{ fontSize: 18, fontWeight: '600', color: PALETTE.tinta }}>{queTexto(orden)}</Text>
+              <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada }}>{pasaTexto(orden.hora, ahora)}</Text>
+            </View>
+            {aviso !== null && <Text style={{ fontSize: SIZE.bodySize - 1, lineHeight: 21, fontWeight: '600', color: PALETTE.marca }}>{aviso}</Text>}
+            {!recogida && (
+              <>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: SIZE.rowGap, padding: SIZE.space, borderRadius: ESQUINA.hoja, backgroundColor: PALETTE.banda }}>
+                  <MaterialCommunityIcons name={orden.comer === 'aqui' ? 'silverware-fork-knife' : 'shopping-outline'} size={22} color={PALETTE.tinta} />
+                  <Text style={{ fontSize: SIZE.bodySize + 1, fontWeight: '700', color: PALETTE.tinta }}>{ES.entregar.comerGrande[orden.comer]}</Text>
+                </View>
+                <View style={{ gap: 6, padding: SIZE.space, borderRadius: ESQUINA.hoja, borderWidth: 1.5, borderColor: PALETTE.accion, backgroundColor: PALETTE.superficie }}>
+                  <Text style={{ ...letraEncabezado(SIZE), color: PALETTE.tinta }}>
+                    {ES.entregar.pago[orden.pago]}
+                  </Text>
+                  <Text style={{ fontSize: orden.pago === 'transferencia' ? 19 : 24, lineHeight: orden.pago === 'transferencia' ? 25 : 30, fontWeight: '800', color: PALETTE.tinta }}>
+                    {cobroLargoTexto(orden)}
+                  </Text>
+                  {orden.comer === 'aqui' && <Text style={{ fontSize: SIZE.smallSize, lineHeight: 18, color: PALETTE.tintaApagada }}>{ES.entregar.cobraleAqui}</Text>}
+                </View>
+                {despues}
+              </>
+            )}
+            {falla !== null && <Text style={{ fontSize: SIZE.smallSize, lineHeight: 18, color: PALETTE.error }}>{ES.apartados.fallas[falla]}</Text>}
           </View>
-          <View style={{ gap: 6, padding: SIZE.space, borderRadius: ESQUINA.hoja, borderWidth: 1.5, borderColor: PALETTE.accion, backgroundColor: PALETTE.superficie }}>
-            <Text style={{ ...letraEncabezado(SIZE), color: PALETTE.tinta }}>
-              {ES.entregar.pago[orden.pago]}
-            </Text>
-            <Text style={{ fontSize: orden.pago === 'transferencia' ? 19 : 24, lineHeight: orden.pago === 'transferencia' ? 25 : 30, fontWeight: '800', color: PALETTE.tinta }}>
-              {cobroLargoTexto(orden)}
-            </Text>
-            {orden.comer === 'aqui' && <Text style={{ fontSize: SIZE.smallSize, lineHeight: 18, color: PALETTE.tintaApagada }}>{ES.entregar.cobraleAqui}</Text>}
-          </View>
-          {despues}
-          <BotonLleno variante="principal" icon="check" label={orden.comer === 'aqui' ? ES.entregar.yaLaServi : ES.entregar.yaCobre} onPress={onEntregar} />
-        </>
-      )}
-      {falla !== null && <Text style={{ fontSize: SIZE.smallSize, lineHeight: 18, color: PALETTE.error }}>{ES.apartados.fallas[falla]}</Text>}
+        }
+        talon={
+          recogida ? null : (
+            <BotonLleno variante="principal" icon="check" label={orden.comer === 'aqui' ? ES.entregar.yaLaServi : ES.entregar.yaCobre} onPress={onEntregar} />
+          )
+        }
+      />
     </View>
   );
 }

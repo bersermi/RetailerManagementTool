@@ -457,7 +457,7 @@ follows it, as `itacate/CLAUDE.md`'s does:
   never as a tab. Wera's JavaScript tabs, not native tabs. ⚠️ **Built by `10.5-v-c-i`**, Itacate's
   shell copied: the tabs are data (`@/navigation/pestanas`, *Apartados* in use since `10.5b-iv-a`; *Clientes* out of the data since `10.9a-ii`), the bar is `@/ui/Pestanas` (the tab
   in use: green and a heavier word — its pill of the green's tint went at `11.7-ii`, the design system's *Pestanas*; the marker's stroke under
-  the word is `11.8`'s; the box behind each icon stays the bar's white, never `transparent`: Android squared rounded corners after the first switch), and `(cocina)/(tabs)/` holds exactly the tabs in use. *Tus ofertas*, *Publicar*, her page's editor and her address's
+  the word since `11.8-i`, `@/ui/Mostrador`'s `Trazo`; the box behind each icon stays the bar's white, never `transparent`: Android squared rounded corners after the first switch), and `(cocina)/(tabs)/` holds exactly the tabs in use. *Tus ofertas*, *Publicar*, her page's editor and her address's
   screens are pushed over the tabs. ⚠️ **Google's point for her address is asked again from the tabs' layout**, always mounted — *Mi cocina*,
   which draws the small map, mounts only when she opens it.
 - ***Hoy* is a hub** (his directions of 2026-11-06, `10.5-v-c-i`): the day's card (`@/ui/DiaDeHoy`), *Publicar una oferta* with her last day's
@@ -488,6 +488,13 @@ follows it, as `itacate/CLAUDE.md`'s does:
   has no plain `linea` edge (five keep one — a map's frame, two things over the map, a box she fills, a photo slot — each named with its reason), the header (`@/ui/Banda`) no line under it, the tab bar a white sheet
   with a `linea` top edge; her phrase in Mansalva (`@/theme/frase`, its file `src/marca/frase/` = `brand/letras/`'s, loaded with Wera's two by
   `@/marca/fuenteDeFrase`) on her page's copy and in `@/ui/Portada`; all held by `test/esquinas.test.ts`. The counter poster's inks are the palette's.
+  ⚠️ **Since `11.8-i` the counter's objects** — `@/ui/Mostrador`, one file with Itacate's (`test/mostrador.test.ts`), its pictures
+  `brand/mostrador/png/`'s byte for byte in `src/marca/mostrador/` and its measures `objetos.json`'s: a TICKET (`Boleto`: square, a notch
+  picture at each end of its band, the perforation as views, a stub of its own that holds what she does) for her offer on *Hoy* (green),
+  *Lo que sigue*, an order on *Apartados* (its one action on the stub; none, its body alone) and the order her code finds (*Ya cobré y lo
+  entregué* on the stub; once handed over, no stub and *Entregado* pressed on it — `SelloPalabra`); a code on a ticket in the number's
+  face at its own size (`@/ui/TarjetaOrden`'s `CODIGO`); her card's stamps the Wera cow (`SelloVaca`, turned by its place); a price on her
+  page's copy a tag (`Etiqueta`). Nothing moves yet: the stamp landing and the stub tearing are `11.8-ii`'s.
 - **Money:** no screen stores or shows a bank account, a card or an amount paid — only how she will pay.
 
 ## *Apartados* — she sees and hands over (`10.5b-iv-a`)

@@ -308,8 +308,14 @@ abrir('the inventory is current, and the first half is whole');
   } catch { actual = false; }
   afirmar(actual, 'inventario.json is what the compiler finds in the three apps today (inventario.mjs --check)');
   const inv = JSON.parse(readFileSync(join(raiz, 'brand/iconos/inventario.json'), 'utf8')).glifos;
-  const reemplazos = dibujos.flatMap(([, d]) => d.reemplaza);
+  // ⚠️ A glyph a later row retired from every app keeps its drawing in the font (the page serves this font and its
+  // map byte for byte); each is named here with the row and why. `11.8-i` (2026-11-27): her card's stamps are the
+  // cow PICTURE (`brand/mostrador/objetos/sello-vaca.svg`, `@/ui/Mostrador`'s `SelloVaca`), as the brand book said.
+  const RETIRADOS = { cow: '11.8-i — her card’s stamps are the cow picture, sello-vaca' };
+  const reemplazos = dibujos.flatMap(([, d]) => d.reemplaza).filter((n) => !(n in RETIRADOS));
   const nadie = reemplazos.filter((n) => !inv[n]);
+  const vuelto = Object.keys(RETIRADOS).filter((n) => inv[n]);
+  afirmar(vuelto.length === 0, `a glyph named retired is drawn by no app${vuelto.length ? ` — an app names it again: ${vuelto.join(', ')}` : ''}`);
   afirmar(nadie.length === 0, `every name a drawing replaces is one an app draws${nadie.length ? ` — no app names: ${nadie.join(', ')}` : ''}`);
   const dibujado = new Set(reemplazos);
   for (const [superficie, archivos] of Object.entries(mapa.primera)) {

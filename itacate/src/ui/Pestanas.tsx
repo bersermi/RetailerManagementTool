@@ -9,6 +9,7 @@ import { useAhora } from '@/lib/useAhora';
 import { pestanaDe } from '@/navigation/pestanas';
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { Trazo } from '@/ui/Mostrador';
 
 // ============================================================================
 // THE TAB BAR ITSELF. Plan task `10.5-v-b`, drawn as the family-shell page draws it:
@@ -75,8 +76,8 @@ export function Pestanas({ state, navigation }: BottomTabBarProps) {
                 height: 30,
                 alignItems: 'center',
                 justifyContent: 'center',
-                // ⚠️ `11.7-ii`: NO PILL — the tab she is on is its colour and a bolder word (the design
-                // system's *Pestanas*); the marker's stroke under the word is `11.8`'s. The box stays,
+                // ⚠️ `11.7-ii`: NO PILL — the tab she is on is its colour, a bolder word and, since
+                // `11.8-i`, the marker's stroke under it (`@/ui/Mostrador`'s `Trazo`). The box stays,
                 // in the bar's own white, so the dot keeps its place over the icon.
                 backgroundColor: PALETTE.superficie,
               }}
@@ -99,6 +100,7 @@ export function Pestanas({ state, navigation }: BottomTabBarProps) {
               )}
             </View>
             <Text style={{ fontSize: 12, fontWeight: enUso ? '700' : '500', color }}>{pestana.label}</Text>
+            <Trazo on={enUso} color={PALETTE.accion} />
           </Pressable>
         );
       })}

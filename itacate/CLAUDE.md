@@ -492,7 +492,7 @@ follows it, as `cocina/CLAUDE.md`'s does:
   with its word; the two ends never move; a slot stays free for later. Wera's JavaScript tabs, not native tabs. ⚠️ **Built by `10.5-v-b`**:
   the tabs are data (`@/navigation/pestanas` — a tab not yet in use would name the row that brings it), the bar is drawn by
   `@/ui/Pestanas` on `expo-router/js-tabs` (the tab in use: blue and a heavier word — its pill of the blue's tint went at `11.7-ii`, the design
-  system's *Pestanas*; the marker's stroke is `11.8`'s; the box behind each icon stays the bar's white, never `transparent`), and `(vecino)/(tabs)/` holds
+  system's *Pestanas*; the marker's stroke under the word since `11.8-i`, `@/ui/Mostrador`'s `Trazo`; the box behind each icon stays the bar's white, never `transparent`), and `(vecino)/(tabs)/` holds
   exactly the tabs in use — `test/pestanas.test.ts` refuses a screen there that is not one. A tab draws `@/ui/Cabeza` (no *Volver*: a tab is
   never closed); a kitchen's page, a dish's and *Dónde buscar* are pushed over the tabs from the root's stack, with `@/ui/Banda`'s *Volver*.
 - **Following, and her reservation pinned** (`10.9d-ii`; G20–G23 and G39, as the family-shell page draws stage 3). Every rule is
@@ -607,4 +607,10 @@ follows it, as `cocina/CLAUDE.md`'s does:
   `brand/letras/`'s, loaded with Wera's two by `@/marca/fuenteDeFrase`) and her day's dishes and what she usually offers on white sheets; a
   badge that sits on white and on the grey (*Quedan 2*, *Sorpresa*) the design system's resting chip, white with a `linea` edge; all held by
   `test/esquinas.test.ts`.
+  ⚠️ **Since `11.8-i` the counter's objects** — `@/ui/Mostrador`, one file with Wera Cocina's (`test/mostrador.test.ts`), its pictures
+  `brand/mostrador/png/`'s byte for byte in `src/marca/mostrador/` and its measures `objetos.json`'s: her apartado a TICKET (`@/ui/BoletoApartado`:
+  square, a notch at each end of its band, the perforation, and a stub holding *Ya lo tengo* and *¿Cambio de planes?*), her code on it in the
+  number's face at its own size (48); her card's stamps the Wera cow (`SelloVaca`, turned by its place); a price on a list a tag (`@/ui/Precio`'s
+  `Etiqueta`; a dish's own page keeps its large price); *¡Ganaste …!* in Mansalva (`@/theme/frase`'s `letraPremio`, 32/38). Nothing moves
+  yet: the stamp landing and the stub tearing are `11.8-ii`'s.
 - **Money:** no screen stores or shows a bank account, a card or an amount paid — only how she will pay.
