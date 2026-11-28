@@ -48,8 +48,8 @@ in the trade drawings' manner: plain objects, rounded, a little uneven.
 copied either — MaterialCommunityIcons' licence leaves its brand icons out
 (pictogrammers.com/docs/general/license, read 2026-11-26). Each is its owner's own file, by its
 owner's rules — `brand/marcas/README.md` (`11.10-i`): Google's G is Google's picture since then, so
-it is no glyph; `whatsapp` stays in `mapa.json`'s `marcas`, drawn by `@/ui/Icono` from
-MaterialCommunityIcons as before, until Meta's own glyph is there.
+it is no glyph; `whatsapp` stays in `mapa.json`'s `marcas` (the apps still name it), and since
+`11.10-iii` `@/ui/Icono` draws it as Meta's own glyph, a picture from `brand/marcas/whatsapp/`.
 
 ## Adding or changing a drawing
 

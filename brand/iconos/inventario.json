@@ -1221,19 +1221,16 @@
       "apps": {
         "app": [
           "app/src/app/(onboarding)/bienvenida.tsx",
-          "app/src/app/(tabs)/desperdicio.tsx",
-          "app/src/ui/Icono.tsx"
+          "app/src/app/(tabs)/desperdicio.tsx"
         ],
         "cocina": [
           "cocina/src/app/(cocina)/(tabs)/mi-cocina.tsx",
           "cocina/src/app/(cocina)/apartado/[id].tsx",
           "cocina/src/app/(cocina)/calificaciones.tsx",
-          "cocina/src/app/(cocina)/entregar.tsx",
-          "cocina/src/ui/Icono.tsx"
+          "cocina/src/app/(cocina)/entregar.tsx"
         ],
         "itacate": [
-          "itacate/src/app/(vecino)/(tabs)/tu.tsx",
-          "itacate/src/ui/Icono.tsx"
+          "itacate/src/app/(vecino)/(tabs)/tu.tsx"
         ]
       }
     },

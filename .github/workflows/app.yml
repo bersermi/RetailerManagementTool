@@ -121,10 +121,10 @@ on:
       - "brand/mostrador/movimiento.json"
       - "brand/mostrador/png/**"
       # ⚠️ `11.10-i`: AND THE DRAWN ICONS AND GOOGLE'S G — `app/test/iconos.test.ts` holds Wera's
-      # copies of the icon font and its map to `brand/iconos/`, and of the G to `brand/marcas/google/`, byte for byte.
+      # copies of the icon font and its map to `brand/iconos/`, and of Google's G and (since `11.10-iii`) WhatsApp's glyph to `brand/marcas/`, byte for byte.
       - "brand/iconos/WeraIconos.ttf"
       - "brand/iconos/WeraIconos.json"
-      - "brand/marcas/google/g*.png"
+      - "brand/marcas/**"
 
 concurrency:
   group: app-${{ github.ref }}
