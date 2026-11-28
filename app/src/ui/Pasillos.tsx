@@ -7,7 +7,8 @@
 // would take a row of products off the screen, and seven plain names read at once.
 //
 // ⚠️ `tono` IS THE ONE DIFFERENCE BETWEEN THE COUNTERS (`R16`): each keeps its
-// colour (call 1) — Vender's green, Comprar's blue — and nothing else here differs.
+// colour (call 1) — Vender's green, Comprar's blue, *Tirar*'s plum (`14.4`) — and
+// nothing else here differs.
 //
 // ⚠️ WHAT A TAP DOES TO THE SEARCH IS THE SCREEN'S (call 13): an aisle chosen
 // empties the box. This strip only says which aisle was chosen.

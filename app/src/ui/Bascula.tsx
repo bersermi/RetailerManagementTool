@@ -9,9 +9,10 @@
 // ⚠️ THIS IS THE PAD'S FRAME, AND WHAT IT READS IS EACH COUNTER'S (`R16`). The
 // sheet, the product at its head, the chips, the twelve keys, the one act and
 // *Quitar* are here. What the keys MEAN is not: Vender's reads like the scale
-// (`@/cart/bascula`'s `teclear`, digits from the right), Comprar's keeps a point
-// and has two boxes — what arrived and what it cost (`escribir`, call 5 and 9).
-// The figure, what it comes to and the warnings are the screen's `children`.
+// (`@/cart/bascula`'s `teclear`, digits from the right), and so does *Tirar*'s
+// (`14.4`), with no money on it; Comprar's keeps a point and has two boxes — what
+// arrived and what it cost (`escribir`, call 5 and 9). The figure, what it comes
+// to and the warnings are the screen's `children`.
 //
 // ⚠️ IT IS A `Modal` OF ITS OWN, OR — `bare` — A SHEET DRAWN INSIDE THE CARRITO'S:
 // two `Modal`s up at once is the nested presentation `VaciarCarrito`'s
