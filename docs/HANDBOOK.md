@@ -64,7 +64,7 @@ privacidad still does, in its first section — legal text, yours to change.
 
 ## What is on your phone
 
-⏳ **28 November, evening: how a product arrives (`14.5`) — merged, and waiting for you to send it, in ONE update with `14.4`'s *Tirar* and `11.10-iii`'s WhatsApp glyph.** ⚠️ **Only once the plan's status log says `14.5` is DEPLOYED** (the session that merged it runs the database change right after): this update asks the live database for the pack, and before the deploy every phone's catalog would fail to load. An update carries everything on `main`, so this one command replaces the two below — send only this one:
+⏳ **28 November, evening: how a product arrives (`14.5`) — merged and on the live database, and waiting for you to send it, in ONE update with `14.4`'s *Tirar* and `11.10-iii`'s WhatsApp glyph.** ✅ **Its database change is live since the same evening, so this update may go now.** An update carries everything on `main`, so this one command replaces the two below — send only this one:
 
 `! cd ~/RetailerToolDev/RetailerManagementTool && git fetch -q origin && git worktree add --detach /tmp/wera-14.5 origin/main && cd /tmp/wera-14.5 && npm ci --no-audit --no-fund && bash docs/runbooks/ship-an-update.sh production "Wera Tienda: cómo llega cada producto — cajas en Comprar (14.5), Tirar en el mostrador (14.4) y el ícono de WhatsApp (11.10-iii)" --only android`
 
