@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { Pressable, Text, View } from 'react-native';
 
 import { DIGITOS } from '@/lib/apartados';
@@ -68,7 +68,7 @@ export function Teclado({ onTecla }: { onTecla: (tecla: string) => void }) {
             })}
           >
             {tecla === 'borrar' ? (
-              <MaterialCommunityIcons name="backspace-outline" size={26} color={PALETTE.tinta} />
+              <Icono name="backspace-outline" size={26} color={PALETTE.tinta} />
             ) : (
               <Text style={{ fontSize: 26, fontWeight: '600', color: PALETTE.tinta }}>{tecla}</Text>
             )}

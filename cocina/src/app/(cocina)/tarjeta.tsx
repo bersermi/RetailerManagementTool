@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { Redirect, router, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
@@ -177,7 +177,7 @@ export default function Tarjeta() {
                     backgroundColor: pressed ? PALETTE.marcaSuave : PALETTE.superficie,
                   })}
                 >
-                  <MaterialCommunityIcons name="close" size={SIZE.iconSize} color={PALETTE.error} />
+                  <Icono name="close" size={SIZE.iconSize} color={PALETTE.error} />
                   <Text style={{ fontSize: SIZE.bodySize - 1, fontWeight: '600', color: PALETTE.error }}>{ES.tarjeta.cerrar}</Text>
                 </Pressable>
               </Grupo>

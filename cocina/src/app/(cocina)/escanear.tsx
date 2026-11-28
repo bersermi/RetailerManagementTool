@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { router } from 'expo-router';
 import { useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
@@ -164,7 +164,7 @@ export default function Escanear() {
         {paso.tipo === 'sinSenal' && (
           <View style={{ gap: SIZE.space }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: SIZE.rowGap }}>
-              <MaterialCommunityIcons name="wifi-off" size={22} color={PALETTE.tinta} />
+              <Icono name="wifi-off" size={22} color={PALETTE.tinta} />
               <Text style={{ fontSize: SIZE.titleSize - 2, ...TITULO, color: PALETTE.tinta }}>{ES.escanearCliente.sinSenal.titulo}</Text>
             </View>
             <Text style={{ fontSize: SIZE.bodySize, lineHeight: 22, color: PALETTE.tinta }}>{ES.escanearCliente.sinSenal.texto}</Text>
@@ -180,7 +180,7 @@ export default function Escanear() {
 
         {(paso.tipo === 'guardado' || paso.tipo === 'dijo') && (
           <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: SIZE.rowGap }}>
-            <MaterialCommunityIcons
+            <Icono
               name={paso.tipo === 'guardado' ? 'cloud-upload-outline' : paso.tono === 'bien' ? 'check-circle' : paso.tono === 'mal' ? 'alert-circle-outline' : 'information-outline'}
               size={22}
               color={paso.tipo === 'guardado' ? PALETTE.tinta : COLOR_DE[paso.tono]}
@@ -259,7 +259,7 @@ function SuTarjeta({
                 opacity: busy ? 0.6 : 1,
               })}
             >
-              <MaterialCommunityIcons name="gift-outline" size={22} color={PALETTE.marca} />
+              <Icono name="gift-outline" size={22} color={PALETTE.marca} />
               <View style={{ flex: 1, gap: 2 }}>
                 <Text style={{ fontSize: SIZE.bodySize, fontWeight: '600', color: PALETTE.tinta }}>{p.que}</Text>
                 <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada }}>{p.cuando}</Text>

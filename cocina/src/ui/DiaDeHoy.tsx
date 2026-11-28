@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { Pressable, Text, View } from 'react-native';
 
 import { RENGLONES_EN_LA_TARJETA, faltaTexto, fraccionDe, hastaTexto, ultimaTexto, type Dia } from '@/lib/hoy';
@@ -189,7 +189,7 @@ function Puerta({ color }: { color: string }) {
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
       <Text style={{ fontSize: SIZE.smallSize, fontWeight: '700', color }}>{ES.hoy.verOfertas}</Text>
-      <MaterialCommunityIcons name="chevron-right" size={18} color={color} />
+      <Icono name="chevron-right" size={18} color={color} />
     </View>
   );
 }

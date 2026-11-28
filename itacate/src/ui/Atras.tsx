@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { router } from 'expo-router';
 import { Pressable } from 'react-native';
 
@@ -47,7 +47,7 @@ export function Atras() {
         shadowOffset: { width: 0, height: 1 },
       })}
     >
-      <MaterialCommunityIcons name="chevron-left" size={SIZE.iconSize + 6} color={PALETTE.tinta} />
+      <Icono name="chevron-left" size={SIZE.iconSize + 6} color={PALETTE.tinta} />
     </Pressable>
   );
 }

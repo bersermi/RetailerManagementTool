@@ -1,6 +1,5 @@
-import type MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import type { NombreIcono } from '@/marca/glifos';
 import type { Href } from 'expo-router';
-import type { ComponentProps } from 'react';
 
 import { apiErrorMessage } from '@/api/errors';
 import { NO_SE_OFRECE, SERVICIOS, enUso, type Estado, type LoQueUsa, type Servicio } from '@/api/servicios';
@@ -54,7 +53,7 @@ export const PREPARAR: Pantallas = { tarjeta: '/preparar-tarjeta' };
  * and its line there (`10.9a-iii`). `test/loQueUsas.test.ts` holds each to the icon set's glyph map: a name not in
  * it is a blank square.
  */
-export const ICONO_DE: Readonly<Record<Servicio, ComponentProps<typeof MaterialCommunityIcons>['name']>> = {
+export const ICONO_DE: Readonly<Record<Servicio, NombreIcono>> = {
   tarjeta: 'stamper',
   promociones: 'creation',
   numeros: 'chart-bar',
@@ -72,7 +71,7 @@ export const PASOS_DE: Readonly<Record<Elegible, readonly [IconoDeServicio, Icon
   numeros: ['ticket-outline', 'chart-bar', 'account-group-outline'],
 };
 
-type IconoDeServicio = ComponentProps<typeof MaterialCommunityIcons>['name'];
+type IconoDeServicio = NombreIcono;
 
 /** A feature she can pick: every one but the menu, which is *Próximamente* until its own session. */
 export type Elegible = Exclude<Servicio, 'menu'>;

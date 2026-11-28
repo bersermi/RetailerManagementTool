@@ -8,16 +8,14 @@
 // Drawn on the welcome (`(auth)/hola`) and on the landing, for a signed-in
 // account that came by neither door (a second phone).
 // ============================================================================
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import type { ComponentProps } from 'react';
+import type { NombreIcono } from '@/marca/glifos';
+import { Icono } from '@/ui/Icono';
 import { Pressable, Text, View } from 'react-native';
 
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
 import { ESQUINA } from '@/theme/density';
-
-type Icono = ComponentProps<typeof MaterialCommunityIcons>['name'];
 
 export function Puertas({
   onAbrir,
@@ -31,7 +29,7 @@ export function Puertas({
 }) {
   const { scale } = useDensity();
 
-  const puerta = (label: string, icon: Icono, lleno: boolean, onPress: () => void) => (
+  const puerta = (label: string, icon: NombreIcono, lleno: boolean, onPress: () => void) => (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={label}
@@ -49,7 +47,7 @@ export function Puertas({
         opacity: pressed ? 0.85 : 1,
       })}
     >
-      <MaterialCommunityIcons name={icon} size={scale.iconSize} color={lleno ? PALETTE.superficie : PALETTE.accion} />
+      <Icono name={icon} size={scale.iconSize} color={lleno ? PALETTE.superficie : PALETTE.accion} />
       <Text
         style={{
           flex: 1,
@@ -60,7 +58,7 @@ export function Puertas({
       >
         {label}
       </Text>
-      <MaterialCommunityIcons
+      <Icono
         name="chevron-right"
         size={scale.iconSize}
         color={lleno ? PALETTE.superficie : PALETTE.accion}

@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect } from 'react';
 import { Image, Text, View } from 'react-native';
@@ -104,7 +104,7 @@ function Insignia({ icono, top, left, color }: { icono: 'gift-outline' | 'star' 
         borderColor: color,
       }}
     >
-      <MaterialCommunityIcons name={icono} size={18} color={color} />
+      <Icono name={icono} size={18} color={color} />
     </View>
   );
 }

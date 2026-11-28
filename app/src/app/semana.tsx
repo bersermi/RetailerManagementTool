@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { router } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, Text, useWindowDimensions, View } from 'react-native';
@@ -94,7 +94,7 @@ export default function Semana() {
           onPress={() => router.back()}
           style={{ minHeight: scale.tapTarget, minWidth: scale.tapTarget, alignItems: 'flex-end', justifyContent: 'center' }}
         >
-          <MaterialCommunityIcons name="close" size={scale.iconSize} color={PALETTE.superficie} />
+          <Icono name="close" size={scale.iconSize} color={PALETTE.superficie} />
         </Pressable>
       </View>
       {story === null ? (

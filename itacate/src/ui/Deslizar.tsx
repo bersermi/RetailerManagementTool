@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Text, View, type LayoutChangeEvent } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
@@ -133,7 +133,7 @@ export function Deslizar({
           {ocupado ? (
             <ActivityIndicator color={PALETTE.superficie} />
           ) : (
-            <MaterialCommunityIcons name="chevron-double-right" size={SIZE.iconSize + 4} color={PALETTE.superficie} />
+            <Icono name="chevron-double-right" size={SIZE.iconSize + 4} color={PALETTE.superficie} />
           )}
         </Animated.View>
       </GestureDetector>

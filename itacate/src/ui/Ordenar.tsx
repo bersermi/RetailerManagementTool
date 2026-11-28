@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
@@ -46,7 +46,7 @@ export function Ordenar({ orden, onOrden }: { orden: Orden; onOrden: (orden: Ord
           opacity: pressed ? 0.7 : 1,
         })}
       >
-        <MaterialCommunityIcons name="sort" size={16} color={PALETTE.tinta} />
+        <Icono name="sort" size={16} color={PALETTE.tinta} />
         <Text style={{ fontSize: SIZE.smallSize, fontWeight: '600', color: PALETTE.tinta }}>{enUso}</Text>
       </Pressable>
       <Hoja visible={abierta} titulo={ES.cerca.ordenar} onCerrar={() => setAbierta(false)}>

@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { FlatList, Keyboard, Pressable, Text, TextInput, View } from 'react-native';
@@ -373,7 +373,7 @@ function NuevoProveedor() {
           backgroundColor: PALETTE.accionSuave,
         }}
       >
-        <MaterialCommunityIcons name="plus" size={scale.iconSize} color={PALETTE.accion} />
+        <Icono name="plus" size={scale.iconSize} color={PALETTE.accion} />
         <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.accion }}>{ES.providers.create.button}</Text>
       </Pressable>
     </View>
@@ -419,7 +419,7 @@ function Crear({ name }: { name: string }) {
           justifyContent: 'center',
         }}
       >
-        <MaterialCommunityIcons name="plus" size={scale.iconSize} color={PALETTE.accion} />
+        <Icono name="plus" size={scale.iconSize} color={PALETTE.accion} />
       </View>
 
       <View style={{ flex: 1, gap: scale.rowGap / 4 }}>

@@ -1,5 +1,4 @@
-import type MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import type { ComponentProps } from 'react';
+import type { NombreIcono } from '@/marca/glifos';
 
 import { ES } from '@/strings';
 
@@ -21,7 +20,7 @@ import { ES } from '@/strings';
 // ============================================================================
 
 /** A glyph of the icon set the bar draws with. */
-type Glifo = ComponentProps<typeof MaterialCommunityIcons>['name'];
+type Glifo = NombreIcono;
 
 export interface Pestana {
   /** The screen's file in `(cocina)/(tabs)/`, without `.tsx`. */

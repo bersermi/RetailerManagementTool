@@ -32,7 +32,7 @@
 // *Primera vez*). Nothing here reads the basket or decides a rule.
 // ============================================================================
 
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { Image, Pressable, Text, View } from 'react-native';
 
 import type { CatalogEntry } from '@/api/catalog';
@@ -182,7 +182,7 @@ export function Baldosa({
                   opacity: pressed ? 0.7 : 1,
                 })}
               >
-                <MaterialCommunityIcons name="minus" size={scale.iconSize} color={PALETTE.superficie} />
+                <Icono name="minus" size={scale.iconSize} color={PALETTE.superficie} />
               </Pressable>
             )}
             <Text

@@ -9,7 +9,7 @@
 // No keyboard, and no native picker — none is in this build.
 // ============================================================================
 
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { Pressable, Text, View } from 'react-native';
 
 import { canMoveEnd, canMoveStart, momentOf, moveEnd, moveStart, type Ventana } from '@/lib/ventana';
@@ -49,7 +49,7 @@ export function Horario({
         opacity: disabled ? 0.6 : 1,
       }}
     >
-      <MaterialCommunityIcons
+      <Icono
         name={step < 0 ? 'minus' : 'plus'}
         size={SIZE.iconSize}
         color={can ? PALETTE.accion : PALETTE.tintaApagada}

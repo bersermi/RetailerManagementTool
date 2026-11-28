@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { router, useIsFocused, useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
@@ -118,7 +118,7 @@ export default function MiCodigo() {
                 </View>
               ) : estado.tipo === 'sinSenal' ? (
                 <View style={{ alignItems: 'center', gap: SIZE.rowGap, minHeight: 120, justifyContent: 'center' }}>
-                  <MaterialCommunityIcons name="wifi-off" size={28} color={PALETTE.tintaApagada} />
+                  <Icono name="wifi-off" size={28} color={PALETTE.tintaApagada} />
                   <Text style={{ fontSize: SIZE.bodySize, lineHeight: 22, color: PALETTE.tinta, textAlign: 'center' }}>{ES.miCodigo.sinSenal}</Text>
                   <BotonLleno label={ES.miCodigo.otraVez} onPress={reintentar} />
                 </View>
@@ -206,7 +206,7 @@ function LoQuePaso({
             borderColor: PALETTE.accion,
           }}
         >
-          <MaterialCommunityIcons name="check" size={30} color={PALETTE.accion} />
+          <Icono name="check" size={30} color={PALETTE.accion} />
         </View>
         <Text accessibilityRole="header" style={{ fontSize: SIZE.titleSize - 4, fontWeight: '800', color: PALETTE.tinta, textAlign: 'center' }}>
           {titulo}

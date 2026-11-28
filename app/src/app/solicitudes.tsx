@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { router } from 'expo-router';
 import { useState, type ReactNode } from 'react';
 import { Pressable, ScrollView, Share, Text, View } from 'react-native';
@@ -394,7 +394,7 @@ function Solicitud({
             backgroundColor: PALETTE.atencionSuave,
           }}
         >
-          <MaterialCommunityIcons
+          <Icono
             name="account-clock-outline"
             size={scale.iconSize * 0.8}
             color={PALETTE.atencion}
@@ -507,7 +507,7 @@ function Opcion({
         backgroundColor: chosen ? PALETTE.accionSuave : PALETTE.superficie,
       }}
     >
-      <MaterialCommunityIcons
+      <Icono
         name={chosen ? 'check-circle' : 'circle-outline'}
         size={scale.iconSize}
         color={chosen ? PALETTE.accion : PALETTE.tintaApagada}
@@ -550,7 +550,7 @@ function Vacia() {
           justifyContent: 'center',
         }}
       >
-        <MaterialCommunityIcons name="door-open" size={scale.iconSize * 1.8} color={PALETTE.accion} />
+        <Icono name="door-open" size={scale.iconSize * 1.8} color={PALETTE.accion} />
       </View>
       <Text style={{ ...letraTitulo(scale), color: PALETTE.tinta, textAlign: 'center' }}>
         {ES.approvals.emptyTitle}

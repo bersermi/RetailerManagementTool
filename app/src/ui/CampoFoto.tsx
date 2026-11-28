@@ -15,7 +15,7 @@
 // product looking unfinished (C8.14).
 // ============================================================================
 
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { initials } from '@/api/catalog';
@@ -97,7 +97,7 @@ export function CampoFoto({
               backgroundColor: PALETTE.accionSuave,
             }}
           >
-            <MaterialCommunityIcons name="camera-outline" size={scale.iconSize} color={PALETTE.accion} />
+            <Icono name="camera-outline" size={scale.iconSize} color={PALETTE.accion} />
             <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.accion }}>
               {has ? ES.products.photo.retake : ES.products.photo.take}
             </Text>

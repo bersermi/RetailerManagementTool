@@ -1,5 +1,5 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import type { ComponentProps } from 'react';
+import type { NombreIcono } from '@/marca/glifos';
+import { Icono } from '@/ui/Icono';
 import { Pressable, Text, View } from 'react-native';
 
 import { ES } from '@/strings';
@@ -20,7 +20,7 @@ export function LineaEmpujon({
   onPress,
   onCerrar,
 }: {
-  icono: ComponentProps<typeof MaterialCommunityIcons>['name'];
+  icono: NombreIcono;
   texto: string;
   onPress: () => void;
   onCerrar: () => void;
@@ -49,9 +49,9 @@ export function LineaEmpujon({
           opacity: pressed ? 0.6 : 1,
         })}
       >
-        <MaterialCommunityIcons name={icono} size={18} color={PALETTE.accion} />
+        <Icono name={icono} size={18} color={PALETTE.accion} />
         <Text style={{ flex: 1, fontSize: SIZE.bodySize - 1, lineHeight: 20, fontWeight: '600', color: PALETTE.tinta }}>{texto}</Text>
-        <MaterialCommunityIcons name="chevron-right" size={18} color={PALETTE.tintaApagada} />
+        <Icono name="chevron-right" size={18} color={PALETTE.tintaApagada} />
       </Pressable>
       <Pressable
         accessibilityRole="button"
@@ -59,7 +59,7 @@ export function LineaEmpujon({
         onPress={onCerrar}
         style={{ width: SIZE.tapTarget, height: SIZE.tapTarget, alignItems: 'center', justifyContent: 'center' }}
       >
-        <MaterialCommunityIcons name="close" size={16} color={PALETTE.tintaApagada} />
+        <Icono name="close" size={16} color={PALETTE.tintaApagada} />
       </Pressable>
     </View>
   );

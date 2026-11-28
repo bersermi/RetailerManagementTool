@@ -1,5 +1,5 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import type { ComponentProps } from 'react';
+import type { NombreIcono } from '@/marca/glifos';
+import { Icono } from '@/ui/Icono';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 
 import type { Servicio } from '@/api/servicios';
@@ -16,7 +16,7 @@ import { ESQUINA } from '@/theme/density';
 // measures, so the section reads as the rows under it.
 // ============================================================================
 
-type Glifo = ComponentProps<typeof MaterialCommunityIcons>['name'];
+type Glifo = NombreIcono;
 
 const fila = {
   minHeight: SIZE.tapTarget + SIZE.rowGap,
@@ -51,7 +51,7 @@ function Pastilla({ texto, icono = null, llena = false }: { texto: string; icono
         backgroundColor: llena ? PALETTE.accionSuave : PALETTE.superficie,
       }}
     >
-      {icono !== null && <MaterialCommunityIcons name={icono} size={14} color={PALETTE.accion} />}
+      {icono !== null && <Icono name={icono} size={14} color={PALETTE.accion} />}
       <Text style={{ fontSize: SIZE.smallSize, fontWeight: '700', color: PALETTE.accion }}>{texto}</Text>
     </View>
   );
@@ -72,12 +72,12 @@ export function FilaServicio({
 }) {
   const contenido = (
     <>
-      <MaterialCommunityIcons name={ICONO_DE[servicio]} size={SIZE.iconSize} color={PALETTE.tintaApagada} />
+      <Icono name={ICONO_DE[servicio]} size={SIZE.iconSize} color={PALETTE.tintaApagada} />
       <Textos titulo={ES.loQueUsas.nombre[servicio]} detalle={detalle} />
       {!usa ? (
         <Pastilla texto={ES.loQueUsas.activar} />
       ) : (
-        onPress !== undefined && <MaterialCommunityIcons name="chevron-right" size={20} color={PALETTE.tintaApagada} />
+        onPress !== undefined && <Icono name="chevron-right" size={20} color={PALETTE.tintaApagada} />
       )}
     </>
   );
@@ -98,7 +98,7 @@ export function FilaServicio({
 export function FilaMenu({ anotado, busy, onInteresa }: { anotado: boolean; busy: boolean; onInteresa: () => void }) {
   return (
     <View style={fila}>
-      <MaterialCommunityIcons name={ICONO_DE.menu} size={SIZE.iconSize} color={PALETTE.tintaApagada} />
+      <Icono name={ICONO_DE.menu} size={SIZE.iconSize} color={PALETTE.tintaApagada} />
       <Textos titulo={ES.loQueUsas.nombre.menu} detalle={ES.loQueUsas.proximamente} />
       {anotado ? (
         <Pastilla texto={ES.loQueUsas.anotado} icono="check" llena />

@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 
 import {
@@ -127,7 +127,7 @@ export function TarjetaOrden({
                     </Text>
                     <Calificacion texto={calificacionTexto(orden.vecino)} nueva={orden.vecino.calificacion === null} />
                   </View>
-                  <MaterialCommunityIcons name="chevron-right" size={20} color={PALETTE.tintaApagada} />
+                  <Icono name="chevron-right" size={20} color={PALETTE.tintaApagada} />
                 </View>
               </>
             )}

@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 
 import { lineDetail } from '@/api/listing';
@@ -65,7 +65,7 @@ export function Anterior({ fila, ahora, busy, onRepetir }: { fila: Fila; ahora: 
           {busy ? (
             <ActivityIndicator color={PALETTE.accion} />
           ) : (
-            <MaterialCommunityIcons name="repeat" size={16} color={PALETTE.accion} />
+            <Icono name="repeat" size={16} color={PALETTE.accion} />
           )}
           <Text style={{ fontSize: SIZE.smallSize, fontWeight: '700', color: PALETTE.accion }}>{ES.ofertas.repetir}</Text>
         </Pressable>

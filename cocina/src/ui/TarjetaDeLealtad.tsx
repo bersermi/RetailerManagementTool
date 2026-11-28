@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import type { NombreIcono } from '@/marca/glifos';
 import { Text, View } from 'react-native';
 
 import type { ColorCode } from '@/api/pagina';

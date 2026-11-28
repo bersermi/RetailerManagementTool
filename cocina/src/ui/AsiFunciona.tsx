@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { useCallback } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
@@ -49,7 +49,7 @@ export function AsiFunciona({ servicio, onCerrar }: { servicio: Elegible; onCerr
           hitSlop={SIZE.rowGap}
           style={{ width: SIZE.tapTarget - 12, height: SIZE.tapTarget - 12, alignItems: 'center', justifyContent: 'center' }}
         >
-          <MaterialCommunityIcons name="close" size={16} color={PALETTE.tintaApagada} />
+          <Icono name="close" size={16} color={PALETTE.tintaApagada} />
         </Pressable>
       </View>
       {pasos.map((texto, n) => (
@@ -64,7 +64,7 @@ export function AsiFunciona({ servicio, onCerrar }: { servicio: Elegible; onCerr
               backgroundColor: PALETTE.superficie,
             }}
           >
-            <MaterialCommunityIcons name={PASOS_DE[servicio][n]} size={24} color={PALETTE.accion} />
+            <Icono name={PASOS_DE[servicio][n]} size={24} color={PALETTE.accion} />
             <View
               style={{
                 position: 'absolute',

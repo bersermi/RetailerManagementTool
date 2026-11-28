@@ -1,5 +1,5 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import type { ComponentProps } from 'react';
+import type { NombreIcono } from '@/marca/glifos';
+import { Icono } from '@/ui/Icono';
 import { Pressable, Text, View } from 'react-native';
 
 import { TITULO } from '@/theme/letra';
@@ -17,10 +17,8 @@ import { ESQUINA } from '@/theme/density';
 // NO CHECK CAN SEE IT (ADR-035 §2.11): the phone is its instrument.
 // ============================================================================
 
-type Icono = ComponentProps<typeof MaterialCommunityIcons>['name'];
-
 /** The mark an offer wears, and the band's head: the kind's picture and its word, white on terracotta. */
-export function MarcaPromocion({ icono, texto, chica = false }: { icono: Icono; texto: string; chica?: boolean }) {
+export function MarcaPromocion({ icono, texto, chica = false }: { icono: NombreIcono; texto: string; chica?: boolean }) {
   return (
     <View
       style={{
@@ -34,7 +32,7 @@ export function MarcaPromocion({ icono, texto, chica = false }: { icono: Icono; 
         backgroundColor: PALETTE.marca,
       }}
     >
-      <MaterialCommunityIcons name={icono} size={chica ? 12 : 14} color={PALETTE.superficie} />
+      <Icono name={icono} size={chica ? 12 : 14} color={PALETTE.superficie} />
       <Text numberOfLines={1} style={{ fontSize: chica ? 11 : 12, fontWeight: '700', color: PALETTE.superficie }}>
         {texto}
       </Text>
@@ -55,7 +53,7 @@ export function BandaPromocion({
   condiciones,
   onCondiciones = null,
 }: {
-  icono: Icono;
+  icono: NombreIcono;
   marca: string;
   hasta: string | null;
   loQue: string;

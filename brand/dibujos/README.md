@@ -3,7 +3,7 @@
 Step 11, row `11.4` (2026-11-26): the drawings the three apps show where they have nothing else to
 show — a screen with nothing yet, a kitchen or a dish without a photo, a reward won — in the icons'
 line (`brand/iconos/README.md`, his call 10). **No app reads this folder, and nothing here is on a
-phone** until `11.10` copies the pictures into the apps.
+phone** until `11.10-ii` copies the pictures into the apps (`11.10` split on 2026-11-28: the icons first, `11.10-i`).
 
 | File | What it is |
 |---|---|

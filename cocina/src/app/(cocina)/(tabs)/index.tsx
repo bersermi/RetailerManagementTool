@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
@@ -337,7 +337,7 @@ function HoyDe({ kitchen }: { kitchen: Kitchen }) {
                     {busy ? (
                       <ActivityIndicator color={PALETTE.accion} />
                     ) : (
-                      <MaterialCommunityIcons name="repeat" size={16} color={PALETTE.accion} />
+                      <Icono name="repeat" size={16} color={PALETTE.accion} />
                     )}
                     <Text style={{ fontSize: SIZE.smallSize, fontWeight: '700', color: PALETTE.accion }}>{chipDe(listing)}</Text>
                   </Pressable>

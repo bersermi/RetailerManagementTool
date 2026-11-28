@@ -1,6 +1,5 @@
 import { createHash } from 'node:crypto';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
-import { createRequire } from 'node:module';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -44,9 +43,7 @@ const files = sources().map((path) => ({ name: path.slice(SRC.length + 1), text:
 // (`app/test/tabs.test.ts`): a name not in it is a blank square on the bar.
 const GLYPHS = JSON.parse(
   readFileSync(
-    createRequire(import.meta.url).resolve(
-      '@expo/vector-icons/build/vendor/react-native-vector-icons/glyphmaps/MaterialCommunityIcons.json',
-    ),
+    new URL('../src/marca/iconos/WeraIconos.json', import.meta.url),
     'utf8',
   ),
 ) as Record<string, number>;
@@ -75,7 +72,7 @@ describe('the tab bar — Cerca · Mis cocinas · Tú (the ruling of 2026-11-05,
   });
 
   it('every glyph is in the icon set the bar draws with', () => {
-    expect(Object.keys(GLYPHS).length).toBeGreaterThan(1000);
+    expect(Object.keys(GLYPHS).length).toBeGreaterThan(100);
     for (const pestana of PESTANAS) expect(GLYPHS[pestana.icono], pestana.icono).toBeTypeOf('number');
   });
 

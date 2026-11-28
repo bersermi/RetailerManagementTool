@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -142,7 +142,7 @@ export default function MisCocinas() {
             </View>
           ) : filas.length === 0 && seFueron.length === 0 && soloTarjeta.length === 0 ? (
             <View style={styles.vacio}>
-              <MaterialCommunityIcons name="heart-outline" size={44} color={PALETTE.linea} />
+              <Icono name="heart-outline" size={44} color={PALETTE.linea} />
               <Text style={styles.vacioTitulo}>{ES.misCocinas.vacio}</Text>
               <Text style={styles.nota}>{conTarjeta ? ES.misCocinas.vacioDetalleConTarjeta : ES.misCocinas.vacioDetalle}</Text>
             </View>
@@ -164,7 +164,7 @@ export default function MisCocinas() {
               {seFueron.map((seFue) => (
                 <View key={seFue.id} style={styles.fila} accessible accessibilityLabel={`${seFue.nombre}, ${ES.misCocinas.dejoItacate}`}>
                   <View style={styles.circuloIdo}>
-                    <MaterialCommunityIcons name="store-off-outline" size={18} color={PALETTE.tintaApagada} />
+                    <Icono name="store-off-outline" size={18} color={PALETTE.tintaApagada} />
                   </View>
                   <View style={{ flex: 1, gap: 2 }}>
                     <Text style={[styles.nombre, { color: PALETTE.tintaApagada }]}>{seFue.nombre}</Text>
@@ -221,8 +221,8 @@ function RenglonSeguida({
           {tarjeta !== null && ` · ${tarjeta}`}
         </Text>
       </View>
-      {seguida.campana && <MaterialCommunityIcons name="bell" size={16} color={PALETTE.tintaApagada} />}
-      <MaterialCommunityIcons name="chevron-right" size={20} color={PALETTE.tintaApagada} />
+      {seguida.campana && <Icono name="bell" size={16} color={PALETTE.tintaApagada} />}
+      <Icono name="chevron-right" size={20} color={PALETTE.tintaApagada} />
     </Pressable>
   );
 }
@@ -260,7 +260,7 @@ function RenglonTarjeta({ card, puerta, onPress }: { card: MyCardRow; puerta: Ki
         <Text style={styles.nombre}>{card.name}</Text>
         {linea !== '' && <Text style={styles.linea}>{linea}</Text>}
       </View>
-      <MaterialCommunityIcons name="chevron-right" size={20} color={PALETTE.tintaApagada} />
+      <Icono name="chevron-right" size={20} color={PALETTE.tintaApagada} />
     </Pressable>
   );
 }
@@ -276,13 +276,13 @@ function RenglonPremios({ card, puerta }: { card: MyCardRow; puerta: Kitchen | n
       style={({ pressed }) => [styles.premios, { backgroundColor: pressed ? PALETTE.fondo : PALETTE.superficie }]}
     >
       <View style={[styles.regalo, { backgroundColor: hue }]}>
-        <MaterialCommunityIcons name="gift-outline" size={20} color={PALETTE.superficie} />
+        <Icono name="gift-outline" size={20} color={PALETTE.superficie} />
       </View>
       <View style={{ flex: 1, gap: 2 }}>
         <Text style={styles.nombre}>{ES.tarjeta.premios(card.rewards.length)}</Text>
         <Text style={styles.linea}>{card.name}</Text>
       </View>
-      <MaterialCommunityIcons name="chevron-right" size={20} color={PALETTE.tintaApagada} />
+      <Icono name="chevron-right" size={20} color={PALETTE.tintaApagada} />
     </Pressable>
   );
 }

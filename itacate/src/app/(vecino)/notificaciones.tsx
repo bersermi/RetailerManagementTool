@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, Linking, Pressable, ScrollView, Text, View } from 'react-native';
@@ -89,7 +89,7 @@ export default function Notificaciones() {
             }}
           >
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: SIZE.rowGap }}>
-              <MaterialCommunityIcons name="bell-off-outline" size={20} color={PALETTE.marca} />
+              <Icono name="bell-off-outline" size={20} color={PALETTE.marca} />
               <Text style={{ flex: 1, fontSize: SIZE.smallSize + 0.4, lineHeight: 19, color: PALETTE.tinta }}>{ES.notificaciones.telefonoNoDeja}</Text>
             </View>
             <Pressable
