@@ -81,13 +81,15 @@ run catalog-bucket "Wera's upload answered 400" \
   "$(mutate catalog-bucket "$PHOTOS" "s/^export const CATALOG_PHOTO_BUCKET = 'catalogo';/export const CATALOG_PHOTO_BUCKET = 'catalog';/")"
 
 # The shop's column misnamed in the patch AND the read: PostgREST answers 400 42703.
+# ⚠️ `14.5`: the catalog read's line no longer ENDS at `catalog_image_path'` — the
+# pack's two columns follow it — so these two mutations anchor on the comma after it.
 run image-column 'pointing her product at the photo answered 400' \
   "$(mutate image-column "$PHOTOS" "s/^export const IMAGE_PATH_COLUMN = 'image_path';/export const IMAGE_PATH_COLUMN = 'photo_path';/")" \
-  "$(mutate image-column "$CATALOG" "s/,image_path,catalog_image_path';/,photo_path,catalog_image_path';/")"
+  "$(mutate image-column "$CATALOG" "s/,image_path,catalog_image_path,/,photo_path,catalog_image_path,/")"
 
 # Wera's column dropped from the catalog read: every imported product wears initials for ever.
 run read-drops-wera 'does not ask for catalog_image_path' \
-  "$PHOTOS" "$(mutate read-drops-wera "$CATALOG" "s/,image_path,catalog_image_path';/,image_path';/")"
+  "$PHOTOS" "$(mutate read-drops-wera "$CATALOG" "s/,image_path,catalog_image_path,/,image_path,/")"
 
 # ⚠️ `0063`'s read on Wera's bucket dropped — the edit somebody makes to "tighten"
 # a bucket every shop reads. No screen goes red: the photos just never arrive.

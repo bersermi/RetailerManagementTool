@@ -1271,7 +1271,7 @@ on conflict (code) do update set family_code = excluded.family_code, name = excl
   display_order = excluded.display_order;
 
 delete from catalogo.family where code not in ('pollo', 'huevo', 'res', 'tuetano', 'cerdo', 'verduras', 'chiles', 'verduras-por-pieza', 'hierbas', 'frutas', 'frutas-por-pieza', 'granel', 'reposteria-a-granel', 'frutos-secos', 'especias-a-granel', 'dulces-a-granel', 'refrescos', 'bebidas', 'lacteos', 'carnes-frias', 'quesos-a-granel', 'cremas-a-granel', 'carnes-frias-a-granel', 'pan', 'tortillas', 'galletas', 'botanas', 'dulces', 'basicos', 'azucar', 'aceites', 'enlatados', 'salsas', 'cafe', 'higiene', 'bebe', 'limpieza', 'desechables', 'hogar');
-delete from catalogo.tag where code not in ('giro-polleria', 'giro-carniceria', 'giro-verduleria', 'giro-fruteria', 'giro-abarrotes', 'giro-cremeria', 'giro-materias-primas', 'cat-pollo-fresco', 'cat-menudencia', 'cat-preparados', 'cat-huevo', 'cat-cortes', 'cat-embutidos', 'cat-manteca', 'cat-verduras', 'cat-chiles', 'cat-chiles-secos', 'cat-hierbas', 'cat-frutas', 'cat-granos', 'cat-frutos-secos', 'cat-azucar', 'cat-refrescos', 'cat-aguas', 'cat-lacteos', 'cat-quesos', 'cat-pan', 'cat-galletas', 'cat-botanas', 'cat-dulces', 'cat-basicos', 'cat-reposteria', 'cat-aceites', 'cat-enlatados', 'cat-salsas-moles', 'cat-salsas', 'cat-cafe', 'cat-higiene', 'cat-bebe', 'cat-limpieza', 'cat-desechables', 'cat-hogar');
+delete from catalogo.tag where for_kind = 'tienda' and code not in ('giro-polleria', 'giro-carniceria', 'giro-verduleria', 'giro-fruteria', 'giro-abarrotes', 'giro-cremeria', 'giro-materias-primas', 'cat-pollo-fresco', 'cat-menudencia', 'cat-preparados', 'cat-huevo', 'cat-cortes', 'cat-embutidos', 'cat-manteca', 'cat-verduras', 'cat-chiles', 'cat-chiles-secos', 'cat-hierbas', 'cat-frutas', 'cat-granos', 'cat-frutos-secos', 'cat-azucar', 'cat-refrescos', 'cat-aguas', 'cat-lacteos', 'cat-quesos', 'cat-pan', 'cat-galletas', 'cat-botanas', 'cat-dulces', 'cat-basicos', 'cat-reposteria', 'cat-aceites', 'cat-enlatados', 'cat-salsas-moles', 'cat-salsas', 'cat-cafe', 'cat-higiene', 'cat-bebe', 'cat-limpieza', 'cat-desechables', 'cat-hogar');
 
 insert into catalogo.product_tag (product_code, tag_code) values
   ('arroz-a-granel', 'giro-abarrotes'),
@@ -3915,7 +3915,7 @@ insert into catalogo.product_tag (product_code, tag_code) values
 -- The snapshot says how many rows it wrote; a partial apply is a failed one.
 do $$
 begin
-  if (select count(*) from catalogo.tag) <> 42
+  if (select count(*) from catalogo.tag where for_kind = 'tienda') <> 42
      or (select count(*) from catalogo.family) <> 39
      or (select count(*) from catalogo.product) <> 1161
      or (select count(*) from catalogo.product_tag) <> 2637 then

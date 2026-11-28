@@ -41,6 +41,11 @@ and run `supabase db reset`.
 
 ## Rules that are not obvious
 
+- **The CSVs own Wera's tags, not every row of `catalogo.tag`.** Wera Cocina's nine trades are
+  `0072`'s rows (`for_kind = 'cocina'`), and kitchens point at them. A snapshot deletes and counts
+  `for_kind = 'tienda'` only — the first draft of `0102` (`14.5`) deleted them unscoped, and CI's
+  kitchen suites caught it before any merge. `build.test.mjs` holds the scope.
+
 - **A code never changes.** A shop's copy remembers its template row by code, and that is how
   a picture added later finds every shop's copy. Rename by editing `name`.
 - **An overlap is a tag, never a second row.** *Huevo* sold by a pollería and a cremería is one

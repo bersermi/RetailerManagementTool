@@ -264,3 +264,10 @@ test('the eight pack words are the database\'s eight, read out of 0101', () => {
   const codes = listed[1].split(',').map((c) => c.trim().replace(/'/g, ''));
   assert.deepEqual(new Set(codes), PACK_WORDS);
 });
+
+test('⚠️ the stale-tag delete and the count are Wera\'s alone — Wera Cocina\'s trades (0072) survive a snapshot', () => {
+  const sql = renderSql(load());
+  assert.match(sql, /delete from catalogo\.tag where for_kind = 'tienda' and code not in \(/);
+  assert.ok(!/delete from catalogo\.tag where code/.test(sql), 'an unscoped tag delete would take the kitchens\' trades');
+  assert.match(sql, /count\(\*\) from catalogo\.tag where for_kind = 'tienda'\) <> 3/);
+});

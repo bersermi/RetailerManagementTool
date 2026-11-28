@@ -240,14 +240,20 @@ export function loadCatalog(catalogDir, migrationsDir) {
 const lit = (s) => `'${s.replace(/'/g, "''")}'`;
 const list = (codes) => codes.map(lit).join(', ');
 
+// ⚠️⚠️ WERA'S TAGS ONLY — `for_kind = 'tienda'`. Since `0072` the table also holds
+// Wera Cocina's nine trades (`for_kind = 'cocina'`), which are `0072`'s rows and
+// not these CSVs', and `workspace.giro_principal` points at them. The first snapshot
+// after `0072` (`14.5`) deleted them with an unscoped `delete`, and the foreign key
+// nulled every kitchen's trade — caught by CI, never deployed. The snapshot's own
+// count below is scoped the same way.
 function staleFamiliesAndTags(families, tags) {
   return [
     families.length
       ? `delete from catalogo.family where code not in (${list(families.map((f) => f.code))});`
       : 'delete from catalogo.family;',
     tags.length
-      ? `delete from catalogo.tag where code not in (${list(tags.map((t) => t.code))});`
-      : 'delete from catalogo.tag;',
+      ? `delete from catalogo.tag where for_kind = 'tienda' and code not in (${list(tags.map((t) => t.code))});`
+      : `delete from catalogo.tag where for_kind = 'tienda';`,
     '',
   ];
 }
@@ -317,7 +323,7 @@ export function renderSql({ tags, families, products }) {
     '-- The snapshot says how many rows it wrote; a partial apply is a failed one.',
     'do $$',
     'begin',
-    `  if (select count(*) from catalogo.tag) <> ${tags.length}`,
+    `  if (select count(*) from catalogo.tag where for_kind = 'tienda') <> ${tags.length}`,
     `     or (select count(*) from catalogo.family) <> ${families.length}`,
     `     or (select count(*) from catalogo.product) <> ${products.length}`,
     `     or (select count(*) from catalogo.product_tag) <> ${pairCount} then`,

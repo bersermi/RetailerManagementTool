@@ -5,7 +5,8 @@
 --
 -- Section 1 the shape: `pack_word` on both tables, eight words and nothing else,
 -- a pack still holds more than nothing. Section 2 the template (`0102`): the
--- guesses the plan's table gives, and no figure for what it calls *hers to count*.
+-- guesses the plan's table gives, no figure for what it calls *hers to count*, and
+-- ⚠️ Wera Cocina's trades untouched — the first draft of `0102` deleted them (2.7).
 -- Section 3 Wera's door and the import, as the owner of a new shop. Section 4
 -- `0103`'s rule, against a shop opened before `0101`. Section 5 who may change a
 -- pack: the owner and a manager, never the cashier (an UPDATE refusal is a 200
@@ -81,6 +82,11 @@ select public.chk('2.6 23 products carry a pack, and every other one is loose at
   (select count(*) = 23 from _t where pack_word is not null)
   and (select bool_and(pack_size = 1) from _t where pack_word is null),
   (select count(*)::text from _t where pack_word is not null));
+
+select public.chk('2.7 ⚠️ the snapshot leaves Wera Cocina''s nine trades (0072) where they are, and Wera''s 42 beside them',
+  (select count(*) = 9 from catalogo.tag where for_kind = 'cocina')
+  and (select count(*) from catalogo.tag where for_kind = 'tienda') = 42,
+  (select count(*)::text from catalogo.tag where for_kind = 'cocina'));
 
 -- ---- 3. Wera's door and the import --------------------------------------------------------
 insert into auth.users (id, email) values
@@ -210,8 +216,8 @@ begin
   if v_failed > 0 then
     raise exception '% behavioural check(s) FAILED — see the table above', v_failed;
   end if;
-  if (select count(*) from public._verify) <> 25 then
-    raise exception 'expected 25 checks, % recorded — one was lost, not passed',
+  if (select count(*) from public._verify) <> 26 then
+    raise exception 'expected 26 checks, % recorded — one was lost, not passed',
       (select count(*) from public._verify);
   end if;
   raise notice 'all % checks passed', (select count(*) from public._verify);
