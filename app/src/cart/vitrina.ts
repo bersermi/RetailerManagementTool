@@ -24,6 +24,9 @@
 // ⚠️ COMPRAR'S TAP ALWAYS OPENS THE PAD (call 4): a delivery always has a cost,
 // so there is nothing a tap could add without asking. No rule is needed for it
 // here — its tiles call the pad on a tap and on a long press alike.
+//
+// ⚠️ *TIRAR*'S TAP IS VENDER'S WITHOUT THE GATE (`14.4`, `toqueDeTirar`): a
+// write-off has no price to ask for.
 // ============================================================================
 
 import { search, type CatalogEntry } from '@/api/catalog';
@@ -45,6 +48,18 @@ export const PESADOS: ReadonlySet<string> = new Set(['kg', 'g', 'l', 'ml']);
 export function toqueDe(shownUnit: string, gate: SellGate): Toque {
   if (gate === 'priceFirst') return 'precio';
   if (gate === 'refused') return 'nota';
+  return PESADOS.has(shownUnit) ? 'pesar' : 'sumar';
+}
+
+/**
+ * ⚠️⚠️ `14.4`: WHAT A TAP DOES ON *TIRAR*'S COUNTER — AND THERE IS NO GATE. Merma
+ * writes an unpriced product off at an explicit zero (`UNPRICED_WASTE`), and the
+ * owner's ruling of 2026-10-15 is about a SALE (`@/cart/gate`), so a product with
+ * no price is thrown away like any other: a tap counts one piece or bunch, or
+ * opens the pad on a weighed one — never the price sheet, never a cashier's note.
+ * Its long press is the pad, as everywhere.
+ */
+export function toqueDeTirar(shownUnit: string): Extract<Toque, 'sumar' | 'pesar'> {
   return PESADOS.has(shownUnit) ? 'pesar' : 'sumar';
 }
 

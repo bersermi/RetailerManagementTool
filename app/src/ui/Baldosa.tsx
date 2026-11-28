@@ -27,9 +27,10 @@
 // and the hue never travels alone (`R11`): the band is a sentence.
 //
 // ⚠️ WHAT DIFFERS BETWEEN THE COUNTERS IS A PROP (`R16`): the colour (call 1),
-// the tag's figure (the shelf price, or this provider's last cost), whether there
-// is a `−`, and Comprar's line under the name (*Anterior · hace 3 días*,
-// *Primera vez*). Nothing here reads the basket or decides a rule.
+// the tag's figure (the shelf price, or this provider's last cost — or no tag at
+// all on *Tirar*, `14.4`: Área 9), whether there is a `−`, and Comprar's line
+// under the name (*Anterior · hace 3 días*, *Primera vez*). Nothing here reads the
+// basket or decides a rule.
 // ============================================================================
 
 import { Icono } from '@/ui/Icono';
