@@ -64,19 +64,19 @@ privacidad still does, in its first section — legal text, yours to change.
 
 ## What is on your phone
 
-⏳ **28 November, evening: how a product arrives (`14.5`) — merged and on the live database, and waiting for you to send it, in ONE update with `14.4`'s *Tirar* and `11.10-iii`'s WhatsApp glyph.** ✅ **Its database change is live since the same evening, so this update may go now.** An update carries everything on `main`, so this one command replaces the two below — send only this one:
+✅ **28 November, evening: how a product arrives (`14.5`), `14.4`'s *Tirar* and `11.10-iii`'s WhatsApp glyph — sent by you that evening, in one update** to Wera Tienda 1.2 on Android (its id `9b6624f5`, from `main` at `d58ba13`), after the database change went live. The command you used, for the record:
 
 `! cd ~/RetailerToolDev/RetailerManagementTool && git fetch -q origin && git worktree add --detach /tmp/wera-14.5 origin/main && cd /tmp/wera-14.5 && npm ci --no-audit --no-fund && bash docs/runbooks/ship-an-update.sh production "Wera Tienda: cómo llega cada producto — cajas en Comprar (14.5), Tirar en el mostrador (14.4) y el ícono de WhatsApp (11.10-iii)" --only android`
 
 Your iPhone takes all three after Apple approves 1.2 (the plan's date of 29 November carries its command). On your Android: open Wera Tienda, wait ten seconds, close it completely and open it again. **What to look at for `14.5`:** *Comprar* → choose your produce supplier → *Jitomate saladet*: the pad opens on ***Caja*** with *Trae cada caja 13 kg · Aproximado* and the cost per caja; chip *2* → *Entran 26 kg · a … por kg*; change *Trae cada caja* and the cost, *Agregar*: the tile says *2 cajas*, the Carrito *2 cajas de … kg*; *Lechuga* opens on ***Docena***; switch any of them to *Kilos*. Then a product's page (*Productos* → *Jitomate saladet*): ***Te llega · En caja de 13 kg*** → *Cambiar*. The other two are in their paragraphs below.
 
-⏳ **28 November, afternoon: WhatsApp's own glyph (`11.10-iii`) — merged, and waiting for you to send it, in one update with `14.4`'s *Tirar*** (an update carries everything on `main`, so this one command sends both; the `14.4` command below does the same if it runs after this merge — send only one):
+✅ **28 November, afternoon: WhatsApp's own glyph (`11.10-iii`) — sent by you that evening with `14.5`'s update above (`9b6624f5`); the command below is no longer needed** (an update carries everything on `main`, so this one command sends both; the `14.4` command below does the same if it runs after this merge — send only one):
 
 `! cd ~/RetailerToolDev/RetailerManagementTool && git fetch -q origin && git worktree add --detach /tmp/wera-11.10-iii origin/main && cd /tmp/wera-11.10-iii && npm ci --no-audit --no-fund && bash docs/runbooks/ship-an-update.sh production "Wera Tienda: Tirar en el mostrador (14.4) y el ícono oficial de WhatsApp (11.10-iii)" --only android`
 
 Your iPhone takes both after Apple approves 1.2 (the plan's date of 29 November carries its command). On your Android: open Wera Tienda, wait ten seconds, close it completely and open it again. **What to look at for `11.10-iii`:** WhatsApp's green glyph where a shopkeeper's account waits to join a shop (*Avisar por WhatsApp*); everything else that changed is `14.4`'s (its paragraph below).
 
-⏳ **28 November, afternoon: *Tirar* on the counter (`14.4`) — merged, and waiting for you to send it.** The same kind of command as before, typed in a Claude session:
+✅ **28 November, afternoon: *Tirar* on the counter (`14.4`) — sent by you that evening with `14.5`'s update above (`9b6624f5`); the command below is no longer needed.** The same kind of command as before, typed in a Claude session:
 
 `! cd ~/RetailerToolDev/RetailerManagementTool && git fetch -q origin && git worktree add --detach /tmp/wera-14.4 origin/main && cd /tmp/wera-14.4 && npm ci --no-audit --no-fund && bash docs/runbooks/ship-an-update.sh production "Wera Tienda: Tirar en el mostrador — pasillos, fotos y la báscula, sin precios (14.4)" --only android`
 
