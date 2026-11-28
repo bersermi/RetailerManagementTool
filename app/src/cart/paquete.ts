@@ -71,6 +71,20 @@ export function palabraDe(word: PackWord, n: number): string {
   return n === 1 ? w.one : w.many;
 }
 
+/**
+ * What *Trae cada caja* says under its figure: *La última vez* when it is what she
+ * typed last, *Aproximado* when it is the product's own guess — and nothing on a
+ * docena, which is twelve by its name (a doubt the word does not have, seen on
+ * the emulator at `14.5`), nor on a figure she just typed.
+ */
+export type NotaTrae = 'ultima' | 'aproximado' | null;
+
+export function notaDeTrae(pack: Pack | null, llegada: Llegada | undefined, trae: string): NotaTrae {
+  if (pack === null || pack.word === 'docena') return null;
+  if (llegada !== undefined && llegada.trae !== '' && llegada.trae === trae) return 'ultima';
+  return trae === traeDe(pack) ? 'aproximado' : null;
+}
+
 /** The figures a whole count of packs takes: none after a point, three digits. */
 export const MAX_PAQUETES = 3;
 

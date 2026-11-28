@@ -20,6 +20,7 @@ import {
   leerLlegadas,
   lineaDe,
   modoInicial,
+  notaDeTrae,
   palabraDe,
   paqueteDe,
   paquetesDe,
@@ -211,6 +212,14 @@ describe('what the phone keeps (call 10: the last she typed shows next time)', (
     expect(traeInicial(entry(), undefined)).toBe('13');
     expect(traeInicial(entry(), { modo: 'paquete', trae: '', linea: null })).toBe('13');
     expect(traeInicial(entry({ pack: null }), enCajas)).toBe('');
+  });
+
+  it('says where the content came from — never a doubt on a docena', () => {
+    expect(notaDeTrae(CAJA, undefined, '13')).toBe('aproximado');
+    expect(notaDeTrae(CAJA, enCajas, '12.5')).toBe('ultima');
+    expect(notaDeTrae(CAJA, enCajas, '14')).toBeNull(); // she is typing another
+    expect(notaDeTrae({ word: 'docena', holds: '12.000' }, undefined, '12')).toBeNull();
+    expect(notaDeTrae(null, enCajas, '12.5')).toBeNull();
   });
 
   it('reopens a line in cajas only while the basket holds exactly what that pad sent', () => {

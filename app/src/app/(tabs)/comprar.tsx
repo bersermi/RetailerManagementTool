@@ -61,10 +61,10 @@ import {
   entran,
   lineaDe,
   modoInicial,
+  notaDeTrae,
   paqueteDe,
   palabraDe,
   paquetesDe,
-  traeDe,
   traeInicial,
   type Modo,
 } from '@/cart/paquete';
@@ -1369,14 +1369,8 @@ function BasculaCompra({
         : note === 'ask'
           ? ES.buy.pad.ask
           : null;
-  const holdsNote =
-    pack === null
-      ? null
-      : llegada !== undefined && llegada.trae !== '' && llegada.trae === trae
-        ? ES.buy.pad.holdsLast
-        : trae === traeDe(pack)
-          ? ES.buy.pad.holdsGuess
-          : null;
+  const nota = notaDeTrae(pack, llegada, trae);
+  const holdsNote = nota === 'ultima' ? ES.buy.pad.holdsLast : nota === 'aproximado' ? ES.buy.pad.holdsGuess : null;
   const entra = porCaja ? entran(qtyBase, perBase, entry, factors) : null;
 
   const cajas = (
