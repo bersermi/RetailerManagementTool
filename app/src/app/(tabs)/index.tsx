@@ -1,7 +1,7 @@
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Animated, Easing, Pressable, ScrollView, Text, View } from 'react-native';
+import { Animated, Easing, Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
 
 import { formatSlot, nextPickup, minutesUntil, rescued, untilLabel } from '@/api/collection';
 import { feedLine, latestSales, type FeedRow } from '@/api/documents';
@@ -32,7 +32,7 @@ import { TE_LO_COMPRO, veTeLoCompro } from '@/navigation/pausa';
 import { DeadLetterBanner } from '@/offline/DeadLetterBanner';
 import { useOnline } from '@/offline/useOnline';
 import { useTakingsWithUnsent, useUnsent } from '@/offline/useUnsent';
-import { useReduceMotion } from '@/lib/movimiento';
+import { recorrer, useReduceMotion } from '@/lib/movimiento';
 import { useRecorridoPorSiSolo } from '@/navigation/useRecorrido';
 import { historiaVista, marcarHistoria } from '@/offline/ensenar';
 import { deviceStore, readKey, writeKey } from '@/lib/store';
@@ -44,6 +44,7 @@ import { PALETTE } from '@/theme/palette';
 import { Hecho } from '@/ui/Hecho';
 import { Rotulo } from '@/ui/Rotulo';
 import { ESQUINA } from '@/theme/density';
+import { OBJETOS, RECIBO, RODILLO, puntosDe, retrasoDeRueda, valoresDe } from '@/theme/mostrador';
 
 // ============================================================================
 // INICIO — §2.8's Home row, redrawn by `8g` from the owner's playable page of
@@ -277,19 +278,27 @@ function weekdayOf(day: string): string {
  *
  * ⚠️ `11.6`: THE SCREEN'S ONE BIG NUMBER — Archivo Condensed Bold, its figures in
  * columns, at `numeroSize` (`@/theme/letra`'s `letraNumero`). The window is its
- * line. The register's stagger, each place a little after the one to its right,
- * is `11.9`'s (call 8); until then every wheel turns at once, as before.
+ * line.
+ *
+ * ⚠️ `11.9`: *EL TOTAL RUEDA* LIKE A REGISTER (`brand/mostrador/movimiento.json`,
+ * call 8 on the design page, his yes at `11.5-i`): the units turn first and each
+ * place to the left 40 ms after the one to its right (`RODILLO`), each wheel in
+ * today's 700 ms. A separator is not a wheel, so it does not count as a place.
+ * NO CHECK CAN SEE IT TURN (§2.11): the session's recordings and his look (`R9`).
  */
 function Rodillo({ text, reduce }: { text: string; reduce: boolean }) {
   const { scale } = useDensity();
   const { lineHeight: line, ...face } = letraNumero(scale);
   const chars = [...text];
+  // How many digits sit to the right of each character — its place on the register.
+  let digitsToTheRight = chars.filter((ch) => /[0-9]/.test(ch)).length;
   return (
     <View style={{ flexDirection: 'row', height: line, overflow: 'hidden' }} accessibilityLabel={text}>
       {chars.map((ch, i) => {
         const fromRight = chars.length - i;
+        if (/[0-9]/.test(ch)) digitsToTheRight -= 1;
         return /[0-9]/.test(ch) ? (
-          <Digito key={`d${fromRight}`} digit={Number(ch)} line={line} reduce={reduce} />
+          <Digito key={`d${fromRight}`} digit={Number(ch)} line={line} place={digitsToTheRight} reduce={reduce} />
         ) : (
           <Text key={`c${fromRight}`} style={{ ...face, lineHeight: line, height: line, color: PALETTE.tinta }}>
             {ch}
@@ -302,7 +311,7 @@ function Rodillo({ text, reduce }: { text: string; reduce: boolean }) {
 
 const DIGITS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] as const;
 
-function Digito({ digit, line, reduce }: { digit: number; line: number; reduce: boolean }) {
+function Digito({ digit, line, place, reduce }: { digit: number; line: number; place: number; reduce: boolean }) {
   const { scale } = useDensity();
   const { lineHeight: _line, ...face } = letraNumero(scale);
   const y = useRef(new Animated.Value(-digit * line)).current;
@@ -315,13 +324,14 @@ function Digito({ digit, line, reduce }: { digit: number; line: number; reduce: 
     }
     const run = Animated.timing(y, {
       toValue: -digit * line,
-      duration: 700,
-      easing: Easing.out(Easing.cubic),
+      duration: RODILLO.duracion,
+      delay: retrasoDeRueda(place),
+      easing: Easing.bezier(RODILLO.curva[0], RODILLO.curva[1], RODILLO.curva[2], RODILLO.curva[3]),
       useNativeDriver: true,
     });
     run.start();
     return () => run.stop();
-  }, [digit, line, reduce, y]);
+  }, [digit, line, place, reduce, y]);
   return (
     <View style={{ height: line, overflow: 'hidden' }}>
       <Animated.View style={{ transform: [{ translateY: y }] }}>
@@ -633,8 +643,12 @@ function Puertas() {
 }
 
 /**
- * *Lo último, en vivo* — the three newest sales; a new one slides in at the top.
+ * *Lo último, en vivo* — the three newest sales; a new one comes out at the top.
  * *Ver todo* opens Lo último itself.
+ *
+ * ⚠️ `11.9`: IT IS A RECEIPT (`brand/mostrador/objetos.json`'s *recibo*): a white
+ * sheet whose foot is torn in teeth (`Dientes`), and a sale she has not seen
+ * feeds out at its top as a till prints it — *Sale el recibo* (`Recibo`).
  */
 function Ultimo({ focused }: { focused: boolean }) {
   const { scale } = useDensity();
@@ -652,52 +666,160 @@ function Ultimo({ focused }: { focused: boolean }) {
   // ⚠️ Round 3: with no row, the week's read never answered and no signal is
   // *Se ve cuando haya señal* — never *no sales* (`feedLine`).
   const empty = feedLine(rows.length, state, online);
-  // ⚠️ WHAT WAS ON SCREEN WHEN IT OPENED DOES NOT SLIDE — only a sale that
-  // arrives while she is looking.
+  // ⚠️ WHAT WAS ON SCREEN WHEN IT OPENED DOES NOT MOVE — only a sale that arrives
+  // while she is looking, or while Inicio was behind another tab (the rows are held).
   const seen = useRef<Set<string> | null>(null);
+  const feed = useRef<Salida>({ vez: 0, filas: 0 });
   if (seen.current === null && rows.length > 0) seen.current = new Set(rows.map((r) => r.id));
+  const fresh = seen.current === null ? 0 : rows.filter((r) => !seen.current?.has(r.id)).length;
+  if (fresh > 0) {
+    for (const r of rows) seen.current?.add(r.id);
+    feed.current = { vez: feed.current.vez + 1, filas: fresh };
+  }
   return (
-    <View style={{ padding: scale.space, borderRadius: ESQUINA.hoja, backgroundColor: PALETTE.superficie }}>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={`${ES.documents.title}. ${ES.home.feed.seeAll}`}
-        onPress={() => router.push('/documentos')}
-        style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', minHeight: scale.tapTarget * 0.75 }}
+    <View>
+      <View
+        style={{
+          padding: scale.space,
+          borderTopLeftRadius: ESQUINA.hoja,
+          borderTopRightRadius: ESQUINA.hoja,
+          backgroundColor: PALETTE.superficie,
+        }}
       >
-        <Rotulo text={ES.documents.title} />
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <Text style={{ fontSize: scale.smallSize, fontWeight: '700', color: PALETTE.accion }}>{ES.home.feed.seeAll}</Text>
-          <MaterialCommunityIcons name="chevron-right" size={scale.iconSize * 0.8} color={PALETTE.accion} />
-        </View>
-      </Pressable>
-      {rows.length === 0 ? (
-        <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>{empty}</Text>
-      ) : (
-        rows.map((row, i) => {
-          const fresh = seen.current !== null && !seen.current.has(row.id);
-          if (fresh) seen.current?.add(row.id);
-          return <Renglon key={row.id} row={row} first={i === 0} fresh={fresh} />;
-        })
-      )}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`${ES.documents.title}. ${ES.home.feed.seeAll}`}
+          onPress={() => router.push('/documentos')}
+          style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', minHeight: scale.tapTarget * 0.75 }}
+        >
+          <Rotulo text={ES.documents.title} />
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Text style={{ fontSize: scale.smallSize, fontWeight: '700', color: PALETTE.accion }}>{ES.home.feed.seeAll}</Text>
+            <MaterialCommunityIcons name="chevron-right" size={scale.iconSize * 0.8} color={PALETTE.accion} />
+          </View>
+        </Pressable>
+        {rows.length === 0 ? (
+          <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>{empty}</Text>
+        ) : (
+          <Recibo rows={rows} salida={feed.current} />
+        )}
+      </View>
+      <Dientes />
     </View>
   );
 }
 
-function Renglon({ row, first, fresh }: { row: FeedRow; first: boolean; fresh: boolean }) {
+/** The receipt's last feed: how many times it has fed, and how many rows came out that time. */
+interface Salida {
+  readonly vez: number;
+  readonly filas: number;
+}
+
+/**
+ * ⚠️ `11.9`: *SALE EL RECIBO* (`movimiento.json`'s *recibo*, 380 ms). When rows
+ * come out, everything under the heading starts that many rows higher, hidden by
+ * the box's top edge, and slides down — the newest line printed at the top.
+ *
+ * ⚠️ A ROW IS ITS OWN HEIGHT, MEASURED. The file's unit is density's `rowHeight`
+ * (56, 76 at *Letra grande*), but Lo último's rows are a line of text, about half
+ * that; fed by `rowHeight` the second line would come out with the first. So a
+ * row is the box's last height over its rows, and `rowHeight` only before any
+ * row was measured (the first sale ever, while she looks).
+ *
+ * ⚠️ ONLY WHERE SHE CAN SEE IT: Lo último sits below *Hoy*, *Racha* and the
+ * doors, and at *Letra grande* it can be under the fold when she comes back to
+ * Inicio. A feed waits there, the new line still under the heading's edge, until
+ * the box is on screen (`measureInWindow`, every 200 ms while one waits), then
+ * plays — so it is not spent where nobody looks (found at `11.8-ii`).
+ *
+ * The first frame starts it from above: the box is set that many rows up as the
+ * rows are drawn, never after, so a new row never shows in its place for a frame
+ * and then jumps. On a phone set to reduce motion the rows are simply there.
+ */
+function Recibo({ rows, salida }: { rows: readonly FeedRow[]; salida: Salida }) {
   const { scale } = useDensity();
   const reduce = useReduceMotion();
-  const t = useRef(new Animated.Value(fresh ? 0 : 1)).current;
+  const { height: screen } = useWindowDimensions();
+  const pantalla = useRef(screen);
+  pantalla.current = screen;
+  const box = useRef<View>(null);
+  const t = useRef(new Animated.Value(1)).current;
+  const fila = useRef<number | null>(null);
+  /** The last feed this receipt took, and whether it is set up and not yet played. */
+  const taken = useRef(salida.vez);
+  const waiting = useRef(false);
+  if (salida.vez !== taken.current) {
+    taken.current = salida.vez;
+    if (!reduce) {
+      t.setValue(0);
+      waiting.current = true;
+    }
+  }
+  const rowsUp = Math.min(salida.filas, rows.length);
+  const row = fila.current ?? scale.rowHeight;
+
   useEffect(() => {
-    if (!fresh || reduce) {
+    if (!waiting.current) return;
+    if (reduce) {
+      waiting.current = false;
       t.setValue(1);
       return;
     }
-    const run = Animated.timing(t, { toValue: 1, duration: 450, easing: Easing.out(Easing.cubic), useNativeDriver: true });
-    run.start();
-    return () => run.stop();
-  }, [fresh, reduce, t]);
+    let run: Animated.CompositeAnimation | null = null;
+    let poll: ReturnType<typeof setInterval> | null = null;
+    const playIfSeen = () => {
+      box.current?.measureInWindow((_x, y, _w, h) => {
+        if (run !== null || !waiting.current || h === 0 || y + h <= 0 || y >= pantalla.current) return;
+        if (poll !== null) clearInterval(poll);
+        waiting.current = false;
+        run = recorrer(t, RECIBO);
+        run.start();
+      });
+    };
+    playIfSeen();
+    poll = setInterval(playIfSeen, 200);
+    return () => {
+      if (poll !== null) clearInterval(poll);
+      // A feed cut short lands — unless the next one is already set up above.
+      if (run !== null) {
+        run.stop();
+        if (!waiting.current) t.setValue(1);
+      }
+    };
+  }, [salida.vez, reduce, t]);
+
   return (
-    <Animated.View
+    <View
+      ref={box}
+      style={{ overflow: 'hidden' }}
+      onLayout={(e) => {
+        fila.current = e.nativeEvent.layout.height / rows.length;
+      }}
+    >
+      <Animated.View
+        style={{
+          transform: [
+            {
+              translateY: t.interpolate({
+                inputRange: [...puntosDe(RECIBO)],
+                outputRange: valoresDe(RECIBO, 'translateY').map((v) => v * row * rowsUp),
+              }),
+            },
+          ],
+        }}
+      >
+        {rows.map((r, i) => (
+          <Renglon key={r.id} row={r} first={i === 0} />
+        ))}
+      </Animated.View>
+    </View>
+  );
+}
+
+function Renglon({ row, first }: { row: FeedRow; first: boolean }) {
+  const { scale } = useDensity();
+  return (
+    <View
       style={{
         flexDirection: 'row',
         justifyContent: 'space-between',
@@ -705,8 +827,6 @@ function Renglon({ row, first, fresh }: { row: FeedRow; first: boolean; fresh: b
         paddingVertical: scale.rowGap / 2,
         borderTopWidth: first ? 0 : 1,
         borderTopColor: PALETTE.linea,
-        opacity: t,
-        transform: [{ translateY: t.interpolate({ inputRange: [0, 1], outputRange: [-scale.space, 0] }) }],
       }}
     >
       <Text numberOfLines={1} style={{ flex: 1, fontSize: scale.bodySize, color: PALETTE.tinta }}>
@@ -716,7 +836,45 @@ function Renglon({ row, first, fresh }: { row: FeedRow; first: boolean; fresh: b
       <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.tinta }}>
         {row.grossCentavos === null ? ES.home.noFigure : formatMXN(row.grossCentavos)}
       </Text>
-    </Animated.View>
+    </View>
+  );
+}
+
+/**
+ * ⚠️ `11.9`: THE RECEIPT'S TORN FOOT (`objetos.json`'s *recibo · diente*): a row
+ * 6 deep under the sheet, clipped, holding white squares turned 45° with their
+ * centres on its top edge, 12 apart — only their lower halves show, as teeth on
+ * the counter. As many whole teeth as the width holds, centred, so neither end is
+ * cut through a tooth.
+ */
+function Dientes() {
+  const [width, setWidth] = useState(0);
+  const { paso, alto } = OBJETOS.diente;
+  const lado = paso / Math.SQRT2;
+  const n = Math.floor(width / paso);
+  const desde = (width - n * paso) / 2;
+  return (
+    <View
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
+      onLayout={(e) => setWidth(e.nativeEvent.layout.width)}
+      style={{ height: alto, overflow: 'hidden' }}
+    >
+      {Array.from({ length: n }, (_, i) => (
+        <View
+          key={i}
+          style={{
+            position: 'absolute',
+            left: desde + i * paso + paso / 2 - lado / 2,
+            top: -lado / 2,
+            width: lado,
+            height: lado,
+            backgroundColor: PALETTE.superficie,
+            transform: [{ rotate: '45deg' }],
+          }}
+        />
+      ))}
+    </View>
   );
 }
 

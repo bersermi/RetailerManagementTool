@@ -100,7 +100,6 @@ describe('the banner that says the family was let go', () => {
       'BANNER_HOLD_MS',
       // `8f`: the cart's confirmations and the veil — none of them the catalog's.
       'DONE_HOLD_MS',
-      'DONE_IN_MS',
       // `8g`, 2026-10-20: the first sale's line under *Venta registrada* — not the catalog's.
       'DONE_NOTE_HOLD_MS',
       'DONE_OUT_MS',
