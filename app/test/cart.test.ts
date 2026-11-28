@@ -152,16 +152,22 @@ describe('the catalog now carries what a basket needs', () => {
     expect(entry(HUEVO).baseUnit).toBe('pza');
   });
 
-  it('still asks for no tax rate, no pack size and no stock switch', () => {
+  it('still asks for no tax rate and no stock switch', () => {
     // ⚠️⚠️ THE FENCE `5d-i` BUILT, AND `5f-i` TRIED TO WIDEN. Its contract check
-    // bans all three from this read by name — *a column the app never asks for
-    // is a column that never reaches a phone* — and `5e-iii-a` reads the two
+    // bans both from this read by name — *a column the app never asks for
+    // is a column that never reaches a phone* — and `5e-iii-a` reads the
     // set-once figures per variant instead. The basket needs a rate only on the
     // branch no shop takes, so it is handed in rather than carried by every
     // catalog read on every phone.
-    for (const banned of ['tax_rate', 'pack_size', 'enforce_stock']) {
+    for (const banned of ['tax_rate', 'enforce_stock']) {
       expect(VARIANT_COLUMNS).not.toContain(banned);
     }
+  });
+
+  it('⚠️ `14.5`: carries how a product arrives, as text — Comprar asks it at every delivery, signal or not', () => {
+    // `pack_size` was the third banned column until the counter had a use for it:
+    // *Llegaron 2 cajas · trae cada caja ~13 kg* (the owner's call 10).
+    expect(VARIANT_COLUMNS.split(',')).toEqual(expect.arrayContaining(['pack_size::text', 'pack_word']));
   });
 
   it('keeps `price_per_base` as the string Postgres sent, not as centavos', () => {

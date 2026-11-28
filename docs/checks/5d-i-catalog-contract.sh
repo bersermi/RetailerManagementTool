@@ -40,7 +40,8 @@
 #   4. ⚠️⚠️ Both numerics come back as JSON STRINGS, not numbers.
 #   5. ⚠️ `enforce_stock` never reaches the phone — C8.8 says no pilot screen
 #      may expose it, and this is that promise measured off the WIRE rather than
-#      off the column string.
+#      off the column string. (`tax_rate` is banned with it; `pack_size` was too,
+#      until `14.5` put the pack on the counter — assertion 12.)
 #   6. A variant nobody has priced comes back WITH AN EMPTY ARRAY rather than
 #      being dropped: C3.12's dash exists because the embed is not `!inner`.
 #   7. A store's own price and the shop-wide one arrive on the same read, which
@@ -56,6 +57,8 @@
 #      is where it is measured, and if a later migration narrows those policies
 #      this is the only thing in the repository that goes red.
 #  10. Another shop reads zero of this shop's products.
+#  12. ⚠️ `14.5`: a product's pack arrives with it — `pack_word` and `pack_size`
+#      as TEXT — and a loose one as a null word at "1.000".
 #  11. The eleven units read back (0001's ten, 0047's manojo), every factor a decimal string at scale 6 — the
 #      map `5c-iv-b` refused to hard-code.
 #
@@ -204,19 +207,23 @@ FAMILY_ID="$(python3 -c "import sys,json;r=json.load(sys.stdin);print(r[0]['id']
   <<< "$(body "$(insert 'product_family?select=id' "$FAMILY_JSON")")" 2>/dev/null)"
 [[ -n "$FAMILY_ID" ]] || { echo "FAIL: could not create a family"; exit 1; }
 
-variant() { # name price_unit -> id
+variant() { # name price_unit [pack_word pack_size] -> id
   local json
   json="$(python3 -c '
 import json, sys
-print(json.dumps({
+row = {
   "workspace_id": sys.argv[1], "family_id": sys.argv[2], "name": sys.argv[3],
   "base_unit_code": "g", "purchase_unit_code": "kg", "sell_unit_code": "kg",
-  "price_unit_code": sys.argv[4], "tax_rate": 0}))' "$WORKSPACE_ID" "$FAMILY_ID" "$1" "$2")"
+  "price_unit_code": sys.argv[4], "tax_rate": 0}
+if len(sys.argv) > 6:
+    row["pack_word"], row["pack_size"] = sys.argv[5], float(sys.argv[6])
+print(json.dumps(row))' "$WORKSPACE_ID" "$FAMILY_ID" "$@")"
   python3 -c "import sys,json;r=json.load(sys.stdin);print(r[0]['id'] if isinstance(r,list) and r else '')" \
     <<< "$(body "$(insert 'product_variant?select=id' "$json")")" 2>/dev/null
 }
 
-PECHUGA_ID="$(variant 'Plátano macho' kg)"
+# ⚠️ `14.5`: the first arrives in a caja of ~18 kg (`0101`); the other two loose.
+PECHUGA_ID="$(variant 'Plátano macho' kg caja 18)"
 CUARTO_ID="$(variant 'Plátano tabasco' 250g)"
 UNPRICED_ID="$(variant 'Sin precio' kg)"
 if [[ -z "$PECHUGA_ID" || -z "$CUARTO_ID" || -z "$UNPRICED_ID" ]]; then
@@ -272,6 +279,8 @@ verdict() { # label python-file extra-args...
 cat > "$SCRATCH/shape.py" <<'PY'
 import json, sys
 path, cols, family_cols, price_cols = sys.argv[1], sys.argv[2].split(','), sys.argv[3].split(','), sys.argv[4].split(',')
+# ⚠️ `pack_size::text` (`14.5`) comes back as `pack_size` — the cast is not the key.
+cols = [c.split('::')[0] for c in cols]
 try:
     rows = json.load(open(path))
 except Exception as exc:
@@ -339,7 +348,7 @@ verdict "the money path starts from digits, not from a double" "$SCRATCH/text.py
 cat > "$SCRATCH/fence.py" <<'PY'
 import json, sys
 rows = json.load(open(sys.argv[1]))
-banned = ['enforce_stock', 'tax_rate', 'pack_size']
+banned = ['enforce_stock', 'tax_rate']
 for row in rows:
     present = [c for c in banned if c in row]
     if present:
@@ -347,10 +356,32 @@ for row in rows:
               'enforce_stock, and a column the app never asks for is a column that '
               'never reaches a phone' % present)
         raise SystemExit
-print('ok — enforce_stock, tax_rate and pack_size never left the database')
+print('ok — enforce_stock and tax_rate never left the database')
 PY
 verdict "C8.8's switch does not reach the phone, measured off the wire" \
   "$SCRATCH/fence.py" "$CATALOG_FILE"
+
+# ⚠️ `14.5`: HOW A PRODUCT ARRIVES IS ON THE PHONE — the pack's word, and what one
+# holds as TEXT (a JSON number is a double, assertion 4's reason), so Comprar's
+# pad can ask *Llegaron 2 cajas* with no signal. A loose product says so with a
+# null word and the default of 1.
+cat > "$SCRATCH/pack.py" <<'PY'
+import json, sys
+path, packed, loose = sys.argv[1:4]
+rows = {r['id']: r for r in json.load(open(path))}
+p, l = rows.get(packed), rows.get(loose)
+if p is None or l is None:
+    print('the packed or the loose variant did not come back'); raise SystemExit
+if p.get('pack_word') != 'caja' or p.get('pack_size') != '18.000':
+    print('the packed variant read back %r / %r — expected "caja" and the text "18.000"'
+          % (p.get('pack_word'), p.get('pack_size'))); raise SystemExit
+if 'pack_word' not in l or l['pack_word'] is not None or l.get('pack_size') != '1.000':
+    print('the loose variant read back %r / %r — expected a null word and the text "1.000"'
+          % (l.get('pack_word'), l.get('pack_size'))); raise SystemExit
+print('ok — a caja of "18.000" as text, and a loose product as a null word at "1.000"')
+PY
+verdict "how a product arrives reaches the phone, as text" \
+  "$SCRATCH/pack.py" "$CATALOG_FILE" "$PECHUGA_ID" "$UNPRICED_ID"
 
 cat > "$SCRATCH/unpriced.py" <<'PY'
 import json, sys
@@ -506,8 +537,8 @@ fi
 # ⚠️ THE ANTI-VACUITY GUARD, rule 4 of this repository. Every failure path above
 # is conditional, so "0 failures" is also what a run that asserted nothing looks
 # like.
-if (( ran < 12 )); then
-  echo "FAIL: only $ran assertion groups ran, expected 12 — this check asserted almost"
+if (( ran < 13 )); then
+  echo "FAIL: only $ran assertion groups ran, expected 13 — this check asserted almost"
   echo "      nothing and was about to report success."
   exit 1
 fi

@@ -46,8 +46,14 @@ export const HEADERS = {
   // ⚠️ `price` is the PRICE UNIT (kg, pza…), `0044`'s column; `suggested_price` is
   // the AMOUNT, in pesos with IVA per that unit — the owner's list of
   // 2026-10-20, which the import writes as a new shop's starting price (`0067`).
-  products: ['code', 'family', 'name', 'base', 'purchase', 'sell', 'price', 'pack_size', 'tax_rate', 'suggested_price', 'tags'],
+  // ⚠️ `pack_size` and `pack_word` (`0101`, plan `14.5`) go together: what one pack
+  // holds in the SELL unit, and which pack — Step 14's best guess, corrected by
+  // each shop at its first delivery.
+  products: ['code', 'family', 'name', 'base', 'purchase', 'sell', 'price', 'pack_size', 'pack_word', 'tax_rate', 'suggested_price', 'tags'],
 };
+
+/** `0101`'s `pack_word` codes — `product_pack_word_known`, spelled once here. */
+export const PACK_WORDS = new Set(['caja', 'arpilla', 'costal', 'bulto', 'reja', 'docena', 'paquete', 'manojo_grande']);
 
 const CODE_RX = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 const KINDS = new Set(['giro', 'categoria']);
@@ -202,6 +208,12 @@ export function loadCatalog(catalogDir, migrationsDir) {
     if (p.pack_size !== '' && !(/^\d+(\.\d{1,3})?$/.test(p.pack_size) && Number(p.pack_size) > 0)) {
       problems.push(`${p.at}: pack_size "${p.pack_size}" must be blank (1) or a positive number with up to 3 decimals`);
     }
+    if (p.pack_word !== '' && !PACK_WORDS.has(p.pack_word)) {
+      problems.push(`${p.at}: pack_word "${p.pack_word}" must be blank or one of ${[...PACK_WORDS].join(' ')}`);
+    }
+    if ((p.pack_word === '') !== (p.pack_size === '')) {
+      problems.push(`${p.at}: pack_word and pack_size go together — a pack names what it is and what one holds, or neither`);
+    }
     if (!/^0(\.\d{1,4})?$/.test(p.tax_rate)) {
       problems.push(`${p.at}: tax_rate "${p.tax_rate}" must be a rate like 0 or 0.16 — not a percentage`);
     }
@@ -281,14 +293,15 @@ export function renderSql({ tags, families, products }) {
 
   if (products.length) {
     out.push('insert into catalogo.product (code, family_code, name, base_unit_code, purchase_unit_code,');
-    out.push('       sell_unit_code, price_unit_code, pack_size, tax_rate, suggested_price, display_order) values');
+    out.push('       sell_unit_code, price_unit_code, pack_size, pack_word, tax_rate, suggested_price, display_order) values');
     out.push(products.map((p, i) =>
       `  (${lit(p.code)}, ${lit(p.family)}, ${lit(p.name)}, ${lit(p.base)}, ${lit(p.purchase)}, ` +
-      `${lit(p.sell)}, ${lit(p.price)}, ${p.pack_size || '1'}, ${p.tax_rate}, ${p.suggested_price || 'null'}, ${i + 1})`).join(',\n'));
+      `${lit(p.sell)}, ${lit(p.price)}, ${p.pack_size || '1'}, ${p.pack_word ? lit(p.pack_word) : 'null'}, ${p.tax_rate}, ${p.suggested_price || 'null'}, ${i + 1})`).join(',\n'));
     out.push('on conflict (code) do update set family_code = excluded.family_code, name = excluded.name,');
     out.push('  base_unit_code = excluded.base_unit_code, purchase_unit_code = excluded.purchase_unit_code,');
     out.push('  sell_unit_code = excluded.sell_unit_code, price_unit_code = excluded.price_unit_code,');
-    out.push('  pack_size = excluded.pack_size, tax_rate = excluded.tax_rate, suggested_price = excluded.suggested_price,');
+    out.push('  pack_size = excluded.pack_size, pack_word = excluded.pack_word, tax_rate = excluded.tax_rate,');
+    out.push('  suggested_price = excluded.suggested_price,');
     out.push('  display_order = excluded.display_order;', '');
 
     out.push(...staleFamiliesAndTags(families, tags));

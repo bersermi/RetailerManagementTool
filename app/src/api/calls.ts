@@ -166,6 +166,7 @@ import {
   type ActivePatch,
   type FamilyPatch,
   type NamePatch,
+  type PackPatch,
   type SettingsPatch,
   type VariantSettingsRow,
 } from '@/api/catalogEdit';
@@ -1136,7 +1137,7 @@ export async function variantSettingsRow(variantId: string): Promise<VariantSett
  */
 export async function patchVariant(
   variantId: string,
-  patch: NamePatch | SettingsPatch | ActivePatch | FamilyPatch | ImagePatch,
+  patch: NamePatch | SettingsPatch | ActivePatch | FamilyPatch | ImagePatch | PackPatch,
 ): Promise<void> {
   const { error } = await supabase
     .from(VARIANT_TABLE)

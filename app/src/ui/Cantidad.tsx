@@ -72,6 +72,7 @@ export function Cantidad({
   fill = false,
   onChange,
   onPad,
+  paquete,
 }: {
   entry: CatalogEntry;
   base: number;
@@ -125,6 +126,12 @@ export function Cantidad({
    * `14.3` and `14.4`.
    */
   onPad?: () => void;
+  /**
+   * ⚠️ `14.5`: A LINE KEYED IN PACKS — Comprar's *2 cajas* — shows its count and
+   * the pack's word, and has no `−` or `+`: a step of one kilo would turn two cajas
+   * into 27 kg behind her back. Only with `onPad`, whose pad keys the cajas.
+   */
+  paquete?: { readonly cifra: string; readonly palabra: string };
 }) {
   const { scale } = useDensity();
   const setQty = useCartStore((state) => state.setQty);
@@ -167,7 +174,8 @@ export function Cantidad({
 
   // ⚠️ THE UNIT'S WORD IS `ES.units`' AND NEVER THE CODE (`R4`): `250g` is what
   // the database calls it and *250 gr* is what a shopkeeper reads.
-  const word = ES.units[unit as keyof typeof ES.units] ?? unit;
+  const enPaquete = paquete !== undefined && onPad !== undefined;
+  const word = enPaquete ? paquete.palabra : (ES.units[unit as keyof typeof ES.units] ?? unit);
   const counted = base > 0;
 
   return (
@@ -193,7 +201,7 @@ export function Cantidad({
         // at rest carries one green `+` and the rows already in the sale are the
         // ones with two buttons. ⚠️ The slot is KEPT, so the box does not move
         // under a thumb when `−` appears.
-        hidden={!counted}
+        hidden={!counted || enPaquete}
         disabled={by === null || !counted}
         onPress={() => {
           setDraft(null);
@@ -213,7 +221,7 @@ export function Cantidad({
           density and the box keeps its size (https://claude.ai/artifact/ENjdbaom7uL85KzHRwPuwG). */}
       <Pressable
         accessibilityRole={refusal === null && onPad === undefined ? undefined : 'button'}
-        accessibilityLabel={refusal === null && onPad === undefined ? undefined : `${ES.counter.qty} ${settled} ${word}`}
+        accessibilityLabel={refusal === null && onPad === undefined ? undefined : `${ES.counter.qty} ${enPaquete ? paquete.cifra : settled} ${word}`}
         disabled={refusal === null && onPad !== undefined && by === null}
         onPress={refusal !== null ? refusal.onTap : onPad !== undefined ? onPad : () => input.current?.focus()}
         style={{
@@ -243,7 +251,7 @@ export function Cantidad({
             }}
           >
             {/* A space keeps an empty box the height of a full one. */}
-            {settled === '' ? ' ' : settled}
+            {enPaquete ? paquete.cifra : settled === '' ? ' ' : settled}
           </Text>
         ) : refusal === null ? (
           <TextInput
@@ -290,6 +298,7 @@ export function Cantidad({
         label={ES.counter.more}
         glyph="plus"
         filled
+        hidden={enPaquete}
         disabled={by === null || refusal?.dim === true}
         // ⚠️ A DIMMED `+` STILL ANSWERS: the cashier's tap is what brings up the
         // note saying why, so it is drawn unavailable and kept pressable.
