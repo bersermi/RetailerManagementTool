@@ -1527,6 +1527,23 @@ export const ES = {
       /** The two boxes, to a screen reader. */
       arrivedOf: (name: string) => `Lo que llegó de ${name}`,
       costOf: (name: string) => `Costo de ${name}`,
+      /**
+       * ⚠️ `14.5`, HOW IT ARRIVED (call 10): the switch between the pack and the
+       * product's own unit, the box of what one pack holds, and what enters the
+       * shop. *Llegaron 2 cajas · Trae cada caja 13 kg · $209.30 por caja*, then
+       * *Entran 26 kg · a $16.10 por kg*.
+       */
+      byPack: 'Cómo llegó',
+      loose: { kg: 'Kilos', g: 'Gramos', l: 'Litros', ml: 'Mililitros', pza: 'Piezas', manojo: 'Manojos' },
+      holds: (word: string) => `Trae cada ${word}`,
+      holdsOf: (word: string, name: string) => `Lo que trae cada ${word} de ${name}`,
+      /** Beside *Trae cada caja*: where the figure came from. */
+      holdsGuess: 'Aproximado',
+      holdsLast: 'La última vez',
+      enters: (qty: string, unit: string, price: string, priceUnit: string) =>
+        `Entran ${qty} ${unit} · a ${price} por ${priceUnit}`,
+      /** A line keyed in packs, on its tile and in the Carrito — *2 cajas de 13 kg*. */
+      line: (count: number, word: string, holds: string, unit: string) => `${count} ${word} de ${holds} ${unit}`,
     },
     /**
      * `14.3`: a tile's line under the name — when this provider last brought it,
@@ -1838,6 +1855,22 @@ export const ES = {
       denied: 'Para tomar fotos, permite la cámara en los ajustes del teléfono.',
       failed: 'No se pudo tomar la foto. Intenta de nuevo.',
     },
+  },
+
+  /**
+   * ⚠️ `14.5`: THE PACKS A PRODUCT ARRIVES IN — `0101`'s eight codes, one and many
+   * (*1 caja*, *2 cajas*). A code the database adds later and this build does not
+   * know is read as loose (`packOf`), never shown as a code.
+   */
+  packs: {
+    caja: { one: 'caja', many: 'cajas' },
+    arpilla: { one: 'arpilla', many: 'arpillas' },
+    costal: { one: 'costal', many: 'costales' },
+    bulto: { one: 'bulto', many: 'bultos' },
+    reja: { one: 'reja', many: 'rejas' },
+    docena: { one: 'docena', many: 'docenas' },
+    paquete: { one: 'paquete', many: 'paquetes' },
+    manojo_grande: { one: 'manojo grande', many: 'manojos grandes' },
   },
 
   units: {
@@ -2328,6 +2361,23 @@ export const ES = {
       prices: 'Precios',
       costs: 'Costos',
       edit: 'Editar',
+      /**
+       * ⚠️ `14.5`: HOW IT ARRIVES, on its page — what Comprar's pad offers at every
+       * delivery, changed here by the owner or a manager (call 10).
+       */
+      arrives: {
+        title: 'Te llega',
+        packed: (word: string, holds: string, unit: string) => `En ${word} de ${holds} ${unit}`,
+        loose: 'Suelto',
+        change: 'Cambiar',
+        ask: '¿Cómo te llega?',
+        looseChoice: 'Suelto',
+        save: 'Guardar',
+        saving: 'Guardando…',
+        failed: 'No se pudo guardar. Revisa tu señal e intenta de nuevo.',
+        offline: 'Se puede cambiar cuando haya señal.',
+        hint: 'Comprar lo ofrece cuando llega: Llegaron 2 cajas.',
+      },
       /** Monday first: the seven bars' letters. */
       days: ['L', 'M', 'M', 'J', 'V', 'S', 'D'],
     },

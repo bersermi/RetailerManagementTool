@@ -38,6 +38,7 @@ function entry(over: Partial<CatalogEntry> = {}): CatalogEntry {
   return {
     prebuilt: false,
     picture: null,
+    pack: null,
     id: 'coca-600',
     name: 'Coca-Cola 600 ml',
     familyId: 'refrescos',

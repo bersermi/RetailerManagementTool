@@ -81,6 +81,7 @@ NAME_PATCH_COLUMNS="$(str NAME_PATCH_COLUMNS)"
 SETTINGS_PATCH_COLUMNS="$(str SETTINGS_PATCH_COLUMNS)"
 ACTIVE_PATCH_COLUMNS="$(str ACTIVE_PATCH_COLUMNS)"
 FAMILY_PATCH_COLUMNS="$(str FAMILY_PATCH_COLUMNS)"
+PACK_PATCH_COLUMNS="$(str PACK_PATCH_COLUMNS)"
 UPDATE_RETURNING="$(str UPDATE_RETURNING)"
 VARIANT_TABLE="$(str VARIANT_TABLE)"
 FORBIDDEN_CODE="$(priv FORBIDDEN)"
@@ -92,7 +93,7 @@ REJECTED_CODES="$(sed -n "s/^const REJECTED: readonly string\[\] = \[\(.*\)\];.*
 note
 MISSING=""
 for name in VARIANT_EDIT_COLUMNS NAME_PATCH_COLUMNS SETTINGS_PATCH_COLUMNS \
-            ACTIVE_PATCH_COLUMNS FAMILY_PATCH_COLUMNS \
+            ACTIVE_PATCH_COLUMNS FAMILY_PATCH_COLUMNS PACK_PATCH_COLUMNS \
             UPDATE_RETURNING VARIANT_TABLE FORBIDDEN_CODE \
             NO_ROWS_CODE REJECTED_CODES; do
   eval "value=\$$name"
@@ -105,7 +106,7 @@ if [[ -n "$MISSING" ]]; then
   echo "      the vacuous kind this repository has recorded five shapes of."
   exit 1
 fi
-ok "read from $CONTRACT: $VARIANT_TABLE and its four patch bodies"
+ok "read from $CONTRACT: $VARIANT_TABLE and its five patch bodies"
 
 # --- the local stack -------------------------------------------------------
 STATUS="$(supabase status -o env 2>/dev/null)"
@@ -377,12 +378,45 @@ else
   echo "        family afterwards: $MOVED (wanted $AISLE_ID)"
 fi
 
+# --- 11. ⚠️ `14.5`: HOW A PRODUCT ARRIVES, SET ON ITS PAGE --------------------
+# The owner's call 10: *she corrects it at a delivery, or on the product's page*
+# — the page's write is `PackPatch`, two columns always together. A cashier is
+# refused in the UPDATE's own shape; a word outside `0101`'s eight by its check;
+# a caja of 13 reads back as the text "13.000"; loose is a null word at 1.
+note
+# ⚠️ AS `.single()` ASKS (`patchVariant`): a cashier's 200-with-no-row is then PGRST116.
+TOKEN="$STAFF_TOKEN"
+ACCEPT='application/vnd.pgrst.object+json'
+STAFF_PACK="$(api PATCH "/rest/v1/$VARIANT_TABLE?id=eq.$VARIANT_ID&select=$UPDATE_RETURNING" "$(obj "$PACK_PATCH_COLUMNS" 'caja' '13')")"
+ACCEPT='application/json'
+TOKEN="$OWNER_TOKEN"
+ODD_PACK="$(api PATCH "/rest/v1/$VARIANT_TABLE?id=eq.$VARIANT_ID&select=$UPDATE_RETURNING" "$(obj "$PACK_PATCH_COLUMNS" 'huacal' '13')")"
+GOOD_PACK="$(api PATCH "/rest/v1/$VARIANT_TABLE?id=eq.$VARIANT_ID&select=$UPDATE_RETURNING" "$(obj "$PACK_PATCH_COLUMNS" 'caja' '13')")"
+PACKED="$(body "$(api GET "/rest/v1/$VARIANT_TABLE?id=eq.$VARIANT_ID&select=pack_word,pack_size::text")")"
+LOOSE_PACK="$(api PATCH "/rest/v1/$VARIANT_TABLE?id=eq.$VARIANT_ID&select=$UPDATE_RETURNING" "$(obj "$PACK_PATCH_COLUMNS" '@@null@@' '1')")"
+LOOSE="$(body "$(api GET "/rest/v1/$VARIANT_TABLE?id=eq.$VARIANT_ID&select=pack_word,pack_size::text")")"
+if [[ "$(code_of "$(body "$STAFF_PACK")")" == "$NO_ROWS_CODE" ]] \
+   && grep -qw "$(code_of "$(body "$ODD_PACK")")" <<< "$REJECTED_CODES" \
+   && grep -q 'product_variant_pack_word_known' <<< "$(msg_of "$(body "$ODD_PACK")")" \
+   && [[ "$(status "$GOOD_PACK")" == "200" ]] \
+   && [[ "$(field pack_word "$PACKED")" == "caja" && "$(field pack_size "$PACKED")" == "13.000" ]] \
+   && [[ "$(status "$LOOSE_PACK")" == "200" ]] \
+   && [[ "$(field pack_word "$LOOSE")" == "None" && "$(field pack_size "$LOOSE")" == "1.000" ]]; then
+  ok "the owner sets a caja of 13 ($PACK_PATCH_COLUMNS) and makes it loose again; a cashier is refused ($NO_ROWS_CODE), and a word outside the eight by its check"
+else
+  fail "how a product arrives is not set where the page thinks:"
+  echo "        cashier: $(status "$STAFF_PACK") $(body "$STAFF_PACK")"
+  echo "        huacal:  $(status "$ODD_PACK") $(body "$ODD_PACK")"
+  echo "        caja 13: $(status "$GOOD_PACK") -> $PACKED"
+  echo "        loose:   $(status "$LOOSE_PACK") -> $LOOSE"
+fi
+
 echo
 # ⚠️ THE ANTI-VACUITY GUARD, rule 4 of this repository. Every failure path above
 # is conditional, so "0 failures" is also what a run that skipped everything looks
 # like — and `5b-split-coverage.sh` shipped without one.
-if (( fails == 0 && ran < 7 )); then
-  echo "FAIL: only $ran assertion groups ran, expected 7 — this check asserted almost"
+if (( fails == 0 && ran < 8 )); then
+  echo "FAIL: only $ran assertion groups ran, expected 8 — this check asserted almost"
   echo "      nothing and was about to report success."
   exit 1
 fi

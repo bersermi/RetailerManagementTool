@@ -17,6 +17,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
 
 import { catalogLine, initials, priceCentavos, type CatalogEntry, type UnitFactors } from '@/api/catalog';
+import { parsePesos } from '@/api/catalogWrite';
 import {
   useCatalog,
   useMagnitude,
@@ -50,6 +51,24 @@ import {
   fichasDeCompra,
 } from '@/cart/bascula';
 import { cardCost, cardNote, deliveryReady, marginOf, padNote } from '@/cart/buying';
+import {
+  MAX_PAQUETES,
+  baseDeLlegada,
+  contenidoBase,
+  costoAlCambiar,
+  costoDePaquete,
+  costoPorBase,
+  entran,
+  lineaDe,
+  modoInicial,
+  notaDeTrae,
+  paqueteDe,
+  palabraDe,
+  paquetesDe,
+  traeInicial,
+  type Modo,
+} from '@/cart/paquete';
+import { useLlegadas } from '@/cart/useLlegadas';
 import { reviewOf, type Basket, type Review, type ReviewRow } from '@/cart/cart';
 import { canCommit, commitOf, type Basketful } from '@/cart/commit';
 import { ordenDeCompra, porOrden } from '@/cart/orden';
@@ -1055,7 +1074,7 @@ function Proveedores({
 }
 
 /** Which of the pad's two boxes the keys go into. */
-type Campo = 'cantidad' | 'costo';
+type Campo = 'cantidad' | 'trae' | 'costo';
 
 /**
  * ⚠️⚠️ `14.3`, ONE PRODUCT ON COMPRAR'S COUNTER — round 4's card, as Vender's tile
@@ -1104,6 +1123,7 @@ function BaldosaCompra({
     return 0;
   });
   const stored = useCartStore((state) => state.typed.buy[entry.id]);
+  const llegada = useLlegadas((state) => state.llegadas[entry.id]);
   const inBasket = base > 0;
 
   const state = memoryState(memory, providerId, entry.id, canRead);
@@ -1116,7 +1136,15 @@ function BaldosaCompra({
 
   const unit = shownUnitOf(entry);
   const word = ES.units[unit as keyof typeof ES.units] ?? unit;
-  const qty = inBasket ? `${qtyShown(base, unit, factors) ?? ''} ${word}` : '';
+  // ⚠️ `14.5`: A LINE KEYED IN CAJAS SAYS SO — *2 cajas* — while the basket holds exactly it.
+  const pack = paqueteDe(entry);
+  const enCajas = pack === null ? null : lineaDe(llegada, base, typeof stored === 'string' ? stored : undefined);
+  const cajas = enCajas === null ? null : paquetesDe(enCajas.cuantos);
+  const qty = !inBasket
+    ? ''
+    : pack !== null && cajas !== null
+      ? `${cajas} ${palabraDe(pack.word, cajas)}`
+      : `${qtyShown(base, unit, factors) ?? ''} ${word}`;
   const priceWord = ES.units[entry.priceUnit as keyof typeof ES.units] ?? entry.priceUnit;
   // ⚠️ SHORT ON A TILE (`formatLastBoughtShort`): the full sentence was cut
   // mid-word on Android. The tag above is the cost, so the line says when, or
@@ -1167,7 +1195,7 @@ function BaldosaCompra({
  * counter's own pad (`src/ui/Bascula`). The owner's calls 5 and 9 of 2026-11-27:
  * round 4's cost box and stepper moved here, so all three counters have one shape.
  *
- * ⚠️ TWO BOXES, AND THE KEYS GO INTO THE ONE CHOSEN: *Llegaron* first (a tile or a
+ * ⚠️ THE BOXES, AND THE KEYS GO INTO THE ONE CHOSEN: *Llegaron* first (a tile or a
  * line's quantity opens on it), *Costo* from a line's cost chip. A tap on a box
  * chooses it, and its first key replaces what it holds — Vender's *the scale
  * starts again from zero* — while `borrar` takes the last figure off it.
@@ -1186,7 +1214,13 @@ function BaldosaCompra({
  * a quote and leaves it. The total on the act is `reviewOf`'s over a one-line
  * delivery, so the pad never states a figure the Carrito would not (§2.5 rule 5).
  *
- * ⚠️ NO PACKS YET: *Llegaron 2 cajas · Trae cada caja ~13 kg* is `14.5`'s.
+ * ⚠️⚠️ `14.5`, HOW IT ARRIVED (call 10): a product with a pack opens on it —
+ * *Caja · Kilos* at the top, then *Llegaron 2 cajas*, *Trae cada caja 13 kg* and
+ * *$209.30 por caja*, and *Entran 26 kg · a $16.10 por kg* under them. Every figure
+ * is `@/cart/paquete`'s: the phone multiplies, and the line it adds is base units
+ * at a cost per base, as before — `record_purchase` never hears of a caja. The mode
+ * she used last, and what her last caja held, come back next time (`useLlegadas`);
+ * a line keyed in cajas reopens in cajas while the basket holds exactly it.
  */
 function BasculaCompra({
   entry,
@@ -1218,7 +1252,7 @@ function BasculaCompra({
   /** Drawn inside the Carrito's `Modal` rather than as a `Modal` of its own. */
   bare?: boolean;
 }) {
-  const { scale } = useDensity();
+  const { scale, mode: density } = useDensity();
   const base = useCartStore((state) => {
     for (const line of state.carts.buy) if (line.variantId === entry.id) return line.base;
     return 0;
@@ -1227,24 +1261,41 @@ function BasculaCompra({
   const setQty = useCartStore((state) => state.setQty);
   const setPrice = useCartStore((state) => state.setPrice);
   const remove = useCartStore((state) => state.remove);
+  const llegada = useLlegadas((state) => state.llegadas[entry.id]);
+  const recordarLlegada = useLlegadas((state) => state.recordar);
 
   const unit = shownUnitOf(entry);
   const word = ES.units[unit as keyof typeof ES.units] ?? unit;
   const priceWord = ES.units[entry.priceUnit as keyof typeof ES.units] ?? entry.priceUnit;
   const state = memoryState(memory, providerId, entry.id, canRead);
   const remembered = memoryFor(memory, providerId, entry.id, entry.priceUnit, factors);
+  const pack = paqueteDe(entry);
+  const typedCost = typeof stored === 'string' ? stored : undefined;
 
+  // ⚠️ A LINE KEYED IN CAJAS REOPENS IN CAJAS — while the basket holds exactly it.
+  const [enCajas] = useState(() => lineaDe(llegada, base, typedCost));
+  const [modo, setModo] = useState<Modo>(() =>
+    pack === null ? 'suelto' : base > 0 ? (enCajas === null ? 'suelto' : 'paquete') : modoInicial(entry, llegada),
+  );
+  const [trae, setTrae] = useState(() => traeInicial(entry, llegada));
   const [campo, setCampo] = useState<Campo>(abierto);
   const [fresco, setFresco] = useState(true);
   // ⚠️ `null` IS A BOX SHE HAS NOT TOUCHED: it shows the line's figure, or the memory's.
   const [cantidad, setCantidad] = useState<string | null>(null);
   const [costo, setCosto] = useState<string | null>(null);
 
-  const cantidadTexto = cantidad ?? (base > 0 ? (qtyShown(base, unit, factors) ?? '') : '');
+  const porCaja = modo === 'paquete' && pack !== null;
+  const memoryCost = cardCost(typedCost, remembered, base > 0);
+  const cantidadTexto =
+    cantidad ??
+    (porCaja ? (enCajas?.cuantos ?? '') : base > 0 ? (qtyShown(base, unit, factors) ?? '') : '');
   const costoTexto =
-    costo ?? costShown(cardCost(typeof stored === 'string' ? stored : undefined, remembered, base > 0), entry.priceUnit, factors);
-  const qtyBase = cantidadDe(cantidadTexto, unit, factors);
-  const perBase = costoDe(costoTexto, entry.priceUnit, factors);
+    costo ??
+    (porCaja
+      ? (enCajas?.costo ?? (memoryCost === null ? '' : (costoDePaquete(memoryCost, trae, unit, factors) ?? '')))
+      : costShown(memoryCost, entry.priceUnit, factors));
+  const qtyBase = porCaja ? baseDeLlegada(cantidadTexto, trae, unit, factors) : cantidadDe(cantidadTexto, unit, factors);
+  const perBase = porCaja ? costoPorBase(costoTexto, trae, unit, factors) : costoDe(costoTexto, entry.priceUnit, factors);
   const ready = deliveryReady(qtyBase, perBase);
 
   const centavos =
@@ -1262,15 +1313,35 @@ function BasculaCompra({
   const margin = marginOf(entry, perBase, factors);
   const big = magnitudeNote(outsized(typical, qtyBase ?? 0, perBase));
   const sinPunto = decimalesDe(unit) === 0;
+  const packOne = pack === null ? '' : ES.packs[pack.word].one;
+  const packs = paquetesDe(cantidadTexto) ?? 0;
 
   const elegir = (next: Campo) => {
     setCampo(next);
     setFresco(true);
   };
+  const cambiar = (next: Modo) => {
+    if (next === modo) return;
+    // ⚠️ A COST SHE KEYED IS CONVERTED, per caja to per kilo and back; one she has
+    // not touched follows the memory in the new unit. Two cajas become 26 kg, and
+    // kilos become no count of cajas — she says how many came.
+    if (costo !== null) setCosto(costoAlCambiar(costoTexto, next, trae));
+    setCantidad(next === 'suelto' && qtyBase !== null ? (qtyShown(qtyBase, unit, factors) ?? null) : null);
+    setModo(next);
+    elegir('cantidad');
+  };
   const act = () => {
     if (!ready || qtyBase === null || perBase === null) return;
     setPrice('buy', entry.id, perBase);
     setQty('buy', entry.id, qtyBase);
+    if (pack !== null) {
+      recordarLlegada(
+        entry.id,
+        modo,
+        trae,
+        porCaja ? { cuantos: cantidadTexto, costo: costoTexto, base: qtyBase, perBase } : null,
+      );
+    }
     onClose();
   };
 
@@ -1280,14 +1351,51 @@ function BasculaCompra({
       ? ES.buy.newPairing
       : ES.buy.newPairingWith(provider.name)
     : (provider?.name ?? '');
+  const before =
+    remembered === null
+      ? null
+      : porCaja
+        ? (() => {
+            const pesos = costoDePaquete(remembered.perBase, trae, unit, factors);
+            const c = pesos === null ? null : parsePesos(pesos);
+            return c === null ? null : formatMXN(c);
+          })()
+        : remembered.price;
   const costLine =
     note === 'last-bought'
       ? formatLastBought(boughtAt)
-      : note === 'changed' && remembered !== null
-        ? ES.buy.lastPaid(remembered.price)
+      : note === 'changed' && before !== null
+        ? ES.buy.lastPaid(before)
         : note === 'ask'
           ? ES.buy.pad.ask
           : null;
+  const nota = notaDeTrae(pack, llegada, trae);
+  const holdsNote = nota === 'ultima' ? ES.buy.pad.holdsLast : nota === 'aproximado' ? ES.buy.pad.holdsGuess : null;
+  const entra = porCaja ? entran(qtyBase, perBase, entry, factors) : null;
+
+  const cajas = (
+    <Casilla
+      on={campo === 'cantidad'}
+      label={ES.buy.pad.arrived}
+      reader={`${ES.buy.pad.arrivedOf(entry.name)}: ${packs} ${pack === null ? '' : palabraDe(pack.word, packs)}`}
+      figure={cantidadTexto === '' ? '0' : cantidadTexto}
+      empty={paquetesDe(cantidadTexto) === null}
+      unit={pack === null ? '' : palabraDe(pack.word, packs)}
+      onPress={() => elegir('cantidad')}
+    />
+  );
+  const contenido = (
+    <Casilla
+      on={campo === 'trae'}
+      label={ES.buy.pad.holds(packOne)}
+      reader={`${ES.buy.pad.holdsOf(packOne, entry.name)}: ${trae === '' ? '0' : trae} ${word}`}
+      figure={trae === '' ? '0' : trae}
+      empty={contenidoBase(trae, unit, factors) === null}
+      unit={word}
+      nota={holdsNote}
+      onPress={() => elegir('trae')}
+    />
+  );
 
   return (
     <Bascula
@@ -1308,21 +1416,44 @@ function BasculaCompra({
           </Text>
         )
       }
-      fichas={fichasDeCompra(unit).map((ficha) => ({
-        etiqueta: ficha.etiqueta,
-        onPress: () => {
-          setCampo('cantidad');
-          setCantidad(ficha.digitos);
-          setFresco(false);
-        },
-      }))}
+      fichas={
+        porCaja
+          ? ['1', '2', '3', '4', '5', '10'].map((n) => ({
+              etiqueta: n,
+              onPress: () => {
+                setCampo('cantidad');
+                setCantidad(n);
+                setFresco(false);
+              },
+            }))
+          : fichasDeCompra(unit).map((ficha) => ({
+              etiqueta: ficha.etiqueta,
+              onPress: () => {
+                setCampo('cantidad');
+                setCantidad(ficha.digitos);
+                setFresco(false);
+              },
+            }))
+      }
       teclas={TECLAS_PUNTO}
-      apagada={(tecla) => tecla === 'punto' && campo === 'cantidad' && sinPunto}
+      apagada={(tecla) =>
+        tecla === 'punto' && ((campo === 'cantidad' && (porCaja || sinPunto)) || (campo === 'trae' && sinPunto))
+      }
       onTecla={(tecla) => {
+        if (campo === 'trae') {
+          setTrae(escribir(fresco && tecla !== 'borrar' ? '' : trae, tecla, decimalesDe(unit), MAX_ENTEROS.cantidad));
+          setFresco(false);
+          return;
+        }
         const now = campo === 'cantidad' ? cantidadTexto : costoTexto;
         const from = fresco && tecla !== 'borrar' ? '' : now;
-        if (campo === 'cantidad') setCantidad(escribir(from, tecla, decimalesDe(unit), MAX_ENTEROS.cantidad));
-        else setCosto(escribir(from, tecla, DECIMALES_COSTO, MAX_ENTEROS.costo));
+        if (campo === 'cantidad') {
+          setCantidad(
+            porCaja
+              ? escribir(from, tecla, 0, MAX_PAQUETES)
+              : escribir(from, tecla, decimalesDe(unit), MAX_ENTEROS.cantidad),
+          );
+        } else setCosto(escribir(from, tecla, DECIMALES_COSTO, MAX_ENTEROS.costo));
         setFresco(false);
       }}
       accion={{
@@ -1340,22 +1471,44 @@ function BasculaCompra({
       }
       onClose={onClose}
     >
-      <Casilla
-        on={campo === 'cantidad'}
-        label={ES.buy.pad.arrived}
-        reader={`${ES.buy.pad.arrivedOf(entry.name)}: ${cantidadTexto === '' ? '0' : cantidadTexto} ${word}`}
-        figure={cantidadTexto === '' ? '0' : cantidadTexto}
-        empty={qtyBase === null}
-        unit={word}
-        onPress={() => elegir('cantidad')}
-      />
+      {pack === null ? null : (
+        <Modos
+          modo={modo}
+          paquete={packOne}
+          suelto={ES.buy.pad.loose[unit as keyof typeof ES.buy.pad.loose] ?? word}
+          onChange={cambiar}
+        />
+      )}
+      {porCaja ? (
+        density === 'elder' ? (
+          <>
+            {cajas}
+            {contenido}
+          </>
+        ) : (
+          <View style={{ flexDirection: 'row', gap: scale.rowGap }}>
+            <View style={{ flex: 1 }}>{cajas}</View>
+            <View style={{ flex: 1 }}>{contenido}</View>
+          </View>
+        )
+      ) : (
+        <Casilla
+          on={campo === 'cantidad'}
+          label={ES.buy.pad.arrived}
+          reader={`${ES.buy.pad.arrivedOf(entry.name)}: ${cantidadTexto === '' ? '0' : cantidadTexto} ${word}`}
+          figure={cantidadTexto === '' ? '0' : cantidadTexto}
+          empty={qtyBase === null}
+          unit={word}
+          onPress={() => elegir('cantidad')}
+        />
+      )}
       <Casilla
         on={campo === 'costo'}
         label={ES.buy.cost}
-        reader={`${ES.buy.pad.costOf(entry.name)}: $${costoTexto === '' ? '0' : costoTexto} ${ES.sell.per(priceWord)}${costLine === null ? '' : `, ${costLine}`}`}
+        reader={`${ES.buy.pad.costOf(entry.name)}: $${costoTexto === '' ? '0' : costoTexto} ${ES.sell.per(porCaja ? packOne : priceWord)}${costLine === null ? '' : `, ${costLine}`}`}
         figure={`$${costoTexto === '' ? '0' : costoTexto}`}
         empty={perBase === null}
-        unit={ES.sell.per(priceWord)}
+        unit={ES.sell.per(porCaja ? packOne : priceWord)}
         side={
           costLine === null ? null : (
             <Text
@@ -1374,12 +1527,73 @@ function BasculaCompra({
         }
         onPress={() => elegir('costo')}
       />
+      {entra === null ? null : (
+        <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.tinta }}>
+          {ES.buy.pad.enters(entra.cantidad, word, formatMXN(entra.centavos), priceWord)}
+        </Text>
+      )}
       {margin === null ? null : <Margen margin={margin} entry={entry} />}
       {/* ⚠️ `R11`: the amber never travels alone — it is a sentence. */}
       {big === '' ? null : (
         <Text style={{ fontSize: scale.smallSize, fontWeight: '600', color: PALETTE.atencion }}>{big}</Text>
       )}
     </Bascula>
+  );
+}
+
+/**
+ * ⚠️ `14.5`: HOW IT ARRIVED — the pack or the product's own unit, *Caja · Kilos*.
+ * The chosen one is filled in the counter's blue with a bolder word, and a screen
+ * reader hears it selected (`R11`: never the colour alone).
+ */
+function Modos({
+  modo,
+  paquete,
+  suelto,
+  onChange,
+}: {
+  modo: Modo;
+  paquete: string;
+  suelto: string;
+  onChange: (modo: Modo) => void;
+}) {
+  const { scale } = useDensity();
+  const choices: readonly [Modo, string][] = [
+    ['paquete', paquete.charAt(0).toUpperCase() + paquete.slice(1)],
+    ['suelto', suelto],
+  ];
+  return (
+    <View accessibilityRole="radiogroup" accessibilityLabel={ES.buy.pad.byPack} style={{ flexDirection: 'row', gap: scale.rowGap / 2 }}>
+      {choices.map(([m, label]) => {
+        const on = m === modo;
+        return (
+          <Pressable
+            key={m}
+            accessibilityRole="radio"
+            accessibilityState={{ selected: on }}
+            onPress={() => onChange(m)}
+            style={{
+              flex: 1,
+              minHeight: scale.tapTarget,
+              alignItems: 'center',
+              justifyContent: 'center',
+              paddingHorizontal: scale.rowGap,
+              borderRadius: ESQUINA.chip,
+              borderWidth: on ? 2 : 1,
+              borderColor: on ? PALETTE.compra : PALETTE.linea,
+              backgroundColor: on ? PALETTE.compra : PALETTE.superficie,
+            }}
+          >
+            <Text
+              numberOfLines={1}
+              style={{ fontSize: scale.bodySize, fontWeight: on ? '700' : '600', color: on ? PALETTE.superficie : PALETTE.tinta }}
+            >
+              {label}
+            </Text>
+          </Pressable>
+        );
+      })}
+    </View>
   );
 }
 
@@ -1397,6 +1611,7 @@ function Casilla({
   empty,
   unit,
   side = null,
+  nota = null,
   onPress,
 }: {
   on: boolean;
@@ -1406,6 +1621,8 @@ function Casilla({
   empty: boolean;
   unit: string;
   side?: ReactNode;
+  /** `14.5`: under the figure, where it came from — *Aproximado*, *La última vez*. */
+  nota?: string | null;
   onPress: () => void;
 }) {
   const { scale } = useDensity();
@@ -1429,7 +1646,9 @@ function Casilla({
         backgroundColor: PALETTE.superficie,
       }}
     >
-      <View style={{ flexShrink: 0, gap: scale.rowGap / 8 }}>
+      {/* ⚠️ IT GIVES WAY ONLY WHEN NOTHING IS BESIDE IT — half the pad's width,
+          *Trae cada caja* beside *Llegaron* (`14.5`), wraps instead of spilling. */}
+      <View style={{ flexShrink: side === null ? 1 : 0, gap: scale.rowGap / 8 }}>
         <Text style={{ fontSize: scale.smallSize, fontWeight: on ? '700' : '600', color: PALETTE.tintaApagada }}>
           {label}
         </Text>
@@ -1446,6 +1665,9 @@ function Casilla({
           </Text>
           <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.tintaApagada }}>{unit}</Text>
         </View>
+        {nota === null ? null : (
+          <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>{nota}</Text>
+        )}
       </View>
       {side}
     </Pressable>
@@ -1818,7 +2040,27 @@ function Renglon({
   const { scale } = useDensity();
   const remove = useCartStore((state) => state.remove);
   const stored = useCartStore((state) => (entry === undefined ? undefined : state.typed.buy[entry.id]));
+  const llegada = useLlegadas((state) => state.llegadas[row.variantId]);
   const gone = entry === undefined;
+  // ⚠️ `14.5`: a line keyed in cajas reads in cajas — *2 cajas de 13 kg*, *$209.30 por caja*.
+  const pack = entry === undefined ? null : paqueteDe(entry);
+  const enCajas = pack === null ? null : lineaDe(llegada, row.base, typeof stored === 'string' ? stored : undefined);
+  const cajas = enCajas === null ? null : paquetesDe(enCajas.cuantos);
+  const porCaja =
+    pack === null || enCajas === null || cajas === null || llegada === undefined || entry === undefined
+      ? null
+      : {
+          palabra: palabraDe(pack.word, cajas),
+          una: ES.packs[pack.word].one,
+          linea: ES.buy.pad.line(
+            cajas,
+            palabraDe(pack.word, cajas),
+            llegada.trae,
+            ES.units[shownUnitOf(entry) as keyof typeof ES.units] ?? shownUnitOf(entry),
+          ),
+          costo: parsePesos(enCajas.costo),
+          cifra: String(cajas),
+        };
 
   const state = memoryState(memory, providerId, row.variantId, canRead);
   const alarm = !gone && state !== 'unknown' && typeof stored !== 'string';
@@ -1850,6 +2092,9 @@ function Renglon({
           {row.centavos === null ? ES.catalog.noPrice : formatMXN(row.centavos)}
         </Text>
       </View>
+      {porCaja === null ? null : (
+        <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>{porCaja.linea}</Text>
+      )}
 
       {/* ⚠️ `R11`: the state never travels as a colour alone. THE MISSING COST
           WINS WHEN BOTH APPLY: C3.13 decides whether this can be sent at all,
@@ -1862,6 +2107,7 @@ function Renglon({
             entry={entry}
             factors={factors}
             stored={typeof stored === 'string' ? stored : null}
+            porCaja={porCaja === null || porCaja.costo === null ? null : { centavos: porCaja.costo, una: porCaja.una }}
             alarm={alarm}
             onPress={() => onPad(entry, 'costo')}
           />
@@ -1881,7 +2127,14 @@ function Renglon({
         {gone || entry === undefined ? (
           <View />
         ) : (
-          <Cantidad entry={entry} base={row.base} factors={factors} scope="buy" onPad={() => onPad(entry, 'cantidad')} />
+          <Cantidad
+            entry={entry}
+            base={row.base}
+            factors={factors}
+            scope="buy"
+            onPad={() => onPad(entry, 'cantidad')}
+            paquete={porCaja === null ? undefined : { cifra: porCaja.cifra, palabra: porCaja.palabra }}
+          />
         )}
 
         {/* ⚠️ A WORD AND NOT A GLYPH — an icon alone on the one control that
@@ -1911,6 +2164,7 @@ function CostoLinea({
   entry,
   factors,
   stored,
+  porCaja = null,
   alarm,
   onPress,
 }: {
@@ -1918,13 +2172,16 @@ function CostoLinea({
   factors: UnitFactors;
   /** The cost the line carries, net per base — `null` when it has none. */
   stored: string | null;
+  /** `14.5`: a line keyed in cajas shows what she keyed — *$209.30 por caja*. */
+  porCaja?: { readonly centavos: number; readonly una: string } | null;
   alarm: boolean;
   onPress: () => void;
 }) {
   const { scale } = useDensity();
   const factor = factors[entry.priceUnit];
-  const centavos = stored === null || factor === undefined ? null : priceCentavos(stored, factor);
-  const unit = ES.units[entry.priceUnit as keyof typeof ES.units] ?? entry.priceUnit;
+  const centavos =
+    stored === null ? null : porCaja !== null ? porCaja.centavos : factor === undefined ? null : priceCentavos(stored, factor);
+  const unit = porCaja !== null ? porCaja.una : (ES.units[entry.priceUnit as keyof typeof ES.units] ?? entry.priceUnit);
   return (
     <Pressable
       accessibilityRole="button"

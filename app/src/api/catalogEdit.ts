@@ -68,7 +68,7 @@
 
 import { SCALE, formatDecimal, parseDecimal } from '@tienda/money';
 
-import { searchKey, type CatalogEntry } from '@/api/catalog';
+import { searchKey, type CatalogEntry, type PackWord } from '@/api/catalog';
 import { CATALOG_WRITE_REFUSALS } from '@/api/catalogWrite';
 import { apiErrorMessage } from '@/api/errors';
 import { ES } from '@/strings';
@@ -415,6 +415,37 @@ export function variantSettings(edit: VariantEdit): SettingsPatch | null {
  */
 export function activePatch(active: boolean): ActivePatch {
   return { is_active: active };
+}
+
+/**
+ * ⚠️ `14.5`, HOW A PRODUCT ARRIVES — set on its page by the owner or a manager
+ * (the owner's call 10 of 2026-11-27: *she corrects it at a delivery, or on the
+ * product's page*). `0101`'s two columns, always together: a word and what one
+ * holds in the unit it is sold in, or loose — no word, and `0002`'s default of 1.
+ *
+ * ⚠️ THE FENCE IS `product_variant_update`'s, as for every edit here: a cashier's
+ * PATCH is a 200 with no row, which `.single()` turns into an error. And unlike
+ * a name, a product from Wera's catalog takes it — `product_variant_wera_keeps`
+ * guards only the name and the photo.
+ */
+export interface PackPatch {
+  readonly pack_word: PackWord | null;
+  readonly pack_size: string;
+}
+
+/** The two columns a pack sets — `docs/checks/5e-iii-a-catalog-edit-contract.sh` reads this line. */
+export const PACK_PATCH_COLUMNS = 'pack_word,pack_size';
+
+/**
+ * The patch for a pack, or `null` when what one holds is not a figure the column
+ * takes: more than nothing, three decimals at most (`numeric(14,3)`), five whole
+ * digits at most — the pad's own limits. Loose needs no figure.
+ */
+export function packPatch(word: PackWord | null, holds: string): PackPatch | null {
+  if (word === null) return { pack_word: null, pack_size: '1' };
+  const clean = holds.trim().replace(/\.$/, '');
+  if (!/^\d{1,5}(\.\d{1,3})?$/.test(clean) || !/[1-9]/.test(clean)) return null;
+  return { pack_word: word, pack_size: clean };
 }
 
 /**

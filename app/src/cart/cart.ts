@@ -49,7 +49,7 @@
 // ⚠️⚠️ AND THE RATE IS AN ARGUMENT RATHER THAN A COLUMN, WHICH WAS DECIDED BY A
 // CHECK REFUSING THE OTHER ANSWER. This module first widened the catalog read to
 // carry `tax_rate`; `docs/checks/5d-i-catalog-contract.sh` went red on it by
-// name — it bans `enforce_stock`, `tax_rate` and `pack_size` from the list read,
+// name — it bans `enforce_stock` and `tax_rate` (and `pack_size`, until `14.5`) from the list read,
 // because *"a column the app never asks for is a column that never reaches a
 // phone"* — and `5e-iii-a` already reads those two per variant when `Editar`
 // needs them. **A rate is needed only on the branch no shop takes**, so every

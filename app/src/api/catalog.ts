@@ -61,14 +61,15 @@ import { ES } from '@/strings';
 /**
  * The columns a client may ask `product_variant` for.
  *
- * ⚠️ NAMED AND NEVER `*` (`R13`). A `select=*` here would ship `pack_size`,
- * `tax_rate` and `enforce_stock` to a phone that renders none of them — and
- * `enforce_stock` is the switch C8.8 says no pilot screen may expose.
+ * ⚠️ NAMED AND NEVER `*` (`R13`). A `select=*` here would ship `tax_rate` and
+ * `enforce_stock` to a phone that renders neither — and `enforce_stock` is the
+ * switch C8.8 says no pilot screen may expose. (`pack_size` was the third, until
+ * `14.5` gave the counter a use for it: below.)
  *
  * ⚠️⚠️ `tax_rate` WAS ADDED HERE BY `5f-i` AND TAKEN BACK OUT THE SAME HOUR,
  * BECAUSE `docs/checks/5d-i-catalog-contract.sh` REFUSED IT AND WAS RIGHT. That
- * check bans `enforce_stock`, `tax_rate` and `pack_size` from this read by name
- * — *"a column the app never asks for is a column that never reaches a phone"* —
+ * check bans `enforce_stock` and `tax_rate` from this read by name (`pack_size` too,
+ * until `14.5`) — *"a column the app never asks for is a column that never reaches a phone"* —
  * and `5e-iii-a` already reads the two set-once figures per variant through
  * `VARIANT_EDIT_COLUMNS` for exactly that reason. **The basket needs a rate only
  * while `prices_include_tax` is FALSE, which is no shop today**, so widening a
@@ -100,8 +101,16 @@ import { ES } from '@/strings';
  * COMPUTED column, a function PostgREST offers as one. Two short paths per row,
  * persisted with it, so a picture's name is known offline. `@/api/photos`
  * decides which one a row wears.
+ *
+ * ⚠️⚠️ `pack_size::text` and `pack_word` (`0101`) SINCE `14.5`, AND THEY WERE BANNED
+ * FROM THIS READ BY NAME UNTIL THEN — see `pack_size` above, and the contract
+ * check's ban, which still holds `enforce_stock` and `tax_rate`. How a product
+ * arrives is what Comprar's pad asks at every delivery (*Llegaron 2 cajas · trae
+ * cada caja ~13 kg*), and a delivery is keyed with no signal as often as with
+ * one, so the pack must be on the phone with the product, not a second read for
+ * one variant the way `VARIANT_EDIT_COLUMNS` reads IVA. Two short values per row.
  */
-export const VARIANT_COLUMNS = 'id,name,family_id,price_unit_code,base_unit_code,is_active,template_code,is_prebuilt,image_path,catalog_image_path';
+export const VARIANT_COLUMNS = 'id,name,family_id,price_unit_code,base_unit_code,is_active,template_code,is_prebuilt,image_path,catalog_image_path,pack_size::text,pack_word';
 
 /**
  * The columns a client may ask `product_family` for, as an EMBEDDED resource.
@@ -218,6 +227,10 @@ export interface VariantRow {
   readonly image_path?: string | null;
   /** `0063`: Wera's photo, through `template_code` — absent before `8o`. */
   readonly catalog_image_path?: string | null;
+  /** `0101`: what one pack holds, in the SELL unit, as text — absent on a row persisted before `14.5`. */
+  readonly pack_size?: string;
+  /** `0101`: which pack, or null for loose — absent on a row persisted before `14.5`. */
+  readonly pack_word?: string | null;
   readonly product_family: FamilyRow | null;
   readonly price_list: readonly PriceRow[] | null;
 }
@@ -509,6 +522,40 @@ export function searchTerm(text: string): string {
 }
 
 /** One row of Productos, as the screen needs it and with no rendering in it. */
+/**
+ * `0101`'s eight pack words, as the database's `product_variant_pack_word_known`
+ * spells them — the WORDS a shopkeeper reads are `ES.packs`' (`R4`).
+ * ⚠️ `app/test/paquete.test.ts` holds this list to the constraint's text.
+ */
+export const PACK_WORDS = ['caja', 'arpilla', 'costal', 'bulto', 'reja', 'docena', 'paquete', 'manojo_grande'] as const;
+export type PackWord = (typeof PACK_WORDS)[number];
+
+/**
+ * How a product arrives (`14.5`, the owner's call 10): which pack, and how many of
+ * the units it is SOLD in one holds — `{ word: 'caja', holds: '13.000' }` for
+ * jitomate sold by the kilo. ⚠️ `holds` is the decimal string Postgres stored, at
+ * `numeric(14,3)`, never a double (`parseDecimal` refuses a number).
+ */
+export interface Pack {
+  readonly word: PackWord;
+  readonly holds: string;
+}
+
+/**
+ * The pack a row carries, or `null` — loose. ⚠️ A WORD THIS BUILD DOES NOT KNOW IS
+ * LOOSE, not a crash and not a code on screen: a later migration may add a ninth,
+ * and a build in the field must keep selling. A size with no word is loose too —
+ * `0002`'s default of 1, or the one hosted row a person set to 60 before `0101`.
+ */
+export function packOf(row: Pick<VariantRow, 'pack_size' | 'pack_word'>): Pack | null {
+  const word = row.pack_word;
+  const holds = row.pack_size;
+  if (typeof word !== 'string' || typeof holds !== 'string') return null;
+  if (!(PACK_WORDS as readonly string[]).includes(word)) return null;
+  if (!/^\d+(\.\d{1,3})?$/.test(holds) || !/[1-9]/.test(holds)) return null;
+  return { word: word as PackWord, holds };
+}
+
 export interface CatalogEntry {
   readonly id: string;
   readonly name: string;
@@ -570,6 +617,8 @@ export interface CatalogEntry {
   readonly prebuilt: boolean;
   /** `8o`: its photo, or `null` for its initials (C8.14). See `pictureOf`. */
   readonly picture: Picture | null;
+  /** `14.5`: how it arrives — a caja of 13 kg — or `null` when it arrives loose. See `packOf`. */
+  readonly pack: Pack | null;
 }
 
 /**
@@ -620,6 +669,7 @@ export function catalogFrom(
       // again for itself before it lets the name be touched.
       prebuilt: row.is_prebuilt === true,
       picture: pictureOf(row),
+      pack: packOf(row),
     });
   }
   return entries;

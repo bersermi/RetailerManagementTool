@@ -19,6 +19,7 @@ function entry(over: Partial<CatalogEntry> = {}): CatalogEntry {
   return {
     prebuilt: false,
     picture: null,
+    pack: null,
     id: 'v-1',
     name: 'Pechuga sin hueso',
     familyId: 'f-1',

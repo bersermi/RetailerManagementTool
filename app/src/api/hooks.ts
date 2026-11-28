@@ -125,6 +125,7 @@ import {
   type EditOutcome,
   type EditPlan,
   type NamePatch,
+  type PackPatch,
   type SettingsPatch,
   type VariantSettingsRow,
 } from '@/api/catalogEdit';
@@ -2007,7 +2008,7 @@ export function useEditProduct(variantId: string | null) {
     await queries.invalidateQueries({ queryKey: VARIANT_EDIT_KEY });
   }
 
-  async function edit(patch: NamePatch | SettingsPatch | ActivePatch | FamilyPatch | ImagePatch): Promise<void> {
+  async function edit(patch: NamePatch | SettingsPatch | ActivePatch | FamilyPatch | ImagePatch | PackPatch): Promise<void> {
     if (variantId === null) return;
     await patchVariant(variantId, patch);
     await refresh();

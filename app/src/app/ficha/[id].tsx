@@ -3,8 +3,8 @@ import { useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { catalogLine, type CatalogEntry } from '@/api/catalog';
-import { activePatch, catalogEditErrorMessage } from '@/api/catalogEdit';
+import { PACK_WORDS, catalogLine, type CatalogEntry, type PackWord } from '@/api/catalog';
+import { activePatch, catalogEditErrorMessage, packPatch } from '@/api/catalogEdit';
 import { canWriteCatalog } from '@/api/catalogWrite';
 import { useCatalog, useCosts, useEditProduct, useMyRole, useSales, useWorkspace } from '@/api/hooks';
 import {
@@ -18,13 +18,17 @@ import {
   weekNoneLine,
   weekOfProduct,
 } from '@/api/productPage';
+import { MAX_ENTEROS, TECLAS_PUNTO, decimalesDe, escribir, type Tecla } from '@/cart/bascula';
 import { marginOf } from '@/cart/buying';
+import { traeDe } from '@/cart/paquete';
+import { shownUnitOf } from '@/cart/quantity';
 import { formatMXN } from '@/format/mxn';
 import { useOnline } from '@/offline/useOnline';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { letraTitulo } from '@/theme/letra';
 import { PALETTE } from '@/theme/palette';
+import { Bascula } from '@/ui/Bascula';
 import { PrecioRapido } from '@/ui/PrecioRapido';
 import { RetiroProducto } from '@/ui/RetiroProducto';
 import { Foto } from '@/ui/Foto';
@@ -71,6 +75,7 @@ export default function Ficha() {
   const online = useOnline();
 
   const [pricing, setPricing] = useState(false);
+  const [packing, setPacking] = useState(false);
   const [asking, setAsking] = useState(false);
   const [retiring, setRetiring] = useState(false);
   const [failure, setFailure] = useState<string | null>(null);
@@ -159,6 +164,12 @@ export default function Ficha() {
             />
           ) : null}
         </View>
+
+        {/* ⚠️ `14.5`: HOW IT ARRIVES — only where Comprar's pad can offer it, a
+            product counted in the unit it is sold in (`paqueteDe`'s rule). */}
+        {shownUnitOf(entry) !== entry.priceUnit ? null : (
+          <TeLlega entry={entry} mayWrite={mayWrite} onChange={() => setPacking(true)} />
+        )}
 
         <View
           style={{
@@ -257,6 +268,19 @@ export default function Ficha() {
           onSaved={() => undefined}
           onClose={() => setPricing(false)}
           cost={last === null ? null : { centavos: last.centavos, label: last.centavos === null ? '' : formatMXN(last.centavos) }}
+        />
+      ) : null}
+
+      {packing ? (
+        <HojaPaquete
+          entry={entry}
+          // ⚠️ NOT YET KNOWN IS NOT OFFLINE (`useOnline`'s null): the save says so if it fails.
+          online={online !== false}
+          onSave={(word, holds) => {
+            const patch = packPatch(word, holds);
+            return patch === null ? Promise.resolve() : edit(patch);
+          }}
+          onClose={() => setPacking(false)}
         />
       ) : null}
 
@@ -389,5 +413,203 @@ function Accion({ label, ink, onPress }: { label: string; ink: string; onPress: 
     >
       <Text style={{ fontSize: scale.smallSize, fontWeight: '700', color: ink }}>{label}</Text>
     </Pressable>
+  );
+}
+
+/**
+ * ⚠️ `14.5`: *TE LLEGA* — how the product arrives, *En caja de 13 kg* or *Suelto*,
+ * what Comprar's pad offers at every delivery. *Cambiar* for the owner and a
+ * manager, the fence every edit on this page keeps.
+ */
+function TeLlega({ entry, mayWrite, onChange }: { entry: CatalogEntry; mayWrite: boolean; onChange: () => void }) {
+  const { scale } = useDensity();
+  const unit = ES.units[entry.priceUnit as keyof typeof ES.units] ?? entry.priceUnit;
+  const line =
+    entry.pack === null
+      ? ES.products.page.arrives.loose
+      : ES.products.page.arrives.packed(ES.packs[entry.pack.word].one, traeDe(entry.pack), unit);
+  return (
+    <View
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: scale.space,
+        padding: scale.space,
+        borderRadius: ESQUINA.hoja,
+        backgroundColor: PALETTE.superficie,
+      }}
+    >
+      <View style={{ flex: 1, gap: scale.rowGap / 4 }}>
+        <Rotulo text={ES.products.page.arrives.title} ink={PALETTE.compra} />
+        <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.tinta }}>{line}</Text>
+      </View>
+      {mayWrite ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`${ES.products.page.arrives.change}: ${ES.products.page.arrives.title} ${line}`}
+          onPress={onChange}
+          style={{
+            minHeight: scale.tapTarget,
+            justifyContent: 'center',
+            paddingHorizontal: scale.space,
+            borderRadius: ESQUINA.boton,
+            backgroundColor: PALETTE.compraSuave,
+          }}
+        >
+          <Text style={{ fontSize: scale.smallSize, fontWeight: '700', color: PALETTE.compra }}>
+            {ES.products.page.arrives.change}
+          </Text>
+        </Pressable>
+      ) : null}
+    </View>
+  );
+}
+
+/**
+ * ⚠️ `14.5`: *¿CÓMO TE LLEGA?* — the pack chosen among `0101`'s eight words, or
+ * loose, and what one holds keyed on the counter's own pad (`src/ui/Bascula`), as
+ * Comprar keys it. It saves with signal only — an edit of the product, like every
+ * other on this page — and a refusal is said under it, never swallowed.
+ */
+function HojaPaquete({
+  entry,
+  online,
+  onSave,
+  onClose,
+}: {
+  entry: CatalogEntry;
+  online: boolean;
+  onSave: (word: PackWord | null, holds: string) => Promise<void>;
+  onClose: () => void;
+}) {
+  const { scale } = useDensity();
+  const unit = shownUnitOf(entry);
+  const word = ES.units[unit as keyof typeof ES.units] ?? unit;
+  const [elegida, setElegida] = useState<PackWord | null>(entry.pack?.word ?? null);
+  const [trae, setTrae] = useState(entry.pack === null ? '' : traeDe(entry.pack));
+  const [fresco, setFresco] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [failed, setFailed] = useState(false);
+
+  const patch = packPatch(elegida, trae);
+  const same =
+    patch !== null &&
+    patch.pack_word === (entry.pack?.word ?? null) &&
+    (elegida === null || (entry.pack !== null && patch.pack_size === traeDe(entry.pack)));
+  const off = !online || saving || patch === null || same;
+  const sinPunto = decimalesDe(unit) === 0;
+
+  async function guardar() {
+    if (off) return;
+    setSaving(true);
+    setFailed(false);
+    try {
+      await onSave(elegida, trae);
+    } catch {
+      setSaving(false);
+      setFailed(true);
+      return;
+    }
+    setSaving(false);
+    onClose();
+  }
+
+  const choices: readonly (PackWord | null)[] = [null, ...PACK_WORDS];
+  return (
+    <Bascula
+      entry={entry}
+      detalle={
+        <Text style={{ fontSize: scale.smallSize, fontWeight: '600', color: PALETTE.compra }}>
+          {ES.products.page.arrives.ask}
+        </Text>
+      }
+      fichas={[]}
+      teclas={TECLAS_PUNTO}
+      apagada={(tecla: Tecla) => elegida === null || (tecla === 'punto' && sinPunto)}
+      onTecla={(tecla) => {
+        setTrae(escribir(fresco && tecla !== 'borrar' ? '' : trae, tecla, decimalesDe(unit), MAX_ENTEROS.cantidad));
+        setFresco(false);
+      }}
+      accion={{
+        label: saving ? ES.products.page.arrives.saving : ES.products.page.arrives.save,
+        onPress: () => void guardar(),
+        off,
+      }}
+      onQuitar={null}
+      onClose={onClose}
+    >
+      <View accessibilityRole="radiogroup" style={{ flexDirection: 'row', flexWrap: 'wrap', gap: scale.rowGap / 2 }}>
+        {choices.map((choice) => {
+          const on = choice === elegida;
+          const label =
+            choice === null ? ES.products.page.arrives.looseChoice : ES.packs[choice].one.charAt(0).toUpperCase() + ES.packs[choice].one.slice(1);
+          return (
+            <Pressable
+              key={choice ?? 'suelto'}
+              accessibilityRole="radio"
+              accessibilityState={{ selected: on }}
+              onPress={() => {
+                setElegida(choice);
+                setFresco(true);
+              }}
+              style={{
+                flexGrow: 1,
+                minWidth: scale.tapTarget * 2,
+                minHeight: scale.tapTarget,
+                alignItems: 'center',
+                justifyContent: 'center',
+                paddingHorizontal: scale.rowGap,
+                borderRadius: ESQUINA.chip,
+                borderWidth: on ? 2 : 1,
+                borderColor: on ? PALETTE.compra : PALETTE.linea,
+                backgroundColor: on ? PALETTE.compra : PALETTE.superficie,
+              }}
+            >
+              <Text style={{ fontSize: scale.smallSize, fontWeight: on ? '700' : '600', color: on ? PALETTE.superficie : PALETTE.tinta }}>
+                {label}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
+      {elegida === null ? null : (
+        <View
+          accessibilityLabel={`${ES.buy.pad.holds(ES.packs[elegida].one)}: ${trae === '' ? '0' : trae} ${word}`}
+          style={{
+            minHeight: scale.tapTarget * 1.2,
+            justifyContent: 'center',
+            paddingHorizontal: scale.space,
+            borderRadius: ESQUINA.campo,
+            borderWidth: 2,
+            borderColor: PALETTE.compra,
+            backgroundColor: PALETTE.superficie,
+          }}
+        >
+          <Text style={{ fontSize: scale.smallSize, fontWeight: '700', color: PALETTE.tintaApagada }}>
+            {ES.buy.pad.holds(ES.packs[elegida].one)}
+          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: scale.rowGap / 2 }}>
+            <Text
+              style={{
+                fontSize: scale.moneySize,
+                fontWeight: '700',
+                fontVariant: ['tabular-nums'],
+                color: trae === '' ? PALETTE.tintaApagada : PALETTE.tinta,
+              }}
+            >
+              {trae === '' ? '0' : trae}
+            </Text>
+            <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.tintaApagada }}>{word}</Text>
+          </View>
+        </View>
+      )}
+      <Text style={{ fontSize: scale.smallSize, color: failed ? PALETTE.error : PALETTE.tintaApagada }}>
+        {failed
+          ? ES.products.page.arrives.failed
+          : !online
+            ? ES.products.page.arrives.offline
+            : ES.products.page.arrives.hint}
+      </Text>
+    </Bascula>
   );
 }

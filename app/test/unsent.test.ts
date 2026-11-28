@@ -76,6 +76,7 @@ function entry(id: string, name: string): CatalogEntry {
   return {
     prebuilt: false,
     picture: null,
+    pack: null,
     id,
     name,
     familyId: 'f',

@@ -21,7 +21,7 @@ and run `supabase db reset`.
 |---|---|
 | `tags.csv` | `code, kind, label`. `kind` is `giro` or `categoria`; the row order is the picker's order |
 | `families.csv` | `code, name, default_lifespan_days, track_expiry`. Lifespan is blank or whole days; `track_expiry` is blank, `si` or `no` |
-| `products/<giro>.csv` | `code, family, name, base, purchase, sell, price, pack_size, tax_rate, tags` |
+| `products/<giro>.csv` | `code, family, name, base, purchase, sell, price, pack_size, pack_word, tax_rate, suggested_price, tags` |
 
 **A product row:**
 
@@ -31,12 +31,20 @@ and run `supabase db reset`.
   - all four share one dimension;
   - `base` is the base unit itself: `g`, `ml` or `pza`;
   - every product in a family shares a dimension (C8.5).
-- `pack_size` is blank (meaning 1) or the number of base units in one purchase unit. A case of
-  24 bought as `pza` is `24`.
+- `pack_size` and `pack_word` go together (`0101`, plan `14.5`): how the product usually
+  ARRIVES — `pack_word` is `caja`, `arpilla`, `costal`, `bulto`, `reja`, `docena`, `paquete` or
+  `manojo_grande`, and `pack_size` how many of its SELL units one holds (`13,caja` for jitomate
+  sold by the kilo, `12,docena` for lechuga sold by the piece). Both blank: it arrives loose. A
+  pack is a best guess each shop corrects at its first delivery — never a figure nobody sourced.
 - `tax_rate` is a **rate**, `0` or `0.16`, never `16`.
 - `tags` are space-separated tag codes, and at least one must be a giro.
 
 ## Rules that are not obvious
+
+- **The CSVs own Wera's tags, not every row of `catalogo.tag`.** Wera Cocina's nine trades are
+  `0072`'s rows (`for_kind = 'cocina'`), and kitchens point at them. A snapshot deletes and counts
+  `for_kind = 'tienda'` only — the first draft of `0102` (`14.5`) deleted them unscoped, and CI's
+  kitchen suites caught it before any merge. `build.test.mjs` holds the scope.
 
 - **A code never changes.** A shop's copy remembers its template row by code, and that is how
   a picture added later finds every shop's copy. Rename by editing `name`.
