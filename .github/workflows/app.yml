@@ -114,6 +114,12 @@ on:
       # re-run the suite that holds the copy to it.
       - "brand/mostrador/paleta.json"
       - "brand/letras/**"
+      # ⚠️ `11.9`: AND THE COUNTER'S OBJECTS AND MOTIONS — `app/test/mostrador.test.ts`
+      # holds `@/theme/mostrador` to `objetos.json` and `movimiento.json`, and Wera's
+      # copies of the stamp's specks and the tab's stroke to `png/`, byte for byte.
+      - "brand/mostrador/objetos.json"
+      - "brand/mostrador/movimiento.json"
+      - "brand/mostrador/png/**"
 
 concurrency:
   group: app-${{ github.ref }}

@@ -155,8 +155,10 @@ export const VEIL_OPACITY = 0.4;
 /** The emptied basket's bloom, in the box that asked *¿Vaciar?*. */
 export const EMPTIED_BLOOM_MS = 420;
 
-/** `Vendido` and the two `Registrada`s arriving — the blink's half. */
-export const DONE_IN_MS = PULSE_HALF_MS;
+// ⚠️ `11.9`: HOW THE STAMP ARRIVES IS NO LONGER THIS FILE'S — *Venta registrada*
+// and the two *Registrada*s are pressed with *El sello cae* (`@/theme/mostrador`'s
+// `SELLO`, 260 ms, `brand/mostrador/movimiento.json`). How long each stays, and
+// how it leaves, still are.
 
 /** How long it stays readable. */
 export const DONE_HOLD_MS = 520;
