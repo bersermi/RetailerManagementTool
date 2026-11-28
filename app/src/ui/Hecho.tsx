@@ -79,6 +79,11 @@ export function Hecho({
   const cae = useRef(new Animated.Value(0)).current;
   /** The whole, fading as it leaves. */
   const queda = useRef(new Animated.Value(1)).current;
+  // ⚠️ THE CALLER'S `onDone` IS A NEW FUNCTION ON EVERY RENDER (`() => setSold(false)`), and
+  // Vender re-renders as the sale empties the cart: kept in a ref, so a re-render never
+  // restarts a stamp already falling (seen on the emulator, `11.9`).
+  const fin = useRef(onDone);
+  fin.current = onDone;
 
   useEffect(() => {
     if (!shown) return;
@@ -98,10 +103,15 @@ export function Hecho({
           }),
         ]);
     run.start(({ finished }) => {
-      if (finished) onDone();
+      if (!finished) return;
+      // ⚠️ LEFT READY FOR THE NEXT ONE — still above, unseen. Left landed, the next sale's
+      // stamp showed landed for a frame before it fell (seen on the emulator, `11.9`).
+      cae.setValue(0);
+      queda.setValue(1);
+      fin.current();
     });
     return () => run.stop();
-  }, [shown, cae, queda, onDone, note, lingers, reduce]);
+  }, [shown, cae, queda, note, lingers, reduce]);
 
   if (!shown) return null;
 
@@ -124,6 +134,7 @@ export function Hecho({
         >
           <View
             style={{
+              maxWidth: ancho,
               padding: p.entre,
               borderWidth: p.bordeFuera,
               borderColor: PALETTE.accion,
@@ -140,7 +151,7 @@ export function Hecho({
                 borderRadius: ESQUINA.hoja,
               }}
             >
-              <Text style={{ ...letraEncabezado(scale), maxWidth: ancho, textAlign: 'center', color: PALETTE.accion }}>{word}</Text>
+              <Text style={{ ...letraEncabezado(scale), textAlign: 'center', color: PALETTE.accion }}>{word}</Text>
             </View>
             <View pointerEvents="none" style={StyleSheet.absoluteFill}>
               <Image

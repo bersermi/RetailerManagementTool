@@ -2,6 +2,7 @@ import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Animated, Easing, Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { formatSlot, nextPickup, minutesUntil, rescued, untilLabel } from '@/api/collection';
 import { feedLine, latestSales, type FeedRow } from '@/api/documents';
@@ -727,10 +728,11 @@ interface Salida {
  * row was measured (the first sale ever, while she looks).
  *
  * ⚠️ ONLY WHERE SHE CAN SEE IT: Lo último sits below *Hoy*, *Racha* and the
- * doors, and at *Letra grande* it can be under the fold when she comes back to
- * Inicio. A feed waits there, the new line still under the heading's edge, until
- * the box is on screen (`measureInWindow`, every 200 ms while one waits), then
- * plays — so it is not spent where nobody looks (found at `11.8-ii`).
+ * doors, and at *Letra grande* it starts under the fold (seen on the emulator).
+ * A feed waits there, the new line still under the heading's edge, until the
+ * box's first row is whole above the tab bar (`measureInWindow`, every 200 ms
+ * while one waits), then plays — so it is not spent where nobody looks (the
+ * trap `11.8-ii` found on her card).
  *
  * The first frame starts it from above: the box is set that many rows up as the
  * rows are drawn, never after, so a new row never shows in its place for a frame
@@ -740,8 +742,10 @@ function Recibo({ rows, salida }: { rows: readonly FeedRow[]; salida: Salida }) 
   const { scale } = useDensity();
   const reduce = useReduceMotion();
   const { height: screen } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  // Where the screen she can see ends: above the tab bar (`(tabs)/_layout.tsx` sizes it so).
   const pantalla = useRef(screen);
-  pantalla.current = screen;
+  pantalla.current = screen - scale.tabBarHeight - insets.bottom;
   const box = useRef<View>(null);
   const t = useRef(new Animated.Value(1)).current;
   const fila = useRef<number | null>(null);
@@ -769,7 +773,9 @@ function Recibo({ rows, salida }: { rows: readonly FeedRow[]; salida: Salida }) 
     let poll: ReturnType<typeof setInterval> | null = null;
     const playIfSeen = () => {
       box.current?.measureInWindow((_x, y, _w, h) => {
-        if (run !== null || !waiting.current || h === 0 || y + h <= 0 || y >= pantalla.current) return;
+        // Its first row whole on screen: where the new line comes out.
+        const firstRow = Math.min(h, fila.current ?? h);
+        if (run !== null || !waiting.current || h === 0 || y < 0 || y + firstRow > pantalla.current) return;
         if (poll !== null) clearInterval(poll);
         waiting.current = false;
         run = recorrer(t, RECIBO);
