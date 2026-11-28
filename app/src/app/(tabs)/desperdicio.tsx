@@ -1,6 +1,6 @@
 import { Icono } from '@/ui/Icono';
 import { router, useFocusEffect } from 'expo-router';
-import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
   Animated,
   BackHandler,
@@ -78,7 +78,13 @@ import {
   type WasteReason,
 } from '@/api/waste';
 import { whatsappUrl } from '@/auth/support';
-import { qtySent, reviewOf, type Review, type ReviewRow } from '@/cart/cart';
+import { aislesOf } from '@/api/productPage';
+import { TECLAS, baseDe, fichasDe, teclear, tecladoDe, textoDe } from '@/cart/bascula';
+import { qtySent, reviewOf, stepOf, type Review, type ReviewRow } from '@/cart/cart';
+import { porOrden } from '@/cart/orden';
+import { qtyShown, shownUnitOf } from '@/cart/quantity';
+import { useOrdenDelDia } from '@/cart/useOrdenDelDia';
+import { columnasDe, conMenos, pasilloAlEscribir, toqueDeTirar, vitrinaDe, type Toque } from '@/cart/vitrina';
 import { takePhoto } from '@/capture/photo';
 import { canCommit, commitOf, type Basketful } from '@/cart/commit';
 import { useCart, useCartStore, useCorrects, useExpiries, useReason, useWasteDay } from '@/cart/store';
@@ -110,9 +116,11 @@ import { comproFace, sendButton, type ComproFace } from '@/offline/teLoCompro';
 import { useOnline } from '@/offline/useOnline';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
-import { letraTitulo } from '@/theme/letra';
+import { letraNumero, letraTitulo } from '@/theme/letra';
 import { PALETTE } from '@/theme/palette';
 import { EMPTIED_BLOOM_MS } from '@/theme/pulse';
+import { Baldosa } from '@/ui/Baldosa';
+import { Bascula } from '@/ui/Bascula';
 import { BotonLleno } from '@/ui/BotonLleno';
 import { Direccion } from '@/ui/Direccion';
 import { Buscador } from '@/ui/Buscador';
@@ -132,6 +140,8 @@ import { VaciarCarrito } from '@/ui/VaciarCarrito';
 import { Velo } from '@/ui/Velo';
 import { Rotulo } from '@/ui/Rotulo';
 import { ESQUINA } from '@/theme/density';
+import { Pasillos } from '@/ui/Pasillos';
+import { Vitrina } from '@/ui/Vitrina';
 
 // ============================================================================
 // DESPERDICIO — what the shop lost, and what it asks Wera to collect. Plan task
@@ -215,6 +225,8 @@ import { ESQUINA } from '@/theme/density';
  * The bar carrying *Listo* above the quantity pad. ⚠️ ITS OWN ID AND NOT
  * VENDER'S: `InputAccessoryView` matches by string, and a shared spelling across
  * two mounted screens is a bar that attaches to whichever mounted last.
+ * ⚠️ `14.4`: TE LO COMPRO'S BOX ALONE — Tirar's tiles and lines open the
+ * counter's own pad (`BasculaTirar`) and raise no keyboard.
  */
 const PAD_ID = 'wera.waste.pad';
 
@@ -662,8 +674,25 @@ function Puerta({
 // Tirar
 // ============================================================================
 
+// ----------------------------------------------------------------------------
+// ⚠️⚠️ `14.4`, LA VITRINA — TIRAR IS THE THIRD COUNTER (the owner's ruling of
+// 2026-11-27, Step 14's call 1)
+// ----------------------------------------------------------------------------
+// Vender's counter in Merma's colour: the search, the aisles as names
+// (`Pasillos`), the products as tiles three across, two at *Letra grande*
+// (`Baldosa`, `Vitrina`), in Vender's order — four weeks of sales, set once a day
+// (call 6: *"Merma uses Vender's order until `10.6a` knows what each shop throws
+// away most"*) — and the pad that reads like the scale (`Bascula`). ⚠️ **No tag on
+// a tile and no money on the pad** (Área 9, below): `etiqueta: null`. ⚠️ **No
+// gate either** (`toqueDeTirar`): an unpriced product is written off at an
+// explicit zero (`UNPRICED_WASTE`), so its tap counts it like any other. The cause
+// and the day stay on the bar, and each line's expiry in the Carrito, as `8l`
+// drew them; Merma's doors are as they were. After the slide the counter is back
+// on *Todo* at the top (call 8), and a letter typed searches the whole shop (call 13).
+// ----------------------------------------------------------------------------
+
 function Tirar() {
-  const { scale } = useDensity();
+  const { scale, mode } = useDensity();
 
   // ⚠️ THE SAME LIST AS PRODUCTOS AND VENDER — C3.1, *"there are no buy-only or
   // sell-only subsets"*: anything the shop sells is something it can lose.
@@ -680,21 +709,37 @@ function Tirar() {
 
   const [typed, setTyped] = useState('');
   const box = useRef<TextInput>(null);
-  const rows = search(entries, typed);
 
-  const list = useRef<FlatList<CatalogEntry>>(null);
-  const editing = useRef<number | null>(null);
-
-  // ⚠️ IT WAITS FOR THE KEYBOARD TO BE UP rather than firing on focus —
-  // `vender.tsx`'s measurement.
-  useEffect(() => {
-    const up = Keyboard.addListener('keyboardDidShow', () => {
-      const at = editing.current;
-      if (at === null || at < 0) return;
-      list.current?.scrollToIndex({ index: at, viewPosition: 0.5, animated: true });
-    });
-    return () => up.remove();
+  // ⚠️⚠️ `14.4`: VENDER'S ORDER, AND ITS AISLES IN THE SAME ORDER (call 6) — the
+  // same hook, so the order is drawn on arriving and after a write-off, never when
+  // the read lands under her thumb (`useOrdenDelDia`).
+  const { orden, tomar } = useOrdenDelDia();
+  const ordered = useMemo(() => porOrden(entries, orden?.productos ?? [], (entry) => entry.id), [entries, orden]);
+  const aisles = useMemo(
+    () => porOrden(aislesOf(entries), orden?.pasillos ?? [], (one) => one.familyId),
+    [entries, orden],
+  );
+  const [aisle, setAisle] = useState<string | null>(null);
+  const shown = vitrinaDe(ordered, typed, aisle);
+  const columns = columnasDe(mode);
+  const grid = useRef<FlatList<CatalogEntry | null>>(null);
+  const strip = useRef<ScrollView>(null);
+  // ⚠️ CALL 13: SEARCHING AND BROWSING NEVER MIX — Vender's rule, word for word.
+  const write = useCallback((text: string) => {
+    setTyped(text);
+    setAisle((now) => pasilloAlEscribir(text, now));
   }, []);
+  const choose = useCallback((familyId: string | null) => {
+    setAisle(familyId);
+    setTyped('');
+    box.current?.blur();
+    grid.current?.scrollToOffset({ offset: 0, animated: false });
+  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      tomar();
+    }, [tomar]),
+  );
 
   const cart = useCart('waste');
   const chosen = useReason();
@@ -710,6 +755,7 @@ function Tirar() {
   const openShop = useCartStore((state) => state.openShop);
   const openReason = useCartStore((state) => state.openReason);
   const setWasteDay = useCartStore((state) => state.setWasteDay);
+  const setLine = useCartStore((state) => state.setQty);
   const clear = useCartStore((state) => state.clear);
 
   // ⚠️ THE GUARD IS THE WHOLE POINT: `openShop(null)` on a restored store means
@@ -721,8 +767,18 @@ function Tirar() {
 
   const today = isoDay(new Date());
 
+  // ⚠️ `14.4`: the product whose pad is open, from a tile or from a line.
+  const [pesando, setPesando] = useState<CatalogEntry | null>(null);
+  const openPad = useCallback((entry: CatalogEntry) => setPesando(entry), []);
+  const closePad = useCallback(() => setPesando(null), []);
+
   const [cartOpen, setCartOpen] = useState(false);
-  const closeCart = useCallback(() => setCartOpen(false), []);
+  // ⚠️ `14.1`'s lesson: ANDROID'S BACK REACHES THE CARRITO'S `Modal`, NOT THE
+  // SHEET DRAWN INSIDE IT — with the pad up over the Carrito, back closes the pad.
+  const closeCart = useCallback(() => {
+    if (pesando !== null) setPesando(null);
+    else setCartOpen(false);
+  }, [pesando]);
   const openCart = useCallback(() => setCartOpen(true), []);
 
   const [asking, setAsking] = useState(false);
@@ -803,8 +859,17 @@ function Tirar() {
     openReason(null);
     setWasteDay(0);
     setCartOpen(false);
+    // ⚠️⚠️ `14.4`, CALL 8: BACK TO *TODO* AT THE TOP, as Vender after a sale — the
+    // search emptied, the aisle undone, the grid and the strip at their start, and
+    // today's order drawn if it was set meanwhile.
+    setTyped('');
+    setAisle(null);
+    box.current?.blur();
+    grid.current?.scrollToOffset({ offset: 0, animated: false });
+    strip.current?.scrollTo({ x: 0, animated: false });
+    tomar();
     setRecorded(true);
-  }, [basketful, clear, openReason, setWasteDay, pilot, day]);
+  }, [basketful, clear, openReason, setWasteDay, pilot, day, tomar]);
 
   const canRecord = basketful !== null && canCommit(basketful);
 
@@ -815,33 +880,17 @@ function Tirar() {
           <Corrigiendo line={correctingLine('waste', corrects)} onCancel={() => setAsking(true)} />
         </View>
       )}
-      <Buscador value={typed} onChange={setTyped} box={box} placeholder={ES.catalog.search} />
+      <Buscador value={typed} onChange={write} box={box} placeholder={ES.catalog.search} />
+      <Pasillos aisles={aisles} chosen={aisle} onChoose={choose} strip={strip} tono={PALETTE.desperdicio} />
 
-      <FlatList
-        ref={list}
-        // ⚠️ A `FlatList` FOR `productos.tsx`'s REASON: ~100 products (C8.3) on
-        // two low-end Androids (C1.1).
-        data={rows}
-        keyExtractor={(entry) => entry.id}
-        renderItem={({ item, index }) => (
-          <Fila
-            entry={item}
-            factors={factors}
-            typical={typicals[item.id]}
-            today={today}
-            onEdit={(on) => {
-              editing.current = on ? index : null;
-            }}
-          />
+      <Vitrina
+        productos={shown}
+        columnas={columns}
+        grid={grid}
+        vacio={catalogLine(loading, typed, failed, online)}
+        baldosa={(item) => (
+          <BaldosaTirar entry={item} factors={factors} typical={typicals[item.id]} onPad={openPad} />
         )}
-        ItemSeparatorComponent={Separador}
-        ListEmptyComponent={<Vacio line={catalogLine(loading, typed, failed, online)} />}
-        contentContainerStyle={{ paddingBottom: scale.space }}
-        onScrollToIndexFailed={({ index }) => {
-          list.current?.scrollToOffset({ offset: index * scale.rowHeight, animated: true });
-        }}
-        keyboardDismissMode="none"
-        keyboardShouldPersistTaps="handled"
       />
 
       <Barra
@@ -853,6 +902,20 @@ function Tirar() {
         onEmpty={() => setAsking(true)}
         canRecord={canRecord}
       />
+
+      {/* ⚠️ OVER THE SCREEN ONLY WHILE THE CARRITO IS CLOSED; with it open the pad
+          is drawn inside the Carrito's own `Modal` (`hoja`) — Vender's arrangement. */}
+      {pesando !== null && !cartOpen ? (
+        <BasculaTirar
+          entry={pesando}
+          factors={factors}
+          typical={typicals[pesando.id]}
+          reason={reason}
+          day={day}
+          onSet={(base) => setLine('waste', pesando.id, base)}
+          onClose={closePad}
+        />
+      ) : null}
 
       <Carrito
         open={cartOpen}
@@ -875,6 +938,21 @@ function Tirar() {
         bloom={bloom}
         onConfirmEmpty={emptyCart}
         onCancelEmpty={() => setAsking(false)}
+        onPad={openPad}
+        hoja={
+          pesando !== null && cartOpen ? (
+            <BasculaTirar
+              bare
+              entry={pesando}
+              factors={factors}
+              typical={typicals[pesando.id]}
+              reason={reason}
+              day={day}
+              onSet={(base) => setLine('waste', pesando.id, base)}
+              onClose={closePad}
+            />
+          ) : null
+        }
       />
 
       {/* ⚠️ THE SAME QUESTION, ASKED FROM THE BAR — only while the sheet is
@@ -1009,86 +1087,206 @@ function Motivos({
 }
 
 /**
- * ⚠️⚠️ ONE ROW, AND IT IS THE WHOLE CONTROL — C3.3: a quantity greater than zero
- * IS the line. `8l` gave it the owner's drawing: the initials tile, and under
- * the name the line's expiry once it is in the basket (*Caduca hoy*, *Sin
- * fecha*), on a tinted ground. ⚠️ NO PRICE ON THE ROW — his drawing has none,
- * and on this screen a price decides nothing a shopkeeper can act on.
+ * ⚠️⚠️ `14.4`, ONE PRODUCT ON TIRAR'S COUNTER — the tile is `src/ui/Baldosa`, what
+ * is Tirar's is here. It replaced `8l`'s row (*the owner's drawing*: the initials
+ * tile, the name, and the box), as Vender's and Comprar's did.
+ *
+ * ⚠️⚠️ C3.3 STILL HOLDS: THE TAP IS THE LINE. A tap counts one piece or bunch, or
+ * opens the pad on a weighed product; a long press opens the pad on any product
+ * (`toqueDeTirar`). ⚠️ **No gate** — a product with no price is thrown away like
+ * any other, at an explicit zero (`UNPRICED_WASTE`), so no tap here opens a price
+ * sheet or a cashier's note.
+ *
+ * ⚠️ NO TAG — ÁREA 9: on this screen a price decides nothing a shopkeeper can act
+ * on, and `8l`'s row carried none either (`etiqueta: null` draws no tag).
  *
  * ⚠️ NO AMBER BUT THE MAGNITUDE WORD: `9999 kg` in the bin is the typo with
- * nobody on the other side of it to catch.
+ * nobody on the other side of it to catch. The band is its sentence (`R11`).
+ *
+ * ⚠️ THE LINE'S EXPIRY LEFT THE ROW FOR THE CARRITO — the row said *Caduca hoy* or
+ * *Sin fecha* under the name once a product was counted; a tile holds one height
+ * for every product, and the expiry is chosen in the Carrito, line by line, as it
+ * always was.
  */
-function Fila({
+function BaldosaTirar({
   entry,
   factors,
   typical,
-  today,
-  onEdit,
+  onPad,
 }: {
   entry: CatalogEntry;
   factors: UnitFactors;
   typical: Typical | undefined;
-  today: string;
-  onEdit: (editing: boolean) => void;
+  /** Opens the counter's pad on this product. */
+  onPad: (entry: CatalogEntry) => void;
 }) {
-  const { scale } = useDensity();
+  const bump = useCartStore((state) => state.step);
   const base = useCartStore((state) => {
     for (const line of state.carts.waste) if (line.variantId === entry.id) return line.base;
     return 0;
   });
-  const expiry = useCartStore((state) => state.expiries[entry.id] ?? null);
+  const unit = shownUnitOf(entry);
+  const by = stepOf(entry.priceUnit, factors);
   const counted = base > 0;
   const big = magnitudeNote(outsized(typical, base, null));
+  const word = ES.units[unit as keyof typeof ES.units] ?? unit;
+  const qty = counted ? `${qtyShown(base, unit, factors) ?? ''} ${word}` : '';
+
+  const act = (toque: Toque) => {
+    if (toque === 'pesar') onPad(entry);
+    // ⚠️ A unit this phone has not read steps nothing, as the old `+` did.
+    else if (by !== null) bump('waste', entry.id, by, 1);
+  };
 
   return (
-    <View
-      style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: scale.rowGap,
-        minHeight: scale.rowHeight,
-        paddingVertical: scale.rowGap,
-        paddingHorizontal: scale.space,
-        backgroundColor: counted ? PALETTE.desperdicioSuave : PALETTE.superficie,
-      }}
-    >
-      <Retrato
-        name={entry.name}
-        picture={entry.picture}
-        ground={counted ? PALETTE.superficie : PALETTE.desperdicioSuave}
-        ink={PALETTE.desperdicio}
-      />
-      <View style={{ flex: 1, gap: scale.rowGap / 4 }}>
-        <Text numberOfLines={1} style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.tinta }}>
-          {entry.name}
+    <Baldosa
+      entry={entry}
+      etiqueta={null}
+      cantidad={qty}
+      onMenos={
+        counted && conMenos(unit)
+          ? () => {
+              if (by !== null) bump('waste', entry.id, by, -1);
+            }
+          : null
+      }
+      menosLabel={ES.counter.tile.less(entry.name)}
+      banda={big}
+      alarma={false}
+      tono={PALETTE.desperdicio}
+      onPress={() => act(toqueDeTirar(unit))}
+      onLongPress={() => onPad(entry)}
+      accessibilityLabel={[entry.name, counted ? ES.counter.tile.inCart(qty) : '', big]
+        .filter((part) => part !== '')
+        .join(', ')}
+      accessibilityHint={ES.counter.tile.hint}
+    />
+  );
+}
+
+/**
+ * ⚠️⚠️ `14.4`, LA BÁSCULA ON TIRAR — the counter's pad, read like the scale
+ * (`@/cart/bascula`, his answer A: 7, 3, 0 is *0.730 kg*), with the chips for a
+ * best guess and a count for pieces and bunches — Vender's reading, opened by a
+ * tile or by a line's box in the Carrito. Its frame is `src/ui/Bascula`.
+ *
+ * ⚠️ NO MONEY ON IT — ÁREA 9: no price under the name, no *Son* beside the figure,
+ * no figure on *Agregar*, no *Cambiar precio*. Under the name instead, what this
+ * write-off will be recorded as — the cause and the day, the bar's two chips — so
+ * the default she has not changed is in front of her here too (`8l`'s rule).
+ *
+ * ⚠️ OPENED ON A LINE, IT SHOWS THE LINE'S QUANTITY AND THE FIRST KEY REPLACES
+ * IT, as a scale starts again from zero — and *Listo* untouched changes nothing.
+ *
+ * ⚠️ THE MAGNITUDE WARNING IS HERE TOO — §2.8's third guard, on the figure being
+ * keyed, before it is a line.
+ */
+function BasculaTirar({
+  entry,
+  factors,
+  typical,
+  reason,
+  day,
+  onSet,
+  onClose,
+  bare = false,
+}: {
+  entry: CatalogEntry;
+  factors: UnitFactors;
+  typical: Typical | undefined;
+  /** The cause and the day this write-off carries, as the bar shows them. */
+  reason: WasteReason;
+  day: WasteDay;
+  /** The line's new quantity in base units — `0` takes the line out. */
+  onSet: (base: number) => void;
+  onClose: () => void;
+  /** Drawn inside the Carrito's `Modal` rather than as a `Modal` of its own. */
+  bare?: boolean;
+}) {
+  const { scale } = useDensity();
+  const unit = shownUnitOf(entry);
+  const teclado = tecladoDe(unit);
+  const word = ES.units[unit as keyof typeof ES.units] ?? unit;
+
+  // ⚠️ THE LINE AS IT STANDS, READ FROM THE STORE: the pad may be opened from a
+  // tile whose line another surface has just changed.
+  const base = useCartStore((state) => {
+    for (const line of state.carts.waste) if (line.variantId === entry.id) return line.base;
+    return 0;
+  });
+  const [digitos, setDigitos] = useState('');
+  const [keyed, setKeyed] = useState(false);
+
+  const typed = keyed ? baseDe(digitos, unit, factors) : null;
+  const shownBase = keyed ? (typed ?? 0) : base;
+  const figure = keyed || base === 0 ? textoDe(keyed ? digitos : '', teclado) : (qtyShown(base, unit, factors) ?? '');
+  const empty = shownBase === 0;
+  const big = magnitudeNote(outsized(typical, shownBase, null));
+
+  const act = () => {
+    if (keyed && typed !== null) onSet(typed);
+    onClose();
+  };
+
+  return (
+    <Bascula
+      bare={bare}
+      entry={entry}
+      retrato={{ ground: PALETTE.desperdicioSuave, ink: PALETTE.desperdicio }}
+      detalle={
+        <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>
+          {`${reasonLabel(reason)} · ${dayLabel(day)}`}
         </Text>
-        {counted ? (
-          <Text
-            numberOfLines={1}
-            style={{
-              fontSize: scale.smallSize,
-              fontWeight: '600',
-              color: expiry === null ? PALETTE.tintaApagada : PALETTE.desperdicio,
-            }}
-          >
-            {expiry === null ? ES.dates.noDate : ES.waste.expires(formatExpiryDay(expiry, today))}
-          </Text>
-        ) : entry.familyName === '' ? null : (
-          <Text numberOfLines={1} style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>
-            {entry.familyName}
-          </Text>
-        )}
-        {/* ⚠️ `R11`: the hue never travels alone, and this is the only amber
-            word on the screen. */}
-        {big === '' ? null : (
-          <Text numberOfLines={1} style={{ fontSize: scale.smallSize, fontWeight: '600', color: PALETTE.atencion }}>
-            {big}
-          </Text>
-        )}
+      }
+      fichas={fichasDe(unit).map((ficha) => ({
+        etiqueta: ficha.etiqueta,
+        onPress: () => {
+          setDigitos(ficha.digitos);
+          setKeyed(true);
+        },
+      }))}
+      teclas={TECLAS}
+      onTecla={(tecla) => {
+        setDigitos((now) => teclear(keyed ? now : '', tecla, teclado));
+        setKeyed(true);
+      }}
+      accion={{
+        label: base > 0 ? ES.counter.done : ES.counter.pad.add,
+        onPress: act,
+        off: base === 0 && typed === null,
+      }}
+      onQuitar={
+        base > 0
+          ? () => {
+              onSet(0);
+              onClose();
+            }
+          : null
+      }
+      onClose={onClose}
+    >
+      {/* The figure as the scale shows it — and nothing beside it: no money here. */}
+      <View
+        accessible
+        accessibilityLabel={`${ES.counter.pad.title(entry.name)}: ${figure} ${word}`}
+        style={{
+          flexDirection: 'row',
+          alignItems: 'baseline',
+          gap: scale.rowGap / 2,
+          paddingBottom: scale.rowGap / 2,
+          borderBottomWidth: 1,
+          borderBottomColor: PALETTE.linea,
+        }}
+      >
+        <Text style={{ ...letraNumero(scale), color: empty ? PALETTE.tintaApagada : PALETTE.tinta }}>{figure}</Text>
+        <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.tintaApagada }}>{word}</Text>
       </View>
 
-      <Cantidad entry={entry} base={base} factors={factors} scope="waste" onEdit={onEdit} padId={PAD_ID} />
-    </View>
+      {/* ⚠️ `R11`: the amber never travels alone — it is a sentence. */}
+      {big === '' ? null : (
+        <Text style={{ fontSize: scale.smallSize, fontWeight: '600', color: PALETTE.atencion }}>{big}</Text>
+      )}
+    </Bascula>
   );
 }
 
@@ -1240,6 +1438,8 @@ function Carrito({
   bloom,
   onConfirmEmpty,
   onCancelEmpty,
+  onPad,
+  hoja,
 }: {
   open: boolean;
   onClose: () => void;
@@ -1262,6 +1462,10 @@ function Carrito({
   bloom: Animated.Value;
   onConfirmEmpty: () => void;
   onCancelEmpty: () => void;
+  /** `14.4`: a line's box opens the counter's pad, drawn inside this `Modal`. */
+  onPad: (entry: CatalogEntry) => void;
+  /** The pad, drawn inside this `Modal` while it is open — see `Tirar`. */
+  hoja: ReactNode;
 }) {
   const { scale } = useDensity();
   const rows = review === null ? [] : review.rows;
@@ -1344,6 +1548,7 @@ function Carrito({
             }}
             onClose={() => setPicking(false)}
           />
+          {hoja}
         </>
       }
     >
@@ -1359,6 +1564,7 @@ function Carrito({
             typical={typicals[item.variantId]}
             today={today}
             onOtherDay={() => setDating(item.variantId)}
+            onPad={onPad}
           />
         )}
         ItemSeparatorComponent={Separador}
@@ -1384,6 +1590,7 @@ function Renglon({
   typical,
   today,
   onOtherDay,
+  onPad,
 }: {
   row: ReviewRow;
   entry: CatalogEntry | undefined;
@@ -1391,6 +1598,8 @@ function Renglon({
   typical: Typical | undefined;
   today: string;
   onOtherDay: () => void;
+  /** `14.4`: the line's box opens the counter's pad, never the phone's keyboard. */
+  onPad: (entry: CatalogEntry) => void;
 }) {
   const { scale } = useDensity();
   const remove = useCartStore((state) => state.remove);
@@ -1465,7 +1674,7 @@ function Renglon({
       )}
 
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-        {gone ? <View /> : <Cantidad entry={entry} base={row.base} factors={factors} scope="waste" padId={PAD_ID} />}
+        {gone ? <View /> : <Cantidad entry={entry} base={row.base} factors={factors} scope="waste" onPad={() => onPad(entry)} />}
       </View>
     </View>
   );

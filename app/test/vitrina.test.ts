@@ -2,13 +2,23 @@
 // holds (the owner's calls 2, 4 and 11 of 2026-11-27, and C3.3: the tap is the
 // line). These pin what a shopkeeper's tap puts in the basket — or opens.
 // `14.3`: the search is the whole shop, on both counters (his call 13).
+// `14.4`: Tirar is the third counter — Vender's tap without the gate, and no price.
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import type { CatalogEntry } from '@/api/catalog';
 import { sellGate } from '@/cart/gate';
-import { PESADOS, columnasDe, conMenos, pasilloAlEscribir, toqueDe, toqueLargoDe, vitrinaDe } from '@/cart/vitrina';
+import {
+  PESADOS,
+  columnasDe,
+  conMenos,
+  pasilloAlEscribir,
+  toqueDe,
+  toqueDeTirar,
+  toqueLargoDe,
+  vitrinaDe,
+} from '@/cart/vitrina';
 
 function entry(over: Partial<CatalogEntry> = {}): CatalogEntry {
   return {
@@ -60,6 +70,40 @@ describe('a long press', () => {
     expect(toqueLargoDe(sellGate(800, false, false))).toBe('pesar');
     expect(toqueLargoDe(sellGate(null, true, false))).toBe('precio');
     expect(toqueLargoDe(sellGate(null, false, false))).toBe('nota');
+  });
+});
+
+describe('a tap on Tirar’s counter (14.4)', () => {
+  it('counts one piece or bunch, and opens the pad on anything weighed — Vender’s rule', () => {
+    for (const unit of ['pza', 'manojo']) expect(toqueDeTirar(unit)).toBe(toqueDe(unit, 'open'));
+    for (const unit of PESADOS) expect(toqueDeTirar(unit)).toBe('pesar');
+    expect(toqueDeTirar('pza')).toBe('sumar');
+  });
+
+  it('has no gate: a product with no price is thrown away like any other — never the sheet, never the note', () => {
+    // ⚠️ Merma writes an unpriced product off at an explicit zero (`UNPRICED_WASTE`);
+    // the owner's ruling of 2026-10-15 is about a sale.
+    for (const unit of ['pza', 'manojo', 'kg', 'g', 'l', 'ml', 'caja']) {
+      expect(['sumar', 'pesar']).toContain(toqueDeTirar(unit));
+    }
+  });
+});
+
+describe('Tirar shows no money (Área 9, 14.4)', () => {
+  // ⚠️ Read as text — a component is out of reach (`R2`). Ruled 2026-09-14: Merma
+  // shows waste as quantity, never as cost; the counter's tile and pad carry a price
+  // on Vender and Comprar, so the third counter is where one could slip in.
+  const text = readFileSync(resolve(__dirname, '../src/app/(tabs)/desperdicio.tsx'), 'utf8');
+
+  it('formats no peso figure anywhere on the screen', () => {
+    expect(text.length).toBeGreaterThan(400);
+    expect(text).not.toMatch(/formatMXN|@\/format\/mxn/);
+  });
+
+  it('draws every tile without a tag', () => {
+    const tiles = text.match(/<Baldosa\b[\s\S]*?\/>/g) ?? [];
+    expect(tiles.length).toBeGreaterThan(0);
+    for (const tile of tiles) expect(tile).toMatch(/etiqueta=\{null\}/);
   });
 });
 

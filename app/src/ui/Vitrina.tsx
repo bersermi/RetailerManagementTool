@@ -2,8 +2,9 @@
 // LA VITRINA — the counter's grid of tiles. Plan tasks `14.2` (drawn on Vender)
 // and `14.3` (moved here as Comprar draws it a second time, `R14`). Three across
 // at *Normal*, two at *Letra grande* (calls 2 and 11, `columnasDe`), in whatever
-// order the screen hands it — the day's order on Vender, this provider's first
-// on Comprar. Which tile each product is, is the screen's (`baldosa`).
+// order the screen hands it — the day's order on Vender and on *Tirar* (`14.4`),
+// this provider's first on Comprar. Which tile each product is, is the screen's
+// (`baldosa`).
 //
 // ⚠️ A `FlatList` FOR `productos.tsx`'s REASON: a giro's catalog runs to
 // hundreds, C1.1 puts two low-end Androids among the pilot's phones, and a
