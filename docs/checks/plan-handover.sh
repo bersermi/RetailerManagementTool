@@ -323,7 +323,14 @@ else
     fi
     DATED=$((DATED+1))
     done_cell="$(awk -F'|' '{print $(NF-1)}' <<< "$r")"
-    grep -qE '☑|[A-Za-z0-9]' <<< "$done_cell" && continue
+    # ⚠️ `11.9`, 2026-11-28: A CELL THAT SAYS ⏳ IS STILL OPEN, WHATEVER WORDS FOLLOW IT.
+    # This read any letter as an answer, so `⏳ open` passed as met: Apple's reading of
+    # 2026-11-27 went past due with this group printing "none past due and unanswered".
+    if ! grep -q '☑' <<< "$done_cell" && { grep -q '⏳' <<< "$done_cell" || ! grep -qE '[A-Za-z0-9]' <<< "$done_cell"; }; then
+      :
+    else
+      continue
+    fi
     if [[ "$due" < "$TODAY" ]]; then
       echo "FAIL: a dated obligation came due on $due and nothing says whether it was met:"
       echo "      ${r:0:110}…"
