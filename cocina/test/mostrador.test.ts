@@ -169,7 +169,8 @@ describe('where Wera Cocina draws them — what `11.7-ii` left to `11.8` (`11.8-
   it('the handover’s order is a ticket — *Ya cobré y lo entregué* on its stub, *Entregado* stamped once handed over', () => {
     const entregar = code('app/(cocina)/entregar.tsx');
     expect(entregar.match(/<Boleto\b/g)?.length).toBe(2);
-    expect(entregar).toMatch(/talon=\{\s*recogida \? null : \(\s*<BotonLleno variante="principal" icon="check"/);
+    expect(entregar).toMatch(/const boton = <BotonLleno variante="principal" icon="check" label=\{orden\.comer === 'aqui' \? ES\.entregar\.yaLaServi : ES\.entregar\.yaCobre\} onPress=\{onEntregar\} \/>;/);
+    expect(entregar).toMatch(/talon=\{recogida \? null : boton\}/);
     expect(entregar).toMatch(/<SelloPalabra texto=\{ES\.apartado\.entregado\} tinta=\{PALETTE\.accion\} \/>/);
     expect(ES.apartado.entregado).toBe('Entregado');
     expect(entregar).not.toMatch(/<Marca texto=\{ES\.apartado\.entregado\}/);

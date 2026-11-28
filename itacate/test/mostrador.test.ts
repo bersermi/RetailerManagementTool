@@ -147,7 +147,7 @@ describe('where the neighbours’ app draws them — what `11.7-ii` left to `11.
 
   it('her apartado is a ticket — *Ya lo tengo* and *¿Cambio de planes?* on its stub, her code in the number’s face', () => {
     const boleto = code('ui/BoletoApartado.tsx');
-    expect(boleto).toMatch(/<Boleto\s+cuerpo=/);
+    expect(boleto).toMatch(/<Boleto\s+arranca=\{arranca\}\s+onArrancado=\{onArrancado\}\s+cuerpo=/);
     expect(boleto.slice(boleto.indexOf('talon={'))).toMatch(/<Deslizar[\s\S]*onListo=\{onYaLoTengo\}[\s\S]*onPress=\{onCambioDePlanes\}/);
     expect(boleto).toMatch(/const CODIGO = \{ fontFamily: FAMILIA_NUMERO, includeFontPadding: false, fontSize: 48, lineHeight: 54, letterSpacing: 8, fontVariant: \['tabular-nums' as const\] \};/);
     expect(boleto).toMatch(/style=\{\{ \.\.\.CODIGO, color: PALETTE\.tinta \}\}/);
@@ -156,7 +156,7 @@ describe('where the neighbours’ app draws them — what `11.7-ii` left to `11.
 
   it('her card’s stamps are the Wera cow, each at its place’s turn — the stock glyph gone from it', () => {
     const tarjeta = code('ui/TarjetaDeLealtad.tsx');
-    expect(tarjeta).toMatch(/\{i < vista\.sellos && <SelloVaca i=\{i\} tinta=\{PALETTE\.superficie\} \/>\}/);
+    expect(tarjeta).toMatch(/\{lleno && \(\s*<Cae cae=\{nuevos\.cae && i >= \(nuevos\.desde \?\? 0\)\}>\s*<SelloVaca i=\{i\} tinta=\{PALETTE\.superficie\} \/>\s*<\/Cae>\s*\)\}/);
     expect(tarjeta).not.toMatch(/name="cow"/);
   });
 

@@ -21,8 +21,10 @@ import { ESQUINA } from '@/theme/density';
 // `10.2a`, used by the list's sheet since `10.5-iv-b-i`).
 // ⚠️ WHAT IT SAYS IS READ THROUGH A REF (Wera's defect of 2026-10-16: a gesture that called
 // the handler of the render it was built in). ⚠️ A SCREEN READER CANNOT SWIPE: the track
-// carries one action, *Ya lo tengo*, which says it at once. NO CHECK CAN SEE IT MOVE
-// (§2.11): the phone is the instrument.
+// carries one action, *Ya lo tengo*, which says it at once. ⚠️ `11.8-ii`: ITS WORDS TAKE TWO LINES when the
+// phone's text is large — at 130 % one line read *Desliza cuando ya lo ten…* (found at `11.8-i`) — and sit in
+// the track right of the thumb, the track as tall as they need and never shorter than `ALTO`, the thumb
+// centred on it. NO CHECK CAN SEE IT MOVE (§2.11): the phone is the instrument.
 // ============================================================================
 
 const ALTO = SIZE.tapTarget + SIZE.rowGap;
@@ -94,7 +96,7 @@ export function Deslizar({
       }}
       onLayout={(e: LayoutChangeEvent) => setAncho(e.nativeEvent.layout.width)}
       style={{
-        height: ALTO,
+        minHeight: ALTO,
         borderRadius: ESQUINA.boton,
         backgroundColor: PALETTE.accionSuave,
         overflow: 'hidden',
@@ -108,8 +110,16 @@ export function Deslizar({
         ]}
       />
       <Text
-        numberOfLines={1}
-        style={{ textAlign: 'center', paddingHorizontal: PULGAR + SIZE.space, fontSize: SIZE.bodySize - 1, fontWeight: '700', color: PALETTE.accion }}
+        numberOfLines={2}
+        style={{
+          textAlign: 'center',
+          paddingLeft: PULGAR + 8 + SIZE.rowGap,
+          paddingRight: SIZE.space,
+          paddingVertical: 6,
+          fontSize: SIZE.bodySize - 1,
+          fontWeight: '700',
+          color: PALETTE.accion,
+        }}
       >
         {texto}
       </Text>
@@ -119,7 +129,8 @@ export function Deslizar({
             {
               position: 'absolute',
               left: 4,
-              top: 4,
+              top: '50%',
+              marginTop: -PULGAR / 2,
               width: PULGAR,
               height: PULGAR,
               borderRadius: ESQUINA.boton,

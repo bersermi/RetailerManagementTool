@@ -182,11 +182,14 @@ describe('one staggered entrance per screen, transform and opacity only (ADR-035
 
   it('Reanimated is drawn by the motion parts alone — and the list sliding over the map (`10.5-iv-b-i`) and *Ya lo tengo*\'s swipe (`10.5b-iii-a`) — their styles opacity and transform only', () => {
     const animators = files.filter((f) => /from 'react-native-reanimated'/.test(f.text)).map((f) => f.name);
-    expect(animators.sort()).toEqual(['ui/Deslizar.tsx', 'ui/Hoja.tsx', 'ui/HojaDeLista.tsx', 'ui/Llega.tsx']);
+    // ⚠️ `11.8-ii`: and the counter's motions (`@/ui/Movimientos`) — the stamp landing and the stub tearing.
+    expect(animators.sort()).toEqual(['ui/Deslizar.tsx', 'ui/Hoja.tsx', 'ui/HojaDeLista.tsx', 'ui/Llega.tsx', 'ui/Movimientos.tsx']);
     const estilos = animators.flatMap((name) => [...code(name).matchAll(/useAnimatedStyle\(\(\) => \(\{([\s\S]*?)\}\)\)/g)].map((m) => m[1]));
-    expect(estilos.length).toBe(6);
+    expect(estilos.length).toBe(8);
+    // A transform's own members — a move, a size, a turn — are the transform (Wera Cocina's list; the stamp scales and turns).
+    const DEL_TRANSFORM = new Set(['translateY', 'translateX', 'scale', 'scaleX', 'scaleY', 'rotate']);
     for (const estilo of estilos) {
-      const claves = [...estilo.matchAll(/(?:^|[{,]\s*)([a-zA-Z]+):/g)].map((m) => m[1]).filter((k) => k !== 'translateY' && k !== 'translateX');
+      const claves = [...estilo.matchAll(/(?:^|[{,]\s*)([a-zA-Z]+):/g)].map((m) => m[1]).filter((k) => !DEL_TRANSFORM.has(k));
       expect(claves.every((clave) => clave === 'opacity' || clave === 'transform'), estilo).toBe(true);
     }
     // And nothing else animates: no core `Animated`, no layout animation.
