@@ -2,15 +2,15 @@ import { describe, expect, it } from 'vitest';
 
 import type { CatalogEntry, UnitFactors } from '@/api/catalog';
 import { memoryFor, type MemoryRow } from '@/api/providers';
-import { cardCost, cardNote, marginOf } from '@/cart/buying';
-import { buyGate } from '@/cart/gate';
+import { cardCost, cardNote, deliveryReady, marginOf, padNote } from '@/cart/buying';
 
 // ============================================================================
-// ROUND 4 OF `8g` (2026-10-16) — WHAT A COMPRAR CARD SAYS, AND WHEN `+` ASKS FOR
+// ROUND 4 OF `8g` (2026-10-16) — WHAT A COMPRAR CARD SAYS, AND WHEN IT ASKS FOR
 // A COST FIRST. The owner's card grid: every card's box holds this provider's
 // last cost (*"The price gets prefilled by the previous price"*), and *"to add
-// something to the carrito, a price must be entered first."* See `@/cart/buying`
-// and `@/cart/gate` for the arguments; this file reads the answers.
+// something to the carrito, a price must be entered first."* Since `14.3` the
+// card is a tile and its box is in the pad, which keeps both rulings (`padNote`,
+// `deliveryReady`). See `@/cart/buying` for the arguments; this file reads the answers.
 // ============================================================================
 
 const FACTORS: UnitFactors = { g: '1.000000', kg: '1000.000000', pza: '1.000000' };
@@ -45,36 +45,44 @@ const MEMORY: MemoryRow = {
 };
 const REMEMBERED = memoryFor([MEMORY], 'p-1', 'v-1', 'kg', FACTORS);
 
-describe('round 4 — a cost comes first, the way a price does on Vender', () => {
-  it('lets a card with the provider’s last cost straight in', () => {
-    expect(buyGate('remembered', true, false, false)).toBe('open');
+describe('14.3 — the pad asks for a cost before the line goes in, as round 4’s + did', () => {
+  it('adds nothing until both boxes hold something', () => {
+    expect(deliveryReady(25_000, '0.098000')).toBe(true);
+    expect(deliveryReady(25_000, null)).toBe(false);
+    expect(deliveryReady(null, '0.098000')).toBe(false);
   });
 
-  it('asks for the cost on a product never bought from this provider', () => {
-    expect(buyGate('new-pairing', false, false, false)).toBe('costFirst');
+  it('never takes a zero quantity as a line, and does take a zero cost', () => {
+    expect(deliveryReady(0, '0.098000')).toBe(false);
+    expect(deliveryReady(25_000, '0.000000')).toBe(true);
+  });
+});
+
+describe('14.3 — what the pad says beside its cost', () => {
+  it('says the cost is last time’s while it is', () => {
+    expect(padNote('remembered', REMEMBERED, '0.098000', entry(), FACTORS)).toBe('last-bought');
   });
 
-  it('asks a cashier too, who cannot read the memory — she types it, nobody refuses her', () => {
-    expect(buyGate('unreadable', false, false, false)).toBe('costFirst');
+  it('says Antes once she keys another, and not for two spellings of one figure', () => {
+    expect(padNote('remembered', REMEMBERED, '0.102000', entry(), FACTORS)).toBe('changed');
+    expect(padNote('remembered', REMEMBERED, '0.0980', entry(), FACTORS)).toBe('last-bought');
   });
 
-  it('lets a cost she typed into the card’s box count as the cost', () => {
-    expect(buyGate('new-pairing', false, true, false)).toBe('open');
-    expect(buyGate('unreadable', false, true, false)).toBe('open');
-  });
-
-  it('does not ask while the memory is still on its way — the prefill may be a moment off', () => {
-    expect(buyGate('unknown', false, false, false)).toBe('open');
-  });
-
-  it('asks when the memory has a row this phone cannot convert', () => {
-    expect(buyGate('remembered', false, false, false)).toBe('costFirst');
-  });
-
-  it('never stops a line already in the delivery from being stepped or removed', () => {
+  it('asks how much it cost when the box is empty, whatever the memory', () => {
     for (const state of ['remembered', 'new-pairing', 'unreadable', 'unknown'] as const) {
-      expect(buyGate(state, false, false, true)).toBe('open');
+      expect(padNote(state, state === 'remembered' ? REMEMBERED : null, null, entry(), FACTORS)).toBe('ask');
     }
+  });
+
+  it('says nothing more about a cost keyed with no memory to compare it with', () => {
+    expect(padNote('new-pairing', null, '0.102000', entry(), FACTORS)).toBeNull();
+    expect(padNote('unknown', null, '0.102000', entry(), FACTORS)).toBeNull();
+  });
+
+  it('agrees with the tile behind it about last time’s cost', () => {
+    // the tile is `cardNote` off the delivery; the pad must never say otherwise
+    expect(cardNote('remembered', REMEMBERED, undefined, false, entry(), FACTORS)).toBe('last-bought');
+    expect(padNote('remembered', REMEMBERED, cardCost(undefined, REMEMBERED, false), entry(), FACTORS)).toBe('last-bought');
   });
 });
 
