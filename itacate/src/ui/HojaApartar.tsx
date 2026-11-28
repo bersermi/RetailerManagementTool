@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import * as WebBrowser from 'expo-web-browser';
 import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
@@ -205,7 +205,7 @@ export function HojaApartar({
               </View>
             ) : (
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: SIZE.rowGap }}>
-                <MaterialCommunityIcons
+                <Icono
                   name={comeres[0] === 'aqui' ? 'silverware-fork-knife' : 'shopping-outline'}
                   size={SIZE.iconSize - 4}
                   color={PALETTE.tintaApagada}
@@ -281,10 +281,10 @@ export function HojaApartar({
                   opacity: pressed ? 0.7 : 1,
                 })}
               >
-                <MaterialCommunityIcons name={iconoDe(pago)} size={SIZE.iconSize - 2} color={PALETTE.tinta} />
+                <Icono name={iconoDe(pago)} size={SIZE.iconSize - 2} color={PALETTE.tinta} />
                 <Text style={{ fontSize: SIZE.bodySize - 1, fontWeight: '700', color: PALETTE.tinta }}>{ES.platillo.pago[pago]}</Text>
                 {cocina.pagos.length > 1 && (
-                  <MaterialCommunityIcons name={pagosAbiertos ? 'chevron-up' : 'chevron-down'} size={18} color={PALETTE.tintaApagada} />
+                  <Icono name={pagosAbiertos ? 'chevron-up' : 'chevron-down'} size={18} color={PALETTE.tintaApagada} />
                 )}
               </Pressable>
               <View style={{ flex: 1 }}>
@@ -310,7 +310,7 @@ export function HojaApartar({
 
         {paso === 'listo' && listo !== null && (
           <View style={{ alignItems: 'center', gap: SIZE.space }}>
-            <MaterialCommunityIcons name="check-circle" size={48} color={PALETTE.accion} />
+            <Icono name="check-circle" size={48} color={PALETTE.accion} />
             <Text style={{ fontSize: SIZE.smallSize, fontWeight: '700', color: PALETTE.tintaApagada }}>{ES.apartar.tuCodigo}</Text>
             <Text
               accessibilityLabel={listo.codigo.split('').join(' ')}
@@ -380,7 +380,7 @@ function Ficha({
         opacity: pressed ? 0.7 : 1,
       })}
     >
-      {icono !== undefined && <MaterialCommunityIcons name={icono} size={18} color={elegida ? PALETTE.superficie : PALETTE.tinta} />}
+      {icono !== undefined && <Icono name={icono} size={18} color={elegida ? PALETTE.superficie : PALETTE.tinta} />}
       <Text style={{ fontSize: SIZE.bodySize - 1, fontWeight: '700', color: elegida ? PALETTE.superficie : PALETTE.tinta, fontVariant: ['tabular-nums'] }}>
         {texto}
       </Text>

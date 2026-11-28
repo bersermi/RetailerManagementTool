@@ -1,6 +1,5 @@
-import type { ComponentProps } from 'react';
 
-import type MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import type { NombreIcono } from '@/marca/glifos';
 
 import { ES } from '@/strings';
 
@@ -33,14 +32,14 @@ import { ES } from '@/strings';
 // ============================================================================
 
 /**
- * A MaterialCommunityIcons glyph name, as the icon component itself types it.
+ * A glyph of the apps' icon font (`@/ui/Icono`, `11.10-i`), as the icon component itself types it.
  *
  * ⚠️ THE IMPORT ABOVE IS `import type`, WHICH IS LOAD-BEARING. It is erased
  * before this module runs, so `app/test/tabs.test.ts` can import this file
  * under plain Node without dragging in a React Native component — which is
  * what makes C12.1 checkable at all under §2.11's ban on rendering suites.
  */
-export type GlyphName = ComponentProps<typeof MaterialCommunityIcons>['name'];
+export type GlyphName = NombreIcono;
 
 export interface TabDefinition {
   /** Must equal the route file's name under `src/app/(tabs)/`. */

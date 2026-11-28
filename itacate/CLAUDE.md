@@ -621,4 +621,9 @@ follows it, as `cocina/CLAUDE.md`'s does:
   `measureInWindow` while one waits) — at once on *Mi código* and after her scan, when she scrolls to it on a kitchen's page. The swipe's words
   take two lines when the text is large (at 130 % they fit whole since the words sit right of the thumb). None plays on a phone set to reduce
   motion. Seen and recorded on the emulator (a debug build); his look is the judge (ADR-035 §2.11).
+  ⚠️ **Since `11.10-i` every icon is a drawing** — `@/ui/Icono` and `@/marca/glifos`, one file each in the three apps (Wera's
+  byte for byte, `test/iconos.test.ts`), draw `brand/iconos/`'s font (`src/marca/iconos/`, loaded by `@/marca/fuentes` with the
+  titles' faces) by the names written for MaterialCommunityIcons; nothing else imports `@expo/vector-icons`. *Continuar con
+  Google* draws Google's own G (`src/marca/google/`, `brand/marcas/google/`'s), its colours on white; `whatsapp` is drawn as
+  before until Meta's glyph is in `brand/marcas/` (its README). The drawings for empty screens, covers and the reward are `11.10-ii`'s.
 - **Money:** no screen stores or shows a bank account, a card or an amount paid — only how she will pay.

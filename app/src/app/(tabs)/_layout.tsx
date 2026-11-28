@@ -1,6 +1,6 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { Tabs } from 'expo-router/js-tabs';
-import { Image, Text, View } from 'react-native';
+import { Image, Text, View, type ColorValue } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { emblemaDe } from '@/api/emblema';
@@ -12,6 +12,7 @@ import { currentTabGuard } from '@/navigation/salida';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
 import { letraTitulo } from '@/theme/letra';
+import { OBJETOS } from '@/theme/mostrador';
 
 // ============================================================================
 // THE TAB SHELL. Plan task 5a-ii. The tabs themselves are `src/navigation/
@@ -89,13 +90,16 @@ export default function TabsLayout() {
                   : PALETTE.accion,
             header: () => <Banda title={tab.label} />,
             // ⚠️ `11.6`: NEVER THE COLOUR ALONE — the tab she is on is its colour AND a
-            // heavier word (the design system's *Pestanas*); the marker's stroke under
-            // it is an object, `11.9`'s.
+            // heavier word (the design system's *Pestanas*); ⚠️ `11.9`: and the
+            // marker's stroke under it, in the same colour (`Trazo`).
             tabBarLabel: ({ focused, color }) => (
-              <Text style={{ fontSize: scale.tabLabelSize, fontWeight: focused ? '700' : '500', color }}>{tab.label}</Text>
+              <View style={{ alignItems: 'center' }}>
+                <Text style={{ fontSize: scale.tabLabelSize, fontWeight: focused ? '700' : '500', color }}>{tab.label}</Text>
+                <Trazo on={focused} color={color} />
+              </View>
             ),
             tabBarIcon: ({ color }) => (
-              <MaterialCommunityIcons
+              <Icono
                 // The glyph names are checked against the shipped map in
                 // app/test/tabs.test.ts; a typo here is a blank square on the
                 // bar, which is C12.1 broken silently.
@@ -108,6 +112,32 @@ export default function TabsLayout() {
         />
       ))}
     </Tabs>
+  );
+}
+
+/** The marker's stroke — `brand/mostrador/png/trazo-pestana.png`, byte for byte. */
+const TRAZO = require('@/marca/mostrador/trazo-pestana.png') as number;
+
+/**
+ * ⚠️ `11.9`: THE MARKER'S STROKE UNDER THE TAB SHE IS ON (`brand/mostrador/
+ * objetos.json`'s *pestana*), tinted the tab's own colour — `accion`, `compra` on
+ * Comprar, `desperdicio` on Merma — at its drawing's size, a little larger at
+ * *Letra grande*. Under the other tabs an empty space of the same height, so no
+ * word moves when she changes tab. NO CHECK CAN SEE IT (§2.11): the session's
+ * shots and his look (`R9`).
+ */
+function Trazo({ on, color }: { on: boolean; color: ColorValue }) {
+  const { mode } = useDensity();
+  const [ancho, alto] = mode === 'elder' ? OBJETOS.trazo.grande : OBJETOS.trazo.normal;
+  return (
+    <Image
+      source={TRAZO}
+      tintColor={color}
+      fadeDuration={0}
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
+      style={{ width: ancho, height: alto, marginTop: OBJETOS.trazo.aire, opacity: on ? 1 : 0 }}
+    />
   );
 }
 

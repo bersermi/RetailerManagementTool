@@ -1,5 +1,4 @@
 import { existsSync, readFileSync } from 'node:fs';
-import { createRequire } from 'node:module';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -71,7 +70,7 @@ const ROOT = fileURLToPath(new URL('../..', import.meta.url));
 const code = (path: string) => readFileSync(join(ROOT, 'cocina/src', path), 'utf8').replace(/^\s*\/\/.*$/gm, '');
 const GLYPHS = JSON.parse(
   readFileSync(
-    createRequire(import.meta.url).resolve('@expo/vector-icons/build/vendor/react-native-vector-icons/glyphmaps/MaterialCommunityIcons.json'),
+    new URL('../src/marca/iconos/WeraIconos.json', import.meta.url),
     'utf8',
   ),
 ) as Record<string, number>;

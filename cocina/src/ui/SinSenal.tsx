@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { Text, View } from 'react-native';
 
 import type { Envio } from '@/api/cola';
@@ -45,7 +45,7 @@ export function SinSenal({
     >
       {sinSenal && (
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: SIZE.rowGap }}>
-          <MaterialCommunityIcons name="wifi-off" size={18} color={PALETTE.tintaApagada} />
+          <Icono name="wifi-off" size={18} color={PALETTE.tintaApagada} />
           <Text style={{ ...quiet, flex: 1, fontWeight: '600', color: PALETTE.tinta }}>
             {leidoEn === null ? ES.cola.sinDatos : sinSenalTexto(leidoEn, ahora)}
           </Text>
@@ -53,7 +53,7 @@ export function SinSenal({
       )}
       {espera !== null && (
         <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: SIZE.rowGap }}>
-          <MaterialCommunityIcons name="cloud-upload-outline" size={18} color={PALETTE.tintaApagada} style={{ marginTop: 1 }} />
+          <Icono name="cloud-upload-outline" size={18} color={PALETTE.tintaApagada} style={{ marginTop: 1 }} />
           <View style={{ flex: 1, gap: 2 }}>
             <Text style={{ ...quiet, fontWeight: '600', color: PALETTE.tinta }}>{espera}</Text>
             <Text style={quiet}>{ES.cola.seEnvian(porEnviar.length, todasFemeninas(porEnviar))}</Text>

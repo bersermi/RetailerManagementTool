@@ -1,5 +1,5 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import type { ComponentProps } from 'react';
+import type { NombreIcono } from '@/marca/glifos';
+import { Icono } from '@/ui/Icono';
 import { Pressable, Text, View } from 'react-native';
 
 import type { Apartado } from '@/api/apartados';
@@ -120,7 +120,7 @@ export function BoletoApartado({
 
           <View style={{ gap: SIZE.rowGap / 2, padding: SIZE.space, borderRadius: ESQUINA.hoja, backgroundColor: PALETTE.accionSuave }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: SIZE.rowGap }}>
-              <MaterialCommunityIcons name={iconoDePago(apartado.pago)} size={SIZE.iconSize - 4} color={PALETTE.accion} />
+              <Icono name={iconoDePago(apartado.pago)} size={SIZE.iconSize - 4} color={PALETTE.accion} />
               <Text style={{ fontSize: SIZE.bodySize - 1, fontWeight: '700', color: PALETTE.accion }}>{ES.platillo.pago[apartado.pago]}</Text>
             </View>
             <Text style={{ fontSize: SIZE.bodySize - 1, lineHeight: 21, color: PALETTE.tinta }}>{pagoTexto(apartado)}</Text>
@@ -137,7 +137,7 @@ export function BoletoApartado({
 
           {(calle !== null || apartado.cocina.indicaciones !== null) && (
             <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: SIZE.rowGap }}>
-              <MaterialCommunityIcons name="map-marker-outline" size={SIZE.iconSize - 4} color={PALETTE.tintaApagada} style={{ marginTop: 1 }} />
+              <Icono name="map-marker-outline" size={SIZE.iconSize - 4} color={PALETTE.tintaApagada} style={{ marginTop: 1 }} />
               <View style={{ flex: 1, gap: 2 }}>
                 {calle !== null && <Text style={{ fontSize: SIZE.bodySize - 1, color: PALETTE.tinta }}>{calle}</Text>}
                 {apartado.cocina.indicaciones !== null && (
@@ -174,6 +174,6 @@ export function BoletoApartado({
   );
 }
 
-function iconoDePago(pago: Apartado['pago']): ComponentProps<typeof MaterialCommunityIcons>['name'] {
+function iconoDePago(pago: Apartado['pago']): NombreIcono {
   return pago === 'tarjeta' ? 'credit-card-outline' : pago === 'transferencia' ? 'bank-transfer' : 'cash';
 }

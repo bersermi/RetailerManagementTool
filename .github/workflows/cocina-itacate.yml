@@ -129,6 +129,13 @@ on:
       # ⚠️ `11.8-ii`, THE COUNTER'S MOTIONS: each app's `@/theme/movimiento` is `movimiento.json`'s, number for number
       # — the file the design system's *Movimiento* card plays (`test/movimiento.test.ts` in each).
       - "brand/mostrador/movimiento.json"
+      # ⚠️ `11.10-i`, THE DRAWN ICONS: each app's `@/ui/Icono` and `@/marca/glifos` are Wera's files byte for byte, and its icon font, its map
+      # and Google's G are `brand/iconos/`'s and `brand/marcas/google/`'s (`test/iconos.test.ts` in each).
+      - "app/src/ui/Icono.tsx"
+      - "app/src/marca/glifos.ts"
+      - "brand/iconos/WeraIconos.ttf"
+      - "brand/iconos/WeraIconos.json"
+      - "brand/marcas/google/g*.png"
       - "package.json"
       - "package-lock.json"
       - ".github/workflows/cocina-itacate.yml"

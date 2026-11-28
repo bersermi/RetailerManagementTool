@@ -1,5 +1,5 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useRef } from 'react';
+import { Icono } from '@/ui/Icono';
 import { Pressable, Text, View } from 'react-native';
 
 import { enFrase, premiosTexto, type VistaDeTarjeta } from '@/lib/tarjeta';
@@ -128,7 +128,7 @@ export function TarjetaDeLealtad({
           })}
         >
           <View style={{ width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center', backgroundColor: PALETTE.superficie }}>
-            <MaterialCommunityIcons name="gift-outline" size={19} color={hue} />
+            <Icono name="gift-outline" size={19} color={hue} />
           </View>
           <View style={{ flex: 1 }}>
             <Text style={{ fontSize: SIZE.bodySize - 1, fontWeight: '800', color: PALETTE.superficie }}>{premios.titulo}</Text>
@@ -136,7 +136,7 @@ export function TarjetaDeLealtad({
               {premios.detalle}
             </Text>
           </View>
-          {onPremios !== undefined && <MaterialCommunityIcons name="chevron-right" size={20} color={PALETTE.superficie} />}
+          {onPremios !== undefined && <Icono name="chevron-right" size={20} color={PALETTE.superficie} />}
         </Pressable>
       )}
 

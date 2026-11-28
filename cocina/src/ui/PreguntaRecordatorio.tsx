@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { Pressable, Text, View } from 'react-native';
 
 import { diasTexto, horaTexto, type Propuesta } from '@/lib/recordatorio';
@@ -49,7 +49,7 @@ export function PreguntaRecordatorio({
             backgroundColor: PALETTE.accionSuave,
           }}
         >
-          <MaterialCommunityIcons name="bell-outline" size={20} color={PALETTE.accion} />
+          <Icono name="bell-outline" size={20} color={PALETTE.accion} />
         </View>
         <View style={{ flex: 1, gap: 2 }}>
           <Text style={{ fontSize: SIZE.bodySize, fontWeight: '700', lineHeight: 21, color: PALETTE.tinta }}>
@@ -66,7 +66,7 @@ export function PreguntaRecordatorio({
           hitSlop={SIZE.rowGap}
           style={{ width: 32, height: 32, alignItems: 'center', justifyContent: 'center' }}
         >
-          <MaterialCommunityIcons name="close" size={18} color={PALETTE.tintaApagada} />
+          <Icono name="close" size={18} color={PALETTE.tintaApagada} />
         </Pressable>
       </View>
       <View style={{ flexDirection: 'row', gap: SIZE.rowGap }}>

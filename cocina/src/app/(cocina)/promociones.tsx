@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { Redirect, router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
@@ -201,7 +201,7 @@ function Renglon({ promocion, primero, onPress }: { promocion: PromotionRow; pri
         backgroundColor: pressed ? PALETTE.fondo : PALETTE.superficie,
       })}
     >
-      <MaterialCommunityIcons name={ICONO_DE_TIPO[promocion.kind]} size={SIZE.iconSize} color={corre ? PALETTE.marca : PALETTE.tintaApagada} />
+      <Icono name={ICONO_DE_TIPO[promocion.kind]} size={SIZE.iconSize} color={corre ? PALETTE.marca : PALETTE.tintaApagada} />
       <View style={{ flex: 1, gap: 2 }}>
         <Text style={{ fontSize: SIZE.bodySize - 1, fontWeight: '600', color: PALETTE.tinta }}>{promocion.what}</Text>
         <Text style={{ fontSize: SIZE.smallSize - 0.6, lineHeight: 18, color: PALETTE.tintaApagada }}>{detalle}</Text>

@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { router } from 'expo-router';
 import { useEffect } from 'react';
 import { ActivityIndicator, BackHandler, Text, View } from 'react-native';
@@ -99,7 +99,7 @@ export default function YaEstas() {
         i={0}
         style={{ paddingTop: insets.top + SIZE.space, paddingHorizontal: SIZE.space * 2, paddingBottom: SIZE.space, gap: SIZE.rowGap / 2, alignItems: 'center' }}
       >
-        {seVe && <MaterialCommunityIcons name="check-circle" size={SIZE.iconSize * 1.5} color={PALETTE.accion} />}
+        {seVe && <Icono name="check-circle" size={SIZE.iconSize * 1.5} color={PALETTE.accion} />}
         <Text accessibilityRole="header" style={{ ...letraTitulo(SIZE), color: PALETTE.tinta, textAlign: 'center' }}>
           {seVe ? ES.primera.yaEsta : ES.primera.asiTeVeran}
         </Text>

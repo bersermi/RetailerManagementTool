@@ -1,6 +1,7 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import type { NombreIcono } from '@/marca/glifos';
+import { Icono } from '@/ui/Icono';
 import { Redirect, router } from 'expo-router';
-import { useEffect, useState, type ComponentProps } from 'react';
+import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 
 import { esDuena } from '@/api/equipo';
@@ -225,7 +226,7 @@ function Tarjeta({ respuesta, onCambiar }: { respuesta: Respuesta; onCambiar?: (
           })}
         >
           <Text style={{ fontSize: SIZE.bodySize - 1, fontWeight: '700', color: PALETTE.accion }}>{ES.numeros.cambiarCuando}</Text>
-          <MaterialCommunityIcons name="chevron-right" size={18} color={PALETTE.accion} />
+          <Icono name="chevron-right" size={18} color={PALETTE.accion} />
         </Pressable>
       )}
     </View>
@@ -269,7 +270,7 @@ function Seccion({
   titulo,
   tono,
 }: {
-  icono: ComponentProps<typeof MaterialCommunityIcons>['name'];
+  icono: NombreIcono;
   titulo: string;
   tono: 'apartados' | 'tarjeta';
 }) {
@@ -277,7 +278,7 @@ function Seccion({
   return (
     <View accessibilityRole="header" style={{ flexDirection: 'row', alignItems: 'center', gap: SIZE.rowGap, marginTop: 4 }}>
       <View style={{ width: 26, height: 26, borderRadius: ESQUINA.chip, alignItems: 'center', justifyContent: 'center', backgroundColor: fondo }}>
-        <MaterialCommunityIcons name={icono} size={16} color={tinta} />
+        <Icono name={icono} size={16} color={tinta} />
       </View>
       <Text style={{ fontSize: SIZE.bodySize + 2, fontWeight: '800', color: PALETTE.tinta }}>{titulo}</Text>
     </View>

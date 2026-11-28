@@ -38,7 +38,7 @@
 // component that could not be drawn over anything else (`R16`).
 // ============================================================================
 
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import type { RefObject } from 'react';
 import { Keyboard, Pressable, Text, TextInput, View } from 'react-native';
 
@@ -106,7 +106,7 @@ export function Buscador({
         {/* ⚠️ THE ONE ICON IN THIS APP WITH NO WORD BESIDE IT, AND C12.1 IS NOT
             BENT BY IT: the word is the placeholder inside the same box, on the
             same line, and it is what a person reads first. */}
-        <MaterialCommunityIcons name="magnify" size={scale.iconSize} color={PALETTE.tintaApagada} />
+        <Icono name="magnify" size={scale.iconSize} color={PALETTE.tintaApagada} />
         <TextInput
           ref={box}
           value={value}

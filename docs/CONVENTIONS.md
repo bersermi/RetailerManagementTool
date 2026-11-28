@@ -589,6 +589,12 @@ made `Retrato` the second drawing, and its cost question made Vender's price she
 through `CierreCarrito` it had one caller, so it lives inside that file now, unchanged. The drift each
 extraction settled — by the owner's round-1 rulings rather than by count — is listed in each file's
 header and in the plan's status log.
+⚠️ **AND `14.3` (2026-11-27) ADDED FOUR AND FOLDED ONE, BY THE SAME RULE.** Step 14's counter was drawn
+in `vender.tsx` alone at `14.2`; Comprar drew it a second time, so the aisles (`Pasillos`), the tile
+(`Baldosa`), the grid (`Vitrina`) and the pad's frame (`Bascula`) moved here, each difference between
+the counters a prop (`tono`, the tag, the `−`, the line under the name). The same row moved Comprar's
+cost question into that pad, which left `HojaPrecio` with one caller, so it lives inside `PrecioRapido`
+now — `Deslizador`'s precedent.
 
 ⚠️ **WHAT MAKES THIS MACHINE-READABLE RATHER THAN A MOOD.** *Already drawn twice*
 is a fact about the past that nothing can check. *Reached from two or more other

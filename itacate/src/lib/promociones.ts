@@ -1,5 +1,4 @@
-import type MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import type { ComponentProps } from 'react';
+import type { NombreIcono } from '@/marca/glifos';
 
 import { DIAS, type Dia, type Tipo } from '@/api/cocinas';
 import { ES } from '@/strings';
@@ -15,10 +14,8 @@ import { ES } from '@/strings';
 // What the pages make of them — which band, which mark — is `@/lib/paginas`', and `@/ui/BandaPromocion` draws.
 // ============================================================================
 
-type Icono = ComponentProps<typeof MaterialCommunityIcons>['name'];
-
 /** Each kind's picture — its tile on the form, its row, its chip in *Publicar* and its mark. Held to the glyph map. */
-export const ICONO_DE_TIPO: Readonly<Record<Tipo, Icono>> = {
+export const ICONO_DE_TIPO: Readonly<Record<Tipo, NombreIcono>> = {
   nuevo: 'creation',
   temporada: 'leaf',
   dia: 'calendar-star',

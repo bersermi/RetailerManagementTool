@@ -1,9 +1,11 @@
 # brand/iconos — the apps' icons, drawn
 
 Step 11, rows `11.3-i` (2026-11-21: the line, the font, the 33 most seen) and `11.3-ii` (2026-11-26:
-every other glyph, so the font is whole). The three apps draw MaterialCommunityIcons today; these
-drawings replace them, built into one font so the swap at `11.10` is an import. **No app reads this
-folder, and nothing here is on a phone** until `11.10` puts the font in the apps.
+every other glyph, so the font is whole). Since `11.10-i` (2026-11-28) the three apps draw them in place of
+MaterialCommunityIcons: each app's `src/marca/iconos/` holds the font and its map byte for byte, and
+`@/ui/Icono` (one file in the three) draws them, keyed by the names the apps wrote before (each app's
+`test/iconos.test.ts`). **A change here reaches a phone only when it is copied into the apps** — Wera
+over the air, the siblings in their next build.
 
 | File | What it is |
 |---|---|
@@ -42,10 +44,12 @@ in the trade drawings' manner: plain objects, rounded, a little uneven.
 
 ## Two marks that are not ours
 
-`google` (*Entrar con Google*) and `whatsapp` are each company's own mark: never redrawn, and not
+`google` (*Continuar con Google*) and `whatsapp` are each company's own mark: never redrawn, and not
 copied either — MaterialCommunityIcons' licence leaves its brand icons out
-(pictogrammers.com/docs/general/license, read 2026-11-26). `mapa.json` lists them under `marcas`;
-the apps keep drawing them as they do today until `11.10` settles how, by each owner's own rules.
+(pictogrammers.com/docs/general/license, read 2026-11-26). Each is its owner's own file, by its
+owner's rules — `brand/marcas/README.md` (`11.10-i`): Google's G is Google's picture since then, so
+it is no glyph; `whatsapp` stays in `mapa.json`'s `marcas`, drawn by `@/ui/Icono` from
+MaterialCommunityIcons as before, until Meta's own glyph is there.
 
 ## Adding or changing a drawing
 

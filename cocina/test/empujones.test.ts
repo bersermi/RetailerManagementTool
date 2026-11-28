@@ -1,5 +1,4 @@
 import { readFileSync } from 'node:fs';
-import { createRequire } from 'node:module';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -433,7 +432,7 @@ describe('Así funciona — until she uses the feature or closes it, on this pho
 describe('the pictures are in the icon set the app draws with', () => {
   const GLYPHS = JSON.parse(
     readFileSync(
-      createRequire(import.meta.url).resolve('@expo/vector-icons/build/vendor/react-native-vector-icons/glyphmaps/MaterialCommunityIcons.json'),
+      new URL('../src/marca/iconos/WeraIconos.json', import.meta.url),
       'utf8',
     ),
   ) as Record<string, number>;

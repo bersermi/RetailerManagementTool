@@ -9,7 +9,7 @@
 // label's end (the card's *Condición* · *Quitar*); without it the field is drawn exactly as before.
 // ============================================================================
 
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { useState, type Ref } from 'react';
 import { Pressable, Text, TextInput, View, type TextInputProps } from 'react-native';
 
@@ -80,7 +80,7 @@ export function Campo({
               justifyContent: 'center',
             }}
           >
-            <MaterialCommunityIcons
+            <Icono
               name={visible ? 'eye-off-outline' : 'eye-outline'}
               size={SIZE.iconSize}
               color={PALETTE.tintaApagada}

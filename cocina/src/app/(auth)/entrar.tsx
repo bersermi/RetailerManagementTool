@@ -1,4 +1,3 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import {
   AppleAuthenticationButton,
   AppleAuthenticationButtonStyle,
@@ -7,7 +6,7 @@ import {
 import { router, useLocalSearchParams } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { useRef, useState } from 'react';
-import { Keyboard, Linking, Pressable, Text, TextInput, View } from 'react-native';
+import { Image, Keyboard, Linking, Pressable, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useAuth } from '@/auth/AuthProvider';
@@ -151,7 +150,8 @@ export default function Entrar() {
             opacity: busy ? 0.6 : 1,
           }}
         >
-          <MaterialCommunityIcons name="google" size={SIZE.iconSize} color={PALETTE.tinta} />
+          {/* `11.10-i`: Google's own G, in its colours, on the white — its rules (`brand/marcas/README.md`). */}
+          <Image source={require('@/marca/google/g.png')} style={{ width: SIZE.tapTarget / 2, height: SIZE.tapTarget / 2 }} accessibilityIgnoresInvertColors />
           <Text style={{ fontSize: SIZE.bodySize, fontWeight: '600', color: PALETTE.tinta }}>{ES.auth.google}</Text>
         </Pressable>
 

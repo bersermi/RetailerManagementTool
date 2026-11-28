@@ -14,7 +14,7 @@
 // key unless its screen asks for *Siguiente*, and a password box carries
 // *Mostrar* / *Ocultar* (`mostrable`), the dots by default.
 // ============================================================================
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { useState, type Ref } from 'react';
 import { Pressable, Text, TextInput, View, type TextInputProps } from 'react-native';
 
@@ -80,7 +80,7 @@ export function Campo({
               justifyContent: 'center',
             }}
           >
-            <MaterialCommunityIcons
+            <Icono
               name={visible ? 'eye-off-outline' : 'eye-outline'}
               size={scale.iconSize}
               color={PALETTE.tintaApagada}

@@ -504,6 +504,11 @@ follows it, as `itacate/CLAUDE.md`'s does:
   Wera cow in her green lands beside *Sello para Ana · 6 de 8* when the database's answer says it was given (`@/lib/tarjeta`'s `selloDado`) —
   that screen waits for the answer with signal, and a scan kept with no signal lands nothing. Every ticket's stub sits in its `Arranca` from
   the start. *Quedan 9 de 14* on *Hoy* does not move (his word of 2026-11-27). None plays on a phone set to reduce motion.
+  ⚠️ **Since `11.10-i` every icon is a drawing** — `@/ui/Icono` and `@/marca/glifos`, one file each in the three apps (Wera's
+  byte for byte, `test/iconos.test.ts`), draw `brand/iconos/`'s font (`src/marca/iconos/`, loaded by `@/marca/fuentes` with the
+  titles' faces) by the names written for MaterialCommunityIcons; nothing else imports `@expo/vector-icons`. *Continuar con
+  Google* draws Google's own G (`src/marca/google/`, `brand/marcas/google/`'s), its colours on white; `whatsapp` is drawn as
+  before until Meta's glyph is in `brand/marcas/` (its README). The drawings for empty screens, covers and the reward are `11.10-ii`'s.
 - **Money:** no screen stores or shows a bank account, a card or an amount paid — only how she will pay.
 
 ## *Apartados* — she sees and hands over (`10.5b-iv-a`)

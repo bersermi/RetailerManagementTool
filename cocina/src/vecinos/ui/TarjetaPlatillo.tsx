@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { Pressable, Text, View } from 'react-native';
 
 import type { Dish, Kitchen, Offer } from '@/vecinos/cocinas';
@@ -81,7 +81,7 @@ export function TarjetaPlatillo({
               backgroundColor: PALETTE.superficie,
             }}
           >
-            <MaterialCommunityIcons name={promocion.icono} size={13} color={PALETTE.marca} />
+            <Icono name={promocion.icono} size={13} color={PALETTE.marca} />
             <Text numberOfLines={1} style={{ fontSize: SIZE.smallSize - 2, fontWeight: '700', color: PALETTE.marca }}>
               {promocion.texto}
             </Text>
@@ -111,7 +111,7 @@ export function TarjetaPlatillo({
               accessibilityLabel={ES.pagina.estrellasAyuda(cocina.estrellas.promedio, cocina.estrellas.cuantas)}
               style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}
             >
-              <MaterialCommunityIcons name="star" size={SIZE.smallSize + 2} color={PALETTE.estrella} />
+              <Icono name="star" size={SIZE.smallSize + 2} color={PALETTE.estrella} />
               <Text style={{ fontSize: SIZE.smallSize + 1, fontWeight: '700', color: PALETTE.superficie }}>{cocina.estrellas.promedio}</Text>
             </View>
           )}
@@ -137,7 +137,7 @@ export function TarjetaPlatillo({
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: SIZE.rowGap }}>
             <Text style={{ flex: 1, fontSize: SIZE.smallSize, color: PALETTE.tintaApagada }}>{ventanaTexto(oferta, ahora)}</Text>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
-              <MaterialCommunityIcons name="stamper" size={13} color={PALETTE.accion} />
+              <Icono name="stamper" size={13} color={PALETTE.accion} />
               <Text style={{ fontSize: SIZE.smallSize - 1, fontWeight: '700', color: PALETTE.accion }}>{marca.texto}</Text>
             </View>
           </View>

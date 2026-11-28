@@ -1,6 +1,7 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import type { NombreIcono } from '@/marca/glifos';
+import { Icono } from '@/ui/Icono';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useRef, useState, type ComponentProps } from 'react';
+import { useRef, useState } from 'react';
 import { ActivityIndicator, Keyboard, Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -330,7 +331,7 @@ function Opcion({
   texto: string;
   on: boolean;
   onPress: () => void;
-  icono?: ComponentProps<typeof MaterialCommunityIcons>['name'];
+  icono?: NombreIcono;
   marca?: boolean;
 }) {
   const color = marca ? PALETTE.marca : PALETTE.accion;
@@ -352,7 +353,7 @@ function Opcion({
         backgroundColor: on ? (marca ? PALETTE.marcaSuave : PALETTE.accionSuave) : pressed ? PALETTE.fondo : PALETTE.superficie,
       })}
     >
-      {icono !== undefined && <MaterialCommunityIcons name={icono} size={16} color={on ? color : PALETTE.tintaApagada} />}
+      {icono !== undefined && <Icono name={icono} size={16} color={on ? color : PALETTE.tintaApagada} />}
       <Text style={{ fontSize: SIZE.smallSize + 0.4, fontWeight: '700', color: on ? color : PALETTE.tinta }}>{texto}</Text>
     </Pressable>
   );

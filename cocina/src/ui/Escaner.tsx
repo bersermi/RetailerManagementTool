@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useEffect, useRef, useState } from 'react';
 import { AppState, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
@@ -134,7 +134,7 @@ export function Escaner({
         { backgroundColor: pressed ? PALETTE.accionSuave : PALETTE.superficie, alignItems: 'center', justifyContent: 'center', gap: SIZE.rowGap },
       ]}
     >
-      <MaterialCommunityIcons name="qrcode-scan" size={54} color={PALETTE.accion} />
+      <Icono name="qrcode-scan" size={54} color={PALETTE.accion} />
       <Text style={{ fontSize: SIZE.bodySize, fontWeight: '600', color: PALETTE.accion }}>{textos.boton}</Text>
     </Pressable>
   );

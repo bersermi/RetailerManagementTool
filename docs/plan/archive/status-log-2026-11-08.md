@@ -1,6 +1,6 @@
 # Status log — the 2026-11-08 working day
 
-⚠️ **Moved on 2026-11-27 with `11.8-ii`, from `docs/PLAN.md`'s `## Position`, unedited** — the day's 2 entries, to keep `## Position` under its 1,400-line ceiling.
+⚠️ **Moved on 2026-11-27 with `14.3`, from `docs/PLAN.md`'s `## Position`, unedited** — the day's 2 entries, to keep `## Position` under its 1,400-line ceiling.
 
 ✅ **2026-11-08 — `10.5-iv-b-i` DONE: ITACATE'S MAP, WITH THE LIST SLIDING OVER IT, ON ITS ANDROID TEST BUILD — MERGED GREEN, THE AVISO AND THE TERMS LIVE ON TU-WERA.COM, THE UPDATE SENT AND RUN BY THE EMULATOR'S COPY OF THAT BUILD; AND A FIX FOUND THERE, SHIPPED THE SAME WAY: SIGNED OUT, ITACATE NO LONGER ASKS FOR HER LOCATION. `10.5-iv-b-ii`, ITACATE'S FIRST IPHONE BUILD — HIS COMMAND FIRST — IS THE NEXT TASK.**
 **His words:** none new since the entries below.

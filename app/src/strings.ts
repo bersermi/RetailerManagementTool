@@ -1203,6 +1203,8 @@ export const ES = {
       erase: 'Borrar',
       /** The owner's and a manager's door to the price sheet, from inside the pad. */
       changePrice: 'Cambiar precio',
+      /** `14.3`: Comprar's decimal point, to a screen reader. */
+      point: 'Punto',
       /** The pad, to a screen reader. */
       title: (name: string) => `Cantidad de ${name}`,
       /** The line's total while she keys, beside the figure. */
@@ -1464,14 +1466,6 @@ export const ES = {
      */
     cost: 'Costo',
     /**
-     * ⚠️⚠️ THE PLACEHOLDER IN AN EMPTY REQUIRED BOX, AND IT IS A QUESTION ON
-     * PURPOSE. §2.8: *"an empty required field asks a question; a wrong prefill
-     * answers one nobody asked."* ⚠️ It is NOT `0.00`: a figure-shaped
-     * placeholder is a prefill wearing a placeholder's clothes, and the Power
-     * Apps screen this replaces showed `Precio: $0.00` on never-bought rows.
-     */
-    costHint: '¿Cuánto?',
-    /**
      * ⚠️⚠️ §2.8's MIDDLE STATE, SAID IN WORDS — *you have bought this, but never
      * from THIS provider.* **It is the state that matters**, and it must be
      * *"visibly distinct from a prefill"*, so the empty box travels with this
@@ -1513,27 +1507,39 @@ export const ES = {
     belowCost: 'por debajo de lo que te costó',
     /** A product with no shelf price has no margin to show — said, not hidden. */
     noSalePrice: 'Sin precio de venta',
-    /** The supplier card — who is delivering, in its own blue. */
+    /**
+     * The supplier card — who is delivering, in its own blue. ⚠️ `14.3`: its
+     * magnifier left with the search's own box, which is on the counter now.
+     */
     supplier: {
       label: 'Te entrega',
       change: 'Cambiar',
-      /** The magnifier, to a screen reader: it opens and closes the search. */
-      search: 'Buscar producto',
-      searchClose: 'Cerrar la búsqueda',
     },
     /**
-     * ⚠️ THE COST QUESTION — round 4's *"to add something to the carrito, a price
-     * must be entered first"*. Its frame is Vender's price sheet (`HojaPrecio`);
-     * what it saves is the delivery's cost, never the catalog's price.
+     * ⚠️⚠️ `14.3`, COMPRAR'S PAD — round 4's cost box and stepper moved into it
+     * (call 9). Two boxes: what arrived and what it cost, the cost filled with
+     * this provider's last one. The question is round 4's cost-first sheet's,
+     * kept: *"to add something to the carrito, a price must be entered first."*
      */
-    costSheet: {
+    pad: {
+      arrived: 'Llegaron',
       ask: '¿Cuánto te costó?',
-      sells: (price: string) => `Lo vendes a ${price}`,
-      unpriced: 'Sin precio de venta todavía',
-      add: 'Agregar al carrito',
-      cancel: 'Cancelar',
-      /** Pressed with nothing readable in the box. */
-      needsCost: 'Escribe cuánto te costó.',
+      /** The two boxes, to a screen reader. */
+      arrivedOf: (name: string) => `Lo que llegó de ${name}`,
+      costOf: (name: string) => `Costo de ${name}`,
+    },
+    /**
+     * `14.3`: a tile's line under the name — when this provider last brought it,
+     * short (`formatLastBoughtShort`: the tag above is the cost), what it cost
+     * before once she keyed another, or that he never has.
+     */
+    tile: {
+      today: 'Hoy',
+      yesterday: 'Ayer',
+      daysAgo: (days: number) => `Hace ${days} días`,
+      before: (price: string) => `Antes ${price}`,
+      firstTime: 'Primera vez',
+      hint: 'Toca para escribir lo que llegó y su costo',
     },
     /**
      * ⚠️ WHERE A PREFILLED FIGURE CAME FROM, KEPT BESIDE THE BOX RATHER THAN
@@ -1582,14 +1588,6 @@ export const ES = {
      * rule, and C10.3 is why: the slide must look identical offline.
      */
     recorded: 'Compra registrada',
-    /**
-     * ⚠️ THE WAY OFF THE NUMBER PAD, AND THIS SCREEN NEEDS IT MORE THAN ANY
-     * OTHER: it is the first with TWO decimal pads on one row, and `decimal-pad`
-     * draws no return key on either platform. `catalog.create.done`'s word and
-     * its reason — a fourth key holding one word is what `5h.5` would settle,
-     * and collapsing them is a conventions decision that row owns.
-     */
-    done: 'Listo',
   },
 
   /**

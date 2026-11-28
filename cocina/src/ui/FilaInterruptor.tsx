@@ -1,5 +1,5 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import type { ComponentProps } from 'react';
+import type { NombreIcono } from '@/marca/glifos';
+import { Icono } from '@/ui/Icono';
 import { Pressable, Text, View } from 'react-native';
 
 import { PALETTE, SIZE } from '@/theme/palette';
@@ -24,7 +24,7 @@ export function FilaInterruptor({
   fijo = false,
   disabled = false,
 }: {
-  icono: ComponentProps<typeof MaterialCommunityIcons>['name'];
+  icono: NombreIcono;
   titulo: string;
   detalle?: string | null;
   encendido: boolean;
@@ -52,7 +52,7 @@ export function FilaInterruptor({
         backgroundColor: pressed ? PALETTE.fondo : PALETTE.superficie,
       })}
     >
-      <MaterialCommunityIcons name={icono} size={SIZE.iconSize} color={PALETTE.tintaApagada} />
+      <Icono name={icono} size={SIZE.iconSize} color={PALETTE.tintaApagada} />
       <View style={{ flex: 1, gap: 2 }}>
         <Text style={{ fontSize: SIZE.bodySize - 1, fontWeight: '600', color: PALETTE.tinta }}>{titulo}</Text>
         {detalle !== null && (

@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { router } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Linking, ScrollView, Text, View } from 'react-native';
@@ -364,7 +364,7 @@ function Encontrada({
   const colores = coloresDe(marcaDe(orden, ahora));
   const revisadoAqui = revisada && (
     <View style={{ flexDirection: 'row', alignSelf: 'flex-start', alignItems: 'center', gap: 6, paddingVertical: 4, paddingHorizontal: 10, borderRadius: ESQUINA.chip, backgroundColor: PALETTE.accionSuave }}>
-      <MaterialCommunityIcons name="check" size={14} color={PALETTE.accion} />
+      <Icono name="check" size={14} color={PALETTE.accion} />
       <Text style={{ fontSize: SIZE.smallSize, fontWeight: '700', color: PALETTE.accion }}>{ES.entregar.revisado}</Text>
     </View>
   );
@@ -396,7 +396,7 @@ function Encontrada({
               {cobraste !== null && <Text style={{ fontSize: SIZE.bodySize, color: PALETTE.tinta }}>{cobraste}</Text>}
               {esperando && (
                 <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 6 }}>
-                  <MaterialCommunityIcons name="cloud-upload-outline" size={16} color={PALETTE.tintaApagada} style={{ marginTop: 2 }} />
+                  <Icono name="cloud-upload-outline" size={16} color={PALETTE.tintaApagada} style={{ marginTop: 2 }} />
                   <Text style={{ flex: 1, fontSize: SIZE.smallSize, lineHeight: 18, color: PALETTE.tintaApagada }}>{ES.entregar.guardadaAqui}</Text>
                 </View>
               )}
@@ -458,7 +458,7 @@ function Encontrada({
             {!recogida && (
               <>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: SIZE.rowGap, padding: SIZE.space, borderRadius: ESQUINA.hoja, backgroundColor: PALETTE.banda }}>
-                  <MaterialCommunityIcons name={orden.comer === 'aqui' ? 'silverware-fork-knife' : 'shopping-outline'} size={22} color={PALETTE.tinta} />
+                  <Icono name={orden.comer === 'aqui' ? 'silverware-fork-knife' : 'shopping-outline'} size={22} color={PALETTE.tinta} />
                   <Text style={{ fontSize: SIZE.bodySize + 1, fontWeight: '700', color: PALETTE.tinta }}>{ES.entregar.comerGrande[orden.comer]}</Text>
                 </View>
                 <View style={{ gap: 6, padding: SIZE.space, borderRadius: ESQUINA.hoja, borderWidth: 1.5, borderColor: PALETTE.accion, backgroundColor: PALETTE.superficie }}>

@@ -110,7 +110,7 @@
       "dibujo": "borrar-tecla",
       "apps": {
         "app": [
-          "app/src/app/(tabs)/vender.tsx"
+          "app/src/ui/Bascula.tsx"
         ],
         "cocina": [
           "cocina/src/ui/Teclado.tsx"
@@ -337,7 +337,6 @@
       "apps": {
         "app": [
           "app/src/app/(tabs)/desperdicio.tsx",
-          "app/src/ui/Hecho.tsx",
           "app/src/ui/VaciarCarrito.tsx"
         ]
       }
@@ -480,7 +479,6 @@
       "dibujo": "cerrar",
       "apps": {
         "app": [
-          "app/src/app/(tabs)/comprar.tsx",
           "app/src/app/(tabs)/desperdicio.tsx",
           "app/src/app/(tabs)/index.tsx",
           "app/src/app/semana.tsx"
@@ -669,21 +667,6 @@
         ]
       }
     },
-    "google": {
-      "dibujo": null,
-      "marca": true,
-      "apps": {
-        "app": [
-          "app/src/app/(auth)/entrar.tsx"
-        ],
-        "cocina": [
-          "cocina/src/app/(auth)/entrar.tsx"
-        ],
-        "itacate": [
-          "itacate/src/app/(auth)/entrar.tsx"
-        ]
-      }
-    },
     "heart": {
       "dibujo": "corazon-lleno",
       "apps": {
@@ -789,7 +772,6 @@
       "dibujo": "lupa",
       "apps": {
         "app": [
-          "app/src/app/(tabs)/comprar.tsx",
           "app/src/app/producto/nuevo.tsx",
           "app/src/ui/Buscador.tsx"
         ],
@@ -831,7 +813,7 @@
       "dibujo": "menos",
       "apps": {
         "app": [
-          "app/src/app/(tabs)/vender.tsx",
+          "app/src/ui/Baldosa.tsx",
           "app/src/ui/Cantidad.tsx"
         ],
         "cocina": [
@@ -863,6 +845,7 @@
       "dibujo": "lapiz",
       "apps": {
         "app": [
+          "app/src/app/(tabs)/comprar.tsx",
           "app/src/app/(tabs)/vender.tsx",
           "app/src/ui/Corrigiendo.tsx"
         ],
@@ -1238,16 +1221,19 @@
       "apps": {
         "app": [
           "app/src/app/(onboarding)/bienvenida.tsx",
-          "app/src/app/(tabs)/desperdicio.tsx"
+          "app/src/app/(tabs)/desperdicio.tsx",
+          "app/src/ui/Icono.tsx"
         ],
         "cocina": [
           "cocina/src/app/(cocina)/(tabs)/mi-cocina.tsx",
           "cocina/src/app/(cocina)/apartado/[id].tsx",
           "cocina/src/app/(cocina)/calificaciones.tsx",
-          "cocina/src/app/(cocina)/entregar.tsx"
+          "cocina/src/app/(cocina)/entregar.tsx",
+          "cocina/src/ui/Icono.tsx"
         ],
         "itacate": [
-          "itacate/src/app/(vecino)/(tabs)/tu.tsx"
+          "itacate/src/app/(vecino)/(tabs)/tu.tsx",
+          "itacate/src/ui/Icono.tsx"
         ]
       }
     },

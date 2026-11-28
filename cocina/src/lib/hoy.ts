@@ -26,8 +26,7 @@
 // her kitchen.
 // ============================================================================
 
-import type MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import type { ComponentProps } from 'react';
+import type { NombreIcono } from '@/marca/glifos';
 
 import {
   checkLines,
@@ -338,7 +337,7 @@ export function faltanDe(estado: Estado): Pendiente[] {
 }
 
 /** Each one's picture — her page's line on *Hoy* and its *Falta* row in *Mi cocina* (`10.9a-iii`). */
-export const ICONO_DE_PENDIENTE: Readonly<Record<Pendiente, ComponentProps<typeof MaterialCommunityIcons>['name']>> = {
+export const ICONO_DE_PENDIENTE: Readonly<Record<Pendiente, NombreIcono>> = {
   nombreGiro: 'storefront-outline',
   direccion: 'map-marker-outline',
   frase: 'format-quote-open',

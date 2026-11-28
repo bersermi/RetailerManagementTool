@@ -11,7 +11,7 @@
 // Drawn by the sign-up form and by *Giro y dirección*.
 // ============================================================================
 
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { Pressable, Text, View } from 'react-native';
 
 import type { Giro } from '@/api/kitchen';
@@ -53,7 +53,7 @@ export function Giros({
               backgroundColor: on ? PALETTE.accionSuave : PALETTE.superficie,
             }}
           >
-            <MaterialCommunityIcons
+            <Icono
               name={on ? 'radiobox-marked' : 'radiobox-blank'}
               size={SIZE.iconSize}
               color={on ? PALETTE.accion : PALETTE.tintaApagada}

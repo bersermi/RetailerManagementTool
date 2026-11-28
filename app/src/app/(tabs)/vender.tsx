@@ -1,12 +1,10 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from 'react';
+import { Icono } from '@/ui/Icono';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
   Animated,
   Easing,
   FlatList,
-  Image,
   KeyboardAvoidingView,
-  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -37,7 +35,7 @@ import { canCommit, commitOf, type Basketful } from '@/cart/commit';
 import { sellGate } from '@/cart/gate';
 import { porOrden } from '@/cart/orden';
 import { useOrdenDelDia } from '@/cart/useOrdenDelDia';
-import { columnasDe, conMenos, toqueDe, toqueLargoDe, vitrinaDe, type Toque } from '@/cart/vitrina';
+import { columnasDe, conMenos, pasilloAlEscribir, toqueDe, toqueLargoDe, vitrinaDe, type Toque } from '@/cart/vitrina';
 import { useCart, useCartStore, useCorrects, useTyped } from '@/cart/store';
 import { formatMXN } from '@/format/mxn';
 import { commitToQueue } from '@/lib/commitRunner';
@@ -51,10 +49,11 @@ import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
 import { EMPTIED_BLOOM_MS, REFUSED_NOTE_MS } from '@/theme/pulse';
+import { Baldosa } from '@/ui/Baldosa';
+import { Bascula } from '@/ui/Bascula';
 import { Buscador } from '@/ui/Buscador';
 import { Cantidad } from '@/ui/Cantidad';
 import { CierreCarrito } from '@/ui/CierreCarrito';
-import { Foto } from '@/ui/Foto';
 import { Hecho } from '@/ui/Hecho';
 import { FIRST_SALE_KEY, firstTime } from '@/offline/ensenar';
 import { deviceStore } from '@/lib/store';
@@ -62,7 +61,6 @@ import { comportamientoTeclado } from '@/lib/teclado';
 import { useDesfaseTeclado } from '@/lib/useDesfaseTeclado';
 import { HojaCarrito } from '@/ui/HojaCarrito';
 import { PrecioRapido } from '@/ui/PrecioRapido';
-import { Retrato } from '@/ui/Retrato';
 import { Separador } from '@/ui/Separador';
 import { TotalCarrito } from '@/ui/TotalCarrito';
 import { Vacio } from '@/ui/Vacio';
@@ -70,8 +68,8 @@ import { Corrigiendo } from '@/ui/Corrigiendo';
 import { VaciarCarrito } from '@/ui/VaciarCarrito';
 import { ESQUINA } from '@/theme/density';
 import { letraNumero } from '@/theme/letra';
-import { BotonLleno } from '@/ui/BotonLleno';
-import { Velo } from '@/ui/Velo';
+import { Pasillos } from '@/ui/Pasillos';
+import { Vitrina } from '@/ui/Vitrina';
 
 // ============================================================================
 // VENDER — the counter. Plan tasks `5f-ii` (the list, the row, the quantity
@@ -168,9 +166,16 @@ import { Velo } from '@/ui/Velo';
 // the order the shop sells them — four weeks of sales, counted as sales, set once
 // a day (`@/cart/orden`, `@/cart/useOrdenDelDia`). A tap adds one, a weighed one
 // opens the pad, a long press opens it on anything (`@/cart/vitrina`); after the
-// slide the counter is back on *Todo* at the top. ⚠️ THE PARTS ARE DRAWN HERE AND
-// NOT IN `src/ui/` (`R14`): Vender is their only drawer until Comprar draws them
-// at `14.3`, which moves them — the row said *`src/ui/` parts*, and the rule wins.
+// slide the counter is back on *Todo* at the top. ~~⚠️ THE PARTS ARE DRAWN HERE
+// AND NOT IN `src/ui/` (`R14`)~~ — corrected at `14.3`: Comprar draws them too, so
+// the aisles, the tile, the grid and the pad's frame are `src/ui/`'s (`Pasillos`,
+// `Baldosa`, `Vitrina`, `Bascula`). What stays here is what only Vender decides:
+// what a tap does (`BaldosaVenta`) and how the pad reads (`BasculaVenta`).
+//
+// ⚠️⚠️ `14.3`, CALL 13 — THE SEARCH IS THE WHOLE SHOP (the owner, after `14.2`
+// reached his phone: *"when someone is typing, the filter automatically defaults
+// to Todo"*). The first letter moves the aisles to *Todo*, tapping an aisle
+// empties the box, and emptying it leaves *Todo* (`@/cart/vitrina`).
 //
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
@@ -279,14 +284,19 @@ export default function Vender() {
   const [aisle, setAisle] = useState<string | null>(null);
   const shown = vitrinaDe(ordered, typed, aisle);
   const columns = columnasDe(mode);
-  // ⚠️ AN ODD LAST ROW WOULD STRETCH ITS TILES ACROSS IT, so the grid is padded
-  // with empty cells — Productos' mosaic's arrangement.
-  const cells: readonly (CatalogEntry | null)[] =
-    shown.length % columns === 0 ? shown : [...shown, ...Array<null>(columns - (shown.length % columns)).fill(null)];
   const grid = useRef<FlatList<CatalogEntry | null>>(null);
   const strip = useRef<ScrollView>(null);
+  // ⚠️ CALL 13: SEARCHING AND BROWSING NEVER MIX. A letter typed puts the aisles
+  // on *Todo*; an aisle tapped empties the box and puts the keyboard away — she
+  // is browsing now, and a box still holding a word would hide the aisle's tiles.
+  const write = useCallback((text: string) => {
+    setTyped(text);
+    setAisle((now) => pasilloAlEscribir(text, now));
+  }, []);
   const choose = useCallback((familyId: string | null) => {
     setAisle(familyId);
+    setTyped('');
+    box.current?.blur();
     grid.current?.scrollToOffset({ offset: 0, animated: false });
   }, []);
 
@@ -532,47 +542,27 @@ export default function Vender() {
           <Corrigiendo line={correctingLine('sale', corrects)} onCancel={() => setAsking(true)} />
         </View>
       )}
-      <Buscador value={typed} onChange={setTyped} box={box} placeholder={ES.catalog.search} />
-      <Pasillos aisles={aisles} chosen={aisle} onChoose={choose} strip={strip} />
+      <Buscador value={typed} onChange={write} box={box} placeholder={ES.catalog.search} />
+      <Pasillos aisles={aisles} chosen={aisle} onChoose={choose} strip={strip} tono={PALETTE.accion} />
 
       {/* ⚠️ A BOX AROUND THE GRID SO THE CASHIER'S NOTE SITS OVER ITS FOOT,
           just above the bar, without moving a tile under a thumb. */}
       <View style={{ flex: 1 }}>
-      <FlatList
-        ref={grid}
-        // ⚠️ `numColumns` CANNOT CHANGE ON A MOUNTED LIST, and *Letra grande*
-        // changes it (three across to two): a new key is a new list.
-        key={columns}
-        numColumns={columns}
-        // ⚠️ A `FlatList` FOR `productos.tsx`'s REASON: a giro's catalog runs to
-        // hundreds, C1.1 puts two low-end Androids among the pilot's phones, and
-        // a `ScrollView` mounts every tile at once.
-        data={cells}
-        keyExtractor={(entry, index) => (entry === null ? `hueco-${index}` : entry.id)}
-        renderItem={({ item }) =>
-          item === null ? (
-            <View style={{ flex: 1 }} />
-          ) : (
-            <Baldosa
-              entry={item}
-              factors={factors}
-              typical={typicals[item.id]}
-              onPad={openPad}
-              onPrice={mayPrice ? openPricing : null}
-              onRefused={(entry) => setRefused(entry.name)}
-            />
-          )
-        }
-        columnWrapperStyle={{ gap: scale.rowGap }}
-        ItemSeparatorComponent={Hueco}
-        ListEmptyComponent={<Vacio line={catalogLine(loading, typed, failed, online)} />}
-        contentContainerStyle={{ paddingHorizontal: scale.space, paddingBottom: scale.space }}
-        initialNumToRender={columns * 5}
-        // ⚠️ `on-drag` SINCE `14.2`: the one field here is the search box, and a
-        // scroll means she is looking at the tiles, not typing. It was `none`
-        // while a quantity box on the row raised the keyboard (`14.1` retired it).
-        keyboardDismissMode="on-drag"
-        keyboardShouldPersistTaps="handled"
+      <Vitrina
+        productos={shown}
+        columnas={columns}
+        grid={grid}
+        vacio={catalogLine(loading, typed, failed, online)}
+        baldosa={(item) => (
+          <BaldosaVenta
+            entry={item}
+            factors={factors}
+            typical={typicals[item.id]}
+            onPad={openPad}
+            onPrice={mayPrice ? openPricing : null}
+            onRefused={(entry) => setRefused(entry.name)}
+          />
+        )}
       />
       {refused !== null ? <Nota name={refused} onDone={forgetRefused} /> : null}
       </View>
@@ -600,7 +590,7 @@ export default function Vender() {
       ) : null}
 
       {pesando !== null && !cartOpen ? (
-        <Bascula
+        <BasculaVenta
           entry={pesando}
           factors={factors}
           typical={typicals[pesando.id]}
@@ -641,7 +631,7 @@ export default function Vender() {
               onClose={() => setPricing(null)}
             />
           ) : pesando !== null && cartOpen ? (
-            <Bascula
+            <BasculaVenta
               bare
               entry={pesando}
               factors={factors}
@@ -680,25 +670,13 @@ export default function Vender() {
 }
 
 /**
- * ⚠️⚠️ `14.2`, ONE PRODUCT ON THE COUNTER — A TILE, AND IT IS THE WHOLE CONTROL
- * (the owner's calls 2 and 4 of 2026-11-27; it replaced *B · Mostrador*'s row of
- * 2026-10-15). The photo (its initials until there is one), the price as `11.2`'s
- * tag on it, the name under it in the phone's own face.
+ * ⚠️⚠️ `14.2`, ONE PRODUCT ON VENDER'S COUNTER — what its tile says and what a touch
+ * on it does. The tile is `src/ui/Baldosa` since `14.3`; what is Vender's is here.
  *
  * ⚠️⚠️ C3.3 STILL HOLDS: THE TAP IS THE LINE. A tap adds one piece or bunch, or
  * opens the pad on a weighed product; a long press opens the pad on any product
- * (`@/cart/vitrina`). There is still no detail screen behind it — a tap that
- * navigated away mid-sale would lose the counter's place.
- *
- * ⚠️⚠️ IN THE BASKET, THE FOOT OF THE PHOTO IS ITS QUANTITY, AND THE TILE ITSELF
- * IS THE `+`. The page drew `−`, the quantity and `+` on the foot; a tile is about
- * 117 points wide at *Normal*, and two 48-point buttons leave the quantity 21 —
- * *12 manojo* does not fit, and a button under 48 points is the target the
- * shop's eyes and thumbs were promised never to get. So `−` keeps its 48 points
- * and the `+` is the tap she already used to add the first one. A weighed line
- * draws no `−` (it would take a whole kilo): its tap opens the pad, where
- * *Quitar* is. The foot covers the tag, as on the page: what she is selling is
- * what matters once it is in the basket, and the bar holds the total.
+ * (`@/cart/vitrina`). A weighed line draws no `−` (it would take a whole kilo): its
+ * tap opens the pad, where *Quitar* is.
  *
  * ⚠️ THE PRICE IS NOT A BUTTON ON THE TILE (the page's call 5: *Cambiar precio*
  * moves into the pad): a tag is a third of a target high, and a tile tapped to
@@ -707,13 +685,11 @@ export default function Vender() {
  * with no price opens the price sheet from its tap, as the owner ruled on
  * 2026-10-15 (`sellGate`).
  *
- * ⚠️ THE AMBER LINE IS A BAND ACROSS THE TOP OF THE PHOTO — *Sin precio* for a
- * priceless line (which wins), else §2.8's *Más de lo habitual* — never a line
- * under the name, which would make that tile's row taller than the others and
- * move every row below it under her thumb. The tile's ground goes amber with
- * *Sin precio*, as the row's did; the hue never travels alone (`R11`).
+ * ⚠️ THE AMBER BAND SAYS *Sin precio* for a priceless line (which wins), else
+ * §2.8's *Más de lo habitual*; the tile's ground goes amber with *Sin precio*, as
+ * the row's did.
  */
-function Baldosa({
+function BaldosaVenta({
   entry,
   factors,
   typical,
@@ -733,7 +709,6 @@ function Baldosa({
   /** A cashier's tap on a product with no price: the note saying who can fix it. */
   onRefused: (entry: CatalogEntry) => void;
 }) {
-  const { scale } = useDensity();
   const bump = useCartStore((state) => state.step);
   const base = useCartStore((state) => {
     for (const line of state.carts.sell) if (line.variantId === entry.id) return line.base;
@@ -758,11 +733,25 @@ function Baldosa({
     else if (by !== null) bump('sell', entry.id, by, 1);
   };
 
-  const foot = scale.tapTarget * 0.75;
   const band = alarm ? ES.sell.noPrice : big;
   return (
-    <Pressable
-      accessibilityRole="button"
+    <Baldosa
+      entry={entry}
+      etiqueta={{ centavos: entry.centavos, per: priceWord }}
+      cantidad={qty}
+      onMenos={
+        counted && conMenos(unit)
+          ? () => {
+              if (by !== null) bump('sell', entry.id, by, -1);
+            }
+          : null
+      }
+      menosLabel={ES.counter.tile.less(entry.name)}
+      banda={band}
+      alarma={alarm}
+      tono={PALETTE.accion}
+      onPress={() => act(toqueDe(unit, gate))}
+      onLongPress={() => act(toqueLargoDe(gate))}
       accessibilityLabel={[
         entry.name,
         entry.centavos === null ? ES.sell.noPrice : `${formatMXN(entry.centavos)} ${ES.sell.per(priceWord)}`,
@@ -772,293 +761,8 @@ function Baldosa({
         .filter((part) => part !== '')
         .join(', ')}
       accessibilityHint={ES.counter.tile.hint}
-      onPress={() => act(toqueDe(unit, gate))}
-      onLongPress={() => act(toqueLargoDe(gate))}
-      style={({ pressed }) => ({
-        flex: 1,
-        borderRadius: ESQUINA.hoja,
-        overflow: 'hidden',
-        backgroundColor: alarm ? PALETTE.atencionSuave : PALETTE.superficie,
-        opacity: pressed ? 0.85 : 1,
-      })}
-    >
-      <View
-        style={{
-          height: scale.retratoSize,
-          alignItems: 'center',
-          justifyContent: 'center',
-          backgroundColor: PALETTE.retrato,
-        }}
-      >
-        <Text style={{ fontSize: scale.titleSize, fontWeight: '700', color: PALETTE.tintaApagada }}>
-          {entry.initials}
-        </Text>
-        {/* ⚠️ THE LARGE FILE, as Productos' mosaic: a tile is too wide for
-            160 px to stay sharp — standing whole on white. */}
-        <Foto picture={entry.picture} size="large" fit="contain" />
-
-        {band === '' ? null : (
-          <View
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              paddingHorizontal: scale.rowGap / 2,
-              paddingVertical: scale.rowGap / 4,
-              backgroundColor: PALETTE.atencionSuave,
-            }}
-          >
-            {/* ⚠️ SHRUNK TO FIT, NEVER CUT: on a 393-point iPhone *Más de lo
-                habitual* read *Más de lo habi…* (seen on the Simulator). */}
-            <Text
-              numberOfLines={1}
-              adjustsFontSizeToFit
-              minimumFontScale={0.8}
-              style={{ fontSize: scale.smallSize, fontWeight: '700', color: PALETTE.atencion }}
-            >
-              {band}
-            </Text>
-          </View>
-        )}
-
-        {counted ? (
-          <View
-            style={{
-              position: 'absolute',
-              left: 0,
-              right: 0,
-              bottom: 0,
-              height: foot,
-              flexDirection: 'row',
-              alignItems: 'center',
-              backgroundColor: PALETTE.accion,
-            }}
-          >
-            {conMenos(unit) ? (
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={ES.counter.tile.less(entry.name)}
-                disabled={by === null}
-                // ⚠️ 48 POINTS TALL TO A THUMB: the foot is three quarters of a
-                // target, and the slop above it is the rest.
-                hitSlop={{ top: scale.tapTarget - foot }}
-                onPress={() => {
-                  if (by !== null) bump('sell', entry.id, by, -1);
-                }}
-                style={({ pressed }) => ({
-                  width: scale.tapTarget,
-                  height: foot,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  borderRightWidth: 1,
-                  borderRightColor: PALETTE.superficie,
-                  opacity: pressed ? 0.7 : 1,
-                })}
-              >
-                <MaterialCommunityIcons name="minus" size={scale.iconSize} color={PALETTE.superficie} />
-              </Pressable>
-            ) : null}
-            <Text
-              numberOfLines={1}
-              adjustsFontSizeToFit
-              minimumFontScale={0.85}
-              style={{
-                flex: 1,
-                textAlign: 'center',
-                paddingHorizontal: scale.rowGap / 2,
-                fontSize: scale.smallSize,
-                fontWeight: '700',
-                color: PALETTE.superficie,
-              }}
-            >
-              {qty}
-            </Text>
-          </View>
-        ) : (
-          <View style={{ position: 'absolute', left: scale.rowGap / 2, bottom: scale.rowGap / 2 }}>
-            <Etiqueta entry={entry} priceWord={priceWord} />
-          </View>
-        )}
-      </View>
-
-      <Text
-        numberOfLines={2}
-        style={{
-          // ⚠️ TWO LINES HELD EVEN WHEN THE NAME NEEDS ONE, so every row of the
-          // grid is the same height and a scroll lands where the thumb expects.
-          minHeight: scale.bodySize * 1.25 * 2,
-          lineHeight: scale.bodySize * 1.25,
-          paddingHorizontal: scale.rowGap,
-          paddingTop: scale.rowGap / 2,
-          marginBottom: scale.rowGap,
-          fontSize: scale.bodySize,
-          fontWeight: '600',
-          color: PALETTE.tinta,
-        }}
-      >
-        {entry.name}
-      </Text>
-
-      {/* ⚠️ IN THE BASKET, OUTLINED — drawn over the tile, so it moves nothing. */}
-      {counted ? (
-        <View
-          pointerEvents="none"
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            borderRadius: ESQUINA.hoja,
-            borderWidth: 2,
-            borderColor: PALETTE.accion,
-          }}
-        />
-      ) : null}
-    </Pressable>
+    />
   );
-}
-
-/** The point of `11.2`'s tag — `brand/mostrador/objetos/punta-etiqueta.svg`, rendered. */
-const PUNTA = require('@/marca/mostrador/punta-etiqueta.png') as number;
-
-/**
- * ⚠️ `11.2`'S *ETIQUETA*, ON A TILE (`brand/mostrador/objetos.json`'s recipe): a
- * piece of the counter's paper with its point and string hole — the point
- * picture tinted `fondo`, half as wide as it is tall, then the price on `fondo`,
- * one point under the picture so no seam shows. The price in the phone's own
- * face (prices in lists stay in it), never without its unit (C3.10). A product
- * with no price says so in grey — on a new shop's first day that is nearly every
- * tile, and a counter of amber tags is a shop that looks unfinished.
- */
-function Etiqueta({ entry, priceWord }: { entry: CatalogEntry; priceWord: string }) {
-  const { scale } = useDensity();
-  const alto = scale.smallSize * 1.6;
-  const priced = entry.centavos !== null;
-  return (
-    <View
-      accessibilityElementsHidden
-      importantForAccessibility="no-hide-descendants"
-      style={{ flexDirection: 'row', alignItems: 'stretch', height: alto }}
-    >
-      <Image source={PUNTA} tintColor={PALETTE.fondo} style={{ height: alto, aspectRatio: 0.5 }} />
-      <View
-        style={{
-          marginLeft: -1,
-          flexDirection: 'row',
-          alignItems: 'baseline',
-          alignSelf: 'stretch',
-          paddingTop: scale.rowGap / 4,
-          paddingLeft: scale.rowGap / 4,
-          paddingRight: scale.rowGap,
-          backgroundColor: PALETTE.fondo,
-          borderTopRightRadius: ESQUINA.etiqueta,
-          borderBottomRightRadius: ESQUINA.etiqueta,
-        }}
-      >
-        <Text
-          style={{
-            fontSize: scale.smallSize,
-            fontWeight: priced ? '700' : '600',
-            color: priced ? PALETTE.tinta : PALETTE.tintaApagada,
-            fontVariant: ['tabular-nums'],
-          }}
-        >
-          {priced ? formatMXN(entry.centavos as number) : ES.sell.unpriced}
-        </Text>
-        {priced ? (
-          <Text style={{ fontSize: scale.smallSize * 0.8, fontWeight: '600', color: PALETTE.tintaApagada }}>
-            {`${ES.catalog.per}${priceWord}`}
-          </Text>
-        ) : null}
-      </View>
-    </View>
-  );
-}
-
-/**
- * ⚠️ `14.2`, CALL 3: THE AISLES AS NAMES — *Todo* first, then every family the shop
- * sells in, in the day's order (call 6); one tap filters the grid, chosen again it
- * is *Todo*. Productos keeps its photo squares: on the counter a row of photos
- * would take a row of products off the screen, and seven plain names read at once.
- */
-function Pasillos({
-  aisles,
-  chosen,
-  onChoose,
-  strip,
-}: {
-  aisles: readonly Aisle[];
-  chosen: string | null;
-  onChoose: (familyId: string | null) => void;
-  strip: RefObject<ScrollView | null>;
-}) {
-  const { scale } = useDensity();
-  if (aisles.length < 2) return null;
-  return (
-    <ScrollView
-      ref={strip}
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      keyboardShouldPersistTaps="handled"
-      // ⚠️ NEITHER GROW NOR SHRINK — Productos' measurement of 2026-10-17.
-      style={{ flexGrow: 0, flexShrink: 0 }}
-      contentContainerStyle={{ gap: scale.rowGap, paddingHorizontal: scale.space, paddingBottom: scale.rowGap }}
-    >
-      <Pasillo name={ES.products.all} on={chosen === null} onPress={() => onChoose(null)} />
-      {aisles.map((one) => (
-        <Pasillo
-          key={one.familyId}
-          name={one.name}
-          on={chosen === one.familyId}
-          onPress={() => onChoose(chosen === one.familyId ? null : one.familyId)}
-        />
-      ))}
-    </ScrollView>
-  );
-}
-
-/**
- * One aisle's name. ⚠️ Chosen, it is FILLED in the counter's colour and its word
- * goes bold — a change of shape and weight as well as of hue (`R11`).
- */
-function Pasillo({ name, on, onPress }: { name: string; on: boolean; onPress: () => void }) {
-  const { scale } = useDensity();
-  const alto = scale.tapTarget * 0.75;
-  const slop = (scale.tapTarget - alto) / 2;
-  return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={name}
-      accessibilityState={{ selected: on }}
-      // ⚠️ 48 POINTS TO A THUMB: three quarters drawn, the rest in the slop.
-      hitSlop={{ top: slop, bottom: slop }}
-      onPress={onPress}
-      style={{
-        minHeight: alto,
-        justifyContent: 'center',
-        paddingHorizontal: scale.space,
-        borderRadius: ESQUINA.chip,
-        borderWidth: 1,
-        borderColor: on ? PALETTE.accion : PALETTE.linea,
-        backgroundColor: on ? PALETTE.accion : PALETTE.superficie,
-      }}
-    >
-      <Text
-        numberOfLines={1}
-        style={{ fontSize: scale.smallSize, fontWeight: on ? '800' : '600', color: on ? PALETTE.superficie : PALETTE.tinta }}
-      >
-        {name}
-      </Text>
-    </Pressable>
-  );
-}
-
-/** The gap between two rows of tiles. */
-function Hueco() {
-  const { scale } = useDensity();
-  return <View style={{ height: scale.rowGap }} />;
 }
 
 /**
@@ -1099,7 +803,7 @@ function Nota({ name, onDone }: { name: string; onDone: () => void }) {
         shadowRadius: scale.space,
       }}
     >
-      <MaterialCommunityIcons name="information-outline" size={scale.iconSize} color={PALETTE.atencion} />
+      <Icono name="information-outline" size={scale.iconSize} color={PALETTE.atencion} />
       <View style={{ flex: 1, gap: scale.rowGap / 2 }}>
         <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.tinta }}>
           {ES.sell.refused.title(name)}
@@ -1203,7 +907,7 @@ function Barra({
                 : ES.counter.lines(basket.lines)}
             </Text>
             {live ? (
-              <MaterialCommunityIcons
+              <Icono
                 name="chevron-right"
                 size={scale.iconSize}
                 color={PALETTE.accion}
@@ -1547,7 +1251,7 @@ function Unitario({
       }}
     >
       {words}
-      <MaterialCommunityIcons name="pencil-outline" size={scale.smallSize} color={PALETTE.accion} />
+      <Icono name="pencil-outline" size={scale.smallSize} color={PALETTE.accion} />
     </Pressable>
   );
 }
@@ -1591,11 +1295,10 @@ function Pie({
 }
 
 /**
- * ⚠️⚠️ `14.1`, LA BÁSCULA — THE COUNTER'S OWN NUMBER PAD, opened by the quantity
- * box on a row or on a line of the Carrito (the owner's ruling of 2026-11-27,
- * Step 14). It replaced the phone's `decimal-pad` here: that keyboard covered the
- * row being typed into, had no way off it but `TecladoListo`'s bar, and made
- * *0.730 kg* five keys with a point in the middle.
+ * ⚠️⚠️ `14.1`, LA BÁSCULA ON VENDER — what the counter's own number pad reads here,
+ * opened by a tile or by the quantity box on a line of the Carrito (the owner's
+ * ruling of 2026-11-27, Step 14). Its frame — the sheet, the keys, the chips, the
+ * act — is `src/ui/Bascula` since `14.3`, shared with Comprar.
  *
  * ⚠️ IT READS LIKE THE SCALE (`@/cart/bascula`, his answer A): 7, 3, 0 is
  * *0.730 kg*. The chips are the best guesses; a count is a count. The figure and
@@ -1604,7 +1307,7 @@ function Pie({
  *
  * ⚠️⚠️ OPENED ON A LINE, IT SHOWS THE LINE'S QUANTITY AND THE FIRST KEY REPLACES
  * IT, as a scale starts again from zero — and *Listo* untouched changes nothing.
- * *Quitar* is there only for a line; `−` on the row still takes one away.
+ * *Quitar* is there only for a line; `−` on the tile still takes one away.
  *
  * ⚠️ THE TOTAL IS `reviewOf`'s OWN ARITHMETIC over a one-line basket, with the
  * same quotes the screen prices against — so a corrected line shows the price it
@@ -1613,11 +1316,8 @@ function Pie({
  *
  * ⚠️ THE MAGNITUDE WARNING IS HERE TOO — §2.8's third guard, on the figure being
  * keyed, before it is a line: it is the moment a slip (7300 for 730) is cheapest.
- *
- * ⚠️ DRAWN IN THIS FILE AND NOT IN `src/ui/` (`R14`): Vender is its only drawer
- * until Comprar takes it at `14.3`, which moves it.
  */
-function Bascula({
+function BasculaVenta({
   entry,
   factors,
   typical,
@@ -1643,15 +1343,13 @@ function Bascula({
   /** Drawn inside the Carrito's `Modal` rather than as a `Modal` of its own. */
   bare?: boolean;
 }) {
-  const { scale, mode } = useDensity();
-  const insets = useSafeAreaInsets();
+  const { scale } = useDensity();
   const unit = shownUnitOf(entry);
   const teclado = tecladoDe(unit);
   const word = ES.units[unit as keyof typeof ES.units] ?? unit;
-  const fichas = fichasDe(unit);
 
   // ⚠️ THE LINE AS IT STANDS, READ FROM THE STORE: the pad may be opened from a
-  // row whose line another surface has just changed.
+  // tile whose line another surface has just changed.
   const base = useCartStore((state) => {
     for (const line of state.carts.sell) if (line.variantId === entry.id) return line.base;
     return 0;
@@ -1671,10 +1369,6 @@ function Bascula({
           .rows[0]?.centavos ?? null);
   const big = magnitudeNote(outsized(typical, shownBase, null));
 
-  const press = (tecla: Tecla) => {
-    setDigitos((now) => teclear(keyed ? now : '', tecla, teclado));
-    setKeyed(true);
-  };
   const act = () => {
     if (keyed && typed !== null) onSet(typed);
     onClose();
@@ -1683,179 +1377,84 @@ function Bascula({
   const unitPrice =
     entry.centavos === null ? ES.catalog.noPrice : `${formatMXN(entry.centavos)} ${ES.sell.per(ES.units[entry.priceUnit as keyof typeof ES.units] ?? entry.priceUnit)}`;
 
-  const sheet = (
-    <View style={{ flex: 1 }}>
-      <Velo label={ES.counter.cart.close} onPress={onClose} />
-      <View style={{ flex: 1, justifyContent: 'flex-end' }} pointerEvents="box-none">
-        <ScrollView
-          bounces={false}
-          style={{ flexGrow: 0 }}
-          contentContainerStyle={{
-            borderTopLeftRadius: ESQUINA.hoja,
-            borderTopRightRadius: ESQUINA.hoja,
-            backgroundColor: PALETTE.superficie,
-            padding: scale.space,
-            paddingBottom: scale.space + insets.bottom,
-            gap: scale.rowGap,
-          }}
-        >
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: scale.space }}>
-            <Retrato name={entry.name} picture={entry.picture} small />
-            <View style={{ flex: 1, gap: scale.rowGap / 4 }}>
-              <Text numberOfLines={2} style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.tinta }}>
-                {entry.name}
-              </Text>
-              <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>{unitPrice}</Text>
-              {onPrice === null ? null : (
-                <Pressable accessibilityRole="button" hitSlop={scale.rowGap} onPress={() => onPrice(entry)}>
-                  <Text style={{ fontSize: scale.smallSize, fontWeight: '600', color: PALETTE.accion }}>
-                    {ES.counter.pad.changePrice}
-                  </Text>
-                </Pressable>
-              )}
-            </View>
-            <Pressable
-              accessibilityRole="button"
-              onPress={onClose}
-              hitSlop={scale.rowGap}
-              style={{ alignSelf: 'flex-start', minHeight: scale.tapTarget, justifyContent: 'center' }}
-            >
+  return (
+    <Bascula
+      bare={bare}
+      entry={entry}
+      detalle={
+        <>
+          <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>{unitPrice}</Text>
+          {onPrice === null ? null : (
+            <Pressable accessibilityRole="button" hitSlop={scale.rowGap} onPress={() => onPrice(entry)}>
               <Text style={{ fontSize: scale.smallSize, fontWeight: '600', color: PALETTE.accion }}>
-                {ES.counter.cart.close}
+                {ES.counter.pad.changePrice}
               </Text>
             </Pressable>
-          </View>
-
-          {/* The figure as the scale shows it, and what the line comes to. */}
-          <View
-            accessible
-            accessibilityLabel={`${ES.counter.pad.title(entry.name)}: ${figure} ${word}`}
-            style={{
-              flexDirection: 'row',
-              alignItems: 'flex-end',
-              justifyContent: 'space-between',
-              gap: scale.space,
-              paddingBottom: scale.rowGap / 2,
-              borderBottomWidth: 1,
-              borderBottomColor: PALETTE.linea,
-            }}
-          >
-            <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: scale.rowGap / 2, flexShrink: 1 }}>
-              <Text style={{ ...letraNumero(scale), color: empty ? PALETTE.tintaApagada : PALETTE.tinta }}>{figure}</Text>
-              <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.tintaApagada }}>{word}</Text>
-            </View>
-            <View style={{ alignItems: 'flex-end' }}>
-              <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>{ES.counter.pad.total}</Text>
-              <Text style={{ fontSize: scale.moneySize, fontWeight: '700', color: PALETTE.tinta, fontVariant: ['tabular-nums'] }}>
-                {centavos === null ? ES.catalog.noPrice : formatMXN(centavos)}
-              </Text>
-            </View>
-          </View>
-
-          {/* ⚠️ `R11`: the amber never travels alone — it is a sentence. */}
-          {big === '' ? null : (
-            <Text style={{ fontSize: scale.smallSize, fontWeight: '600', color: PALETTE.atencion }}>{big}</Text>
           )}
-
-          {fichas.length === 0 ? null : (
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: scale.rowGap / 2 }}>
-            {fichas.map((ficha) => (
-              <Pressable
-                key={ficha.digitos}
-                accessibilityRole="button"
-                onPress={() => {
-                  setDigitos(ficha.digitos);
-                  setKeyed(true);
-                }}
-                style={{
-                  // ⚠️ SIX ACROSS AT `Normal`, THREE AND THREE AT `Letra grande`: let
-                  // to wrap, the larger letters broke them five and one, the last
-                  // chip stretched across a whole row (seen on the emulator).
-                  width: mode === 'elder' ? '31%' : undefined,
-                  flexGrow: 1,
-                  minWidth: scale.tapTarget,
-                  minHeight: scale.tapTarget * 0.85,
-                  paddingHorizontal: scale.rowGap,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  borderRadius: ESQUINA.chip,
-                  borderWidth: 1,
-                  borderColor: PALETTE.linea,
-                  backgroundColor: PALETTE.superficie,
-                }}
-              >
-                <Text style={{ fontSize: scale.smallSize, fontWeight: '700', color: PALETTE.tinta }}>{ficha.etiqueta}</Text>
-              </Pressable>
-            ))}
-          </View>
-          )}
-
-          {/* Three across, four down — the order every phone's dialler uses. */}
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: scale.rowGap / 2 }}>
-            {TECLAS.map((tecla) => (
-              <Pressable
-                key={tecla}
-                accessibilityRole="button"
-                accessibilityLabel={
-                  tecla === 'borrar' ? ES.counter.pad.erase : tecla === 'limpiar' ? ES.counter.pad.clear : tecla
-                }
-                onPress={() => press(tecla)}
-                style={({ pressed }) => ({
-                  width: '31%',
-                  flexGrow: 1,
-                  height: scale.tapTarget * 1.1,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  borderRadius: ESQUINA.boton,
-                  backgroundColor: pressed ? PALETTE.linea : PALETTE.retrato,
-                })}
-              >
-                {tecla === 'borrar' ? (
-                  <MaterialCommunityIcons name="backspace-outline" size={scale.iconSize} color={PALETTE.tinta} />
-                ) : tecla === 'limpiar' ? (
-                  <Text style={{ fontSize: scale.smallSize, fontWeight: '700', color: PALETTE.tinta }}>
-                    {ES.counter.pad.clear}
-                  </Text>
-                ) : (
-                  <Text style={{ fontSize: scale.titleSize, fontWeight: '600', color: PALETTE.tinta }}>{tecla}</Text>
-                )}
-              </Pressable>
-            ))}
-          </View>
-
-          <BotonLleno
-            label={
-              base > 0
-                ? ES.counter.done
-                : centavos === null
-                  ? ES.counter.pad.add
-                  : `${ES.counter.pad.add} · ${formatMXN(centavos)}`
+        </>
+      }
+      fichas={fichasDe(unit).map((ficha) => ({
+        etiqueta: ficha.etiqueta,
+        onPress: () => {
+          setDigitos(ficha.digitos);
+          setKeyed(true);
+        },
+      }))}
+      teclas={TECLAS}
+      onTecla={(tecla) => {
+        setDigitos((now) => teclear(keyed ? now : '', tecla, teclado));
+        setKeyed(true);
+      }}
+      accion={{
+        label:
+          base > 0
+            ? ES.counter.done
+            : centavos === null
+              ? ES.counter.pad.add
+              : `${ES.counter.pad.add} · ${formatMXN(centavos)}`,
+        onPress: act,
+        off: base === 0 && typed === null,
+      }}
+      onQuitar={
+        base > 0
+          ? () => {
+              onSet(0);
+              onClose();
             }
-            onPress={act}
-            variante="principal"
-            off={base === 0 && typed === null}
-          />
-          {base > 0 ? (
-            <BotonLleno
-              label={ES.counter.cart.remove}
-              onPress={() => {
-                onSet(0);
-                onClose();
-              }}
-              variante="discreto"
-            />
-          ) : null}
-        </ScrollView>
+          : null
+      }
+      onClose={onClose}
+    >
+      {/* The figure as the scale shows it, and what the line comes to. */}
+      <View
+        accessible
+        accessibilityLabel={`${ES.counter.pad.title(entry.name)}: ${figure} ${word}`}
+        style={{
+          flexDirection: 'row',
+          alignItems: 'flex-end',
+          justifyContent: 'space-between',
+          gap: scale.space,
+          paddingBottom: scale.rowGap / 2,
+          borderBottomWidth: 1,
+          borderBottomColor: PALETTE.linea,
+        }}
+      >
+        <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: scale.rowGap / 2, flexShrink: 1 }}>
+          <Text style={{ ...letraNumero(scale), color: empty ? PALETTE.tintaApagada : PALETTE.tinta }}>{figure}</Text>
+          <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.tintaApagada }}>{word}</Text>
+        </View>
+        <View style={{ alignItems: 'flex-end' }}>
+          <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>{ES.counter.pad.total}</Text>
+          <Text style={{ fontSize: scale.moneySize, fontWeight: '700', color: PALETTE.tinta, fontVariant: ['tabular-nums'] }}>
+            {centavos === null ? ES.catalog.noPrice : formatMXN(centavos)}
+          </Text>
+        </View>
       </View>
-    </View>
-  );
 
-  if (bare) {
-    return <View style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 }}>{sheet}</View>;
-  }
-  return (
-    <Modal visible animationType="slide" transparent onRequestClose={onClose}>
-      {sheet}
-    </Modal>
+      {/* ⚠️ `R11`: the amber never travels alone — it is a sentence. */}
+      {big === '' ? null : (
+        <Text style={{ fontSize: scale.smallSize, fontWeight: '600', color: PALETTE.atencion }}>{big}</Text>
+      )}
+    </Bascula>
   );
 }

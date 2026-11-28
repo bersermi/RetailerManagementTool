@@ -27,7 +27,7 @@
 // the owner's phone to judge, and no check here can see it.
 // ============================================================================
 
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { Pressable, Text, View } from 'react-native';
 
 import {
@@ -111,7 +111,7 @@ export function SelectorCatalogo({
             >
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: scale.rowGap / 2 }}>
                 {star ? (
-                  <MaterialCommunityIcons name="star" size={scale.bodySize} color={PALETTE.accion} />
+                  <Icono name="star" size={scale.bodySize} color={PALETTE.accion} />
                 ) : null}
                 <Text
                   style={{
