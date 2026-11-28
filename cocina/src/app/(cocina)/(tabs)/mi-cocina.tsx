@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { useState } from 'react';
-import { ActivityIndicator, Linking, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Linking, Pressable, Text, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { guardada } from '@/api/fotos';
@@ -105,6 +105,9 @@ import { SusAvisos } from '@/ui/SusAvisos';
 //     under it, never one of the two drawn and then swapped.
 // ============================================================================
 
+/** The phone's text size past which *Ver como la ven* and *Editar tu página* stack: side by side they fit at 115 %, not at 130 % (`11.10-ii`). */
+const UNO_SOBRE_OTRO = 1.2;
+
 export default function MiCocina() {
   const kitchen = useKitchen();
   const rol = useSuRol(kitchen?.id ?? null);
@@ -121,6 +124,8 @@ export default function MiCocina() {
 
 function MiCocinaDe({ kitchen, rol }: { kitchen: Kitchen; rol: Rol | null | undefined }) {
   const insets = useSafeAreaInsets();
+  // ⚠️ Written `limit < scale`, never with a `>`: `test/data-layer.test.ts` reads a `>` before a word as a word drawn here.
+  const apilados = UNO_SOBRE_OTRO < useWindowDimensions().fontScale;
   const { session } = useAuth();
   const giros = useKitchenGiros();
   const place = usePlace(kitchen.id);
@@ -199,11 +204,13 @@ function MiCocinaDe({ kitchen, rol }: { kitchen: Kitchen; rol: Rol | null | unde
                   logo={guardada(page.data.logo)}
                 />
               </Pressable>
-              <View style={{ flexDirection: 'row', gap: SIZE.rowGap }}>
-                <View style={{ flex: 1 }}>
+              {/* ⚠️ `11.10-ii` (found by `11.10-i`): side by side the two words reach their buttons' edges at the phone's
+                  130 % text — so past `UNO_SOBRE_OTRO` they stack, each the full width. */}
+              <View style={{ flexDirection: apilados ? 'column' : 'row', gap: SIZE.rowGap }}>
+                <View style={{ flex: apilados ? 0 : 1 }}>
                   <BotonLleno icon="eye-outline" label={ES.vista.verComoLaVen} onPress={() => router.push('/como-la-ven')} />
                 </View>
-                <View style={{ flex: 1 }}>
+                <View style={{ flex: apilados ? 0 : 1 }}>
                   <BotonLleno icon="pencil-outline" label={ES.cocina.editarPagina} onPress={() => router.push('/pagina')} />
                 </View>
               </View>

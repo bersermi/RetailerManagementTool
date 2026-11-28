@@ -91,6 +91,12 @@ export interface DensityScale {
    * more than seen; larger at `Letra grande` only because the band is taller.
    */
   readonly selloSize: number;
+  /**
+   * The side of a screen's drawing when it has nothing yet — `11.10-ii`, row
+   * `11.4`'s *vacío* (`brand/dibujos/README.md`): 96 points above its sentence,
+   * 120 at `Letra grande`, the size its pictures are drawn at.
+   */
+  readonly dibujoSize: number;
 }
 
 /**
@@ -121,6 +127,7 @@ const normal: DensityScale = {
   tabBarHeight: 56,
   retratoSize: 80,
   selloSize: 110,
+  dibujoSize: 96,
 };
 
 /**
@@ -153,6 +160,7 @@ const elder: DensityScale = {
   tabBarHeight: 76,
   retratoSize: 100,
   selloSize: 140,
+  dibujoSize: 120,
 };
 
 export const DENSITIES = { normal, elder } as const;

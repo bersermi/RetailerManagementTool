@@ -31,7 +31,7 @@ bash docs/checks/10.9f-numbers-contract.sh            # the same stack: her numb
 bash docs/checks/10.9g-i-promotions-contract.sh       # the same stack: promotions by promociones.ts' names — made, three at once, ended, undone — an offer joining one by listing.ts', the door's band by Itacate's; and `0094`'s alert to her followers, dark and on
 bash docs/checks/10.5b-v-ii-push-contract.sh          # the same stack: her phone's messages by push.ts' names — this phone's token stored and retired, her kinds by every key, her switch, a tap counted with nobody kept (nothing is sent)
 bash docs/checks/10.5c-iii-consent-contract.sh        # the same stack: her answer to Novedades on the sheet's version (refused until the runbook's on 1 approves it), a campaign's tap
-bash store/cocina-itacate/render.sh giros         # the nine trades' drawings, from brand/giros.svg into src/marca/giros/ — and nothing else
+bash store/cocina-itacate/render.sh giros         # the nine trades' FLAT drawings, from brand/giros.svg into itacate/src/marca/giros/ (the neighbours' map pins since 11.10-ii) — and nothing else
 TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic is local time, and the Mac is UTC−6
 ```
 
@@ -225,9 +225,11 @@ switch `promociones` keeps them off for everyone. The code on
   `@/capture/photo`, twinned): the gallery is the system picker, which needs no permission (`photosPermission` stays
   `false`); every photo is cut, resized and re-encoded, which strips where it was taken; the bytes come back as base64
   from the manipulator, because `expo-file-system` is only `expo`'s own dependency here. A saved photo is drawn by
-  `expo-image` with her token in a header (`@/ui/Foto`, `photoRequest`), its disk cache never stale. The nine drawings
-  are PNGs (no app has SVG), drawn by `render.sh giros` — never the script's default run, which re-draws the icon and
-  the launch screen, both native. ⚠️ **A deleted kitchen's photos stay in the bucket** until
+  `expo-image` with her token in a header (`@/ui/Foto`, `photoRequest`), its disk cache never stale. Her trade's drawing
+  (and, since `11.10-ii`, her screens' with nothing yet) is `brand/dibujos/`'s picture — black, at 1×–3×, tinted by
+  the screen (no app has SVG): `src/marca/dibujos/`, byte for byte (`test/dibujos.test.ts`), drawn there by
+  `brand/render-dibujos.sh`. The old flat ones (`render.sh giros`, never the script's default run, which re-draws the
+  icon and the launch screen, both native) are the neighbours' map pins alone. ⚠️ **A deleted kitchen's photos stay in the bucket** until
   `docs/runbooks/delete-orphan-photos.sh` deletes them — the aviso promises within 30 days. ⚠️ **Since `10.9i-ii`
   (`0090`) a photo is opened outside her kitchen only while Itacate shows it, and her kitchen deletes one nothing
   names**: after *Guardar* lands, the cover or logo it replaced or removed (`picturesToDelete`, from the page the
@@ -508,7 +510,10 @@ follows it, as `itacate/CLAUDE.md`'s does:
   byte for byte, `test/iconos.test.ts`), draw `brand/iconos/`'s font (`src/marca/iconos/`, loaded by `@/marca/fuentes` with the
   titles' faces) by the names written for MaterialCommunityIcons; nothing else imports `@expo/vector-icons`. *Continuar con
   Google* draws Google's own G (`src/marca/google/`, `brand/marcas/google/`'s), its colours on white; `whatsapp` is Meta's own
-  glyph since `11.10-iii` (`src/marca/whatsapp/`, green or white by the colour asked for, never tinted; `brand/marcas/README.md`). The drawings for empty screens, covers and the reward are `11.10-ii`'s.
+  glyph since `11.10-iii` (`src/marca/whatsapp/`, green or white by the colour asked for, never tinted; `brand/marcas/README.md`). ⚠️ **Since `11.10-ii` the drawings are in their places** (`brand/dibujos/dibujos.json` names each; `test/dibujos.test.ts`): a
+  cover, a dish's card or page wears her trade's drawing ONCE, white, at 60 % of its height (64 % of a dish row's square) —
+  `@/ui/Dibujo`, no wallpaper; *Tus ofertas* with nothing ever published, *Tus calificaciones* below five and *Apartados · Hoy*
+  empty draw theirs above the sentence, 96 points in `accion` (`DibujoVacio`) — never while reading, without signal or on a failure.
 - **Money:** no screen stores or shows a bank account, a card or an amount paid — only how she will pay.
 
 ## *Apartados* — she sees and hands over (`10.5b-iv-a`)

@@ -13,6 +13,7 @@ import { activityLine, activityOf, rankedProviders } from '@/api/providerPage';
 import {
   canWriteProviders,
   providerLine,
+  providerNothingYet,
   providerRows,
   type ProviderRowView,
 } from '@/api/providerDirectory';
@@ -189,7 +190,12 @@ export default function Proveedores() {
           )
         }
         ItemSeparatorComponent={Separador}
-        ListEmptyComponent={<Vacio line={providerLine(loading, typed, failed, online)} />}
+        ListEmptyComponent={
+          <Vacio
+            line={providerLine(loading, typed, failed, online)}
+            dibujo={providerNothingYet(loading, typed) ? 'diablito' : undefined}
+          />
+        }
         // ⚠️ THE ROWS ARE A FIXED HEIGHT TO THE VIRTUALISER'S EYE, which is what
         // lets `scrollToIndex` reach a row it has not drawn yet;
         // `onScrollToIndexFailed` is the belt to that braces.

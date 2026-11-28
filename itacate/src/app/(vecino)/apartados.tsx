@@ -31,6 +31,7 @@ import { HojaOfertas } from '@/ui/HojaOfertas';
 import { Llega } from '@/ui/Llega';
 import { PreguntaSeguir, marcarRespondida, respondida as yaRespondida } from '@/ui/PreguntaSeguir';
 import { SinSenal } from '@/ui/SinSenal';
+import { DibujoVacio } from '@/ui/Dibujo';
 
 // ============================================================================
 // *APARTADOS*. Plan task `10.5b-iii-a` — the second tab from `10.5-v-b`, filled as the
@@ -257,7 +258,8 @@ export default function Apartados() {
               secciones.porConfirmar.length === 0 &&
               recogido === null && (
               <Llega i={0} style={styles.vacio}>
-                <Icono name="ticket-confirmation-outline" size={52} color={PALETTE.linea} />
+                {/* ⚠️ `11.10-ii`: row `11.4`'s ticket, its code still blank — the one Wera Cocina's *Apartados* shows. */}
+                <DibujoVacio dibujo="boleto" />
                 <Text style={styles.vacioTitulo}>{ES.apartados.vacio}</Text>
                 <Text style={styles.nota}>{ES.apartados.vacioDetalle}</Text>
                 <View style={styles.vacioBoton}>

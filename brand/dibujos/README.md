@@ -2,8 +2,9 @@
 
 Step 11, row `11.4` (2026-11-26): the drawings the three apps show where they have nothing else to
 show — a screen with nothing yet, a kitchen or a dish without a photo, a reward won — in the icons'
-line (`brand/iconos/README.md`, his call 10). **No app reads this folder, and nothing here is on a
-phone** until `11.10-ii` copies the pictures into the apps (`11.10` split on 2026-11-28: the icons first, `11.10-i`).
+line (`brand/iconos/README.md`, his call 10). **Since `11.10-ii` the three apps draw them**, each from its own copies
+of `png/` — Wera's `app/src/marca/vacios/`, the siblings' `src/marca/dibujos/` — held to these files byte for byte, and
+every place to `dibujos.json`, by each app's `test/dibujos.test.ts` (in `app.yml`'s and `cocina-itacate.yml`'s filters).
 
 | File | What it is |
 |---|---|
@@ -39,7 +40,8 @@ drawing, so a drawing of 96 to 160 points carries a 4.5 to 7.5-point line, not a
   (`Dibujo`'s `portada`: 28 faint copies and a large one). The nine keep the names the code gives them
   (`DIBUJOS` in both siblings' `src/api/pagina.ts`), so `11.10` swaps files, not names.
   ⚠️ **The map's pins keep today's solid drawings** (`brand/giros.svg`, rendered by
-  `store/cocina-itacate/render.sh`): at 20 points a line is a smudge. So `11.10` keeps both sets.
+  `store/cocina-itacate/render.sh`): at 20 points a line is a smudge. So both sets are kept — since `11.10-ii` the
+  flat ones in the neighbours' app alone (`itacate/src/marca/giros/`, `@/theme/pines`), the only one with a map.
 - **A reward won** (*¡Ganaste …!*) is one drawing in white on a sheet of the kitchen's colour,
   150 points, above the reward in `premio` (Mansalva, as row `11.1` ruled), in place of today's
   disc, cow and three badges. The cow stays on the card's stamps.
@@ -52,3 +54,6 @@ drawing, so a drawing of 96 to 160 points carries a 4.5 to 7.5-point line, not a
 3. `node brand/dibujos/dibujos.mjs` — red if a picture is not its source, if a drawing leaves the
    line, if a screen or sentence it names is gone from the code, if a trade the siblings draw has no
    drawing, or if an ink falls under 3:1 on what it is drawn on.
+4. Copy its three pictures into every app that draws it (`app/src/marca/vacios/`, `cocina/src/marca/dibujos/`,
+   `itacate/src/marca/dibujos/`) in the same PR, and name it in that app's table (`@/marca/vacios`, `@/theme/dibujos`) —
+   or that app's `test/dibujos.test.ts` is red.

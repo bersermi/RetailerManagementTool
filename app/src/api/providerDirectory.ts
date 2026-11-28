@@ -387,6 +387,18 @@ export function providerLine(
   return ES.providers.empty.loading;
 }
 
+/**
+ * Whether that line is *todavía no tienes proveedores* — the one an empty list
+ * draws `11.4`'s hand truck above (`11.10-ii`). Read from the same two facts
+ * `providerLine` reads first, so the drawing can never sit over *loading*, *no
+ * signal*, a failure or *nothing matched*. ⚠️ Rarely seen: every shop keeps its
+ * generic supplier (`onboard_workspace`), and `providersFrom` keeps it in the list
+ * whatever `is_active` says.
+ */
+export function providerNothingYet(loading: boolean, typed: string): boolean {
+  return !loading && collapse(typed) === '';
+}
+
 // ----------------------------------------------------------------------------
 // WHAT GETS WRITTEN — the insert, the patch, and what is refused before either
 // ----------------------------------------------------------------------------

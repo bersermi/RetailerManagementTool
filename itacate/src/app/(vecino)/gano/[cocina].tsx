@@ -1,4 +1,3 @@
-import { Icono } from '@/ui/Icono';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect } from 'react';
 import { Image, Text, View } from 'react-native';
@@ -12,6 +11,8 @@ import { parametro } from '@/lib/paginas';
 import { colorDeTarjeta, enFrase } from '@/lib/tarjeta';
 import { ES } from '@/strings';
 import { HUES } from '@/theme/colores';
+import { ESQUINA } from '@/theme/density';
+import { PREMIO } from '@/theme/dibujos';
 import { letraPremio } from '@/theme/frase';
 import { PALETTE, SIZE } from '@/theme/palette';
 import { BotonLleno } from '@/ui/BotonLleno';
@@ -25,13 +26,18 @@ import { Llega } from '@/ui/Llega';
 // `@/lib/Festejos` alone, once per reward — and it is THIS screen, once open, that keeps the rewards as celebrated
 // (`vistos`, `@/lib/festejado`).
 // ⚠️ `11.8-i`: THE REWARD WON IN HER HAND — *¡Ganaste …!* in Mansalva (`@/theme/frase`'s `letraPremio`, the design
-// system's *Mano*), in ink on the counter until `11.10` lays the drawn gift on a sheet of her colour beneath it.
+// system's *Mano*).
+// ⚠️ `11.10-ii` — ROW `11.4`'S *PREMIO*, AS HE RULED IT (call 13, 2026-11-26, *as drawn*): ONE SHEET OF THE KITCHEN'S
+// COLOUR holding the drawn gift, its lid coming off, in white at 150 points, above the reward in Mansalva and the
+// sentence, both white on her colour (each of the six clears 4.5:1 under white: cempasúchil's 5.1 the least) — in
+// place of the disc, the rust cow and the three badges it was. The cow stays on her card's stamps. The buttons are
+// unchanged.
 // ⚠️ THE MOVEMENT IS `@/ui/Llega`'S (one staggered entrance, transform and opacity — ADR-035 §2.11): Reanimated is
 // imported by four modules only (`test/pestanas.test.ts`). NO CHECK CAN SEE THIS SCREEN: the phone is its instrument.
 // ============================================================================
 
-/** The cow, Wera's mark, in its rust — the one *Tú* signs with (`app/src/marca/vaca-oxido.png`, byte for byte). */
-const VACA = require('@/marca/vaca-oxido.png') as number;
+/** The gift's side, in points (`brand/dibujos/dibujos.json`'s `premio`: drawn at 160, shown at 150 as `11.4` drew it). */
+const LADO_PREMIO = 150;
 
 export default function Gano() {
   const params = useLocalSearchParams<{ cocina: string; premio?: string; vistos?: string }>();
@@ -56,25 +62,24 @@ export default function Gano() {
 
   return (
     <View style={{ flex: 1, backgroundColor: PALETTE.fondo, paddingTop: insets.top, paddingBottom: insets.bottom + SIZE.space * 2 }}>
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', gap: SIZE.space * 1.5, paddingHorizontal: SIZE.space * 2 }}>
+      <View style={{ flex: 1, justifyContent: 'center', paddingHorizontal: SIZE.space * 1.5 }}>
         <Llega i={0}>
-          <View style={{ width: 150, height: 150, borderRadius: 75, alignItems: 'center', justifyContent: 'center', backgroundColor: hue }}>
-            <View style={{ width: 92, height: 92, borderRadius: 46, alignItems: 'center', justifyContent: 'center', backgroundColor: PALETTE.superficie }}>
-              <Image source={VACA} style={{ width: 66, height: 66 }} accessibilityIgnoresInvertColors />
-            </View>
-            <Insignia icono="gift-outline" top={-6} left={-4} color={hue} />
-            <Insignia icono="star" top={8} left={122} color={hue} />
-            <Insignia icono="stamper" top={118} left={110} color={hue} />
+          <View style={{ alignItems: 'center', gap: SIZE.space, paddingVertical: SIZE.space * 2, paddingHorizontal: SIZE.space * 1.5, borderRadius: ESQUINA.hoja, backgroundColor: hue }}>
+            <Image
+              source={PREMIO}
+              accessibilityElementsHidden
+              importantForAccessibility="no"
+              resizeMode="contain"
+              style={{ width: LADO_PREMIO, height: LADO_PREMIO, tintColor: PALETTE.superficie }}
+            />
+            <Text accessibilityRole="header" style={{ ...letraPremio(), color: PALETTE.superficie, textAlign: 'center' }}>
+              {ES.gano.titulo(enFrase(premio?.reward ?? card?.reward ?? ''))}
+            </Text>
+            <Text style={{ fontSize: SIZE.bodySize, lineHeight: 22, color: PALETTE.superficie, textAlign: 'center' }}>{ES.gano.detalle(nombre)}</Text>
           </View>
         </Llega>
-        <Llega i={1} style={{ gap: SIZE.rowGap, alignItems: 'center' }}>
-          <Text accessibilityRole="header" style={{ ...letraPremio(), color: PALETTE.tinta, textAlign: 'center' }}>
-            {ES.gano.titulo(enFrase(premio?.reward ?? card?.reward ?? ''))}
-          </Text>
-          <Text style={{ fontSize: SIZE.bodySize, lineHeight: 22, color: PALETTE.tintaApagada, textAlign: 'center' }}>{ES.gano.detalle(nombre)}</Text>
-        </Llega>
       </View>
-      <Llega i={2} style={{ gap: SIZE.rowGap, paddingHorizontal: SIZE.space * 1.5 }}>
+      <Llega i={1} style={{ gap: SIZE.rowGap, paddingHorizontal: SIZE.space * 1.5 }}>
         <BotonLleno
           variante="principal"
           label={ES.gano.ver}
@@ -82,29 +87,6 @@ export default function Gano() {
         />
         <BotonLleno variante="discreto" label={ES.gano.despues} onPress={despues} />
       </Llega>
-    </View>
-  );
-}
-
-/** One of the three small marks around the cow (the page's `gt`): a white disc, the kitchen's colour inside. */
-function Insignia({ icono, top, left, color }: { icono: 'gift-outline' | 'star' | 'stamper'; top: number; left: number; color: string }) {
-  return (
-    <View
-      style={{
-        position: 'absolute',
-        top,
-        left,
-        width: 34,
-        height: 34,
-        borderRadius: 17,
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: PALETTE.superficie,
-        borderWidth: 2,
-        borderColor: color,
-      }}
-    >
-      <Icono name={icono} size={18} color={color} />
     </View>
   );
 }

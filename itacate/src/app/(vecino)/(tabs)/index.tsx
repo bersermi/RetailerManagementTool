@@ -42,6 +42,7 @@ import { MapaDeCocinas } from '@/ui/MapaDeCocinas';
 import { Ordenar } from '@/ui/Ordenar';
 import { TarjetaCocina } from '@/ui/TarjetaCocina';
 import { TarjetaPlatillo } from '@/ui/TarjetaPlatillo';
+import { DibujoVacio } from '@/ui/Dibujo';
 
 // ============================================================================
 // *CERCA DE TI* — THE KITCHENS CLOSE TO HER: GOOGLE'S MAP, WITH THE LIST SLIDING OVER
@@ -351,7 +352,7 @@ export default function Cerca() {
                     ) : cocinas.isError ? (
                       <Aviso texto={apiErrorMessage(cocinas.error)} />
                     ) : (
-                      <Aviso texto={tarjetas.length === 0 ? ES.cerca.vacio : ES.mapa.nadaAqui} />
+                      <Aviso texto={tarjetas.length === 0 ? ES.cerca.vacio : ES.mapa.nadaAqui} dibujo="mapa" />
                     )}
                   </Llega>
                 )
@@ -412,9 +413,11 @@ function EnEstaZona({ cp, onVolver }: { cp: string | null; onVolver: () => void 
 }
 
 /** One line in the middle of the sheet — while something is on its way, or why there is nothing. */
-function Aviso({ texto, esperando = false }: { texto: string; esperando?: boolean }) {
+/** ⚠️ `11.10-ii`: a drawing only on *nothing here yet* (row `11.4`'s map) — never while it reads or on a failure. */
+function Aviso({ texto, esperando = false, dibujo }: { texto: string; esperando?: boolean; dibujo?: 'mapa' }) {
   return (
     <View style={{ alignItems: 'center', gap: SIZE.space, paddingVertical: SIZE.space * 3, paddingHorizontal: SIZE.space * 2 }}>
+      {dibujo !== undefined && <DibujoVacio dibujo={dibujo} />}
       {esperando && <ActivityIndicator color={PALETTE.accion} />}
       <Text style={{ fontSize: SIZE.bodySize, lineHeight: 22, color: PALETTE.tintaApagada, textAlign: 'center' }}>{texto}</Text>
     </View>

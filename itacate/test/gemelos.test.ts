@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { readdirSync, readFileSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -144,27 +144,31 @@ describe('the photos’ names — `cocina/src/api/fotos.ts`, which loads here an
   });
 });
 
-describe('the nine drawings — Wera Cocina’s PNGs, by their bytes', () => {
+describe('the nine trades’ drawings — Wera Cocina’s pictures, by their bytes (`11.10-ii`: `brand/dibujos/`’s line)', () => {
   const sha = (path: string) => createHash('sha256').update(readFileSync(path)).digest('hex');
-  const ours = join(ROOT, 'itacate/src/marca/giros');
-  const theirs = join(ROOT, 'cocina/src/marca/giros');
+  const ours = join(ROOT, 'itacate/src/marca/dibujos');
+  const theirs = join(ROOT, 'cocina/src/marca/dibujos');
+  const DENSIDADES = ['', '@2x', '@3x'];
 
-  it('one file per drawing, the same files as Wera Cocina’s', () => {
-    expect(readdirSync(ours).sort()).toEqual(DIBUJOS.map((d) => `${d}.png`).sort());
-    expect(readdirSync(ours).sort()).toEqual(readdirSync(theirs).sort());
+  it('each one byte for byte, at every density — a re-drawing there is copied here', () => {
+    for (const dibujo of DIBUJOS) {
+      for (const s of DENSIDADES) expect(sha(join(ours, `${dibujo}${s}.png`)), `${dibujo}${s}`).toBe(sha(join(theirs, `${dibujo}${s}.png`)));
+    }
   });
 
-  it('each one byte for byte — a re-drawing there is copied here', () => {
-    for (const dibujo of DIBUJOS) expect(sha(join(ours, `${dibujo}.png`)), dibujo).toBe(sha(join(theirs, `${dibujo}.png`)));
-  });
-
-  it('each one in the bundle, under its own name', () => {
-    const table = itacate('theme/dibujos.ts');
-    for (const dibujo of DIBUJOS) expect(table).toContain(`${dibujo}: require('@/marca/giros/${dibujo}.png') as ImageSourcePropType,`);
+  it('each one in the bundle, under its own name, as Wera Cocina’s table says it', () => {
+    expect(bloque(itacate('theme/dibujos.ts'), 'export const DIBUJO:')).toBe(bloque(cocina('theme/dibujos.ts'), 'export const DIBUJO:'));
+    for (const dibujo of DIBUJOS) expect(itacate('theme/dibujos.ts')).toContain(`${dibujo}: require('@/marca/dibujos/${dibujo}.png') as ImageSourcePropType,`);
   });
 
   it('drawn by components whose code is Wera Cocina’s', () => {
-    for (const [file, inicio] of [['ui/Dibujo.tsx', 'export function Dibujo('], ['ui/Dibujo.tsx', 'function Portada('], ['ui/Dibujo.tsx', 'const PATRON:'], ['ui/Iniciales.tsx', 'export function Iniciales(']] as const) {
+    for (const [file, inicio] of [
+      ['ui/Dibujo.tsx', 'const ALTO ='],
+      ['ui/Dibujo.tsx', 'export function Dibujo('],
+      ['ui/Dibujo.tsx', 'export const LADO_VACIO ='],
+      ['ui/Dibujo.tsx', 'export function DibujoVacio('],
+      ['ui/Iniciales.tsx', 'export function Iniciales('],
+    ] as const) {
       expect(bloque(itacate(file), inicio), `${file} ${inicio}`).toBe(bloque(cocina(file), inicio));
     }
   });

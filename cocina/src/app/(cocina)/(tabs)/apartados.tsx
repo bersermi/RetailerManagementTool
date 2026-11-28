@@ -12,6 +12,7 @@ import { PALETTE, SIZE } from '@/theme/palette';
 import { useTerminos } from '@/ui/AntesDeCalificar';
 import { Banda } from '@/ui/Banda';
 import { BotonLleno } from '@/ui/BotonLleno';
+import { DibujoVacio } from '@/ui/Dibujo';
 import { FilaOrden } from '@/ui/FilaOrden';
 import { LeyendoCocina } from '@/ui/LeyendoCocina';
 import { Llega } from '@/ui/Llega';
@@ -154,9 +155,12 @@ function ApartadosDe({ kitchen }: { kitchen: Kitchen }) {
             </Text>
             <BotonLleno variante="principal" icon="ticket-confirmation-outline" label={ES.apartados.entregarUno} onPress={() => router.push('/entregar')} />
             {hoy.length === 0 ? (
-              <View style={{ gap: 4, paddingVertical: SIZE.space }}>
-                <Text style={{ fontSize: SIZE.bodySize, fontWeight: '600', color: PALETTE.tinta }}>{ES.apartados.vacioHoy}</Text>
-                <Text style={{ fontSize: SIZE.smallSize, lineHeight: 19, color: PALETTE.tintaApagada }}>{ES.apartados.vacioHoyDetalle}</Text>
+              // ⚠️ `11.10-ii`: row `11.4`'s ticket above the two sentences, centred — the same drawing as the
+              // neighbours' *Apartados*: one meaning, one drawing.
+              <View style={{ alignItems: 'center', gap: 4, paddingVertical: SIZE.space }}>
+                <DibujoVacio dibujo="boleto" />
+                <Text style={{ marginTop: SIZE.rowGap, fontSize: SIZE.bodySize, fontWeight: '600', color: PALETTE.tinta, textAlign: 'center' }}>{ES.apartados.vacioHoy}</Text>
+                <Text style={{ fontSize: SIZE.smallSize, lineHeight: 19, color: PALETTE.tintaApagada, textAlign: 'center' }}>{ES.apartados.vacioHoyDetalle}</Text>
               </View>
             ) : (
               hoy.map(tarjeta)

@@ -166,7 +166,8 @@ describe('where the neighbours’ app draws them — what `11.7-ii` left to `11.
   });
 
   it('*¡Ganaste …!* is set in her hand — Mansalva — and its words are the app’s', () => {
-    expect(code('app/(vecino)/gano/[cocina].tsx')).toMatch(/<Text accessibilityRole="header" style=\{\{ \.\.\.letraPremio\(\), color: PALETTE\.tinta, textAlign: 'center' \}\}>\s*\{ES\.gano\.titulo\(/);
+    // ⚠️ `11.10-ii`: white, on the sheet of her colour (`test/dibujos.test.ts`).
+    expect(code('app/(vecino)/gano/[cocina].tsx')).toMatch(/<Text accessibilityRole="header" style=\{\{ \.\.\.letraPremio\(\), color: PALETTE\.superficie, textAlign: 'center' \}\}>\s*\{ES\.gano\.titulo\(/);
     expect(ES.gano.titulo('una comida corrida')).toBe('¡Ganaste una comida corrida!');
   });
 });

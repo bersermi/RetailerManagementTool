@@ -7,7 +7,7 @@ import type { Punto } from '@/api/cocinas';
 import { agrupar, alTocarGrupo, camaraDe, DIAMETRO, DIAMETRO_ELEGIDO, ofreceBuscarAqui, type Marca, type Pin } from '@/lib/mapa';
 import { ES } from '@/strings';
 import { HUES } from '@/theme/colores';
-import { DIBUJO } from '@/theme/dibujos';
+import { PIN } from '@/theme/pines';
 import { PALETTE, SIZE } from '@/theme/palette';
 import { ESQUINA } from '@/theme/density';
 
@@ -310,7 +310,7 @@ function PinDeCocina({ pin, elegido, onPress }: { pin: Pin; elegido: boolean; on
     >
       <Circulo d={d} color={HUES[pin.color]} desvanecido={!pin.enOferta}>
         <Image
-          source={DIBUJO[pin.dibujo]}
+          source={PIN[pin.dibujo]}
           fadeDuration={0}
           onLoad={listo}
           style={{ width: d * 0.56, height: d * 0.56 }}

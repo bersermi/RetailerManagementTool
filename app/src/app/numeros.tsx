@@ -57,6 +57,7 @@ import {
   periodTitle,
   reportOf,
   salesLine,
+  salesNothingYet,
   type Bar,
   type Grouping,
   type Period,
@@ -207,7 +208,8 @@ export default function Numeros() {
                 read it is the one the owner ruled, never a spinner the library
                 has paused; the spinner is only a read out with a signal. */}
             {line !== '' ? (
-              <Vacio line={line} />
+              // ⚠️ `11.10-ii`: the chart above the sentence only when six months hold no sale (`salesNothingYet`).
+              <Vacio line={line} dibujo={salesNothingYet(sales.state) ? 'barras' : undefined} />
             ) : sales.state === 'unknown' ? (
               <View style={{ padding: scale.space * 2, alignItems: 'center' }}>
                 <ActivityIndicator color={PALETTE.accion} />
@@ -1025,7 +1027,7 @@ function Tabla({
         onPick={onGroup}
       />
       {report.rows.length === 0 ? (
-        <Vacio line={ES.numbers.emptyPeriod} />
+        <Vacio line={ES.numbers.emptyPeriod} dibujo="barras" />
       ) : (
         <View
           style={{

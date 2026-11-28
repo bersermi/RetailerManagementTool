@@ -240,8 +240,9 @@ export function pageWith(draft: PageDraft): Page {
 // ----------------------------------------------------------------------------
 
 /**
- * The nine flat drawings, one per trade, drawn white by `store/cocina-itacate/
- * render.sh` from `brand/giros.svg` into `src/marca/giros/` (`@/theme/dibujos`).
+ * The nine trades' drawings, one per trade — since `11.10-ii` `brand/dibujos/`'s, in
+ * the icons' line, tinted white (`@/theme/dibujos`, `src/marca/dibujos/`). The names
+ * are the old flat drawings' (`brand/giros.svg`), which the neighbours' map pins keep.
  */
 export const DIBUJOS = ['cazuela', 'plato', 'taza', 'concha', 'bolsa', 'pollo', 'taco', 'elote', 'pescado'] as const;
 export type Dibujo = (typeof DIBUJOS)[number];

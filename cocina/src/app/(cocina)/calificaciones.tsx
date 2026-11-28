@@ -14,6 +14,7 @@ import { PALETTE, SIZE } from '@/theme/palette';
 import { ESQUINA } from '@/theme/density';
 import { Banda } from '@/ui/Banda';
 import { BotonLleno } from '@/ui/BotonLleno';
+import { DibujoVacio } from '@/ui/Dibujo';
 import { Llega } from '@/ui/Llega';
 import { Aclaracion, volverAMiCocina } from '@/ui/PantallaDeAjustes';
 
@@ -77,6 +78,9 @@ function Lo({ calificaciones, cocina }: { calificaciones: Calificaciones | null;
   if (calificaciones === null || calificaciones.kind === 'pocas') {
     return (
       <Llega i={0} style={{ gap: SIZE.space }}>
+        {/* ⚠️ `11.10-ii`: below five she sees nothing of them yet, so the screen has nothing yet — row `11.4`'s
+            bubble of stars above its card; not on an answer it could not read (`null`), which is not *none*. */}
+        {calificaciones !== null && <DibujoVacio dibujo="estrellas" />}
         <View style={tarjeta}>
           <Text style={{ fontSize: SIZE.bodySize + 2, fontWeight: '700', color: PALETTE.tinta }}>
             {c.pocas(calificaciones?.cuantas ?? 0)}

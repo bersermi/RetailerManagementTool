@@ -25,6 +25,7 @@ import { Circulo } from '@/ui/Circulo';
 import { Fila } from '@/ui/Fila';
 import { Grupo } from '@/ui/Grupo';
 import { Llega } from '@/ui/Llega';
+import { DibujoVacio } from '@/ui/Dibujo';
 
 // ============================================================================
 // *MIS COCINAS*, THE SECOND TAB. Plan task `10.9d-ii`, the owner's rulings G21–G23 and G39 of
@@ -142,7 +143,8 @@ export default function MisCocinas() {
             </View>
           ) : filas.length === 0 && seFueron.length === 0 && soloTarjeta.length === 0 ? (
             <View style={styles.vacio}>
-              <Icono name="heart-outline" size={44} color={PALETTE.linea} />
+              {/* ⚠️ `11.10-ii`: row `11.4`'s awning with a heart where its window is. */}
+              <DibujoVacio dibujo="toldo" />
               <Text style={styles.vacioTitulo}>{ES.misCocinas.vacio}</Text>
               <Text style={styles.nota}>{conTarjeta ? ES.misCocinas.vacioDetalleConTarjeta : ES.misCocinas.vacioDetalle}</Text>
             </View>

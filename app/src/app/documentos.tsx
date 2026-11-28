@@ -47,6 +47,7 @@ import { Frase } from '@/ui/Frase';
 import { Interruptor } from '@/ui/Interruptor';
 import { Rotulo } from '@/ui/Rotulo';
 import { Separador } from '@/ui/Separador';
+import { DibujoVacio } from '@/ui/DibujoVacio';
 import { Vacio } from '@/ui/Vacio';
 import { Velo } from '@/ui/Velo';
 import { ESQUINA } from '@/theme/density';
@@ -640,21 +641,18 @@ function Fila({
   );
 }
 
-/** ⚠️ `8g`: the week with nothing on this tab, in its counter's colour. */
+/**
+ * ⚠️ `8g`: the week with nothing on this tab, in its counter's colour. ⚠️ `11.10-ii`:
+ * row `11.4`'s till receipt with nothing on it, in that colour, in place of the
+ * tab's glyph in its soft disc (`@/ui/DibujoVacio`).
+ */
 function SemanaVacia({ kind }: { kind: DocumentKind }) {
   const { scale } = useDensity();
   const tone = KIND_TONE[kind];
-  const side = scale.tapTarget * 1.7;
   const copy = ES.documents.emptyWeek[kind];
   return (
     <View style={{ alignItems: 'center', gap: scale.space, paddingTop: scale.space * 2, paddingHorizontal: scale.space }}>
-      <View
-        accessibilityElementsHidden
-        importantForAccessibility="no-hide-descendants"
-        style={{ width: side, height: side, borderRadius: side / 2, backgroundColor: tone.soft, alignItems: 'center', justifyContent: 'center' }}
-      >
-        <Icono name={KIND_ICON[kind]} size={scale.iconSize * 1.6} color={tone.ink} />
-      </View>
+      <DibujoVacio dibujo="recibo" color={tone.ink} />
       <Text style={{ ...letraTitulo(scale), color: PALETTE.tinta, textAlign: 'center' }}>{copy.title}</Text>
       <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada, textAlign: 'center' }}>{copy.hint}</Text>
     </View>
@@ -669,11 +667,6 @@ const KIND_TONE: Readonly<Record<DocumentKind, { readonly ink: string; readonly 
   waste: { ink: PALETTE.desperdicio, soft: PALETTE.desperdicioSuave },
 };
 
-const KIND_ICON: Readonly<Record<DocumentKind, 'cash-register' | 'truck-delivery-outline' | 'basket-minus-outline'>> = {
-  sale: 'cash-register',
-  purchase: 'truck-delivery-outline',
-  waste: 'basket-minus-outline',
-};
 
 /**
  * The question, the wait and the refusal — one box, three states.

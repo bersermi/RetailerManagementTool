@@ -25,6 +25,7 @@ import { PALETTE } from '@/theme/palette';
 import { letraTitulo } from '@/theme/letra';
 import { BotonLleno } from '@/ui/BotonLleno';
 import { Rotulo } from '@/ui/Rotulo';
+import { DibujoVacio } from '@/ui/DibujoVacio';
 import { ESQUINA } from '@/theme/density';
 
 // ============================================================================
@@ -535,23 +536,10 @@ function Opcion({
 function Vacia() {
   const { scale } = useDensity();
   const workspace = useWorkspace();
-  const side = scale.tapTarget * 1.8;
   return (
     <View style={{ alignItems: 'center', gap: scale.space, paddingTop: scale.space * 2 }}>
-      <View
-        accessibilityElementsHidden
-        importantForAccessibility="no-hide-descendants"
-        style={{
-          width: side,
-          height: side,
-          borderRadius: side / 2,
-          backgroundColor: PALETTE.accionSuave,
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <Icono name="door-open" size={scale.iconSize * 1.8} color={PALETTE.accion} />
-      </View>
+      {/* ⚠️ `11.10-ii`: row `11.4`'s door with nobody on its mat, in place of `door-open` in a soft disc. */}
+      <DibujoVacio dibujo="puerta" color={PALETTE.accion} />
       <Text style={{ ...letraTitulo(scale), color: PALETTE.tinta, textAlign: 'center' }}>
         {ES.approvals.emptyTitle}
       </Text>

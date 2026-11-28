@@ -99,9 +99,9 @@ export function mapsLinkOk(link: string): boolean {
 // ----------------------------------------------------------------------------
 
 /**
- * The nine flat drawings, one per trade, drawn white by `store/cocina-itacate/
- * render.sh` from `brand/giros.svg` — Wera Cocina's `src/marca/giros/`, copied
- * byte for byte into this app's (`@/theme/dibujos`).
+ * The nine trades' drawings, one per trade — since `11.10-ii` `brand/dibujos/`'s, in
+ * the icons' line, tinted white (`@/theme/dibujos`, `src/marca/dibujos/`, as Wera
+ * Cocina's); the map's pins keep the old flat ones (`@/theme/pines`, `brand/giros.svg`).
  */
 export const DIBUJOS = ['cazuela', 'plato', 'taza', 'concha', 'bolsa', 'pollo', 'taco', 'elote', 'pescado'] as const;
 export type Dibujo = (typeof DIBUJOS)[number];

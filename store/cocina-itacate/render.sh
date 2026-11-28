@@ -40,13 +40,14 @@
 # pre-8 launcher icon — stays Wera's, so Itacate's Android runtime does not move. ⚠️ Native on
 # the iPhone: re-drawing it moves Itacate's iPhone runtime.
 #
-# AND, ON ITS OWN, THE NINE TRADES' DRAWINGS (`10.5-ii`) — a kitchen's default cover
-# and dish picture, her trade's drawing on her colour:
+# AND, ON ITS OWN, THE NINE TRADES' FLAT DRAWINGS (`10.5-ii`) — since `11.10-ii` only the
+# neighbours' map pins draw them (a cover or a dish without a photo wears `brand/dibujos/`'s
+# line drawing instead, and at 20 points a line is a smudge):
 #
 #   bash store/cocina-itacate/render.sh giros
 #
 # draws each `<symbol>` of `brand/giros.svg` white on nothing, 512 px square, into
-# `cocina/src/marca/giros/<name>.png` (no app has SVG), and NOTHING ELSE: run with no
+# `itacate/src/marca/giros/<name>.png` (no app has SVG), and NOTHING ELSE: run with no
 # argument this script re-draws the icon and the launch screen too, which are part of
 # the native build. The drawings are JavaScript assets and move no runtime.
 #
@@ -133,8 +134,8 @@ HTML
   shoot "$WORK/app-splash.html" "$1/splash-icon.png" 600 574
 }
 
-giros() { # each symbol of brand/giros.svg, white on nothing, 512 px, into cocina/src/marca/giros/
-  local out="$REPO/cocina/src/marca/giros" id
+giros() { # each symbol of brand/giros.svg, white on nothing, 512 px, into itacate/src/marca/giros/ (the map's pins)
+  local out="$REPO/itacate/src/marca/giros" id
   mkdir -p "$out"
   python3 - "$REPO/brand/giros.svg" "$WORK" > "$WORK/giros.txt" <<'PY'
 import re, sys
@@ -150,7 +151,7 @@ PY
   [[ -s "$WORK/giros.txt" ]] || { echo "FAIL: no <symbol> found in brand/giros.svg"; exit 1; }
   while read -r id; do
     shoot "$WORK/giro-$id.html" "$out/$id.png" 512 512
-    printf '  %-36s %s\n' "cocina/src/marca/giros/$id.png" "$(sips -g pixelWidth -g pixelHeight -g hasAlpha "$out/$id.png" | tail -3 | awk '{print $2}' | tr '\n' ' ')"
+    printf '  %-36s %s\n' "itacate/src/marca/giros/$id.png" "$(sips -g pixelWidth -g pixelHeight -g hasAlpha "$out/$id.png" | tail -3 | awk '{print $2}' | tr '\n' ' ')"
   done < "$WORK/giros.txt"
 }
 

@@ -1,5 +1,5 @@
 {
-  "_": "Step 11, row 11.4 (2026-11-26): the apps' drawings — the empty screens, a kitchen without a photo, a reward won — in the icons' line. Each drawing: its kind (vacio, oficio, premio), its size in points as the pictures are drawn (render-dibujos.sh), its ink as a palette token (brand/mostrador/paleta.json), and where it sits: the screen's file, a text that file must still contain, the sentence beside it as a key of that app's strings.ts, and what the screen shows there today. dibujos.mjs checks every entry against the code. No app reads this folder until row 11.10-ii.",
+  "_": "Step 11, row 11.4 (2026-11-26): the apps' drawings — the empty screens, a kitchen without a photo, a reward won — in the icons' line. Each drawing: its kind (vacio, oficio, premio), its size in points as the pictures are drawn (render-dibujos.sh), its ink as a palette token (brand/mostrador/paleta.json), and where it sits: the screen's file, a text that file must still contain, the sentence beside it as a key of that app's strings.ts, and what the screen shows there today. dibujos.mjs checks every entry against the code. Since row 11.10-ii the three apps draw them: each app's copies of png/ are held to these files byte for byte by its test/dibujos.test.ts.",
   "linea": { "cuadricula": 64, "trazo": 3 },
   "reglas": {
     "vacio": "A drawing only where a whole screen, or its one list, has nothing yet: never while it loads, without signal, on a failure, or when a search matched nothing. Above the sentence, centred, 96 points (Wera's Letra grande 120), in the screen's own colour, on the counter; it replaces today's glyph and its disc.",
@@ -16,7 +16,8 @@
     "barras": {
       "tipo": "vacio", "puntos": 120, "que": "a chart whose bars are not there yet",
       "donde": [
-        { "app": "app", "archivo": "app/src/app/numeros.tsx", "busca": "ES.numbers.emptyPeriod", "textos": ["numbers.emptyPeriod"], "tinta": ["accion"], "hoy": "the sentence alone (Vacio)" }
+        { "app": "app", "archivo": "app/src/app/numeros.tsx", "busca": "ES.numbers.emptyPeriod", "textos": ["numbers.emptyPeriod"], "tinta": ["accion"], "hoy": "the sentence alone (Vacio)" },
+        { "app": "app", "archivo": "app/src/app/numeros.tsx", "busca": "salesNothingYet(", "textos": ["numbers.nothing"], "tinta": ["accion"], "hoy": "the sentence alone (Vacio) — added by 11.10-ii: what a shop that has never sold sees on Ventas, which 11.4's inventory had not listed" }
       ]
     },
     "diablito": {
@@ -79,7 +80,7 @@
     }
   },
   "sinFoto": {
-    "_": "Where a kitchen or a dish without a photo draws her trade today (Dibujo, modo portada = the wallpaper: 28 faint drawings and one large; modo cuadro = one drawing). Row 11.10 draws one, in the line, in each.",
+    "_": "Where a kitchen or a dish without a photo draws her trade (Dibujo: modo portada = a cover, a card or a page, the drawing at 60% of its height; modo cuadro = a dish row's square, 64%). Until row 11.10-ii portada was a wallpaper of 28 faint drawings and one large; since then one drawing, in the line, in each.",
     "lugares": [
       { "archivo": "itacate/src/ui/PaginaDeCocina.tsx", "modo": "portada", "que": "a kitchen's page, its cover (16:9)" },
       { "archivo": "itacate/src/ui/TarjetaPlatillo.tsx", "modo": "portada", "que": "a dish's card on Cerca (16:7)" },
@@ -93,7 +94,7 @@
       { "archivo": "cocina/src/vecinos/ui/PaginaDePlatillo.tsx", "modo": "portada", "que": "her dish's page as neighbours see it" },
       { "archivo": "cocina/src/vecinos/ui/RenglonPlatillo.tsx", "modo": "cuadro", "que": "her dish's row as neighbours see it" }
     ],
-    "pines": { "archivo": "itacate/src/ui/MapaDeCocinas.tsx", "busca": "DIBUJO[pin.dibujo]", "que": "the map's pins keep today's solid drawings" }
+    "pines": { "archivo": "itacate/src/ui/MapaDeCocinas.tsx", "busca": "PIN[pin.dibujo]", "que": "the map's pins keep the old solid drawings (@/theme/pines, itacate/src/marca/giros/)" }
   },
   "sinDibujo": {
     "_": "Empty states looked at and left without a drawing, and why — so a later session does not take them for forgotten.",

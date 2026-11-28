@@ -16,6 +16,7 @@ import { PALETTE, SIZE } from '@/theme/palette';
 import { Anterior } from '@/ui/Anterior';
 import { Banda } from '@/ui/Banda';
 import { BotonLleno } from '@/ui/BotonLleno';
+import { DibujoVacio } from '@/ui/Dibujo';
 import { Grupo } from '@/ui/Grupo';
 import { Llega } from '@/ui/Llega';
 import { OfertaDeHoy } from '@/ui/OfertaDeHoy';
@@ -146,7 +147,16 @@ export default function TusOfertas() {
         <Llega i={3} style={{ gap: SIZE.space }}>
           <Text style={seccion}>{ES.ofertas.anteriores}</Text>
           {pasadas.length === 0 ? (
-            <Text style={quiet}>{ES.ofertas.ninguna}</Text>
+            // ⚠️ `11.10-ii`: THE BOARD ONLY WHEN SHE HAS PUBLISHED NOTHING AT ALL (row `11.4`'s *"nothing ever
+            // published: the board goes under Anteriores"*) — with today's offer above, the sentence alone.
+            hoy.length === 0 ? (
+              <View style={{ alignItems: 'center', gap: SIZE.space }}>
+                <DibujoVacio dibujo="pizarron" />
+                <Text style={{ ...quiet, textAlign: 'center' }}>{ES.ofertas.ninguna}</Text>
+              </View>
+            ) : (
+              <Text style={quiet}>{ES.ofertas.ninguna}</Text>
+            )
           ) : (
             <>
               <Grupo sinIconos>

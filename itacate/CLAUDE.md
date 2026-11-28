@@ -369,8 +369,8 @@ from `itacate/` with the two local `EXPO_PUBLIC_SUPABASE_` values in the shell, 
   cannot be placed; the iPhone key answers both apps.
 - **Wera Cocina's defaults and names, copied — each copy naming its twin**: `@/api/pagina` (the six
   colours, each trade's colour and drawing, the initials), `@/api/fotos` (the photos' names and how a
-  phone asks for one), `@/theme/colores`, `@/theme/dibujos` with `src/marca/giros/` (the nine PNGs, byte
-  for byte), `@/format/mxn` (Wera's, through Wera Cocina's), `@/lib/ventana` (a window's words),
+  phone asks for one), `@/theme/colores`, `@/theme/dibujos` with `src/marca/dibujos/`'s nine trades (byte
+  for byte — both `brand/dibujos/png/`'s), `@/format/mxn` (Wera's, through Wera Cocina's), `@/lib/ventana` (a window's words),
   `@/lib/zona`, `@/ui/Dibujo`, `@/ui/Iniciales`, `@/lib/google`'s shared code, and since `10.9g-iii` `@/ui/BandaPromocion`, `@/lib/promociones`
 and the promotions' kinds and days in `@/api/cocinas`. `test/gemelos.test.ts`
   holds each to the TWIN'S FILE: it runs the twin where it loads under this app's `@/`, compares the code
@@ -625,5 +625,10 @@ follows it, as `cocina/CLAUDE.md`'s does:
   byte for byte, `test/iconos.test.ts`), draw `brand/iconos/`'s font (`src/marca/iconos/`, loaded by `@/marca/fuentes` with the
   titles' faces) by the names written for MaterialCommunityIcons; nothing else imports `@expo/vector-icons`. *Continuar con
   Google* draws Google's own G (`src/marca/google/`, `brand/marcas/google/`'s), its colours on white; `whatsapp` is Meta's own
-  glyph since `11.10-iii` (`src/marca/whatsapp/`, green or white by the colour asked for, never tinted; `brand/marcas/README.md`). The drawings for empty screens, covers and the reward are `11.10-ii`'s.
+  glyph since `11.10-iii` (`src/marca/whatsapp/`, green or white by the colour asked for, never tinted; `brand/marcas/README.md`). ⚠️ **Since `11.10-ii` the drawings are in their places** (`brand/dibujos/dibujos.json` names each; `test/dibujos.test.ts`): a
+  kitchen's cover, a dish's card or page wears her trade's drawing ONCE, white, at 60 % of its height (64 % of a dish row's
+  square) — `@/ui/Dibujo`, Wera Cocina's; *Apartados*, *Cerca* and *Mis cocinas* with nothing yet draw theirs above the
+  sentence, 96 points in `accion` (`DibujoVacio`) — never while reading or on a failure; *¡Ganaste …!* is one sheet of the
+  kitchen's colour, the gift white at 150 points over the reward in Mansalva and its sentence, both white. ⚠️ **The map's pins keep
+  the old flat drawings** (`@/theme/pines`, `src/marca/giros/`, this app's alone): at 20 points a line is a smudge.
 - **Money:** no screen stores or shows a bank account, a card or an amount paid — only how she will pay.

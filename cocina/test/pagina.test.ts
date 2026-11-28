@@ -249,21 +249,8 @@ describe('the defaults — what each empty slot shows', () => {
     for (const color of COLORS) expect(1.05 / (luminance(HUES[color]) + 0.05), color).toBeGreaterThanOrEqual(4.5);
   });
 
-  it('every drawing is a 512 px PNG in the bundle, required by name, and drawn from `brand/giros.svg`', () => {
-    const map = code('theme/dibujos.ts');
-    const svg = readFileSync(join(ROOT, '../brand/giros.svg'), 'utf8');
-    const symbols = [...svg.matchAll(/<symbol id="([a-z]+)" viewBox="0 0 64 64">/g)].map((m) => m[1]);
-    expect([...symbols].sort()).toEqual([...DIBUJOS].sort());
-    for (const dibujo of DIBUJOS) {
-      const file = join(SRC, 'marca/giros', `${dibujo}.png`);
-      expect(existsSync(file), file).toBe(true);
-      const png = readFileSync(file);
-      expect(png.subarray(1, 4).toString('latin1'), dibujo).toBe('PNG');
-      expect([png.readUInt32BE(16), png.readUInt32BE(20)], dibujo).toEqual([512, 512]);
-      expect(map, dibujo).toContain(`${dibujo}: require('@/marca/giros/${dibujo}.png') as ImageSourcePropType,`);
-    }
-    expect(readFileSync(join(ROOT, '../store/cocina-itacate/render.sh'), 'utf8')).toMatch(/if \[\[ "\$\{1:-\}" == "giros" \]\]; then\n  giros\n  exit 0/);
-  });
+  // ⚠️ `11.10-ii`: the drawings are `brand/dibujos/`'s line, held by `test/dibujos.test.ts`; the old flat ones
+  // (`brand/giros.svg`, 512 px) live in the neighbours' app alone, for its map's pins (its `test/dibujos.test.ts`).
 });
 
 describe('her initials, until she gives a logo', () => {

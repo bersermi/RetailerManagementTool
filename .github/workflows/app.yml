@@ -125,6 +125,10 @@ on:
       - "brand/iconos/WeraIconos.ttf"
       - "brand/iconos/WeraIconos.json"
       - "brand/marcas/**"
+      # ⚠️ `11.10-ii`: AND THE DRAWINGS OF ITS SCREENS WITH NOTHING YET — `app/test/dibujos.test.ts` holds
+      # Wera's copies (`src/marca/vacios/`) to `brand/dibujos/png/`, byte for byte, and every place to `dibujos.json`.
+      - "brand/dibujos/png/**"
+      - "brand/dibujos/dibujos.json"
 
 concurrency:
   group: app-${{ github.ref }}

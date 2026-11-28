@@ -226,7 +226,7 @@ describe('⚠️ the list stops at 3 km — his ruling D7 of 2026-11-19 (`10.5-i
     expect(ES.mapa.nadaAqui).toContain(` ${HASTA_METROS / 1_000} km `);
     expect(ES.cerca.vacio).toBe('Todavía ninguna cocina tiene algo publicado. Vuelve más tarde.');
     const lista = readFileSync(new URL('../src/app/(vecino)/(tabs)/index.tsx', import.meta.url), 'utf8');
-    expect(lista).toMatch(/<Aviso texto=\{tarjetas\.length === 0 \? ES\.cerca\.vacio : ES\.mapa\.nadaAqui\} \/>/);
+    expect(lista).toMatch(/<Aviso texto=\{tarjetas\.length === 0 \? ES\.cerca\.vacio : ES\.mapa\.nadaAqui\} dibujo=\"mapa\" \/>/);
     // The list draws `partir`'s cards — those within 3 km, and the ones she tapped on the map.
     expect(lista).toMatch(/const \{ enElMapa, resto \} = useMemo\(\(\) => partir\(tarjetas, elegidas\), \[tarjetas, elegidas\]\);/);
     expect(lista).toMatch(/data=\{resto\}/);

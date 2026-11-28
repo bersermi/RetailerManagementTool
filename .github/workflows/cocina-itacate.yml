@@ -60,7 +60,8 @@ on:
       - "site/privacidad/cocina-e-itacate/index.html"
       # ⚠️ `10.5-ii`, HER PAGE AND HER PHOTOS: a square photo's two files are Wera's
       # sizes (`app/src/api/photos.ts`), and the nine trades' drawings are held to
-      # their source (`brand/giros.svg`) and to the script that draws them.
+      # their source (`brand/giros.svg`) and to the script that draws them — since
+      # `11.10-ii` the neighbours' map pins alone (`itacate/test/dibujos.test.ts`).
       - "app/src/api/photos.ts"
       - "brand/giros.svg"
       - "store/cocina-itacate/render.sh"
@@ -136,6 +137,10 @@ on:
       - "brand/iconos/WeraIconos.ttf"
       - "brand/iconos/WeraIconos.json"
       - "brand/marcas/**"
+      # ⚠️ `11.10-ii`, THE DRAWINGS: each app's `src/marca/dibujos/` is `brand/dibujos/png/`'s byte for byte, and every
+      # place an empty screen, a photo-less cover or the reward draws one is `dibujos.json`'s (`test/dibujos.test.ts` in each).
+      - "brand/dibujos/png/**"
+      - "brand/dibujos/dibujos.json"
       - "package.json"
       - "package-lock.json"
       - ".github/workflows/cocina-itacate.yml"

@@ -37,6 +37,10 @@ npm --prefix app test                     # the test tally — the RUNNER's, nev
   font does not draw is a type error). Nothing else imports `@expo/vector-icons` (`test/iconos.test.ts`, the same in
   the two sibling apps); a new icon is drawn in `brand/iconos/` first. Google's G and WhatsApp's glyph are their
   owners', drawn by their rules (`brand/marcas/README.md`).
+- **A screen with nothing yet draws its drawing above its sentence** (`11.10-ii`): `@/ui/DibujoVacio`, `brand/dibujos/`'s
+  pictures (`src/marca/vacios/`, byte for byte, `test/dibujos.test.ts`) at the density's `dibujoSize`, in the screen's
+  colour — *Lo último*, *Números*, *Proveedores*, *Solicitudes*. Only on *nothing yet*: the `@/api` function that chose the
+  line says so (`providerNothingYet`), never a route's guess.
 - **A module in `app/src/api/` is a claim about the applied schema**, which is why `db.yml` fires
   on it. Its wire behaviour is proven only by the matching `docs/checks/*-contract.sh` against a
   real PostgREST — never by a typecheck or a Vitest fixture.

@@ -292,6 +292,16 @@ export function salesLine(state: SalesState, failed: ApiMessageKey | null, onlin
 }
 
 /**
+ * Whether that line is *todavía no hay ventas que contar* — six months READ and
+ * holding no sale, what a new shop sees — which draws `11.4`'s chart above it
+ * (`11.10-ii`). Never a failure, no signal or a read still out: the same state
+ * `salesLine` reads first.
+ */
+export function salesNothingYet(state: SalesState): boolean {
+  return state === 'nothing';
+}
+
+/**
  * The days, if the six months have been READ — `null` while they have not.
  *
  * ⚠️ `8g`, 2026-10-20, round 3: `days` is `[]` both for a shop that has sold

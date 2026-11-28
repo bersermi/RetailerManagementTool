@@ -311,7 +311,13 @@ abrir('the inventory is current, and the first half is whole');
   // ⚠️ A glyph a later row retired from every app keeps its drawing in the font (the page serves this font and its
   // map byte for byte); each is named here with the row and why. `11.8-i` (2026-11-27): her card's stamps are the
   // cow PICTURE (`brand/mostrador/objetos/sello-vaca.svg`, `@/ui/Mostrador`'s `SelloVaca`), as the brand book said.
-  const RETIRADOS = { cow: '11.8-i — her card’s stamps are the cow picture, sello-vaca' };
+  // `11.10-ii` (2026-11-28): Wera's *Lo último* and *Solicitudes* drew these two only in an empty screen's disc,
+  // which row `11.4`'s drawings replace (`brand/dibujos/`: `recibo`, `puerta`).
+  const RETIRADOS = {
+    cow: '11.8-i — her card’s stamps are the cow picture, sello-vaca',
+    'truck-delivery-outline': '11.10-ii — Lo último’s empty Comprar week draws brand/dibujos/recibo',
+    'door-open': '11.10-ii — Solicitudes with nobody waiting draws brand/dibujos/puerta',
+  };
   const reemplazos = dibujos.flatMap(([, d]) => d.reemplaza).filter((n) => !(n in RETIRADOS));
   const nadie = reemplazos.filter((n) => !inv[n]);
   const vuelto = Object.keys(RETIRADOS).filter((n) => inv[n]);

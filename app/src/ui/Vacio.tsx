@@ -17,17 +17,30 @@
 // `catalogLine` (`@/api/catalog`) is what CHOOSES between *still loading*, *no
 // products* and *nothing matched*, so this component holds neither the choice
 // (`R3`) nor the words (`R4`) and `app/test/api-catalog.test.ts` reads both.
+//
+// ⚠️ `11.10-ii` — A DRAWING ABOVE THE SENTENCE WHEN THE SCREEN HAS NOTHING YET (row
+// `11.4`'s *vacíos*, his call 13, ruled as drawn on 2026-11-26; the family shell's
+// *one sentence, one drawing and the button that fills it*): `@/ui/DibujoVacio`, at the
+// density's `dibujoSize` (96, 120 at `Letra grande`), in the screen's own colour —
+// `accion`, and on *Lo último* its counter's. ⚠️ THE CALLER PASSES `dibujo` ONLY
+// FOR *NOTHING YET*, never while it loads, without signal, on a failure or when a
+// search matched nothing — the same `@/api` function that chose the line says so
+// (`providerNothingYet` beside `providerLine`). Hidden from the screen reader: the
+// sentence says it.
 // ============================================================================
 
 import { Text, View } from 'react-native';
 
+import type { DibujoDeVacio } from '@/marca/vacios';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
+import { DibujoVacio } from '@/ui/DibujoVacio';
 
-export function Vacio({ line }: { line: string }) {
+export function Vacio({ line, dibujo }: { line: string; dibujo?: DibujoDeVacio }) {
   const { scale } = useDensity();
   return (
-    <View style={{ padding: scale.space * 2, alignItems: 'center' }}>
+    <View style={{ padding: scale.space * 2, alignItems: 'center', gap: scale.space }}>
+      {dibujo === undefined ? null : <DibujoVacio dibujo={dibujo} color={PALETTE.accion} />}
       <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada, textAlign: 'center' }}>
         {line}
       </Text>

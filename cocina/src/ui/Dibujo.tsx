@@ -1,9 +1,9 @@
-import { useState } from 'react';
 import { Image, StyleSheet, View } from 'react-native';
 
 import type { ColorCode, Dibujo as Nombre } from '@/api/pagina';
 import { HUES } from '@/theme/colores';
-import { DIBUJO } from '@/theme/dibujos';
+import { DIBUJO, VACIO, type Vacio } from '@/theme/dibujos';
+import { PALETTE } from '@/theme/palette';
 
 // ============================================================================
 // HER TRADE'S DRAWING ON HER COLOUR — what an empty slot shows. Plan task
@@ -11,67 +11,50 @@ import { DIBUJO } from '@/theme/dibujos';
 // part has a default (a drawing for her trade on her colour, her initials)"*, so
 // a page nobody touched still looks finished.
 //
-// TWO WAYS, AS THE PROPOSALS PAGE DREW THEM:
-//   - `portada`: her colour, the drawing small and faint across it, and once
-//     large at the right — the cover of a page with no photo;
-//   - `cuadro`: her colour and the drawing in the middle — a dish with no photo.
+// ⚠️ `11.10-ii` — ROW `11.4`'S DRAWINGS, AS HE RULED THEM (call 13, 2026-11-26, *as
+// drawn*): her colour and her trade's drawing ONCE, in white, centred, at 60% of
+// the frame's height (`portada`: a cover, a dish's card or its page) or 64% of a
+// dish row's square (`cuadro`) — in place of the wallpaper it was until then, 28
+// faint copies and a large one (`brand/dibujos/README.md`). The drawing is a
+// picture in black, tinted white here: one colour, no SVG library in the build.
+// Its box is the share of BOTH sides and the picture is fitted into it, so on a
+// wide frame its height decides, on a square both.
+//
+// ⚠️ AND A SCREEN WITH NOTHING YET (`DibujoVacio`): its drawing above its sentence,
+// 96 points, in `accion` (`brand/dibujos/dibujos.json`'s `vacio`) — never while it
+// loads, without signal or on a failure; the screen decides when.
 //
 // ⚠️ IT FILLS ITS FRAME, which must clip; the frame decides the shape. Hidden from
 // the screen reader: it is decoration, and the slot's label says what it is.
-//
-// ⚠️ THE COVER'S DRAWINGS ARE PLACED IN PIXELS, FROM THE FRAME'S MEASURED SIZE
-// (`onLayout`): placed in percentages with `aspectRatio`, the large one sat at
-// the left and the faint ones drew nothing (seen on the emulator, 2026-11-04).
+// `itacate/test/gemelos.test.ts` holds the neighbours' copy to the code below.
 // ============================================================================
 
-/** Where the faint drawings sit across a cover, as fractions of its width and height. */
-const PATRON: readonly (readonly [number, number])[] = Array.from({ length: 4 }, (_, row) =>
-  Array.from({ length: 7 }, (_, col) => [col * 0.15 + (row % 2 === 0 ? 0.02 : 0.095), row * 0.26 + 0.04] as const),
-).flat();
+/** Her trade's drawing, as a share of its frame: a cover's or a card's height, a dish row's square. */
+const ALTO = { portada: '60%', cuadro: '64%' } as const;
 
 export function Dibujo({ dibujo, color, modo }: { dibujo: Nombre; color: ColorCode; modo: 'portada' | 'cuadro' }) {
-  const source = DIBUJO[dibujo];
-  if (modo === 'cuadro') {
-    return (
-      <View
-        accessibilityElementsHidden
-        importantForAccessibility="no-hide-descendants"
-        style={[StyleSheet.absoluteFill, { backgroundColor: HUES[color], alignItems: 'center', justifyContent: 'center' }]}
-      >
-        <Image source={source} resizeMode="contain" style={{ width: '64%', height: '64%' }} />
-      </View>
-    );
-  }
-  return <Portada source={source} color={color} />;
-}
-
-function Portada({ source, color }: { source: (typeof DIBUJO)[Nombre]; color: ColorCode }) {
-  const [size, setSize] = useState<{ readonly w: number; readonly h: number } | null>(null);
-  const small = size === null ? 0 : Math.round(size.w * 0.09);
-  const large = size === null ? 0 : Math.round(size.h * 0.8);
   return (
     <View
       accessibilityElementsHidden
       importantForAccessibility="no-hide-descendants"
-      onLayout={(event) => setSize({ w: event.nativeEvent.layout.width, h: event.nativeEvent.layout.height })}
-      style={[StyleSheet.absoluteFill, { backgroundColor: HUES[color], overflow: 'hidden' }]}
+      style={[StyleSheet.absoluteFill, { backgroundColor: HUES[color], alignItems: 'center', justifyContent: 'center' }]}
     >
-      {size !== null &&
-        PATRON.map(([x, y]) => (
-          <Image
-            key={`${x}-${y}`}
-            source={source}
-            resizeMode="contain"
-            style={{ position: 'absolute', left: Math.round(x * size.w), top: Math.round(y * size.h), width: small, height: small, opacity: 0.14 }}
-          />
-        ))}
-      {size !== null && (
-        <Image
-          source={source}
-          resizeMode="contain"
-          style={{ position: 'absolute', left: Math.round(size.w * 0.95) - large, top: Math.round(size.h * 0.1), width: large, height: large, opacity: 0.95 }}
-        />
-      )}
+      <Image source={DIBUJO[dibujo]} resizeMode="contain" style={{ width: ALTO[modo], height: ALTO[modo], tintColor: PALETTE.superficie }} />
     </View>
+  );
+}
+
+/** The side of a screen's drawing when it has nothing yet, in points (`brand/dibujos/dibujos.json`'s `vacio`). */
+export const LADO_VACIO = 96;
+
+export function DibujoVacio({ dibujo }: { dibujo: Vacio }) {
+  return (
+    <Image
+      source={VACIO[dibujo]}
+      accessibilityElementsHidden
+      importantForAccessibility="no"
+      resizeMode="contain"
+      style={{ alignSelf: 'center', width: LADO_VACIO, height: LADO_VACIO, tintColor: PALETTE.accion }}
+    />
   );
 }
