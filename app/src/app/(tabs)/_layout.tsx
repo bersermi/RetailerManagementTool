@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { Tabs } from 'expo-router/js-tabs';
 import { Image, Text, View, type ColorValue } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -99,7 +99,7 @@ export default function TabsLayout() {
               </View>
             ),
             tabBarIcon: ({ color }) => (
-              <MaterialCommunityIcons
+              <Icono
                 // The glyph names are checked against the shipped map in
                 // app/test/tabs.test.ts; a typo here is a blank square on the
                 // bar, which is C12.1 broken silently.

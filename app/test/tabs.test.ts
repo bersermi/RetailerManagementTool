@@ -17,24 +17,18 @@
 // ============================================================================
 
 import { readFileSync } from 'node:fs';
-import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
 import { TABS } from '@/navigation/tabs';
 import { ES } from '@/strings';
 
-// ⚠️ THE SHIPPED GLYPH MAP, RESOLVED THROUGH THE PACKAGE. This is the same file
-// the icon component reads at runtime, so a name that is not in it is a blank
-// square on the device. Resolved rather than path-joined so that a dependency
-// bump which moves it fails HERE, loudly, naming the path — instead of leaving
-// a test that quietly checks nothing.
-const require_ = createRequire(import.meta.url);
+// ⚠️ THE SHIPPED GLYPH MAP — since `11.10-i` the apps' own font's (`@/ui/Icono`), the
+// same file the icon component reads at runtime, so a name that is not in it is a
+// blank square on the device. `test/iconos.test.ts` holds it to `brand/iconos/`.
 const GLYPHS = JSON.parse(
   readFileSync(
-    require_.resolve(
-      '@expo/vector-icons/build/vendor/react-native-vector-icons/glyphmaps/MaterialCommunityIcons.json',
-    ),
+    new URL('../src/marca/iconos/WeraIconos.json', import.meta.url),
     'utf8',
   ),
 ) as Record<string, number>;
@@ -53,8 +47,8 @@ describe('C12.1 — the shell has tabs, and the checks below are not vacuous', (
   });
 
   it('found the shipped glyph map, so the icon checks mean something', () => {
-    expect(Object.keys(GLYPHS).length, 'the MaterialCommunityIcons map is empty').toBeGreaterThan(
-      1000,
+    expect(Object.keys(GLYPHS).length, "the icon font's map is empty").toBeGreaterThan(
+      100,
     );
   });
 });
@@ -78,7 +72,7 @@ describe('C12.1 — never an icon without its word', () => {
     it(`${tab.route} has an icon that exists in the shipped font`, () => {
       // A typo here is not a crash and not a red anything: it is a blank square
       // on the bar, which is C12.1 broken in exactly the way C12.1 forbids.
-      expect(GLYPHS[tab.icon], `"${tab.icon}" is not a MaterialCommunityIcons glyph`).toBeTypeOf(
+      expect(GLYPHS[tab.icon], `"${tab.icon}" is not a glyph of the icon font`).toBeTypeOf(
         'number',
       );
     });

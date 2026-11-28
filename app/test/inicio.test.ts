@@ -1,5 +1,4 @@
 import { readFileSync } from 'node:fs';
-import { createRequire } from 'node:module';
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -37,13 +36,9 @@ import { DENSITIES, DENSITY_MODES } from '@/theme/density';
 // the thing hidden would be the takings figure — the number this whole screen
 // exists to show.
 // ============================================================================
-
-const require_ = createRequire(import.meta.url);
 const GLYPHS = JSON.parse(
   readFileSync(
-    require_.resolve(
-      '@expo/vector-icons/build/vendor/react-native-vector-icons/glyphmaps/MaterialCommunityIcons.json',
-    ),
+    new URL('../src/marca/iconos/WeraIconos.json', import.meta.url),
     'utf8',
   ),
 ) as Record<string, number>;
@@ -109,8 +104,8 @@ describe('§2.8 — state comes first, and the checks below are not vacuous', ()
   });
 
   it('found the shipped glyph map, so the icon checks mean something', () => {
-    expect(Object.keys(GLYPHS).length, 'the MaterialCommunityIcons map is empty').toBeGreaterThan(
-      1000,
+    expect(Object.keys(GLYPHS).length, "the icon font's map is empty").toBeGreaterThan(
+      100,
     );
   });
 });
@@ -197,7 +192,7 @@ describe('C12.1 — never an icon without its word, and never a word we invented
     it(`${door.key} has an icon that exists in the shipped font`, () => {
       // A typo here is not a crash and not a red anything: it is a blank square
       // beside a word, which is C12.1 broken in the way C12.1 forbids.
-      expect(GLYPHS, `"${door.icon}" is not in MaterialCommunityIcons`).toHaveProperty(door.icon);
+      expect(GLYPHS, `"${door.icon}" is not in the icon font`).toHaveProperty(door.icon);
     });
 
     it(`${door.key} says why it is here and why that glyph`, () => {

@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { useState, type ReactNode } from 'react';
 import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -137,7 +137,7 @@ export function PaginaDeCocina({
             {distancia !== null && <CreditoDeGoogle />}
             {calificacion.kind === 'estrellas' ? (
               <View accessible accessibilityLabel={calificacion.ayuda} style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                <MaterialCommunityIcons name="star" size={SIZE.bodySize} color={PALETTE.estrella} />
+                <Icono name="star" size={SIZE.bodySize} color={PALETTE.estrella} />
                 <Text style={{ fontSize: SIZE.smallSize, fontWeight: '700', color: PALETTE.tinta }}>{calificacion.promedio}</Text>
                 <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada }}>{calificacion.cuantas}</Text>
               </View>
@@ -225,7 +225,7 @@ export function PaginaDeCocina({
         >
           {calle !== null && (
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: SIZE.rowGap / 2 }}>
-              <MaterialCommunityIcons name="map-marker-outline" size={SIZE.iconSize - 4} color={PALETTE.tintaApagada} />
+              <Icono name="map-marker-outline" size={SIZE.iconSize - 4} color={PALETTE.tintaApagada} />
               <Text style={{ flexShrink: 1, fontSize: SIZE.bodySize, color: PALETTE.tinta }}>{calle}</Text>
             </View>
           )}

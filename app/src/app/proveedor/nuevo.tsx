@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState, type ReactNode } from 'react';
 import { Keyboard, Pressable, Text, TextInput, View } from 'react-native';
@@ -205,7 +205,7 @@ export default function NuevoProveedor() {
                 style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: scale.tapTarget }}
               >
                 <Text style={{ flex: 1, fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.tinta }}>{provider.name}</Text>
-                <MaterialCommunityIcons name="chevron-right" size={scale.iconSize} color={PALETTE.tintaApagada} />
+                <Icono name="chevron-right" size={scale.iconSize} color={PALETTE.tintaApagada} />
               </Pressable>
             ))}
           </View>

@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { Text, View } from 'react-native';
 
 import { sinSenalTexto } from '@/lib/apartados';
@@ -30,7 +30,7 @@ export function SinSenal({ sinSenal, leidoEn, ahora }: { sinSenal: boolean; leid
         backgroundColor: PALETTE.superficie,
       }}
     >
-      <MaterialCommunityIcons name="wifi-off" size={18} color={PALETTE.tintaApagada} />
+      <Icono name="wifi-off" size={18} color={PALETTE.tintaApagada} />
       <Text style={{ flex: 1, fontSize: SIZE.smallSize, lineHeight: 18, fontWeight: '600', color: PALETTE.tinta }}>
         {leidoEn === null ? ES.senal.sinDatos : sinSenalTexto(leidoEn, ahora)}
       </Text>

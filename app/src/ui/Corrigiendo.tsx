@@ -10,7 +10,7 @@
 // counter's own *Vaciar carrito* box, which then asks in the correction's words.
 // ============================================================================
 
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { Pressable, Text, View } from 'react-native';
 
 import { ES } from '@/strings';
@@ -32,7 +32,7 @@ export function Corrigiendo({ line, onCancel }: { line: string; onCancel: () => 
         paddingVertical: scale.rowGap / 2,
       }}
     >
-      <MaterialCommunityIcons name="pencil-outline" size={scale.iconSize * 0.8} color={PALETTE.atencion} />
+      <Icono name="pencil-outline" size={scale.iconSize * 0.8} color={PALETTE.atencion} />
       <Text style={{ flex: 1, fontSize: scale.smallSize, fontWeight: '600', color: PALETTE.tinta }}>{line}</Text>
       <Pressable
         accessibilityRole="button"

@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { StatusBar } from 'expo-status-bar';
 import { Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -33,7 +33,7 @@ export function BarraVista({ texto, onCerrar }: { texto: string; onCerrar: () =>
       }}
     >
       <StatusBar style="light" />
-      <MaterialCommunityIcons name="eye-outline" size={18} color={PALETTE.superficie} />
+      <Icono name="eye-outline" size={18} color={PALETTE.superficie} />
       <Text style={{ flex: 1, fontSize: SIZE.smallSize, fontWeight: '600', color: PALETTE.superficie }}>{texto}</Text>
       <Pressable
         accessibilityRole="button"

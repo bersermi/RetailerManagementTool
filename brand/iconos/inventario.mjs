@@ -34,13 +34,21 @@ const mapa = require('@expo/vector-icons/build/vendor/react-native-vector-icons/
 
 const APPS = ['app', 'cocina', 'itacate'];
 
-/** A union of string literals this large is the icon set's `name`, and nothing else in the apps. */
+/**
+ * A union of string literals this large, every one a glyph's name, is the icon set's `name`, and nothing
+ * else in the apps: MaterialCommunityIcons' (over 7,000) before `11.10-i`, and since then `@/ui/Icono`'s
+ * `NombreIcono` — the font's names and `whatsapp`, over 100.
+ */
 function esNombreDeGlifo(tipo) {
   if (!tipo) return false;
   const partes = tipo.isUnion() ? tipo.types : [tipo];
   let literales = 0;
-  for (const p of partes) if (p.isStringLiteral() && Object.hasOwn(mapa, p.value)) literales += 1;
-  return literales > 1000;
+  for (const p of partes) {
+    if (!p.isStringLiteral()) continue;
+    if (!Object.hasOwn(mapa, p.value)) return false;
+    literales += 1;
+  }
+  return literales > 100;
 }
 
 const porGlifo = new Map(); // glyph → { app → Set(file) }

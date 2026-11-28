@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
@@ -170,7 +170,7 @@ export default function Escanear() {
         ) : estado.tipo === 'problema' ? (
           <Llega i={0} style={{ gap: SIZE.space }}>
             <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: SIZE.rowGap }}>
-              <MaterialCommunityIcons name="alert-circle-outline" size={22} color={PALETTE.error} />
+              <Icono name="alert-circle-outline" size={22} color={PALETTE.error} />
               <Text style={{ flex: 1, fontSize: SIZE.bodySize, lineHeight: 22, color: PALETTE.tinta }}>{estado.problema}</Text>
             </View>
             <BotonLleno variante="principal" icon="camera-outline" label={ES.escanear.otro} onPress={otraVez} />
@@ -227,7 +227,7 @@ function Resultado({
             borderColor: bien ? PALETTE.accion : PALETTE.linea,
           }}
         >
-          <MaterialCommunityIcons name={bien ? 'check' : 'information-outline'} size={30} color={bien ? PALETTE.accion : PALETTE.tintaApagada} />
+          <Icono name={bien ? 'check' : 'information-outline'} size={30} color={bien ? PALETTE.accion : PALETTE.tintaApagada} />
         </View>
         <Text accessibilityRole="header" style={{ fontSize: SIZE.titleSize - 4, fontWeight: '800', color: PALETTE.tinta, textAlign: 'center' }}>
           {tituloDe(desenlace)}

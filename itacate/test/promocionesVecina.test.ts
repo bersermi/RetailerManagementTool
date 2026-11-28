@@ -353,7 +353,7 @@ describe('the screens, read as text', () => {
     expect(card).toMatch(/const promocion = marcaDeOferta\(cocina, oferta\);/);
     expect(card).toMatch(/position: 'absolute',\s*top: SIZE\.rowGap,\s*left: SIZE\.rowGap,/);
     // On the photo, terracotta words on white (the drawing's `.badge-promo`): the solid mark vanished on a warm colour.
-    expect(card).toMatch(/backgroundColor: PALETTE\.superficie,\s*\}\}\s*>\s*<MaterialCommunityIcons name=\{promocion\.icono\} size=\{13\} color=\{PALETTE\.marca\} \/>/);
+    expect(card).toMatch(/backgroundColor: PALETTE\.superficie,\s*\}\}\s*>\s*<Icono name=\{promocion\.icono\} size=\{13\} color=\{PALETTE\.marca\} \/>/);
   });
 
   it('a quiet kitchen’s card, and *Mis cocinas*’ lines under *Tus cocinas*', () => {

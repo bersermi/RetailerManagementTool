@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { Pressable, Text, View } from 'react-native';
 
 import type { Kitchen } from '@/api/cocinas';
@@ -40,7 +40,7 @@ export function FilaCocina({ cocina, distancia, onPress }: { cocina: Kitchen; di
         {debajo !== null && <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada }}>{debajo}</Text>}
         {distancia !== null && <CreditoDeGoogle />}
       </View>
-      <MaterialCommunityIcons name="chevron-right" size={SIZE.iconSize} color={PALETTE.tintaApagada} />
+      <Icono name="chevron-right" size={SIZE.iconSize} color={PALETTE.tintaApagada} />
     </Pressable>
   );
 }

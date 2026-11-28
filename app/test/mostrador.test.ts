@@ -150,7 +150,7 @@ describe('the three places play them, and stand still when the phone asks for le
     const text = code('ui/Hecho.tsx');
     expect(text).toContain('recorrer(cae, SELLO)');
     expect(text).toContain('useReduceMotion()');
-    expect(text).not.toContain('MaterialCommunityIcons');
+    expect(text).not.toMatch(/<Icono\b/); // no check mark: the stamp is the word
     expect(text).not.toMatch(/elevation|shadow/);
   });
 

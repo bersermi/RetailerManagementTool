@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { useEffect } from 'react';
 import { ActivityIndicator, Image, Pressable, Text, View } from 'react-native';
 import Animated, { Easing, ReduceMotion, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
@@ -79,7 +79,7 @@ export function Nota({
         {festejo ? (
           <Image source={VACA} accessibilityIgnoresInvertColors style={{ width: 26, height: 26 }} resizeMode="contain" />
         ) : (
-          <MaterialCommunityIcons name="check-circle" size={20} color={PALETTE.sobreAccionApagada} />
+          <Icono name="check-circle" size={20} color={PALETTE.sobreAccionApagada} />
         )}
         <Text
           style={{

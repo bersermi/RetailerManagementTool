@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Image, Pressable, Text, View } from 'react-native';
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
@@ -241,7 +241,7 @@ export function MapaDeCocinas({
             borderColor: PALETTE.linea,
           }}
         >
-          <MaterialCommunityIcons name="crosshairs-gps" size={SIZE.iconSize - 2} color={PALETTE.accion} />
+          <Icono name="crosshairs-gps" size={SIZE.iconSize - 2} color={PALETTE.accion} />
         </Pressable>
       )}
       {buscarAqui && centro !== null && (
@@ -266,7 +266,7 @@ export function MapaDeCocinas({
               opacity: pressed ? 0.8 : 1,
             })}
           >
-            <MaterialCommunityIcons name="magnify" size={SIZE.iconSize - 4} color={PALETTE.accion} />
+            <Icono name="magnify" size={SIZE.iconSize - 4} color={PALETTE.accion} />
             <Text style={{ fontSize: SIZE.smallSize, fontWeight: '700', color: PALETTE.accion }}>{ES.mapa.buscarAqui}</Text>
           </Pressable>
         </View>

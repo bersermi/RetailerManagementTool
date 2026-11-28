@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { router } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 
@@ -38,7 +38,7 @@ export function Falta({ faltan }: { faltan: readonly Pendiente[] }) {
               backgroundColor: pressed ? PALETTE.fondo : 'transparent',
             })}
           >
-            <MaterialCommunityIcons name={ICONO_DE_PENDIENTE[pendiente]} size={20} color={PALETTE.tintaApagada} />
+            <Icono name={ICONO_DE_PENDIENTE[pendiente]} size={20} color={PALETTE.tintaApagada} />
             <View style={{ flex: 1, paddingVertical: SIZE.rowGap }}>
               <Text style={{ fontSize: SIZE.bodySize - 1, fontWeight: '600', color: PALETTE.tinta }}>{nombre}</Text>
               <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada }}>{ES.pendientes.paraTuPagina}</Text>

@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
@@ -487,13 +487,13 @@ function Bloque({
         )}
         {line === '' ? null : (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: scale.rowGap / 4 }}>
-            {icon === null ? null : <MaterialCommunityIcons name={icon} size={scale.iconSize * 0.7} color={lineInk} />}
+            {icon === null ? null : <Icono name={icon} size={scale.iconSize * 0.7} color={lineInk} />}
             <Text style={{ flex: 1, fontSize: scale.smallSize, fontWeight: '600', color: lineInk }}>{line}</Text>
           </View>
         )}
       </View>
       {onPress === undefined ? null : (
-        <MaterialCommunityIcons name="chevron-right" size={scale.iconSize} color={ink} />
+        <Icono name="chevron-right" size={scale.iconSize} color={ink} />
       )}
     </View>
   );
@@ -559,7 +559,7 @@ function Hallazgo({ title, big, children, tip }: { title: string; big: string; c
       <Text style={{ ...letraTitulo(scale), color: PALETTE.tinta }}>{big}</Text>
       {children}
       <View style={{ flexDirection: 'row', gap: scale.rowGap / 2, borderTopWidth: 1, borderTopColor: PALETTE.linea, paddingTop: scale.rowGap }}>
-        <MaterialCommunityIcons name="lightbulb-on-outline" size={scale.iconSize * 0.8} color={PALETTE.accion} />
+        <Icono name="lightbulb-on-outline" size={scale.iconSize * 0.8} color={PALETTE.accion} />
         <Text style={{ flex: 1, fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>{tip}</Text>
       </View>
     </View>
@@ -841,7 +841,7 @@ function Bloqueada({ title, when, have, need }: { title: string; when: string; h
       }}
     >
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: scale.rowGap }}>
-        <MaterialCommunityIcons name="lock-outline" size={scale.iconSize} color={PALETTE.atencion} />
+        <Icono name="lock-outline" size={scale.iconSize} color={PALETTE.atencion} />
         <Text style={{ flex: 1, fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.tinta }}>{title}</Text>
       </View>
       <View style={{ height: scale.rowGap, borderRadius: ESQUINA.marca, backgroundColor: PALETTE.superficie }}>

@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import {
@@ -624,7 +624,7 @@ function Puerta({
           borderColor: PALETTE.desperdicioSuave,
         }}
       >
-        <MaterialCommunityIcons name={icon} size={scale.iconSize} color={ink} />
+        <Icono name={icon} size={scale.iconSize} color={ink} />
       </View>
       <View style={{ flex: 1, gap: scale.rowGap / 2 }}>
         <Text style={{ ...letraTitulo(scale), color: ink }}>{title}</Text>
@@ -652,7 +652,7 @@ function Puerta({
         )}
       </View>
       {onPress === undefined ? null : (
-        <MaterialCommunityIcons name="chevron-right" size={scale.iconSize} color={ink} />
+        <Icono name="chevron-right" size={scale.iconSize} color={ink} />
       )}
     </Frame>
   );
@@ -995,7 +995,7 @@ function Motivos({
                     </View>
                     {/* ⚠️ `R11`: the chosen row is filled AND ticked AND bolder. */}
                     {here ? (
-                      <MaterialCommunityIcons name="check" size={scale.iconSize} color={PALETTE.desperdicio} />
+                      <Icono name="check" size={scale.iconSize} color={PALETTE.desperdicio} />
                     ) : null}
                   </Pressable>
                 );
@@ -1147,7 +1147,7 @@ function Barra({
           >
             {live ? ES.counter.lines(lines) : ES.counter.emptyCart}
           </Text>
-          {live ? <MaterialCommunityIcons name="chevron-right" size={scale.iconSize} color={PALETTE.accion} /> : null}
+          {live ? <Icono name="chevron-right" size={scale.iconSize} color={PALETTE.accion} /> : null}
         </View>
       </Strip>
 
@@ -1674,7 +1674,7 @@ function Solicitar({ address, onDirty }: { address: StoreAddress; onDirty: (dirt
             backgroundColor: PALETTE.superficie,
           }}
         >
-          <MaterialCommunityIcons name="check-circle-outline" size={scale.retratoSize} color={PALETTE.accion} />
+          <Icono name="check-circle-outline" size={scale.retratoSize} color={PALETTE.accion} />
           <View style={{ flex: 1, gap: scale.rowGap / 4 }}>
             <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.tinta }}>
               {ES.collection.saved}
@@ -1759,7 +1759,7 @@ function Solicitar({ address, onDirty }: { address: StoreAddress; onDirty: (dirt
                     </Text>
                   )}
                 </View>
-                <MaterialCommunityIcons name="chevron-right" size={scale.iconSize} color={PALETTE.desperdicio} />
+                <Icono name="chevron-right" size={scale.iconSize} color={PALETTE.desperdicio} />
               </Pressable>
             )}
           />
@@ -2028,7 +2028,7 @@ function Fotos({
                 backgroundColor: PALETTE.superficie,
               }}
             >
-              <MaterialCommunityIcons name="close" size={scale.iconSize * 0.7} color={PALETTE.desperdicio} />
+              <Icono name="close" size={scale.iconSize * 0.7} color={PALETTE.desperdicio} />
             </View>
           </Pressable>
         ))}
@@ -2048,7 +2048,7 @@ function Fotos({
               backgroundColor: PALETTE.desperdicioSuave,
             }}
           >
-            <MaterialCommunityIcons name="camera-outline" size={scale.iconSize} color={PALETTE.desperdicio} />
+            <Icono name="camera-outline" size={scale.iconSize} color={PALETTE.desperdicio} />
             <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.desperdicio }}>
               {photos.length === 0 ? ES.collection.photo.take : ES.collection.photo.another}
             </Text>
@@ -2251,7 +2251,7 @@ function Prefilled({ inset = true }: { inset?: boolean }) {
         backgroundColor: PALETTE.desperdicioSuave,
       }}
     >
-      <MaterialCommunityIcons name="history" size={scale.iconSize} color={PALETTE.desperdicio} />
+      <Icono name="history" size={scale.iconSize} color={PALETTE.desperdicio} />
       <Text style={{ flex: 1, fontSize: scale.smallSize, color: PALETTE.desperdicio }}>{ES.collection.prefilled}</Text>
     </View>
   );
@@ -2463,7 +2463,7 @@ function Opcion({
         {label}
       </Text>
       {drop ? (
-        <MaterialCommunityIcons
+        <Icono
           name="chevron-down"
           size={scale.iconSize * 0.75}
           color={on ? PALETTE.superficie : PALETTE.desperdicio}

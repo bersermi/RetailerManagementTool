@@ -8,7 +8,7 @@
 // arrived ticked would be the app agreeing for her.
 // ============================================================================
 
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import type { ReactNode } from 'react';
 import { Pressable } from 'react-native';
 
@@ -36,7 +36,7 @@ export function Casilla({
       onPress={onToggle}
       style={{ minHeight: SIZE.tapTarget, flexDirection: 'row', alignItems: 'center', gap: SIZE.rowGap, opacity: disabled ? 0.6 : 1 }}
     >
-      <MaterialCommunityIcons
+      <Icono
         name={ticked ? 'checkbox-marked' : 'checkbox-blank-outline'}
         size={SIZE.iconSize}
         color={ticked ? PALETTE.accion : PALETTE.tintaApagada}

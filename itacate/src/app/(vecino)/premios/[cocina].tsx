@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { router, useLocalSearchParams } from 'expo-router';
 import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
 
@@ -48,7 +48,7 @@ export default function Premios() {
           </View>
         ) : premios.length === 0 ? (
           <View style={{ alignItems: 'center', gap: SIZE.rowGap, padding: SIZE.space * 2, borderRadius: ESQUINA.hoja, backgroundColor: PALETTE.superficie }}>
-            <MaterialCommunityIcons name="gift-outline" size={40} color={PALETTE.linea} />
+            <Icono name="gift-outline" size={40} color={PALETTE.linea} />
             <Text style={{ fontSize: SIZE.bodySize, color: PALETTE.tinta, textAlign: 'center' }}>{ES.premios.ninguno}</Text>
           </View>
         ) : (
@@ -69,7 +69,7 @@ export default function Premios() {
                   }}
                 >
                   <View style={{ width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: hue }}>
-                    <MaterialCommunityIcons name="gift-outline" size={22} color={PALETTE.superficie} />
+                    <Icono name="gift-outline" size={22} color={PALETTE.superficie} />
                   </View>
                   <View style={{ flex: 1, gap: 2 }}>
                     <Text style={{ fontSize: SIZE.bodySize, fontWeight: '700', color: PALETTE.tinta }}>{p.que}</Text>

@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { Pressable, Text, View } from 'react-native';
 
 import { distanciaTexto } from '@/lib/distancia';
@@ -72,7 +72,7 @@ export function TarjetaCocina({
         {promocion !== null && <MarcaPromocion icono={promocion.icono} texto={promocion.texto} chica />}
         {marca !== null && (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
-            <MaterialCommunityIcons name="stamper" size={13} color={PALETTE.accion} />
+            <Icono name="stamper" size={13} color={PALETTE.accion} />
             <Text style={{ fontSize: SIZE.smallSize - 1, fontWeight: '700', color: PALETTE.accion }}>{marca.texto}</Text>
           </View>
         )}

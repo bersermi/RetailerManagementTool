@@ -48,7 +48,7 @@
 // converts anything.
 // ============================================================================
 
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { useRef, useState } from 'react';
 import { Keyboard, Pressable, Text, TextInput, View } from 'react-native';
 
@@ -357,7 +357,7 @@ function Paso({
         opacity: hidden ? 0 : 1,
       }}
     >
-      <MaterialCommunityIcons name={glyph} size={scale.iconSize} color={ink} />
+      <Icono name={glyph} size={scale.iconSize} color={ink} />
     </Pressable>
   );
 }

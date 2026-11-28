@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { ActivityIndicator, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
@@ -179,7 +179,7 @@ export default function Apartados() {
           <>
             {recogido !== null && (
               <Llega i={0} style={styles.recogido}>
-                <MaterialCommunityIcons name="check-circle" size={40} color={PALETTE.accion} />
+                <Icono name="check-circle" size={40} color={PALETTE.accion} />
                 <Text style={styles.recogidoTitulo}>{ES.apartados.yaLoTienes}</Text>
                 <Text style={styles.nota}>{`${recogido.cocina.nombre} · ${platoTexto(recogido)}`}</Text>
                 {rechazado !== null ? (
@@ -244,7 +244,7 @@ export default function Apartados() {
               secciones.porConfirmar.length === 0 &&
               recogido === null && (
               <Llega i={0} style={styles.vacio}>
-                <MaterialCommunityIcons name="ticket-confirmation-outline" size={52} color={PALETTE.linea} />
+                <Icono name="ticket-confirmation-outline" size={52} color={PALETTE.linea} />
                 <Text style={styles.vacioTitulo}>{ES.apartados.vacio}</Text>
                 <Text style={styles.nota}>{ES.apartados.vacioDetalle}</Text>
                 <View style={styles.vacioBoton}>

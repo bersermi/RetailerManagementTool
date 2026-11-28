@@ -7,8 +7,8 @@
 // second tap is a second round trip. Drawn by every screen of this app.
 // ============================================================================
 
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import type { ComponentProps } from 'react';
+import type { NombreIcono } from '@/marca/glifos';
+import { Icono } from '@/ui/Icono';
 import { ActivityIndicator, Pressable, Text } from 'react-native';
 
 import { PALETTE, SIZE } from '@/theme/palette';
@@ -23,7 +23,7 @@ export function BotonLleno({
 }: {
   label: string;
   onPress: () => void;
-  icon?: ComponentProps<typeof MaterialCommunityIcons>['name'];
+  icon?: NombreIcono;
   busy?: boolean;
   variante?: 'suave' | 'principal' | 'discreto';
 }) {
@@ -55,7 +55,7 @@ export function BotonLleno({
       {busy ? (
         <ActivityIndicator color={ink} />
       ) : icon ? (
-        <MaterialCommunityIcons name={icon} size={SIZE.iconSize} color={ink} />
+        <Icono name={icon} size={SIZE.iconSize} color={ink} />
       ) : null}
       <Text style={{ fontSize: SIZE.bodySize, fontWeight: variante === 'principal' ? '700' : '600', color: ink }}>
         {label}
