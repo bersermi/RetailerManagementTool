@@ -786,7 +786,7 @@
     }
   },
   "marcas": {
-    "_": "A company's own mark is never ours to draw, and MaterialCommunityIcons' licence leaves its brand icons out (pictogrammers.com/docs/general/license, read 2026-11-26): each is its owner's own file, by its owner's own rules (brand/marcas/README.md, row 11.10-i). Google's G left the glyphs at 11.10-i: the sign-in buttons draw Google's own picture. WhatsApp's stays MaterialCommunityIcons' glyph, drawn by @/ui/Icono as before, until the official glyph is in brand/marcas/. inventario.json marks it `marca: true`.",
+    "_": "A company's own mark is never ours to draw, and MaterialCommunityIcons' licence leaves its brand icons out (pictogrammers.com/docs/general/license, read 2026-11-26): each is its owner's own file, by its owner's own rules (brand/marcas/README.md, row 11.10-i). Google's G left the glyphs at 11.10-i: the sign-in buttons draw Google's own picture. WhatsApp's is Meta's own glyph since 11.10-iii, a picture from brand/marcas/whatsapp/ that @/ui/Icono draws for the name the apps write. inventario.json marks it `marca: true`.",
     "whatsapp": "Las tres apps: escribir por WhatsApp"
   }
 }

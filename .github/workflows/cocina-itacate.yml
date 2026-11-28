@@ -130,12 +130,12 @@ on:
       # — the file the design system's *Movimiento* card plays (`test/movimiento.test.ts` in each).
       - "brand/mostrador/movimiento.json"
       # ⚠️ `11.10-i`, THE DRAWN ICONS: each app's `@/ui/Icono` and `@/marca/glifos` are Wera's files byte for byte, and its icon font, its map
-      # and Google's G are `brand/iconos/`'s and `brand/marcas/google/`'s (`test/iconos.test.ts` in each).
+      # Google's G and (since `11.10-iii`) WhatsApp's glyph are `brand/iconos/`'s and `brand/marcas/`'s (`test/iconos.test.ts` in each).
       - "app/src/ui/Icono.tsx"
       - "app/src/marca/glifos.ts"
       - "brand/iconos/WeraIconos.ttf"
       - "brand/iconos/WeraIconos.json"
-      - "brand/marcas/google/g*.png"
+      - "brand/marcas/**"
       - "package.json"
       - "package-lock.json"
       - ".github/workflows/cocina-itacate.yml"

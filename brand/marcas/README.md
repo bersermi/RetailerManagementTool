@@ -31,16 +31,27 @@ Wera's *Letra grande*), left of the words, on the button's white (`superficie`, 
 button keeps our edge (`linea`) — Google's light theme names `#747775`; the rules' hard words are the
 G's colour and the white behind it.
 
-## WhatsApp — not here yet
+## WhatsApp — `whatsapp/`
 
 **The rules** (meta.com/es-la/brand/resources/whatsapp/whatsapp-brand/, read 2026-11-28, in Spanish):
 *"Tampoco debes modificar ninguno de los colores del logotipo"*; *"Solo puedes usar los Recursos de
 la marca WhatsApp oficiales"*; *"NO uses una imagen que pueda confundirse con el logotipo … o una
 variación de ellos"*; it may be resized, *"siempre y cuando no sean el elemento más destacado"*.
 
-**Why it is not here:** Meta's page hands out its logo pack only after a box is ticked —
-*"Leí y acepto las normas aplicables y otras condiciones de uso"* — and accepting a company's terms is
-the owner's act, not a session's. Until the pack is here, `@/ui/Icono` draws `whatsapp` as the apps
-did before this row (MaterialCommunityIcons' glyph, in the button's colour): no worse than before,
-and still against Meta's rules. ⚠️ Put the official glyph here, in a colour the pack provides, and
-`@/ui/Icono` draws it as a picture — no screen changes.
+**The files** (`11.10-iii`, 2026-11-28): `Digital_Glyph_Green_RGB_2026.png` and `.svg`,
+`Digital_Glyph_White_RGB_2026.png` and `.svg` are Meta's own, unmodified — `Brand Resource Center Page
+Downloads/01_Glyph/01_Digital RGB/` in `WhatsApp-Brand-Resource-Center.zip` (SHA-256
+`31cd2eaacb0abfd3640e51cb807c21dafba872e3aff8e520ff20ee6a1b01498f`), which the owner downloaded on 2026-11-28
+after ticking *"Leí y acepto las normas aplicables y otras condiciones de uso"* — Meta hands the pack out only
+so, and accepting a company's terms is the owner's act. The pack's black glyph and its two wordmarks are not
+used. `bash whatsapp/render.sh` scales the two PNGs, keeping their proportions, to `verde.png` and
+`blanco.png` at 1×, 2× and 3× (32 points); each app's `src/marca/whatsapp/` holds the six byte for byte
+(`test/iconos.test.ts`).
+
+**How the apps draw it:** `@/ui/Icono` draws `whatsapp` as one of the two pictures, never tinted, at five
+sixths of the icon's size with a twelfth around it (a drawing in `brand/iconos/` fills 20–22 of its 24
+units), so it sits where the old glyph sat. Which picture: `@/marca/glifos`' `varianteDeWhatsapp` reads the
+colour the place asks its icon for — a light one means a filled button's white word, so the white glyph; any
+other (the sheet's inks, the action colour) the green glyph. Never the most prominent thing on a screen: it
+sits beside its button's or row's words, at the icon's size. Until `11.10-iii` the apps drew
+MaterialCommunityIcons' look-alike in each button's colour.

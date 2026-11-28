@@ -20,6 +20,9 @@ import { fileURLToPath } from 'node:url';
 
 import { describe, expect, it } from 'vitest';
 
+import { varianteDeWhatsapp } from '@/marca/glifos';
+import { PALETTE } from '@/theme/palette';
+
 const APP = 'itacate';
 const ROOT = fileURLToPath(new URL('../..', import.meta.url));
 const SRC = join(ROOT, APP, 'src');
@@ -69,17 +72,22 @@ describe('`11.10-i` — every icon goes through `@/ui/Icono`', () => {
     expect(quien).toEqual([`${APP}/src/ui/Icono.tsx`]);
   });
 
-  it('it draws the font, and MaterialCommunityIcons only for `whatsapp`, until Meta’s glyph is in `brand/marcas/`', () => {
+  it('it draws the font, and Meta’s picture for `whatsapp` — no MaterialCommunityIcons left (`11.10-iii`)', () => {
     const glifos = code(`${APP}/src/marca/glifos.ts`);
     expect(glifos).toContain("export const FAMILIA_ICONOS = 'WeraIconos';");
     expect(glifos).toContain("import GLIFOS from '@/marca/iconos/WeraIconos.json';");
     expect(glifos).toContain("export type NombreIcono = keyof typeof GLIFOS | 'whatsapp';");
     const icono = code(`${APP}/src/ui/Icono.tsx`);
     expect(icono).toContain("createIconSet(GLIFOS, FAMILIA_ICONOS, require('@/marca/iconos/WeraIconos.ttf') as number)");
-    expect([...icono.matchAll(/<MaterialCommunityIcons\b[^>]*>/g)].map((m) => m[0])).toEqual([
-      '<MaterialCommunityIcons name="whatsapp" {...props} />',
-    ]);
-    expect(icono).toContain("if (name === 'whatsapp') return");
+    expect(icono).toContain("verde: require('@/marca/whatsapp/verde.png') as number,");
+    expect(icono).toContain("blanco: require('@/marca/whatsapp/blanco.png') as number,");
+    expect(icono).toContain('source={WHATSAPP[varianteDeWhatsapp(props.color)]}');
+    // Meta: never recoloured — the picture is drawn as it is, never tinted.
+    expect(icono).not.toMatch(/tintColor/);
+    const quien = fuentes(SRC)
+      .filter((f) => /MaterialCommunityIcons/.test(code(relative(ROOT, f))))
+      .map((f) => relative(ROOT, f));
+    expect(quien).toEqual([]);
   });
 
   it('the root layout loads the font with the others, so no icon draws blank while it loads', () => {
@@ -88,6 +96,21 @@ describe('`11.10-i` — every icon goes through `@/ui/Icono`', () => {
     expect(f).toMatch(/import \{ FAMILIA_ICONOS \} from '@\/marca\/glifos';/);
     expect(f).toMatch(/\[FAMILIA_ICONOS\]: require\('@\/marca\/iconos\/WeraIconos\.ttf'\) as number,/);
     expect(code(`${APP}/src/app/_layout.tsx`)).toMatch(/useFonts\(\{?\s*(\.\.\.)?FUENTES/);
+  });
+});
+
+describe('`11.10-iii` — WhatsApp’s glyph is Meta’s own, green or white, never tinted', () => {
+  it('the two glyphs at three densities are `brand/marcas/whatsapp/`’s, byte for byte', () => {
+    for (const file of ['verde.png', 'verde@2x.png', 'verde@3x.png', 'blanco.png', 'blanco@2x.png', 'blanco@3x.png']) {
+      expect(sha(`${APP}/src/marca/whatsapp/${file}`), file).toBe(sha(`brand/marcas/whatsapp/${file}`));
+    }
+  });
+
+  it('a filled button’s white word gets the white glyph; the sheet’s inks and the action colour get the green one', () => {
+    expect(varianteDeWhatsapp(PALETTE.superficie)).toBe('blanco');
+    for (const ink of [PALETTE.tinta, PALETTE.tintaApagada, PALETTE.accion]) expect(varianteDeWhatsapp(ink), ink).toBe('verde');
+    expect(varianteDeWhatsapp(undefined)).toBe('verde');
+    expect(varianteDeWhatsapp('white')).toBe('verde');
   });
 });
 

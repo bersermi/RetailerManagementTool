@@ -507,8 +507,8 @@ follows it, as `itacate/CLAUDE.md`'s does:
   ⚠️ **Since `11.10-i` every icon is a drawing** — `@/ui/Icono` and `@/marca/glifos`, one file each in the three apps (Wera's
   byte for byte, `test/iconos.test.ts`), draw `brand/iconos/`'s font (`src/marca/iconos/`, loaded by `@/marca/fuentes` with the
   titles' faces) by the names written for MaterialCommunityIcons; nothing else imports `@expo/vector-icons`. *Continuar con
-  Google* draws Google's own G (`src/marca/google/`, `brand/marcas/google/`'s), its colours on white; `whatsapp` is drawn as
-  before until Meta's glyph is in `brand/marcas/` (its README). The drawings for empty screens, covers and the reward are `11.10-ii`'s.
+  Google* draws Google's own G (`src/marca/google/`, `brand/marcas/google/`'s), its colours on white; `whatsapp` is Meta's own
+  glyph since `11.10-iii` (`src/marca/whatsapp/`, green or white by the colour asked for, never tinted; `brand/marcas/README.md`). The drawings for empty screens, covers and the reward are `11.10-ii`'s.
 - **Money:** no screen stores or shows a bank account, a card or an amount paid — only how she will pay.
 
 ## *Apartados* — she sees and hands over (`10.5b-iv-a`)
