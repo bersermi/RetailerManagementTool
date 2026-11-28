@@ -165,13 +165,15 @@ describe('the photo is drawn over the initials, never instead of a state', () =>
   const read = (path: string) => readFileSync(resolve(__dirname, '..', 'src', path), 'utf8');
 
   it('Retrato, Productos, the product page and the photo field all lay Foto over the letters', () => {
-    for (const file of ['ui/Retrato.tsx', 'app/productos.tsx', 'app/ficha/[id].tsx', 'ui/CampoFoto.tsx']) {
+    for (const file of ['ui/Retrato.tsx', 'app/productos.tsx', 'app/ficha/[id].tsx', 'ui/CampoFoto.tsx', 'ui/Baldosa.tsx']) {
       expect(read(file), file).toMatch(/<Foto\b/);
     }
   });
 
   it('and every Retrato that names a product passes its picture', () => {
-    for (const file of ['app/(tabs)/vender.tsx', 'app/(tabs)/comprar.tsx', 'app/(tabs)/desperdicio.tsx', 'ui/HojaPrecio.tsx']) {
+    // ⚠️ `14.3`: the counters' squares are `ui/Bascula.tsx`'s now, and the price
+    // sheet's frame is inside `ui/PrecioRapido.tsx`.
+    for (const file of ['app/(tabs)/desperdicio.tsx', 'ui/Bascula.tsx', 'ui/PrecioRapido.tsx']) {
       const text = read(file);
       const retratos = text.match(/<Retrato\b[^>]*?\/>/gs) ?? [];
       expect(retratos.length, file).toBeGreaterThan(0);
