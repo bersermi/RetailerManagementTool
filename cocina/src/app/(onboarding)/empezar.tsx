@@ -1,6 +1,6 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import type { NombreIcono } from '@/marca/glifos';
+import { Icono } from '@/ui/Icono';
 import { router, type Href } from 'expo-router';
-import type { ComponentProps } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -59,7 +59,7 @@ function Opcion({
   detalle,
   a,
 }: {
-  icono: ComponentProps<typeof MaterialCommunityIcons>['name'];
+  icono: NombreIcono;
   titulo: string;
   detalle: string;
   a: Href;
@@ -92,13 +92,13 @@ function Opcion({
           backgroundColor: PALETTE.accionSuave,
         }}
       >
-        <MaterialCommunityIcons name={icono} size={28} color={PALETTE.accion} />
+        <Icono name={icono} size={28} color={PALETTE.accion} />
       </View>
       <View style={{ flex: 1, gap: 4 }}>
         <Text style={{ fontSize: SIZE.bodySize + 2, ...TITULO, color: PALETTE.tinta }}>{titulo}</Text>
         <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada }}>{detalle}</Text>
       </View>
-      <MaterialCommunityIcons name="chevron-right" size={22} color={PALETTE.tintaApagada} />
+      <Icono name="chevron-right" size={22} color={PALETTE.tintaApagada} />
     </Pressable>
   );
 }

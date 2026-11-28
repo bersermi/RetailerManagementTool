@@ -18,7 +18,7 @@
 // arrangement exists to avoid.
 // ============================================================================
 
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import type { ReactNode } from 'react';
 import { Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -179,7 +179,7 @@ export function Bascula({
                   })}
                 >
                   {tecla === 'borrar' ? (
-                    <MaterialCommunityIcons name="backspace-outline" size={scale.iconSize} color={PALETTE.tinta} />
+                    <Icono name="backspace-outline" size={scale.iconSize} color={PALETTE.tinta} />
                   ) : tecla === 'limpiar' ? (
                     <Text style={{ fontSize: scale.smallSize, fontWeight: '700', color: PALETTE.tinta }}>
                       {ES.counter.pad.clear}

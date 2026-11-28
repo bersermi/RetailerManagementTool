@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { router } from 'expo-router';
 import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
 
@@ -68,7 +68,7 @@ export default function LoQueVen() {
                 </View>
                 {k.lineas.map((linea) => (
                   <View key={linea} style={{ flexDirection: 'row', alignItems: 'flex-start', gap: SIZE.rowGap }}>
-                    <MaterialCommunityIcons name={iconoDe(linea)} size={17} color={PALETTE.tintaApagada} style={{ marginTop: 1 }} />
+                    <Icono name={iconoDe(linea)} size={17} color={PALETTE.tintaApagada} style={{ marginTop: 1 }} />
                     <Text style={{ flex: 1, fontSize: SIZE.smallSize + 0.5, lineHeight: 19, color: PALETTE.tinta }}>{linea}</Text>
                   </View>
                 ))}

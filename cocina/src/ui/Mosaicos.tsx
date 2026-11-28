@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { router } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 
@@ -58,7 +58,7 @@ function Tesela({ mosaico }: { mosaico: Mosaico }) {
           backgroundColor: pressed ? PALETTE.tinta : PALETTE.accion,
         })}
       >
-        <MaterialCommunityIcons name="qrcode" size={16} color={PALETTE.superficie} />
+        <Icono name="qrcode" size={16} color={PALETTE.superficie} />
         <Text style={{ fontSize: SIZE.smallSize, fontWeight: '800', color: PALETTE.superficie }}>{accion.etiqueta}</Text>
       </Pressable>
     </View>
@@ -98,7 +98,7 @@ function Cara({ mosaico }: { mosaico: Mosaico }) {
             backgroundColor: PALETTE.accionSuave,
           }}
         >
-          <MaterialCommunityIcons name={ICONO_DE[mosaico.servicio]} size={15} color={PALETTE.accion} />
+          <Icono name={ICONO_DE[mosaico.servicio]} size={15} color={PALETTE.accion} />
         </View>
         <Text numberOfLines={2} style={{ flex: 1, fontSize: SIZE.smallSize - 1, fontWeight: '700', color: PALETTE.tintaApagada }}>
           {nombre}

@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { router } from 'expo-router';
 import { ActivityIndicator, Linking, Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -141,7 +141,7 @@ function Lo({ calificaciones, cocina }: { calificaciones: Calificaciones | null;
                   hitSlop={SIZE.rowGap}
                   style={{ minHeight: SIZE.tapTarget, flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: SIZE.rowGap }}
                 >
-                  <MaterialCommunityIcons name="whatsapp" size={SIZE.smallSize + 4} color={PALETTE.accion} />
+                  <Icono name="whatsapp" size={SIZE.smallSize + 4} color={PALETTE.accion} />
                   <Text style={{ fontSize: SIZE.smallSize, fontWeight: '600', color: PALETTE.accion }}>{c.reportar}</Text>
                 </Pressable>
               )}

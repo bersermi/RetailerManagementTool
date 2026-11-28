@@ -33,8 +33,8 @@
 // reaches it, and said to him each time.
 // ============================================================================
 
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import type { ComponentProps } from 'react';
+import type { NombreIcono } from '@/marca/glifos';
+import { Icono } from '@/ui/Icono';
 import { ActivityIndicator, Pressable, Text } from 'react-native';
 
 import { useDensity } from '@/theme/DensityProvider';
@@ -52,7 +52,7 @@ export function BotonLleno({
 }: {
   label: string;
   onPress: () => void;
-  icon?: ComponentProps<typeof MaterialCommunityIcons>['name'];
+  icon?: NombreIcono;
   busy?: boolean;
   hug?: boolean;
   variante?: 'suave' | 'principal' | 'discreto';
@@ -95,7 +95,7 @@ export function BotonLleno({
         <ActivityIndicator color={ink} />
       ) : icon ? (
         // C12.1 — the icon NEVER appears without its word.
-        <MaterialCommunityIcons name={icon} size={scale.iconSize} color={ink} />
+        <Icono name={icon} size={scale.iconSize} color={ink} />
       ) : null}
       <Text
         style={{

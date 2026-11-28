@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { useEffect, useState } from 'react';
 import { KeyboardAvoidingView, Modal, Pressable, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -47,7 +47,7 @@ export function LineaCuentanos({ onAbrir, onCerrar }: { onAbrir: () => void; onC
         onPress={onAbrir}
         style={{ flex: 1, minHeight: SIZE.tapTarget + SIZE.rowGap, flexDirection: 'row', alignItems: 'center', gap: SIZE.rowGap, paddingVertical: SIZE.rowGap }}
       >
-        <MaterialCommunityIcons name={ICONO_DE.menu} size={SIZE.iconSize - 4} color={PALETTE.accion} />
+        <Icono name={ICONO_DE.menu} size={SIZE.iconSize - 4} color={PALETTE.accion} />
         <View style={{ flex: 1, gap: 2 }}>
           <Text style={{ fontSize: SIZE.bodySize - 1, fontWeight: '700', color: PALETTE.tinta }}>{ES.cuentanos.titulo}</Text>
           <Text style={{ fontSize: SIZE.smallSize - 0.6, color: PALETTE.tintaApagada }}>{ES.cuentanos.detalle}</Text>
@@ -59,7 +59,7 @@ export function LineaCuentanos({ onAbrir, onCerrar }: { onAbrir: () => void; onC
         onPress={onCerrar}
         style={{ minWidth: SIZE.tapTarget, minHeight: SIZE.tapTarget, alignItems: 'center', justifyContent: 'center' }}
       >
-        <MaterialCommunityIcons name="close" size={16} color={PALETTE.tintaApagada} />
+        <Icono name="close" size={16} color={PALETTE.tintaApagada} />
       </Pressable>
     </View>
   );

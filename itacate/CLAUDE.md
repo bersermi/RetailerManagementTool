@@ -613,4 +613,9 @@ follows it, as `cocina/CLAUDE.md`'s does:
   number's face at its own size (48); her card's stamps the Wera cow (`SelloVaca`, turned by its place); a price on a list a tag (`@/ui/Precio`'s
   `Etiqueta`; a dish's own page keeps its large price); *¡Ganaste …!* in Mansalva (`@/theme/frase`'s `letraPremio`, 32/38). Nothing moves
   yet: the stamp landing and the stub tearing are `11.8-ii`'s.
+  ⚠️ **Since `11.10-i` every icon is a drawing** — `@/ui/Icono` and `@/marca/glifos`, one file each in the three apps (Wera's
+  byte for byte, `test/iconos.test.ts`), draw `brand/iconos/`'s font (`src/marca/iconos/`, loaded by `@/marca/fuentes` with the
+  titles' faces) by the names written for MaterialCommunityIcons; nothing else imports `@expo/vector-icons`. *Continuar con
+  Google* draws Google's own G (`src/marca/google/`, `brand/marcas/google/`'s), its colours on white; `whatsapp` is drawn as
+  before until Meta's glyph is in `brand/marcas/` (its README). The drawings for empty screens, covers and the reward are `11.10-ii`'s.
 - **Money:** no screen stores or shows a bank account, a card or an amount paid — only how she will pay.

@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { FlatList, Keyboard, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
@@ -343,7 +343,7 @@ function Banda({ vista, onVista }: { vista: Vista; onVista: (next: Vista) => voi
               backgroundColor: vista === one ? PALETTE.accion : PALETTE.superficie,
             }}
           >
-            <MaterialCommunityIcons
+            <Icono
               name={one === 'lista' ? 'view-list' : 'view-grid'}
               size={scale.iconSize}
               color={vista === one ? PALETTE.superficie : PALETTE.tintaApagada}
@@ -524,7 +524,7 @@ function Crear({ name, familyId }: { name: string; familyId: string | null }) {
           justifyContent: 'center',
         }}
       >
-        <MaterialCommunityIcons name="plus" size={scale.iconSize} color={PALETTE.accion} />
+        <Icono name="plus" size={scale.iconSize} color={PALETTE.accion} />
       </View>
 
       <View style={{ flex: 1, gap: scale.rowGap / 4 }}>
@@ -671,7 +671,7 @@ function Pasillo({
         }}
       >
         {initials === '' ? (
-          <MaterialCommunityIcons name="view-grid-outline" size={scale.iconSize} color={PALETTE.tintaApagada} />
+          <Icono name="view-grid-outline" size={scale.iconSize} color={PALETTE.tintaApagada} />
         ) : (
           <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.tinta }}>{initials}</Text>
         )}

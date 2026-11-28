@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Keyboard, Pressable, Text, View } from 'react-native';
@@ -282,7 +282,7 @@ export default function NuevaPromocion() {
           foto={b.foto}
           defecto={
             <View style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, alignItems: 'center', justifyContent: 'center' }}>
-              <MaterialCommunityIcons name={ICONO_DE_TIPO[b.tipo]} size={28} color={PALETTE.marca} />
+              <Icono name={ICONO_DE_TIPO[b.tipo]} size={28} color={PALETTE.marca} />
             </View>
           }
           nota={notaFoto}
@@ -327,7 +327,7 @@ export default function NuevaPromocion() {
 
         {b.tipo === 'clientes' && (
           <View style={{ flexDirection: 'row', gap: SIZE.space, padding: SIZE.space, borderRadius: ESQUINA.hoja, backgroundColor: PALETTE.superficie }}>
-            <MaterialCommunityIcons name="gift-outline" size={SIZE.iconSize} color={PALETTE.marca} />
+            <Icono name="gift-outline" size={SIZE.iconSize} color={PALETTE.marca} />
             <View style={{ flex: 1, gap: 2 }}>
               <Text style={{ fontSize: SIZE.bodySize - 1, fontWeight: '600', color: PALETTE.tinta }}>{ES.nuevaPromocion.clientes}</Text>
               <Text style={nota}>{ES.nuevaPromocion.clientesDetalle}</Text>
@@ -461,7 +461,7 @@ function TipoTile({ tipo, on, onPress }: { tipo: Tipo; on: boolean; onPress: () 
       })}
     >
       <View style={{ width: 44, height: 44, borderRadius: ESQUINA.chip, alignItems: 'center', justifyContent: 'center', backgroundColor: on ? PALETTE.marca : PALETTE.linea }}>
-        <MaterialCommunityIcons name={ICONO_DE_TIPO[tipo]} size={26} color={on ? PALETTE.superficie : PALETTE.tintaApagada} />
+        <Icono name={ICONO_DE_TIPO[tipo]} size={26} color={on ? PALETTE.superficie : PALETTE.tintaApagada} />
       </View>
       <Text style={{ fontSize: SIZE.smallSize, fontWeight: '700', textAlign: 'center', color: on ? PALETTE.marca : PALETTE.tinta }}>{ES.promociones.tipos[tipo]}</Text>
       <Text style={{ fontSize: SIZE.smallSize - 2.5, lineHeight: 14, textAlign: 'center', color: PALETTE.tintaApagada }}>{ES.promociones.tiposDetalle[tipo]}</Text>
@@ -503,7 +503,7 @@ function Ficha({
         backgroundColor: on ? PALETTE.accion : pressed ? PALETTE.accionSuave : PALETTE.superficie,
       })}
     >
-      {icono !== undefined && <MaterialCommunityIcons name={icono} size={16} color={on ? PALETTE.superficie : PALETTE.tintaApagada} />}
+      {icono !== undefined && <Icono name={icono} size={16} color={on ? PALETTE.superficie : PALETTE.tintaApagada} />}
       <Text style={{ fontSize: SIZE.smallSize + 0.4, fontWeight: '700', color: on ? PALETTE.superficie : PALETTE.tinta }}>{texto}</Text>
     </Pressable>
   );

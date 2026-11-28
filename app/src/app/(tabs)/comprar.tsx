@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
   Animated,
@@ -1037,7 +1037,7 @@ function Proveedores({
                       ) : null}
                     </View>
                     {here ? (
-                      <MaterialCommunityIcons
+                      <Icono
                         name="check"
                         size={scale.iconSize}
                         color={PALETTE.accion}
@@ -1567,7 +1567,7 @@ function Barra({
                 : ES.counter.lines(basket.lines)}
             </Text>
             {live ? (
-              <MaterialCommunityIcons
+              <Icono
                 name="chevron-right"
                 size={scale.iconSize}
                 color={PALETTE.accion}
@@ -1946,7 +1946,7 @@ function CostoLinea({
       <Text style={{ fontSize: scale.smallSize, fontWeight: centavos === null ? '600' : '400', color: PALETTE.tinta }}>
         {centavos === null ? ES.buy.pad.ask : `${formatMXN(centavos)} ${ES.sell.per(unit)}`}
       </Text>
-      <MaterialCommunityIcons name="pencil-outline" size={scale.smallSize} color={PALETTE.compra} />
+      <Icono name="pencil-outline" size={scale.smallSize} color={PALETTE.compra} />
     </Pressable>
   );
 }

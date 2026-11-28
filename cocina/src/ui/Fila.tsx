@@ -1,5 +1,5 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import type { ComponentProps } from 'react';
+import type { NombreIcono } from '@/marca/glifos';
+import { Icono } from '@/ui/Icono';
 import { Pressable, Text, View } from 'react-native';
 
 import { PALETTE, SIZE } from '@/theme/palette';
@@ -20,7 +20,7 @@ export function Fila({
   onPress,
   ayuda,
 }: {
-  icono: ComponentProps<typeof MaterialCommunityIcons>['name'];
+  icono: NombreIcono;
   titulo: string;
   detalle?: string | null;
   /** The line under it says what is missing — in the error's red, never the colour alone: its words say it. */
@@ -31,7 +31,7 @@ export function Fila({
 }) {
   const contenido = (
     <>
-      <MaterialCommunityIcons name={icono} size={SIZE.iconSize} color={PALETTE.tintaApagada} />
+      <Icono name={icono} size={SIZE.iconSize} color={PALETTE.tintaApagada} />
       <View style={{ flex: 1, gap: 2 }}>
         <Text style={{ fontSize: SIZE.bodySize - 1, fontWeight: '600', color: PALETTE.tinta }}>{titulo}</Text>
         {detalle !== null && (
@@ -47,7 +47,7 @@ export function Fila({
           </Text>
         )}
       </View>
-      {onPress !== undefined && <MaterialCommunityIcons name="chevron-right" size={20} color={PALETTE.tintaApagada} />}
+      {onPress !== undefined && <Icono name="chevron-right" size={20} color={PALETTE.tintaApagada} />}
     </>
   );
   const fila = {

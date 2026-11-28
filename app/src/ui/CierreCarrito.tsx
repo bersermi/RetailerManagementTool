@@ -24,7 +24,7 @@
 // and the `Deslizador` still nudges, so the touch is answered.
 // ============================================================================
 
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { useRef, useState, type ReactNode } from 'react';
 import { Animated, Easing, PanResponder, Pressable, Text, View } from 'react-native';
 
@@ -366,7 +366,7 @@ function Deslizador({
           transform: [{ translateX: x }],
         }}
       >
-        <MaterialCommunityIcons
+        <Icono
           name="chevron-double-right"
           size={scale.iconSize}
           color={PALETTE.superficie}

@@ -32,6 +32,11 @@ npm --prefix app test                     # the test tally — the RUNNER's, nev
   to the owner. The filled button and the veil are `BotonLleno` and `Velo` since `8f`; the
   chosen pill is still un-extracted — why is in `docs/CONVENTIONS.md`; re-measure with its
   predicate before extracting.
+- **Every icon goes through `@/ui/Icono`** (`11.10-i`): `brand/iconos/`'s drawings as one font (`src/marca/iconos/`,
+  loaded by `@/marca/fuentes`), named as MaterialCommunityIcons named them (`@/marca/glifos`' `NombreIcono`: a name the
+  font does not draw is a type error). Nothing else imports `@expo/vector-icons` (`test/iconos.test.ts`, the same in
+  the two sibling apps); a new icon is drawn in `brand/iconos/` first. Google's G and WhatsApp's glyph are their
+  owners', drawn by their rules (`brand/marcas/README.md`).
 - **A module in `app/src/api/` is a claim about the applied schema**, which is why `db.yml` fires
   on it. Its wire behaviour is proven only by the matching `docs/checks/*-contract.sh` against a
   real PostgREST — never by a typecheck or a Vitest fixture.
@@ -90,6 +95,10 @@ Each was measured against a real PostgREST or device.
   written into it, and a changed value does not invalidate it: an export after a change carries
   the OLD one, silently. `ship-an-update.sh` passes `--clear-cache`; a local export or release
   build after a changed value needs `--clear`. EAS's own builds start with no cache.
+- **A debug bundle takes `app/.env.local`'s values over the shell's** (measured 2026-11-28, Expo 57: the bundle's
+  `.env.local` module carried the hosted address while the shell said `localhost`), so a local sign-in reached the live
+  database. For a debug build against the local shop, put the local values in that file (a worktree's own copy), and
+  check the served bundle holds no hosted project ref before signing in.
 - **`grep -q` under `pipefail` fails on big files** (SIGPIPE) — use `grep -c` in any check.
 - **No check can drive Sign in with Apple**: it needs a token Apple signed, on a signed build.
   The nonce's HASH goes to Apple and the RAW string to Supabase; the other way round typechecks

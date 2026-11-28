@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
@@ -46,7 +46,7 @@ export default function Activar() {
       <View style={{ flex: 1, backgroundColor: PALETTE.fondo, paddingTop: insets.top, paddingBottom: insets.bottom + SIZE.space * 2 }}>
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: SIZE.space * 2, gap: SIZE.space }}>
           <Llega i={0}>
-            <MaterialCommunityIcons name="check-circle" size={SIZE.iconSize * 3} color={PALETTE.accion} />
+            <Icono name="check-circle" size={SIZE.iconSize * 3} color={PALETTE.accion} />
           </Llega>
           <Llega i={1}>
             <Text accessibilityRole="header" style={{ fontSize: SIZE.titleSize + 2, ...TITULO, color: PALETTE.tinta, textAlign: 'center' }}>
@@ -111,7 +111,7 @@ export default function Activar() {
       {banda}
       <ScrollView contentContainerStyle={{ padding: SIZE.space * 2, gap: SIZE.space * 1.5 }}>
         <Llega i={0} style={{ alignItems: 'center', gap: SIZE.rowGap, paddingTop: SIZE.space }}>
-          <MaterialCommunityIcons name={ICONO_DE[x]} size={SIZE.iconSize * 2.6} color={PALETTE.accion} />
+          <Icono name={ICONO_DE[x]} size={SIZE.iconSize * 2.6} color={PALETTE.accion} />
           <Text accessibilityRole="header" style={{ fontSize: SIZE.titleSize + 2, ...TITULO, color: PALETTE.tinta, textAlign: 'center' }}>
             {ES.loQueUsas.necesidad[x]}
           </Text>

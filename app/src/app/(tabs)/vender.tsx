@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
   Animated,
@@ -803,7 +803,7 @@ function Nota({ name, onDone }: { name: string; onDone: () => void }) {
         shadowRadius: scale.space,
       }}
     >
-      <MaterialCommunityIcons name="information-outline" size={scale.iconSize} color={PALETTE.atencion} />
+      <Icono name="information-outline" size={scale.iconSize} color={PALETTE.atencion} />
       <View style={{ flex: 1, gap: scale.rowGap / 2 }}>
         <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.tinta }}>
           {ES.sell.refused.title(name)}
@@ -907,7 +907,7 @@ function Barra({
                 : ES.counter.lines(basket.lines)}
             </Text>
             {live ? (
-              <MaterialCommunityIcons
+              <Icono
                 name="chevron-right"
                 size={scale.iconSize}
                 color={PALETTE.accion}
@@ -1251,7 +1251,7 @@ function Unitario({
       }}
     >
       {words}
-      <MaterialCommunityIcons name="pencil-outline" size={scale.smallSize} color={PALETTE.accion} />
+      <Icono name="pencil-outline" size={scale.smallSize} color={PALETTE.accion} />
     </Pressable>
   );
 }

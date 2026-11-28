@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { Pressable, Text, View } from 'react-native';
 
 import { formatMXN } from '@/format/mxn';
@@ -71,7 +71,7 @@ export function LoQueSigue({
               style={{ flexShrink: 1, flexDirection: 'row', alignItems: 'center', minHeight: SIZE.tapTarget - 12 }}
             >
               <Text style={{ flexShrink: 1, fontSize: SIZE.smallSize, fontWeight: '700', color: PALETTE.accion }}>{ES.loQueSigue.mas(mas)}</Text>
-              <MaterialCommunityIcons name="chevron-right" size={17} color={PALETTE.accion} />
+              <Icono name="chevron-right" size={17} color={PALETTE.accion} />
             </Pressable>
           ) : (
             <View />

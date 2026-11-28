@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { useRef, useState } from 'react';
 import { Pressable, Text, TextInput, View } from 'react-native';
 
@@ -96,7 +96,7 @@ export function Calificar({ apartado, onListo }: { apartado: Apartado; onListo: 
             onPress={() => tocarEstrella(n)}
             style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
           >
-            <MaterialCommunityIcons
+            <Icono
               name={n <= estrellas ? 'star' : 'star-outline'}
               size={40}
               color={n <= estrellas ? PALETTE.estrella : PALETTE.estrellaApagada}
@@ -175,7 +175,7 @@ export function Estrellas({ n, size = 22 }: { n: number; size?: number }) {
       style={{ flexDirection: 'row', gap: 2 }}
     >
       {[1, 2, 3, 4, 5].map((i) => (
-        <MaterialCommunityIcons key={i} name={i <= n ? 'star' : 'star-outline'} size={size} color={i <= n ? PALETTE.estrella : PALETTE.estrellaApagada} />
+        <Icono key={i} name={i <= n ? 'star' : 'star-outline'} size={size} color={i <= n ? PALETTE.estrella : PALETTE.estrellaApagada} />
       ))}
     </View>
   );

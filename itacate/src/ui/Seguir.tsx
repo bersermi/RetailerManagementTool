@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 
@@ -85,7 +85,7 @@ export function Seguir({ cocinaId, nombre }: { cocinaId: string; nombre: string 
           {busy && cual === 'seguir' ? (
             <ActivityIndicator color={ink} />
           ) : (
-            <MaterialCommunityIcons name={sigue ? 'heart' : 'heart-outline'} size={SIZE.iconSize - 4} color={ink} />
+            <Icono name={sigue ? 'heart' : 'heart-outline'} size={SIZE.iconSize - 4} color={ink} />
           )}
           <Text style={{ fontSize: SIZE.bodySize, fontWeight: '700', color: ink }}>{sigue ? ES.seguir.laSigues : ES.seguir.seguir}</Text>
         </Pressable>
@@ -110,7 +110,7 @@ export function Seguir({ cocinaId, nombre }: { cocinaId: string; nombre: string 
           {busy && cual === 'campana' ? (
             <ActivityIndicator color={ahora.campana ? PALETTE.superficie : PALETTE.accion} />
           ) : (
-            <MaterialCommunityIcons
+            <Icono
               name={ahora.campana ? 'bell' : 'bell-outline'}
               size={SIZE.iconSize - 2}
               color={ahora.campana ? PALETTE.superficie : PALETTE.tinta}

@@ -34,7 +34,7 @@
 // only closes the keyboard, leaving its list in view.
 // ============================================================================
 
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { useRef, type RefObject } from 'react';
 import { ActivityIndicator, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 
@@ -100,7 +100,7 @@ export function CajaDeBusqueda({
         }}
       />
       <View pointerEvents="none" style={{ position: 'absolute', left: SIZE.space }}>
-        <MaterialCommunityIcons name="magnify" size={SIZE.iconSize} color={PALETTE.tintaApagada} />
+        <Icono name="magnify" size={SIZE.iconSize} color={PALETTE.tintaApagada} />
       </View>
       {texto !== '' && editable ? (
         <Pressable
@@ -120,7 +120,7 @@ export function CajaDeBusqueda({
             justifyContent: 'center',
           }}
         >
-          <MaterialCommunityIcons name="close-circle" size={SIZE.iconSize * 0.85} color={PALETTE.tintaApagada} />
+          <Icono name="close-circle" size={SIZE.iconSize * 0.85} color={PALETTE.tintaApagada} />
         </Pressable>
       ) : null}
     </View>

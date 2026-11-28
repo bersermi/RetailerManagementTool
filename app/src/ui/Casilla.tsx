@@ -19,7 +19,7 @@
 // a link inside it would otherwise be read as two fragments.
 // ============================================================================
 
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import type { ReactNode } from 'react';
 import { Pressable } from 'react-native';
 
@@ -55,7 +55,7 @@ export function Casilla({
         opacity: disabled ? 0.6 : 1,
       }}
     >
-      <MaterialCommunityIcons
+      <Icono
         name={ticked ? 'checkbox-marked' : 'checkbox-blank-outline'}
         size={scale.iconSize}
         color={ticked ? PALETTE.accion : PALETTE.tintaApagada}

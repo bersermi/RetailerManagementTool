@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
@@ -590,7 +590,7 @@ function Fila({
             {document.amount}
           </Text>
         )}
-        <MaterialCommunityIcons
+        <Icono
           name={open ? 'chevron-up' : 'chevron-down'}
           size={scale.iconSize}
           color={PALETTE.tintaApagada}
@@ -653,7 +653,7 @@ function SemanaVacia({ kind }: { kind: DocumentKind }) {
         importantForAccessibility="no-hide-descendants"
         style={{ width: side, height: side, borderRadius: side / 2, backgroundColor: tone.soft, alignItems: 'center', justifyContent: 'center' }}
       >
-        <MaterialCommunityIcons name={KIND_ICON[kind]} size={scale.iconSize * 1.6} color={tone.ink} />
+        <Icono name={KIND_ICON[kind]} size={scale.iconSize * 1.6} color={tone.ink} />
       </View>
       <Text style={{ ...letraTitulo(scale), color: PALETTE.tinta, textAlign: 'center' }}>{copy.title}</Text>
       <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada, textAlign: 'center' }}>{copy.hint}</Text>

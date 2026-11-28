@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import type { BottomTabBarProps } from 'expo-router/js-tabs';
 import { Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -75,7 +75,7 @@ export function Pestanas({ state, navigation, cuentas = {} }: BottomTabBarProps 
                 backgroundColor: PALETTE.superficie,
               }}
             >
-              <MaterialCommunityIcons name={pestana.icono} size={SIZE.iconSize} color={color} />
+              <Icono name={pestana.icono} size={SIZE.iconSize} color={color} />
               {cuenta > 0 && (
                 <View style={{ position: 'absolute', top: -3, right: 4 }}>
                   <Cuenta n={cuenta} />

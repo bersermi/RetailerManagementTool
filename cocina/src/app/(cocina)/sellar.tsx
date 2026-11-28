@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { router, useIsFocused } from 'expo-router';
 import { useEffect, useRef } from 'react';
 import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
@@ -117,7 +117,7 @@ export default function Sellar() {
             </View>
           ) : estado.tipo === 'sinSenal' ? (
             <View style={{ alignItems: 'center', gap: SIZE.rowGap, minHeight: 120, justifyContent: 'center' }}>
-              <MaterialCommunityIcons name="wifi-off" size={28} color={PALETTE.tintaApagada} />
+              <Icono name="wifi-off" size={28} color={PALETTE.tintaApagada} />
               <Text style={{ fontSize: SIZE.bodySize, lineHeight: 22, color: PALETTE.tinta, textAlign: 'center' }}>{ES.sellar.sinLlave}</Text>
             </View>
           ) : (
@@ -138,7 +138,7 @@ export default function Sellar() {
         )}
         {senal === false && estado.tipo === 'lista' && (
           <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: SIZE.rowGap }}>
-            <MaterialCommunityIcons name="wifi-off" size={18} color={PALETTE.tintaApagada} style={{ marginTop: 1 }} />
+            <Icono name="wifi-off" size={18} color={PALETTE.tintaApagada} style={{ marginTop: 1 }} />
             <Text style={{ ...quiet, flex: 1 }}>{ES.sellar.sinSenal}</Text>
           </View>
         )}
@@ -211,7 +211,7 @@ function Renglon({
         backgroundColor: resaltar ? PALETTE.marcaSuave : PALETTE.superficie,
       }}
     >
-      <MaterialCommunityIcons name={icono} size={SIZE.iconSize} color={resaltar ? PALETTE.marca : color} />
+      <Icono name={icono} size={SIZE.iconSize} color={resaltar ? PALETTE.marca : color} />
       <View style={{ flex: 1, gap: 2 }}>
         <Text style={{ fontSize: SIZE.bodySize - 1, fontWeight: '600', color: PALETTE.tinta }}>{arriba}</Text>
         {abajo !== '' && <Text style={{ fontSize: SIZE.smallSize - 0.5, lineHeight: 18, color: PALETTE.tintaApagada }}>{abajo}</Text>}

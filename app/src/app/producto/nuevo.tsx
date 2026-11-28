@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import {
@@ -770,7 +770,7 @@ function Buscar({
   return (
     <View style={{ gap: scale.rowGap }}>
       <Caja>
-        <MaterialCommunityIcons name="magnify" size={scale.iconSize} color={PALETTE.tintaApagada} />
+        <Icono name="magnify" size={scale.iconSize} color={PALETTE.tintaApagada} />
         <TextInput
           value={query}
           onChangeText={onQuery}
@@ -865,7 +865,7 @@ function Opcion({
         backgroundColor: chosen ? PALETTE.accionSuave : PALETTE.superficie,
       }}
     >
-      <MaterialCommunityIcons
+      <Icono
         name={icon === 'plus' ? 'plus' : chosen ? 'check-circle' : 'circle-outline'}
         size={scale.iconSize}
         color={chosen || icon === 'plus' ? PALETTE.accion : PALETTE.tintaApagada}

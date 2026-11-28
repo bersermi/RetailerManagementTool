@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Animated, Easing, Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
@@ -245,7 +245,7 @@ function Hoy({ focused, onCelebrate }: { focused: boolean; onCelebrate: (word: s
         <Rotulo text={ES.home.today} />
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <Text style={{ fontSize: scale.smallSize, fontWeight: '700', color: PALETTE.accion }}>{ES.home.seeNumbers}</Text>
-          <MaterialCommunityIcons name="chevron-right" size={scale.iconSize * 0.8} color={PALETTE.accion} />
+          <Icono name="chevron-right" size={scale.iconSize * 0.8} color={PALETTE.accion} />
         </View>
       </View>
       <View>
@@ -478,7 +478,7 @@ function ConoceWera() {
             justifyContent: 'center',
           }}
         >
-          <MaterialCommunityIcons name="play" size={scale.iconSize} color={PALETTE.superficie} />
+          <Icono name="play" size={scale.iconSize} color={PALETTE.superficie} />
         </View>
         <View style={{ flex: 1 }}>
           <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.tinta }}>{ES.recorrido.inicio.title}</Text>
@@ -494,7 +494,7 @@ function ConoceWera() {
         }}
         style={{ minHeight: scale.tapTarget, minWidth: scale.tapTarget, alignItems: 'center', justifyContent: 'center' }}
       >
-        <MaterialCommunityIcons name="close" size={scale.iconSize} color={PALETTE.tintaApagada} />
+        <Icono name="close" size={scale.iconSize} color={PALETTE.tintaApagada} />
       </Pressable>
     </View>
   );
@@ -533,7 +533,7 @@ function SemanaLista() {
           justifyContent: 'center',
         }}
       >
-        <MaterialCommunityIcons name="play" size={scale.iconSize} color={PALETTE.superficie} />
+        <Icono name="play" size={scale.iconSize} color={PALETTE.superficie} />
       </View>
       <View style={{ flex: 1 }}>
         <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.tinta }}>{ES.numbers.semana.ready}</Text>
@@ -578,7 +578,7 @@ function Racha({ onCelebrate }: { onCelebrate: (word: string) => void }) {
         backgroundColor: PALETTE.superficie,
       }}
     >
-      <MaterialCommunityIcons name="fire" size={scale.iconSize * 1.2} color={PALETTE.marca} />
+      <Icono name="fire" size={scale.iconSize * 1.2} color={PALETTE.marca} />
       <View style={{ flex: 1 }}>
         <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.marca }}>{ES.home.streak.days(streak)}</Text>
         <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>{ES.home.streak.sub}</Text>
@@ -633,7 +633,7 @@ function Puertas() {
             backgroundColor: ground[door.key] ?? PALETTE.accion,
           }}
         >
-          <MaterialCommunityIcons name={door.icon} size={scale.iconSize} color={PALETTE.superficie} />
+          <Icono name={door.icon} size={scale.iconSize} color={PALETTE.superficie} />
           <Text numberOfLines={1} adjustsFontSizeToFit style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.superficie }}>
             {door.label}
           </Text>
@@ -696,7 +696,7 @@ function Ultimo({ focused }: { focused: boolean }) {
           <Rotulo text={ES.documents.title} />
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <Text style={{ fontSize: scale.smallSize, fontWeight: '700', color: PALETTE.accion }}>{ES.home.feed.seeAll}</Text>
-            <MaterialCommunityIcons name="chevron-right" size={scale.iconSize * 0.8} color={PALETTE.accion} />
+            <Icono name="chevron-right" size={scale.iconSize * 0.8} color={PALETTE.accion} />
           </View>
         </Pressable>
         {rows.length === 0 ? (
@@ -1046,14 +1046,14 @@ function Recoleccion() {
         backgroundColor: PALETTE.superficie,
       }}
     >
-      <MaterialCommunityIcons name="truck-outline" size={scale.iconSize * 1.2} color={PALETTE.desperdicio} />
+      <Icono name="truck-outline" size={scale.iconSize * 1.2} color={PALETTE.desperdicio} />
       <View style={{ flex: 1, gap: scale.rowGap / 4 }}>
         <Rotulo text={ES.home.pickup.title} ink={PALETTE.desperdicio} />
         <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.desperdicio }}>
           {ES.home.pickup.line(formatSlot(next.day, next.from, today), untilLabel(minutes))}
         </Text>
       </View>
-      <MaterialCommunityIcons name="chevron-right" size={scale.iconSize} color={PALETTE.desperdicio} />
+      <Icono name="chevron-right" size={scale.iconSize} color={PALETTE.desperdicio} />
     </Pressable>
   );
 }
@@ -1106,7 +1106,7 @@ function Mas() {
                   backgroundColor: PALETTE.superficie,
                 }}
               >
-                <MaterialCommunityIcons name={door.icon} size={scale.iconSize} color={PALETTE.tintaApagada} />
+                <Icono name={door.icon} size={scale.iconSize} color={PALETTE.tintaApagada} />
                 <Text numberOfLines={1} adjustsFontSizeToFit style={{ fontSize: scale.smallSize, fontWeight: '600', color: PALETTE.tinta }}>
                   {door.label}
                 </Text>

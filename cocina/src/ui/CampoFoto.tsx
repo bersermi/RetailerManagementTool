@@ -1,5 +1,6 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import type { ComponentProps, ReactNode } from 'react';
+import type { NombreIcono } from '@/marca/glifos';
+import { Icono } from '@/ui/Icono';
+import type { ReactNode } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
 import { ratioOf, type Forma, type Foto as Slot } from '@/api/fotos';
@@ -28,7 +29,7 @@ function Boton({
   onPress,
   disabled,
 }: {
-  icon: ComponentProps<typeof MaterialCommunityIcons>['name'];
+  icon: NombreIcono;
   label: string;
   onPress: () => void;
   disabled: boolean;
@@ -53,7 +54,7 @@ function Boton({
         opacity: disabled ? 0.6 : 1,
       }}
     >
-      <MaterialCommunityIcons name={icon} size={SIZE.iconSize - 2} color={PALETTE.accion} />
+      <Icono name={icon} size={SIZE.iconSize - 2} color={PALETTE.accion} />
       <Text style={{ fontSize: SIZE.bodySize - 1, fontWeight: '700', color: PALETTE.accion }}>{label}</Text>
     </Pressable>
   );

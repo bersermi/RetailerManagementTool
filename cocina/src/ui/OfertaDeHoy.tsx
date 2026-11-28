@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 
@@ -179,7 +179,7 @@ export function OfertaDeHoy({
                 backgroundColor: PALETTE.superficie,
               }}
             >
-              <MaterialCommunityIcons name="eye-outline" size={18} color={PALETTE.accion} />
+              <Icono name="eye-outline" size={18} color={PALETTE.accion} />
               <Text style={{ fontSize: SIZE.bodySize, fontWeight: '600', color: PALETTE.accion }}>{ES.vista.asiLaVen}</Text>
             </Pressable>
           </View>
@@ -219,7 +219,7 @@ function Paso({
         backgroundColor: pressed ? PALETTE.accionSuave : PALETTE.superficie,
       })}
     >
-      <MaterialCommunityIcons name={icono} size={22} color={disabled ? PALETTE.linea : PALETTE.accion} />
+      <Icono name={icono} size={22} color={disabled ? PALETTE.linea : PALETTE.accion} />
     </Pressable>
   );
 }

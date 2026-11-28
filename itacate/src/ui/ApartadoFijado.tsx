@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { Pressable, Text, View } from 'react-native';
 
 import type { Kitchen } from '@/api/cocinas';
@@ -60,7 +60,7 @@ export function ApartadoFijado({
           {detalle}
         </Text>
       </View>
-      <MaterialCommunityIcons name="chevron-right" size={20} color={PALETTE.tintaApagada} />
+      <Icono name="chevron-right" size={20} color={PALETTE.tintaApagada} />
     </Pressable>
   );
 }

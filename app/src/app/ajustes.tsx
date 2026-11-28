@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { router } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { useEffect, useState, type ReactNode } from 'react';
@@ -482,7 +482,7 @@ function Cuadro({ square, onPress }: { square: Cuadrado; onPress: () => void }) 
         backgroundColor: PALETTE.superficie,
       }}
     >
-      <MaterialCommunityIcons
+      <Icono
         name={square.icon}
         size={scale.iconSize}
         color={square.key === 'salir' ? PALETTE.tintaApagada : PALETTE.accion}
@@ -583,7 +583,7 @@ function Identidad() {
           }}
           style={{ minHeight: scale.tapTarget, flexDirection: 'row', alignItems: 'center', gap: scale.rowGap / 2 }}
         >
-          <MaterialCommunityIcons name="share-variant" size={scale.iconSize * 0.85} color={PALETTE.accion} />
+          <Icono name="share-variant" size={scale.iconSize * 0.85} color={PALETTE.accion} />
           <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.accion }}>
             {ES.settings.menu.shareCode}
           </Text>
@@ -616,7 +616,7 @@ function Esperando() {
         backgroundColor: PALETTE.atencionSuave,
       }}
     >
-      <MaterialCommunityIcons name="account-clock-outline" size={scale.iconSize} color={PALETTE.atencion} />
+      <Icono name="account-clock-outline" size={scale.iconSize} color={PALETTE.atencion} />
       <Text style={{ flex: 1, fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.atencion }}>
         {ES.settings.menu.waiting(queue.count)}
       </Text>
@@ -971,7 +971,7 @@ function Letra() {
             </Text>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: scale.rowGap / 2 }}>
               {chosen ? (
-                <MaterialCommunityIcons name="check-circle" size={scale.iconSize * 0.8} color={PALETTE.accion} />
+                <Icono name="check-circle" size={scale.iconSize * 0.8} color={PALETTE.accion} />
               ) : null}
               <Text style={{ fontSize: scale.bodySize, fontWeight: chosen ? '700' : '600', color: chosen ? PALETTE.accion : PALETTE.tintaApagada }}>
                 {ES.density[candidate]}
@@ -1261,7 +1261,7 @@ function Opcion({
         backgroundColor: chosen ? PALETTE.accionSuave : PALETTE.superficie,
       }}
     >
-      <MaterialCommunityIcons
+      <Icono
         name={chosen ? 'check-circle' : 'circle-outline'}
         size={scale.iconSize}
         color={chosen ? PALETTE.accion : PALETTE.tintaApagada}

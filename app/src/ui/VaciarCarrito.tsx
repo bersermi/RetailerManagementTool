@@ -20,7 +20,7 @@
 // no language is a state a person misses by looking away.
 // ============================================================================
 
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icono } from '@/ui/Icono';
 import { Animated, Text, View } from 'react-native';
 
 import { ES } from '@/strings';
@@ -83,7 +83,7 @@ export function VaciarCarrito({
                   gap: scale.rowGap,
                 }}
               >
-                <MaterialCommunityIcons name="check-circle-outline" size={scale.iconSize * 2} color={PALETTE.accion} />
+                <Icono name="check-circle-outline" size={scale.iconSize * 2} color={PALETTE.accion} />
                 <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.tinta }}>
                   {ES.counter.cart.emptied}
                 </Text>
