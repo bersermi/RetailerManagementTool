@@ -9,7 +9,7 @@ import { apiErrorMessage } from '@/api/errors';
 import { useApartados, useAvisos, useCancelarApartado, useCocinas, useConsentimiento, useSiguiendo, useYaLoTengo } from '@/api/hooks';
 import { useAuth } from '@/auth/AuthProvider';
 import { usePermisoDeAvisos } from '@/lib/AvisosDelTelefono';
-import { anteriorTexto, pasaTexto, platoTexto, porConfirmarTexto, puedeCancelar, razonTexto, seccionesDe } from '@/lib/apartados';
+import { anteriorTexto, conElQueSeArranca, pasaTexto, platoTexto, porConfirmarTexto, puedeCancelar, razonTexto, seccionesDe } from '@/lib/apartados';
 import { useCola } from '@/lib/cola';
 import { preguntarSeguir } from '@/lib/misCocinas';
 import { hayQuePreguntar, preguntadoAqui } from '@/lib/ofertas';
@@ -69,6 +69,10 @@ import { SinSenal } from '@/ui/SinSenal';
 // tengo*: once she taps her stars' *Listo*, if `@/lib/ofertas`' `hayQuePreguntar` says so (offers offered to her,
 // never answered, never asked on this phone, a phone that shows notifications or can still ask). Dark until the
 // analyst turns offers on — today only his test accounts are offered them.
+// ⚠️⚠️ `11.8-ii`: THE STUB TEARS (*El talón se arranca*, 200 ms). Her queue drops the ticket she swiped from her list at
+// once, so it is kept in its place (`conElQueSeArranca`) while the stub holding *Ya lo tengo* tears off it; then the
+// ticket goes and *Ya lo tienes* arrives (its `Llega`) — what she did is on her phone from the swipe, and only the
+// drawing follows the tear. A plate *por confirmar* is a sheet with no stub: *Ya lo tienes* at once.
 // ============================================================================
 
 /** The clock this screen reads — *faltan 25 min*, and *Cancelar* turning into *No voy a poder ir*. */
@@ -86,6 +90,8 @@ export default function Apartados() {
   const cola = useCola();
   const sinSenal = useSenal() === false;
   const [recogido, setRecogido] = useState<Apartado | null>(null);
+  /** ⚠️ `11.8-ii`: the ticket she just swiped, and its place, while its stub tears. */
+  const [arrancando, setArrancando] = useState<{ apartado: Apartado; i: number } | null>(null);
   /** A past plate she opened *Calificar* on. */
   const [calificando, setCalificando] = useState<string | null>(null);
   const [cambio, setCambio] = useState<Apartado | null>(null);
@@ -108,6 +114,7 @@ export default function Apartados() {
   useFocusEffect(
     useCallback(() => () => {
       setRecogido(null);
+      setArrancando(null);
       setCalificando(null);
       setFalla(null);
     }, []),
@@ -115,11 +122,14 @@ export default function Apartados() {
 
   const puertaDe = (apartado: Apartado) => cocinas.data?.find((cocina) => cocina.id === apartado.cocina.id);
 
-  // ⚠️ `10.9j-ii-a`: queued, written to her phone before this returns — never awaited (J4).
-  function yaLoTengo(apartado: Apartado) {
+  // ⚠️ `10.9j-ii-a`: queued, written to her phone before this returns — never awaited (J4). ⚠️ `11.8-ii`: a ticket's
+  // place `i` keeps it there while its stub tears; a plate with no stub has none.
+  function yaLoTengo(apartado: Apartado, i?: number) {
     setFalla(null);
-    if (confirmar(apartado.id)) setRecogido(apartado);
-    else setFalla(ES.apartar.fallas.sesion);
+    if (confirmar(apartado.id)) {
+      setRecogido(apartado);
+      if (i !== undefined) setArrancando({ apartado, i });
+    } else setFalla(ES.apartar.fallas.sesion);
   }
 
   async function darloDeVuelta() {
@@ -135,6 +145,7 @@ export default function Apartados() {
 
   const lista = apartados.data;
   const secciones = lista === undefined ? null : seccionesDe(lista, ahora);
+  const pendientes = secciones === null ? [] : conElQueSeArranca(secciones.pendientes, arrancando);
   /** Her *Ya lo tengo* for the plate she just swiped, still on the phone. */
   const esperando = recogido !== null && recogiEsperando(cola.envios, recogido.id);
   /** A swipe the database refused for good, said under *Ya lo tienes* — or on its own once she leaves. */
@@ -177,7 +188,7 @@ export default function Apartados() {
           </Llega>
         ) : (
           <>
-            {recogido !== null && (
+            {recogido !== null && arrancando === null && (
               <Llega i={0} style={styles.recogido}>
                 <Icono name="check-circle" size={40} color={PALETTE.accion} />
                 <Text style={styles.recogidoTitulo}>{ES.apartados.yaLoTienes}</Text>
@@ -209,13 +220,15 @@ export default function Apartados() {
               </Llega>
             ))}
 
-            {secciones.pendientes.map((apartado, i) => (
+            {pendientes.map((apartado, i) => (
               <Llega key={apartado.id} i={secciones.avisos.length + i}>
                 <BoletoApartado
                   apartado={apartado}
                   puerta={puertaDe(apartado)}
                   ahora={ahora}
-                  onYaLoTengo={() => yaLoTengo(apartado)}
+                  arranca={arrancando?.apartado.id === apartado.id}
+                  onArrancado={() => setArrancando(null)}
+                  onYaLoTengo={() => yaLoTengo(apartado, i)}
                   onCambioDePlanes={() => {
                     setFalla(null);
                     setCambio(apartado);
@@ -225,7 +238,7 @@ export default function Apartados() {
             ))}
 
             {secciones.porConfirmar.map((apartado, i) => (
-              <Llega key={apartado.id} i={secciones.avisos.length + secciones.pendientes.length + i} style={styles.porConfirmar}>
+              <Llega key={apartado.id} i={secciones.avisos.length + pendientes.length + i} style={styles.porConfirmar}>
                 <Text style={styles.porConfirmarTitulo}>{ES.apartados.porConfirmar.titulo}</Text>
                 <Text style={styles.filaTitulo}>{apartado.cocina.nombre}</Text>
                 <Text style={styles.filaDetalle}>{platoTexto(apartado)}</Text>
@@ -239,7 +252,7 @@ export default function Apartados() {
               </Llega>
             ))}
 
-            {secciones.pendientes.length === 0 &&
+            {pendientes.length === 0 &&
               secciones.avisos.length === 0 &&
               secciones.porConfirmar.length === 0 &&
               recogido === null && (
@@ -254,7 +267,7 @@ export default function Apartados() {
             )}
 
             {secciones.anteriores.length > 0 && (
-              <Llega i={secciones.avisos.length + secciones.pendientes.length + secciones.porConfirmar.length + 1} style={styles.anteriores}>
+              <Llega i={secciones.avisos.length + pendientes.length + secciones.porConfirmar.length + 1} style={styles.anteriores}>
                 <Text style={styles.seccion}>{ES.apartados.anteriores}</Text>
                 <Grupo>
                   {secciones.anteriores.map((apartado) => (

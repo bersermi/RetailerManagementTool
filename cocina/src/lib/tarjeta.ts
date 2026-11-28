@@ -524,6 +524,18 @@ export function resultadoDe(card: CardRow): { readonly texto: string; readonly t
   }
 }
 
+/**
+ * ⚠️ `11.8-ii`: the place on her card of the stamp this answer GAVE — her first, her `stamps`th, or the last of a card
+ * that won (its count back to zero, G17) — or `null` when it gave none. *El sello cae* lands it on *Escanear a tu
+ * cliente*, turned as that place is on her card in Wera.
+ */
+export function selloDado(card: CardRow): number | null {
+  if (card.result === 'primer') return 0;
+  if (card.result === 'sello') return Math.max(0, (card.stamps ?? 1) - 1);
+  if (card.result === 'gano') return Math.max(0, (card.of ?? 1) - 1);
+  return null;
+}
+
 /** Whether an answer gave what the scan was for — a stamp, or a reward. */
 export function dio(card: CardRow): boolean {
   return card.result === 'primer' || card.result === 'sello' || card.result === 'gano' || card.result === 'cobrado' || card.result === 'ya_cobrado';

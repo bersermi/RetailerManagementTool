@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useEscaneo, useKitchen, type Respuesta } from '@/api/hooks';
 import type { CardRow } from '@/api/tarjeta';
 import { digitosDe } from '@/lib/codigo';
-import { conTarjeta, escaneoDe, premiosDe, resultadoDe, resumenDe, tecleadoDe, type Escaneo, type Tono } from '@/lib/tarjeta';
+import { conTarjeta, escaneoDe, premiosDe, resultadoDe, resumenDe, selloDado, tecleadoDe, type Escaneo, type Tono } from '@/lib/tarjeta';
 import { ES } from '@/strings';
 import { TITULO } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
@@ -18,6 +18,8 @@ import { BotonLleno } from '@/ui/BotonLleno';
 import { Campo } from '@/ui/Campo';
 import { Escaner } from '@/ui/Escaner';
 import { Formulario } from '@/ui/Formulario';
+import { SelloVaca } from '@/ui/Mostrador';
+import { Cae } from '@/ui/Movimientos';
 
 // ============================================================================
 // *ESCANEAR A TU CLIENTE* — HER CODE, AND WHAT IT GIVES (G5, G6, G10, G11, G16; the family-shell page's
@@ -38,7 +40,11 @@ import { Formulario } from '@/ui/Formulario';
 //     is sent with its moment when the signal returns (`@/api/cola`) — and a *Cobras: …* code keeps its
 //     reward the same way. *Sellar* lists what waits, and later what went and gave nothing.
 // What the camera sees is never kept or sent — only the text of the code it read.
-// NO CHECK CAN SEE THIS SCREEN (ADR-035 §2.11): the phone is its instrument.
+// ⚠️ `11.8-ii`: THE STAMP SHE GAVE LANDS (*El sello cae*): the Wera cow in her green beside *Sello para Ana · 6 de 8*,
+// turned as that place is on Ana's card (`selloDado`), when the database's answer says it was given — with signal
+// this screen waits for that answer (above), so the stamp lands with it and never before: a stamp landed and then
+// refused (*Ya tiene su sello de hoy*) would be a stamp she did not give. A scan kept with no signal lands nothing:
+// it is *Guardado*, not given. NO CHECK CAN SEE THIS SCREEN (ADR-035 §2.11): the phone is its instrument.
 // ============================================================================
 
 type Paso =
@@ -221,6 +227,7 @@ function SuTarjeta({
   const nombre = card.name ?? ES.sellar.alguien;
   const resumen = resumenDe(card);
   const premios = premiosDe(card);
+  const dado = selloDado(card);
   const nueva = card.stamps === 0 && premios.length === 0 && card.result === 'suya' && card.open !== false && card.stamped_today !== true;
   return (
     <View style={{ gap: SIZE.space, padding: SIZE.space * 1.25, borderRadius: ESQUINA.hoja, backgroundColor: PALETTE.superficie }}>
@@ -235,9 +242,17 @@ function SuTarjeta({
           {card.conditions != null && <Text style={{ fontSize: SIZE.smallSize, color: PALETTE.tintaApagada }}>{card.conditions}</Text>}
         </View>
       </View>
-      {paso.dijo !== null && (
-        <Text style={{ fontSize: SIZE.bodySize, lineHeight: 22, fontWeight: '700', color: COLOR_DE[paso.dijo.tono] }}>{paso.dijo.texto}</Text>
-      )}
+      {paso.dijo !== null &&
+        (dado !== null ? (
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: SIZE.rowGap }}>
+            <Cae cae>
+              <SelloVaca i={dado} tinta={PALETTE.accion} />
+            </Cae>
+            <Text style={{ flex: 1, fontSize: SIZE.bodySize, lineHeight: 22, fontWeight: '700', color: COLOR_DE[paso.dijo.tono] }}>{paso.dijo.texto}</Text>
+          </View>
+        ) : (
+          <Text style={{ fontSize: SIZE.bodySize, lineHeight: 22, fontWeight: '700', color: COLOR_DE[paso.dijo.tono] }}>{paso.dijo.texto}</Text>
+        ))}
       {nueva && paso.dijo === null && <Text style={{ fontSize: SIZE.smallSize + 1, color: PALETTE.tintaApagada }}>{ES.escanearCliente.sinTarjeta}</Text>}
       {paso.eligiendo ? (
         <View style={{ gap: SIZE.rowGap }}>

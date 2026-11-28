@@ -4,6 +4,7 @@ import { Image, StyleSheet, Text, View } from 'react-native';
 import { ESQUINA } from '@/theme/density';
 import { letraEncabezado } from '@/theme/letra';
 import { PALETTE, SIZE } from '@/theme/palette';
+import { Arranca } from '@/ui/Movimientos';
 
 // ============================================================================
 // THE COUNTER'S OBJECTS — plan task `11.8-i`, direction A · *Mostrador* (row `11.2`'s objects,
@@ -18,9 +19,10 @@ import { PALETTE, SIZE } from '@/theme/palette';
 // ⚠️ ONE FILE IN BOTH SIBLINGS (`cocina/src/ui/Mostrador.tsx` and `itacate/src/ui/Mostrador.tsx`):
 // `test/mostrador.test.ts` in each holds the two to each other, the pictures to `brand/`, and
 // `OBJETOS` to `objetos.json`. A word is never baked into a picture: it stays the app's string,
-// read aloud and sized by the phone. Nothing here moves — the stamp landing and the stub tearing
-// are `11.8-ii`'s (`brand/mostrador/movimiento.json`). NO CHECK CAN SEE THESE (ADR-035 §2.11):
-// the session's emulator and Simulator shots, and his look, are their evidence.
+// read aloud and sized by the phone. ⚠️ `11.8-ii`: a ticket's stub can tear (`arranca`, drawn by
+// `@/ui/Movimientos`' `Arranca`); the stamps land with `Cae` around them, where each is drawn. NO CHECK
+// CAN SEE THESE (ADR-035 §2.11): the session's emulator and Simulator shots, recordings, and his look,
+// are their evidence.
 // ============================================================================
 
 const MUESCA = require('@/marca/mostrador/muesca.png') as number;
@@ -73,6 +75,9 @@ function Perforacion({ color, raya }: { color: string; raya: string }) {
  * A ticket: square corners, its body, and — when it has one — the band where it tears and the stub
  * after it, which holds what she does with it (*Entregar*, *Ya lo tengo*). A ticket with no stub is
  * its body alone. On a white ticket the perforation is `linea`; on her green offer `barraSobreAccion`.
+ * ⚠️ `11.8-ii`: with `arranca` the stub tears off as it is drawn (*El talón se arranca*) and `onArrancado`
+ * is called once it has gone — its screen then draws the ticket without it. What she did is on her phone
+ * already (C10.3): nothing waits for the tear, and nothing in the stub can be pressed while it goes.
  */
 export function Boleto({
   color = PALETTE.superficie,
@@ -80,31 +85,53 @@ export function Boleto({
   padding = SIZE.space * 1.25,
   cuerpo,
   talon = null,
+  arranca = false,
+  onArrancado,
 }: {
   color?: string;
   raya?: string;
   padding?: number;
   cuerpo: ReactNode;
   talon?: ReactNode;
+  arranca?: boolean;
+  onArrancado?: () => void;
 }) {
-  if (talon === null || talon === undefined || talon === false) return <View style={{ padding, borderRadius: ESQUINA.boleto, backgroundColor: color }}>{cuerpo}</View>;
+  const conTalon = talon !== null && talon !== undefined && talon !== false;
+  const parteDelTalon = (
+    <View
+      style={{
+        marginTop: -1,
+        paddingHorizontal: padding,
+        paddingTop: padding * 0.5 + 1,
+        paddingBottom: padding * 0.75,
+        borderRadius: ESQUINA.boleto,
+        backgroundColor: color,
+      }}
+    >
+      {talon}
+    </View>
+  );
+  // ⚠️ ONE TREE WITH A STUB OR WITHOUT: the body stays mounted when its stub goes, so a stamp landing on it
+  // (`11.8-ii`'s *Entregado*) is not cut short as the stub lets go — and the stub sits in its `Arranca` from the
+  // start, so what it holds is not remounted as it tears (her swipe's thumb stays where she left it).
   return (
     <View>
       {/* Each part overlaps the band by a point: views meeting on a fraction of a pixel leave a hairline of the counter (`11.5-ii`). */}
-      <View style={{ padding, paddingBottom: padding * 0.75, marginBottom: -1, borderRadius: ESQUINA.boleto, backgroundColor: color }}>{cuerpo}</View>
-      <Perforacion color={color} raya={raya} />
       <View
-        style={{
-          marginTop: -1,
-          paddingHorizontal: padding,
-          paddingTop: padding * 0.5 + 1,
-          paddingBottom: padding * 0.75,
-          borderRadius: ESQUINA.boleto,
-          backgroundColor: color,
-        }}
+        style={
+          conTalon
+            ? { padding, paddingBottom: padding * 0.75, marginBottom: -1, borderRadius: ESQUINA.boleto, backgroundColor: color }
+            : { padding, borderRadius: ESQUINA.boleto, backgroundColor: color }
+        }
       >
-        {talon}
+        {cuerpo}
       </View>
+      {conTalon && <Perforacion color={color} raya={raya} />}
+      {conTalon && (
+        <Arranca arranca={arranca} onFin={() => onArrancado?.()}>
+          {parteDelTalon}
+        </Arranca>
+      )}
     </View>
   );
 }

@@ -37,6 +37,7 @@ import { useAhora } from '@/lib/useAhora';
 import { clockOf, dayOf } from '@/lib/ventana';
 import { ES } from '@/strings';
 import { TITULO, letraEncabezado } from '@/theme/letra';
+import { ENTREGAR } from '@/theme/movimiento';
 import { PALETTE, SIZE } from '@/theme/palette';
 import { ESQUINA } from '@/theme/density';
 import { Banda } from '@/ui/Banda';
@@ -46,6 +47,7 @@ import { HojaOfertas } from '@/ui/HojaOfertas';
 import { Escaner } from '@/ui/Escaner';
 import { Llega } from '@/ui/Llega';
 import { Boleto, SelloPalabra } from '@/ui/Mostrador';
+import { Cae } from '@/ui/Movimientos';
 import { SinSenal } from '@/ui/SinSenal';
 import { Casillas, Teclado } from '@/ui/Teclado';
 import { CODIGO, Calificacion, Marca } from '@/ui/TarjetaOrden';
@@ -89,8 +91,12 @@ import { CODIGO, Calificacion, Marca } from '@/ui/TarjetaOrden';
 // is read again and the same scan checked once more. ⚠️ J3: a typed code it never read is never handed over; with no
 // signal the keypad's own line says so, and the QR is the way (no *Entregarlo así*).
 // ⚠️ `11.8-i`: THE ORDER IS A TICKET (the design system's *Boleto* and *Sello*): *Ya cobré y lo entregué* on its stub,
-// and once handed over the ticket without it, *Entregado* pressed on what is left. The stub tearing and the stamp
-// landing are `11.8-ii`'s. NO CHECK CAN SEE THIS SCREEN (ADR-035 §2.11): the phone is its instrument.
+// and once handed over the ticket without it, *Entregado* pressed on what is left.
+// ⚠️ `11.8-ii`: THE HANDOVER IS ONE GESTURE (`movimiento.json`'s `secuencias.entregar`, a conductor's punch): her tap
+// queues it (above) and draws what is left at once; the stub she tapped tears off it (`Boleto`'s `arranca`) and
+// *Entregado* lands 40 ms later (`Cae`, `ENTREGAR.sello`) — both done 300 ms after her tap. Only a handover made on
+// this screen moves: an order found already handed over is drawn still. NO CHECK CAN SEE THIS SCREEN (ADR-035 §2.11):
+// the phone is its instrument.
 // ============================================================================
 
 const CADA_MEDIO_MINUTO = 30_000;
@@ -113,6 +119,8 @@ export default function Entregar() {
   const [pendiente, setPendiente] = useState<SelloLeido | null>(null);
   // The order handed over on THIS screen.
   const [entregadaAqui, setEntregadaAqui] = useState<string | null>(null);
+  // ⚠️ `11.8-ii`: the order whose stub is tearing — from her tap until the stub has gone.
+  const [arrancando, setArrancando] = useState<string | null>(null);
   // The order whose thumb is being given here, held until she leaves it.
   const [panelPara, setPanelPara] = useState<string | null>(null);
   // Each neighbour's name as last read, so the panel keeps it once the database stops sending it.
@@ -199,6 +207,7 @@ export default function Entregar() {
   function otroCodigo() {
     setCodigo('');
     setEntregadaAqui(null);
+    setArrancando(null);
     setPanelPara(null);
     setSello(null);
     setEntregadaDelSello(null);
@@ -237,6 +246,7 @@ export default function Entregar() {
     entregar(o.id);
     setEntregadaAqui(o.id);
     setPanelPara(o.id);
+    setArrancando(o.id);
     // ⚠️ `10.9j-ii-b`: an order known only from its seal is drawn handed over from this moment, as the queue sends it.
     if (revisada) setEntregadaDelSello(new Date());
   }
@@ -271,6 +281,8 @@ export default function Entregar() {
               ahora={ahora}
               revisada={revisada}
               entregadaAqui={aqui}
+              arranca={arrancando === orden.id}
+              onArrancado={() => setArrancando(null)}
               esperando={entregaEsperando(apartados.porEnviar, orden.id)}
               falla={apartados.rechazoDe(orden.id)}
               onEntregar={() => entregarla(orden)}
@@ -325,6 +337,8 @@ function Encontrada({
   ahora,
   revisada,
   entregadaAqui,
+  arranca,
+  onArrancado,
   esperando,
   falla,
   onEntregar,
@@ -335,6 +349,9 @@ function Encontrada({
   /** ⚠️ `10.9j-ii-b`: drawn from her ticket's seal — this phone never read it, and checked it itself. */
   revisada: boolean;
   entregadaAqui: boolean;
+  /** ⚠️ `11.8-ii`: she has just handed it over here — the stub she tapped tears, and *Entregado* lands. */
+  arranca: boolean;
+  onArrancado: () => void;
   /** Her handover of it is still on the phone (`@/api/cola`). */
   esperando: boolean;
   /** The database refused a send about it, or `null`. */
@@ -352,20 +369,28 @@ function Encontrada({
     </View>
   );
   const despues = revisada && <Text style={{ fontSize: SIZE.smallSize, lineHeight: 18, color: PALETTE.tintaApagada }}>{ES.entregar.despues}</Text>;
+  // The button she tapped, as it was — what the stub held, tearing off with it.
+  const boton = <BotonLleno variante="principal" icon="check" label={orden.comer === 'aqui' ? ES.entregar.yaLaServi : ES.entregar.yaCobre} onPress={onEntregar} />;
   if (recogida && entregadaAqui) {
     const cobraste = cobrasteTexto(orden);
     // ⚠️ `11.8-i`: WHAT IS LEFT OF THE TICKET ONCE HANDED OVER — its stub gone, *Entregado* pressed on it as a
-    // stamp in her green (`@/ui/Mostrador`'s `SelloPalabra`; it lands at `11.8-ii`).
+    // stamp in her green (`@/ui/Mostrador`'s `SelloPalabra`). ⚠️ `11.8-ii`: from her tap the stub tears off what is
+    // left (`arranca`; the ticket lets it go when it has gone) and *Entregado* lands as it lets go.
     return (
       <View style={{ gap: SIZE.space }}>
         {revisadoAqui}
         <Boleto
           padding={SIZE.space}
+          talon={arranca ? boton : null}
+          arranca={arranca}
+          onArrancado={onArrancado}
           cuerpo={
             <View style={{ gap: 4 }}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: SIZE.rowGap, marginBottom: 4 }}>
                 <Text style={{ ...CODIGO, color: PALETTE.tinta }}>{ES.entregar.codigo(orden.codigo)}</Text>
-                <SelloPalabra texto={ES.apartado.entregado} tinta={PALETTE.accion} />
+                <Cae cae={arranca} retraso={ENTREGAR.sello}>
+                  <SelloPalabra texto={ES.apartado.entregado} tinta={PALETTE.accion} />
+                </Cae>
               </View>
               <Text style={{ fontSize: 18, fontWeight: '600', color: PALETTE.tinta }}>{queTexto(orden)}</Text>
               {cobraste !== null && <Text style={{ fontSize: SIZE.bodySize, color: PALETTE.tinta }}>{cobraste}</Text>}
@@ -451,11 +476,7 @@ function Encontrada({
             {falla !== null && <Text style={{ fontSize: SIZE.smallSize, lineHeight: 18, color: PALETTE.error }}>{ES.apartados.fallas[falla]}</Text>}
           </View>
         }
-        talon={
-          recogida ? null : (
-            <BotonLleno variante="principal" icon="check" label={orden.comer === 'aqui' ? ES.entregar.yaLaServi : ES.entregar.yaCobre} onPress={onEntregar} />
-          )
-        }
+        talon={recogida ? null : boton}
       />
     </View>
   );
